@@ -72,3 +72,48 @@
 - Next: US-002 Docker versioned API research after successful commit.
 
 ---
+
+## 2026-09-25 - US-002 candidate verification
+
+- Feature/task: PLAN.md, US-002, attempt 1. Prior US-001 delivery: `7eae0984`.
+- Implemented: `packages/service/docker/API_EVIDENCE.md`, documentation only. Selected v1.52 and proposed exact Engine 29.1.0 oracle; resolved `docker-v29.1.0` to commit `710302ecf2e958db92cb7d92f8838ea063a31765`. Recorded Context7 library/results, source URLs, hashes, 13 methods, statuses, framing, mock exclusions and unresolved future verification.
+- Research: Context7 resolved `/docker/docs` (main only), then three queries for attach, lifecycle and discovery/versioning. Historical results were reconciled with official v1.52 YAML and pinned specification/source. Guessed `v29.1.0` tag and old container/state path returned 404; correct tag/path were resolved from the public GitHub tree. Web YAML/Markdown rendering was unsupported, so the published YAML was retrieved directly; all research artifacts stay under ignored `.mockingbird/docker-evidence/`. An initial local YAML parse from the root lacked module resolution; rerunning from the existing codegen package used its installed yaml dependency.
+- Decisions: non-TTY v1.52 upgraded attach uses multiplexed-stream; ordinary unversioned routes default to 1.52 in this pin; successful stop follows termination; wait headers precede result body; attach backend errors can be plain-text on a hijacked connection. Current docs and pinned spec differ on start 400. These distinctions are explicit in the document. No Engine or consumer runtime was exercised.
+- Checks: root `TMPDIR="$PWD/.mockingbird/tmp" TURBO_TELEMETRY_DISABLED=1 bun run typecheck` passed (log `.mockingbird/us002-typecheck.log`). Python local-link/whitespace/table inventory validation passed. Compared parsed selected path objects between the official and pinned specifications and recorded the one discrepancy. SHA-256 hashes recorded. Biome Markdown limitation established in US-001 still applies; static documentation validation used. No artificial runtime tests added.
+- Implementation advisors: none; trivial documentation change. No UI work or UI verification applicable. Memory absent, empty version-1 state used in process.
+- Review selection: standard/trivial self-review, profile expanded-initial, pass initial; native role/session not applicable. Full shared protocol already loaded. Candidate consists of evidence document and append-only progress; no package/config/runtime changes.
+- Intended commit: `feat(US-002): research and pin the Docker API contract`.
+- Commit status: pending (not yet delivered); review not yet complete.
+- Approvals: existing sequence authorization covers this story and commit; read-only public research within scope. Actual provider operations remain separately gated.
+- Next: stage and review US-002, then scaffold US-003 after required package/build configuration approval. Oracle execution is deferred to its declared US-013 gate, not claimed passing.
+
+---
+
+## 2026-09-25 - US-002 final review
+
+- Self-review expanded-initial/initial, attempt 1: staged inventory and full evidence patch reviewed against the story, supplied research and source comparison. No substantive findings, targeted pass, native session or advisors. Structured result validated:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": {
+    "priority_order": [],
+    "recommended_checks": [],
+    "avoid": []
+  },
+  "residual_risks": [
+    "Engine 29.1.0 oracle availability and execution remain unverified and are owned by US-013.",
+    "Context7 returned historical or main-branch material; version claims rely on the recorded v1.52 specification and pinned source."
+  ],
+  "learning_candidates": []
+}
+```
+
+- Required typecheck passed (185/185 cached tasks); source and static validations passed. Markdown formatter exclusion remains documented. No runtime/provider evidence claimed. No memory learnings qualify.
+- Commit status: pending (not yet delivered). Provisional US-002 marker requires successful authorized commit. Intended message: `feat(US-002): research and pin the Docker API contract`.
+- Next: US-003, pending required dependency/build configuration approval.
+
+---
