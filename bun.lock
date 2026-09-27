@@ -428,6 +428,30 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/docker": {
+      "name": "@crvouga/mockingbird-service-docker",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-docker": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/dynamodb": {
       "name": "@crvouga/mockingbird-service-dynamodb",
       "version": "0.0.0-development",
@@ -1965,6 +1989,8 @@
     "@crvouga/mockingbird-service-customerio": ["@crvouga/mockingbird-service-customerio@workspace:packages/service/customerio"],
 
     "@crvouga/mockingbird-service-daily": ["@crvouga/mockingbird-service-daily@workspace:packages/service/daily"],
+
+    "@crvouga/mockingbird-service-docker": ["@crvouga/mockingbird-service-docker@workspace:packages/service/docker"],
 
     "@crvouga/mockingbird-service-dynamodb": ["@crvouga/mockingbird-service-dynamodb@workspace:packages/service/dynamodb"],
 

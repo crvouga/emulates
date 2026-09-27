@@ -117,3 +117,46 @@
 - Next: US-003, pending required dependency/build configuration approval.
 
 ---
+
+## 2026-09-27 UTC - US-003 authorization and design
+
+- User approved `.mockingbird/docker-scaffold-config.md`: new Docker package manifest, tsconfig files, infrastructure category and corresponding workspace lockfile/install. No existing dependency versions are to change. This materially resolves the prior approval blocker.
+- Scope: scaffold with ping, standard controls and explicit unsupported future operations. Durable records use existing storage; Timeline stays shared. Docker upgrade/Unix transport remains Node-only work for US-009–US-011, not a fake Fetch 101.
+- Runtime: Codex, standard mode. Implementation risk standard; verification-sensitive/native review required. No implementation advisors needed for established package patterns. Native story-reviewer is available in the runtime. Memory absent, empty version-1 memory used in process.
+- Existing sequence/check/review/commit authorization continues. No provider, global runtime or external state modifications planned.
+- Commit status: pending (not yet delivered). US-003 remains incomplete.
+
+---
+
+## 2026-09-27 UTC - US-003 candidate verification
+
+- Implemented portable DockerAPI/createRuntime, selected API 1.52 inventory, Node HTTP server/CLI, WIP metadata, initial README and tests. Only unversioned GET/HEAD ping is supported; lifecycle and attach return 501. Upgrade verification is deferred.
+- Test order: ping failed against compiling 501 scaffold (expected 200), then passed after implementation. Integration tests followed runtime wiring. Initial reset assertions incorrectly assumed fault/journal clearing; inspected shared implementation and corrected expectations to retained history/configuration, verifying explicit fault clear. No shared behavior changed.
+- Initial self-parity failed on submillisecond latency comparison; adopted existing package tolerance (1000ms). A single generated walk was empty; increased divergence sampling and asserted response mismatch rather than latency. Final: 9 tests passed, 0 failed, 61 assertions. Node HTTP test needed sandbox escalation for a loopback port and passed.
+- Passed package lint (10 files), typecheck, codegen freshness, OpenAPI validation, build, portability (5 files), pack check (14 tarball files, publint and ESM type resolutions). Pack initially attempted a sandbox-denied temporary directory; rerun with project-local TMPDIR/npm cache passed. Root typecheck: 187/187 tasks. Boundary check: passed, 1682 files. Category lint and git diff whitespace check passed.
+- Lockfile adds only the Docker workspace/link (26 lines), no existing version changes. Full catalog/branding/generated repository docs and aggregate gate remain US-014 scope. No live Engine or SDK parity claimed.
+- Review: CodexGoalMarkdown, standard mode, test-sensitive, native story-reviewer, expanded-initial, initial pass, US-003 attempt 1. No UI flow changes. Memory empty. Commit status: not_attempted, awaiting staged review.
+
+## 2026-09-27 UTC - US-003 review and finalization
+
+- Native role: `story-reviewer`; actual session: `/root/review_us003_attempt1`; story US-003, attempt 1, worktree `/Users/corysiebler/Repositories/mockingbird`. Complete protocol supplied in invocation. Candidate remained immutable during review. Returned initial result validates against the required schema:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": {
+    "priority_order": [],
+    "recommended_checks": [],
+    "avoid": ["Do not expand this scaffold review into lifecycle, version-routing, or attach implementation stories."]
+  },
+  "residual_risks": [],
+  "learning_candidates": []
+}
+```
+
+- No findings, remediation pass, or qualifying memory changes. Checks remain passing as recorded above. Existing user authorization covers the story commit. Provisional US-003 completion marker requires successful commit; 28 stories remain after delivery.
+- Intended commit message: `feat(US-003): scaffold the Docker service package`.
+- Commit status: pending (not yet delivered). Next eligible story: US-004.

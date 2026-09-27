@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 and US-002 are complete; 29 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-003 are complete; 28 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -81,7 +81,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-003: Scaffold the Docker service package
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 3
 - Depends on: US-002
 - Relevant paths: `packages/service/docker/`, `docs/AUTHORING_A_SERVICE.md`.

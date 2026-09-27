@@ -1,0 +1,539 @@
+openapi: 3.1.0
+info:
+  title: Docker Engine (Mockingbird scaffold)
+  version: "1.52"
+  description: Ping is implemented. Lifecycle and attach operations are explicitly
+    unsupported pending later stories. See API_EVIDENCE.md.
+  x-mockingbird-upstream:
+    url: https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/api/swagger.yaml
+    note: Selected operation inventory adapted from Engine 29.1.0/API 1.52.
+      Unsupported operations have no successful implementation.
+servers:
+  - url: http://127.0.0.1
+paths:
+  /containers/json:
+    get:
+      operationId: ContainerList
+      summary: List containers
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: true
+      responses:
+        "200":
+          description: no error
+        "400":
+          description: bad parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/create:
+    post:
+      operationId: ContainerCreate
+      summary: Create a container
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: false
+      responses:
+        "201":
+          description: Container created successfully
+        "400":
+          description: bad parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: no such image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/{id}/json:
+    get:
+      operationId: ContainerInspect
+      summary: Inspect a container
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: true
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: no error
+        "404":
+          description: no such container
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/{id}/start:
+    post:
+      operationId: ContainerStart
+      summary: Start a container
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: no error
+        "304":
+          description: container already started
+        "404":
+          description: no such container
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/{id}/stop:
+    post:
+      operationId: ContainerStop
+      summary: Stop a container
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: no error
+        "304":
+          description: container already stopped
+        "404":
+          description: no such container
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/{id}/kill:
+    post:
+      operationId: ContainerKill
+      summary: Kill a container
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: no error
+        "404":
+          description: no such container
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: container is not running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/{id}/attach:
+    post:
+      operationId: ContainerAttach
+      summary: Attach to a container
+      x-mockingbird:
+        supported: false
+        reason: Node HTTP upgrade requires protocol-specific verification in
+          US-010/US-011; unavailable in Fetch and scaffold.
+        parity:
+          enabled: false
+          reason: Raw duplex HTTP upgrade cannot be represented by a Fetch response.
+          safe: false
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "101":
+          description: no error, hints proxy about hijacking
+        "200":
+          description: no error, no upgrade header found
+        "400":
+          description: bad parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: no such container
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/{id}/wait:
+    post:
+      operationId: ContainerWait
+      summary: Wait for a container
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The container has exit.
+        "400":
+          description: bad parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: no such container
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /containers/{id}:
+    delete:
+      operationId: ContainerDelete
+      summary: Remove a container
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: no error
+        "400":
+          description: bad parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: no such container
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /info:
+    get:
+      operationId: SystemInfo
+      summary: Get system information
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: true
+      responses:
+        "200":
+          description: No error
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /version:
+    get:
+      operationId: SystemVersion
+      summary: Get version
+      x-mockingbird:
+        supported: false
+        reason: Deferred to its implementation story; not available in the scaffold.
+        parity:
+          enabled: false
+          reason: Operation not implemented in scaffold.
+          safe: true
+      responses:
+        "200":
+          description: no error
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: "Mockingbird scaffold: operation not implemented"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /_ping:
+    get:
+      operationId: SystemPing
+      summary: Ping
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: no error
+          headers:
+            API-Version:
+              schema:
+                type: string
+                const: "1.52"
+            Docker-Experimental:
+              schema:
+                type: string
+                const: "false"
+            Builder-Version:
+              schema:
+                type: string
+                const: "2"
+            Swarm:
+              schema:
+                type: string
+                const: inactive
+            Cache-Control:
+              schema:
+                type: string
+            Pragma:
+              schema:
+                type: string
+          content:
+            text/plain:
+              schema:
+                type: string
+                const: OK
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    head:
+      operationId: SystemPingHead
+      summary: Ping
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: no error
+          headers:
+            API-Version:
+              schema:
+                type: string
+                const: "1.52"
+            Docker-Experimental:
+              schema:
+                type: string
+                const: "false"
+            Builder-Version:
+              schema:
+                type: string
+                const: "2"
+            Swarm:
+              schema:
+                type: string
+                const: inactive
+            Cache-Control:
+              schema:
+                type: string
+            Pragma:
+              schema:
+                type: string
+        "500":
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
