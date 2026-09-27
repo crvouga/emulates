@@ -494,3 +494,40 @@
 - Required scoped checks pass as recorded above. No remaining findings; existing memory unchanged because no qualifying learning or suppression. No real Engine parity or host execution claim.
 - Provisional US-011 completion marker awaits successful authorized commit. Intended message: `feat(US-011): implement docker attach streams and lifetime`.
 - Commit status: pending (not yet delivered). Next eligible story US-012; 20 stories remain after delivery. Existing user authorization covers this commit.
+
+## 2026-09-27 UTC - US-012 execution
+
+- Previous goal turn made progress: US-011 delivered14d15792. Worktree clean; US-012 next eligible, existing all-story implementation/commit authorization intact.
+- Applying develop-code feature/testing guidance to verification additions. Standard mode; independent transport consumers and parity regressions. No implementation advisor needed; native staged review required. No production behavior change planned.
+- Existing generated self-parity covers eight eligible operations, with blocking termination/wait operations excluded and attach verified through Node. Extend explicit planned coverage and inject a schema-valid state divergence; add package-owned native Node retained HTTP/attach scenarios over TCP and Unix with accepted mutation, lost response and re-inspection.
+- PRD inspection provenance identifies raw-socket Docker consumers, not an SDK consumer. SDK criterion is conditional on a declared SDK consumer, so no SDK install/compatibility claim applies. No Initiative imports, real Engine use, or policy/host enforcement claims.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-012 candidate verification
+
+- Extended self-parity assertions to planned and exercised eligible operations with positive counts. Added seeded nonempty-list control comparison plus schema-valid State mutation; unchanged responses pass and divergent State is rejected as ParityError mismatch. This establishes oracle sensitivity, not real-provider equivalence or successful generated creation coverage.
+- Added package-owned native Node consumer over TCP and Unix: retained HTTP, accepted create/start response drops, name lookup/conflict/list, raw upgraded stdin and exact fragmented binary stdout/stderr, continued execution after socket loss, stop/kill/remove response loss, completion/wait/re-inspection. Public request metadata confirms five accepted/checkpointed drops. No internal state/handler imports in client assertions and no automatic mutation retry. Built server entry owns setup/output scripting/cleanup.
+- Tests were added against existing implementation. Initial fixture failures exposed incorrect admin seed status expectation (201, not200) and missing Cmd in duplicate-name request (validation400 preceded conflict409). Corrected fixture inputs, preserved assertions. Corrected attachHandshake option name before final run. Typecheck caught async WalkCleanup missing await of reset; now awaits before reseeding. A documentation append attempted root-relative paths from package cwd and failed without edits; repeated from root. No production/config/dependency changes.
+- Checks: bun run build, bun test (95tests/528assertions/zero failures), bun run lint (33files), bun run typecheck, bun run openapi:check, bun run generate:check, bun run portability (5files), bun run pack:check all pass. Root bun run typecheck187/187 and bun run check:boundaries1703files pass; git diff --check pass. Logs `.mockingbird/us012-{docker-tests,typecheck,pack}.log`. Latest fixture metadata assertion reran full package tests/lint/typecheck; unchanged build/schema/portability/package evidence retained.
+- Standard native review planned US-012 attempt1, expanded-initial/initial. No advisor used; no UI; existing memory suppression unrelated. SDK criterion not applicable to the declared raw-socket Docker consumer; no SDK compatibility claimed. Live Engine oracle remains US-013.
+- Intended commit: feat(US-012): verify docker consumer wire compatibility. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-012 passing review and finalization
+
+- Native story-reviewer `/root/review_us012_attempt1`, attempt1, expanded-initial/initial, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": ["Real Engine parity remains outside this story and is deferred to US-013, as documented."],
+  "learning_candidates": []
+}
+```
+
+- No findings or targeted pass. Required checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression. No SDK or live Engine compatibility claim.
+- Provisional US-012 completion marker awaits successful authorized commit. Intended message: `feat(US-012): verify docker consumer wire compatibility`.
+- Commit status: pending (not yet delivered). Next eligible story US-013; 19 stories remain after delivery. Existing user authorization covers this commit.

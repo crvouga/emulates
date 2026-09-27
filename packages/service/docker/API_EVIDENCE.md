@@ -312,3 +312,21 @@ provenance. Raw consumers cover fragmented frames, bytes and channel selection,
 input read-ahead/half-close, bounded slow-reader output, peer reset, and instance
 invalidation with stale-handle rejection. Native Node also exercises framing,
 raw input, StdinOnce half-close and process completion.
+
+## US-012 — independent consumer verification
+
+The package-owned `test/node-consumer.mjs` imports only the built server entry for
+fixture ownership; its clients use native Node HTTP and raw socket bytes over TCP
+and Unix. All mutations, inspections, setup and completion travel through HTTP;
+Node attachment handles supply scripted output/input observation. Both transports
+exercise accepted create/start/stop/kill/remove response loss and re-inspection,
+retained ordinary HTTP connections and fragmented attach with exact binary frames.
+This is independent client/protocol evidence against the mock, not a real Engine
+oracle or evidence of the external consumer's retry policy.
+
+OpenAPI walks assert eligible planned/exercised operation coverage. A seeded
+nonempty list passes unchanged and fails on a deliberate schema-valid State
+mismatch; the existing ping mismatch check remains. Blocking operations and attach
+retain their deterministic lifecycle/protocol evidence. PRD inspection provenance
+identifies raw-socket Docker consumers; there is no declared SDK consumer, no SDK
+pin exercised here, and no SDK compatibility claim.

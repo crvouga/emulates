@@ -204,7 +204,7 @@ history after response loss is the subsequent US-008 verification gate.
   `?all=1` resets all namespaces. It preserves clock, fault configuration and journal.
 - `POST /__admin/clock` accepts shared `set`, `advance`, and `freeze` controls.
 - `POST /__admin/faults` configures faults by operation, path, or method.
-  `DELETE /__admin/faults` clears them. There are no Docker-specific presets yet.
+  `DELETE /__admin/faults` clears them. Docker fault presets are described below.
 - `GET /__admin/requests` exposes metadata, never request bodies or query values;
   `DELETE /__admin/requests` clears the selected journal.
 - `POST /__admin/checkpoints`, `POST /__admin/branches/<name>`, and
@@ -367,3 +367,31 @@ stale writes reject. Socket handles and buffered payloads are never snapshotted.
 includes frame headers; exceeding the output limit rejects the write. Exceeding
 unread stdin capacity cancels that attachment. Stream limits must be positive
 integers no greater than 16 MiB. These bounds are mock resource controls.
+
+## Verification boundaries
+
+`bun run build && bun test` exercises the modeled contract without an Engine or
+credentials. Generated OpenAPI self-parity asserts that all eight eligible
+operations are planned and exercised: list, create, inspect, start, info, version,
+GET ping and HEAD ping. Generated walks include error paths; an exercised count
+alone does not establish successful creation or state transitions. A seeded
+nonempty-list comparison additionally rejects a deliberately wrong, schema-valid
+execution state. The independent wire scenarios cover successful mutations.
+
+`test/node-consumer.mjs` runs under native Node against the built server entry,
+once over loopback TCP and once over a test-owned Unix socket. It uses Node HTTP
+requests on a retained connection and raw attach bytes. It verifies lost create
+and start responses, lookup by name, duplicate-name conflict, framed binary
+stdout/stderr, raw stdin, continued execution after attachment loss, and lost
+stop/kill/remove responses followed by completion and re-inspection. Setup and
+completion use public mock admin controls; attachment handles only script output
+and observe synthetic stdin. Public request metadata confirms each dropped mutation
+was accepted and checkpointed. No client assertion imports provider handlers or
+internal state. The fixture never automatically retries a mutation.
+
+Wait/stop/kill/remove have deterministic lifecycle and wire tests rather than
+unbounded generated walks. Attach uses dedicated raw-wire tests because Fetch
+cannot represent duplex HTTP upgrade. The declared Docker consumer is raw-socket,
+so no SDK compatibility is claimed or substituted for wire coverage. Self-parity
+and synthetic consumer tests are separate from real Engine differential evidence
+(US-013), and do not verify Initiative recovery policies or host enforcement.
