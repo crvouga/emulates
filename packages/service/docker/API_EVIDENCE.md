@@ -1,7 +1,8 @@
 # Docker Engine API evidence
 
 US-002 research, retrieved **2026-09-25 UTC**. Status: documentation and pinned
-source inspected; **no Engine installed-version or differential execution verified**.
+source inspected; **historical research status, superseded by the US-013 live
+run recorded below**.
 This file defines a planned subset, not an implemented support claim. See
 [boundaries and scenario IDs](../../../docs/INFRASTRUCTURE_MOCKS.md).
 
@@ -9,7 +10,8 @@ This file defines a planned subset, not an implemented support claim. See
 
 - API target: **v1.52**. The downloaded reference declares Swagger 2.0,
   `info.version: 1.52`, `basePath: /v1.52`.
-- Proposed exact real oracle: **Docker Engine 29.1.0**, Linux, default API settings.
+- Historical proposed oracle (superseded by user direction in US-013):
+  **Docker Engine 29.1.0**, Linux, default API settings.
   This is a reproducible compatibility pin, not a recommendation to downgrade a
   host or a claim of availability. No default Docker socket was queried.
 - Verified upstream tag: `docker-v29.1.0`, commit
@@ -223,10 +225,10 @@ owned streams and waiters; handles are never serialized into Timeline state.
 
 ## Verification gaps and oracle requirements
 
-US-013 must obtain an explicitly authorized disposable Engine 29.1.0 endpoint,
-verify its reported version/API configuration and image identity, and record
-actual lifecycle/attach comparisons. No Engine, images, socket ownership or
-cleanup authorization has yet been supplied. Engine process restart/live-restore
+The original US-013 proposal required Engine 29.1.0. The user superseded that
+restriction: use the current selected Engine without downgrading the host.
+US-013 now records an authorized Engine 29.8.0 run below, including actual
+version/API configuration, image identity and cleanup evidence. Engine process restart/live-restore
 needs its own scoped operational authorization and evidence. Harness construction
 alone cannot complete that story.
 
@@ -330,3 +332,61 @@ mismatch; the existing ping mismatch check remains. Blocking operations and atta
 retain their deterministic lifecycle/protocol evidence. PRD inspection provenance
 identifies raw-socket Docker consumers; there is no declared SDK consumer, no SDK
 pin exercised here, and no SDK compatibility claim.
+
+## US-013 — current Engine oracle
+
+User direction on 2026-09-27 superseded the exact old-Engine prerequisite: use the
+current Engine and do not downgrade the local Docker installation. Desktop 4.92.0
+reports Engine **29.8.0**, Linux/arm64, GitCommit `3ce5872`, API maximum **1.56**,
+minimum **1.40**. The [official release notes](https://docs.docker.com/engine/release-notes/29/)
+list standalone **29.8.1** as the latest patch; this run establishes 29.8.0 evidence
+only. API **1.52** remains the observed consumer contract and comparison subset.
+This separates the API contract from the executable Engine used as an oracle.
+
+Refreshed Context7 `/docker/docs` on 2026-09-27. It returned current negotiation
+and release guidance plus historical v1.17 attach excerpts; those excerpts do not
+establish current wire behavior. Resolved `docker-v29.8.0` through its
+[tag object](https://api.github.com/repos/moby/moby/git/tags/dc4db3d292c317ca216dae9301dffc935c8d7680)
+to commit **3ce5872b7950c63ba2ffbc5123101019ff3e6682**, matching the running daemon.
+Compared selected pinned sources against the prior 29.1.0 source:
+
+- [Version middleware](https://github.com/moby/moby/blob/3ce5872b7950c63ba2ffbc5123101019ff3e6682/daemon/server/middleware/version.go),
+  [daemon attach](https://github.com/moby/moby/blob/3ce5872b7950c63ba2ffbc5123101019ff3e6682/daemon/attach.go), and
+  [stream attach](https://github.com/moby/moby/blob/3ce5872b7950c63ba2ffbc5123101019ff3e6682/daemon/internal/stream/attach.go)
+  are unchanged between those pins.
+- [Container routes](https://github.com/moby/moby/blob/3ce5872b7950c63ba2ffbc5123101019ff3e6682/daemon/server/router/container/container_routes.go)
+  retain the selected attach/wait paths. Changes include invalid-parameter error
+  wrapping, legacy capability rejection and API 1.56 Umask handling; the live
+  scenarios do not send those fields or malformed parameters.
+- [Stop](https://github.com/moby/moby/blob/3ce5872b7950c63ba2ffbc5123101019ff3e6682/daemon/stop.go)
+  and [kill](https://github.com/moby/moby/blob/3ce5872b7950c63ba2ffbc5123101019ff3e6682/daemon/kill.go)
+  now use configured daemon default stop timeout and propagate non-cancelable
+  contexts. This oracle uses explicit `stop?t=0` and `kill?signal=KILL`; it does not
+  establish custom daemon-default timeout equivalence.
+- [Image/config merge](https://github.com/moby/moby/blob/3ce5872b7950c63ba2ffbc5123101019ff3e6682/daemon/commit.go)
+  changes map copying without changing the explicit-entrypoint command merge rule.
+
+The authorized live run used an explicit Docker Desktop Unix endpoint and existing
+Linux/arm64 image `sha256:dbbd346860d29f1543e991f30f3284bf4ab5f096d049ecc3426528f20b1b6e6b`.
+No image installation, daemon restart or privileged Engine setup was performed.
+Run `mb-oracle-ab4aefb9657d4b6993bc5f5273593796` passed **29 normalized comparisons**:
+create/start/remove statuses; created/running/exited inspection; 101 attach headers;
+raw stdin echo and separated stdout/stderr bytes; exit 7; stop/kill exit 137;
+wait results and post-removal 404. The three named/labeled containers were confirmed
+absent during cleanup. The [captured JSON report](evidence/engine-29.8.0-api-1.52.json)
+retains actual/model values, image identity, exact Engine version and cleanup.
+
+An earlier attempt failed at mock image seeding before creating any container:
+the PostgreSQL image contained unsupported metadata and declared storage. The
+harness now rejects declared volumes/active healthchecks and projects only modeled
+image defaults, recording omitted metadata. The successful fixture omitted
+`ArgsEscaped` and `ExposedPorts` from synthetic image defaults; no ports were
+published and no config-equivalence claim covers those fields.
+
+Normalization excludes dynamic IDs/timestamps, daemon identity/platform fields,
+frame/packet boundaries and cross-channel interleaving. The mock scripts expected
+process completion; it never executes the image. Existing synthetic response-loss
+checks remain separate from real Engine execution. Daemon restart/live-restore,
+host isolation, SDKs, all API 1.56 features and external consumer policies remain
+unverified. The historical mock discovery profile remains explicit; this narrow
+live run does not certify every operation/response field against every newer Engine.

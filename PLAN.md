@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 through US-012 are complete; 19 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-013 are complete; 18 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -251,12 +251,12 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-013: Add and exercise the Docker differential oracle
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 13
 - Depends on: US-012
 - Relevant paths: Docker parity scripts, differential fixtures and evidence.
 - User story: As a maintainer, I want independent evidence against a selected real Engine.
-- Notes: Docker lifecycle operations require explicit authorization; building the harness alone is not completed parity.
+- Notes: Use the current user-selected Engine, recording its exact version and API range; do not require a host downgrade. Compare the declared API v1.52 subset when supported. Docker lifecycle operations require explicit authorization; building the harness alone is not completed parity.
 
 #### Acceptance criteria
 

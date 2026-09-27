@@ -504,8 +504,10 @@ target is assumed without a measurement requirement.
 
 ## 9. Open questions and handoff
 
-1. Which exact Engine release will be the v1.52 compatibility oracle? The observed
-   consumer path does not establish the installed daemon version.
+1. Oracle selection resolved by user direction on 2026-09-27: use the current
+   user-selected Engine without downgrading the host, record its exact version,
+   and compare the declared v1.52 subset when within its supported API range.
+   Desktop 4.92.0 supplies Engine 29.8.0; standalone latest 29.8.1 is distinct.
 2. Which Hermes behaviors differ between current documentation and the pinned tag,
    and can an executor-only substitution preserve the required public lifecycle?
 3. Which GitHub API-version header and operation subset should be advertised first?

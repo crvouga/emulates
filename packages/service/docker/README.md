@@ -395,3 +395,8 @@ cannot represent duplex HTTP upgrade. The declared Docker consumer is raw-socket
 so no SDK compatibility is claimed or substituted for wire coverage. Self-parity
 and synthetic consumer tests are separate from real Engine differential evidence
 (US-013), and do not verify Initiative recovery policies or host enforcement.
+
+The opt-in [real Engine oracle](ORACLE.md) requires an explicitly authorized
+current Engine endpoint and immutable image. The recorded Engine 29.8.0 run
+passed 29 selected API 1.52 comparisons; see the evidence record for scope and
+limitations. Engine identity fields and full API 1.56 compatibility are not claimed.

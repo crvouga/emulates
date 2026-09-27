@@ -531,3 +531,106 @@
 - No findings or targeted pass. Required checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression. No SDK or live Engine compatibility claim.
 - Provisional US-012 completion marker awaits successful authorized commit. Intended message: `feat(US-012): verify docker consumer wire compatibility`.
 - Commit status: pending (not yet delivered). Next eligible story US-013; 19 stories remain after delivery. Existing user authorization covers this commit.
+
+## 2026-09-27 UTC - US-013 harness preparation
+
+- Previous goal turn made progress: US-012 deliveredf899f1f9; clean worktree and next eligible US-013 verified. Existing implementation/commit authorization does not include Docker lifecycle operations. Asked for explicit disposable endpoint and immutable image while preparing a reviewable run scope; no answer received yet.
+- Applied develop-code feature/testing and architecture guidance. Standard mode, material resource-ownership boundary. No advisor or staged reviewer used yet; story cannot complete before required live evidence. Installed Docker client reports29.7.2 (client-only command); daemon was not contacted, no default context/socket inspected or used.
+- Prepared opt-in native Node lifecycle/attach differential harness against proposed Linux Engine29.1.0/API1.52. Requires endpoint, exact version, immutable image, unique run ID and explicit lifecycle acknowledgment. Three named/labeled owned containers only, no image/network/volume/daemon management. Preflight checks version/image/name collisions before mutation; cleanup rechecks identity/name/image/label and refuses unknown ownership. Normalized state/status/wait/channel comparisons and separate restart/live-restore gaps are recorded in JSON.
+- Added local native Node guard/decoder tests: missing inputs/approval, wrong version/image, collisions, rejected creates, ownership changes, scoped cleanup and fragmented/truncated frames. First wrapper assertion expected TAP while Node defaulted to spec reporter; selected explicit TAP reporter, retaining native test assertions. Ten native tests now pass. No real Engine evidence or successful story review/commit claimed.
+- Commit status: not_attempted. US-013 remains incomplete pending checks, an explicitly approved real run, resulting evidence/fixes, and required native review.
+
+## 2026-09-27 UTC - US-013 draft checks and operational prerequisite
+
+- Draft checks pass: Docker96tests/530assertions, including ten native Node oracle safety/decoder tests; lint37files and typecheck pass; git diff --check pass. Log `.mockingbird/us013-draft-tests.log`. Biome initially rejected a locally caught throw inside finally; changed that ownership-refusal path to explicitly record failed cleanup and continue, with the same refusal regression passing. No lint suppression.
+- Explicit Engine endpoint, immutable existing Linux image and scoped Docker lifecycle approval remain missing. Prepared run is documented in `packages/service/docker/ORACLE.md`: at most three unique named/labeled containers, start/attach/stop/kill/remove and ownership-checked cleanup, no image changes or daemon restart. Existing installation/build/commit approvals do not authorize this live operation.
+- First goal turn with this operational prerequisite; meaningful harness/verification progress made. Goal remains active. No real Engine contacted, no live parity result, no staged review or commit attempted. Next action is obtain endpoint/image/approval, verify the reported Engine before mutation, run the harness, resolve actual comparisons and complete package/review gates.
+
+## 2026-09-27 UTC - US-013 complete-flow harness controls
+
+- Previous turn was progress (harness and guard tests). Revalidated current uncommitted candidate and dependency chain: US-014 requires US-013, and Hermes research US-015 requires US-014. No later story is eligible to bypass missing live evidence.
+- Added independent scripted HTTP/socket fixture exercising the entire oracle flow: all29 normalized comparisons pass and all three owned resources are absent afterward. A deliberately divergent stderr transcript fails the comparison and exercises verified owned cleanup. This proves harness control flow and mismatch sensitivity, not Docker Engine equivalence.
+- Twelve native Node harness tests now pass. Full package96tests/530assertions, lint37files, typecheck and whitespace checks pass. No production code changes this turn. Logs `.mockingbird/us013-draft-tests.log`.
+- Second consecutive goal turn with the same operational prerequisite: explicit Engine29.1.0 endpoint, immutable Linux image and scoped lifecycle approval still absent. No live handle/job exists to wait on. Local harness preparation is ready; live execution, final evidence and staged review remain pending. Goal remains active; no completion marker or commit attempted.
+
+## 2026-09-27 UTC - US-013 blocked prerequisite audit
+
+- Previous goal turn made progress through complete-flow and divergence controls. Current worktree still preserves the uncommitted harness; latest delivered story remains US-012 at f899f1f9. US-013 completion flag remains unchecked.
+- Third consecutive goal turn with the same missing prerequisite: no explicit Engine29.1.0 endpoint, immutable existing Linux image ID or scoped lifecycle authorization has arrived. No live process/job is awaiting observation. Local preparation and checks are complete for this checkpoint; further required evidence requires user input and an authorized Engine run. Dependent stories cannot bypass US-013.
+- Goal marked blocked after the required three-turn audit. No live Engine claim, native passing review, staging or commit. Resume by supplying endpoint/image and approval for the three documented owned containers; then execute the oracle, resolve observed differences, record evidence and finish check/review/commit gates.
+
+## 2026-09-27 UTC - US-013 lifecycle authorization received
+
+- User replied Approved to the documented three-container run request. This supplies scoped create/start/attach/stop/kill/remove and ownership-checked cleanup authorization; do not ask for that approval again. It does not identify the target endpoint or image and does not authorize daemon restart, image installation, global changes or unrelated resource operations.
+- Resumed goal starts a fresh blocked-prerequisite audit. Read-only Docker context inventory reports desktop-linux at unix:///Users/corysiebler/.docker/run/docker.sock and default at unix:///var/run/docker.sock. No daemon contacted and no version/image inferred from client/context metadata.
+- Asked which disposable endpoint and existing immutable Linux image to use, offering to inspect Docker Desktop if that is the intended target. Endpoint/image selection remains pending; scoped lifecycle approval is no longer missing. Harness and prior check evidence preserved; US-013 remains uncommitted and incomplete.
+
+## 2026-09-27 UTC - US-013 endpoint availability evidence
+
+- Prior resumed turn made progress by recording lifecycle approval and discovering configured endpoint candidates. Read-only version inspection used the explicit Docker Desktop socket, not an implicit default daemon.
+- `docker --host unix:///Users/corysiebler/.docker/run/docker.sock version --format '{{json .Server}}'` failed: socket does not exist. No daemon version or image inventory was obtained. No containers or services were changed, started or restarted.
+- Second resumed goal turn with the same operational prerequisite: a usable explicit Engine29.1.0 endpoint and existing immutable Linux image are still needed. Three-container lifecycle approval remains valid. Socket absence rules out using the discovered Desktop endpoint in its current state; no active process/job handle exists to wait on. Harness remains ready and uncommitted, with live evidence/review pending.
+
+## 2026-09-27 UTC - US-013 resumed blocked audit
+
+- Previous turn produced endpoint availability evidence. This third resumed goal turn rechecked the explicit Desktop socket; it remains absent. No alternate endpoint or immutable image ID has arrived. No live oracle process exists to observe.
+- Scoped three-container lifecycle approval is retained. The remaining blocker is a reachable, explicitly selected Engine29.1.0 endpoint and an existing qualifying immutable Linux image. Starting/reconfiguring Docker Desktop, installing an Engine or pulling images was not part of the approved three-container scope.
+- Local harness and checks are preserved uncommitted. US-013 still requires actual oracle execution and review; later stories depend on it. Goal marked blocked after three consecutive resumed turns with this prerequisite. Resume when the endpoint/image are available; do not request the already-granted lifecycle approval again.
+
+## 2026-09-27 UTC - US-013 Desktop endpoint selected and verified
+
+- User opened Docker and authorized proceeding. Explicit Desktop endpoint is now reachable and selected; prior scoped lifecycle authorization remains valid. Read-only server inspection reports Linux/arm64 Engine29.7.2, API1.55, minimumAPI1.40, GitCommit6a43e3d, Docker Desktop4.90.0.
+- Existing postgres:17-alpine image sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193 is Linux/arm64 and is a candidate shell fixture. No images pulled or modified.
+- Invoked the prepared oracle against the explicitly selected Desktop socket with the required29.1.0 pin. Preflight correctly rejected the different Engine version before any container creation; report `.mockingbird/us013-desktop-preflight.json` has no comparisons or cleanup operations. This is actual version-gate evidence, not live parity success.
+- Remaining prerequisite is a pinned29.1.0 Engine. Proposed bounded setup is an isolated official docker:29.1.0-dind privileged container with loopback-only daemon port, importing the existing Alpine image; remove only this owned Engine container and its owned storage after the approved three-container test. This additionally requires image pull and privileged environment provisioning authorization, beyond the prior three-container scope. Do not replace pinned oracle with29.7.2 silently.
+
+## 2026-09-27 UTC - US-013 pinned distribution availability
+
+- Previous turn made progress by verifying selected Desktop Engine29.7.2 and exercising the actual version rejection gate. Expanded privileged Engine setup approval has not arrived; no pull/build/run performed.
+- Read-only `docker manifest inspect docker:29.1.0-dind` returned no such manifest. The previously proposed image tag cannot currently be used as stated. Official ARM64 static binary URL https://download.docker.com/linux/static/stable/aarch64/docker-29.1.0.tgz returned HTTP200, length74232620 via HEAD; no archive downloaded or installed.
+- Revised provisioning option is a temporary privileged container built with the official29.1.0 binaries and appropriate container dependencies, loopback-only daemon port, existing fixture image import and owned-resource cleanup. This still requires explicit expanded setup authorization (including image/build changes); existing three-test-container approval remains valid. A user-provided29.1.0 endpoint is also sufficient. This is the second turn with the pinned Engine provisioning prerequisite after Desktop selection.
+
+## 2026-09-27 UTC - US-013 pinned Engine provisioning blocked audit
+
+- Previous turn made progress by checking registry and official binary availability. Third consecutive turn since Desktop selection confirms the same missing prerequisite: no authorization to provision the separate privileged29.1.0 Engine, and no alternative pinned endpoint supplied.
+- Existing three-container test approval, explicit Desktop endpoint selection and fixture image discovery remain valid. They do not supply the missing pinned Engine or expanded provisioning authority. No live setup job exists; no pull, build or privileged container has been started.
+- Goal marked blocked after the three-turn audit. Resume with approval to build/run/clean up the temporary privileged29.1.0 Engine using official binaries, or with a reachable existing29.1.0 endpoint. Preserve current uncommitted US-013 harness and checks; do not complete or commit the story without live evidence and required review.
+
+## 2026-09-27 UTC - Desktop4.92.0 version verification
+
+- User reports Docker Desktop update. Explicit read-only endpoint inspection confirms Desktop4.92.0 (240144), Linux/arm64 Engine29.8.0, API1.56, minimumAPI1.40, GitCommit3ce5872.
+- This newer Engine does not satisfy the existing exact29.1.0 oracle pin. API negotiation to1.52 would not establish Engine29.1.0 equivalence. No containers/images/configuration changed by this inspection.
+- Prior scoped test approval retained. Separate pinned Engine provisioning or an explicit revision of the compatibility target is still needed; no such additional instruction inferred from the update announcement. US-013 candidate remains preserved and incomplete.
+
+## 2026-09-27 UTC - US-013 current Engine target and live success
+
+- User explicitly rejected a host downgrade and directed use of the latest Engine. Superseded the old exact29.1.0 prerequisite; use selected current Desktop Engine and record exact version/API range. Official release notes identify standalone29.8.1; Desktop4.92.0 supplies29.8.0. Communicated this distinction and used the user's running29.8.0, with no host update, image pull, privileged setup or scope expansion. Existing three-container lifecycle/cleanup approval covers the run.
+- Refreshed Context7 and immutable29.8.0 source (tag docker-v29.8.0, commit3ce5872b7950c63ba2ffbc5123101019ff3e6682). Version middleware and attach/stream code unchanged from prior source. Documented route/config/context/default-timeout changes relevant to comparison limits. Preserved API1.52 consumer contract; current Engine advertises1.40–1.56. Harness now checks exact selected numeric Engine version plus API-range containment rather than maxAPI equality. Added range and image-default safety regressions; one initial missing test import was corrected without production assertion changes.
+- First current-Engine run failed before creating containers: mock image seed501 on unmodeled PostgreSQL image metadata. Added declared-volume/active-healthcheck refusal and explicit modeled-default projection with omitted-field reporting. Selected existing Linux/arm64 image sha256:dbbd346860d29f1543e991f30f3284bf4ab5f096d049ecc3426528f20b1b6e6b with no declared volumes/healthcheck. First metadata template could not access absent Volumes; used read-only JSON field projection without printing environment values.
+- Live run mb-oracle-ab4aefb9657d4b6993bc5f5273593796 passed29 comparisons against29.8.0: create/start/inspect/wait/stop/kill/remove, HTTP101 and exact stdout/stderr. All3containers confirmed absent in report and independent label-filtered Docker listing. Report committed candidate `packages/service/docker/evidence/engine-29.8.0-api-1.52.json`; unsuccessful reports retained under ignored `.mockingbird/`. Source/schema and version evidence recorded in API_EVIDENCE.md. No real restart/live-restore or full API1.56/standalone29.8.1 claim.
+- Checks pass: package build,96tests/530assertions including14native oracle tests, lint38files, typecheck, OpenAPI validation/generated freshness, portability5files, pack. Root187typechecks and boundaries1704files pass; whitespace pass. Logs `.mockingbird/us013-{final-tests,typecheck,pack}.log`. Formatter touched only intended candidate files.
+- Standard native review planned US-013 attempt1, expanded-initial/initial; resource ownership and independent differential evidence are substantive. No advisor used. Existing memory suppression unchanged/unrelated. User explicitly authorized plan/PRD compatibility-target revision; no completion marker yet.
+- Intended commit: feat(US-013): verify docker against the current engine. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-013 passing review and finalization
+
+- Native story-reviewer `/root/review_us013_attempt1`, attempt1, expanded-initial/initial, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": [
+    "The live run covers the selected API 1.52 scenarios on Desktop Engine 29.8.0; it does not establish standalone 29.8.1 or all API 1.56 behavior.",
+    "Daemon restart/live-restore, custom default stop-timeout behavior, omitted image metadata, host isolation, and SDK or external consumer policies remain unverified and are documented as gaps."
+  ],
+  "learning_candidates": []
+}
+```
+
+- No findings or targeted pass. Required checks and authorized live scenarios passed as recorded above. Existing memory unchanged; no qualifying learning or suppression. User's revised current-Engine target is explicit in PLAN/PRD and evidence; no host downgrade performed. Former provisioning blocker is resolved by that direction and completed live run.
+- Provisional US-013 completion marker awaits successful authorized commit. Intended message: `feat(US-013): verify docker against the current engine`.
+- Commit status: pending (not yet delivered). Next eligible story US-014; 18 stories remain after delivery. Existing user authorization covers this commit.
