@@ -15,6 +15,10 @@ export type RequestLog = {
   ids?: Record<string, string>
   /** Set when the service created a resource the request referred to but that did not exist. */
   adopted?: boolean
+  /** Explicit durable acceptance, independent of response delivery. */
+  accepted?: boolean
+  /** Checkpoint captured at explicit acceptance. */
+  checkpoint?: string
 }
 
 export type MetricsReport = {

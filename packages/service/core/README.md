@@ -163,3 +163,21 @@ enforces this rule.
 - `@crvouga/mockingbird-adapter-node` / `@crvouga/mockingbird-adapter-bun`: serve the result over HTTP.
 
 Part of [mockingbird](https://github.com/crvouga/mockingbird).
+
+### Accepted mutations and response loss
+
+Providers may call `markMutationAccepted(request, notes)` immediately after a
+mutation commits. The runtime captures that state once per active mutating request,
+before reply delivery, and records `accepted` and the acceptance `checkpoint` in
+the journal. An exception still propagates (dropped connection status 0, other
+exceptions status 500). Unmarked errors do not create checkpoints. Successful
+replies reuse the acceptance checkpoint when stored state and RNG are unchanged;
+subsequent state changes retain normal success checkpointing. The journal's
+checkpoint identifies acceptance, not necessarily final reply state.
+
+`forwardRequestContext(source, target)` preserves fault effects and the acceptance
+signal when a provider rebuilds a Request. Signals outside an active runtime
+request are no-ops. Mark only committed mutations, not validation or mere receipt.
+The optional synchronous `beforeRestore(instance)` runtime hook releases transient
+handles before replacing that instance's storage on checkout or snapshot restore.
+Hooks should not throw or mutate durable state; handles themselves are not stored.

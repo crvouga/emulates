@@ -7,7 +7,8 @@ import {
 } from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { DOCKER_NAMESPACE, DockerAPI } from "./index.js"
-import { DockerInputError } from "./state.js"
+import { presets } from "./presets.js"
+import { DockerInputError, isRunning, record } from "./state.js"
 
 export type DockerRuntimeOptions = Pick<
   RuntimeOptions<DockerAPI>,
@@ -45,8 +46,34 @@ const admin = (runtime: ServiceRuntime<DockerAPI>): AdminRoutes => {
       }),
     "POST /docker/seed": ({ body, namespace }) =>
       respond(201, () => runtime.instance(namespace).state.seed(body)),
+    "POST /docker/restart": ({ body, namespace }) =>
+      respond(200, () => {
+        if (
+          !record(body) ||
+          !["preserve", "terminate"].includes(String(body.containers)) ||
+          Object.keys(body).some((key) => !["containers", "exitCode"].includes(key)) ||
+          (body.exitCode !== undefined &&
+            (body.containers !== "terminate" || !Number.isSafeInteger(body.exitCode)))
+        )
+          throw new DockerInputError(
+            400,
+            "restart: expected explicit containers preserve or terminate, with optional integer exitCode for terminate",
+          )
+        const api = runtime.instance(namespace)
+        api.lifecycle.cancelWaits()
+        if (body.containers === "terminate")
+          for (const { value: c } of api.state.containers.list())
+            if (isRunning(c)) api.lifecycle.complete(c.id, { exitCode: body.exitCode ?? 137 })
+        api.state.updateDaemon({ available: true })
+        runtime.checkpoint(namespace)
+        return { containers: body.containers, available: true, simulated: true }
+      }),
     "POST /docker/daemon": ({ body, namespace }) =>
-      respond(200, () => runtime.instance(namespace).state.updateDaemon(body)),
+      respond(200, () => {
+        const result = runtime.instance(namespace).state.updateDaemon(body)
+        runtime.checkpoint(namespace)
+        return result
+      }),
     "GET /docker/daemon": ({ namespace }) =>
       jsonRes(200, { ...runtime.instance(namespace).state.daemon(), simulated: true }),
   }
@@ -61,6 +88,8 @@ export const createRuntime = (options: DockerRuntimeOptions = {}): DockerRuntime
     name: DOCKER_NAMESPACE,
     document,
     admin,
+    presets,
+    beforeRestore: (api) => api.lifecycle.cancelWaits(),
     create: ({ sqlite, namespace, clock }) => {
       const api = new DockerAPI({ sqlite, namespace, now: clock.now })
       if (closed) api.close()

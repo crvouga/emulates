@@ -17,7 +17,7 @@ export class DockerLifecycle {
     return this.waiters.size
   }
 
-  start(id: string, url: URL): Response {
+  start(id: string, url: URL, accepted: (id: string) => void = () => {}): Response {
     for (const key of ["checkpoint", "checkpoint-dir", "detachKeys"])
       if (url.searchParams.get(key))
         throw new DockerInputError(501, `Mockingbird: start ${key} is not implemented`)
@@ -33,6 +33,7 @@ export class DockerLifecycle {
       exitCode: 0,
       startedAt: new Date(this.now()).toISOString(),
     })
+    accepted(c.id)
     return new Response(null, { status: 204 })
   }
 
@@ -41,6 +42,7 @@ export class DockerLifecycle {
     url: URL,
     signal: AbortSignal,
     operation: "stop" | "kill",
+    accepted: (id: string) => void = () => {},
   ): Response | Promise<Response> {
     this.checkOpen(signal)
     // Route parsing precedes lookup; stop's signal validation follows the stopped guard.
@@ -80,11 +82,17 @@ export class DockerLifecycle {
           : {}),
       },
     })
+    accepted(c.id)
     if (operation === "kill" && sentSignal !== 9) return new Response(null, { status: 204 })
     return this.terminationReply(c.id, signal, "not-running")
   }
 
-  remove(id: string, url: URL, signal: AbortSignal): Response | Promise<Response> {
+  remove(
+    id: string,
+    url: URL,
+    signal: AbortSignal,
+    accepted: (id: string) => void = () => {},
+  ): Response | Promise<Response> {
     this.checkOpen(signal)
     if (booleanQuery(url, "link"))
       throw new DockerInputError(501, "Mockingbird: link removal is not implemented")
@@ -106,10 +114,12 @@ export class DockerLifecycle {
           requestedAt: new Date(this.now()).toISOString(),
         },
       })
+      accepted(c.id)
       return this.terminationReply(c.id, signal, "removed")
     }
     this.state.containers.delete(c.id)
     this.notify(c.id, c.exitCode, true)
+    accepted(c.id)
     return new Response(null, { status: 204 })
   }
 

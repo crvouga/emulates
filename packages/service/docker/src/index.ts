@@ -6,7 +6,10 @@ import {
   createService,
   DroppedConnectionError,
   defineOperations,
+  faultEffect,
+  forwardRequestContext,
   jsonRes,
+  markMutationAccepted,
   type Service,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
@@ -49,6 +52,10 @@ export class DockerAPI implements FetchAPI {
           pragma: "no-cache",
         },
       })
+    const accepted = (request: Request) => (id: string) => {
+      markMutationAccepted(request, { ids: { containerId: id } })
+      if (faultEffect(request, "docker.accepted_drop")) throw new DroppedConnectionError()
+    }
     this.service = createService({
       document,
       sqlite: this.sqlite,
@@ -63,10 +70,16 @@ export class DockerAPI implements FetchAPI {
         ContainerInspect: ({ params, url }) =>
           jsonRes(200, inspect(this.state.find(params.id ?? ""), booleanQuery(url, "size"))),
         ContainerStop: ({ params, url, request }) =>
-          this.lifecycle.terminate(params.id ?? "", url, request.signal, "stop"),
+          this.lifecycle.terminate(params.id ?? "", url, request.signal, "stop", accepted(request)),
         ContainerKill: ({ params, url, request }) => {
           try {
-            return this.lifecycle.terminate(params.id ?? "", url, request.signal, "kill")
+            return this.lifecycle.terminate(
+              params.id ?? "",
+              url,
+              request.signal,
+              "kill",
+              accepted(request),
+            )
           } catch (error) {
             if (error instanceof DockerInputError)
               throw new DockerInputError(
@@ -77,13 +90,15 @@ export class DockerAPI implements FetchAPI {
           }
         },
         ContainerDelete: ({ params, url, request }) =>
-          this.lifecycle.remove(params.id ?? "", url, request.signal),
-        ContainerStart: ({ params, url }) => this.lifecycle.start(params.id ?? "", url),
+          this.lifecycle.remove(params.id ?? "", url, request.signal, accepted(request)),
+        ContainerStart: ({ params, url, request }) =>
+          this.lifecycle.start(params.id ?? "", url, accepted(request)),
         ContainerWait: ({ params, url, request }) =>
           this.lifecycle.wait(params.id ?? "", url, request.signal),
-        ContainerCreate: ({ body, url }) => {
+        ContainerCreate: ({ body, url, request }) => {
           if (body.kind !== "json") return jsonRes(400, { message: "expected JSON body" })
           const created = this.state.create(body.value, url)
+          accepted(request)(created.Id)
           return annotateResponse(jsonRes(201, created), { ids: { containerId: created.Id } })
         },
       }),
@@ -129,7 +144,7 @@ export class DockerAPI implements FetchAPI {
           jsonRes(501, { message: `Mockingbird: API ${v} is not implemented; use 1.52` }),
         )
       url.pathname = match[3] ?? "/"
-      request = new Request(url, request)
+      request = forwardRequestContext(request, new Request(url, request))
     }
     if (request.method === "POST" && /^\/containers\/[^/]+\/start$/.test(url.pathname)) {
       const invalidBody = () =>
@@ -164,7 +179,10 @@ export class DockerAPI implements FetchAPI {
         } finally {
           reader.releaseLock()
         }
-        request = new Request(request, { body: bytes.slice(0, length) })
+        request = forwardRequestContext(
+          request,
+          new Request(request, { body: bytes.slice(0, length) }),
+        )
       }
     }
     return this.service.fetch(request)

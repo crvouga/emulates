@@ -153,7 +153,8 @@ Aborting the request or canceling its response body releases its wait handle.
 Reset cancels waits in the reset namespace; `runtime.close()`, `DockerAPI.close()`
 and `createServer().close()` cancel owned waits. Canceled bodies reject rather
 than fabricate an exit code. Wait handles are transient and never serialized.
-Active-wait checkout semantics are a subsequent history-consistency story.
+Checkout and snapshot restore cancel handles owned by the restored instance before
+replacing its state; subsequent completion cannot satisfy an old wait.
 Generated parity excludes blocking waits; deterministic Fetch and real HTTP tests
 cover their completion/cancellation behavior. Live Engine parity remains pending.
 
@@ -242,3 +243,28 @@ sockets, HTTP upgrade, duplex attach, orchestration and real
 Engine parity are deferred. Attach is classified as requiring protocol-specific
 Node verification; a Fetch response cannot represent its bidirectional upgrade.
 No successful attach behavior or real-provider parity is claimed by these tests.
+
+## Failure scenarios and logical restart
+
+For each operation `create`, `start`, `stop`, `kill`, and `remove`, install a
+one-use preset through `POST /__admin/faults` with
+`{"preset":"docker_<operation>_pre_failure"}` or
+`{"preset":"docker_<operation>_accepted_drop"}`. The first returns 503 before
+mutation. The second lets validation and mutation run, captures the accepted
+state in shared Timeline, then drops the reply. Failed validation and unchanged
+operations do not become accepted mutations. Inspect state after a lost reply;
+acceptance alone does not establish container exit or removal.
+
+The shared journal records lost replies with status 0, `accepted: true`, the
+acceptance `checkpoint`, container ID, and fault ID. Ordinary rejected operations
+do not gain an acceptance checkpoint. Pending termination intent is checkpointed
+before waiting for completion, including when the caller later disconnects.
+
+`POST /__admin/docker/restart` requires an explicit `containers` choice:
+`"preserve"` retains execution state and accepted intent; `"terminate"` completes
+running containers with `exitCode` (default 137), applying pending removal and
+AutoRemove. Both cancel existing wait/reply handles, set daemon availability to
+true, and checkpoint the selected namespace's main branch. Invalid input changes
+nothing. Daemon availability changes also checkpoint independently of execution.
+These are synthetic scenario controls, not claims about a real daemon's restart
+policy or live-restore configuration. No daemon or host process is restarted.

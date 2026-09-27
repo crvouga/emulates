@@ -326,3 +326,41 @@
 - No findings or targeted remediation pass. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression event. No live parity claim.
 - Provisional US-007 completion marker awaits successful authorized commit. Intended message: `feat(US-007): implement docker termination and removal`.
 - Commit status: pending (not yet delivered). Next eligible story US-008; 24 stories remain after delivery.
+
+## 2026-09-27 UTC - US-008 execution and reproduced history gap
+
+- Previous turn made progress: US-007 delivered8c7ec1f6. Exact prepared branch and clean baseline verified. US-008 eligible under existing all-story implementation/commit authorization.
+- Standard mode, complex cross-domain implementation; one read-only architect-reviewer advisor `/root/advise_us008_history` evaluating minimal shared acceptance/restore lifecycle seams. No further delegation budget for advisor. Native staged review remains separate.
+- Added shared regression `accepted-mutation.test.ts` with a real Collection write followed by DroppedConnectionError. The response rejects and record exists, but checking out the current Timeline head loses the accepted record. Test fails expected {value:1} versus undefined. This proves the conditional shared-runtime fix gate; no blanket commit-on-error or Docker-local snapshots will be added.
+- Proposed narrow approach: explicit request-bound mutation notification captures accepted state independently of delivery; ordinary unmarked failures retain existing noncommit semantics. Optional instance pre-restore hook cancels live handles before state replacement. Docker presets and logical restart controls will use existing faults/storage/Timeline.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-008 candidate verification
+
+- Advisor confirmed success-only history and missing rejected-request journal entries; recommended explicit acceptance and instance restore cleanup, without blanket error commits. Acceptance capture occurs immediately after durable mutation, rather than after rejection: a pending stop may be canceled by checkout, and rejection-time capture would incorrectly snapshot restored state. The acceptance signal is idempotent and inactive after the request settles. Normal successful responses reuse an unchanged acceptance checkpoint.
+- Implemented operation-specific pre-failure and accepted-drop presets for create/start/stop/kill/remove, explicit preserve/terminate logical restart, independent daemon availability checkpoints, journal acceptance/checkpoint/ID metadata, and cancellation of transient handles before shared storage restore. Rebuilt Requests forward existing effects and the acceptance signal. No real daemon restart, host process, migration, new dependency, authentication change or live oracle.
+- Initial Docker regressions failed on absent presets/restart and surviving checkout wait handles; all pass after implementation. Expanded tests cover each mutation family, pending stop cancellation, branch/namespace isolation, snapshot restore, invalid restart atomicity, and legacy unmarked errors/rejections. One added branch test timed out because the test passed positional checkout arguments instead of the existing options object; corrected the fixture call, with no production change, then all 10 failure-scenario tests/85 assertions passed.
+- Shared suite44tests/7370assertions, Docker suite55tests/390assertions before the final branch test addition, EasyPost existing-provider suite13tests/88assertions all pass. Final Docker scoped failure tests10/85pass; Docker typecheck passes after final test addition. Core/Docker lint, typecheck and build pass; Docker OpenAPI validation/codegen freshness, portability5files and pack pass. Root typecheck187/187 and boundaries1694files pass. Whitespace check passes. Logs .mockingbird/us008-{core-tests,docker-tests,easypost-tests,typecheck,pack}.log retain outputs.
+- Native story-reviewer planned: US-008 attempt1, expanded-initial/initial, standard/complex cross-domain. No UI. Existing US-005 memory suppression unrelated. Intended commit: feat(US-008): preserve accepted docker mutations across response loss.
+- Commit status: not_attempted. Live Engine parity remains US-013; transport and socket work remains US-009 onward.
+
+## 2026-09-27 UTC - US-008 passing review and finalization
+
+- Final Docker suite56tests/398assertions, zero failures; final lint21files and typecheck pass. Prior core/EasyPost/root/package evidence remains applicable.
+- Native story-reviewer `/root/review_us008_attempt1`, attempt1, expanded-initial/initial, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": ["Live Docker Engine parity remains unverified and is deferred to US-013; the restart outcomes are documented and tested as synthetic controls."],
+  "learning_candidates": []
+}
+```
+
+- No findings or targeted remediation pass. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression event. No live parity claim.
+- Provisional US-008 completion marker awaits successful authorized commit. Intended message: `feat(US-008): preserve accepted docker mutations across response loss`.
+- Commit status: pending (not yet delivered). Next eligible story US-009; 23 stories remain after delivery.
