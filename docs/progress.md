@@ -634,3 +634,52 @@
 - No findings or targeted pass. Required checks and authorized live scenarios passed as recorded above. Existing memory unchanged; no qualifying learning or suppression. User's revised current-Engine target is explicit in PLAN/PRD and evidence; no host downgrade performed. Former provisioning blocker is resolved by that direction and completed live run.
 - Provisional US-013 completion marker awaits successful authorized commit. Intended message: `feat(US-013): verify docker against the current engine`.
 - Commit status: pending (not yet delivered). Next eligible story US-014; 18 stories remain after delivery. Existing user authorization covers this commit.
+
+## 2026-09-27 UTC - US-014 documentation and catalog preparation
+
+- Task: PLAN.md US-014; standard mode. Previous goal turn made progress by clarifying the current Docker Engine policy in PLAN.md. Branch confirmed ralph/infrastructure-orchestration-mocks; US-013 delivered as bca3adde. US-014 remains incomplete and uncommitted.
+- Updated Docker README to reflect completed lifecycle history, Node duplex attach, selected real Engine evidence, synthetic identity versus installed Engine, and explicit host-isolation exclusions. Added and executed a minimal native Node HTTP example. Corrected stale attach descriptions in OpenAPI and regenerated SUPPORT.md and generated metadata; Fetch attach remains explicitly unsupported.
+- Package contents now include linked SUPPORT/API_EVIDENCE/ORACLE documentation, captured evidence, and oracle scripts. Added Docker vendor/icon and SystemVersion playground metadata; fetched Docker branding through the existing generator after confirming no existing logos or orphan entries would be deleted. Retains WIP.
+- Regenerated root README.md and llms.txt from canonical sources: 51 services/packages. Offline brands freshness passes for 51 services. Relative README/evidence/oracle link targets exist; native Node README example returned API1.52 and closed its owned server.
+- Checks passed in order: package lint (38files), typecheck, openapi:check, generate:check, build, bun test (96pass/0fail,530assertions), portability (5files), pack:check. Pack output: .mockingbird/us014-pack.log. Scoped Biome and whitespace checks pass. Changes are static documentation/metadata; no artificial spelling tests added. No live Docker operations repeated.
+- Pending authorization: exact docs devDependency addition @crvouga/mockingbird-service-docker=workspace:* in sites/docs/package.json and lockfile refresh. Requested asynchronously because AGENTS.md separately requires dependency-change approval; prior frozen-lockfile installation grant does not cover a new declaration. No dependency declaration or lockfile changed while pending.
+- Remaining: apply authorized workspace wiring, run root bun run check, verify Docker catalog/playground in browser, inspect/stage complete candidate, perform required bounded review, then commit once. No implementation advisors used. Native review not started; no completion marker set. Existing memory unchanged.
+- Intended commit: feat(US-014): deliver docker documentation and catalog integration. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-014 repository check checkpoint
+
+- Previous goal turn classified as progress: documentation/catalog sources and package gates completed. Dependency-change approval remains unanswered; this continuation is not approval.
+- Ran root bun run check. First run stopped at root check:format because the existing US-005 memory.json scope array was not Biome-formatted (64 successful/85 total tasks). Applied Biome only to memory.json; semantic contents unchanged. Evidence: .mockingbird/us014-root-check.log.
+- Reran root bun run check after the formatting correction. It reached 557 successful/561 total tasks (237 cached) before docs build failed with the exact expected missing dependency: sites/docs/package.json must declare @crvouga/mockingbird-service-docker as workspace:* in devDependencies. Evidence: .mockingbird/us014-root-check-after-format.log. Process exited1; no running check remains and the complete repository gate is not passing.
+- No dependency or lockfile change made. Remaining approval is the same pending request, not a new permission. Browser verification, staged review and commit remain unattempted until catalog wiring and required checks succeed. US-014 remains incomplete; goal still active. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-014 approved integration and verification
+
+- User replied "Proceed" to the outstanding docs workspace-dependency/lockfile approval. Added exactly @crvouga/mockingbird-service-docker=workspace:* to sites/docs/package.json. Ran BUN_INSTALL_CACHE_DIR=$PWD/.mockingbird/bun-cache bun install --lockfile-only, then bun install --frozen-lockfile with the same project-local cache. Lockfile diff is exactly the corresponding workspace declaration; no package versions changed. Frozen install reported no changes.
+- Root bun run check passes: 562successful/562total,552cached,26.789seconds. Evidence .mockingbird/us014-root-check-approved.log. This supersedes the earlier formatting and missing-dependency failures without erasing them. Previously recorded Docker package checks and native README example remain valid; no provider behavior changed afterward.
+- Applied verify-interface skill. Started built Astro preview on loopback http://127.0.0.1:4321 (exec session31425), no deployment. CUA browser inspected /services/docker and infrastructure category navigation. WIP, Infrastructure, Docker branding,12of13Fetch operations, source/support links and README rendering verified. Default SystemVersion playground loaded actual browser mock, returned200/API1.52; Journal showed GET/version200/SystemVersion. Reset state preserved journal as shared runtime specifies. Unknown /missing sent through keyboard Tab-to-Send/Return returned404, followed by successful operation selection and200recovery. No real Engine requests.
+- Browser visual evidence: desktop1280x720 playground and mobile390x844 header/branding/WIP/install layout inspected through screenshots; no observed clipping outside the intended horizontally scrollable code block. Mobile override reset afterward. Infrastructure link selected Infrastructure1 and displayed Docker as the sole matching service. Browser console warning/error log empty. Dedicated network-request instrumentation is unavailable on this browser surface; successful page/assets/mock chunk rendering and console observations are the available evidence, not a full network audit. Two locator attempts failed (button accessible-name mismatch and nonfocusable heading keypress); refreshed state and supported AX actions completed verification.
+- Preview remains running for inspection; no process kill/restart performed. No screenshot files written outside the project. UI evidence is in task tool results. Static metadata/docs changes use schema/build/package/browser validation rather than artificial tests.
+- Standard mode; native staged review selected for docs catalog/dependency integration and acceptance verification. No advisors. Review planned US-014 attempt1, expanded-initial/initial. Existing review memory only formatted; no semantic learning changes. Intended commit feat(US-014): deliver docker documentation and catalog integration. Commit status: not_attempted; no completion marker yet.
+
+- Pre-review diff inspection found that the infrastructure guide's first paragraph was copied into the root README with guide-relative links. Split the summary from those references in the canonical guide; regenerated output preserves the links in their original guide context and avoids broken root-relative references. No generator behavior changed.
+- Final root bun run check after canonical guide-summary adjustment passed562/562tasks,557cached,5.395seconds; log .mockingbird/us014-root-check-final.log. Browser evidence remains applicable: no UI logic or Docker page content changed.
+
+## 2026-09-27 UTC - US-014 passing review and finalization
+
+- Native story-reviewer /root/review_us014_attempt1, attempt1, expanded-initial/initial, received the complete verbatim review protocol and inspected the staged candidate. Returned schema-valid result:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": ["The executor reports that dedicated browser network-request instrumentation was unavailable; the supplied browser evidence covers rendered content, mock behavior, and console output."],
+  "learning_candidates": []
+}
+```
+
+- Initial pass, no remediation/targeted pass and no qualifying review memory change. Required package and full repository checks pass as recorded above. Documentation, catalog and browser behavior verified; Docker remains WIP with explicit evidence limits. User approval covers workspace dependency/lockfile and story commit. No publication or deployment.
+- Provisional US-014 completion marker awaits successful authorized commit. Intended commit: feat(US-014): deliver docker documentation and catalog integration. Commit status: pending (not yet delivered). Next eligible story US-015;17stories remain after delivery. Preview remains on loopback4321 for inspection.

@@ -36,8 +36,32 @@ HTTP clients can target `http://127.0.0.1:8826`. A Docker client using `DOCKER_H
 can select `tcp://127.0.0.1:8826`. Unversioned and `/v1.52` provider routes work.
 Versions above 1.52 or below the simulated Engine minimum 1.44 receive provider
 400 errors (plain text below 1.24, JSON otherwise). Versions 1.44–1.51 receive an
-explicit mock-only 501: their wire formats are not implemented. Full client
-compatibility and real Engine parity remain pending.
+explicit mock-only 501: their wire formats are not implemented. The mock reports
+a synthetic Engine 29.1.0 identity; this is not a required local Docker version.
+Selected API 1.52 scenarios passed against Engine 29.8.0; full client and Engine
+compatibility are not claimed. See [verification boundaries](#verification-boundaries).
+
+## Node HTTP example
+
+Run this with Node against the built package. The server uses an ephemeral
+loopback port and synthetic state; no Docker installation is needed.
+
+```ts
+import { createServer } from "@crvouga/mockingbird-service-docker/server"
+
+const server = await createServer({ seed: 42 })
+try {
+  const response = await fetch(`${server.url}/v1.52/version`)
+  if (!response.ok) throw new Error(`Docker mock returned ${response.status}`)
+  console.log(await response.json())
+} finally {
+  await server.close()
+}
+```
+
+For Unix sockets, pass an absolute, absent `socketPath` in your test directory
+and use Node HTTP requests as described below. The CLI uses the shared TCP
+adapter; use `createServer` for Docker's attach and Unix-socket transport.
 
 ## Synthetic observations
 
@@ -156,7 +180,8 @@ than fabricate an exit code. Wait handles are transient and never serialized.
 Checkout and snapshot restore cancel handles owned by the restored instance before
 replacing its state; subsequent completion cannot satisfy an old wait.
 Generated parity excludes blocking waits; deterministic Fetch and real HTTP tests
-cover their completion/cancellation behavior. Live Engine parity remains pending.
+cover their completion/cancellation behavior. The real Engine oracle separately
+checks selected wait and termination outcomes; cancellation coverage is synthetic.
 
 ## Stop, signals and removal
 
@@ -194,7 +219,8 @@ Canceling a stop/kill/removal reply releases only the reply handle. Accepted int
 and running state survive socket loss; explicit completion still applies, including
 pending forced removal. Reset clears the namespace and cancels its pending replies.
 Closing a runtime/server cancels replies without claiming exit. Accepted-mutation
-history after response loss is the subsequent US-008 verification gate.
+history survives response loss through shared Timeline checkpoints, as described
+under failure scenarios below.
 
 ## Controls
 
@@ -227,20 +253,27 @@ The portable `@crvouga/mockingbird-service-docker` entry exports:
 
 The Node-only `@crvouga/mockingbird-service-docker/server` entry exports:
 
-- `createServer`: HTTP server with `runtime`, `url`, `port`, `host`, `server`, `close`.
+- `createServer`: HTTP server with `runtime`, `url`, `port`, `host`, `server`,
+  `close`, `attachments()`, and optional Unix `socketPath`.
 - `DEFAULT_PORT`: CLI default port, 8826 (programmatic default is ephemeral).
 - `serveTarget`: shared CLI server configuration.
 
 Type exports include `DockerAPIOptions`, `DockerRuntime`, `DockerRuntimeOptions`,
 `OperationId`, `SupportedOperationId`, and the Node entry's `DockerServer` and
-`DockerServerOptions`. The executable `mockingbird-docker` provides `serve`.
+`DockerServerOptions`, `AttachStreamOptions`, and `DockerAttachment`. The executable `mockingbird-docker` provides `serve`.
 
 ## Deliberately not modelled
 
 Fetch attach and unsupported options return Mockingbird-specific 501 JSON errors;
-unknown routes return 404. No real containers are started. Orchestration and real Engine parity are deferred. Attach is classified as requiring protocol-specific
-Node verification; a Fetch response cannot represent its bidirectional upgrade.
-Only the documented Node handshake subset is implemented; real-provider parity remains pending.
+unknown routes return 404. The mock never starts real containers or executes
+commands. The Node server supports the documented non-TTY attach handshake and
+scripted duplex streams; a Fetch response cannot represent that upgrade.
+
+Image builds/pulls, registry access, exec, TTY streams, log replay, real networks,
+mounts, volumes, resource enforcement, peer credentials and host isolation are
+outside this package. Reported rootless/security settings and HostConfig fields
+are synthetic metadata. Logical restart controls do not reproduce real daemon
+restart or live-restore. No Initiative orchestration or recovery policy is verified.
 
 ## Failure scenarios and logical restart
 
@@ -321,7 +354,8 @@ already-framed bytes to the last fragment. This does not promise OS packet
 boundaries. The bytes are caller-owned wire fixtures, not generated container
 output. Use the live attachment controls below for framing, channel routing and scripted
 stdin. No command interprets the input, and payload bytes never enter the journal. Connection loss does not stop the container.
-Owned sockets close on server shutdown. No real Engine attach is performed.
+Owned sockets close on server shutdown. The mock never connects to a real Engine;
+the separately invoked oracle performs the authorized provider comparison.
 
 ## Scripted attach streams
 
@@ -394,7 +428,7 @@ unbounded generated walks. Attach uses dedicated raw-wire tests because Fetch
 cannot represent duplex HTTP upgrade. The declared Docker consumer is raw-socket,
 so no SDK compatibility is claimed or substituted for wire coverage. Self-parity
 and synthetic consumer tests are separate from real Engine differential evidence
-(US-013), and do not verify Initiative recovery policies or host enforcement.
+recorded by the oracle, and do not verify Initiative recovery policies or host enforcement.
 
 The opt-in [real Engine oracle](ORACLE.md) requires an explicitly authorized
 current Engine endpoint and immutable image. The recorded Engine 29.8.0 run

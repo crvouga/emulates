@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 through US-013 are complete; 18 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-014 are complete; 17 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -26,10 +26,15 @@ execution; do not treat unavailable tooling or skipped oracles as passing checks
 Documentation-only stories need source/link validation rather than artificial tests.
 
 Context7 research gates are US-002, US-015, and US-024. Refresh evidence for new
-operation families or version changes. Historical or current-main documentation
-cannot silently replace the required pinned version. Material open questions are
-the exact Docker oracle version, pinned Hermes behavior, GitHub API version,
-post-mutation Timeline capture, and active-stream history semantics; see the PRD.
+operation families or version changes. Docker oracle runs use the latest Engine
+available through the user's Docker Desktop installation, recording the exact
+installed version and supported API range; never require a local downgrade.
+The mock's declared API v1.52 contract is a compatibility target, not an Engine
+installation requirement. US-013 recorded Engine 29.8.0 evidence against that
+API subset; later Engine updates require fresh evidence for affected claims.
+For Hermes and GitHub, historical or current-main documentation cannot silently
+replace the required versioned contract. See the PRD for remaining provider
+version questions and the story evidence for resolved runtime semantics.
 
 ### Shared workflow checklist for each story
 
@@ -268,7 +273,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-014: Deliver Docker documentation and package gates
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 14
 - Depends on: US-013
 - Relevant paths: Docker README/support/evidence/metadata, `sites/docs/`, canonical README/llms generators.

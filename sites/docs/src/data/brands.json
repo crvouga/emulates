@@ -105,6 +105,22 @@
     "logo": "/brands/daily.png",
     "logoSource": "site"
   },
+  "docker": {
+    "vendor": "Docker",
+    "website": "https://www.docker.com",
+    "docs": "https://docs.docker.com/reference/api/engine/version/v1.52/",
+    "description": "Docker Engine provides a public API for container lifecycle and attached streams.",
+    "input": {
+      "website": "https://www.docker.com",
+      "docs": "https://docs.docker.com/reference/api/engine/version/v1.52/",
+      "description": "Docker Engine provides a public API for container lifecycle and attached streams.",
+      "name": "Docker",
+      "icon": "docker"
+    },
+    "color": "#2496ED",
+    "logo": "/brands/docker.svg",
+    "logoSource": "simple-icons"
+  },
   "dynamodb": {
     "vendor": "Amazon DynamoDB",
     "website": "https://aws.amazon.com/dynamodb/",

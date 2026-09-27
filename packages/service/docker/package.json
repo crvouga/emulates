@@ -8,7 +8,12 @@
   "files": [
     "dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "API_EVIDENCE.md",
+    "SUPPORT.md",
+    "ORACLE.md",
+    "evidence",
+    "scripts"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -53,9 +58,14 @@
     "vendor": {
       "website": "https://www.docker.com",
       "docs": "https://docs.docker.com/reference/api/engine/version/v1.52/",
-      "description": "Docker Engine provides a public API for container lifecycle and attached streams."
+      "description": "Docker Engine provides a public API for container lifecycle and attached streams.",
+      "name": "Docker",
+      "icon": "docker"
     },
-    "status": "wip"
+    "status": "wip",
+    "playground": {
+      "operation": "SystemVersion"
+    }
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

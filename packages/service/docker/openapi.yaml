@@ -5,8 +5,9 @@ info:
   description: Docker Engine 29.1.0 / API 1.52 observation subset. Unversioned and
     /v1.52 aliases; unsupported older mock versions return 501. Container
     creation is supported; start and wait use explicit simulated completion;
-    stop, kill and removal use explicit termination controls; attach remains
-    unavailable. Synthetic metadata is not host attestation. See
+    stop, kill and removal use explicit termination controls. Attach is unavailable
+    through Fetch; the Node server supports scripted non-TTY duplex streams.
+    Synthetic metadata is not host attestation. See
     API_EVIDENCE.md.
   x-mockingbird-upstream:
     url: https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/api/swagger.yaml
@@ -683,8 +684,8 @@ paths:
       summary: Attach to a container
       x-mockingbird:
         supported: false
-        reason: Node HTTP upgrade requires protocol-specific verification in
-          US-010/US-011; unavailable in Fetch and scaffold.
+        reason: Unsupported through Fetch. The Node server supports non-TTY streaming
+          attach, verified by raw-wire tests and selected real Engine comparisons.
         parity:
           enabled: false
           reason: Raw duplex HTTP upgrade cannot be represented by a Fetch response.
@@ -719,7 +720,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: "Mockingbird Fetch transport: duplex attach is unsupported"
           content:
             application/json:
               schema:

@@ -1601,6 +1601,7 @@
         "@crvouga/mockingbird-service-cognito": "workspace:*",
         "@crvouga/mockingbird-service-customerio": "workspace:*",
         "@crvouga/mockingbird-service-daily": "workspace:*",
+        "@crvouga/mockingbird-service-docker": "workspace:*",
         "@crvouga/mockingbird-service-dynamodb": "workspace:*",
         "@crvouga/mockingbird-service-easypost": "workspace:*",
         "@crvouga/mockingbird-service-edamam": "workspace:*",

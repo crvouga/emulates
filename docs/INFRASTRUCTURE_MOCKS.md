@@ -1,7 +1,9 @@
 # Infrastructure and orchestration mocks
 
 This document defines the boundaries and planned evidence for the Docker Engine,
-Hermes peer-run, and GitHub REST packages. It implements
+Hermes peer-run, and GitHub REST packages.
+
+It implements
 [US-001 of the requirements](../tasks/prd-infrastructure-orchestration-mocks.md#us-001-define-package-boundaries-and-scenario-ownership).
 [PLAN.md](../PLAN.md) controls delivery order: Docker, then Hermes, then GitHub.
 The scenarios below are requirements, not claims of implemented or verified support.
