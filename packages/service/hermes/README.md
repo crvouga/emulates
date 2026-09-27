@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-hermes
 
-Work-in-progress scaffold for the Hermes Agent public peer-run API pinned to
-`v2026.8.31`. Shared Mockingbird controls work; the six inventoried provider routes
-currently return explicit mock-only 501 errors. No agent or inference runs.
+Work-in-progress mock for the Hermes Agent public peer-run API pinned to
+`v2026.8.31`. Submission and polling work with explicit synthetic lifecycle observations.
+Stop, events, approval and steer remain unsupported. No agent or inference runs.
 [API_EVIDENCE.md](API_EVIDENCE.md) records source-backed semantics and gaps;
 [SUPPORT.md](SUPPORT.md) records current operation support.
 
@@ -41,16 +41,16 @@ try {
 ```
 
 The CLI is `mockingbird-hermes serve --port 8827`. Point a peer HTTP client's base
-URL at `http://127.0.0.1:8827`; run submission is not implemented in this scaffold.
+URL at `http://127.0.0.1:8827`; submission returns immediately while execution remains queued until scripted.
 The Node entry is separate from the portable Fetch entry.
 
 ## Routes and controls
 
-The contract inventories `POST /v1/runs`, `GET /v1/runs/{run_id}`,
-`POST /v1/runs/{run_id}/stop`, and the events/approval/steer routes. None is
-implemented yet. The mock-only 501 envelope uses `error.type` of
+`POST /v1/runs` admits a run and `GET /v1/runs/{run_id}` polls it.
+Stop, events, approval and steer return a mock-only 501 envelope with `error.type` of
 `mockingbird_unsupported` and `error.code` of `operation_not_implemented`.
-Unknown paths return 404. These errors do not claim real Hermes rejection behavior.
+Missing runs use the pinned `run_not_found` 404 envelope. Unknown paths return
+404. Mock-only errors do not claim real Hermes rejection behavior.
 
 - `GET /health` identifies the `hermes` runtime.
 - Select isolated namespaces with `x-mockingbird-namespace` or `/ns/<name>/…`.
@@ -76,7 +76,7 @@ The portable entry exports:
 - `createRuntime`: the standard service runtime and shared controls.
 - `document`: annotated OpenAPI contract.
 - `operationIds`: all inventoried operations.
-- `supportedOperationIds`: currently empty in the scaffold.
+- `supportedOperationIds`: `RunCreate` and `RunGet`.
 
 The Node-only `/server` entry exports:
 
@@ -88,10 +88,54 @@ Types include `HermesAPIOptions`, `HermesRuntime`, `HermesRuntimeOptions`,
 `OperationId`, `SupportedOperationId`, `HermesServer`, and `HermesServerOptions`.
 The executable `mockingbird-hermes` provides `serve`.
 
+## Script a run
+
+```ts
+const accepted = await hermes.fetch(new Request("http://hermes.mock/v1/runs", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ input: "synthetic prompt" }),
+}))
+const { run_id } = await accepted.json()
+await hermes.fetch(new Request(`http://hermes.mock/__admin/hermes/runs/${run_id}/observe`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ status: "completed", output: "synthetic result" }),
+}))
+const status = await hermes.fetch(new Request(`http://hermes.mock/v1/runs/${run_id}`))
+console.log(await status.json())
+```
+
+Admission returns 202 `{ run_id, status: "started", replayed: false }`. The stored
+status starts as `queued`. Repeated polling does not advance execution or time.
+Use the same namespace on submission, observations and polling. Optional
+`session_id` defaults to the run ID when absent or falsy. `model` defaults to
+`hermes-agent` only when absent; an explicit null or empty value is retained, as
+in the pinned handler. A valid `X-Hermes-Session-Key` is echoed without deriving a
+conversation ID or authenticating credentials. Model routing and transcript loading
+are not simulated. IDs are deterministic opaque hex strings, separate from sessions.
+
+The observation control accepts `status`: `queued`, `running`,
+`waiting_for_approval`, `stopping`, `completed`, `failed`, `cancelled`, or
+`interrupted`. It accepts optional `last_event`; `approval` only while waiting;
+`error` only for failed/interrupted; and `output`, `usage`, `pending_steer` only
+for completed. Usage has three nonnegative integer counts: `input_tokens`,
+`output_tokens`, `total_tokens`. Completion defaults to empty output and zero counts.
+Terminal observations cannot be changed (409); invalid control payloads return 400
+without changing state. These are mock controls, not additional Hermes routes.
+
+Timestamps are Unix seconds from the shared clock. Run records and their identity
+sequence use shared storage and Timeline; reset clears them. No timers, agent
+handles or prompts are stored. Polling result content stays out of journals.
+Malformed roots/final input elements, hosted rooms and invalid memory-scope headers
+currently return explicit mock-only 501 responses. See evidence for these limits.
+
 ## Deliberately not modelled
 
-Submission, polling, idempotency, stopping, interruption, retention and scripted
-results arrive in later stories. This scaffold stores no prompts or results.
+Idempotency, stop/restart behavior and retention arrive in later stories.
+Nonempty `Idempotency-Key` headers return 501 until implemented; they are never
+silently ignored. Prompts, instructions and history are validated then discarded.
+Synthetic result text can be stored by observation controls and is cleared by reset.
 Kanban attempts, client intake/recovery policy, inference, Python dispatchers,
 host tool execution and credential enforcement are excluded. There are no outgoing
 webhooks, provider calls or agent processes. Public peer-run IDs will remain

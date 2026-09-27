@@ -1,11 +1,9 @@
 import { expect, test } from "bun:test"
 import { HermesAPI } from "./src/index.js"
 
-test("scaffold inventories peer routes without pretending to execute runs", async () => {
+test("unimplemented peer operations remain explicit", async () => {
   const api = new HermesAPI()
   for (const [method, path] of [
-    ["POST", "/v1/runs"],
-    ["GET", "/v1/runs/example"],
     ["POST", "/v1/runs/example/stop"],
     ["GET", "/v1/runs/example/events"],
     ["POST", "/v1/runs/example/approval"],

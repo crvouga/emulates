@@ -7,6 +7,12 @@
       "reason": "Pinned Docker Engine 29.1.0 commit 710302ecf2e958db92cb7d92f8838ea063a31765 daemon/commit.go lines72\u201379 merges image Cmd only when request Entrypoint has zero length. The US-005 explicit-entrypoint characterization passes and targeted review accepted this evidence.",
       "scope": ["packages/service/docker/src/creation.ts"],
       "last_reviewed_story": "US-005"
+    },
+    {
+      "fingerprint": "runs-model-falsy-default|packages/service/hermes/src/runs.ts",
+      "reason": "Pinned Hermes commit29112bef099274229cadff79cdff7bf7b99c4b77 api_server_runs.py line650 uses body.get(\"model\", self._model_name): only an absent key defaults. Explicit null and other falsy values remain supplied. US-017 characterization and targeted review confirm this behavior.",
+      "scope": ["packages/service/hermes/src/runs.ts"],
+      "last_reviewed_story": "US-017"
     }
   ]
 }

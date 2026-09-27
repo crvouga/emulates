@@ -3,13 +3,13 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **6**
-- supported by the mock: **0**
+- supported by the mock: **2**
 - parity enabled: **0**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
-| `RunCreate` | `POST /v1/runs` | ❌ unsupported | — | Run admission is scheduled for US-017. |
-| `RunGet` | `GET /v1/runs/{run_id}` | ❌ unsupported | — | Run polling is scheduled for US-017. |
+| `RunCreate` | `POST /v1/runs` | ✅ supported | ❌ disabled | Pinned runtime oracle is scheduled for US-022. |
+| `RunGet` | `GET /v1/runs/{run_id}` | ✅ supported | ❌ disabled | Pinned runtime oracle is scheduled for US-022. |
 | `RunStop` | `POST /v1/runs/{run_id}/stop` | ❌ unsupported | — | Stop and interruption are scheduled for US-019. |
 | `RunEvents` | `GET /v1/runs/{run_id}/events` | ❌ unsupported | — | SSE is outside the public peer-run mock subset. |
 | `RunApproval` | `POST /v1/runs/{run_id}/approval` | ❌ unsupported | — | Host tool approval execution is outside this mock. |

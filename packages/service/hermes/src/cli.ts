@@ -6,7 +6,7 @@ import { serveTarget } from "./server.js"
 const code = await runCli(
   {
     bin: "mockingbird-hermes",
-    description: "Hermes peer-run API mock (WIP: shared controls only)",
+    description: "Hermes peer-run API mock (WIP: synthetic run lifecycle)",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

@@ -12,7 +12,7 @@ const request = (runtime: HermesRuntime, path: string, namespace = "a", body?: u
     }),
   )
 
-// Test-owned records exercise shared storage; provider run state arrives in US-017.
+// Test-owned records independently exercise the shared storage controls.
 const records = (runtime: HermesRuntime, namespace: string) => {
   const api = runtime.instance(namespace)
   return new Collection<{ value: string }>(api.sqlite, api.namespace, "scaffold-test")
@@ -33,7 +33,7 @@ test("health, namespace carriers, scoped faults and reset use the shared runtime
   expect(fault.status).toBe(201)
   expect((await request(runtime, "/v1/runs/example")).status).toBe(503)
   const other = await runtime.fetch(new Request("http://hermes.local/ns/b/v1/runs/example"))
-  expect(other.status).toBe(501)
+  expect(other.status).toBe(404)
   expect(other.headers.get("x-mockingbird")).toContain("ns=b")
   expect(runtime.journal.list({ namespace: "a" })).toHaveLength(1)
   expect(runtime.journal.list({ namespace: "b" })).toHaveLength(1)
@@ -49,7 +49,7 @@ test("health, namespace carriers, scoped faults and reset use the shared runtime
     new Request("http://hermes.local/__admin/faults", { method: "DELETE" }),
   )
   expect(cleared.status).toBe(200)
-  expect((await request(runtime, "/v1/runs/example")).status).toBe(501)
+  expect((await request(runtime, "/v1/runs/example")).status).toBe(404)
 })
 
 test("journal retains operation metadata without bodies, credentials or query values", async () => {
@@ -70,7 +70,7 @@ test("journal retains operation metadata without bodies, credentials or query va
   const response = await request(runtime, "/__admin/requests", "default")
   const body = (await response.json()) as { requests: { operationId: string; status: number }[] }
   expect(body.requests).toHaveLength(1)
-  expect(body.requests[0]).toMatchObject({ operationId: "RunCreate", status: 501 })
+  expect(body.requests[0]).toMatchObject({ operationId: "RunCreate", status: 202 })
   const serialized = JSON.stringify(body)
   for (const sensitive of [
     "synthetic-query-secret",
@@ -111,11 +111,20 @@ test("shared Timeline checkpoints restore stored records and clock without cross
   expect(b.get("item")).toEqual({ value: "other namespace" })
 })
 
-test("Node HTTP entry point serves explicit unsupported routes and shared controls", async () => {
+test("Node HTTP entry point serves submission, polling and shared controls", async () => {
   const server = await createServer()
   try {
-    expect((await fetch(`${server.url}/v1/runs/example`)).status).toBe(501)
+    expect((await fetch(`${server.url}/v1/runs/example`)).status).toBe(404)
     expect((await fetch(`${server.url}/health`)).status).toBe(200)
+    const accepted = await fetch(`${server.url}/v1/runs`, {
+      method: "POST",
+      body: JSON.stringify({ input: "synthetic" }),
+    })
+    expect(accepted.status).toBe(202)
+    const { run_id } = (await accepted.json()) as { run_id: string }
+    const polled = await fetch(`${server.url}/v1/runs/${run_id}`)
+    expect(polled.status).toBe(200)
+    expect(await polled.json()).toMatchObject({ run_id, status: "queued" })
     const unsupported = await fetch(`${server.url}/v1/runs/example/stop`, { method: "POST" })
     expect(unsupported.status).toBe(501)
   } finally {

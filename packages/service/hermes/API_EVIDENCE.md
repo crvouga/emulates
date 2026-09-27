@@ -83,7 +83,9 @@ added to a new submission. [R `_handle_runs`; T `test_start_returns_202`]
 newly admitted records contain `object: "hermes.run"`, `run_id`, `status`, numeric
 Unix-seconds `created_at` and `updated_at`, `session_id`, and `model`. Session ID
 is the supplied/resolved ID or defaults to the run ID; model is the supplied
-value or adapter virtual model. Updates preserve other fields and the original
+value when the `model` key is present (including null or empty values), and the
+adapter virtual model only when the key is absent. R initial_status uses
+`model=body.get("model", self._model_name)`, not Python `or`. Updates preserve other fields and the original
 creation timestamp. `last_event` appears when an event sets it. Completion adds
 `output` and `usage` with `input_tokens`, `output_tokens`, `total_tokens`; failure
 adds `error`; approval state can add `approval`; completion can include
@@ -254,3 +256,37 @@ of the ordinary peer subset, not as promised new room endpoints.
   database migrations/cleanup and service lifecycle still require applicable approval.
 - This evidence establishes the research contract for US-015, not delivery of
   US-016–023 or Ready status. No credentials, real prompts or customer data were used.
+
+## US-017 implementation refresh (2026-09-27)
+
+Resolved `/nousresearch/hermes-agent` again and queried submission/polling fields
+and validation. Context7 still lacks `v2026.8.31`; results cite current-main run
+handlers and programmatic-integration documentation. Its newer terminal flags
+(`completed`, `partial`, `turn_exit_reason`) and shutdown wording are not imported
+into this pinned mock. Re-fetched R at immutable commit
+`29112bef099274229cadff79cdff7bf7b99c4b77`; SHA-256 remains
+`048ae843592d701ff47437bd8edd47cd64ca6c0fdf88a71045bdb6fb337fbc63`.
+Re-read admission, `_set_run_status`, completion/failure and GET branches.
+
+The implemented subset admits keyless ordinary submissions, preserves session/model
+metadata, and polls stored public observations. Python JSON truthiness is retained
+for input/history validation. Non-object roots and malformed final message elements
+return explicit mock-only 501 responses because their upstream error behavior is
+not verified. Hosted rooms, nonempty idempotency keys and invalid memory headers
+also return explicit 501 responses at this stage. Valid memory keys are echoed;
+no credentials are checked or used as namespace identity.
+
+The default virtual model is `hermes-agent` (A `_resolve_model_name` fallback).
+Model routing, transcript loading and inference are not executed; history is
+validated and discarded with prompt text. Synthetic observation controls are under
+`/__admin/hermes/runs/{id}/observe`, never under vendor paths. GET does not advance
+state. These controls can script the public states and terminal payloads, without
+claiming to execute stop, restart, approval, SSE or steering. Real stop/restart
+behavior remains US-019. Terminal observations cannot be revived by this control.
+Completion supplies empty output/zero usage unless synthetic values are supplied;
+failed/interrupted defaults follow the pinned strings. Leaving approval state
+removes its approval field, as in `_set_run_status`. IDs use the shared deterministic
+sequence encoded into opaque 32-character hex tokens, not actual random UUIDs.
+
+Package tests establish internal contract consistency only. The pinned runtime
+comparison remains US-022.
