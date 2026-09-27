@@ -445,3 +445,52 @@
 - No findings or targeted pass. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression. No full stream/real Engine parity claim.
 - Provisional US-010 completion marker awaits successful authorized commit. Intended message: `feat(US-010): implement docker attach upgrade handshake`.
 - Commit status: pending (not yet delivered). Next eligible story US-011; 21 stories remain after delivery.
+
+## 2026-09-27 UTC - US-011 execution
+
+- Previous goal turn made progress: US-010 delivered39ad1a39. Clean worktree verified; US-011 next eligible under existing all-story implementation/commit authorization.
+- Standard mode, complex stream/lifecycle work. One read-only architect-reviewer advisor `/root/advise_us011_streams` reviewing pinned stdin/EOF/lifetime semantics; no further delegation budget. Parent owns Node session scripting and raw-wire tests. Native staged review remains separate.
+- Proposed Node-owned attachment handles with bounded queued writes/input, stdout/stderr frames, raw stdin, explicit EOF, and per-API invalidation/completion hooks. Store durable synthetic execution/input state only; never socket handles or payloads in history/journal. No host processes/Engine accessed.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-011 candidate verification
+
+- Advisor confirmed raw stdin requires request stdin plus OpenStdin, StdinOnce input closure does not prove exit, and instance-scoped transient cancellation. Retrieved pinned daemon/internal/stream/attach.go and notify_linux.go to settle lower-level EOF: non-CloseStdin closes attachment output; non-TTY CloseStdin closes container input; S8 waits for not-running. Added evidence links without host-provenance/live parity claims.
+- Added Node-owned attachment handles, ordered stdout/stderr frames, bounded copied output/input, raw read-ahead, stdin EOF/explicit output EOF/cancellation, queued-write backpressure and cleanup. API generation/invalidation hooks cover restore/checkout/reset/restart/shutdown; lifecycle completion retires input and finishes queued output. Only modeled stdinClosed is durable/checkpointed; socket handles and payloads remain transient. New execution resets stdinClosed.
+- Initial tests failed on absent attachment scripting. Tests now cover one-byte frame fragmentation, zero-length/binary/concurrent output, selected channels, input gating/read-ahead/EOF, StdinOnce history, slow-reader queue bound/cancel, overflow, peer reset, branch isolation, all invalidation paths and successor handles. Native Node built-entry fixture independently verifies raw input, framing, half-close and completion. Final self-inspection found late close after complete/start could mutate successor stdin; regression failed expected false versus true, then passes after retiring completed-session input independently of pending output drain.
+- One documentation edit command used package cwd with root-relative paths and failed before edits; rerun from project root completed intended docs. No configuration/dependency/auth or shared-runtime changes.
+- Final checks: package91tests/508assertions/zero failures, lint31files, typecheck/build, OpenAPI validation/generated freshness, portability5files and pack pass. Root187typechecks and boundaries1702files pass; whitespace pass. Logs .mockingbird/us011-{initial-tests,stream-tests,docker-tests,typecheck,pack}.log. Existing native handshake/transport fixtures still pass.
+- Native review planned US-011 attempt1, expanded-initial/initial; standard complex transport/lifetime. One advisor used; no UI; existing memory suppression unrelated. Intended commit: feat(US-011): implement docker attach streams and lifetime.
+- Commit status: not_attempted. US-013 retains live oracle; no host execution or Linux provenance claim.
+
+## 2026-09-27 UTC - US-011 initial review remediation
+
+- Native reviewer `/root/review_us011_attempt1` returned changes_requested (initial), one medium correctness finding `streams-completion-retains-readable-stdin`: lifecycle completion retired incoming input but retained previously buffered stdin readable through takeStdin. No other findings, risks or learning candidates. Disposition accepted_fixed.
+- Added regression buffering raw stdin, queuing fragmented output, completing execution, then checking unread stdin is empty and previously queued output drains before EOF. Before fix, it failed with 12 bytes instead of zero. First draft asserted before awaiting output and cleanup caused an unhandled canceled-write rejection; reordered proof to drain output before the assertion without weakening the check.
+- Completion now clears transient input chunks and byte count alongside retirement, preserving queued output drain. Full Docker suite passes 92 tests/510 assertions, zero failures, including native Node fixtures. Package build, lint31files, typecheck and pack pass; whitespace pass. Logs `.mockingbird/us011-remediation-tests.log` and `.mockingbird/us011-remediation-pack.log`. Prior unchanged broader checks remain recorded above.
+- Targeted pass requested in the same native session, same attempt and expanded-initial profile, limited to this finding and remediation regressions. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-011 passing review and finalization
+
+- Native story-reviewer `/root/review_us011_attempt1`, attempt1, expanded-initial/targeted, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "targeted",
+  "findings": [],
+  "resolved_findings": [
+    {
+      "id": "streams-completion-retains-readable-stdin",
+      "evidence": "The completion listener now clears buffered stdin and its byte count before retiring the attachment. The added regression verifies unread input is empty after completion while queued output still drains before EOF."
+    }
+  ],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": [],
+  "learning_candidates": []
+}
+```
+
+- Required scoped checks pass as recorded above. No remaining findings; existing memory unchanged because no qualifying learning or suppression. No real Engine parity or host execution claim.
+- Provisional US-011 completion marker awaits successful authorized commit. Intended message: `feat(US-011): implement docker attach streams and lifetime`.
+- Commit status: pending (not yet delivered). Next eligible story US-012; 20 stories remain after delivery. Existing user authorization covers this commit.

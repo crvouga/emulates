@@ -61,7 +61,7 @@ const admin = (runtime: ServiceRuntime<DockerAPI>): AdminRoutes => {
             "restart: expected explicit containers preserve or terminate, with optional integer exitCode for terminate",
           )
         const api = runtime.instance(namespace)
-        api.lifecycle.cancelWaits()
+        api.cancelTransient()
         if (body.containers === "terminate")
           for (const { value: c } of api.state.containers.list())
             if (isRunning(c)) api.lifecycle.complete(c.id, { exitCode: body.exitCode ?? 137 })
@@ -90,7 +90,7 @@ export const createRuntime = (options: DockerRuntimeOptions = {}): DockerRuntime
     document,
     admin,
     presets,
-    beforeRestore: (api) => api.lifecycle.cancelWaits(),
+    beforeRestore: (api) => api.cancelTransient(),
     create: ({ sqlite, namespace, clock }) => {
       const api = new DockerAPI({
         sqlite,

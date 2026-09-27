@@ -297,3 +297,18 @@ selection stays in shared runtime; private response notes record upgrade101
 without a POST mutation checkpoint. Plain Fetch remains unsupported. Full stream
 framing, stdin semantics and history invalidation are US-011; real parity remains
 US-013. These tests do not establish host enforcement or consumer policy.
+
+## US-011 stream framing and lifetime
+
+The pinned [stream copier](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/internal/stream/attach.go)
+adds EOF detail to S8: effective stdin copies raw bytes; non-TTY CloseStdin closes
+container input, while the other EOF path closes the attachment's output pipes.
+S8 separately waits for process-not-running for non-TTY StdinOnce. Implemented
+synthetic controls distinguish input EOF, output EOF, cancellation, and explicit
+process completion. Source evidence is not a live-oracle claim. The pinned
+[Linux close notifier](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/server/router/container/notify_linux.go)
+uses EPOLLHUP; portable Node tests assert observed reset/close, not kernel
+provenance. Raw consumers cover fragmented frames, bytes and channel selection,
+input read-ahead/half-close, bounded slow-reader output, peer reset, and instance
+invalidation with stale-handle rejection. Native Node also exercises framing,
+raw input, StdinOnce half-close and process completion.

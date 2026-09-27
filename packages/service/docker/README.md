@@ -4,8 +4,7 @@ Work-in-progress Docker Engine API 1.52 mock. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
 Mockingbird's shared runtime controls. POST `/containers/create` persists a stopped
 container. Start, wait, stop, kill, and removal use explicit simulated completion.
-The Node entry supports the non-TTY attach handshake; scripted stream behavior
-remains pending. The contract is
+The Node entry supports non-TTY attach and scripted duplex streams. The contract is
 pinned in [API_EVIDENCE.md](API_EVIDENCE.md); [SUPPORT.md](SUPPORT.md) lists operations.
 
 ## Install
@@ -239,7 +238,7 @@ Type exports include `DockerAPIOptions`, `DockerRuntime`, `DockerRuntimeOptions`
 ## Deliberately not modelled
 
 Fetch attach and unsupported options return Mockingbird-specific 501 JSON errors;
-unknown routes return 404. No real containers are started. Duplex stream scripting, orchestration and real Engine parity are deferred. Attach is classified as requiring protocol-specific
+unknown routes return 404. No real containers are started. Orchestration and real Engine parity are deferred. Attach is classified as requiring protocol-specific
 Node verification; a Fetch response cannot represent its bidirectional upgrade.
 Only the documented Node handshake subset is implemented; real-provider parity remains pending.
 
@@ -297,7 +296,7 @@ keep-alive to 5 seconds, and simultaneous connections to `maxConnections` (defau
 The existing CLI/shared fleet target still uses the shared TCP adapter; Unix
 sockets and these Docker transport limits currently require `createServer`.
 No peer credentials, procfs provenance, host isolation or real Engine access is
-claimed. Stream framing and lifetime controls remain a subsequent story.
+claimed. Attach framing and lifetime controls are described below.
 
 ## Node attach handshake
 
@@ -320,7 +319,51 @@ For protocol fixtures, `attachHandshake: { chunkBytes, initialStreamBytes }`
 splits header writes into 1–4096-byte chunks and appends at most 1 MiB of synthetic
 already-framed bytes to the last fragment. This does not promise OS packet
 boundaries. The bytes are caller-owned wire fixtures, not generated container
-output. Complete framing, channel routing, scripted stdin and stream lifetime
-controls belong to the next story; current incoming bytes are drained without
-interpretation or journaling. Connection loss does not stop the container.
+output. Use the live attachment controls below for framing, channel routing and scripted
+stdin. No command interprets the input, and payload bytes never enter the journal. Connection loss does not stop the container.
 Owned sockets close on server shutdown. No real Engine attach is performed.
+
+## Scripted attach streams
+
+`server.attachments()` returns current Node-owned handles. Each exposes an `id`,
+`containerId`, public `namespace` and `branch`, plus `closed`, `stdinClosed` and
+`queuedBytes`. Retain a handle only for that attachment; it cannot address a
+restored container or a new execution after its lifetime ends.
+
+```ts
+const [attachment] = server.attachments()
+if (attachment) {
+  await attachment.write("stdout", new TextEncoder().encode("synthetic output"))
+  const rawInput = attachment.takeStdin()
+  await attachment.end()
+}
+```
+
+`write("stdout" | "stderr", bytes)` emits the selected channel as an eight-byte
+Docker header (channel 1/2, three reserved zero bytes, uint32 big-endian length)
+followed by the exact payload. Empty frames work; concurrent writes are serialized
+without frame interleaving. Unselected output is ignored. Await each write for
+backpressure. `attachStreams.frameChunkBytes` splits frames for protocol tests
+(default 64 KiB); OS packet boundaries remain uncontrolled.
+
+Incoming stdin is raw, including bytes read ahead with the HTTP upgrade. Input
+requires `stdin=1` and container `OpenStdin=true`; otherwise it is ignored.
+`takeStdin()` drains the bounded synthetic input buffer. No program is executed.
+With `StdinOnce=true`, input EOF closes modeled container stdin and checkpoints
+that state without declaring exit; output may continue until explicit completion.
+Without StdinOnce, effective stdin EOF ends that attachment and leaves container
+input reusable. Starting a new execution reopens modeled input. Transport loss
+alone never invokes container completion.
+
+`end()` scripts output EOF after queued frames. For non-TTY StdinOnce containers,
+it retains the connection until explicit process completion, matching the pinned
+handler's wait. `cancel()` immediately disconnects just this attachment. Process
+completion ends its attachments after queued output. Reset, snapshot restore,
+checkout, synthetic restart and shutdown immediately invalidate the affected
+physical instance's handles; other namespaces/branches remain isolated. Queued
+stale writes reject. Socket handles and buffered payloads are never snapshotted.
+
+`attachStreams.maxQueuedBytes` and `maxStdinBytes` default to 1 MiB. Queued output
+includes frame headers; exceeding the output limit rejects the write. Exceeding
+unread stdin capacity cancels that attachment. Stream limits must be positive
+integers no greater than 16 MiB. These bounds are mock resource controls.

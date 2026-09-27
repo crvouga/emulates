@@ -36,6 +36,22 @@ export class DockerAPI implements FetchAPI {
   readonly state: DockerState
   readonly lifecycle: DockerLifecycle
   private closed = false
+  private readonly invalidators = new Set<() => void>()
+  private epoch = 0
+  get generation(): number {
+    return this.epoch
+  }
+  onInvalidate(listener: () => void): () => void {
+    this.invalidators.add(listener)
+    return () => {
+      this.invalidators.delete(listener)
+    }
+  }
+  cancelTransient(): void {
+    this.epoch++
+    this.lifecycle.cancelWaits()
+    for (const listener of [...this.invalidators]) listener()
+  }
   private readonly service: Service
   constructor(options: DockerAPIOptions = {}) {
     this.sqlite = bootSqlite(options.sqlite)
@@ -192,10 +208,11 @@ export class DockerAPI implements FetchAPI {
   }
   close(): void {
     this.closed = true
+    this.cancelTransient()
     this.lifecycle.close()
   }
   async reset(): Promise<void> {
-    this.lifecycle.cancelWaits()
+    this.cancelTransient()
     await this.service.reset()
   }
 }

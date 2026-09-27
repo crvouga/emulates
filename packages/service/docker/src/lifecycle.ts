@@ -8,6 +8,16 @@ type Waiter = { id: string; condition: string; finish(exitCode: number): void; c
 /** Persist transitions; keep only live response handles outside shared storage. */
 export class DockerLifecycle {
   private closed = false
+  private readonly exits = new Set<(id: string) => void>()
+  onExit(listener: (id: string) => void): () => void {
+    this.exits.add(listener)
+    return () => {
+      this.exits.delete(listener)
+    }
+  }
+  private notifyExit(id: string): void {
+    for (const listener of [...this.exits]) listener(id)
+  }
   private readonly waiters = new Set<Waiter>()
   constructor(
     private readonly state: DockerState,
@@ -30,6 +40,7 @@ export class DockerLifecycle {
     this.state.containers.update(c.id, {
       ...c,
       status: "running",
+      stdinClosed: false,
       exitCode: 0,
       startedAt: new Date(this.now()).toISOString(),
     })
@@ -119,6 +130,7 @@ export class DockerLifecycle {
     }
     this.state.containers.delete(c.id)
     this.notify(c.id, c.exitCode, true)
+    this.notifyExit(c.id)
     accepted(c.id)
     return new Response(null, { status: 204 })
   }
@@ -174,6 +186,7 @@ export class DockerLifecycle {
     const removed = c.hostConfig.AutoRemove === true || c.removalPending === true
     if (removed) this.state.containers.delete(c.id)
     this.notify(c.id, exitCode, removed)
+    this.notifyExit(c.id)
     return { id: c.id, exitCode, removed, simulated: true }
   }
 

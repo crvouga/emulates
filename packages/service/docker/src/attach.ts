@@ -7,6 +7,7 @@ import type { DockerAPI } from "./index.js"
 import { booleanQuery } from "./observations.js"
 import type { DockerRuntime } from "./runtime.js"
 import { DockerInputError } from "./state.js"
+import { type AttachSelection, type AttachStreamOptions, createAttachStreams } from "./streams.js"
 
 export type AttachHandshakeOptions = {
   /** Deterministic mock writes; network packet boundaries remain OS-controlled. */
@@ -14,12 +15,16 @@ export type AttachHandshakeOptions = {
   /** Synthetic already-framed output delivered with the final header fragment. */
   initialStreamBytes?: Uint8Array
 }
-type Admission = { admitted?: boolean }
+type Admission = { selection?: AttachSelection }
 const header = Buffer.from(
   "HTTP/1.1 101 UPGRADED\r\nContent-Type: application/vnd.docker.multiplexed-stream\r\nConnection: Upgrade\r\nUpgrade: tcp\r\n\r\n",
 )
 
-export const createAttachHandshake = (options: AttachHandshakeOptions = {}) => {
+export const createAttachHandshake = (
+  options: AttachHandshakeOptions = {},
+  streamOptions: AttachStreamOptions = {},
+) => {
+  const streams = createAttachStreams(streamOptions)
   const chunkBytes = options.chunkBytes ?? header.length
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1 || chunkBytes > 4096)
     throw new RangeError("attach chunkBytes must be 1..4096")
@@ -62,7 +67,17 @@ export const createAttachHandshake = (options: AttachHandshakeOptions = {}) => {
         )
       if (c.config?.Tty === true)
         return jsonRes(501, { message: "Mockingbird: TTY attach is not implemented" })
-      context.admitted = true
+      context.selection = {
+        api,
+        generation: api.generation,
+        containerId: c.id,
+        namespace: request.headers.get("x-mockingbird-namespace") ?? "default",
+        branch: request.headers.get("x-mockingbird-branch") ?? "main",
+        stdin: booleanQuery(url, "stdin") && c.config?.OpenStdin === true,
+        stdinOnce: c.config?.StdinOnce === true,
+        stdout: booleanQuery(url, "stdout"),
+        stderr: booleanQuery(url, "stderr"),
+      }
       return annotateResponse(new Response(null), { wireStatus: 101, ids: { containerId: c.id } })
     } catch (error) {
       if (error instanceof DockerInputError)
@@ -139,7 +154,7 @@ export const createAttachHandshake = (options: AttachHandshakeOptions = {}) => {
       const context: Admission = {}
       const response = await admission.run(context, () => runtime.fetch(request))
       if (socket.destroyed) return
-      if (!context.admitted || response.status !== 200) {
+      if (!context.selection || response.status !== 200) {
         const body = Buffer.from(await response.arrayBuffer())
         const type = response.headers.get("content-type") ?? "application/json"
         await write(
@@ -154,6 +169,7 @@ export const createAttachHandshake = (options: AttachHandshakeOptions = {}) => {
         socket.end()
         return
       }
+      const session = streams.connect(context.selection, socket, runtime)
       for (let offset = 0; offset < header.length; offset += chunkBytes) {
         const end = Math.min(offset + chunkBytes, header.length)
         const chunk = header.subarray(offset, end)
@@ -161,15 +177,10 @@ export const createAttachHandshake = (options: AttachHandshakeOptions = {}) => {
           return
         if (end < header.length) await new Promise<void>((resolve) => setImmediate(resolve))
       }
-      // Preserve parser read-ahead for the raw input consumer added by stream support.
-      if (head.length) socket.unshift(head)
-      // Until stream scripting is added, drain input without interpreting or journaling it.
-      socket.on("data", () => {})
-      socket.once("end", () => socket.end())
-      socket.resume()
+      session.start(head)
     } catch {
       socket.destroy()
     }
   }
-  return { prepare, upgrade }
+  return { prepare, upgrade, attachments: streams.list }
 }

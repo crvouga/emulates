@@ -46,6 +46,7 @@ export type ContainerRecord = {
     requestedAt: string
   }
   removalPending?: boolean
+  stdinClosed?: boolean
 }
 export type DaemonSettings = { available: boolean; rootless: boolean }
 export const zeroTime = "0001-01-01T00:00:00Z"
