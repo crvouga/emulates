@@ -57,6 +57,30 @@ adding operation families or changing versions, and before US-010 transport work
 
 ## Version routing and rejection policy
 
+US-004 refresh (2026-09-27): Context7 `/docker/docs` still exposes only main.
+List/inspect queries returned v1.4/v1.6/v1.56 excerpts; info/rootless queries
+returned v1.12/v1.20/current docs. None replaces the pinned 1.52 source.
+Newly inspected pinned sources are
+[daemon/list.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/list.go),
+[daemon/inspect.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/inspect.go),
+[filters/parse.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/internal/filters/parse.go), and
+[httputils/form.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/server/httputils/form.go).
+List uses creation-descending order, AND label matching, OR status/exit values,
+unique ID-prefix selection, and name regex matching. A status filter or positive
+limit includes non-running containers. Exited filtering requires a stopped
+container that has started. JSON filter maps accept legacy arrays and boolean
+sets (keys matter even if false); null denotes an empty map. Boolean query
+parsing is permissive: trimmed empty/0/no/false/none are false, other values true.
+The mock bounds name regex support as documented in README and returns explicit
+501 for other patterns/filters. No installed Engine or differential run was used.
+Pinned [container lookup](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/container.go)
+and [prefix lookup](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/container/view.go)
+confirm full ID, exact name, then unique prefix precedence; ambiguous prefixes
+return InvalidParameter (400), while missing containers return 404.
+List status descriptions follow pinned S7 and its
+[duration formatter](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/vendor/github.com/docker/go-units/duration.go),
+using the injected mock clock rather than host process uptime.
+
 S2/S3 explain why the observed `/v1.52/containers/{id}/attach` and unversioned
 `/info` can belong to one client: every provider route is registered with and
 without a version, and an absent version uses the daemon default (1.52 here).

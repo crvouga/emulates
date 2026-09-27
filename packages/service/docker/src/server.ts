@@ -26,5 +26,7 @@ export const serveTarget: ServeTarget = {
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
     }),
-  banner: () => ["Docker scaffold: ping only; container lifecycle and attach are unavailable"],
+  banner: () => [
+    "Docker observations: simulated metadata; container lifecycle and attach are unavailable",
+  ],
 }

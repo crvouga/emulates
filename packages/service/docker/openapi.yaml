@@ -1,9 +1,11 @@
 openapi: 3.1.0
 info:
-  title: Docker Engine (Mockingbird scaffold)
+  title: Docker Engine (Mockingbird)
   version: "1.52"
-  description: Ping is implemented. Lifecycle and attach operations are explicitly
-    unsupported pending later stories. See API_EVIDENCE.md.
+  description: Docker Engine 29.1.0 / API 1.52 observation subset. Unversioned and
+    /v1.52 aliases; unsupported older mock versions return 501. Container
+    lifecycle and attach remain unavailable. Synthetic metadata is not host
+    attestation. See API_EVIDENCE.md.
   x-mockingbird-upstream:
     url: https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/api/swagger.yaml
     note: Selected operation inventory adapted from Engine 29.1.0/API 1.52.
@@ -16,17 +18,70 @@ paths:
       operationId: ContainerList
       summary: List containers
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
-          enabled: false
-          reason: Operation not implemented in scaffold.
+          enabled: true
           safe: true
       responses:
         "200":
           description: no error
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Id:
+                      type: string
+                    Names:
+                      type: array
+                      items:
+                        type: string
+                    Image:
+                      type: string
+                    ImageID:
+                      type: string
+                    Command:
+                      type: string
+                    Created:
+                      type: integer
+                    State:
+                      type: string
+                    Status:
+                      type: string
+                    Labels:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    Ports:
+                      type: array
+                      items:
+                        type: object
+                    HostConfig:
+                      type: object
+                    NetworkSettings:
+                      type: object
+                    Mounts:
+                      type: array
+                      items:
+                        type: object
+                  required:
+                    - Id
+                    - Names
+                    - Image
+                    - ImageID
+                    - Command
+                    - Created
+                    - State
+                    - Status
+                    - Labels
+                    - Ports
+                    - HostConfig
+                    - NetworkSettings
+                    - Mounts
         "400":
-          description: bad parameter
+          description: Invalid query or ambiguous container ID
           content:
             application/json:
               schema:
@@ -38,11 +93,59 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported API version or filter feature
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      parameters:
+        - name: all
+          in: query
+          description: >
+            Return all containers. By default, only running containers are shown.
+          schema:
+            type: boolean
+            default: false
+        - name: limit
+          in: query
+          description: |
+            Return this number of most recently created containers, including
+            non-running ones.
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: |
+            Return the size of container as fields `SizeRw` and `SizeRootFs`.
+          schema:
+            type: boolean
+            default: false
+        - name: filters
+          in: query
+          description: |
+            Filters to process on the container list, encoded as JSON (a
+            `map[string][]string`). For example, `{"status": ["paused"]}` will
+            only return paused containers.
+
+            Available filters:
+
+            - `ancestor`=(`<image-name>[:<tag>]`, `<image id>`, or `<image@digest>`)
+            - `before`=(`<container id>` or `<container name>`)
+            - `expose`=(`<port>[/<proto>]`|`<startport-endport>/[<proto>]`)
+            - `exited=<int>` containers with exit code of `<int>`
+            - `health`=(`starting`|`healthy`|`unhealthy`|`none`)
+            - `id=<ID>` a container's ID
+            - `isolation=`(`default`|`process`|`hyperv`) (Windows daemon only)
+            - `is-task=`(`true`|`false`)
+            - `label=key` or `label="key=value"` of a container label
+            - `name=<name>` a container's name
+            - `network`=(`<network id>` or `<network name>`)
+            - `publish`=(`<port>[/<proto>]`|`<startport-endport>/[<proto>]`)
+            - `since`=(`<container id>` or `<container name>`)
+            - `status=`(`created`|`restarting`|`running`|`removing`|`paused`|`exited`|`dead`)
+            - `volume`=(`<volume name>` or `<mount point destination>`)
+          schema:
+            type: string
   /containers/create:
     post:
       operationId: ContainerCreate
@@ -92,21 +195,167 @@ paths:
       operationId: ContainerInspect
       summary: Inspect a container
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
-          enabled: false
-          reason: Operation not implemented in scaffold.
+          enabled: true
           safe: true
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
+          description: ID or name of the container
           schema:
             type: string
+        - name: size
+          in: query
+          description: Return the size of container as fields `SizeRw` and `SizeRootFs`
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: no error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Id:
+                    type: string
+                  Name:
+                    type: string
+                  Image:
+                    type: string
+                  Created:
+                    type: string
+                  Path:
+                    type: string
+                  Args:
+                    type: array
+                    items:
+                      type: string
+                  State:
+                    type: object
+                    properties:
+                      Status:
+                        type: string
+                        enum:
+                          - created
+                          - running
+                          - paused
+                          - restarting
+                          - removing
+                          - exited
+                          - dead
+                      Running:
+                        type: boolean
+                      Paused:
+                        type: boolean
+                      Restarting:
+                        type: boolean
+                      OOMKilled:
+                        type: boolean
+                      Dead:
+                        type: boolean
+                      Pid:
+                        type: integer
+                      ExitCode:
+                        type: integer
+                      Error:
+                        type: string
+                      StartedAt:
+                        type: string
+                      FinishedAt:
+                        type: string
+                    required:
+                      - Status
+                      - Running
+                      - Paused
+                      - Restarting
+                      - OOMKilled
+                      - Dead
+                      - Pid
+                      - ExitCode
+                      - Error
+                      - StartedAt
+                      - FinishedAt
+                  Config:
+                    type: object
+                    properties:
+                      Image:
+                        type: string
+                      Labels:
+                        type: object
+                        additionalProperties:
+                          type: string
+                      Cmd:
+                        type: array
+                        items:
+                          type: string
+                      Entrypoint:
+                        type: array
+                        items:
+                          type: string
+                      Env:
+                        type: array
+                        items:
+                          type: string
+                      WorkingDir:
+                        type: string
+                      User:
+                        type: string
+                      Tty:
+                        type: boolean
+                      OpenStdin:
+                        type: boolean
+                      StdinOnce:
+                        type: boolean
+                      AttachStdin:
+                        type: boolean
+                      AttachStdout:
+                        type: boolean
+                      AttachStderr:
+                        type: boolean
+                    required:
+                      - Image
+                      - Labels
+                      - Cmd
+                      - Entrypoint
+                      - Env
+                      - WorkingDir
+                      - User
+                      - Tty
+                      - OpenStdin
+                      - StdinOnce
+                      - AttachStdin
+                      - AttachStdout
+                      - AttachStderr
+                  HostConfig:
+                    type: object
+                  NetworkSettings:
+                    type: object
+                  Mounts:
+                    type: array
+                    items:
+                      type: object
+                required:
+                  - Id
+                  - Name
+                  - Image
+                  - Created
+                  - Path
+                  - Args
+                  - State
+                  - Config
+                  - HostConfig
+                  - NetworkSettings
+                  - Mounts
+        "400":
+          description: Invalid query or ambiguous container ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: no such container
           content:
@@ -120,7 +369,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported API version or filter feature
           content:
             application/json:
               schema:
@@ -147,6 +396,15 @@ paths:
           description: no error
         "304":
           description: container already started
+        "400":
+          description: Version rejected by Engine (below 1.24 uses plain text)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            text/plain:
+              schema:
+                type: string
         "404":
           description: no such container
           content:
@@ -187,6 +445,15 @@ paths:
           description: no error
         "304":
           description: container already stopped
+        "400":
+          description: Version rejected by Engine (below 1.24 uses plain text)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            text/plain:
+              schema:
+                type: string
         "404":
           description: no such container
           content:
@@ -225,6 +492,15 @@ paths:
       responses:
         "204":
           description: no error
+        "400":
+          description: Version rejected by Engine (below 1.24 uses plain text)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            text/plain:
+              schema:
+                type: string
         "404":
           description: no such container
           content:
@@ -395,15 +671,96 @@ paths:
       operationId: SystemInfo
       summary: Get system information
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
-          enabled: false
-          reason: Operation not implemented in scaffold.
+          enabled: true
           safe: true
       responses:
         "200":
           description: No error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ID:
+                    type: string
+                  Name:
+                    type: string
+                  ServerVersion:
+                    type: string
+                  Containers:
+                    type: integer
+                  ContainersRunning:
+                    type: integer
+                  ContainersPaused:
+                    type: integer
+                  ContainersStopped:
+                    type: integer
+                  Images:
+                    type: integer
+                  Driver:
+                    type: string
+                  OSType:
+                    type: string
+                  Architecture:
+                    type: string
+                  OperatingSystem:
+                    type: string
+                  KernelVersion:
+                    type: string
+                  DockerRootDir:
+                    type: string
+                  SecurityOptions:
+                    type: array
+                    items:
+                      type: string
+                  SystemTime:
+                    type: string
+                    x-mockingbird-volatile:
+                      kind: timestamp
+                  NCPU:
+                    type: integer
+                  MemTotal:
+                    type: integer
+                  Labels:
+                    type: array
+                    items:
+                      type: string
+                  Warnings:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - ID
+                  - Name
+                  - ServerVersion
+                  - Containers
+                  - ContainersRunning
+                  - ContainersPaused
+                  - ContainersStopped
+                  - Images
+                  - Driver
+                  - OSType
+                  - Architecture
+                  - OperatingSystem
+                  - KernelVersion
+                  - DockerRootDir
+                  - SecurityOptions
+                  - SystemTime
+                  - NCPU
+                  - MemTotal
+                  - Labels
+                  - Warnings
+        "400":
+          description: Version rejected by Engine (below 1.24 uses plain text)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            text/plain:
+              schema:
+                type: string
         "500":
           description: Server error
           content:
@@ -411,25 +768,93 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported API version or filter feature
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      parameters: []
   /version:
     get:
       operationId: SystemVersion
       summary: Get version
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
-          enabled: false
-          reason: Operation not implemented in scaffold.
+          enabled: true
           safe: true
       responses:
         "200":
           description: no error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Version:
+                    type: string
+                  ApiVersion:
+                    type: string
+                  MinAPIVersion:
+                    type: string
+                  GitCommit:
+                    type: string
+                  GoVersion:
+                    type: string
+                  Os:
+                    type: string
+                  Arch:
+                    type: string
+                  KernelVersion:
+                    type: string
+                  BuildTime:
+                    type: string
+                  Experimental:
+                    type: boolean
+                  Platform:
+                    type: object
+                    properties:
+                      Name:
+                        type: string
+                    required:
+                      - Name
+                  Components:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Name:
+                          type: string
+                        Version:
+                          type: string
+                        Details:
+                          type: object
+                      required:
+                        - Name
+                        - Version
+                        - Details
+                required:
+                  - Version
+                  - ApiVersion
+                  - MinAPIVersion
+                  - GitCommit
+                  - GoVersion
+                  - Os
+                  - Arch
+                  - KernelVersion
+                  - BuildTime
+                  - Experimental
+                  - Platform
+                  - Components
+        "400":
+          description: Version rejected by Engine (below 1.24 uses plain text)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            text/plain:
+              schema:
+                type: string
         "500":
           description: server error
           content:
@@ -437,11 +862,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported API version or filter feature
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      parameters: []
   /_ping:
     get:
       operationId: SystemPing
@@ -482,8 +908,23 @@ paths:
               schema:
                 type: string
                 const: OK
+        "400":
+          description: Version rejected by Engine (below 1.24 uses plain text)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            text/plain:
+              schema:
+                type: string
         "500":
           description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Mockingbird unsupported API version
           content:
             application/json:
               schema:
@@ -522,8 +963,23 @@ paths:
             Pragma:
               schema:
                 type: string
+        "400":
+          description: Version rejected by Engine (below 1.24 uses plain text)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            text/plain:
+              schema:
+                type: string
         "500":
           description: server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Mockingbird unsupported API version
           content:
             application/json:
               schema:

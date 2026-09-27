@@ -160,3 +160,50 @@
 - No findings, remediation pass, or qualifying memory changes. Checks remain passing as recorded above. Existing user authorization covers the story commit. Provisional US-003 completion marker requires successful commit; 28 stories remain after delivery.
 - Intended commit message: `feat(US-003): scaffold the Docker service package`.
 - Commit status: pending (not yet delivered). Next eligible story: US-004.
+
+## 2026-09-27 UTC - US-004 execution
+
+- Previous goal turn made progress: US-003 delivered as 3fa5cf8e. Current branch matches PLAN.md and worktree is clean. US-004 is next eligible; existing implementation/commit authorization continues.
+- Standard mode, standard implementation risk, test-sensitive review. No implementation advisor needed for established Collection/runtime patterns; required native staged review remains separate. Memory empty.
+- Refreshed Context7 /docker/docs: list/inspect results span v1.4/v1.6/v1.56; info results span v1.12/v1.20/current rootless docs. These are discovery only. Pinned 710302ec source/spec remains authoritative; fetched daemon/list.go, daemon/inspect.go, daemon/internal/filters/parse.go for filter/observation details.
+- Scope: version routing, version/info, seeded container list/inspect, transactional synthetic admin seed and daemon settings. Shared Collection owns records and simulated daemon metadata; no host enforcement or real Engine operations.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-004 candidate checks
+
+- Implemented observation handlers, version routing, bounded filters, shared Collection image/container/daemon records, atomic seed admin and recoverable simulated transport unavailability. Updated contract, generated support, README/CLI and pinned source evidence.
+- Four initial behavior tests failed on absent seed/list/version routes before implementation. Expanded tests cover malformed seed rollback, schema conformance, full/name/prefix lookup, reset/isolation, versioned journal/fault matching, availability preservation and Timeline checkout. Journal alias regression failed first, then normalization fixed it.
+- Source inspection corrected initial strict boolean parsing to pinned permissive BoolValue behavior, accepted null/boolean-set filters, and established ambiguous prefix400. List status text now follows pinned state/duration formatting on the mock clock. These corrections preserve upstream semantics rather than merely accepting earlier passing mock assertions. Contract generation initially emitted excessive YAML aliases; generator output now writes independent schema objects without aliases, leaving parser safeguards intact.
+- Final package tests: 18 pass, 0 fail, 129 assertions. Package lint (13 files), typecheck, OpenAPI validation, generated freshness, build, portability (5 files) and pack check pass. Root typecheck passed 187/187; boundaries passed for 1685 source files. Full docs/catalog/root aggregate gate remains US-014. No live Engine oracle executed.
+- Staged review planned: native story-reviewer, US-004 attempt 1, expanded-initial/initial, standard mode/test-sensitive. No advisors used. No UI/browser flow changes. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-004 initial review remediation
+
+- Actual native role/session: story-reviewer `/root/review_us004_attempt1`, US-004 attempt 1, same worktree. Complete protocol supplied; immutable staged candidate reviewed. Initial schema-valid verdict: changes_requested. One medium correctness finding, `packages-service-docker-empty-id-filter-matches-single-container`, observations.ts line191: empty ID prefix incorrectly matches a sole container, whereas pinned Engine lookup rejects it.
+- Disposition: accepted_fixed. Added regression with exactly one container; it failed with a returned container instead of []. Added nonempty-prefix guard. Regression also verifies unique prefix success and ambiguous prefix exclusion. No unrelated remediation or filter expansion.
+- Targeted review remains in the same native session, limited to this root cause and remediation regressions. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-004 passing review and finalization
+
+- Same native session `/root/review_us004_attempt1`, story US-004 attempt 1; targeted packet included the complete protocol. Returned schema-valid result:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "targeted",
+  "findings": [],
+  "resolved_findings": [
+    {
+      "id": "packages-service-docker-empty-id-filter-matches-single-container",
+      "evidence": "The ID-filter predicate now requires id.length > 0 before prefix matching. The regression covers empty, unique, ambiguous and longer unique prefixes; the executor reports it passes."
+    }
+  ],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": [],
+  "learning_candidates": []
+}
+```
+
+- Final checks after remediation: 19 tests passed, 133 assertions; package lint/typecheck/build/portability/pack checks passed. Contract freshness and OpenAPI validation remain passing; root typecheck187/187 and boundaries1685 passed before the one-line guard/test remediation. No unresolved findings or reusable learning candidates; memory remains absent/empty.
+- Provisional US-004 marker awaits successful authorized commit. Intended message: `feat(US-004): implement Docker engine and container observations`.
+- Commit status: pending (not yet delivered). Next eligible story US-005; 27 stories remain after delivery. Live Engine differential verification remains unexecuted and belongs to US-013.

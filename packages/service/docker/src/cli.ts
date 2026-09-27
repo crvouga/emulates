@@ -6,7 +6,7 @@ import { serveTarget } from "./server.js"
 const code = await runCli(
   {
     bin: "mockingbird-docker",
-    description: "Docker Engine API mock (WIP: ping and shared controls)",
+    description: "Docker Engine API mock (WIP: synthetic observations and shared controls)",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

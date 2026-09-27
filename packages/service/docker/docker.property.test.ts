@@ -6,7 +6,7 @@ import { DockerAPI, document, supportedOperationIds } from "./src/index.js"
 const host = "docker.mock.local"
 const params = fcParameters(process.env)
 
-test("self-parity exercises both ping operations against the contract", async () => {
+test("self-parity exercises every implemented observation against the contract", async () => {
   const reference = new DockerAPI()
   const report = await parity({
     provider: "docker",
