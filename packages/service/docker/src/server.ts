@@ -1,27 +1,30 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import type { Listening, ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type DockerRuntime, type DockerRuntimeOptions } from "./runtime.js"
 
-export const DEFAULT_PORT = 8826
-export type DockerServerOptions = DockerRuntimeOptions & { port?: number; host?: string }
-export type DockerServer = Listening & { runtime: DockerRuntime }
+import { listenDocker, type TransportOptions } from "./transport.js"
 
-/** Ordinary HTTP transport. Duplex attach and UNIX sockets are not implemented yet. */
+export const DEFAULT_PORT = 8826
+export type DockerServerOptions = DockerRuntimeOptions & TransportOptions
+export type DockerServer = Listening & { runtime: DockerRuntime; socketPath?: string }
+
+/** Node-only bounded HTTP transport over TCP or a test-owned Unix socket. */
 export const createServer = async (options: DockerServerOptions = {}): Promise<DockerServer> => {
-  const { port, host, ...rest } = options
+  const { port, host, socketPath, maxBodyBytes, bodyTimeoutMs, maxConnections, ...rest } = options
   const runtime = createRuntime(rest)
-  const listening = await listen(runtime, {
-    port: port ?? 0,
-    ...(host !== undefined ? { host } : {}),
-  })
-  listening.server.once("close", () => runtime.close())
-  return {
-    ...listening,
-    runtime,
-    close: async () => {
-      runtime.close()
-      await listening.close()
-    },
+  try {
+    const listening = await listenDocker(runtime, {
+      ...(port !== undefined ? { port } : {}),
+      ...(host !== undefined ? { host } : {}),
+      ...(socketPath !== undefined ? { socketPath } : {}),
+      ...(maxBodyBytes !== undefined ? { maxBodyBytes } : {}),
+      ...(bodyTimeoutMs !== undefined ? { bodyTimeoutMs } : {}),
+      ...(maxConnections !== undefined ? { maxConnections } : {}),
+    })
+    return { ...listening, runtime }
+  } catch (error) {
+    runtime.close()
+    throw error
   }
 }
 

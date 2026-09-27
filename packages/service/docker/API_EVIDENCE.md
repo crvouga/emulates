@@ -273,3 +273,14 @@ stored diagnostic metadata; fixture-controlled completion replaces process/timer
 scheduling. v is inert without modeled volumes; link removal is explicit mock-only501.
 Shared state/checkpoints and transient handles are reused. Fetch and real Node HTTP
 tests cover acceptance versus exit and response loss; no live Engine parity claimed.
+
+## US-009 transport implementation evidence
+
+Node's [HTTP API](https://nodejs.org/api/http.html) documents the parser header
+limit, receive timeouts and retained connections. The Docker-local transport uses
+these Node facilities plus its own bounded body collector and owned connection
+set. [Node IPC sockets](https://nodejs.org/api/net.html#ipc-support) define local
+path serving and normal server-close cleanup. Transport bounds and path refusal
+are explicit mock controls, not assertions of Docker daemon limits. Verification
+uses synthetic project-local Unix sockets and TCP, including a built-entry fixture
+executed under Node; it does not use Linux peer credentials or a real Engine.

@@ -238,8 +238,7 @@ Type exports include `DockerAPIOptions`, `DockerRuntime`, `DockerRuntimeOptions`
 ## Deliberately not modelled
 
 Attach and unsupported options return Mockingbird-specific 501 JSON errors;
-unknown routes return 404. No real containers are started. UNIX
-sockets, HTTP upgrade, duplex attach, orchestration and real
+unknown routes return 404. No real containers are started. HTTP upgrade, duplex attach, orchestration and real
 Engine parity are deferred. Attach is classified as requiring protocol-specific
 Node verification; a Fetch response cannot represent its bidirectional upgrade.
 No successful attach behavior or real-provider parity is claimed by these tests.
@@ -268,3 +267,34 @@ true, and checkpoint the selected namespace's main branch. Invalid input changes
 nothing. Daemon availability changes also checkpoint independently of execution.
 These are synthetic scenario controls, not claims about a real daemon's restart
 policy or live-restore configuration. No daemon or host process is restarted.
+
+## Node Unix-socket transport
+
+The programmatic Node entry supports `createServer({ socketPath })` on Unix.
+Supply an absolute, absent path (at most 103 UTF-8 bytes) in a test-owned directory.
+It refuses existing files, symlinks and sockets, including stale sockets; it never
+unlinks them to make room. Do not use a host Engine path. The operating system and
+Node remove the bound socket when `await server.close()` completes. Close also
+cancels runtime waits and destroys owned connections; repeated close calls share
+one shutdown operation. Tests must close their server in a finally block.
+
+Use Node HTTP `request({ socketPath, path: "/_ping" })` for Unix requests. The
+returned `socketPath` identifies the endpoint; `url` is the synthetic HTTP origin
+`http://docker.mock` and `port` is 0. For TCP, omit `socketPath` and use `host`/`port`
+as before. Combining Unix and TCP options rejects. Retained sequential HTTP/1.1
+requests work on both transports. Each connection permits one active request;
+pipelining another request before its response finishes closes that connection
+before dispatching the extra request. A deliberate drop closes the connection; the
+transport does not reconnect clients.
+
+`createServer` bounds bodies to `maxBodyBytes` (default 1 MiB, including chunked
+input), with a `bodyTimeoutMs` receive deadline (default 30 seconds). Rejections
+return transport-specific 413 or 408 and close the connection without invoking a
+provider operation. Response waits have no artificial execution deadline. Header
+size is limited to 16 KiB, header/request receive time to 30 seconds, idle
+keep-alive to 5 seconds, and simultaneous connections to `maxConnections` (default
+128). These limits are Mockingbird controls, not Docker Engine parity claims.
+The existing CLI/shared fleet target still uses the shared TCP adapter; Unix
+sockets and these Docker transport limits currently require `createServer`.
+No peer credentials, procfs provenance, host isolation or real Engine access is
+claimed. Attached upgrade streams remain a subsequent story.

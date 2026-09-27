@@ -364,3 +364,48 @@
 - No findings or targeted remediation pass. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression event. No live parity claim.
 - Provisional US-008 completion marker awaits successful authorized commit. Intended message: `feat(US-008): preserve accepted docker mutations across response loss`.
 - Commit status: pending (not yet delivered). Next eligible story US-009; 23 stories remain after delivery.
+
+## 2026-09-27 UTC - US-009 execution
+
+- Previous goal turn made progress: US-008 delivered c2b2d7da. Clean worktree and dependency completion verified. US-009 is next eligible story under existing all-story implementation/commit authorization.
+- Standard mode, transport/lifecycle risk. Existing shared Node adapter buffers unbounded request bodies and supports TCP only; scope calls for Docker-local Node transport first. Reuse Node HTTP parsing and runtime Fetch handlers, add bounded body collection/timeouts and owned connection lifecycle; keep portable entry unchanged. Native staged review remains required. No advisor needed for this bounded implementation.
+- Unix paths must be absent before bind; never unlink an existing path. Node owns its bound socket cleanup on close. Tests use project-local synthetic sockets only, never a host Engine. No configuration/dependency changes planned.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-009 candidate verification
+
+- Added Docker-local Node HTTP transport with exclusive absent Unix path binding, retained TCP/Unix HTTP connections, 1 MiB configurable body bounds, bounded receive deadlines/headers/connections, drop propagation, backpressure/disconnect cleanup and idempotent owned shutdown. Portable provider exports unchanged; shared CLI/fleet adapter remains documented TCP-only. No shared adapter changes or host Engine access.
+- Three initial tests failed before implementation: missing Unix endpoint, ignored existing path, and absent body limit. After implementation, raw-socket tests cover fixed/chunked body rejection, timeout, deliberate drop without reconnection, retained sequential connections, incomplete-request shutdown, and refusing a live unowned socket. A built-entry .mjs fixture passes under Node itself and is invoked by the Bun suite. Existing wait/termination socket tests pass on the new transport.
+- Initial typecheck caught exact-optional options and Buffer RequestInit mismatch; explicit optional fields and Uint8Array body fixed them. Final package65tests/424assertions/zero failures; lint24files, typecheck, build, OpenAPI validation/generated freshness, portability5files and pack pass. Root typecheck187/187 and boundaries1696files pass; whitespace pass. Logs .mockingbird/us009-{docker-tests,typecheck,pack}.log. Node reference links recorded in API_EVIDENCE.md; no Docker parity or provenance claim.
+- Native story-reviewer planned: US-009 attempt1, expanded-initial/initial; standard transport/lifecycle risk. No advisor; no UI; existing memory suppression unrelated. Intended commit: feat(US-009): add bounded docker unix-socket transport.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-009 review remediation
+
+- Native `/root/review_us009_attempt1` initial expanded-initial verdict changes_requested. Findings: docker-transport-unbounded-inflight-requests (medium/security) observed unlimited pipelined handlers per socket despite connection/body caps; docker-transport-test-fixture-file-leak (low/QA) observed existing-path fixture retained after test. Both accepted_fixed. No learning candidates. Residual: no Linux peer/procfs provenance proof.
+- Added raw regression while a wait reply is pending: before fix, eight pipelined pings reached journal (expected zero), failing test. Added one-active-request-per-connection guard before dispatch, retained until response finish/close; excess pipeline destroys connection and cancels pending work. Regression passes, including no fallback fixture timeout and pending-handle cleanup. Added the same scenario to the built Node subprocess fixture; passes under Node. Sequential TCP/Unix reuse still passes.
+- Existing-path fixture now unlinks only its own created file in finally, after preservation assertions; asserts absence afterward. README documents pipelining refusal. One formatting pass left a chain-layout discrepancy; package formatter applied and final lint24files passes. Final66tests/429assertions, Docker typecheck/build/pack and root187/187typechecks pass; whitespace pass. No shared adapter or provider behavior changes.
+- Targeted pass requested in same native session/attempt, expanded-initial/targeted, scoped to two findings and remediation regressions. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-009 passing review and finalization
+
+- Same native story-reviewer `/root/review_us009_attempt1`, attempt1, expanded-initial/targeted, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "targeted",
+  "findings": [],
+  "resolved_findings": [
+    { "id": "docker-transport-unbounded-inflight-requests", "evidence": "The per-socket busy guard destroys a connection with another active request before dispatching it. The staged regression pipelines eight requests while a wait is pending, verifies no extra SystemPing journal entries, and confirms the waiter is released. The same regression runs under the built Node entry, while sequential keep-alive tests still pass." },
+    { "id": "docker-transport-test-fixture-file-leak", "evidence": "The existing-path fixture now unlinks its file in a finally block and asserts the path is absent afterward." }
+  ],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": [],
+  "learning_candidates": []
+}
+```
+
+- Both findings accepted_fixed with required verification. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning/suppression. Unix serving is programmatic; shared CLI target remains TCP-only. No real Engine or host provenance claim.
+- Provisional US-009 completion marker awaits successful authorized commit. Intended message: `feat(US-009): add bounded docker unix-socket transport`.
+- Commit status: pending (not yet delivered). Next eligible story US-010; 22 stories remain after delivery.
