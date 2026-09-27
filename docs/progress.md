@@ -289,3 +289,40 @@
 - Both findings accepted_fixed with failing-before/passing-after streaming regression and corrected support overview. All required scoped checks pass as recorded above. No qualifying learning candidates or new suppressions; existing memory unchanged.
 - Provisional US-006 completion marker awaits successful authorized commit. Intended message: `feat(US-006): implement docker start and wait`.
 - Commit status: pending (not yet delivered). Next eligible story US-007; 25 stories remain after delivery.
+
+## 2026-09-27 UTC - US-007 execution
+
+- Previous turn made progress: US-006 committed c4e44291. Exact branch and clean worktree verified; US-007 eligible under existing all-story implementation/commit authorization.
+- Standard mode/implementation risk, test-sensitive review. No implementation advisor needed for existing storage/stream patterns. Refresh Context7 /docker/docs returned current stop guidance and older API excerpts; newly retained pinned kill.go/delete.go/signal.go/signal_linux.go/httpstatus.go settle behavior. Live Engine not invoked.
+- Selected design: store termination-request metadata separately from execution status; stop and SIGKILL replies remain pending until explicit completion. Other valid kill signals acknowledge delivery only. Forced removal waits for completion and then releases the record/name; seeded removing state and concurrent forced removals supply controlled conflicts. Cancellation releases reply handles without undoing accepted intent. No host processes/resources or policy enforcement.
+- Stop t and signal are parsed against pinned behavior; deterministic completion controls replace wall-clock timeout/process scheduling. Shared history-after-failed-delivery remains US-008, not provider-local snapshots.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-007 candidate verification
+
+- Implemented stop/kill/removal handlers, persisted termination metadata and removal intent, diagnostic GET control, Linux signal/timeout parsing, and response waiters reusing lifecycle cleanup. Explicit completion resolves stop/SIGKILL/forced-removal and wait conditions; non-SIGKILL delivery does not declare exit. Provider delete releases stopped records/names and rejects active/non-forced or duplicate removal. Updated contract/generated support/docs and generated-parity exclusions for potentially pending operations.
+- Four new tests failed before implementation on absent endpoints/501 behavior. After implementation one test observed the earlier TERM request while waiting for the later KILL request; tightened the acceptance barrier to match both operation and signal (no production change). A subsequent kill-error envelope regression failed before route-context wrapping and passes after the fix.
+- Final checks: package46tests/0failures/313assertions, lint19files, typecheck; OpenAPI validation/codegen freshness, build, portability5files and pack pass. Root typecheck187/187 and boundaries1691files pass; whitespace check pass. Logs .mockingbird/us007-pack.log and us007-typecheck.log.
+- Tests cover pending stop versus running state, repeated stop304, delayed SIGKILL versus signal acknowledgement, force/remove conflicts, removal waiters/name reuse, signal/timeouts/error envelopes, cancellation/reset, concurrent stop requests and real Node socket loss followed by inspection/wait/completion. No host execution or live Engine oracle. Timeout/process response is explicitly scripted, not wall-clock enforced.
+- Native story-reviewer planned, US-007 attempt1, expanded-initial/initial; standard/test-sensitive. No advisors or UI. Memory suppression remains unrelated US-005 image-default rule. Intended commit: `feat(US-007): implement docker termination and removal`.
+- Commit status: not_attempted. US-008 owns accepted-but-lost history behavior; US-013 live oracle; US-014 catalog/root aggregate gates.
+
+## 2026-09-27 UTC - US-007 passing review and finalization
+
+- Native story-reviewer `/root/review_us007_attempt1`, attempt1, expanded-initial/initial, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": ["Live Docker Engine parity was not established; the staged documentation and tests describe a controlled provider simulation."],
+  "learning_candidates": []
+}
+```
+
+- No findings or targeted remediation pass. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression event. No live parity claim.
+- Provisional US-007 completion marker awaits successful authorized commit. Intended message: `feat(US-007): implement docker termination and removal`.
+- Commit status: pending (not yet delivered). Next eligible story US-008; 24 stories remain after delivery.

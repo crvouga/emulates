@@ -25,7 +25,12 @@ test("self-parity exercises each nonblocking implemented operation against the c
   })
   expect(report.walks).toBeGreaterThan(0)
   expect(Object.keys(report.exercised).sort()).toEqual(
-    supportedOperationIds.filter((id) => id !== "ContainerWait").sort(),
+    supportedOperationIds
+      .filter(
+        (id) =>
+          !["ContainerWait", "ContainerStop", "ContainerKill", "ContainerDelete"].includes(id),
+      )
+      .sort(),
   )
 })
 

@@ -3,8 +3,8 @@
 Work-in-progress Docker Engine API 1.52 mock. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
 Mockingbird's shared runtime controls. POST `/containers/create` persists a stopped
-container. Start and wait use explicit simulated completion. Stop, kill, removal
-routes and attached streams remain unavailable. The contract is
+container. Start, wait, stop, kill, and removal use explicit simulated completion.
+Attached streams remain unavailable. The contract is
 pinned in [API_EVIDENCE.md](API_EVIDENCE.md); [SUPPORT.md](SUPPORT.md) lists operations.
 
 ## Install
@@ -148,7 +148,7 @@ removes the synthetic record and satisfies removed waits. No host resource is
 touched. Repeated completion while stopped returns 409. These controls operate on
 the selected namespace's main branch; provider operations can use shared branches.
 
-`GET /__admin/docker/waits` reports the namespace's pending waiter count.
+`GET /__admin/docker/waits` reports the namespace's pending wait and termination-reply handles.
 Aborting the request or canceling its response body releases its wait handle.
 Reset cancels waits in the reset namespace; `runtime.close()`, `DockerAPI.close()`
 and `createServer().close()` cancel owned waits. Canceled bodies reject rather
@@ -156,6 +156,44 @@ than fabricate an exit code. Wait handles are transient and never serialized.
 Active-wait checkout semantics are a subsequent history-consistency story.
 Generated parity excludes blocking waits; deterministic Fetch and real HTTP tests
 cover their completion/cancellation behavior. Live Engine parity remains pending.
+
+## Stop, signals and removal
+
+`POST /containers/<id>/stop` records an accepted stop request without changing
+`Running`. The HTTP request remains pending until the explicit completion control
+finishes execution, then returns 204. Already-stopped containers return 304.
+`signal` selects the requested signal (default Config.StopSignal or TERM); `t`
+selects the timeout (default Config.StopTimeout or 10 seconds; negative means no
+escalation timeout). The mock records these parameters for scenario inspection.
+It does not schedule real timers or automatically declare exit when a timeout
+expires: script graceful completion or forced completion, including the exit code,
+through `/__admin/docker/containers/<id>/complete`. This permits controlled delayed
+termination without fabricating an early Docker success response.
+
+`POST /containers/<id>/kill` defaults to SIGKILL and keeps its 204 reply pending
+until completion; explicit KILL/9 behaves identically. Other supported Linux
+signal names/numbers acknowledge delivery with 204 while preserving execution
+state. The fixture decides the subsequent process response. No host signal is
+sent. Killing a stopped container returns 409. Invalid kill signals return 400;
+pinned Engine stop signal errors and malformed `t` return 500. Timeouts outside
+JavaScript's safe integer range return explicit mock-only 501.
+
+`DELETE /containers/<id>` removes a stopped record and releases its name (204).
+Running or paused records require `force=true`; otherwise removal returns 409.
+Forced removal records intent and waits for explicit completion, then removes the
+record and wakes both exit and removed waiters. A second removal while forced
+removal is pending returns 409. Seed status `removing` to model an existing removal
+conflict. Missing records return 404. `v` is accepted but no host volumes exist;
+`link=true` is outside this subset and returns mock-only 501.
+
+`GET /__admin/docker/containers/<id>/termination` returns the last accepted request
+(operation, numeric signal, optional timeout and request time), `removalPending`,
+and `simulated: true`. These diagnostic fields are not Docker wire fields.
+Canceling a stop/kill/removal reply releases only the reply handle. Accepted intent
+and running state survive socket loss; explicit completion still applies, including
+pending forced removal. Reset clears the namespace and cancels its pending replies.
+Closing a runtime/server cancels replies without claiming exit. Accepted-mutation
+history after response loss is the subsequent US-008 verification gate.
 
 ## Controls
 
@@ -198,8 +236,8 @@ Type exports include `DockerAPIOptions`, `DockerRuntime`, `DockerRuntimeOptions`
 
 ## Deliberately not modelled
 
-Known unimplemented lifecycle and attach routes return Mockingbird-specific 501
-JSON errors; unknown routes return 404. No real containers are started. UNIX
+Attach and unsupported options return Mockingbird-specific 501 JSON errors;
+unknown routes return 404. No real containers are started. UNIX
 sockets, HTTP upgrade, duplex attach, orchestration and real
 Engine parity are deferred. Attach is classified as requiring protocol-specific
 Node verification; a Fetch response cannot represent its bidirectional upgrade.

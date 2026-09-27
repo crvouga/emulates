@@ -16,7 +16,7 @@ test("GET and HEAD ping expose the pinned Engine API version", async () => {
 
 test("unimplemented lifecycle and Fetch attach fail explicitly; unknown routes are 404", async () => {
   const api = new DockerAPI()
-  for (const path of ["/containers/example/stop", "/containers/example/attach"]) {
+  for (const path of ["/containers/example/attach"]) {
     const response = await api.fetch(new Request(`http://docker.local${path}`, { method: "POST" }))
     expect(response.status).toBe(501)
     expect(await response.json()).toEqual({ message: expect.stringContaining("not implemented") })

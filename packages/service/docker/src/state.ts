@@ -39,6 +39,13 @@ export type ContainerRecord = {
   sizeRw: number
   sizeRootFs: number
   config?: Record<string, unknown>
+  termination?: {
+    operation: "stop" | "kill" | "remove"
+    signal: number
+    timeout?: number
+    requestedAt: string
+  }
+  removalPending?: boolean
 }
 export type DaemonSettings = { available: boolean; rootless: boolean }
 export const zeroTime = "0001-01-01T00:00:00Z"

@@ -254,3 +254,22 @@ Wait response headers and completion bodies are separately tested through Fetch
 and Node HTTP; client cancellation, body cancellation, reset, and close release
 transient handles. This is source-backed simulation evidence, not live Engine
 parity. Restart policies, process scheduling and host execution are not simulated.
+
+
+### US-007 termination/removal evidence
+
+Context7 `/docker/docs` refreshed stop/kill/remove on 2026-09-27: current SDK/CLI
+stop examples, timeout guidance, and historical v1.6/v1.11 operation excerpts.
+Pinned sources resolve the precise v1.52 semantics:
+
+- [kill.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/kill.go): SIGKILL (including an explicit numeric9) waits for exit; other signals acknowledge delivery. Stopped containers conflict. Linux signal names/numbers are validated before lookup.
+- [delete.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/delete.go): concurrent removal conflicts, non-forced running/paused removal conflicts, and force kills before deleting and releasing the name.
+- [signal.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/vendor/github.com/moby/sys/signal/signal.go) and [Linux map](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/vendor/github.com/moby/sys/signal/signal_linux.go): zero is invalid; kill restricts to the Linux map (1–31 and34–64). Real-time aliases are supported.
+- S4/S6 and [HTTP status mapping](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/server/httpstatus/status.go): malformed t returns an unclassified strconv error (500), while a stop signal parsing error is wrapped as System (500). Kill signal errors are InvalidParameter (400). Stop on an already stopped record returns304 before validating its signal.
+
+The mock holds stop/SIGKILL/forced-removal replies until explicit completion;
+acceptance and socket loss never prove retirement. Signal/timeout parameters are
+stored diagnostic metadata; fixture-controlled completion replaces process/timer
+scheduling. v is inert without modeled volumes; link removal is explicit mock-only501.
+Shared state/checkpoints and transient handles are reused. Fetch and real Node HTTP
+tests cover acceptance versus exit and response loss; no live Engine parity claimed.

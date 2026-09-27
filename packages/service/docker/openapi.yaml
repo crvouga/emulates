@@ -5,8 +5,9 @@ info:
   description: Docker Engine 29.1.0 / API 1.52 observation subset. Unversioned and
     /v1.52 aliases; unsupported older mock versions return 501. Container
     creation is supported; start and wait use explicit simulated completion;
-    termination routes and attach remain unavailable. Synthetic metadata is not
-    host attestation. See API_EVIDENCE.md.
+    stop, kill and removal use explicit termination controls; attach remains
+    unavailable. Synthetic metadata is not host attestation. See
+    API_EVIDENCE.md.
   x-mockingbird-upstream:
     url: https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/api/swagger.yaml
     note: Selected operation inventory adapted from Engine 29.1.0/API 1.52.
@@ -567,18 +568,26 @@ paths:
       operationId: ContainerStop
       summary: Stop a container
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
           enabled: false
-          reason: Operation not implemented in scaffold.
           safe: false
+          reason: Explicit completion controls and pending responses require deterministic
+            termination tests, not unbounded generated walks.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
+        - in: query
+          name: signal
+          schema:
+            type: string
+        - in: query
+          name: t
+          schema:
+            type: integer
       responses:
         "204":
           description: no error
@@ -606,7 +615,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported option or API version
           content:
             application/json:
               schema:
@@ -616,16 +625,20 @@ paths:
       operationId: ContainerKill
       summary: Kill a container
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
           enabled: false
-          reason: Operation not implemented in scaffold.
           safe: false
+          reason: Explicit completion controls and pending responses require deterministic
+            termination tests, not unbounded generated walks.
       parameters:
         - in: path
           name: id
           required: true
+          schema:
+            type: string
+        - in: query
+          name: signal
           schema:
             type: string
       responses:
@@ -659,7 +672,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported option or API version
           content:
             application/json:
               schema:
@@ -785,18 +798,33 @@ paths:
       operationId: ContainerDelete
       summary: Remove a container
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
           enabled: false
-          reason: Operation not implemented in scaffold.
           safe: false
+          reason: Explicit completion controls and pending responses require deterministic
+            termination tests, not unbounded generated walks.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
+        - in: query
+          name: force
+          schema:
+            type: boolean
+            default: false
+        - in: query
+          name: v
+          schema:
+            type: boolean
+            default: false
+        - in: query
+          name: link
+          schema:
+            type: boolean
+            default: false
       responses:
         "204":
           description: no error
@@ -825,7 +853,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported option or API version
           content:
             application/json:
               schema:

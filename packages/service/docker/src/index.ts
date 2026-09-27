@@ -62,6 +62,22 @@ export class DockerAPI implements FetchAPI {
         ContainerList: ({ url }) => list(this.state, url, now),
         ContainerInspect: ({ params, url }) =>
           jsonRes(200, inspect(this.state.find(params.id ?? ""), booleanQuery(url, "size"))),
+        ContainerStop: ({ params, url, request }) =>
+          this.lifecycle.terminate(params.id ?? "", url, request.signal, "stop"),
+        ContainerKill: ({ params, url, request }) => {
+          try {
+            return this.lifecycle.terminate(params.id ?? "", url, request.signal, "kill")
+          } catch (error) {
+            if (error instanceof DockerInputError)
+              throw new DockerInputError(
+                error.status,
+                `cannot kill container: ${params.id ?? ""}: ${error.message}`,
+              )
+            throw error
+          }
+        },
+        ContainerDelete: ({ params, url, request }) =>
+          this.lifecycle.remove(params.id ?? "", url, request.signal),
         ContainerStart: ({ params, url }) => this.lifecycle.start(params.id ?? "", url),
         ContainerWait: ({ params, url, request }) =>
           this.lifecycle.wait(params.id ?? "", url, request.signal),

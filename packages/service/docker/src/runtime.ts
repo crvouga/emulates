@@ -26,6 +26,15 @@ const admin = (runtime: ServiceRuntime<DockerAPI>): AdminRoutes => {
     }
   }
   return {
+    "GET /docker/containers/:id/termination": ({ params, namespace }) =>
+      respond(200, () => {
+        const c = runtime.instance(namespace).state.find(params.id ?? "")
+        return {
+          request: c.termination ?? null,
+          removalPending: c.removalPending ?? false,
+          simulated: true,
+        }
+      }),
     "GET /docker/waits": ({ namespace }) =>
       jsonRes(200, { pending: runtime.instance(namespace).lifecycle.pending }),
     "POST /docker/containers/:id/complete": ({ params, body, namespace }) =>

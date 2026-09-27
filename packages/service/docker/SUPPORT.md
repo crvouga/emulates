@@ -3,7 +3,7 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **13**
-- supported by the mock: **9**
+- supported by the mock: **12**
 - parity enabled: **8**
 
 | operationId | route | mock | parity | notes |
@@ -12,11 +12,11 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `ContainerCreate` | `POST /containers/create` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ContainerInspect` | `GET /containers/{id}/json` | ✅ supported | ✅ |  |
 | `ContainerStart` | `POST /containers/{id}/start` | ✅ supported | ⚠️ unsafe (opt-in) |  |
-| `ContainerStop` | `POST /containers/{id}/stop` | ❌ unsupported | — | Deferred to its implementation story; not available in the scaffold. |
-| `ContainerKill` | `POST /containers/{id}/kill` | ❌ unsupported | — | Deferred to its implementation story; not available in the scaffold. |
+| `ContainerStop` | `POST /containers/{id}/stop` | ✅ supported | ❌ disabled | Explicit completion controls and pending responses require deterministic termination tests, not unbounded generated walks. |
+| `ContainerKill` | `POST /containers/{id}/kill` | ✅ supported | ❌ disabled | Explicit completion controls and pending responses require deterministic termination tests, not unbounded generated walks. |
 | `ContainerAttach` | `POST /containers/{id}/attach` | ❌ unsupported | — | Node HTTP upgrade requires protocol-specific verification in US-010/US-011; unavailable in Fetch and scaffold. |
 | `ContainerWait` | `POST /containers/{id}/wait` | ✅ supported | ❌ disabled | Requires deterministic completion and cancellation; verified by lifecycle tests instead of unbounded generated waits. |
-| `ContainerDelete` | `DELETE /containers/{id}` | ❌ unsupported | — | Deferred to its implementation story; not available in the scaffold. |
+| `ContainerDelete` | `DELETE /containers/{id}` | ✅ supported | ❌ disabled | Explicit completion controls and pending responses require deterministic termination tests, not unbounded generated walks. |
 | `SystemInfo` | `GET /info` | ✅ supported | ✅ |  |
 | `SystemVersion` | `GET /version` | ✅ supported | ✅ |  |
 | `SystemPing` | `GET /_ping` | ✅ supported | ✅ |  |

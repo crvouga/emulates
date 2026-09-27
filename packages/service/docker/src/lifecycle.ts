@@ -1,4 +1,6 @@
-import { jsonRes } from "@crvouga/mockingbird-service"
+import { DroppedConnectionError, jsonRes } from "@crvouga/mockingbird-service"
+import { booleanQuery } from "./observations.js"
+import { parseSignal, stopTimeout } from "./signals.js"
 import { DockerInputError, type DockerState, isRunning, record } from "./state.js"
 
 type Waiter = { id: string; condition: string; finish(exitCode: number): void; cancel(): void }
@@ -34,6 +36,115 @@ export class DockerLifecycle {
     return new Response(null, { status: 204 })
   }
 
+  terminate(
+    id: string,
+    url: URL,
+    signal: AbortSignal,
+    operation: "stop" | "kill",
+  ): Response | Promise<Response> {
+    this.checkOpen(signal)
+    // Route parsing precedes lookup; stop's signal validation follows the stopped guard.
+    const timeout = operation === "stop" ? stopTimeout(url.searchParams.get("t"), 10) : undefined
+    let sentSignal =
+      operation === "kill" ? parseSignal(url.searchParams.get("signal") || "KILL", true) : 15
+    const c = this.state.find(id)
+    if (!isRunning(c)) {
+      if (operation === "stop") return new Response(null, { status: 304 })
+      throw new DockerInputError(409, `container ${c.id} is not running`)
+    }
+    if (operation === "stop") {
+      try {
+        sentSignal = parseSignal(
+          url.searchParams.get("signal") || String(c.config?.StopSignal || "TERM"),
+          false,
+        )
+      } catch (error) {
+        if (error instanceof DockerInputError)
+          throw new DockerInputError(500, `cannot stop container: ${id}: ${error.message}`)
+        throw error
+      }
+    }
+    this.state.containers.update(c.id, {
+      ...c,
+      termination: {
+        operation,
+        signal: sentSignal,
+        requestedAt: new Date(this.now()).toISOString(),
+        ...(operation === "stop"
+          ? {
+              timeout: stopTimeout(
+                url.searchParams.get("t"),
+                Number(c.config?.StopTimeout ?? timeout),
+              ),
+            }
+          : {}),
+      },
+    })
+    if (operation === "kill" && sentSignal !== 9) return new Response(null, { status: 204 })
+    return this.terminationReply(c.id, signal, "not-running")
+  }
+
+  remove(id: string, url: URL, signal: AbortSignal): Response | Promise<Response> {
+    this.checkOpen(signal)
+    if (booleanQuery(url, "link"))
+      throw new DockerInputError(501, "Mockingbird: link removal is not implemented")
+    const c = this.state.find(id)
+    if (c.removalPending || c.status === "removing")
+      throw new DockerInputError(409, `removal of container ${id} is already in progress`)
+    if (isRunning(c)) {
+      if (!booleanQuery(url, "force"))
+        throw new DockerInputError(
+          409,
+          `cannot remove container "${id}": ${c.status === "paused" ? "container is paused and must be unpaused first" : `container is ${c.status}: stop the container before removing or force remove`}`,
+        )
+      this.state.containers.update(c.id, {
+        ...c,
+        removalPending: true,
+        termination: {
+          operation: "remove",
+          signal: 9,
+          requestedAt: new Date(this.now()).toISOString(),
+        },
+      })
+      return this.terminationReply(c.id, signal, "removed")
+    }
+    this.state.containers.delete(c.id)
+    this.notify(c.id, c.exitCode, true)
+    return new Response(null, { status: 204 })
+  }
+
+  private checkOpen(signal: AbortSignal): void {
+    if (this.closed || signal.aborted) throw new DroppedConnectionError()
+  }
+  private terminationReply(id: string, signal: AbortSignal, condition: string): Promise<Response> {
+    return new Promise((resolve, reject) => {
+      const release = () => {
+        this.waiters.delete(waiter)
+        signal.removeEventListener("abort", abort)
+      }
+      const abort = () => {
+        release()
+        reject(new DroppedConnectionError())
+      }
+      const waiter: Waiter = {
+        id,
+        condition,
+        finish: () => {
+          release()
+          resolve(new Response(null, { status: 204 }))
+        },
+        cancel: abort,
+      }
+      this.waiters.add(waiter)
+      signal.addEventListener("abort", abort, { once: true })
+      if (signal.aborted) abort()
+    })
+  }
+  private notify(id: string, exitCode: number, removed: boolean): void {
+    for (const waiter of this.waiters)
+      if (waiter.id === id && (removed || waiter.condition !== "removed")) waiter.finish(exitCode)
+  }
+
   complete(id: string, value: unknown) {
     if (
       !record(value) ||
@@ -50,10 +161,9 @@ export class DockerLifecycle {
       exitCode,
       finishedAt: new Date(this.now()).toISOString(),
     })
-    const removed = c.hostConfig.AutoRemove === true
+    const removed = c.hostConfig.AutoRemove === true || c.removalPending === true
     if (removed) this.state.containers.delete(c.id)
-    for (const waiter of this.waiters)
-      if (waiter.id === c.id && (removed || waiter.condition !== "removed")) waiter.finish(exitCode)
+    this.notify(c.id, exitCode, removed)
     return { id: c.id, exitCode, removed, simulated: true }
   }
 
