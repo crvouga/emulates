@@ -360,3 +360,26 @@ loss, scopes and shared Timeline ownership restoration are covered by package
 tests. Actual pinned runtime comparison remainsUS-022; retention/cache/durable
 expiry separation remainsUS-020. These controls do not claim actual process or disk
 restart durability.
+
+## US-020 retention evidence
+
+Re-read pinned R lines 1425–1474 and I lines 241–380; refreshed I from commit
+`29112bef099274229cadff79cdff7bf7b99c4b77`, retaining SHA256
+`746904b3b6ed45d8359655b2e87c1f101394b13f6253e718ac9a83acd46174f2`.
+Context7 still did not advertise the target release; unrelated/current-main
+results were not used as pinned evidence.
+
+R sweeps every 60 seconds and drops cached completed/failed/cancelled results only
+when update age exceeds 3600 seconds. Interrupted results are excluded. I prunes
+ordinary terminal rows only on lookup/reserve, with durable updated_at strictly
+less than now minus 86400; status lookup does not prune, and active rows do not age
+out. Persistence tracks status changes, terminal observations and selected payload
+fields separately from cached progress timestamps. Pruning commits before a later
+conflict is returned. Hosted-room retention and SSE buffer expiry are excluded.
+
+Tests exercise exact equality and one millisecond beyond, cache recovery from
+durable rows, pruning versus cached survivors, active and interrupted states,
+progress persistence, restart and Timeline. The mock folds elapsed sweep ticks
+into the next admission/observation and offers an explicit single-sweep control;
+it does not start a background worker. This source-backed model remains subject
+to the independent runtime comparison in US-022.

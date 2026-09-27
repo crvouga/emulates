@@ -21,6 +21,11 @@ export const createRuntime = (options: HermesRuntimeOptions = {}): HermesRuntime
     name: HERMES_NAMESPACE,
     document,
     admin: (runtime) => ({
+      "POST /hermes/sweep": ({ namespace }) => {
+        const result = runtime.instance(namespace).idempotency.sweep()
+        runtime.checkpoint(namespace)
+        return jsonRes(200, result)
+      },
       "POST /hermes/restart": ({ body, namespace }) => {
         try {
           const result = runtime.instance(namespace).idempotency.restart(body)
@@ -44,8 +49,7 @@ export const createRuntime = (options: HermesRuntimeOptions = {}): HermesRuntime
       "POST /hermes/runs/:id/observe": async ({ params, body, namespace }) => {
         try {
           const api = runtime.instance(namespace)
-          await api.idempotency.get(params.id ?? "")
-          const run = api.runs.observe(params.id ?? "", body)
+          const run = await api.idempotency.observe(params.id ?? "", body)
           runtime.checkpoint(namespace)
           return jsonRes(200, run)
         } catch (error) {

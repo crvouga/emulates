@@ -788,3 +788,28 @@
 ```
 
 - No findings/remediation/targeted pass or qualifying memory updates. US-019 criteria/checks pass with34tests534assertions and package/root evidence above. Logical restart is explicitly synthetic, no real process/disk claim. Provisional completion awaits successful authorized commit. Intended commit feat(US-019): model hermes stop and restart interruption. Commit status pending (not yet delivered). Next eligibleUS-020;12stories remain after delivery.
+
+## 2026-09-27 UTC - US-020 retention and history
+
+- Delivered predecessor US-019 at02f16b1b; selected eligible US-020 on exact authorized branch. CodexGoalMarkdown, standard mode, complex storage/clock interaction. Applied develop-code and bounded story workflow; iteration limit unavailable.
+- Advisor actual session /root/advise_us020_retention, architect-reviewer, bounded read-only source analysis; no edits/checks/delegation. Adopted separate cache/durable observations and persistence timestamps, lookup-only durable pruning, shared Collections and restart hydration. No second advisor needed.
+- Context7 did not advertise pinned release; irrelevant/current-main answers not promoted. Refetched pinned I with unchanged746904b3b6ed45d8359655b2e87c1f101394b13f6253e718ac9a83acd46174f2 hash; read R1425–1474 and I241–380. Source-backed evidence, not runtime parity.
+- Implemented independent cache and durable reservation storage, exact strict one-hour/24-hour boundaries, 60-second scheduled sweep evaluation and explicit single-sweep control. Interrupted cache does not expire; active durable rows never age out. GET hydrates without durable pruning; valid keyed admission prunes even on subsequent conflict. Restart clears cache and retains only surviving durable rows. Shared Timeline captures storage, ownership, schedule and clock. No process/timer, dependency, configuration, auth or Docker changes.
+- Seven initial tests failed on missing retention (.mockingbird/us020-red.log). Initial implementation passed41tests619assertions but failed TypeScript because closure lost validated owner narrowing; captured the validated string and reran. Added conflict-pruning regression and isolated each terminal boundary fixture. Final42tests625assertions pass. Existing34tests preserved. Meaningful cases cover equality/+1ms, scheduler ticks, durable hydration, cache survival after pruning, interrupted/active runs, progress timestamps, logical restart, namespace isolation and Timeline.
+- Package typecheck, lint/format, generate/generate:check/openapi:check/build/portability/pack:check pass. Standard ignored legacy CommonJS/node10 pack exclusions unchanged; supported ESM/bundler pass. Root typecheck190/190(189cached), .mockingbird/us020-typecheck-final.log; boundaries70packages1718files and whitespace pass. UI unchanged; browser not applicable. Full catalog/root deliveryUS-023, pinned runtime oracleUS-022 remain future gates.
+- README/changelog/evidence updated with explicit lazy sweep semantics and no process-crash guarantee. Existing user authorization covers implementation and story commit. Planned native story-reviewer attempt1 expanded-initial; memory suppressions preserved. Intended commit feat(US-020): implement hermes retention and history. Commit status pending (not yet delivered). Next eligible after passing review/commitUS-021.
+
+## 2026-09-27 UTC - US-020 initial review disposition
+
+- Native session /root/review_us020_attempt1 returned changes_requested, one medium finding idempotency-submit-validates-after-pruning-and-lookup claiming submit lacked semantic validation before prune/lookup. Rejected false positive: authoritative staged idempotency.ts209 already calls this.runs.validate(body), ahead of prune217 and lookup221; implementation unchanged. Added focused regression for invalid input on active/expired/new keys:400 validation response and expired durable history survives logical restart. This directly demonstrates both alleged failure paths are absent.
+- Final expanded suite43pass635assertions; package typecheck/lint, root typecheck190tasks (.mockingbird/us020-typecheck-review.log), boundaries1718files and whitespace pass. No production/generated changes after initial review. Same-session single targeted pass requested with source-line evidence and additional regression. Commit status pending; no completion marker yet.
+
+## 2026-09-27 UTC - US-020 passing review and finalization
+
+- Same native session /root/review_us020_attempt1 returned schema-valid targeted pass:
+
+```json
+{"verdict":"pass","pass_type":"targeted","findings":[],"resolved_findings":[{"id":"idempotency-submit-validates-after-pruning-and-lookup","evidence":"The staged source preserves this.runs.validate(body) at line209 before durable pruning and reservation lookup. Added regression verifies invalid keyed requests return the validation error and leave expired durable history retrievable after logical restart."}],"executor_feedback":{"priority_order":[],"recommended_checks":[],"avoid":["Do not move validation or broaden this targeted pass into another initial audit."]},"residual_risks":[],"learning_candidates":[]}
+```
+
+- Stored narrowly scoped evidenced false-positive suppression; no accepted-fixed learning. All criteria/checks pass,43tests635assertions; actual runtime parity/process durability not claimed. Provisional US-020 completion awaits successful authorized commit. Intended commit feat(US-020): implement hermes retention and history. Commit status pending (not yet delivered). Next eligible US-021;11stories remain after delivery.

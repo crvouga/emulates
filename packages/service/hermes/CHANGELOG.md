@@ -8,3 +8,4 @@
 - Admit keyless runs, poll persistent observations, and script lifecycle state with shared controls.
 - Add scoped key replay/conflicts, atomic reservations and Python-compatible fingerprint reference vectors.
 - Implement stop acceptance and explicit logical restart with keyed interruption, foreign-owner observations and terminal preservation.
+- Model independent cache and durable retention with exact boundaries, scheduled sweep ticks, logical restart and shared Timeline restoration.

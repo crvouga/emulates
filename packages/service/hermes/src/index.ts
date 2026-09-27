@@ -35,7 +35,12 @@ export class HermesAPI implements FetchAPI {
     this.sqlite = bootSqlite(options.sqlite)
     this.namespace = options.namespace ?? HERMES_NAMESPACE
     this.runs = new HermesRuns(this.sqlite, this.namespace, options.now ?? Date.now)
-    this.idempotency = new HermesIdempotency(this.sqlite, this.namespace, this.runs)
+    this.idempotency = new HermesIdempotency(
+      this.sqlite,
+      this.namespace,
+      this.runs,
+      options.now ?? Date.now,
+    )
     this.service = createService({
       document,
       sqlite: this.sqlite,

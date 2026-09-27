@@ -161,7 +161,7 @@ adapter reconstruction. Actual process/disk durability and unfinished-run restar
 outcomes are modeled by the explicit restart control below. Shared
 Timeline restores scope, reservations and run records together; reset clears them.
 No public key-lookup endpoint is added. Request bodies are hashed in memory and
-not persisted; stored reservations contain the key, hash and run identity.
+not persisted; stored reservations contain the key, hash, run identity and durable observation.
 
 ## Stop and logical restart
 
@@ -173,7 +173,7 @@ Stopping a terminal run returns its full unchanged status, not a new cancellatio
 Missing or inaccessible runs return 404 `run_not_found`.
 
 `POST /__admin/hermes/restart` with `{ "owner": "stale" }` models loss of the
-current namespace's gateway. It discards keyless runs and retains keyed runs and
+current namespace's gateway. It discards cached observations and retains surviving keyed durable
 reservations across all synthetic profiles in that namespace. An unfinished keyed
 run becomes `interrupted` when next polled, replayed or stopped, with
 `The gateway restarted before this run settled.` and `run.interrupted`.
@@ -188,9 +188,33 @@ completion. Neither control reads PIDs, interrupts a real process, or runs an ag
 It is a logical scenario, not a process/disk durability guarantee. Shared Timeline
 restores the owner flags and run/reservation state together.
 
+## Retention and history
+
+The controlled clock governs two independent retention layers. Cached `completed`,
+`failed` and `cancelled` results expire when their update age is strictly greater
+than one hour; equality survives and `interrupted` is excluded. The mock evaluates
+elapsed 60-second sweep ticks on admission or observation, without a background
+process. `POST /__admin/hermes/sweep` with `{}` explicitly executes one sweep at the
+current clock, returning `cacheRemoved` and `simulated: true`.
+
+Keyed terminal reservations expire only when their durable update age is strictly
+greater than 24 hours. Valid keyed admission triggers that pruning, including a
+request that subsequently conflicts. Polling and keyless admission do not prune
+durable rows. Active reservations never expire by age. Polling can recover a
+retained durable result after cache eviction, even beyond 24 hours before pruning;
+a cached result can also temporarily outlive its pruned reservation. Missing results
+return the ordinary 404 `run_not_found`, without an invented expired state.
+
+Same-status progress observations update cached timestamps but do not persist the
+new progress payload unless a selected durable field changes. Logical restart
+clears cached observations and hydrates only surviving durable rows. Timeline
+restores both layers, ownership, the sweep schedule and controlled clock together.
+These are shared-storage and logical-restart guarantees, not process-crash or disk
+durability evidence. SSE buffer and hosted-room retention remain outside the subset.
+
 ## Deliberately not modelled
 
-Retention arrives in a later story. Prompts, instructions and history are validated then discarded.
+Prompts, instructions and history are validated then discarded.
 Synthetic result text can be stored by observation controls and is cleared by reset.
 Kanban attempts, client intake/recovery policy, inference, Python dispatchers,
 host tool execution and credential enforcement are excluded. There are no outgoing
