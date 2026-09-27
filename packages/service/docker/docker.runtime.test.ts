@@ -67,7 +67,7 @@ test("journal retains operation metadata without bodies, credentials or query va
   const response = await request(runtime, "/__admin/requests", "default")
   const body = (await response.json()) as { requests: { operationId: string; status: number }[] }
   expect(body.requests).toHaveLength(1)
-  expect(body.requests[0]).toMatchObject({ operationId: "ContainerCreate", status: 501 })
+  expect(body.requests[0]).toMatchObject({ operationId: "ContainerCreate", status: 404 })
   const serialized = JSON.stringify(body)
   for (const sensitive of [
     "synthetic-query-secret",

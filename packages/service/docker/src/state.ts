@@ -1,5 +1,6 @@
-import { Collection } from "@crvouga/mockingbird-service"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { configFields, createContainer } from "./creation.js"
 
 export const statuses = [
   "created",
@@ -11,7 +12,12 @@ export const statuses = [
   "dead",
 ] as const
 export type Status = (typeof statuses)[number]
-export type ImageRecord = { id: string; tags: string[] }
+export type ImageRecord = {
+  id: string
+  tags: string[]
+  platform?: string
+  config?: Record<string, unknown>
+}
 export type ContainerRecord = {
   id: string
   name: string
@@ -32,6 +38,7 @@ export type ContainerRecord = {
   networkSettings: Record<string, unknown>
   sizeRw: number
   sizeRootFs: number
+  config?: Record<string, unknown>
 }
 export type DaemonSettings = { available: boolean; rootless: boolean }
 export const zeroTime = "0001-01-01T00:00:00Z"
@@ -77,6 +84,7 @@ export class DockerState {
   readonly images: Collection<ImageRecord>
   readonly containers: Collection<ContainerRecord>
   private readonly settings: Collection<DaemonSettings>
+  private readonly ids: IdSequence
   constructor(
     private readonly sqlite: SqliteClient,
     namespace: string,
@@ -85,6 +93,10 @@ export class DockerState {
     this.images = new Collection(sqlite, namespace, "docker-images")
     this.containers = new Collection(sqlite, namespace, "docker-containers")
     this.settings = new Collection(sqlite, namespace, "docker-daemon")
+    this.ids = new IdSequence(sqlite, namespace, "docker-container")
+  }
+  create(value: unknown, url: URL) {
+    return this.sqlite.transaction(() => createContainer(this, value, url, this.ids, this.now))
   }
   daemon(): DaemonSettings {
     return this.settings.get("settings") ?? { available: true, rootless: false }
@@ -106,7 +118,7 @@ export class DockerState {
         if (!Array.isArray(value.images)) return invalid("images: expected array")
         for (const image of value.images) {
           if (!record(image)) return invalid("image: expected object")
-          keys(image, ["id", "tags"])
+          keys(image, ["id", "tags", "platform", "config"])
           const id = text(image.id, "image.id")
           if (!/^sha256:[a-f0-9]{64}$/.test(id)) invalid("image.id: expected sha256 digest")
           const tags = strings(image.tags ?? [], "image.tags")
@@ -119,7 +131,11 @@ export class DockerState {
           )
             throw new DockerInputError(409, "image tag already exists or is empty")
           if (this.images.has(id)) throw new DockerInputError(409, "image id already exists")
-          this.images.insert(id, { id, tags })
+          const platform = text(image.platform, "image.platform", "linux/amd64")
+          if (!/^[a-z0-9]+\/[a-z0-9_]+(?:\/[a-z0-9_]+)?$/.test(platform))
+            invalid("invalid image.platform")
+          const config = configFields(image.config ?? {})
+          this.images.insert(id, { id, tags, platform, config })
         }
       }
       if (value.containers !== undefined) {

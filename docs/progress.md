@@ -207,3 +207,37 @@
 - Final checks after remediation: 19 tests passed, 133 assertions; package lint/typecheck/build/portability/pack checks passed. Contract freshness and OpenAPI validation remain passing; root typecheck187/187 and boundaries1685 passed before the one-line guard/test remediation. No unresolved findings or reusable learning candidates; memory remains absent/empty.
 - Provisional US-004 marker awaits successful authorized commit. Intended message: `feat(US-004): implement Docker engine and container observations`.
 - Commit status: pending (not yet delivered). Next eligible story US-005; 27 stories remain after delivery. Live Engine differential verification remains unexecuted and belongs to US-013.
+
+## 2026-09-27 UTC - US-005 execution
+
+- Previous turn made progress: US-004 delivered f16a672d. Branch matches PLAN.md; clean baseline verified. US-005 is eligible under existing implementation/commit authorization.
+- Standard mode/risk; test-sensitive native review required. No implementation advisors; existing Collection/IdSequence/runtime patterns suffice. Memory remains empty.
+- Refreshed Context7 creation query (/docker/docs); v1.56/current results are discovery only. Pinned daemon/create.go and commit.go establish image lookup, platform warnings, config merging and no-command400; retained specification defines selected create fields. No live provider operations.
+- Scope: persisted synthetic creation, selected launch/config metadata, immutable deterministic IDs, atomic name conflicts, image/platform resolution, reset/Timeline tests. No image execution or host isolation claims.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-005 candidate verification
+
+- Added selected create/config handling, image platform/default seeding, transactional Collection persistence and shared IdSequence IDs. Inspect echoes stored launch metadata; create annotates journal IDs and participates in shared mutation checkpoints. Existing unsupported-route/journal assertions updated for newly implemented create; self-parity includes locally simulated unsafe operations.
+- Initial four tests failed on missing create/image-default behavior before implementation. A later slash-only name regression failed201-vs400 and now passes. Tests cover create/inspect consistency and201schema, concurrent conflict, missing image/platform404, malformed input400/unsupported501, stopped state, default merges/entrypoint clearing, generated names, platform warnings, reset and Timeline ID replay.
+- Checks pass: package tests24/0 failures/170 assertions, lint15files, typecheck, OpenAPI validation, codegen freshness, build, portability5files and pack14files. Root typecheck187/187 and boundary gate1687files pass; whitespace check passes. No new packages/config edits, live Engine, host execution or resource enforcement. Full catalog/root aggregate/oracle remains assigned to later stories.
+- Review candidate: native story-reviewer, US-005 attempt1, expanded-initial/initial; standard mode, test-sensitive. No implementation advisors or browser/UI changes. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-005 review disposition
+
+- Native initial review in `/root/review_us005_attempt1` returned changes_requested for medium correctness finding `creation-entrypoint-drops-image-cmd`. Disposition: rejected_false_positive. Pinned Engine 29.1.0 commit 710302ecf2e958db92cb7d92f8838ea063a31765, daemon/commit.go lines72–79, merges image Cmd only inside `len(userConf.Entrypoint) == 0`; a nonempty request entrypoint intentionally suppresses that default. Local evidence: .mockingbird/docker-evidence/commit.go. Production implementation already follows this condition.
+- Added focused characterization for image Cmd plus nonempty request Entrypoint: inspect retains the requested entrypoint with empty Cmd/Args. This test was added after implementation, not a red/green claim. Package lint, tests25/0 failures/172 assertions and typecheck pass after the test addition. Earlier build/contract/pack/root checks remain applicable to unchanged production code.
+- Targeted review will reuse the same native session and attempt, limited to the finding, pinned-source evidence and regression test. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-005 passing review and finalization
+
+- Same native story-reviewer session `/root/review_us005_attempt1`, attempt1, expanded-initial/targeted, received the full protocol and returned schema-valid JSON:
+
+```json
+{"verdict":"pass","pass_type":"targeted","findings":[],"resolved_findings":[],"executor_feedback":{"priority_order":[],"recommended_checks":[],"avoid":["Do not treat image Cmd suppression for an explicit nonempty Entrypoint as a defect; the supplied pinned Engine evidence and staged characterization test confirm that behavior."]},"residual_risks":[],"learning_candidates":[]}
+```
+
+- No remaining blockers. Final package tests25/0 failures/172 assertions, lint and typecheck pass; production checks remain passing as recorded above. No live Engine differential verification; US-013 owns that gate.
+- Created bounded version1 memory with empty patterns and one evidenced false-positive suppression. Evidence event key: PLAN.md|US-005|creation-entrypoint-drops-image-cmd|packages/service/docker/src/creation.ts|rejected_false_positive. Pinned source and passing characterization support the suppression; no pattern counters were added.
+- Provisional US-005 completion marker awaits successful authorized commit. Intended message: `feat(US-005): implement docker container creation`.
+- Commit status: pending (not yet delivered). Next eligible story US-006; 26 stories remain after delivery.

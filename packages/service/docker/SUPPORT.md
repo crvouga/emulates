@@ -3,13 +3,13 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **13**
-- supported by the mock: **6**
-- parity enabled: **6**
+- supported by the mock: **7**
+- parity enabled: **7**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ContainerList` | `GET /containers/json` | ✅ supported | ✅ |  |
-| `ContainerCreate` | `POST /containers/create` | ❌ unsupported | — | Deferred to its implementation story; not available in the scaffold. |
+| `ContainerCreate` | `POST /containers/create` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ContainerInspect` | `GET /containers/{id}/json` | ✅ supported | ✅ |  |
 | `ContainerStart` | `POST /containers/{id}/start` | ❌ unsupported | — | Deferred to its implementation story; not available in the scaffold. |
 | `ContainerStop` | `POST /containers/{id}/stop` | ❌ unsupported | — | Deferred to its implementation story; not available in the scaffold. |

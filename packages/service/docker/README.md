@@ -2,8 +2,8 @@
 
 Work-in-progress Docker Engine API 1.52 mock. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
-Mockingbird's shared runtime controls. Container lifecycle and attached streams
-are not implemented yet. The contract is
+Mockingbird's shared runtime controls. POST `/containers/create` persists a stopped
+container. Start/stop/wait/removal and attached streams are not implemented yet. The contract is
 pinned in [API_EVIDENCE.md](API_EVIDENCE.md); [SUPPORT.md](SUPPORT.md) lists operations.
 
 ## Install
@@ -86,6 +86,40 @@ supports literals, dots, anchors, and at most one `.*`; other regex constructs
 and other filter categories return explicit mock-only 501 errors. Malformed
 filter shapes, statuses and exit codes return 400. Seeded state and daemon
 settings participate in shared reset and Timeline checkpoints.
+
+## Container creation
+
+Seed images before calling `POST /containers/create`. Image seeds may include
+`platform` (default `linux/amd64`) and `config` containing supported image defaults.
+Creation resolves image IDs or exact tags, adding `:latest` to an untagged reference.
+It never pulls or executes an image. Missing images and requested platform
+mismatches return 404; an implicit host-platform mismatch produces a warning.
+
+The supported body fields are `Image`, `Cmd`, `Entrypoint`, `Env`, `Labels`,
+`WorkingDir`, `User`, `Hostname`, `Domainname`, `AttachStdin`, `AttachStdout`,
+`AttachStderr`, `OpenStdin`, `StdinOnce`, `Tty`, `NetworkDisabled`, `StopSignal`,
+`StopTimeout`, `HostConfig`, and `NetworkingConfig`. Unsupported fields return
+explicit mock-only 501 errors. Bad field types, relative working directories,
+invalid stop signals, invalid names, and missing commands return 400.
+Image defaults supply commands/entrypoints, environment, labels and selected
+strings. Request environment keys and labels take precedence. `Entrypoint: [""]`
+clears the image entrypoint; provide a replacement command when doing so.
+
+Use `?name=...` for a stable name. Conflicting names return 409, including concurrent
+creation requests. Omitted names use `mockingbird_<id-prefix>`. Responses contain
+`Id` and `Warnings`; IDs are deterministic synthetic 64-character hex strings,
+immutable within stored records and restored with the shared ID sequence by
+Timeline checkout. New records inspect as `created` with `Running: false`.
+
+Supported `HostConfig` metadata includes `NetworkMode`, `IpcMode`, `PidMode`,
+`CgroupnsMode`, `Runtime`, `AutoRemove`, `ReadonlyRootfs`, `Privileged`, `Init`,
+`Memory`, `MemorySwap`, `NanoCpus`, `CpuShares`, `PidsLimit`, `Binds`, `CapDrop`,
+`CapAdd`, `SecurityOpt`, `Dns`, `ExtraHosts`, `Mounts`, `Tmpfs`, `PortBindings`,
+`RestartPolicy`, and `LogConfig`. `NetworkingConfig.EndpointsConfig` is retained
+under inspected `NetworkSettings.Networks`. These are declared configuration
+observations, not enforced resources, mounts, security controls or network setup.
+Nested host metadata is retained as supplied; full daemon-specific resource and
+network validation is not modelled. No host isolation claim follows from it.
 
 ## Controls
 

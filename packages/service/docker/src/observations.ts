@@ -91,6 +91,7 @@ export const inspect = (c: ContainerRecord, size: boolean) => ({
     AttachStdin: false,
     AttachStdout: false,
     AttachStderr: false,
+    ...c.config,
   },
   HostConfig: c.hostConfig,
   NetworkSettings: c.networkSettings,

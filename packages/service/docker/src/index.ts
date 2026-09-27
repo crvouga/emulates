@@ -1,6 +1,7 @@
 import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
+  annotateResponse,
   bootSqlite,
   createService,
   DroppedConnectionError,
@@ -57,6 +58,11 @@ export class DockerAPI implements FetchAPI {
         ContainerList: ({ url }) => list(this.state, url, now),
         ContainerInspect: ({ params, url }) =>
           jsonRes(200, inspect(this.state.find(params.id ?? ""), booleanQuery(url, "size"))),
+        ContainerCreate: ({ body, url }) => {
+          if (body.kind !== "json") return jsonRes(400, { message: "expected JSON body" })
+          const created = this.state.create(body.value, url)
+          return annotateResponse(jsonRes(201, created), { ids: { containerId: created.Id } })
+        },
       }),
       notFound: () => jsonRes(404, { message: "page not found" }),
       unsupported: (_request, operation) =>

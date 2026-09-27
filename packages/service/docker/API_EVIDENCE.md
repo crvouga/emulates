@@ -147,6 +147,18 @@ Resolve any newly supported field's validation against S1 before implementation.
 
 ## Lifecycle details that constrain implementation
 
+US-005 refresh (2026-09-27): Context7 returned v1.56/current networking and
+entrypoint examples, used only for discovery. Pinned
+[creation](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/create.go)
+and [configuration merge](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/commit.go)
+establish image resolution, platform warnings, request-over-image environment
+and label precedence, command/entrypoint defaults, empty-entrypoint clearing,
+and `no command specified` (400). The selected 1.52 request fields come from S1.
+The mock stores launch/host/network configuration without executing it. Full
+daemon resource/network validation and image execution are excluded; the README
+lists the explicit supported subset and mock-only501 behavior. No real Engine
+creation or host resource operation was performed.
+
 - S4/S6: a successful stop `204` follows backend completion. For delayed-stop
   scenarios, keep the HTTP operation pending until modeled termination; an admin
   observation that a stop was received is not an early successful vendor response.

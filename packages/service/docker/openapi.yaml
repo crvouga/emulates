@@ -4,8 +4,8 @@ info:
   version: "1.52"
   description: Docker Engine 29.1.0 / API 1.52 observation subset. Unversioned and
     /v1.52 aliases; unsupported older mock versions return 501. Container
-    lifecycle and attach remain unavailable. Synthetic metadata is not host
-    attestation. See API_EVIDENCE.md.
+    creation is supported; execution lifecycle and attach remain unavailable.
+    Synthetic metadata is not host attestation. See API_EVIDENCE.md.
   x-mockingbird-upstream:
     url: https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/api/swagger.yaml
     note: Selected operation inventory adapted from Engine 29.1.0/API 1.52.
@@ -151,15 +151,31 @@ paths:
       operationId: ContainerCreate
       summary: Create a container
       x-mockingbird:
-        supported: false
-        reason: Deferred to its implementation story; not available in the scaffold.
+        supported: true
         parity:
-          enabled: false
-          reason: Operation not implemented in scaffold.
+          enabled: true
           safe: false
       responses:
         "201":
           description: Container created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - Id
+                  - Warnings
+                properties:
+                  Id:
+                    type: string
+                    pattern: ^[a-f0-9]{64}$
+                    x-mockingbird-resource:
+                      type: container
+                      identity: true
+                  Warnings:
+                    type: array
+                    items:
+                      type: string
         "400":
           description: bad parameter
           content:
@@ -185,11 +201,129 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Mockingbird scaffold: operation not implemented"
+          description: Mockingbird unsupported creation configuration or API version
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Image:
+                  type:
+                    - string
+                    - "null"
+                WorkingDir:
+                  type:
+                    - string
+                    - "null"
+                User:
+                  type:
+                    - string
+                    - "null"
+                StopSignal:
+                  type:
+                    - string
+                    - "null"
+                Hostname:
+                  type:
+                    - string
+                    - "null"
+                Domainname:
+                  type:
+                    - string
+                    - "null"
+                Cmd:
+                  type:
+                    - array
+                    - "null"
+                  items:
+                    type: string
+                Entrypoint:
+                  type:
+                    - array
+                    - "null"
+                  items:
+                    type: string
+                Env:
+                  type:
+                    - array
+                    - "null"
+                  items:
+                    type: string
+                AttachStdin:
+                  type:
+                    - boolean
+                    - "null"
+                AttachStdout:
+                  type:
+                    - boolean
+                    - "null"
+                AttachStderr:
+                  type:
+                    - boolean
+                    - "null"
+                OpenStdin:
+                  type:
+                    - boolean
+                    - "null"
+                StdinOnce:
+                  type:
+                    - boolean
+                    - "null"
+                Tty:
+                  type:
+                    - boolean
+                    - "null"
+                NetworkDisabled:
+                  type:
+                    - boolean
+                    - "null"
+                Labels:
+                  type:
+                    - object
+                    - "null"
+                  additionalProperties:
+                    type: string
+                StopTimeout:
+                  type:
+                    - integer
+                    - "null"
+                  minimum: -1
+                HostConfig:
+                  type:
+                    - object
+                    - "null"
+                NetworkingConfig:
+                  type:
+                    - object
+                    - "null"
+                  properties:
+                    EndpointsConfig:
+                      type:
+                        - object
+                        - "null"
+                      additionalProperties:
+                        type: object
+              required:
+                - Image
+              description: Selected creation metadata. Unsupported configuration fields return
+                Mockingbird 501; stored HostConfig/NetworkingConfig is never
+                enforced.
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+            pattern: ^/?[a-zA-Z0-9][a-zA-Z0-9_.-]+$
+        - name: platform
+          in: query
+          schema:
+            type: string
   /containers/{id}/json:
     get:
       operationId: ContainerInspect

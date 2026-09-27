@@ -27,6 +27,6 @@ export const serveTarget: ServeTarget = {
       ...(common.onLog ? { onLog: common.onLog } : {}),
     }),
   banner: () => [
-    "Docker observations: simulated metadata; container lifecycle and attach are unavailable",
+    "Docker creation and observations: simulated metadata; execution and attach are unavailable",
   ],
 }

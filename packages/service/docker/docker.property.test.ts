@@ -6,11 +6,12 @@ import { DockerAPI, document, supportedOperationIds } from "./src/index.js"
 const host = "docker.mock.local"
 const params = fcParameters(process.env)
 
-test("self-parity exercises every implemented observation against the contract", async () => {
+test("self-parity exercises every implemented operation against the contract", async () => {
   const reference = new DockerAPI()
   const report = await parity({
     provider: "docker",
     spec: document,
+    includeUnsafe: true,
     real: { baseUrl: `http://${host}`, allowedHosts: [host], fetch: (r) => reference.fetch(r) },
     mock: { create: () => new DockerAPI(), baseUrl: `http://${host}` },
     cleanup: () => reference.reset(),
