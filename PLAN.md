@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 through US-005 are complete; 26 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-006 are complete; 25 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -132,7 +132,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-006: Implement Docker start and wait
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 6
 - Depends on: US-005
 - Relevant paths: `packages/service/docker/src/`, lifecycle/wait tests.

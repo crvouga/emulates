@@ -241,3 +241,51 @@
 - Created bounded version1 memory with empty patterns and one evidenced false-positive suppression. Evidence event key: PLAN.md|US-005|creation-entrypoint-drops-image-cmd|packages/service/docker/src/creation.ts|rejected_false_positive. Pinned source and passing characterization support the suppression; no pattern counters were added.
 - Provisional US-005 completion marker awaits successful authorized commit. Intended message: `feat(US-005): implement docker container creation`.
 - Commit status: pending (not yet delivered). Next eligible story US-006; 26 stories remain after delivery.
+
+## 2026-09-27 UTC - US-006 execution
+
+- Previous turn made progress: US-005 committed 5be53f9a. Branch matches PLAN.md and baseline is clean. US-006 is eligible; existing sequence authorization applies.
+- Standard mode, standard single-domain implementation risk, test-sensitive review. No implementation advisors needed: shared streaming Node adapter already propagates cancellation and flushes headers. No dependency/configuration or shared-runtime changes planned.
+- Refreshed Context7 /docker/docs for start/wait. Current SDK examples confirm the flow but not versioned semantics; pinned Engine commit710302ec daemon/start.go, daemon/container/state.go and container_routes.go supply state guards, condition behavior and immediate headers. Newly fetched start.go retained locally. No live provider access.
+- Plan: persist starts and explicit admin completion with shared Collection/clock; keep wait handles transient with signal/body cancellation, reset and runtime/server close cleanup. Use real Fetch streams and Node loopback tests. AutoRemove on explicit completion supplies the removed wait condition; provider stop/kill/remove routes remain US-007. No image execution.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-006 candidate verification
+
+- Implemented persisted start state/guards, transient streaming wait handles, explicit completion controls with exit codes and AutoRemove, pending-wait diagnostics, reset and runtime/server close cleanup. Updated selected contract, generated support, README/evidence and existing unsupported/self-parity expectations. Blocking waits use deterministic lifecycle tests rather than generated walks that could wait indefinitely.
+- Initial four behavior tests failed before implementation (501 or unsupported bodies). After implementation the first two passed; Bun's eagerly evaluated rejects assertion stalled before the subsequent abort could run. Replaced that assertion with an attached rejection handler followed by abort/reset, retaining the error assertion. User explicitly approved stopping the old process; exact PID27757 received TERM and session65243 exited143. No runtime defect was hidden and no other process was stopped.
+- Final checks pass: `bun test packages/service/docker`36 tests/0 failures/240 assertions; package lint17files and typecheck; OpenAPI validation/codegen freshness; build; portability5files; pack check; root typecheck187/187; boundaries1689files; whitespace check. Later tests-only additions re-ran package lint/tests/typecheck. Pack/root logs retained in .mockingbird/us006-*.log.
+- Real Node HTTP tests distinguish flushed headers from unresolved body, verify client abort and server close, and inspect zero retained waiters. Fetch tests cover repeated/multiple waits, all conditions, AutoRemove, namespace/wildcard reset, already-aborted/concurrent-close races, state guards, completion validation, frozen-clock timestamps and shared checkpoints. No arbitrary sleeps, image execution or live Engine oracle.
+- No implementation advisors needed for scoped existing-runtime patterns. No UI/browser flow. Review classification test-sensitive; native story-reviewer required, US-006 attempt1, expanded-initial/initial. Prior memory contains only US-005 image-default suppression, not relevant to this lifecycle diff.
+- Intended commit message: `feat(US-006): implement docker start and wait`.
+- Commit status: not_attempted. Active-history rewind behavior remains US-008; stop/kill/remove routes US-007; live Engine differential oracle US-013; catalog/root aggregate delivery US-014.
+
+## 2026-09-27 UTC - US-006 initial review remediation
+
+- Native role/session `/root/review_us006_attempt1`, attempt1, returned schema-valid changes_requested. Findings `docker-start-check-chunked-before-reading` (high/security) and `docker-readme-stale-start-wait-overview` (medium/correctness) both accepted_fixed.
+- Added an open chunked Fetch-body regression before fixing: it failed with deadline "start buffered an open chunked body". Start now checks chunked and oversized declared lengths before consuming, cancels invalid bodies, and bounds undeclared-size reads to seven bytes with early rejection on the eighth. It reconstructs only the small accepted body for the shared decoder; no unbounded clone remains. Expanded regression covers open chunked, declared-long and unknown-size eight-byte streams. Deadline is failure detection, not transition scheduling. README overview now agrees with implemented start/wait support.
+- Checks after remediation: package tests37/0 failures/246 assertions, lint17files, typecheck, build, portability and pack pass. Focused open-body regression rechecked after keeping chunked/declared-long streams entirely empty/open to prove header-first rejection. Earlier contract/root gates remain applicable; no shared adapter changes or live provider checks.
+- Targeted review will reuse the same native session, limited to both root causes and remediation regressions. Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-006 passing review and finalization
+
+- Same native story-reviewer session `/root/review_us006_attempt1`, attempt1, expanded-initial/targeted, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "targeted",
+  "findings": [],
+  "resolved_findings": [
+    { "id": "docker-start-check-chunked-before-reading", "evidence": "The staged start handler rejects chunked and declared oversized bodies before reading them. For unknown-length bodies it reads at most seven bytes, cancels on overflow, and reconstructs only an accepted bounded body. The supplied verification reports passing open-stream regressions that return 400 without waiting for EOF." },
+    { "id": "docker-readme-stale-start-wait-overview", "evidence": "The staged README overview now describes start and wait as implemented with explicit simulated completion, and identifies stop, kill, removal, and attached streams as unavailable." }
+  ],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": ["Live Docker Engine differential parity remains unverified and is documented as deferred.", "Active-wait checkout semantics remain deferred to US-008."],
+  "learning_candidates": []
+}
+```
+
+- Both findings accepted_fixed with failing-before/passing-after streaming regression and corrected support overview. All required scoped checks pass as recorded above. No qualifying learning candidates or new suppressions; existing memory unchanged.
+- Provisional US-006 completion marker awaits successful authorized commit. Intended message: `feat(US-006): implement docker start and wait`.
+- Commit status: pending (not yet delivered). Next eligible story US-007; 25 stories remain after delivery.

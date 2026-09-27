@@ -3,7 +3,8 @@
 Work-in-progress Docker Engine API 1.52 mock. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
 Mockingbird's shared runtime controls. POST `/containers/create` persists a stopped
-container. Start/stop/wait/removal and attached streams are not implemented yet. The contract is
+container. Start and wait use explicit simulated completion. Stop, kill, removal
+routes and attached streams remain unavailable. The contract is
 pinned in [API_EVIDENCE.md](API_EVIDENCE.md); [SUPPORT.md](SUPPORT.md) lists operations.
 
 ## Install
@@ -121,6 +122,41 @@ observations, not enforced resources, mounts, security controls or network setup
 Nested host metadata is retained as supplied; full daemon-specific resource and
 network validation is not modelled. No host isolation claim follows from it.
 
+## Start, wait and scripted completion
+
+`POST /containers/<id>/start` marks a created/exited container running (204),
+returns 304 when already running/restarting, and returns 409 for paused, dead,
+or removing records. No image is executed. The clock supplies `StartedAt`;
+restart clears the exit code but retains the prior `FinishedAt` until completion.
+Checkpoint, checkpoint-dir and detachKeys options return explicit mock-only 501.
+As in the pinned Engine route, bodies longer than seven bytes and chunked bodies
+return 400; use an empty body.
+
+`POST /containers/<id>/wait?condition=...` accepts `not-running` (also the default
+for omitted/empty values), `next-exit`, or `removed`. Headers arrive immediately;
+the JSON body `{ "StatusCode": 7 }` arrives only when the condition holds.
+Not-running returns immediately for stopped/created containers. Next-exit waits
+for a future exit even if already stopped. Removed remains pending after an
+ordinary exit. Invalid conditions return 400 and unknown containers return 404
+before opening the stream.
+
+Use `POST /__admin/docker/containers/<id>/complete` with `{ "exitCode": 7 }` to
+explicitly finish a running synthetic container. Completion persists `exited`,
+`FinishedAt`, and the supplied integer code, wakes relevant waiters, and captures
+a shared Timeline checkpoint. If `HostConfig.AutoRemove` is true, completion also
+removes the synthetic record and satisfies removed waits. No host resource is
+touched. Repeated completion while stopped returns 409. These controls operate on
+the selected namespace's main branch; provider operations can use shared branches.
+
+`GET /__admin/docker/waits` reports the namespace's pending waiter count.
+Aborting the request or canceling its response body releases its wait handle.
+Reset cancels waits in the reset namespace; `runtime.close()`, `DockerAPI.close()`
+and `createServer().close()` cancel owned waits. Canceled bodies reject rather
+than fabricate an exit code. Wait handles are transient and never serialized.
+Active-wait checkout semantics are a subsequent history-consistency story.
+Generated parity excludes blocking waits; deterministic Fetch and real HTTP tests
+cover their completion/cancellation behavior. Live Engine parity remains pending.
+
 ## Controls
 
 - `GET /health` reports readiness and service identity.
@@ -143,7 +179,7 @@ selection, webhooks and provider credentials are not configured.
 
 The portable `@crvouga/mockingbird-service-docker` entry exports:
 
-- `DockerAPI`: provider Fetch handler with `fetch` and `reset`.
+- `DockerAPI`: provider Fetch handler with `fetch`, `reset`, and `close`.
 - `DOCKER_NAMESPACE`: default storage namespace (`docker`).
 - `createRuntime`: provider plus standard Mockingbird controls and Timeline.
 - `document`: annotated OpenAPI contract.

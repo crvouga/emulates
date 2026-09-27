@@ -236,3 +236,21 @@ this source pin before advertising support. US-010 must refresh attach research,
 test pre-upgrade errors and supported stdin/EOF semantics. Post-mutation history
 capture and stream invalidation remain implementation hypotheses, not upstream
 guarantees. No SDK is claimed pinned or exercised by this research story.
+
+
+### US-006 start/wait implementation evidence
+
+Context7 `/docker/docs` was refreshed for start/wait on 2026-09-27. It returned
+current SDK flow examples and older API excerpts, so the pinned sources remain
+authoritative. [Start validation and transitions](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/start.go)
+checks paused before running, returns304 for running/restarting, and409 for
+removal/dead state. S4 rejects start bodies with ContentLength above7 or unknown
+chunked length. S7 preserves FinishedAt across SetRunning, resets ExitCode, and
+notifies all stop waiters at SetStopped; removal also wakes removal-only waiters.
+
+The implementation uses explicit admin completion instead of executing a task.
+AutoRemove completes synthetic removal atomically within that synchronous control.
+Wait response headers and completion bodies are separately tested through Fetch
+and Node HTTP; client cancellation, body cancellation, reset, and close release
+transient handles. This is source-backed simulation evidence, not live Engine
+parity. Restart policies, process scheduling and host execution are not simulated.

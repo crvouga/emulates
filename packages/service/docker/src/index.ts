@@ -12,6 +12,7 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { DockerLifecycle } from "./lifecycle.js"
 import { booleanQuery, info, inspect, list, version } from "./observations.js"
 import { DockerInputError, DockerState } from "./state.js"
 
@@ -27,12 +28,15 @@ export class DockerAPI implements FetchAPI {
   readonly sqlite: SqliteClient
   readonly namespace: string
   readonly state: DockerState
+  readonly lifecycle: DockerLifecycle
+  private closed = false
   private readonly service: Service
   constructor(options: DockerAPIOptions = {}) {
     this.sqlite = bootSqlite(options.sqlite)
     this.namespace = options.namespace ?? DOCKER_NAMESPACE
     const now = options.now ?? Date.now
     this.state = new DockerState(this.sqlite, this.namespace, now)
+    this.lifecycle = new DockerLifecycle(this.state, now)
     const ping = (head: boolean) =>
       new Response(head ? null : "OK", {
         headers: {
@@ -58,6 +62,9 @@ export class DockerAPI implements FetchAPI {
         ContainerList: ({ url }) => list(this.state, url, now),
         ContainerInspect: ({ params, url }) =>
           jsonRes(200, inspect(this.state.find(params.id ?? ""), booleanQuery(url, "size"))),
+        ContainerStart: ({ params, url }) => this.lifecycle.start(params.id ?? "", url),
+        ContainerWait: ({ params, url, request }) =>
+          this.lifecycle.wait(params.id ?? "", url, request.signal),
         ContainerCreate: ({ body, url }) => {
           if (body.kind !== "json") return jsonRes(400, { message: "expected JSON body" })
           const created = this.state.create(body.value, url)
@@ -77,7 +84,8 @@ export class DockerAPI implements FetchAPI {
     })
     this.app = this.service.app
   }
-  fetch(request: Request): Promise<Response> {
+  async fetch(request: Request): Promise<Response> {
+    if (this.closed) throw new DroppedConnectionError()
     if (!this.state.daemon().available) return Promise.reject(new DroppedConnectionError())
     const url = new URL(request.url)
     const match = /^\/v(\d+)\.(\d+)(\/.*)$/.exec(url.pathname)
@@ -107,9 +115,50 @@ export class DockerAPI implements FetchAPI {
       url.pathname = match[3] ?? "/"
       request = new Request(url, request)
     }
+    if (request.method === "POST" && /^\/containers\/[^/]+\/start$/.test(url.pathname)) {
+      const invalidBody = () =>
+        jsonRes(400, {
+          message:
+            "starting container with non-empty request body was deprecated since API v1.22 and removed in v1.24",
+        })
+      if (
+        request.headers.get("transfer-encoding") === "chunked" ||
+        Number(request.headers.get("content-length")) > 7
+      ) {
+        void request.body?.cancel().catch(() => {})
+        return invalidBody()
+      }
+      // Fetch callers may omit Content-Length. Read at most seven bytes, never tee
+      // an unbounded body, and reconstruct the small body for the shared decoder.
+      if (request.body) {
+        const reader = request.body.getReader()
+        const bytes = new Uint8Array(7)
+        let length = 0
+        try {
+          for (;;) {
+            const chunk = await reader.read()
+            if (chunk.done) break
+            if (length + chunk.value.byteLength > 7) {
+              void reader.cancel().catch(() => {})
+              return invalidBody()
+            }
+            bytes.set(chunk.value, length)
+            length += chunk.value.byteLength
+          }
+        } finally {
+          reader.releaseLock()
+        }
+        request = new Request(request, { body: bytes.slice(0, length) })
+      }
+    }
     return this.service.fetch(request)
   }
+  close(): void {
+    this.closed = true
+    this.lifecycle.close()
+  }
   async reset(): Promise<void> {
+    this.lifecycle.cancelWaits()
     await this.service.reset()
   }
 }

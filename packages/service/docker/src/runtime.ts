@@ -13,9 +13,9 @@ export type DockerRuntimeOptions = Pick<
   RuntimeOptions<DockerAPI>,
   "sqlite" | "clock" | "seed" | "adminKey" | "onLog" | "journalSize" | "maxCheckpoints"
 >
-export type DockerRuntime = ServiceRuntime<DockerAPI>
+export type DockerRuntime = ServiceRuntime<DockerAPI> & { close(): void }
 
-const admin = (runtime: DockerRuntime): AdminRoutes => {
+const admin = (runtime: ServiceRuntime<DockerAPI>): AdminRoutes => {
   const respond = (status: number, action: () => unknown) => {
     try {
       return jsonRes(status, action())
@@ -26,6 +26,14 @@ const admin = (runtime: DockerRuntime): AdminRoutes => {
     }
   }
   return {
+    "GET /docker/waits": ({ namespace }) =>
+      jsonRes(200, { pending: runtime.instance(namespace).lifecycle.pending }),
+    "POST /docker/containers/:id/complete": ({ params, body, namespace }) =>
+      respond(200, () => {
+        const result = runtime.instance(namespace).lifecycle.complete(params.id ?? "", body)
+        runtime.checkpoint(namespace)
+        return result
+      }),
     "POST /docker/seed": ({ body, namespace }) =>
       respond(201, () => runtime.instance(namespace).state.seed(body)),
     "POST /docker/daemon": ({ body, namespace }) =>
@@ -37,16 +45,28 @@ const admin = (runtime: DockerRuntime): AdminRoutes => {
 
 /** Standard controls and Timeline coordination; no provider-local history. */
 export const createRuntime = (options: DockerRuntimeOptions = {}): DockerRuntime => {
+  const instances = new Set<DockerAPI>()
+  let closed = false
   const runtime = createServiceRuntime({
     ...options,
     name: DOCKER_NAMESPACE,
     document,
     admin,
-    create: ({ sqlite, namespace, clock }) => new DockerAPI({ sqlite, namespace, now: clock.now }),
+    create: ({ sqlite, namespace, clock }) => {
+      const api = new DockerAPI({ sqlite, namespace, now: clock.now })
+      if (closed) api.close()
+      instances.add(api)
+      return api
+    },
   })
   return {
     ...runtime,
+    close: () => {
+      closed = true
+      for (const api of instances) api.close()
+    },
     fetch: (request: Request) => {
+      if (closed) return Promise.reject(new TypeError("Docker runtime is closed"))
       const url = new URL(request.url)
       const match = /^(\/ns\/[^/]+)?\/v1\.52(\/.*)$/.exec(url.pathname)
       // Normalize provider aliases before shared operation matching (faults and journal).

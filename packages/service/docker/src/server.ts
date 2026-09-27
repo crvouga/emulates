@@ -14,7 +14,15 @@ export const createServer = async (options: DockerServerOptions = {}): Promise<D
     port: port ?? 0,
     ...(host !== undefined ? { host } : {}),
   })
-  return { ...listening, runtime }
+  listening.server.once("close", () => runtime.close())
+  return {
+    ...listening,
+    runtime,
+    close: async () => {
+      runtime.close()
+      await listening.close()
+    },
+  }
 }
 
 export const serveTarget: ServeTarget = {
@@ -26,7 +34,5 @@ export const serveTarget: ServeTarget = {
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
     }),
-  banner: () => [
-    "Docker creation and observations: simulated metadata; execution and attach are unavailable",
-  ],
+  banner: () => ["Docker lifecycle: explicit simulated completion; no image execution or attach"],
 }
