@@ -682,7 +682,8 @@ export const createRuntime = <T extends ServiceInstance>(
         active = false
         acceptance.delete(request)
       }
-      if (MUTATING_METHODS.has(request.method) && response.status >= 200 && response.status < 400) {
+      const wireStatus = responseNotes(response)?.wireStatus ?? response.status
+      if (MUTATING_METHODS.has(request.method) && wireStatus >= 200 && wireStatus < 400) {
         const current = capture(storage)
         const unchanged =
           accepted &&
@@ -705,7 +706,7 @@ export const createRuntime = <T extends ServiceInstance>(
         response = mutableResponse(response)
         response.headers.set(AT_HEADER, at)
       }
-      log(response.status, fired[0]?.id, response)
+      log(wireStatus, fired[0]?.id, response)
       return stamp(response)
     },
   }

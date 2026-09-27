@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 through US-009 are complete; 22 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-010 are complete; 21 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -200,7 +200,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-010: Implement the Docker attach handshake
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 10
 - Depends on: US-009
 - Relevant paths: Docker Node server/upgrade modules, handshake tests, `API_EVIDENCE.md`.

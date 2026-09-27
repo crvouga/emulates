@@ -284,3 +284,16 @@ path serving and normal server-close cleanup. Transport bounds and path refusal
 are explicit mock controls, not assertions of Docker daemon limits. Verification
 uses synthetic project-local Unix sockets and TCP, including a built-entry fixture
 executed under Node; it does not use Linux peer credentials or a real Engine.
+
+## US-010 handshake implementation refresh
+
+Context7 `/docker/docs` was refreshed for v1.52 attach on 2026-09-27 and returned
+v1.23/v1.19/v1.11 examples. Re-reading pinned S4/S8 confirmed the existing wire
+contract above; historical raw-stream examples do not supersede non-TTY v1.52
+multiplexed-stream. The Node path now implements admission/headers and plain-text
+backend errors, with synthetic fragmented-write/initial-byte fixtures and an
+independent raw consumer exercised under Bun and Node. Namespace/branch/fault
+selection stays in shared runtime; private response notes record upgrade101
+without a POST mutation checkpoint. Plain Fetch remains unsupported. Full stream
+framing, stdin semantics and history invalidation are US-011; real parity remains
+US-013. These tests do not establish host enforcement or consumer policy.

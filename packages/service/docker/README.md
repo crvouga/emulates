@@ -4,7 +4,8 @@ Work-in-progress Docker Engine API 1.52 mock. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
 Mockingbird's shared runtime controls. POST `/containers/create` persists a stopped
 container. Start, wait, stop, kill, and removal use explicit simulated completion.
-Attached streams remain unavailable. The contract is
+The Node entry supports the non-TTY attach handshake; scripted stream behavior
+remains pending. The contract is
 pinned in [API_EVIDENCE.md](API_EVIDENCE.md); [SUPPORT.md](SUPPORT.md) lists operations.
 
 ## Install
@@ -237,11 +238,10 @@ Type exports include `DockerAPIOptions`, `DockerRuntime`, `DockerRuntimeOptions`
 
 ## Deliberately not modelled
 
-Attach and unsupported options return Mockingbird-specific 501 JSON errors;
-unknown routes return 404. No real containers are started. HTTP upgrade, duplex attach, orchestration and real
-Engine parity are deferred. Attach is classified as requiring protocol-specific
+Fetch attach and unsupported options return Mockingbird-specific 501 JSON errors;
+unknown routes return 404. No real containers are started. Duplex stream scripting, orchestration and real Engine parity are deferred. Attach is classified as requiring protocol-specific
 Node verification; a Fetch response cannot represent its bidirectional upgrade.
-No successful attach behavior or real-provider parity is claimed by these tests.
+Only the documented Node handshake subset is implemented; real-provider parity remains pending.
 
 ## Failure scenarios and logical restart
 
@@ -297,4 +297,30 @@ keep-alive to 5 seconds, and simultaneous connections to `maxConnections` (defau
 The existing CLI/shared fleet target still uses the shared TCP adapter; Unix
 sockets and these Docker transport limits currently require `createServer`.
 No peer credentials, procfs provenance, host isolation or real Engine access is
-claimed. Attached upgrade streams remain a subsequent story.
+claimed. Stream framing and lifetime controls remain a subsequent story.
+
+## Node attach handshake
+
+Send POST `/v1.52/containers/<id>/attach?stream=1&stdout=1&stderr=1` with
+`Connection: Upgrade` and `Upgrade: tcp` to `createServer`. Unversioned attach
+uses the same pinned contract. The response is `101 UPGRADED` with
+`Content-Type: application/vnd.docker.multiplexed-stream`, `Connection: Upgrade`,
+and `Upgrade: tcp`. Read through the first CRLFCRLF and retain all following
+bytes. This duplex upgrade cannot be represented by a Fetch Response; ordinary
+Fetch and non-upgrade requests continue to return an explicit 501.
+
+`stream=true`, `logs=false`, and stdin/stdout/stderr selections are accepted for
+handshake negotiation. TTY, replay, detachKeys, unknown query modes and non-TCP
+upgrades are unsupported. Missing containers and paused/restarting conflicts use
+the pinned pre-upgrade plain-text error envelope with raw-stream content type.
+Shared namespaces, branches, faults, daemon availability and request logging apply.
+Attach admission is journaled as 101 and does not itself checkpoint a mutation.
+
+For protocol fixtures, `attachHandshake: { chunkBytes, initialStreamBytes }`
+splits header writes into 1–4096-byte chunks and appends at most 1 MiB of synthetic
+already-framed bytes to the last fragment. This does not promise OS packet
+boundaries. The bytes are caller-owned wire fixtures, not generated container
+output. Complete framing, channel routing, scripted stdin and stream lifetime
+controls belong to the next story; current incoming bytes are drained without
+interpretation or journaling. Connection loss does not stop the container.
+Owned sockets close on server shutdown. No real Engine attach is performed.

@@ -6,14 +6,15 @@ import {
   type ServiceRuntime,
 } from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
-import { DOCKER_NAMESPACE, DockerAPI } from "./index.js"
+import { DOCKER_NAMESPACE, DockerAPI, type DockerAPIOptions } from "./index.js"
 import { presets } from "./presets.js"
 import { DockerInputError, isRunning, record } from "./state.js"
 
 export type DockerRuntimeOptions = Pick<
   RuntimeOptions<DockerAPI>,
   "sqlite" | "clock" | "seed" | "adminKey" | "onLog" | "journalSize" | "maxCheckpoints"
->
+> &
+  Pick<DockerAPIOptions, "onAttach">
 export type DockerRuntime = ServiceRuntime<DockerAPI> & { close(): void }
 
 const admin = (runtime: ServiceRuntime<DockerAPI>): AdminRoutes => {
@@ -91,7 +92,12 @@ export const createRuntime = (options: DockerRuntimeOptions = {}): DockerRuntime
     presets,
     beforeRestore: (api) => api.lifecycle.cancelWaits(),
     create: ({ sqlite, namespace, clock }) => {
-      const api = new DockerAPI({ sqlite, namespace, now: clock.now })
+      const api = new DockerAPI({
+        sqlite,
+        namespace,
+        now: clock.now,
+        ...(options.onAttach ? { onAttach: options.onAttach } : {}),
+      })
       if (closed) api.close()
       instances.add(api)
       return api

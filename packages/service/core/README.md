@@ -181,3 +181,12 @@ request are no-ops. Mark only committed mutations, not validation or mere receip
 The optional synchronous `beforeRestore(instance)` runtime hook releases transient
 handles before replacing that instance's storage on checkout or snapshot restore.
 Hooks should not throw or mutate durable state; handles themselves are not stored.
+
+### Node upgrade admission notes
+
+A Node-only transport may annotate its internal 200 response carrier with
+`{wireStatus: 101}` after admitting an upgrade. The shared runtime uses that
+status for metrics/journal and avoids automatic mutation checkpointing for the
+read-only upgrade. The transport must emit the actual 101 and keep ordinary
+Fetch callers out of this admission path; Web Response cannot represent 101.
+The annotation is private object metadata, not a client-controlled header.

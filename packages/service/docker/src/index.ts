@@ -24,7 +24,10 @@ export { document, operationIds, supportedOperationIds } from "./generated/opena
 export type { DockerRuntime, DockerRuntimeOptions } from "./runtime.js"
 export { createRuntime } from "./runtime.js"
 export const DOCKER_NAMESPACE = "docker"
-export type DockerAPIOptions = APIOptions
+export type DockerAPIOptions = APIOptions & {
+  /** Transport-owned admission callback; ordinary Fetch attach remains unsupported. */
+  onAttach?: (api: DockerAPI, request: Request) => Response
+}
 
 export class DockerAPI implements FetchAPI {
   readonly app: Hono
@@ -103,10 +106,10 @@ export class DockerAPI implements FetchAPI {
         },
       }),
       notFound: () => jsonRes(404, { message: "page not found" }),
-      unsupported: (_request, operation) =>
-        jsonRes(501, {
-          message: `Mockingbird: ${operation.operationId} is not implemented`,
-        }),
+      unsupported: (request, operation) =>
+        operation.operationId === "ContainerAttach" && options.onAttach
+          ? options.onAttach(this, request)
+          : jsonRes(501, { message: `Mockingbird: ${operation.operationId} is not implemented` }),
       onError: (error) => {
         if (error instanceof DockerInputError)
           return jsonRes(error.status, { message: error.message })

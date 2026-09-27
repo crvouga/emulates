@@ -409,3 +409,39 @@
 - Both findings accepted_fixed with required verification. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning/suppression. Unix serving is programmatic; shared CLI target remains TCP-only. No real Engine or host provenance claim.
 - Provisional US-009 completion marker awaits successful authorized commit. Intended message: `feat(US-009): add bounded docker unix-socket transport`.
 - Commit status: pending (not yet delivered). Next eligible story US-010; 22 stories remain after delivery.
+
+## 2026-09-27 UTC - US-010 execution and research
+
+- Previous goal turn made progress: US-009 delivered cb757780. Clean worktree and dependency completion verified. US-010 next eligible under existing all-story implementation/commit authorization.
+- Standard mode, complex Node protocol/lifecycle boundary. One read-only architect-reviewer advisor `/root/advise_us010_attach` for handshake/stream seam; no further delegation budget. Native staged review remains separate.
+- Required Context7 refresh /docker/docs returned v1.23/v1.19/v1.11 attach examples, not v1.52. Re-fetched pinned 710302ecf2e958db92cb7d92f8838ea063a31765 container_routes.go and attach.go; sources agree with prior evidence: non-TTY >=1.42 upgrade101 multiplexed-stream, backend errors hijacked/plaintext/raw-stream before upgrade, paused/restarting409. Existing v1.52 contract retained, historical raw-stream example not substituted. No real Engine access.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-010 candidate verification
+
+- Advisor recommended existing shared unsupported-operation seam plus private ResponseNotes transport status, gated by Node-only AsyncLocalStorage admission; no current upgrade result type exists. Implemented this narrow path through shared namespace/branch/version/fault/logging, with ordinary Fetch attach501. A new shared regression failed because plain200 carrier created a mutation checkpoint, then passes with wireStatus101 journal/metrics and no automatic mutation checkpoint. Socket/head never enter portable storage or the metadata journal.
+- Node upgrade handler validates method/tcp/body/attach-only target before dispatch, preserves shared errors/fault drops, writes exact pinned101/header block and plaintext backend errors, and optionally fragments writes/appends bounded synthetic first output bytes. Existing connection ownership/count and pipeline refusal include upgraded sockets. Typed callback injection keeps AsyncLocalStorage/Node imports out of portable exports. Full framing, channel routing, stdin scripting, reset/checkout stream lifetime remain US-011 and are explicitly documented; fixture input is drained without execution/journaling.
+- Initial handshake tests failed on absent101 and missing-container404 wire envelope; pass after implementation. Added namespace/branch, history, shared faults, paused/restarting/TTY, daemon unavailable, admin-upgrade rejection, fragmented abort and native Node built-entry evidence. Branch test initially expected no branch-creation snapshot; it now creates the branch from the explicit checkpoint before measuring attach, matching existing shared behavior without production change. Formatting chain mismatch fixed by package formatter.
+- Final checks: Docker74tests/457assertions, core45tests/7549assertions, EasyPost existing-provider13tests/88assertions pass. Core lint30files and Docker lint27files, both typechecks/builds pass; Docker OpenAPI/generated freshness, portability5files, pack pass. Root187typechecks and boundaries1699files pass; whitespace pass. Logs .mockingbird/us010-{core-tests,docker-tests,easypost-tests,typecheck,pack}.log. No real Docker oracle or full duplex semantics claimed.
+- Native review planned US-010 attempt1, expanded-initial/initial, standard/complex transport. One read-only advisor used as above; no UI; existing memory suppression unrelated. Intended commit: feat(US-010): implement docker attach upgrade handshake.
+- Commit status: not_attempted.
+
+## 2026-09-27 UTC - US-010 passing review and finalization
+
+- Native story-reviewer `/root/review_us010_attempt1`, attempt1, expanded-initial/initial, received the complete protocol and returned schema-valid JSON:
+
+```json
+{
+  "verdict": "pass",
+  "pass_type": "initial",
+  "findings": [],
+  "resolved_findings": [],
+  "executor_feedback": { "priority_order": [], "recommended_checks": [], "avoid": [] },
+  "residual_risks": ["Full stream framing, stdin semantics, and stream lifetime remain assigned to US-011; this review confirms the staged handshake subset only."],
+  "learning_candidates": []
+}
+```
+
+- No findings or targeted pass. Required scoped checks pass as recorded above. Existing memory unchanged; no qualifying learning or suppression. No full stream/real Engine parity claim.
+- Provisional US-010 completion marker awaits successful authorized commit. Intended message: `feat(US-010): implement docker attach upgrade handshake`.
+- Commit status: pending (not yet delivered). Next eligible story US-011; 21 stories remain after delivery.

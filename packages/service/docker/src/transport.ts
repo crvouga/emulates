@@ -21,7 +21,15 @@ const positive = (value: number, name: string) => {
   return value
 }
 
-export const listenDocker = async (runtime: DockerRuntime, options: TransportOptions) => {
+export const listenDocker = async (
+  runtime: DockerRuntime,
+  options: TransportOptions,
+  upgrade?: (
+    req: IncomingMessage,
+    socket: import("node:stream").Duplex,
+    head: Buffer,
+  ) => Promise<void>,
+) => {
   const maxBody = positive(options.maxBodyBytes ?? 1024 * 1024, "maxBodyBytes")
   const bodyTimeout = positive(options.bodyTimeoutMs ?? 30_000, "bodyTimeoutMs")
   const maxConnections = positive(options.maxConnections ?? 128, "maxConnections")
@@ -197,6 +205,15 @@ export const listenDocker = async (runtime: DockerRuntime, options: TransportOpt
       void handle(req, res)
     },
   )
+  if (upgrade)
+    server.on("upgrade", (req, socket, head) => {
+      if (socket.destroyed || busy.has(socket as Socket) || !sockets.has(socket as Socket)) {
+        socket.destroy()
+        return
+      }
+      busy.add(socket as Socket)
+      void upgrade(req, socket, head)
+    })
   server.on("connection", (socket) => {
     if (sockets.size >= maxConnections) {
       socket.destroy()
