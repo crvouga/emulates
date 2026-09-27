@@ -21,6 +21,16 @@ export const createRuntime = (options: HermesRuntimeOptions = {}): HermesRuntime
     name: HERMES_NAMESPACE,
     document,
     admin: (runtime) => ({
+      "POST /hermes/restart": ({ body, namespace }) => {
+        try {
+          const result = runtime.instance(namespace).idempotency.restart(body)
+          runtime.checkpoint(namespace)
+          return jsonRes(200, result)
+        } catch (error) {
+          if (error instanceof HermesError) return jsonRes(error.status, error.envelope())
+          throw error
+        }
+      },
       "POST /hermes/scope": ({ body, namespace }) => {
         try {
           const scope = runtime.instance(namespace).idempotency.setScope(body)

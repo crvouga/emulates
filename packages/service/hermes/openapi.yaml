@@ -104,13 +104,12 @@ paths:
   /v1/runs/{run_id}/stop:
     post:
       operationId: RunStop
-      summary: Request run interruption
+      summary: Request run interruption without assuming execution has settled
       x-mockingbird:
-        supported: false
-        reason: Stop and interruption are scheduled for US-019.
+        supported: true
         parity:
           enabled: false
-          reason: No provider operation is implemented in the scaffold.
+          reason: Pinned runtime oracle is scheduled for US-022.
           safe: false
       parameters:
         - in: path
@@ -119,12 +118,34 @@ paths:
           schema:
             type: string
       responses:
-        "501":
-          description: Explicit Mockingbird-only unsupported operation
+        "200":
+          description: Stop accepted, or an unchanged terminal observation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MockError"
+                oneOf:
+                  - type: object
+                    required: [run_id, status]
+                    additionalProperties: false
+                    properties:
+                      run_id:
+                        type: string
+                      status:
+                        type: string
+                        const: stopping
+                  - $ref: "#/components/schemas/Run"
+        "404":
+          description: Run missing or inaccessible in the selected synthetic scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HermesError"
+        "409":
+          description: Active run belongs to a different live modeled gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HermesError"
   /v1/runs/{run_id}/events:
     get:
       operationId: RunEvents

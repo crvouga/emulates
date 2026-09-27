@@ -125,8 +125,8 @@ test("Node HTTP entry point serves submission, polling and shared controls", asy
     const polled = await fetch(`${server.url}/v1/runs/${run_id}`)
     expect(polled.status).toBe(200)
     expect(await polled.json()).toMatchObject({ run_id, status: "queued" })
-    const unsupported = await fetch(`${server.url}/v1/runs/example/stop`, { method: "POST" })
-    expect(unsupported.status).toBe(501)
+    const missingStop = await fetch(`${server.url}/v1/runs/example/stop`, { method: "POST" })
+    expect(missingStop.status).toBe(404)
   } finally {
     await server.close()
   }

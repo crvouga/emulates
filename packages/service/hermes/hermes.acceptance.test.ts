@@ -4,7 +4,6 @@ import { HermesAPI } from "./src/index.js"
 test("unimplemented peer operations remain explicit", async () => {
   const api = new HermesAPI()
   for (const [method, path] of [
-    ["POST", "/v1/runs/example/stop"],
     ["GET", "/v1/runs/example/events"],
     ["POST", "/v1/runs/example/approval"],
     ["POST", "/v1/runs/example/steer"],

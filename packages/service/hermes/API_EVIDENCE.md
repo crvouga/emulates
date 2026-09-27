@@ -331,3 +331,32 @@ in shared reset and Timeline. Terminal replay survives reconstructing the API wi
 the same backing client/namespace. This is a modeled adapter/storage boundary, not
 real process/disk persistence or completed logical-restart semantics: unfinished
 restart interruption remainsUS-019 and retention remainsUS-020.
+
+## US-019 stop and logical restart refresh (2026-09-27)
+
+Resolved and queried Context7 for stop/race/restart again. Results remain current
+main and advertise no target version; new shutdown flags/text were not substituted
+for the pinned source. Refetched R at immutable29112bef099274229cadff79cdff7bf7b99c4b77,
+SHA256 still048ae843592d701ff47437bd8edd47cd64ca6c0fdf88a71045bdb6fb337fbc63.
+Read R `_handle_stop_run` and `_durable_run_status` plus pinned completion-race and
+restart test locations. Stop first checks scoped visibility, returns full terminal
+status unchanged, rejects a live foreign owner without local work with409, or
+records stopping and returns the two-field acceptance200.
+
+Implemented explicit namespaced logical restart, with stale/alive modeled owner
+states. No PID probing, thread, inference, process kill or actual service restart
+occurs. Keyless state disappears; keyed records/reservations remain. Stale-owner
+nonterminal hydration occurs on poll/replay/stop, preserves creation time and
+updates interruption time at that first access. In particular, pinned durable
+hydration uses a direct status.update, so a waiting approval payload is retained
+on interruption (normal `_set_run_status` would clear it). Terminal records and
+repeat interruption reads remain unchanged. A live foreign owner does not become
+interrupted and cannot be stopped in this modeled gateway. Admin observations may
+script its eventual result. Terminal controls still reject revival.
+
+All unfinished/terminal states, stop acceptance versus cancellation/failure/winning
+completion, original-key interrupted replay versus new-key admission, keyless
+loss, scopes and shared Timeline ownership restoration are covered by package
+tests. Actual pinned runtime comparison remainsUS-022; retention/cache/durable
+expiry separation remainsUS-020. These controls do not claim actual process or disk
+restart durability.

@@ -59,6 +59,12 @@ export class HermesAPI implements FetchAPI {
           if (memoryKey) response.headers.set("X-Hermes-Session-Key", memoryKey)
           return annotateResponse(response, { ids: { runId: run.run_id } })
         },
+        RunStop: async ({ params, request }) => {
+          const result = await this.idempotency.stop(params.run_id ?? "")
+          if (result.status === "stopping")
+            markMutationAccepted(request, { ids: { runId: result.run_id } })
+          return jsonRes(200, result)
+        },
         RunGet: async ({ params }) => jsonRes(200, await this.idempotency.get(params.run_id ?? "")),
       }),
       notFound: () => jsonRes(404, { message: "page not found" }),

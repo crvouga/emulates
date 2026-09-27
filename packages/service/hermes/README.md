@@ -2,7 +2,7 @@
 
 Work-in-progress mock for the Hermes Agent public peer-run API pinned to
 `v2026.8.31`. Submission and polling work with explicit synthetic lifecycle observations.
-Stop, events, approval and steer remain unsupported. No agent or inference runs.
+Events, approval and steer remain unsupported. No agent or inference runs.
 [API_EVIDENCE.md](API_EVIDENCE.md) records source-backed semantics and gaps;
 [SUPPORT.md](SUPPORT.md) records current operation support.
 
@@ -47,7 +47,8 @@ The Node entry is separate from the portable Fetch entry.
 ## Routes and controls
 
 `POST /v1/runs` admits a run and `GET /v1/runs/{run_id}` polls it.
-Stop, events, approval and steer return a mock-only 501 envelope with `error.type` of
+`POST /v1/runs/{run_id}/stop` requests interruption. Events, approval and steer
+return a mock-only 501 envelope with `error.type` of
 `mockingbird_unsupported` and `error.code` of `operation_not_implemented`.
 Missing runs use the pinned `run_not_found` 404 envelope. Unknown paths return
 404. Mock-only errors do not claim real Hermes rejection behavior.
@@ -76,7 +77,7 @@ The portable entry exports:
 - `createRuntime`: the standard service runtime and shared controls.
 - `document`: annotated OpenAPI contract.
 - `operationIds`: all inventoried operations.
-- `supportedOperationIds`: `RunCreate` and `RunGet`.
+- `supportedOperationIds`: `RunCreate`, `RunGet`, and `RunStop`.
 
 The Node-only `/server` entry exports:
 
@@ -157,14 +158,39 @@ bearer text is ignored. This control does not implement authentication.
 Reservations and owners survive reconstructing a `HermesAPI` with the same
 SQLite client and namespace. Terminal replay is verified after that modeled
 adapter reconstruction. Actual process/disk durability and unfinished-run restart
-outcomes are separate claims; stop/restart behavior is still pending. Shared
+outcomes are modeled by the explicit restart control below. Shared
 Timeline restores scope, reservations and run records together; reset clears them.
 No public key-lookup endpoint is added. Request bodies are hashed in memory and
 not persisted; stored reservations contain the key, hash and run identity.
 
+## Stop and logical restart
+
+`POST /v1/runs/{run_id}/stop` returns 200 `{ run_id, status: "stopping" }` for
+locally active work. Repeated stop requests retain that intermediate state. Use
+`observe` to script the eventual outcome: `cancelled` for acknowledged interruption,
+`completed` when normal completion wins the race, or `failed` for execution failure.
+Stopping a terminal run returns its full unchanged status, not a new cancellation.
+Missing or inaccessible runs return 404 `run_not_found`.
+
+`POST /__admin/hermes/restart` with `{ "owner": "stale" }` models loss of the
+current namespace's gateway. It discards keyless runs and retains keyed runs and
+reservations across all synthetic profiles in that namespace. An unfinished keyed
+run becomes `interrupted` when next polled, replayed or stopped, with
+`The gateway restarted before this run settled.` and `run.interrupted`.
+Its creation timestamp remains intact; its update timestamp reflects that first
+observation. Terminal runs retain their status and result. Retrying an old delivery
+key replays the interrupted run; a new key creates a different run.
+
+Use `{ "owner": "alive" }` to model another live owner after gateway replacement.
+Keyed observations stay unchanged, but stopping unfinished foreign work returns
+409 `run_not_active`. An explicit `observe` can represent that owner's eventual
+completion. Neither control reads PIDs, interrupts a real process, or runs an agent.
+It is a logical scenario, not a process/disk durability guarantee. Shared Timeline
+restores the owner flags and run/reservation state together.
+
 ## Deliberately not modelled
 
-Stop/restart behavior and retention arrive in later stories. Prompts, instructions and history are validated then discarded.
+Retention arrives in a later story. Prompts, instructions and history are validated then discarded.
 Synthetic result text can be stored by observation controls and is cleared by reset.
 Kanban attempts, client intake/recovery policy, inference, Python dispatchers,
 host tool execution and credential enforcement are excluded. There are no outgoing

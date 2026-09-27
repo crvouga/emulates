@@ -60,7 +60,7 @@ export const unsupported = (message: string): never => {
 const invalid = (message: string): never => {
   throw new HermesError(400, message)
 }
-const terminal = (status: RunStatus) =>
+export const terminal = (status: RunStatus) =>
   ["completed", "failed", "cancelled", "interrupted"].includes(status)
 
 /** Synthetic public observations only: no prompts, credentials, workers or timers. */
@@ -124,6 +124,21 @@ export class HermesRuns {
     const run = this.records.get(id)
     if (!run) throw new HermesError(404, `Run not found: ${id}`, "run_not_found")
     return run
+  }
+  interruptStale(id: string): RunRecord {
+    const current = this.get(id)
+    if (terminal(current.status)) return current
+    // Pinned durable hydration updates fields directly (unlike normal status
+    // updates, it does not clear a retained approval payload).
+    const next: RunRecord = {
+      ...current,
+      status: "interrupted",
+      error: "The gateway restarted before this run settled.",
+      last_event: "run.interrupted",
+      updated_at: this.now() / 1000,
+    }
+    this.records.update(id, next)
+    return next
   }
   /** Mock control, not a vendor route. Advance only when the caller explicitly scripts it. */
   observe(id: string, body: unknown): RunRecord {
