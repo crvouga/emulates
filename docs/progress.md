@@ -683,3 +683,23 @@
 
 - Initial pass, no remediation/targeted pass and no qualifying review memory change. Required package and full repository checks pass as recorded above. Documentation, catalog and browser behavior verified; Docker remains WIP with explicit evidence limits. User approval covers workspace dependency/lockfile and story commit. No publication or deployment.
 - Provisional US-014 completion marker awaits successful authorized commit. Intended commit: feat(US-014): deliver docker documentation and catalog integration. Commit status: pending (not yet delivered). Next eligible story US-015;17stories remain after delivery. Preview remains on loopback4321 for inspection.
+
+## 2026-09-27 UTC - US-015 pinned Hermes contract research
+
+- Previous goal turn made progress and delivered US-014 as aab1d2db; clean worktree and exact branch ralph/infrastructure-orchestration-mocks confirmed before research. Selected US-015 after completed dependency. Mode standard; research/contract risk standard. No implementation advisors used.
+- Applied search-web alongside Context7. Resolved /nousresearch/hermes-agent: advertised v2026.4.8,v2026.4.16,v2026.6.5, not requested v2026.8.31. Queried peer routes and fingerprint/scope/retention/restart/stop. Results cite current main, explicitly not pinned evidence. git ls-remote resolved annotated release tag6e8f8418e6378eb2617e4de074e13dedd091b8af to commit29112bef099274229cadff79cdff7bf7b99c4b77.
+- Downloaded and read immutable run handlers, idempotency store, API adapter, pinned API guide and relevant tests under ignored .mockingbird/hermes-evidence/v2026.8.31. One unquoted tree-URL request failed shell glob expansion before network access; quoted retry fetched a nontruncated GitHub tree. No upstream Python code imported/executed, no database operations, installs, credentials, inference, host changes or external mutations.
+- Added packages/service/hermes/API_EVIDENCE.md with provenance/hashes, exact normal envelopes/errors, accepted-versus-stored state, whole-body Python fingerprint, synthetic scope requirements, peer/session/memory/Kanban/intake identity distinctions, stop completion races, durable owner interruption, keyed/keyless restart differences and independent retention boundaries/triggers. Current-main session-key resolution differs from pinned handler. Documented malformed-input/routing/room/transport/oracle gaps as blocked claims, not assumed behavior.
+- Verification: all five recorded SHA256 values match downloaded immutable files; source symbols and pinned URLs inspected. Root bun run typecheck passed188/188tasks (all cached), .mockingbird/us015-typecheck.log. Whitespace pass. Documentation-only research uses source/hash validation and required typechecking, not artificial behavior tests. No provider runtime parity claimed. UI not changed; browser verification not applicable.
+- Review planned native story-reviewer US-015 attempt1, expanded-initial/initial; contract findings govern later behavior, so independent review is appropriate. Existing memory suppression concerns Docker US-005 only; no change. Staged candidate will be API_EVIDENCE.md plus this journal. Intended commit feat(US-015): pin hermes peer-run contract evidence. Commit status: not_attempted. US-015 incomplete until checks/review/commit; future stories remain untouched.
+
+## 2026-09-27 UTC - US-015 passing review and finalization
+
+- Native story-reviewer /root/review_us015_attempt1, attempt1, expanded-initial/initial, received the complete verbatim protocol, inspected staged evidence and returned schema-valid result:
+
+```json
+{"verdict":"pass","pass_type":"initial","findings":[],"resolved_findings":[],"executor_feedback":{"priority_order":[],"recommended_checks":[],"avoid":[]},"residual_risks":["No pinned Hermes runtime or oracle was executed; the packet explicitly limits this story to research and reserves behavior verification for US-022."],"learning_candidates":[]}
+```
+
+- No remediation/targeted pass. No qualifying learning or memory changes. Source/hash checks and188task typecheck pass. Provenance/current-main distinctions, contract details and unknown-claim blockers recorded. Actual runtime parity remains US-022; this story does not claim it.
+- Provisional US-015 completion marker awaits successful authorized commit. Intended commit feat(US-015): pin hermes peer-run contract evidence. Commit status: pending (not yet delivered). Next eligible story US-016;16stories remain after delivery. Existing user authorization covers the story commit.
