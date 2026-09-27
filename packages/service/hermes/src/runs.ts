@@ -75,7 +75,7 @@ export class HermesRuns {
     this.records = new Collection(sqlite, namespace, "hermes-runs")
     this.ids = new IdSequence(sqlite, namespace, `hermes-runs:${namespace}`)
   }
-  create(body: unknown): RunRecord {
+  validate(body: unknown): Record<string, unknown> {
     if (!record(body))
       return unsupported("non-object submission roots are outside the verified subset")
     if ("hosted_room_dispatch" in body || "_room_execution_policy" in body)
@@ -98,6 +98,11 @@ export class HermesRuns {
         if (!record(entry) || !("role" in entry) || !("content" in entry))
           return invalid(`conversation_history[${i}] must have 'role' and 'content' fields`)
     }
+    return body
+  }
+  create(body: unknown): RunRecord {
+    this.validate(body)
+    if (!record(body)) throw new TypeError("Expected validated body")
     // Preserve deterministic opaque identities using the shared snapshot-aware sequence.
     // Hex-encode the token: shape matches the provider; it is not a random UUID claim.
     const token = this.ids.next("run_", 16).slice(4)

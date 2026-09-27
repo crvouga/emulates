@@ -51,12 +51,17 @@ paths:
                       identity: true
                   status:
                     type: string
-                    const: started
+                    enum: [started, queued, running, waiting_for_approval, stopping, completed, failed, cancelled, interrupted]
                   replayed:
                     type: boolean
-                    const: false
         "400":
           description: Pinned submission validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HermesError"
+        "409":
+          description: Idempotency key reused with a different request fingerprint
           content:
             application/json:
               schema:

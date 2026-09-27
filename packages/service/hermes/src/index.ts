@@ -11,8 +11,9 @@ import {
   type Service,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
-import type { Hono } from "hono"
+import { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { HermesIdempotency, strip } from "./idempotency.js"
 import { HermesError, HermesRuns, unsupported } from "./runs.js"
 
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
@@ -28,31 +29,37 @@ export class HermesAPI implements FetchAPI {
   readonly sqlite: SqliteClient
   readonly namespace: string
   readonly runs: HermesRuns
+  readonly idempotency: HermesIdempotency
   private readonly service: Service
   constructor(options: HermesAPIOptions = {}) {
     this.sqlite = bootSqlite(options.sqlite)
     this.namespace = options.namespace ?? HERMES_NAMESPACE
     this.runs = new HermesRuns(this.sqlite, this.namespace, options.now ?? Date.now)
+    this.idempotency = new HermesIdempotency(this.sqlite, this.namespace, this.runs)
     this.service = createService({
       document,
       sqlite: this.sqlite,
       namespace: this.namespace,
       now: options.now,
       handlers: defineOperations<SupportedOperationId>({
-        RunCreate: ({ body, request }) => {
-          const memoryKey = request.headers.get("X-Hermes-Session-Key")?.trim() ?? ""
+        RunCreate: async ({ body, request }) => {
+          const memoryKey = strip(request.headers.get("X-Hermes-Session-Key") ?? "")
           if (memoryKey.length > 256 || /[\r\n\0]/.test(memoryKey))
             return unsupported("invalid memory-scope headers are outside the current subset")
-          if (request.headers.get("Idempotency-Key")?.trim())
-            return unsupported("idempotency is scheduled for US-018")
-          if (body.kind !== "json") throw new HermesError(400, "Invalid JSON")
-          const run = this.runs.create(body.value)
-          markMutationAccepted(request, { ids: { runId: run.run_id } })
-          const response = jsonRes(202, { run_id: run.run_id, status: "started", replayed: false })
+          const key = strip(request.headers.get("Idempotency-Key") ?? "")
+          if (body.kind !== "text") throw new HermesError(400, "Invalid JSON")
+          const { run, replayed } = await this.idempotency.submit(body.value, key, memoryKey)
+          if (!replayed) markMutationAccepted(request, { ids: { runId: run.run_id } })
+          const response = jsonRes(202, {
+            run_id: run.run_id,
+            status: replayed ? run.status : "started",
+            replayed,
+          })
+          if (replayed) response.headers.set("Idempotency-Replayed", "true")
           if (memoryKey) response.headers.set("X-Hermes-Session-Key", memoryKey)
           return annotateResponse(response, { ids: { runId: run.run_id } })
         },
-        RunGet: ({ params }) => jsonRes(200, this.runs.get(params.run_id ?? "")),
+        RunGet: async ({ params }) => jsonRes(200, await this.idempotency.get(params.run_id ?? "")),
       }),
       notFound: () => jsonRes(404, { message: "page not found" }),
       unsupported: (_request, operation) =>
@@ -69,13 +76,15 @@ export class HermesAPI implements FetchAPI {
         throw error
       },
     })
-    this.app = this.service.app
+    // Keep the Hono entry on the same raw-body-preserving path as Fetch.
+    this.app = new Hono().all("*", (c) => this.fetch(c.req.raw))
   }
   fetch(request: Request): Promise<Response> {
-    // aiohttp Request.json() parses JSON independent of Content-Type.
+    // Preserve raw number lexemes through the shared decoder. The provider
+    // parses JSON independently of Content-Type; parsing happens in admission.
     if (request.method === "POST" && new URL(request.url).pathname === "/v1/runs") {
       const headers = new Headers(request.headers)
-      headers.set("content-type", "application/json")
+      headers.set("content-type", "text/plain")
       request = forwardRequestContext(request, new Request(request, { headers }))
     }
     return this.service.fetch(request)

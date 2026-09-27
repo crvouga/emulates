@@ -130,11 +130,41 @@ handles or prompts are stored. Polling result content stays out of journals.
 Malformed roots/final input elements, hosted rooms and invalid memory-scope headers
 currently return explicit mock-only 501 responses. See evidence for these limits.
 
+## Idempotent submission and synthetic scope
+
+Send `Idempotency-Key` to reserve a delivery. Identical retries return 202 with
+the original run ID, its current status, `replayed: true`, and
+`Idempotency-Replayed: true`. A changed payload with the same scoped key returns
+409 `idempotency_key_conflict`. Concurrent identical requests reserve one run.
+Empty/whitespace keys disable deduplication; other keys must contain 1–255 visible
+ASCII characters after Python-style trimming. Validation errors reserve nothing.
+
+The fingerprint covers the entire parsed JSON body, including unknown fields,
+and the trimmed `X-Hermes-Session-Key`. Object key order does not matter; array
+order and session/body changes do. Raw integer/float forms follow Python:
+`1` and `1.0` conflict, `1.0` and `1e0` replay, and negative floating zero differs
+from positive zero. Lone Unicode surrogates return an explicit mock-only 501;
+Python cannot UTF-8 encode that fingerprint either.
+
+`POST /__admin/hermes/scope` with `{ "profile": "synthetic-profile",
+"identity": "synthetic-listener" }` selects an explicit synthetic scope within
+the current Mockingbird namespace. Defaults are `default` and
+`unauthenticated-test-listener`. Use only synthetic labels, never credentials.
+Changing scope isolates reservations and public polling; returning to it restores
+access to its runs. Session IDs and memory keys are not scope selectors, and
+bearer text is ignored. This control does not implement authentication.
+
+Reservations and owners survive reconstructing a `HermesAPI` with the same
+SQLite client and namespace. Terminal replay is verified after that modeled
+adapter reconstruction. Actual process/disk durability and unfinished-run restart
+outcomes are separate claims; stop/restart behavior is still pending. Shared
+Timeline restores scope, reservations and run records together; reset clears them.
+No public key-lookup endpoint is added. Request bodies are hashed in memory and
+not persisted; stored reservations contain the key, hash and run identity.
+
 ## Deliberately not modelled
 
-Idempotency, stop/restart behavior and retention arrive in later stories.
-Nonempty `Idempotency-Key` headers return 501 until implemented; they are never
-silently ignored. Prompts, instructions and history are validated then discarded.
+Stop/restart behavior and retention arrive in later stories. Prompts, instructions and history are validated then discarded.
 Synthetic result text can be stored by observation controls and is cleared by reset.
 Kanban attempts, client intake/recovery policy, inference, Python dispatchers,
 host tool execution and credential enforcement are excluded. There are no outgoing

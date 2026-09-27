@@ -125,14 +125,6 @@ test("unverified malformed and unimplemented feature paths fail explicitly witho
     expect(response.status).toBe(501)
     expect(await response.json()).toMatchObject({ error: { type: "mockingbird_unsupported" } })
   }
-  const keyed = await runtime.fetch(
-    new Request("http://hermes.mock/v1/runs", {
-      method: "POST",
-      headers: { "Idempotency-Key": "not-yet-supported" },
-      body: JSON.stringify({ input: "x" }),
-    }),
-  )
-  expect(keyed.status).toBe(501)
 })
 
 test("scripted observations preserve timestamps, remove approval on resume, and settle synthetic output", async () => {

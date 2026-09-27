@@ -21,9 +21,21 @@ export const createRuntime = (options: HermesRuntimeOptions = {}): HermesRuntime
     name: HERMES_NAMESPACE,
     document,
     admin: (runtime) => ({
-      "POST /hermes/runs/:id/observe": ({ params, body, namespace }) => {
+      "POST /hermes/scope": ({ body, namespace }) => {
         try {
-          const run = runtime.instance(namespace).runs.observe(params.id ?? "", body)
+          const scope = runtime.instance(namespace).idempotency.setScope(body)
+          runtime.checkpoint(namespace)
+          return jsonRes(200, { ...scope, simulated: true })
+        } catch (error) {
+          if (error instanceof HermesError) return jsonRes(error.status, error.envelope())
+          throw error
+        }
+      },
+      "POST /hermes/runs/:id/observe": async ({ params, body, namespace }) => {
+        try {
+          const api = runtime.instance(namespace)
+          await api.idempotency.get(params.id ?? "")
+          const run = api.runs.observe(params.id ?? "", body)
           runtime.checkpoint(namespace)
           return jsonRes(200, run)
         } catch (error) {

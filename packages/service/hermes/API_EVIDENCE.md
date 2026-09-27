@@ -290,3 +290,44 @@ sequence encoded into opaque 32-character hex tokens, not actual random UUIDs.
 
 Package tests establish internal contract consistency only. The pinned runtime
 comparison remains US-022.
+
+## US-018 implementation refresh (2026-09-27)
+
+Context7 resolution still lists no target release. Its idempotency query returned
+unrelated current-main profile/session material, not an exact pinned fingerprint
+contract; no such snippets were promoted to evidence. Re-read R fingerprint,
+validation, replay, scope and reservation order, and I lookup/reserve transactions.
+Re-fetched I at pinned commit29112bef099274229cadff79cdff7bf7b99c4b77;
+SHA256 remains746904b3b6ed45d8359655b2e87c1f101394b13f6253e718ac9a83acd46174f2.
+
+Idempotency now supports ordinary synthetic scopes: SHA256 of profile, NUL and
+synthetic listener identity; settings never derive from bearer text. The whole
+body plus validated memory-key string is canonicalized and hashed. A local raw
+JSON tokenizer retains number lexemes and duplicate-key last-value semantics;
+integers retain arbitrary precision, floats use Python exponent thresholds and
+integral `.0`, keys sort by Unicode code point. A small local tokenizer was chosen
+over changing the shared HTTP decoder or importing an undeclared transitive JSON
+library. Fetch and exposed Hono entries both preserve raw bytes as decoded text
+until admission. No raw request or canonical prompt text is stored.
+
+The committed `evidence/fingerprint-python.json` has 25 synthetic canonical-byte
+and SHA256 vectors generated independently with Python stdlib json/hashlib (Python
+version recorded there). Cases cover int/float distinction, negative zeros, large
+integers, exponent thresholds, subnormal/maximum/overflow/underflow floats,
+BMP/astral sorting, escapes, duplicate keys and prototype-like keys. An additional
+seeded corpus of2,000 finite binary64 values matched Python's canonical text with
+zero differences. This establishes those tested values, not exhaustive float-space
+proof or Hermes runtime parity. Lone surrogate strings are explicit501 because
+pinned Python UTF8 encoding cannot fingerprint them. Nonstandard JSON NaN/Infinity
+literal tokens and middleware/malformed-root behavior remain outside verified input
+claims; standard JSON numeric exponents that overflow are included in vectors.
+
+Scoped lookup/reservation/run creation is one synchronous shared SQLite transaction
+after asynchronous hashing. Across concurrent facades, identical submissions create
+one run; conflicts preserve the original. Replays use current public status and
+retain headers. Python header stripping includes U+0085; JSON syntax errors precede
+key validation. The synthetic scope control, owners and reservations participate
+in shared reset and Timeline. Terminal replay survives reconstructing the API with
+the same backing client/namespace. This is a modeled adapter/storage boundary, not
+real process/disk persistence or completed logical-restart semantics: unfinished
+restart interruption remainsUS-019 and retention remainsUS-020.
