@@ -703,3 +703,22 @@
 
 - No remediation/targeted pass. No qualifying learning or memory changes. Source/hash checks and188task typecheck pass. Provenance/current-main distinctions, contract details and unknown-claim blockers recorded. Actual runtime parity remains US-022; this story does not claim it.
 - Provisional US-015 completion marker awaits successful authorized commit. Intended commit feat(US-015): pin hermes peer-run contract evidence. Commit status: pending (not yet delivered). Next eligible story US-016;16stories remain after delivery. Existing user authorization covers the story commit.
+
+## 2026-09-27 UTC - US-016 scaffold verification
+
+- Selected US-016 after committed US-015; exact authorized branch verified. Applied develop-code feature method and existing service scaffold patterns. Standard implementation risk, test-sensitive staged review; no implementation advisors needed. Runtime Codex; mode standard; iteration limits unavailable.
+- User's Proceed approves the prepared Hermes package manifest, two TypeScript configurations, workspace registration and lockfile refresh/install. Applied those proposals and ran project-cached bun install successfully; lockfile diff only adds Hermes workspace records, no version upgrades. No auth changes, provider processes, inference or Docker lifecycle operations.
+- Added annotated six-route unsupported contract/generated support metadata, portable HermesAPI/runtime, Node server/CLI, WIP package metadata, initial README and changelog, and shared-control/acceptance tests. Provider run implementation remains US-017 onward. Minimal shared SQLite state is tested through test-owned collections; no production test-only routes or stored prompts/results.
+- Test order: tests preceded implementation, but the initial run failed module setup (missing entry/workspace registration), not a meaningful red behavior assertion. After approved registration: six tests/51 assertions pass. First typecheck exposed inferred optional method in the test route matrix; corrected with a const tuple. Final tests pass six/51, typecheck and lint pass, generate:check and openapi:check pass, build passes, portability passes five files, pack:check passes publint and supported ESM/bundler resolution. Existing CommonJS/node10 exclusions remain reported by pack tooling. Root typecheck passes190/190tasks (188cached), log .mockingbird/us016-typecheck.log; root boundaries passes70packages/1710files. Root typecheck regenerated contract successfully. Whitespace checked. Catalog/documentation full delivery gates reserved for US-023 as Docker delivery US-014; UI unchanged, browser not applicable.
+- Journals checked for body, result-like content, bearer credential and query-value exclusion; namespace/reset/fault/clock/Timeline isolation, HTTP entry and CLI help exercised. Actual Hermes parity remains US-022.
+- Native story-reviewer attempt1 planned under expanded-initial. No applicable memory patterns (existing suppression Docker-only). Intended commit feat(US-016): scaffold hermes service package. Commit status pending (not yet delivered); next eligible story after delivery US-017.
+
+## 2026-09-27 UTC - US-016 passing review and finalization
+
+- Native story-reviewer /root/review_us016_attempt1 (actual returned session), attempt1, expanded-initial/initial, received the complete verbatim protocol and inspected staged evidence. Schema-valid response:
+
+```json
+{"verdict":"pass","pass_type":"initial","findings":[],"resolved_findings":[],"executor_feedback":{"priority_order":[],"recommended_checks":["No additional review checks required."],"avoid":[]},"residual_risks":["Hermes runtime parity remains for US-022; this scaffold does not claim compatibility with a running Hermes process."],"learning_candidates":[]}
+```
+
+- No remediation, targeted pass or qualifying memory changes. Checks and all scaffold criteria pass; no runtime parity claim. Provisional US-016 completion awaits successful commit. Intended commit feat(US-016): scaffold hermes service package. Commit status pending (not yet delivered). Existing authorization covers commit; next story US-017;15stories remain after delivery.

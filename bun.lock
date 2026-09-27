@@ -745,6 +745,26 @@
         "graphql-request": "7.2.0",
       },
     },
+    "packages/service/hermes": {
+      "name": "@crvouga/mockingbird-service-hermes",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-hermes": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+      },
+    },
     "packages/service/intercom": {
       "name": "@crvouga/mockingbird-service-intercom",
       "version": "0.0.0-development",
@@ -2014,6 +2034,8 @@
     "@crvouga/mockingbird-service-google-maps": ["@crvouga/mockingbird-service-google-maps@workspace:packages/service/google-maps"],
 
     "@crvouga/mockingbird-service-healthie": ["@crvouga/mockingbird-service-healthie@workspace:packages/service/healthie"],
+
+    "@crvouga/mockingbird-service-hermes": ["@crvouga/mockingbird-service-hermes@workspace:packages/service/hermes"],
 
     "@crvouga/mockingbird-service-intercom": ["@crvouga/mockingbird-service-intercom@workspace:packages/service/intercom"],
 

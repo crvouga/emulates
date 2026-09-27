@@ -1,0 +1,170 @@
+openapi: 3.1.0
+info:
+  title: Hermes Agent peer runs (Mockingbird)
+  version: "2026.8.31"
+  description: Public peer-run contract inventory. This scaffold exposes shared
+    Mockingbird controls but does not execute or admit agent runs.
+  x-mockingbird-upstream:
+    url: https://github.com/NousResearch/hermes-agent/blob/29112bef099274229cadff79cdff7bf7b99c4b77/gateway/platforms/api_server_runs.py
+    note: Pinned v2026.8.31 route inventory; see API_EVIDENCE.md for researched behavior.
+servers:
+  - url: http://hermes.mock
+paths:
+  /v1/runs:
+    post:
+      operationId: RunCreate
+      summary: Create a tracked run
+      x-mockingbird:
+        supported: false
+        reason: Run admission is scheduled for US-017.
+        parity:
+          enabled: false
+          reason: No provider operation is implemented in the scaffold.
+          safe: false
+      responses:
+        "501":
+          description: Explicit Mockingbird-only unsupported operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /v1/runs/{run_id}:
+    get:
+      operationId: RunGet
+      summary: Poll a tracked run
+      x-mockingbird:
+        supported: false
+        reason: Run polling is scheduled for US-017.
+        parity:
+          enabled: false
+          reason: No provider operation is implemented in the scaffold.
+          safe: true
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Explicit Mockingbird-only unsupported operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /v1/runs/{run_id}/stop:
+    post:
+      operationId: RunStop
+      summary: Request run interruption
+      x-mockingbird:
+        supported: false
+        reason: Stop and interruption are scheduled for US-019.
+        parity:
+          enabled: false
+          reason: No provider operation is implemented in the scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Explicit Mockingbird-only unsupported operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /v1/runs/{run_id}/events:
+    get:
+      operationId: RunEvents
+      summary: Stream run events
+      x-mockingbird:
+        supported: false
+        reason: SSE is outside the public peer-run mock subset.
+        parity:
+          enabled: false
+          reason: No provider operation is implemented in the scaffold.
+          safe: true
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Explicit Mockingbird-only unsupported operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /v1/runs/{run_id}/approval:
+    post:
+      operationId: RunApproval
+      summary: Resolve run approval
+      x-mockingbird:
+        supported: false
+        reason: Host tool approval execution is outside this mock.
+        parity:
+          enabled: false
+          reason: No provider operation is implemented in the scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Explicit Mockingbird-only unsupported operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /v1/runs/{run_id}/steer:
+    post:
+      operationId: RunSteer
+      summary: Steer active execution
+      x-mockingbird:
+        supported: false
+        reason: Agent execution and steering are outside this mock.
+        parity:
+          enabled: false
+          reason: No provider operation is implemented in the scaffold.
+          safe: false
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Explicit Mockingbird-only unsupported operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+components:
+  schemas:
+    MockError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message, type, param, code]
+          properties:
+            message:
+              type: string
+            type:
+              type: string
+              const: mockingbird_unsupported
+            param:
+              type: "null"
+            code:
+              type: string
+              const: operation_not_implemented
