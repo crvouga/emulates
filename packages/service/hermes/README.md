@@ -244,5 +244,7 @@ webhooks, provider calls or agent processes. Public peer-run IDs will remain
 separate from consumer intake and Kanban identities.
 
 Source evidence is not runtime parity. Package/shared-control tests do not establish
-compatibility with a real Hermes process; the pinned differential oracle is a later
-gate. Keep this package WIP until independent Ready requirements are met.
+compatibility with a real Hermes process. The opt-in
+[pinned oracle](oracle/README.md) separately passed33 documented public HTTP
+comparisons, including a fresh-process SQLite restart; its substitutions and
+limitations remain explicit. Keep this package WIP until independent Ready requirements are met.

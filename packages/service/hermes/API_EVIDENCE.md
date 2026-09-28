@@ -398,3 +398,21 @@ Hermes error responses. Scripted executor failure uses the existing pinned faile
 observation envelope. The native Node consumer uses literal HTTP contracts and no
 provider state helpers. Eligible self-parity and deliberate lifecycle divergence
 tests exercise the comparator; actual pinned runtime execution remains US-022.
+
+## US-022 executed pinned oracle
+
+The authorized loopback oracle executed the exact pinned run and idempotency
+modules, original ancillary auth/redaction/PID helpers and original SQLite
+journal-mode helper against a new disposable file-backed database. Its scripted
+executor replaced inference; session/approval/tool-process integrations and
+routing/capacity were explicitly bounded as documented in [oracle/README.md](oracle/README.md).
+No credential-enforcement claim is made.
+
+[Recorded report](evidence/pinned-oracle.json):33 public HTTP comparisons passed
+with Python3.11.16, aiohttp3.14.3 and SQLite3.53.1, WAL in both distinct process
+epochs. Evidence covers replay/conflict, stop/cancel/completion race/failure,
+terminal/unfinished/keyless actual process restart, interrupted replay, exact
+one-hour cache and24-hour durable boundaries, GET without durable pruning,
+expiry/re-admission and404 after pruning plus sweep. This establishes that matrix,
+not inference, hosted rooms, whole-gateway startup, production auth, automatic
+capacity, power-loss durability or arbitrary malformed-input compatibility.
