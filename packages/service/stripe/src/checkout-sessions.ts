@@ -1,7 +1,16 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
-import { couponValidNow, parseDiscounts, resolveDiscountSource } from "./billing.js"
-import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
 import {
+  assertCompatiblePrices,
+  couponValidNow,
+  INACTIVE_PRICE,
+  parseDiscounts,
+  resolveDiscountSource,
+} from "./billing.js"
+import { formatMoney } from "./checkout-page.js"
+import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
+import { parseUnitAmountDecimal } from "./fields.js"
+import {
+  booleanOf,
   intOf,
   type RequestScope,
   recordOf,
@@ -13,17 +22,20 @@ import {
 } from "./internal.js"
 import { matchesCreated, paginate } from "./list.js"
 import { bodyParams, type Params, queryParams } from "./params.js"
+import { normalizeCurrency, parseRecurring } from "./prices.js"
+import { createProduct, validateInlineProduct } from "./products.js"
 import { renderCheckoutLineItem, renderCheckoutSession } from "./render.js"
 import {
   type CheckoutSessionLineRecord,
   type CheckoutSessionRecord,
   type Metadata,
+  type PriceRecord,
   seconds,
 } from "./state.js"
 
 type RequestedLine = {
-  priceId: string | null
-  product: string | null
+  priceId: string
+  product: string
   currency: string
   quantity: number
   unitAmount: number
@@ -31,77 +43,189 @@ type RequestedLine = {
   recurring: boolean
 }
 
+/** Inline objects a `price_data` line creates, inserted only once every line validated. */
+type InlineObjects = { prices: PriceRecord[]; products: Params[] }
+
+const RECURRING_IN_PAYMENT_MODE =
+  "You specified `payment` mode but passed a recurring price. Either switch to `subscription` mode or use only one-time prices."
+
+/**
+ * `price_data` on a Checkout line generates a Price inline (inactive, like every inline price),
+ * and `price_data[product_data]` a Product, so the line — and a subscription created from it —
+ * references a real price id.
+ */
+const inlineLinePrice = (
+  scope: RequestScope,
+  data: Params,
+  index: number,
+  inline: InlineObjects,
+): { price: PriceRecord; productName: string | null } => {
+  const param = `line_items[${index}][price_data]`
+  const productId = typeof data.product === "string" && data.product !== "" ? data.product : null
+  const productData = recordOf(data.product_data)
+  if (productId !== null && productData !== undefined)
+    throw invalidRequest(
+      "You may only specify one of these parameters: product, product_data.",
+      `${param}[product]`,
+    )
+  if (productId === null && productData === undefined)
+    throw parameterMissing(`${param}[product_data]`)
+  const product = productId === null ? undefined : scope.account.products.get(productId)
+  if (productId !== null && product === undefined)
+    throw resourceMissing("product", productId, `${param}[product]`)
+  const hasAmount = data.unit_amount !== undefined
+  const hasDecimal = data.unit_amount_decimal !== undefined
+  if (hasAmount && hasDecimal)
+    throw invalidRequest(
+      "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+      `${param}[unit_amount]`,
+    )
+  if (!hasAmount && !hasDecimal) throw parameterMissing(`${param}[unit_amount]`)
+  const unitAmountDecimal = hasDecimal
+    ? parseUnitAmountDecimal(String(data.unit_amount_decimal), `${param}[unit_amount_decimal]`)
+    : String(intOf(data.unit_amount) ?? 0)
+  const productRecord =
+    productData === undefined ? undefined : { ...validateInlineProduct(productData) }
+  const newProductId = productRecord === undefined ? null : scope.ids.next("prod_")
+  if (productRecord !== undefined && newProductId !== null)
+    inline.products.push({ ...productRecord, id: newProductId })
+  const taxBehavior = data.tax_behavior
+  const price: PriceRecord = {
+    id: scope.ids.next("price_", 24),
+    active: false,
+    created: seconds(scope.now),
+    currency: normalizeCurrency(String(data.currency ?? ""), `${param}[currency]`),
+    lookup_key: null,
+    metadata: {},
+    nickname: null,
+    product: product?.id ?? (newProductId as string),
+    recurring:
+      data.recurring === undefined || data.recurring === "" ? null : parseRecurring(data.recurring),
+    tax_behavior:
+      taxBehavior === "exclusive" || taxBehavior === "inclusive" ? taxBehavior : "unspecified",
+    unit_amount_decimal: unitAmountDecimal,
+  }
+  inline.prices.push(price)
+  const productName =
+    typeof productData?.name === "string" ? productData.name : (product?.name ?? null)
+  return { price, productName }
+}
+
 /** `line_items[0][price]` / `line_items[0][price_data][…]`, decoded by the form codec. */
-const requestedLines = (scope: RequestScope, params: Params): RequestedLine[] => {
+const requestedLines = (
+  scope: RequestScope,
+  params: Params,
+  mode: string,
+  inline: InlineObjects,
+): RequestedLine[] => {
   const raw = params.line_items
   if (!Array.isArray(raw) || raw.length === 0) throw parameterMissing("line_items")
-  return raw.map((entry, index) => {
+  const lines = raw.map((entry, index) => {
     const line = recordOf(entry) ?? {}
     const quantity = intOf(line.quantity) ?? 1
+    if (quantity < 1)
+      throw invalidRequest(
+        "This value must be greater than or equal to 1.",
+        `line_items[${index}][quantity]`,
+      )
     const priceId = typeof line.price === "string" && line.price !== "" ? line.price : null
-    if (priceId !== null) {
-      const price = requirePrice(scope, priceId, `line_items[${index}][price]`)
-      const product = scope.account.products.get(price.product)
-      return {
-        priceId,
-        product: price.product,
-        currency: price.currency,
-        description: product?.name ?? null,
-        quantity,
-        unitAmount: Math.round(Number(price.unit_amount_decimal)),
-        recurring: price.recurring !== null,
-      }
-    }
     const data = recordOf(line.price_data)
-    if (data === undefined) throw parameterMissing(`line_items[${index}][price]`)
-    const productId = typeof data.product === "string" && data.product !== "" ? data.product : null
-    if (productId !== null && !scope.account.products.get(productId))
-      throw resourceMissing("product", productId, `line_items[${index}][price_data][product]`)
-    const productData = recordOf(data.product_data)
-    const name =
-      typeof productData?.name === "string"
-        ? productData.name
-        : productId === null
-          ? null
-          : (scope.account.products.get(productId)?.name ?? null)
+    if (priceId !== null && data !== undefined)
+      throw invalidRequest(
+        "You may only specify one of these parameters: price, price_data.",
+        `line_items[${index}][price]`,
+      )
+    let price: PriceRecord
+    let name: string | null
+    if (priceId !== null) {
+      price = requirePrice(scope, priceId, `line_items[${index}][price]`)
+      if (!price.active) throw invalidRequest(INACTIVE_PRICE, `line_items[${index}][price]`)
+      name = scope.account.products.get(price.product)?.name ?? null
+    } else {
+      if (data === undefined) throw parameterMissing(`line_items[${index}][price]`)
+      const created = inlineLinePrice(scope, data, index, inline)
+      price = created.price
+      name = created.productName
+    }
+    if (mode === "payment" && price.recurring !== null)
+      throw invalidRequest(RECURRING_IN_PAYMENT_MODE, `line_items[${index}]`)
     return {
-      priceId: null,
-      product: productId,
-      currency: typeof data.currency === "string" ? data.currency : "usd",
+      priceId: price.id,
+      product: price.product,
+      currency: price.currency,
       description: name,
       quantity,
-      unitAmount: intOf(data.unit_amount) ?? 0,
-      recurring: recordOf(data.recurring) !== undefined,
+      unitAmount: Math.round(Number(price.unit_amount_decimal)),
+      recurring: price.recurring !== null,
     }
   })
+  const currency = lines[0]?.currency
+  lines.forEach((line, index) => {
+    if (line.currency !== currency)
+      throw invalidRequest(
+        `The line items must all use the same currency, but line_items[${index}] is in ${line.currency.toUpperCase()} and line_items[0] is in ${String(currency).toUpperCase()}.`,
+        `line_items[${index}]`,
+      )
+  })
+  if (mode === "subscription")
+    assertCompatiblePrices(
+      lines
+        .filter((line) => line.recurring)
+        .map(
+          (line) =>
+            inline.prices.find((price) => price.id === line.priceId) ??
+            requirePrice(scope, line.priceId),
+        ),
+      "line_items",
+    )
+  return lines
 }
 
 /** Line records with their share of every discount (percentage, then fixed amounts in order). */
 const sessionLines = (
   scope: RequestScope,
   requested: RequestedLine[],
-  discounts: Array<{ coupon: string | null }>,
+  discounts: ReadonlyArray<{ coupon: string | null }>,
+): CheckoutSessionLineRecord[] =>
+  discountLines(
+    scope,
+    requested.map((line) => ({
+      id: scope.ids.next("li_", 24),
+      amount_subtotal: line.unitAmount * line.quantity,
+      amount_total: line.unitAmount * line.quantity,
+      amount_discount: 0,
+      currency: line.currency,
+      description: line.description,
+      price: line.priceId,
+      quantity: line.quantity,
+      unit_amount: line.unitAmount,
+      product: line.product,
+    })),
+    discounts,
+  )
+
+/** Spread each discount over the lines it applies to, from their undiscounted amounts. */
+const discountLines = (
+  scope: RequestScope,
+  base: CheckoutSessionLineRecord[],
+  discounts: ReadonlyArray<{ coupon: string | null }>,
 ): CheckoutSessionLineRecord[] => {
-  const lines = requested.map((line) => ({
-    id: scope.ids.next("li_", 24),
-    amount_subtotal: line.unitAmount * line.quantity,
-    amount_total: line.unitAmount * line.quantity,
+  const lines = base.map((line) => ({
+    ...line,
     amount_discount: 0,
-    currency: line.currency,
-    description: line.description,
-    price: line.priceId,
-    quantity: line.quantity,
-    unit_amount: line.unitAmount,
-    product: line.product,
+    amount_total: line.amount_subtotal,
   }))
   for (const discount of discounts) {
     const coupon = discount.coupon === null ? undefined : scope.account.coupons.get(discount.coupon)
     if (!coupon) continue
     let budget = coupon.amount_off ?? Number.POSITIVE_INFINITY
     for (const line of lines) {
+      const product =
+        line.product ??
+        (line.price === null ? null : (scope.account.prices.get(line.price)?.product ?? null))
       if (
         coupon.applies_to_products.length > 0 &&
-        (line.product === null || !coupon.applies_to_products.includes(line.product))
+        (product === null || !coupon.applies_to_products.includes(product))
       )
         continue
       const take =
@@ -113,7 +237,85 @@ const sessionLines = (
       line.amount_total -= take
     }
   }
-  return lines.map(({ product: _product, ...line }) => line)
+  return lines
+}
+
+/** Re-price an open session after a promotion code is applied or removed on the hosted page. */
+export const repriceSession = (
+  scope: RequestScope,
+  session: CheckoutSessionRecord,
+  discountRefs: Array<{ coupon: string | null; promotion_code: string | null }>,
+): CheckoutSessionRecord => {
+  const lines = discountLines(scope, session.line_items, discountRefs)
+  const subtotal = lines.reduce((total, line) => total + line.amount_subtotal, 0)
+  const total = lines.reduce((total, line) => total + line.amount_total, 0)
+  const next: CheckoutSessionRecord = {
+    ...session,
+    line_items: lines,
+    amount_subtotal: subtotal,
+    amount_total: total,
+    amount_discount: subtotal - total,
+    discount_refs: discountRefs,
+  }
+  scope.account.checkoutSessions.update(session.id, next)
+  return next
+}
+
+/** Is there an earlier successful payment by this customer (promotion code first-time rules)? */
+const hasPaidBefore = (scope: RequestScope, customer: string | null) =>
+  customer !== null &&
+  scope.account.charges.list({
+    where: (charge) => charge.customer === customer && charge.status === "succeeded",
+  }).length > 0
+
+/**
+ * The promotion code a shopper typed on the hosted page, as Checkout checks it: case-insensitive,
+ * active, unexpired, under its redemption limits, for this customer, first-time and minimum-amount
+ * restrictions met. Answers the discount to apply or the message Checkout shows.
+ */
+export const promotionCodeFor = (
+  scope: RequestScope,
+  session: CheckoutSessionRecord,
+  code: string,
+): { coupon: string; promotion_code: string } | { error: string } => {
+  const invalid = { error: "This code is invalid." }
+  const wanted = code.trim().toLowerCase()
+  if (wanted === "") return invalid
+  const promotion = scope.account.promotionCodes
+    .list({ order: "newest", where: (entry) => entry.code.toLowerCase() === wanted })
+    .map((entry) => entry.value)
+    .find((entry) => entry.active)
+  if (!promotion) return invalid
+  if (promotion.customer !== null && promotion.customer !== session.customer) return invalid
+  let source: { coupon: string; promotion_code: string | null }
+  try {
+    source = resolveDiscountSource(scope, { promotion_code: promotion.id }, "promotion_code")
+  } catch (error) {
+    if (error instanceof StripeError) return invalid
+    throw error
+  }
+  const restrictions = promotion.restrictions
+  if (restrictions.first_time_transaction && hasPaidBefore(scope, session.customer))
+    return { error: "This code is only valid for first-time customers." }
+  if (
+    restrictions.minimum_amount !== null &&
+    (restrictions.minimum_amount_currency === null ||
+      restrictions.minimum_amount_currency === session.currency) &&
+    session.amount_subtotal < restrictions.minimum_amount
+  )
+    return {
+      error: `This code requires a minimum order of ${formatMoney(restrictions.minimum_amount, session.currency)}.`,
+    }
+  const coupon = scope.account.coupons.get(source.coupon)
+  if (
+    coupon &&
+    coupon.applies_to_products.length > 0 &&
+    !session.line_items.some(
+      (line) => line.product != null && coupon.applies_to_products.includes(line.product),
+    )
+  )
+    return { error: "This code is not valid for the items in your order." }
+  return { coupon: source.coupon, promotion_code: promotion.id }
 }
 
 const MIN_EXPIRY = 30 * 60
@@ -149,14 +351,44 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
     if (mode !== "payment" && mode !== "setup" && mode !== "subscription")
       throw invalidRequest("Invalid mode.", "mode")
     const customer = stringOf(params, "customer")
+    const customerEmail = stringOf(params, "customer_email")
+    if (customer !== null && customerEmail !== null)
+      throw invalidRequest(
+        "You may only specify one of these parameters: customer, customer_email.",
+        "customer",
+      )
     if (customer !== null) {
       const entry = scope.account.customers.get(customer)
       if (!entry || entry.kind === "deleted")
         throw invalidRequest(`No such customer: '${customer}'`, "customer", "resource_missing")
     }
+    if (params.customer_creation !== undefined && mode !== "payment")
+      throw invalidRequest(
+        "`customer_creation` can only be used in `payment` mode.",
+        "customer_creation",
+      )
+    if (params.payment_intent_data !== undefined && mode !== "payment")
+      throw invalidRequest(
+        `You can not pass \`payment_intent_data\` in \`${mode}\` mode.`,
+        "payment_intent_data",
+      )
+    if (params.subscription_data !== undefined && mode !== "subscription")
+      throw invalidRequest(
+        `You can not pass \`subscription_data\` in \`${mode}\` mode.`,
+        "subscription_data",
+      )
+    const allowPromotionCodes = booleanOf(params.allow_promotion_codes)
+    if (allowPromotionCodes !== undefined && params.discounts !== undefined)
+      throw invalidRequest(
+        "You may only specify one of these parameters: allow_promotion_codes, discounts.",
+        "allow_promotion_codes",
+      )
     const successUrl = stringOf(params, "success_url")
+    const inline: InlineObjects = { prices: [], products: [] }
     const requested =
-      mode === "setup" && params.line_items === undefined ? [] : requestedLines(scope, params)
+      mode === "setup" && params.line_items === undefined
+        ? []
+        : requestedLines(scope, params, mode, inline)
     if (mode === "subscription" && !requested.some((line) => line.recurring))
       throw invalidRequest(
         "You must provide at least one recurring price in `subscription` mode when using prices.",
@@ -173,10 +405,6 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
               throw invalidRequest(`Coupon expired: ${coupon.id}`, `discounts[${index}][coupon]`)
             return { coupon: source.coupon, promotion_code: source.promotion_code }
           })
-    const lines = sessionLines(scope, requested, discountRefs)
-    const subtotal = lines.reduce((total, line) => total + line.amount_subtotal, 0)
-    const total = lines.reduce((total, line) => total + line.amount_total, 0)
-    const currency = lines[0]?.currency ?? stringOf(params, "currency") ?? "usd"
     const now = seconds(scope.now)
     const expiresAt = intOf(params.expires_at)
     if (expiresAt !== undefined && (expiresAt < now + MIN_EXPIRY || expiresAt > now + MAX_EXPIRY))
@@ -186,6 +414,32 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
       )
     const intentData = recordOf(params.payment_intent_data)
     const subscriptionData = recordOf(params.subscription_data)
+    const trialDays = intOf(subscriptionData?.trial_period_days)
+    const trialEndAt = intOf(subscriptionData?.trial_end)
+    if (trialDays !== undefined && trialEndAt !== undefined)
+      throw invalidRequest(
+        "You may only specify one of these parameters: subscription_data[trial_end], subscription_data[trial_period_days].",
+        "subscription_data[trial_end]",
+      )
+    if (trialEndAt !== undefined && trialEndAt < now + 2 * 86_400)
+      throw invalidRequest(
+        "`subscription_data[trial_end]` must be at least 48 hours in the future.",
+        "subscription_data[trial_end]",
+      )
+    const trialBehavior = recordOf(
+      recordOf(subscriptionData?.trial_settings)?.end_behavior,
+    )?.missing_payment_method
+    const collection = stringOf(params, "payment_method_collection")
+    // Every parameter is valid: the inline catalog objects the lines reference can be stored.
+    for (const product of inline.products) {
+      const { id: productId, ...fields } = product
+      createProduct(scope, now, fields, productId as string)
+    }
+    for (const price of inline.prices) scope.account.prices.insert(price.id, price)
+    const lines = sessionLines(scope, requested, discountRefs)
+    const subtotal = lines.reduce((total, line) => total + line.amount_subtotal, 0)
+    const total = lines.reduce((total, line) => total + line.amount_total, 0)
+    const currency = lines[0]?.currency ?? stringOf(params, "currency") ?? "usd"
     const paymentMethodTypes = params.payment_method_types
     const id = scope.ids.next("cs_test_a1", 56)
     const record: CheckoutSessionRecord = {
@@ -221,17 +475,26 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
       },
       subscription_data: {
         metadata: (subscriptionData?.metadata as Metadata | undefined) ?? {},
-        trial_end:
-          intOf(subscriptionData?.trial_end) ??
-          (intOf(subscriptionData?.trial_period_days) === undefined
-            ? null
-            : now + (intOf(subscriptionData?.trial_period_days) as number) * 86_400),
+        trial_end: trialEndAt ?? (trialDays === undefined ? null : now + trialDays * 86_400),
+        description:
+          typeof subscriptionData?.description === "string" ? subscriptionData.description : null,
+        trial_settings:
+          trialBehavior === "cancel" ||
+          trialBehavior === "create_invoice" ||
+          trialBehavior === "pause"
+            ? { end_behavior: { missing_payment_method: trialBehavior } }
+            : null,
       },
       payment_method_types: Array.isArray(paymentMethodTypes)
         ? paymentMethodTypes.filter((type): type is string => typeof type === "string")
         : ["card"],
       invoice: null,
       custom_text: (recordOf(params.custom_text) as Record<string, unknown> | undefined) ?? null,
+      client_reference_id: stringOf(params, "client_reference_id"),
+      customer_email: customerEmail,
+      payment_method_collection: collection === "if_required" ? "if_required" : "always",
+      allow_promotion_codes: allowPromotionCodes ?? false,
+      customer_details: null,
     }
     scope.account.checkoutSessions.insert(id, record)
     return jsonResponse(200, renderCheckoutSession(record))

@@ -308,6 +308,23 @@ export const bodyParams = (context: OperationContext, options: ParamOptions = {}
   return expand.length === 0 ? params : { ...params, expand }
 }
 
+/**
+ * A DELETE's parameters: stripe-node sends them in the query string, other clients in a form
+ * body, and Stripe reads either, validated against the operation's body schema.
+ */
+export const deleteParams = (context: OperationContext, options: ParamOptions = {}): Params => {
+  const query = context.query as FormValue
+  const fromQuery =
+    typeof query === "object" &&
+    query !== null &&
+    !Array.isArray(query) &&
+    Object.keys(query).some((key) => key !== "expand")
+  if (!fromQuery) return bodyParams(context, options)
+  const { rest, expand } = withoutExpand(query)
+  const params = stringMetadata(parseParams(formBodySchema(context), rest, options))
+  return expand.length === 0 ? params : { ...params, expand }
+}
+
 export const queryParams = (context: OperationContext, options: ParamOptions = {}): Params => {
   const { rest, expand } = withoutExpand(context.query as FormValue)
   const params = stringMetadata(parseParams(querySchema(context), rest, options))

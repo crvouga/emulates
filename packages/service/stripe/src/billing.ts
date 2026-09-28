@@ -5,6 +5,7 @@ import {
   clientSecretFor,
   customerNow,
   findCustomer,
+  priceAmount,
   type RequestScope,
   requireCoupon,
   requirePrice,
@@ -585,7 +586,13 @@ export const invoicePaymentMethod = (
 export const payInvoice = (
   scope: RequestScope,
   current: InvoiceRecord,
-  options: { paymentMethod?: string | null; offSession: boolean; outOfBand?: boolean },
+  options: {
+    paymentMethod?: string | null
+    offSession: boolean
+    outOfBand?: boolean
+    /** The customer is present and completes 3-D Secure (a hosted page's Pay button). */
+    autoAuthenticate?: boolean
+  },
 ): InvoiceRecord => {
   let invoice = current
   if (invoice.status === "draft") invoice = finalizeInvoice(scope, invoice)
@@ -617,7 +624,10 @@ export const payInvoice = (
     scope.account.invoices.update(invoice.id, invoice)
   }
   try {
-    const settled = confirmIntent(scope, intent, method, { offSession: options.offSession })
+    const settled = confirmIntent(scope, intent, method, {
+      offSession: options.offSession,
+      ...(options.autoAuthenticate ? { autoAuthenticate: true } : {}),
+    })
     if (settled.status !== "succeeded") return invoice
     return markInvoicePaid(scope, invoice, settled)
   } catch (error) {
@@ -660,6 +670,25 @@ export const voidInvoice = (scope: RequestScope, invoice: InvoiceRecord): Invoic
   }
   scope.emit("invoice.voided", renderInvoice(voided, scope.account))
   return voided
+}
+
+/** `uncollectible`: stop collecting an open invoice (`invoice.marked_uncollectible`). */
+export const markInvoiceUncollectible = (
+  scope: RequestScope,
+  invoice: InvoiceRecord,
+): InvoiceRecord => {
+  if (invoice.status !== "open")
+    throw stateError("You can only mark open invoices as uncollectible.", "invoice_not_editable")
+  const now = customerNow(scope, invoice.customer)
+  const marked: InvoiceRecord = {
+    ...invoice,
+    next_payment_attempt: null,
+    status: "uncollectible",
+    status_transitions: { ...invoice.status_transitions, marked_uncollectible_at: now },
+  }
+  scope.account.invoices.update(marked.id, marked)
+  scope.emit("invoice.marked_uncollectible", renderInvoice(marked, scope.account))
+  return marked
 }
 
 // --- invoice lines ------------------------------------------------------------------------------
@@ -737,10 +766,43 @@ export type CreateSubscriptionInput = {
   cancelAtPeriodEnd?: boolean
   /** Charge this payment method for the first invoice (checkout completion). */
   firstPaymentMethod?: PaymentMethodRecord
+  /** The customer is on a hosted page and completes 3-D Secure there. */
+  autoAuthenticate?: boolean
+  /** Inline (`price_data`) prices are created inactive; only Checkout may subscribe to them. */
+  allowInactivePrices?: boolean
+  description?: string | null
+  trialSettings?: SubscriptionRecord["trial_settings"]
 }
 
 const ONE_TIME_ONLY =
   "The price specified is set to `type=one_time` but this field only accepts prices with `type=recurring`."
+export const INACTIVE_PRICE =
+  "The price specified is inactive. This field only accepts active prices."
+
+/**
+ * Every price on one subscription bills in the same currency on the same interval; Stripe
+ * refuses the first item that differs from the first.
+ */
+export const assertCompatiblePrices = (prices: readonly PriceRecord[], param = "items") => {
+  const [first, ...rest] = prices
+  if (first?.recurring === null || first === undefined) return
+  for (const price of rest) {
+    if (price.currency !== first.currency)
+      throw invalidRequest(
+        "Currency and interval fields must match across all plans on this subscription. Found mismatch in currency field.",
+        param,
+      )
+    if (
+      price.recurring !== null &&
+      (price.recurring.interval !== first.recurring.interval ||
+        price.recurring.interval_count !== first.recurring.interval_count)
+    )
+      throw invalidRequest(
+        "Currency and interval fields must match across all plans on this subscription. Found mismatch in interval field.",
+        param,
+      )
+  }
+}
 
 /**
  * Create a subscription with its items and first invoice, then collect that invoice per
@@ -755,8 +817,11 @@ export const createSubscription = (
   const priced = input.items.map((item, index) => {
     const price = requirePrice(scope, item.price, `items[${index}][price]`)
     if (price.recurring === null) throw invalidRequest(ONE_TIME_ONLY, `items[${index}][price]`)
+    if (!price.active && !input.allowInactivePrices)
+      throw invalidRequest(INACTIVE_PRICE, `items[${index}][price]`)
     return { item, price }
   })
+  assertCompatiblePrices(priced.map((entry) => entry.price))
   const first = priced[0]
   if (first === undefined)
     throw invalidRequest("Missing required param: items.", "items", "parameter_missing")
@@ -831,6 +896,8 @@ export const createSubscription = (
     },
     upcoming_sent_for: null,
     payment_settings: input.paymentSettings ?? null,
+    description: input.description ?? null,
+    trial_settings: input.trialSettings ?? null,
   }
   scope.account.subscriptions.insert(id, subscription)
   const discountIds =
@@ -898,8 +965,9 @@ export const createSubscription = (
         invoice = payInvoice(scope, invoice, {
           paymentMethod: method.id,
           offSession: input.offSession ?? false,
+          ...(input.autoAuthenticate ? { autoAuthenticate: true } : {}),
         })
-        if (invoice.status === "paid") status = "active"
+        if (invoice.status === "paid") status = trialing ? "trialing" : "active"
       } catch (error) {
         if (behavior === "error_if_incomplete") {
           rollbackSubscription(scope, id, invoice.id)
@@ -993,16 +1061,93 @@ export const cycleLines = (
   return lines
 }
 
+/** Does anything stand ready to pay this subscription's invoices off-session? */
+export const hasPaymentMethod = (scope: RequestScope, subscription: SubscriptionRecord) =>
+  (subscription.default_payment_method !== null &&
+    scope.account.paymentMethods.get(subscription.default_payment_method) !== undefined) ||
+  defaultPaymentMethodOf(scope, subscription.customer) !== undefined
+
+/** Move the customer's pending invoice items onto an invoice that now bills them. */
+const claimInvoiceItems = (scope: RequestScope, invoice: InvoiceRecord) => {
+  for (const line of invoice.lines) {
+    if (line.invoice_item === null) continue
+    const item = scope.account.invoiceItems.get(line.invoice_item)
+    if (item) scope.account.invoiceItems.update(item.id, { ...item, invoice: invoice.id })
+  }
+}
+
+/**
+ * Collect a finalized subscription invoice per the subscription's `pause_collection`: `void` and
+ * `mark_uncollectible` settle it without a charge; otherwise it is charged off-session. Answers
+ * the invoice and whether the charge failed.
+ */
+const collectCycleInvoice = (
+  scope: RequestScope,
+  subscription: SubscriptionRecord,
+  finalized: InvoiceRecord,
+): { invoice: InvoiceRecord; failed: boolean } => {
+  const pause = subscription.pause_collection
+  if (finalized.status !== "open") return { invoice: finalized, failed: false }
+  if (pause?.behavior === "void") return { invoice: voidInvoice(scope, finalized), failed: false }
+  if (pause?.behavior === "mark_uncollectible")
+    return { invoice: markInvoiceUncollectible(scope, finalized), failed: false }
+  if (finalized.collection_method !== "charge_automatically")
+    return { invoice: finalized, failed: false }
+  try {
+    const paid = payInvoice(scope, finalized, { offSession: true })
+    return { invoice: paid, failed: paid.status !== "paid" }
+  } catch (error) {
+    if (!(error instanceof StripeError)) throw error
+    return { invoice: scope.account.invoices.get(finalized.id) ?? finalized, failed: true }
+  }
+}
+
+/**
+ * A trial ends with no payment method to charge and `trial_settings` says not to invoice:
+ * `pause` stops the subscription (`paused`, `customer.subscription.paused`) until
+ * `POST /v1/subscriptions/:id/resume`; `cancel` cancels it at the trial's end.
+ */
+const endTrialWithoutPaymentMethod = (
+  scope: RequestScope,
+  current: SubscriptionRecord,
+  behavior: "cancel" | "pause",
+  period: { start: number; end: number },
+) => {
+  if (behavior === "cancel") {
+    cancelSubscription(scope, current, "cancellation_requested", period.start)
+    return
+  }
+  const paused: SubscriptionRecord = {
+    ...current,
+    status: "paused",
+    current_period_start: period.start,
+    current_period_end: period.end,
+  }
+  saveSubscription(scope, current, paused)
+  scope.emit("customer.subscription.paused", renderSubscription(paused, scope.account))
+}
+
 /**
  * One renewal: a new period, a `subscription_cycle` invoice charged off-session to the default
  * payment method, then `invoice.paid` (active) or `invoice.payment_failed` (past_due), and
- * `customer.subscription.updated` with the previous period bounds.
+ * `customer.subscription.updated` with the previous period bounds. While collection is paused
+ * the invoice is kept as a draft, voided or marked uncollectible instead, and the status holds.
  */
 export const cycleSubscription = (scope: RequestScope, current: SubscriptionRecord) => {
   const recurring = recurringOf(scope, current)
   const start = current.current_period_end
   const end = addInterval(start, recurring.interval, recurring.interval_count)
   const endingTrial = current.status === "trialing"
+  const trialEndBehavior = current.trial_settings?.end_behavior.missing_payment_method
+  if (
+    endingTrial &&
+    (trialEndBehavior === "pause" || trialEndBehavior === "cancel") &&
+    current.collection_method === "charge_automatically" &&
+    !hasPaymentMethod(scope, current)
+  ) {
+    endTrialWithoutPaymentMethod(scope, current, trialEndBehavior, { start, end })
+    return
+  }
   const moved: SubscriptionRecord = {
     ...current,
     current_period_start: start,
@@ -1015,6 +1160,7 @@ export const cycleSubscription = (scope: RequestScope, current: SubscriptionReco
     liveDiscounts(scope, current.discount_ids, start),
     start,
   )
+  const keepDraft = current.pause_collection?.behavior === "keep_as_draft"
   let invoice = createDraftInvoice(scope, {
     customer: current.customer,
     subscription: current.id,
@@ -1026,22 +1172,18 @@ export const cycleSubscription = (scope: RequestScope, current: SubscriptionReco
     daysUntilDue: current.days_until_due,
     subscriptionMetadata: current.metadata,
   })
-  for (const line of invoice.lines) {
-    if (line.invoice_item === null) continue
-    const item = scope.account.invoiceItems.get(line.invoice_item)
-    if (item) scope.account.invoiceItems.update(item.id, { ...item, invoice: invoice.id })
-  }
-  invoice = finalizeInvoice(scope, invoice)
+  claimInvoiceItems(scope, invoice)
   let status: SubscriptionRecord["status"] = moved.status
-  if (invoice.status !== "paid" && invoice.collection_method === "charge_automatically") {
-    try {
-      invoice = payInvoice(scope, invoice, { offSession: true })
-      status = "active"
-    } catch (error) {
-      if (!(error instanceof StripeError)) throw error
-      status = "past_due"
-      invoice = scope.account.invoices.get(invoice.id) ?? invoice
-    }
+  if (!keepDraft) {
+    const finalized = finalizeInvoice(scope, invoice)
+    const collected = collectCycleInvoice(scope, current, finalized)
+    invoice = collected.invoice
+    if (
+      finalized.status === "open" &&
+      current.pause_collection === null &&
+      finalized.collection_method === "charge_automatically"
+    )
+      status = collected.failed ? "past_due" : "active"
   }
   const latest = scope.account.subscriptions.get(current.id) ?? moved
   const next: SubscriptionRecord = {
@@ -1057,30 +1199,310 @@ export const cycleSubscription = (scope: RequestScope, current: SubscriptionReco
   scope.emit("customer.subscription.updated", after, changed)
 }
 
+/** The cents one period of a subscription's items bills, after its discounts live at `at`. */
+const periodAmount = (scope: RequestScope, subscription: SubscriptionRecord, at: number) => {
+  const lines = subscriptionItems(scope, subscription).map((item) => {
+    const price = requirePrice(scope, item.price)
+    return {
+      amount: priceAmount(price, item.quantity ?? 1),
+      price: price.id,
+      currency: price.currency,
+    }
+  })
+  const subtotal = lines.reduce((sum, line) => sum + line.amount, 0)
+  const { totals } = discountLines(
+    scope,
+    liveDiscounts(scope, subscription.discount_ids, at),
+    lines,
+  )
+  return subtotal - totals.reduce((sum, entry) => sum + entry.amount, 0)
+}
+
+/** A net-negative invoice is settled at $0 and its credit lands on the customer's balance. */
+const creditNegativeInvoice = (scope: RequestScope, invoice: InvoiceRecord) => {
+  if (invoice.subtotal >= 0 || invoice.customer === null) return
+  const customer = findCustomer(scope, invoice.customer)
+  if (!customer) return
+  applyBalanceTransaction(scope, {
+    customer,
+    amount: invoice.subtotal,
+    currency: invoice.currency,
+    description: null,
+    metadata: {},
+    type: "applied_to_invoice",
+    invoice: invoice.id,
+  })
+}
+
+/**
+ * Bill a proration: `create_prorations` leaves a pending proration item for the customer's next
+ * invoice; `always_invoice` invoices and collects it now (a decline throws only when
+ * `failOnDecline`); `none` bills nothing.
+ */
+export const billProration = (
+  scope: RequestScope,
+  subscription: SubscriptionRecord,
+  amount: number,
+  behavior: string,
+  options: {
+    period: { start: number; end: number }
+    description: string
+    failOnDecline?: boolean
+  },
+): InvoiceRecord | undefined => {
+  if (amount === 0 || behavior === "none") return undefined
+  const now = customerNow(scope, subscription.customer)
+  if (behavior === "always_invoice") {
+    const firstItem = scope.account.subscriptionItems.get(subscription.item_ids[0] ?? "")
+    const price = requirePrice(scope, firstItem?.price ?? "")
+    const line = {
+      ...lineFromPrice(scope, price, 1, options.period, {
+        subscription: subscription.id,
+        subscriptionItem: firstItem?.id ?? null,
+        amount,
+        description: options.description,
+      }),
+      proration: true,
+    }
+    const invoice = finalizeInvoice(
+      scope,
+      createDraftInvoice(scope, {
+        customer: subscription.customer,
+        subscription: subscription.id,
+        lines: [line],
+        billingReason: "subscription_update",
+        period: options.period,
+        subscriptionMetadata: subscription.metadata,
+      }),
+    )
+    creditNegativeInvoice(scope, invoice)
+    let settled = invoice
+    if (invoice.status === "open" && invoice.collection_method === "charge_automatically") {
+      try {
+        settled = payInvoice(scope, invoice, { offSession: true })
+      } catch (error) {
+        if (!(error instanceof StripeError) || options.failOnDecline) throw error
+        settled = scope.account.invoices.get(invoice.id) ?? invoice
+      }
+    }
+    const latest = scope.account.subscriptions.get(subscription.id) ?? subscription
+    saveSubscription(scope, latest, { ...latest, latest_invoice: settled.id })
+    return settled
+  }
+  const itemId = scope.ids.next("ii_", 24)
+  scope.account.invoiceItems.insert(itemId, {
+    id: itemId,
+    amount,
+    created: seconds(scope.now),
+    currency: subscription.currency,
+    customer: subscription.customer,
+    date: now,
+    description: options.description,
+    discountable: false,
+    invoice: null,
+    metadata: {},
+    period: options.period,
+    price: null,
+    proration: true,
+    quantity: 1,
+    unit_amount: amount,
+  })
+  return undefined
+}
+
+export type ResumeOptions = {
+  billingCycleAnchor: "now" | "unchanged"
+  prorationBehavior: "always_invoice" | "create_prorations" | "none"
+  prorationDate?: number | undefined
+}
+
+/**
+ * Resume a `paused` subscription. `billing_cycle_anchor=now` (the default) starts a new period
+ * now and invoices it: paid → `active`, failed → `past_due`. `unchanged` keeps the anchor and
+ * prorates what is left of the current period. Emits `customer.subscription.resumed`.
+ */
+export const resumeSubscription = (
+  scope: RequestScope,
+  current: SubscriptionRecord,
+  options: ResumeOptions,
+): SubscriptionRecord => {
+  const now = customerNow(scope, current.customer)
+  const recurring = recurringOf(scope, current)
+  let next: SubscriptionRecord
+  if (options.billingCycleAnchor === "now") {
+    const period = {
+      start: now,
+      end: addInterval(now, recurring.interval, recurring.interval_count),
+    }
+    const moved: SubscriptionRecord = {
+      ...current,
+      current_period_start: period.start,
+      current_period_end: period.end,
+      billing_cycle_anchor: now,
+    }
+    scope.account.subscriptions.update(current.id, moved)
+    const draft = createDraftInvoice(scope, {
+      customer: current.customer,
+      subscription: current.id,
+      lines: cycleLines(scope, moved, period),
+      billingReason: "subscription_update",
+      discountIds: liveDiscounts(scope, current.discount_ids, now),
+      period,
+      collectionMethod: current.collection_method,
+      daysUntilDue: current.days_until_due,
+      subscriptionMetadata: current.metadata,
+    })
+    claimInvoiceItems(scope, draft)
+    const collected = collectCycleInvoice(
+      scope,
+      { ...moved, pause_collection: null },
+      finalizeInvoice(scope, draft),
+    )
+    const latest = scope.account.subscriptions.get(current.id) ?? moved
+    next = {
+      ...latest,
+      status: collected.failed ? "past_due" : "active",
+      latest_invoice: collected.invoice.id,
+    }
+  } else {
+    let start = current.current_period_start
+    let end = current.current_period_end
+    for (let guard = 0; end <= now && guard < 10_000; guard += 1) {
+      start = end
+      end = addInterval(end, recurring.interval, recurring.interval_count)
+    }
+    const moved: SubscriptionRecord = {
+      ...current,
+      current_period_start: start,
+      current_period_end: end,
+      status: "active",
+    }
+    scope.account.subscriptions.update(current.id, moved)
+    const at = Math.min(Math.max(options.prorationDate ?? now, start), end)
+    const left = (end - at) / Math.max(1, end - start)
+    billProration(
+      scope,
+      moved,
+      Math.round(periodAmount(scope, moved, at) * left),
+      options.prorationBehavior,
+      { period: { start: at, end }, description: "Remaining time after resuming (prorated)" },
+    )
+    next = scope.account.subscriptions.get(current.id) ?? moved
+  }
+  scope.account.subscriptions.update(current.id, next)
+  const rendered = renderSubscription(next, scope.account)
+  const changed = changedFields(renderSubscription(current, scope.account), rendered)
+  if (changed !== undefined) scope.emit("customer.subscription.updated", rendered, changed)
+  scope.emit("customer.subscription.resumed", rendered)
+  return next
+}
+
+export type CancelOptions = {
+  comment?: string | null
+  feedback?: string | null
+  /** Credit the unused part of the current period as a proration. */
+  prorate?: boolean
+  /** Invoice pending items (and that credit) now instead of at the customer's next invoice. */
+  invoiceNow?: boolean
+}
+
 /** Cancel now: `canceled`, `ended_at`, `customer.subscription.deleted`. */
 export const cancelSubscription = (
   scope: RequestScope,
   current: SubscriptionRecord,
   reason = "cancellation_requested",
   at?: number,
+  options: CancelOptions = {},
 ): SubscriptionRecord => {
   const now = at ?? customerNow(scope, current.customer)
+  if (options.prorate && ["active", "past_due"].includes(current.status)) {
+    const span = Math.max(1, current.current_period_end - current.current_period_start)
+    const left = Math.max(0, current.current_period_end - now) / span
+    billProration(
+      scope,
+      current,
+      -Math.round(periodAmount(scope, current, now) * left),
+      "create_prorations",
+      {
+        period: { start: now, end: current.current_period_end },
+        description: "Unused time after cancellation (prorated)",
+      },
+    )
+  }
+  const details = current.cancellation_details
   const next: SubscriptionRecord = {
     ...current,
     cancel_at_period_end: false,
     canceled_at: current.canceled_at ?? now,
-    cancellation_details: { comment: null, feedback: null, reason },
+    cancellation_details: {
+      comment: options.comment !== undefined ? options.comment : (details?.comment ?? null),
+      feedback: options.feedback !== undefined ? options.feedback : (details?.feedback ?? null),
+      reason,
+    },
     ended_at: now,
     status: "canceled",
   }
   scope.account.subscriptions.update(next.id, next)
-  const rendered = renderSubscription(next, scope.account)
+  if (options.invoiceNow) invoicePendingItems(scope, next, now)
+  const final = scope.account.subscriptions.get(next.id) ?? next
+  const rendered = renderSubscription(final, scope.account)
   scope.emit(
     "customer.subscription.deleted",
     rendered,
     changedFields(renderSubscription(current, scope.account), rendered),
   )
-  return next
+  return final
+}
+
+/**
+ * The final invoice of a subscription canceled with `invoice_now`: every pending proration item
+ * of the customer. A net credit lands on the customer's balance.
+ */
+const invoicePendingItems = (
+  scope: RequestScope,
+  subscription: SubscriptionRecord,
+  now: number,
+) => {
+  const pending = scope.account.invoiceItems.list({
+    order: "oldest",
+    where: (item) =>
+      item.customer === subscription.customer && item.invoice === null && item.proration,
+  })
+  if (pending.length === 0) return
+  const lines: InvoiceLineRecord[] = pending.map(({ value: item }) => ({
+    id: scope.ids.next("il_", 24),
+    amount: item.amount,
+    currency: item.currency,
+    description: item.description,
+    discount_amounts: [],
+    invoice_item: item.id,
+    metadata: item.metadata,
+    period: item.period,
+    price: item.price,
+    quantity: item.quantity,
+    proration: true,
+    subtotal: item.amount,
+    type: "invoiceitem",
+    subscription: subscription.id,
+  }))
+  const draft = createDraftInvoice(scope, {
+    customer: subscription.customer,
+    subscription: subscription.id,
+    lines,
+    billingReason: "subscription_update",
+    period: { start: now, end: now },
+    collectionMethod: subscription.collection_method,
+    subscriptionMetadata: subscription.metadata,
+  })
+  claimInvoiceItems(scope, draft)
+  const collected = collectCycleInvoice(
+    scope,
+    { ...subscription, pause_collection: null },
+    finalizeInvoice(scope, draft),
+  )
+  creditNegativeInvoice(scope, draft)
+  const latest = scope.account.subscriptions.get(subscription.id) ?? subscription
+  scope.account.subscriptions.update(latest.id, { ...latest, latest_invoice: collected.invoice.id })
 }
 
 /** The invoice a subscription will produce at its next renewal (`GET /v1/invoices/upcoming`). */
@@ -1283,12 +1705,15 @@ export const releaseSchedule = (
 export type LifecycleSettings = {
   /** `invoice.upcoming` fires this many days before a renewal. */
   upcomingInvoiceDays: number
+  /** `customer.subscription.trial_will_end` fires this many days before a trial ends. */
+  trialWillEndDays: number
   /** An `incomplete` subscription expires after this many hours. */
   incompleteExpiryHours: number
 }
 
 export const DEFAULT_LIFECYCLE: LifecycleSettings = {
   upcomingInvoiceDays: 3,
+  trialWillEndDays: 3,
   incompleteExpiryHours: 23,
 }
 
@@ -1331,12 +1756,32 @@ export const runLifecycle = (
       }
       continue
     }
+    if (
+      subscription.status === "trialing" &&
+      subscription.trial_end !== null &&
+      subscription.trial_will_end_sent_for !== subscription.trial_end &&
+      now >= subscription.trial_end - settings.trialWillEndDays * DAY
+    ) {
+      subscription = { ...subscription, trial_will_end_sent_for: subscription.trial_end }
+      scope.account.subscriptions.update(subscription.id, subscription)
+      scope.emit(
+        "customer.subscription.trial_will_end",
+        renderSubscription(subscription, scope.account),
+      )
+    }
     for (let guard = 0; guard < 120; guard += 1) {
       if (!["active", "trialing", "past_due"].includes(subscription.status)) break
       const cancelAt = subscription.cancel_at
       if (cancelAt !== null && cancelAt <= now) {
         subscription = cancelSubscription(scope, subscription, "cancellation_requested", cancelAt)
         break
+      }
+      // Collection resumes on its own at `resumes_at`, before any renewal it precedes.
+      const resumesAt = subscription.pause_collection?.resumes_at ?? null
+      if (resumesAt !== null && resumesAt <= now && resumesAt <= subscription.current_period_end) {
+        const resumed: SubscriptionRecord = { ...subscription, pause_collection: null }
+        saveSubscription(scope, subscription, resumed)
+        subscription = resumed
       }
       if (subscription.current_period_end > now) break
       cycleSubscription(scope, subscription)

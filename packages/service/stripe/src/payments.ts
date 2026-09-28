@@ -405,9 +405,11 @@ export const confirmIntent = (
     const rendered = renderPaymentIntent(failed)
     scope.emit("payment_intent.payment_failed", rendered)
     throw cardError(decline.message, decline.code, decline.decline_code, {
-      advice_code: decline.advice_code,
+      ...(decline.advice_code ? { advice_code: decline.advice_code } : {}),
       charge: charge.id,
-      network_decline_code: decline.network_decline_code,
+      ...(decline.network_decline_code
+        ? { network_decline_code: decline.network_decline_code }
+        : {}),
       payment_intent: rendered,
       payment_method: renderedMethod,
     })

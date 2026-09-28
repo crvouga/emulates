@@ -307,6 +307,28 @@ describe("parseForm", () => {
     )
   })
 
+  test("a scalar naming one of a later branch's enum values takes that branch", () => {
+    fc.assert(
+      fc.property(key, fc.integer({ min: 0, max: 2 ** 31 }), (field, stamp) => {
+        const schema: SchemaObject = {
+          type: "object",
+          properties: {
+            [field]: { anyOf: [{ type: "integer" }, { type: "string", enum: ["now"] }] },
+          },
+        }
+        const named = parseForm(document, schema, { [field]: "now" })
+        expect(named.issues).toEqual([])
+        expect(named.value).toEqual({ [field]: "now" })
+        const numeric = parseForm(document, schema, { [field]: String(stamp) })
+        expect(numeric.issues).toEqual([])
+        expect(numeric.value).toEqual({ [field]: stamp })
+        const neither = parseForm(document, schema, { [field]: "later" })
+        expect(neither.issues.map((issue) => issue.kind)).toEqual(["invalid-integer"])
+      }),
+      { ...params, numRuns: params.numRuns ?? 100 },
+    )
+  })
+
   test("a scalar union without an unset marker still picks its first scalar branch", () => {
     fc.assert(
       fc.property(key, fc.integer({ min: 1, max: 20 }), scalar, (field, maxLength, raw) => {

@@ -18,9 +18,19 @@ export type CheckoutPageView = {
     /** e.g. "month", "3 months"; null for a one-time price. */
     interval: string | null
   }>
+  /** What the first charge collects (recurring lines are free during a trial). */
+  dueNow: number
+  /** False for a free trial with `payment_method_collection=if_required`: no card fields. */
+  needsCard: boolean
+  /** `allow_promotion_codes`: the summary offers a promotion code field. */
+  allowPromotionCodes: boolean
+  /** The customer-facing code of the promotion code applied on the page, if any. */
+  promotionCode: string | null
   /** Values posted with the last attempt, put back after a decline. */
   values?: Record<string, string>
   error?: string
+  /** A promotion code that did not apply, shown under the code field. */
+  promotionError?: string
   notice?: string
 }
 
@@ -224,6 +234,14 @@ select{appearance:none;-webkit-appearance:none;cursor:pointer;
 .done .gone{background:#8792a2;box-shadow:0 0 0 8px rgba(135,146,162,.14)}
 .done h2{font-size:20px;font-weight:600;margin:0 0 8px}
 .done p{color:var(--muted);margin:0}
+.totals .after{color:var(--muted)}
+.promo{padding:14px 0 0}
+.promo-row{display:flex;gap:8px;align-items:center}
+.promo-row .group{flex:1}
+.promo-row .group input{height:36px;font-size:14px;padding:6px 10px}
+.apply,.link{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:6px 4px}
+.apply:hover,.link:hover{color:var(--accent-hover)}
+.promo.applied{display:flex;justify-content:space-between;align-items:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation-duration:0s!important}}
 `
 
@@ -231,7 +249,13 @@ const SCRIPT = `(() => {
   const form = document.getElementById("stripe-mock-form");
   if (!form) return;
   const $ = (id) => document.getElementById(id);
+  form.addEventListener("submit", (event) => {
+    if (event.submitter && event.submitter.value === "cancel") return;
+    form.classList.add("processing");
+  });
+  window.addEventListener("pageshow", () => form.classList.remove("processing"));
   const card = $("card"), exp = $("exp"), cvc = $("cvc"), zip = $("zip"), country = $("country");
+  if (!card) return;
   const icons = $("card-icons");
   const brandOf = (digits) =>
     /^3[47]/.test(digits) ? "amex" : /^(6011|65|64[4-9])/.test(digits) ? "discover" :
@@ -266,11 +290,6 @@ const SCRIPT = `(() => {
   cvc.addEventListener("input", () => { cvc.value = cvc.value.replace(/\\D/g, ""); });
   country.addEventListener("change", formatZip);
   formatCard(); formatExp(); formatZip();
-  form.addEventListener("submit", (event) => {
-    if (event.submitter && event.submitter.value === "cancel") return;
-    form.classList.add("processing");
-  });
-  window.addEventListener("pageshow", () => form.classList.remove("processing"));
 
   const autopay = $("stripe-mock-autopay");
   const KEY = "mockingbird.checkout.autopay";
@@ -389,11 +408,26 @@ ${line.description ? `<div class="line-meta">${escapeHtml(line.description)}</di
   const rows = [
     `<div class="sub"><span>Subtotal</span><span>${formatMoney(session.amount_subtotal, session.currency)}</span></div>`,
     discount > 0
-      ? `<div class="discount"><span><span class="chip">Discount</span></span><span>−${formatMoney(discount, session.currency)}</span></div>`
+      ? `<div class="discount" data-testid="stripe-mock-discount"><span><span class="chip">${escapeHtml(view.promotionCode ?? "Discount")}</span></span><span>−${formatMoney(discount, session.currency)}</span></div>`
       : "",
-    `<div class="due"><span>Total due today</span><span>${formatMoney(session.amount_total, session.currency)}</span></div>`,
+    promotionField(view),
+    session.mode === "subscription" && view.dueNow !== session.amount_total
+      ? `<div class="after"><span>Total after trial</span><span>${formatMoney(session.amount_total, session.currency)}</span></div>`
+      : "",
+    `<div class="due"><span>Total due today</span><span data-testid="stripe-mock-due">${formatMoney(view.dueNow, session.currency)}</span></div>`,
   ]
   return `<ul class="lines">${items}</ul><div class="totals">${rows.join("")}</div>`
+}
+
+/** `allow_promotion_codes`: apply a code, or remove the one applied, by posting the page. */
+const promotionField = (view: CheckoutPageView) => {
+  if (!view.allowPromotionCodes || view.session.status !== "open") return ""
+  if (view.promotionCode !== null)
+    return `<form method="post" class="promo applied" data-testid="stripe-mock-promotion-applied"><span class="chip">${escapeHtml(view.promotionCode)}</span><button type="submit" name="action" value="remove_promotion_code" class="link" data-testid="stripe-mock-promotion-remove">Remove</button></form>`
+  const error = view.promotionError
+    ? `<p class="error" role="alert" data-testid="stripe-mock-promotion-error">${ALERT}<span>${escapeHtml(view.promotionError)}</span></p>`
+    : ""
+  return `<form method="post" class="promo" data-testid="stripe-mock-promotion-form"><div class="promo-row"><div class="group"><div class="row"><input name="promotion_code" data-testid="stripe-mock-promotion-code" placeholder="Add promotion code" aria-label="Promotion code" autocomplete="off"${view.values?.promotion_code ? ` value="${escapeHtml(view.values.promotion_code)}"` : ""}></div></div><button type="submit" name="action" value="apply_promotion_code" class="apply" data-testid="stripe-mock-promotion-apply">Apply</button></div>${error}</form>`
 }
 
 const footer = (className: string) =>
@@ -415,16 +449,16 @@ const testCards = () => {
 <div class="body">${groups}<label class="autopay"><input type="checkbox" id="stripe-mock-autopay" data-testid="stripe-mock-autopay"> Pay immediately after filling</label></div></details>`
 }
 
-const payLabel = (session: CheckoutSessionRecord) =>
+const payLabel = (session: CheckoutSessionRecord, dueNow: number) =>
   session.mode === "setup"
     ? "Save card"
     : session.mode === "subscription"
       ? session.subscription_data?.trial_end
         ? "Start trial"
         : "Subscribe"
-      : session.amount_total === 0
+      : dueNow === 0
         ? "Complete order"
-        : `Pay ${formatMoney(session.amount_total, session.currency)}`
+        : `Pay ${formatMoney(dueNow, session.currency)}`
 
 const submitMessage = (session: CheckoutSessionRecord): string | null => {
   const submit = session.custom_text?.submit as { message?: unknown } | null | undefined
@@ -445,12 +479,32 @@ const paymentForm = (view: CheckoutPageView) => {
     ? `<p class="error" role="alert" data-testid="stripe-mock-error">${ALERT}<span>${escapeHtml(view.error)}</span></p>`
     : ""
   const message = submitMessage(view.session)
+  const payment = view.needsCard
+    ? cardSection(view, value, icons, error, country)
+    : `<section data-testid="stripe-mock-no-card"><p class="notice">No payment method is required today.</p>${error}</section>`
   return `<form method="post" id="stripe-mock-form" data-testid="stripe-mock-form" novalidate>
-${testCards()}
+${view.needsCard ? testCards() : ""}
 ${view.notice ? `<p class="notice" role="status">${escapeHtml(view.notice)}</p>` : ""}
 <section><h2>Contact information</h2>
 <label class="label" for="email">Email</label>${email}</section>
-<section><h2>Payment method</h2>
+${payment}
+<button type="submit" name="action" value="pay" class="pay" data-testid="stripe-mock-pay"><span class="text">${escapeHtml(payLabel(view.session, view.dueNow))}</span><span class="spinner" aria-hidden="true"></span>${LOCK}</button>
+${message ? `<p class="fine">${escapeHtml(message)}</p>` : ""}
+${
+  view.session.mode === "payment" || !view.needsCard
+    ? ""
+    : `<p class="fine">By confirming, you allow ${escapeHtml(view.merchant)} to charge your card for future payments in accordance with their terms.</p>`
+}
+</form>`
+}
+
+const cardSection = (
+  view: CheckoutPageView,
+  value: (key: string) => string,
+  icons: string,
+  error: string,
+  country: string,
+) => `<section><h2>Payment method</h2>
 <div class="field-block"><label class="label" for="card">Card information</label>
 <div class="group">
 <div class="row${view.error ? " invalid" : ""}"><input id="card" name="card" class="card-input" data-testid="stripe-mock-card" inputmode="numeric" autocomplete="cc-number" placeholder="1234 1234 1234 1234"${value("card")}><span class="icons" id="card-icons">${icons}</span></div>
@@ -462,16 +516,7 @@ ${view.notice ? `<p class="notice" role="status">${escapeHtml(view.notice)}</p>`
 <div class="field-block"><label class="label" for="country">Country or region</label>
 <div class="group"><div class="row"><select id="country" name="country" data-testid="stripe-mock-country" autocomplete="country">${COUNTRIES.map(([code, name]) => `<option value="${code}"${code === country ? " selected" : ""}>${name}</option>`).join("")}</select></div>
 <div class="row"><input id="zip" name="zip" data-testid="stripe-mock-zip" autocomplete="postal-code" placeholder="ZIP" aria-label="ZIP"${value("zip")}></div></div></div>
-</section>
-<button type="submit" name="action" value="pay" class="pay" data-testid="stripe-mock-pay"><span class="text">${escapeHtml(payLabel(view.session))}</span><span class="spinner" aria-hidden="true"></span>${LOCK}</button>
-${message ? `<p class="fine">${escapeHtml(message)}</p>` : ""}
-${
-  view.session.mode === "payment"
-    ? ""
-    : `<p class="fine">By confirming, you allow ${escapeHtml(view.merchant)} to charge your card for future payments in accordance with their terms.</p>`
-}
-</form>`
-}
+</section>`
 
 const closed = (view: CheckoutPageView) => {
   const { session } = view

@@ -31,7 +31,7 @@ export const normalizeCurrency = (raw: string, param = "currency") => {
   return currency
 }
 
-const parseRecurring = (raw: unknown): Recurring => {
+export const parseRecurring = (raw: unknown): Recurring => {
   const input = raw as {
     interval: Recurring["interval"]
     interval_count?: number

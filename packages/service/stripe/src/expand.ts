@@ -12,6 +12,7 @@ import {
   renderInvoice,
   renderPaymentIntent,
   renderPaymentMethod,
+  renderPortalConfiguration,
   renderPrice,
   renderProduct,
   renderPromotionCode,
@@ -311,6 +312,7 @@ const FIELD_KINDS: Record<string, string> = {
   discounts: "discount",
   discount: "discount",
   dispute: "dispute",
+  configuration: "billing_portal_configuration",
 }
 
 const PREFIX_KINDS: ReadonlyArray<[string, string]> = [
@@ -331,6 +333,7 @@ const PREFIX_KINDS: ReadonlyArray<[string, string]> = [
   ["dp_", "dispute"],
   ["txn_", "balance_transaction"],
   ["clock_", "test_clock"],
+  ["bpc_", "billing_portal_configuration"],
 ]
 
 const resolve = (account: AccountState, now: number, kind: string, id: string): unknown => {
@@ -407,6 +410,10 @@ const resolve = (account: AccountState, now: number, kind: string, id: string): 
     case "test_clock": {
       const record = account.testClocks.get(id)
       return record && renderTestClock(record)
+    }
+    case "billing_portal_configuration": {
+      const record = account.portalConfigurations.get(id)
+      return record && renderPortalConfiguration(record, account)
     }
   }
   return undefined

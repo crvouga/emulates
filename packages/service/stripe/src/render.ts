@@ -1,6 +1,8 @@
 import type {
   AccountState,
   BalanceTransactionRecord,
+  BillingPortalConfigurationRecord,
+  BillingPortalSessionRecord,
   ChargeRecord,
   CheckoutSessionLineRecord,
   CheckoutSessionRecord,
@@ -427,7 +429,9 @@ export const renderCheckoutSession = (session: CheckoutSessionRecord): RecordVal
   ...base(session.id, "checkout.session", session.created),
   amount_subtotal: session.amount_subtotal,
   amount_total: session.amount_total,
+  allow_promotion_codes: session.allow_promotion_codes ?? null,
   cancel_url: session.cancel_url,
+  client_reference_id: session.client_reference_id ?? null,
   currency: session.currency,
   custom_text: session.custom_text ?? {
     after_submit: null,
@@ -437,6 +441,28 @@ export const renderCheckoutSession = (session: CheckoutSessionRecord): RecordVal
   },
   customer: session.customer,
   customer_creation: session.customer_creation,
+  customer_details:
+    session.customer_details === undefined || session.customer_details === null
+      ? null
+      : {
+          address:
+            session.customer_details.address === null
+              ? null
+              : {
+                  city: null,
+                  country: session.customer_details.address.country,
+                  line1: null,
+                  line2: null,
+                  postal_code: session.customer_details.address.postal_code,
+                  state: null,
+                },
+          email: session.customer_details.email,
+          name: session.customer_details.name,
+          phone: null,
+          tax_exempt: "none",
+          tax_ids: [],
+        },
+  customer_email: session.customer_email ?? null,
   discounts: (session.discount_refs ?? []).map((ref) => ({
     coupon: ref.coupon,
     promotion_code: ref.promotion_code,
@@ -446,6 +472,7 @@ export const renderCheckoutSession = (session: CheckoutSessionRecord): RecordVal
   metadata: session.metadata,
   mode: session.mode,
   payment_intent: session.payment_intent,
+  payment_method_collection: session.payment_method_collection ?? "always",
   payment_method_types: session.payment_method_types ?? ["card"],
   payment_status: session.payment_status,
   setup_intent: session.setup_intent,
@@ -650,6 +677,7 @@ export const renderSubscription = (
   customer: subscription.customer,
   days_until_due: subscription.days_until_due,
   default_payment_method: subscription.default_payment_method,
+  description: subscription.description ?? null,
   discount: singleDiscount(scope, subscription.discount_ids),
   discounts: subscription.discount_ids,
   ended_at: subscription.ended_at,
@@ -674,10 +702,18 @@ export const renderSubscription = (
   schedule: subscription.schedule,
   start_date: subscription.start_date,
   status: subscription.status,
-  test_clock: null,
+  test_clock: customerTestClock(scope, subscription.customer),
   trial_end: subscription.trial_end,
+  trial_settings: subscription.trial_settings ?? {
+    end_behavior: { missing_payment_method: "create_invoice" },
+  },
   trial_start: subscription.trial_start,
 })
+
+const customerTestClock = (scope: AccountState, customer: string): string | null => {
+  const entry = scope.customers.get(customer)
+  return entry?.kind === "live" ? (entry.customer.test_clock ?? null) : null
+}
 
 export const renderDeletedSubscriptionItem = (id: string) => ({
   id,
@@ -734,3 +770,78 @@ export const renderWebhookEndpoint = (
 /** Events are stored as their exact wire JSON, so rendering is a parse of those bytes. */
 export const renderEvent = (event: WebhookEventRecord): RecordValue =>
   JSON.parse(event.body) as RecordValue
+
+export type PortalProduct = {
+  product: string
+  prices: string[]
+  adjustable_quantity: { enabled: boolean; maximum: number | null; minimum: number }
+}
+
+/**
+ * The products (and prices) a configuration lets customers switch between. `products: null` (the
+ * mock's dashboard-saved default) means every active product with active licensed recurring prices.
+ */
+export const portalProducts = (
+  scope: AccountState,
+  config: BillingPortalConfigurationRecord,
+): PortalProduct[] => {
+  const configured = config.features.subscription_update.products
+  if (configured !== null) return configured
+  const byProduct = new Map<string, string[]>()
+  for (const { value: price } of scope.prices.list({ order: "oldest" })) {
+    if (!price.active || price.recurring === null || price.recurring.usage_type !== "licensed")
+      continue
+    if (scope.products.get(price.product)?.active !== true) continue
+    byProduct.set(price.product, [...(byProduct.get(price.product) ?? []), price.id])
+  }
+  return [...byProduct.entries()].slice(0, 10).map(([product, prices]) => ({
+    product,
+    prices,
+    adjustable_quantity: { enabled: true, maximum: 99, minimum: 1 },
+  }))
+}
+
+export const renderPortalConfiguration = (
+  configuration: BillingPortalConfigurationRecord,
+  scope: AccountState,
+): RecordValue => ({
+  ...base(configuration.id, "billing_portal.configuration", configuration.created),
+  active: configuration.active,
+  application: null,
+  business_profile: configuration.business_profile,
+  default_return_url: configuration.default_return_url,
+  features: {
+    ...configuration.features,
+    subscription_update: {
+      ...configuration.features.subscription_update,
+      products: portalProducts(scope, configuration),
+    },
+  },
+  is_default: configuration.is_default,
+  login_page: configuration.login_page,
+  metadata: configuration.metadata,
+  name: configuration.name,
+  updated: configuration.updated,
+})
+
+export const renderPortalSession = (session: BillingPortalSessionRecord): RecordValue => ({
+  ...base(session.id, "billing_portal.session", session.created),
+  configuration: session.configuration,
+  customer: session.customer,
+  customer_account: null,
+  flow:
+    session.flow === null
+      ? null
+      : {
+          after_completion: session.flow.after_completion,
+          customer_update: null,
+          subscription_cancel: session.flow.subscription_cancel,
+          subscription_update: session.flow.subscription_update,
+          subscription_update_confirm: session.flow.subscription_update_confirm,
+          type: session.flow.type,
+        },
+  locale: session.locale,
+  on_behalf_of: null,
+  return_url: session.return_url,
+  url: session.url,
+})

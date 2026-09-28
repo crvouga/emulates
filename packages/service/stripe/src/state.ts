@@ -373,7 +373,7 @@ export type SubscriptionRecord = {
   item_ids: string[]
   latest_invoice: string | null
   metadata: Metadata
-  pause_collection: Record<string, unknown> | null
+  pause_collection: PauseCollection | null
   schedule: string | null
   start_date: number
   status: SubscriptionStatus
@@ -386,6 +386,18 @@ export type SubscriptionRecord = {
   /** Period end whose `invoice.upcoming` has already been sent. */
   upcoming_sent_for?: number | null
   payment_settings?: Record<string, unknown> | null
+  description?: string | null
+  /** `trial_settings.end_behavior.missing_payment_method`: what a trial ending without a card does. */
+  trial_settings?: { end_behavior: { missing_payment_method: TrialEndBehavior } } | null
+  /** Period end whose `customer.subscription.trial_will_end` has already been sent. */
+  trial_will_end_sent_for?: number | null
+}
+
+export type TrialEndBehavior = "cancel" | "create_invoice" | "pause"
+
+export type PauseCollection = {
+  behavior: "keep_as_draft" | "mark_uncollectible" | "void"
+  resumes_at: number | null
 }
 
 export type SubscriptionScheduleStatus =
@@ -475,6 +487,8 @@ export type CheckoutSessionLineRecord = {
   quantity: number | null
   unit_amount: number | null
   amount_discount?: number
+  /** The price's product, kept for coupons restricted to products (never rendered). */
+  product?: string | null
 }
 
 export type CheckoutSessionStatus = "open" | "complete" | "expired"
@@ -507,10 +521,111 @@ export type CheckoutSessionRecord = {
     setup_future_usage: string | null
     description: string | null
   }
-  subscription_data?: { metadata: Metadata; trial_end: number | null }
+  subscription_data?: {
+    metadata: Metadata
+    trial_end: number | null
+    description?: string | null
+    trial_settings?: SubscriptionRecord["trial_settings"]
+  }
   payment_method_types?: string[]
   invoice?: string | null
   custom_text?: Record<string, unknown> | null
+  client_reference_id?: string | null
+  customer_email?: string | null
+  /** `always` (default) or `if_required`: whether a free subscription still asks for a card. */
+  payment_method_collection?: "always" | "if_required"
+  allow_promotion_codes?: boolean
+  /** What the shopper entered on the hosted page, set when the session completes. */
+  customer_details?: {
+    email: string | null
+    name: string | null
+    address: { country: string | null; postal_code: string | null } | null
+  } | null
+}
+
+export type PortalFeatures = {
+  customer_update: { allowed_updates: string[]; enabled: boolean }
+  invoice_history: { enabled: boolean }
+  payment_method_update: { enabled: boolean; payment_method_configuration: string | null }
+  subscription_cancel: {
+    cancellation_reason: {
+      enabled: boolean
+      options: string[]
+      feedback_options?: string[] | null
+    }
+    enabled: boolean
+    mode: "at_period_end" | "immediately"
+    proration_behavior: "always_invoice" | "create_prorations" | "none"
+  }
+  subscription_update: {
+    billing_cycle_anchor: "now" | "unchanged" | null
+    default_allowed_updates: string[]
+    enabled: boolean
+    products: Array<{
+      adjustable_quantity: { enabled: boolean; maximum: number | null; minimum: number }
+      prices: string[]
+      product: string
+    }> | null
+    proration_behavior: "always_invoice" | "create_prorations" | "none"
+    schedule_at_period_end: { conditions: Array<{ type: string }> }
+    trial_update_behavior: "continue_trial" | "end_trial"
+  }
+}
+
+export type BillingPortalConfigurationRecord = {
+  id: string
+  active: boolean
+  business_profile: {
+    headline: string | null
+    privacy_policy_url: string | null
+    terms_of_service_url: string | null
+  }
+  created: number
+  default_return_url: string | null
+  features: PortalFeatures
+  is_default: boolean
+  login_page: { enabled: boolean; url: string | null }
+  metadata: Metadata
+  name: string | null
+  updated: number
+}
+
+export type PortalFlow = {
+  type:
+    | "customer_update"
+    | "payment_method_update"
+    | "subscription_cancel"
+    | "subscription_update"
+    | "subscription_update_confirm"
+  after_completion: {
+    type: "hosted_confirmation" | "portal_homepage" | "redirect"
+    hosted_confirmation: { custom_message: string | null } | null
+    redirect: { return_url: string } | null
+  }
+  customer_update?: Record<string, unknown> | null
+  subscription_cancel: {
+    subscription: string
+    retention: { type: "coupon_offer"; coupon_offer: { coupon: string } } | null
+  } | null
+  subscription_update: { subscription: string } | null
+  subscription_update_confirm: {
+    subscription: string
+    items: Array<{ id: string | null; price: string | null; quantity: number }>
+    discounts: Array<{ coupon: string | null; promotion_code: string | null }> | null
+  } | null
+}
+
+export type BillingPortalSessionRecord = {
+  id: string
+  configuration: string
+  created: number
+  customer: string
+  flow: PortalFlow | null
+  locale: string | null
+  return_url: string | null
+  url: string
+  /** The flow ran to completion; the portal falls back to its homepage afterwards. */
+  flow_completed?: boolean
 }
 
 export type BalanceTransactionRecord = {
@@ -575,6 +690,8 @@ export class AccountState {
   readonly ledger: Collection<BalanceTransactionRecord>
   readonly testClocks: Collection<TestClockRecord>
   readonly webhookEndpoints: Collection<WebhookEndpointRecord>
+  readonly portalConfigurations: Collection<BillingPortalConfigurationRecord>
+  readonly portalSessions: Collection<BillingPortalSessionRecord>
   /** Bookkeeping (e.g. whether the recorded catalog was seeded). */
   readonly meta: Collection<Record<string, unknown>>
   readonly webhookDeliveryAttempts: Collection<WebhookDeliveryAttemptRecord>
@@ -608,12 +725,18 @@ export class AccountState {
     this.ledger = collection<BalanceTransactionRecord>("ledger")
     this.testClocks = collection<TestClockRecord>("test_clocks")
     this.webhookEndpoints = collection<WebhookEndpointRecord>("webhook_endpoints")
+    this.portalConfigurations = collection<BillingPortalConfigurationRecord>(
+      "billing_portal_configurations",
+    )
+    this.portalSessions = collection<BillingPortalSessionRecord>("billing_portal_sessions")
     this.meta = collection<Record<string, unknown>>("meta")
     this.webhookDeliveryAttempts = collection<WebhookDeliveryAttemptRecord>(
       "webhook_delivery_attempts",
     )
     this.collections = {
       balance_transactions: this.balanceTransactions,
+      billing_portal_configurations: this.portalConfigurations,
+      billing_portal_sessions: this.portalSessions,
       charges: this.charges,
       checkout_sessions: this.checkoutSessions,
       coupons: this.coupons,
