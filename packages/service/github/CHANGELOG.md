@@ -10,3 +10,4 @@
 - Add same-repository PR create/get/list/update, current-tip reads, duplicate
   validation, filtered pagination and namespace-preserving links.
 - Add scripted publication failures, accepted response loss and separate intervening ref movement controls.
+- Verify all nine operations with seeded self-parity and an independent Node publication-recovery consumer.

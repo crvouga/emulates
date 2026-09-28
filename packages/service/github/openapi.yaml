@@ -16,8 +16,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: true
       parameters:
         - in: path
           name: owner
@@ -55,8 +55,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: true
         path:
           parameter: ref
       parameters:
@@ -113,8 +113,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: true
         path:
           parameter: ref
           allowEmpty: true
@@ -174,8 +174,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: false
       parameters:
         - in: path
           name: owner
@@ -268,8 +268,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: false
         path:
           parameter: ref
       parameters:
@@ -369,8 +369,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: true
       parameters:
         - in: path
           name: owner
@@ -474,8 +474,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: false
       parameters:
         - in: path
           name: owner
@@ -585,8 +585,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: true
       parameters:
         - in: path
           name: owner
@@ -640,8 +640,8 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Live and property verification are scheduled after implementation.
+          enabled: true
+          safe: false
       parameters:
         - in: path
           name: owner

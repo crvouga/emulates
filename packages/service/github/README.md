@@ -165,3 +165,22 @@ returns `simulated: true`. It cannot create refs, force rewrites or mutate anoth
 namespace. Invalid controls leave state/history unchanged. Subsequent writes use
 the current tip's ancestry; a stale observation alone is not grounds for rejection.
 This control models interleaving, not atomic publication or real branch enforcement.
+
+## Local contract verification
+
+`bun test` includes seeded self-parity for all nine operations and successful
+per-operation response checks. A deliberately divergent, schema-valid repository
+observation must fail the parity comparator. These are two isolated mock instances;
+self-parity is not evidence that GitHub matches this implementation.
+
+`test/node-consumer.mjs` uses native Node HTTP and literal public contracts against
+the built local server. It recovers a PR after socket loss, observes duplicates
+without idempotency, follows pagination over31PRs, checks intervening ref movement
+without CAS, and schedules a retry from Retry-After using a logical test clock.
+It imports no provider handlers or state helpers. Run the package build before
+running this consumer directly. It creates only local fixture resources.
+
+Parity metadata enables all nine operations; the four writes are marked unsafe
+and require explicit inclusion. Real-provider comparisons still require the
+separate bounded oracle and explicit disposable-resource authorization. WIP status
+remains until independent compatibility evidence supports a stronger claim.

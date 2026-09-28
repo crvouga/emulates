@@ -260,3 +260,22 @@ write operations. A local loopback HTTP test verifies PR discovery after the Nod
 adapter closes the response connection. This is local transport evidence, not a
 claim about GitHub's network. Ref movement uses a separate mock-only admin checkpoint
 and seeded fast-forward ancestry; no expected-old-SHA lease is introduced.
+
+## US-029 local parity and independent consumer evidence
+
+The parity runner now plans/exercises all nine implemented operations against
+isolated seeded mocks, with fixed-clock fixtures. Separate constrained walks
+require successful statuses and meaningful repository/ref/PR fields per operation;
+missing-repository404 equivalence cannot satisfy these checks. A schema-valid
+private-field divergence in a successful repository response is rejected with
+ParityError/mismatch, and the test verifies the divergent response was compared.
+Only the four mutation operations are marked parity unsafe.
+
+An independently written Mockingbird-owned Node HTTP consumer imports the compiled
+server for lifecycle, while all fixture control and consumer requests use literal
+HTTP contracts. It exercises socket-loss lookup, duplicate422, same-key distinct
+creates, default-page pagination across31PRs, an intervening ref update, acceptance
+of a fast-forward despite a stale ignored expected_sha field, and Retry-After
+scheduling with logical time. No Initiative broker, real Git transport, live
+provider permission checks or remote notifications are involved. These local
+checks establish harness sensitivity and consumer interoperability, not live parity.
