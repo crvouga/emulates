@@ -79,6 +79,8 @@ const MISSING = {
   test_clock: "clock_mockingbird_missing",
   webhook_endpoint: "we_mockingbird_missing",
   balance_transaction: "txn_mockingbird_missing",
+  configuration: "bpc_mockingbird_missing",
+  portal_session: "bps_mockingbird_missing",
 } as const
 
 /** The generator only needs a handful of currencies; the mock still knows Stripe's full list. */
@@ -473,6 +475,23 @@ const RESPONSE_SHAPES: Record<string, Shape> = {
     id: volatile("account"),
     created: volatile("timestamp"),
   },
+  "billing_portal.configuration": {
+    id: identity("billing_portal_configuration"),
+    created: volatile("timestamp"),
+    updated: volatile("timestamp"),
+    // Connect application ownership is not modelled.
+    application: null,
+  },
+  "billing_portal.session": {
+    id: identity("billing_portal_session"),
+    created: volatile("timestamp"),
+    url: volatile("url"),
+    configuration: expandableId(identity("billing_portal_configuration")),
+    customer: { type: "string", ...identity("customer") },
+    // v2 customer accounts and Connect are not modelled.
+    customer_account: null,
+    on_behalf_of: { type: ["string", "null"] },
+  },
 }
 /**
  * Fields the mock renders only for older API versions (`Stripe-Version: 2024-06-20` and
@@ -743,7 +762,6 @@ const BODY_SHAPES: Record<string, Shape> = {
     discounts: unsupported("checkout discounts are not modelled"),
     invoice_creation: unsupported("checkout invoice creation is not modelled"),
     locale: LOCALE_ITEM,
-    payment_method_collection: unsupported("payment method collection is not modelled"),
     payment_method_configuration: unsupported("payment method configuration is not modelled"),
     payment_method_options: unsupported("payment method options are not modelled"),
     payment_method_types: unsupported("the payment method type list is explicit"),
@@ -890,7 +908,6 @@ const BODY_SHAPES: Record<string, Shape> = {
     payment_settings: unsupported("subscription payment settings are not modelled"),
     pending_invoice_item_interval: unsupported("pending items are not modelled"),
     transfer_data: unsupported("Connect is not modelled"),
-    trial_settings: unsupported("trial settings are not modelled"),
   },
   PostSubscriptionsSubscriptionExposedId: {
     default_payment_method: { type: "string" },
@@ -907,12 +924,23 @@ const BODY_SHAPES: Record<string, Shape> = {
     pending_invoice_item_interval: unsupported("pending items are not modelled"),
     transfer_data: unsupported("Connect is not modelled"),
     trial_end: { type: "integer" },
-    trial_settings: unsupported("trial settings are not modelled"),
   },
-  DeleteSubscriptionsSubscriptionExposedId: {
-    cancellation_details: unsupported("cancellation details are not modelled"),
-    invoice_now: unsupported("immediate invoicing is not modelled"),
-    prorate: unsupported("proration is not modelled"),
+  DeleteSubscriptionsSubscriptionExposedId: {},
+  PostSubscriptionsSubscriptionResume: {
+    billing_cycle_anchor: { type: "string", enum: ["now", "unchanged"] },
+    proration_behavior: { type: "string", enum: ["always_invoice", "create_prorations", "none"] },
+  },
+  PostBillingPortalSessions: {
+    customer: ref("customer", MISSING.customer),
+    configuration: ref("billing_portal_configuration", MISSING.configuration),
+    customer_account: unsupported("v2 customer accounts are not modelled"),
+    on_behalf_of: unsupported("Connect is not modelled"),
+  },
+  PostBillingPortalConfigurations: {
+    metadata: { type: "object" },
+  },
+  PostBillingPortalConfigurationsConfiguration: {
+    metadata: { type: "object" },
   },
   PostSubscriptionSchedules: {
     customer: ref("customer", MISSING.customer),
@@ -1190,9 +1218,8 @@ const EXTRA_BODY_PARAMS: Record<string, Shape> = {
   PostInvoiceitemsInvoiceitem: { price: ref("price", MISSING.price) },
   PostCouponsCoupon: { applies_to: { type: "object" } },
   PostPromotionCodes: { coupon: ref("coupon", MISSING.coupon) },
-  PostSubscriptions: { pause_collection: unsupported("collection pausing is not modelled") },
-  PostSubscriptionsSubscriptionExposedId: {
-    pause_collection: unsupported("collection pausing is not modelled"),
+  PostSubscriptions: {
+    pause_collection: unsupported("collection is paused on an existing subscription only"),
   },
 }
 
@@ -1259,6 +1286,7 @@ const PATH_REFS: Record<string, Json> = {
   session: ref("session", MISSING.session),
   webhook_endpoint: ref("webhook_endpoint", MISSING.webhook_endpoint),
   "/c/3ds/{intent}/authenticate#intent": ref("payment_intent", MISSING.payment_intent),
+  "/p/session/{session}#session": ref("billing_portal_session", MISSING.portal_session),
 }
 
 const PATH_REF_GROUPS: readonly { prefix: string; refs: Record<string, Json> }[] = [
@@ -1280,6 +1308,14 @@ const PATH_REF_GROUPS: readonly { prefix: string; refs: Record<string, Json> }[]
     refs: { id: ref("balance_transaction", MISSING.balance_transaction) },
   },
   { prefix: "/v1/products", refs: { id: ref("product", MISSING.product) } },
+  {
+    prefix: "/v1/subscriptions",
+    refs: { subscription: ref("subscription", MISSING.subscription) },
+  },
+  {
+    prefix: "/v1/billing_portal/configurations",
+    refs: { configuration: ref("billing_portal_configuration", MISSING.configuration) },
+  },
   {
     prefix: "/v1/test_helpers/test_clocks",
     refs: { test_clock: ref("test_clock", MISSING.test_clock) },
@@ -1402,6 +1438,7 @@ const OPERATIONS: Record<string, OperationConfig> = {
   GetSubscriptionsSubscriptionExposedId: { safe: true },
   PostSubscriptionsSubscriptionExposedId: { safe: false },
   DeleteSubscriptionsSubscriptionExposedId: { safe: false },
+  PostSubscriptionsSubscriptionResume: { safe: false },
   GetSubscriptionItems: { safe: true },
   PostSubscriptionItems: { safe: false },
   GetSubscriptionItemsItem: { safe: true },
@@ -1435,6 +1472,13 @@ const OPERATIONS: Record<string, OperationConfig> = {
   GetPrices: { safe: true },
   GetPricesPrice: { safe: true },
   PostPricesPrice: { safe: true },
+  // customer portal (unsafe: configurations persist on a real account, and sessions need its
+  // dashboard-saved default configuration)
+  GetBillingPortalConfigurations: { safe: true },
+  PostBillingPortalConfigurations: { safe: false },
+  GetBillingPortalConfigurationsConfiguration: { safe: true },
+  PostBillingPortalConfigurationsConfiguration: { safe: false },
+  PostBillingPortalSessions: { safe: false },
   // events
   GetEvents: { safe: true },
   GetEventsId: { safe: true },
@@ -1471,6 +1515,16 @@ const OPERATIONS: Record<string, OperationConfig> = {
     safe: false,
     parity: false,
     reason: "the 3-D Secure challenge the Stripe.js stand-in completes has no public API",
+  },
+  GetPortalPage: {
+    safe: true,
+    parity: false,
+    reason: "the customer portal is HTML served by the mock in place of billing.stripe.com",
+  },
+  PostPortalPage: {
+    safe: false,
+    parity: false,
+    reason: "the customer portal form post is served by the mock in place of billing.stripe.com",
   },
 }
 
@@ -1615,6 +1669,19 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
     "schedule",
   ],
   DeleteSubscriptionsSubscriptionExposedId: ["latest_invoice", "customer"],
+  PostSubscriptionsSubscriptionResume: [
+    "discounts",
+    "discounts.coupon",
+    "latest_invoice",
+    "default_payment_method",
+    "customer",
+    "schedule",
+  ],
+  GetBillingPortalConfigurations: [],
+  PostBillingPortalConfigurations: [],
+  GetBillingPortalConfigurationsConfiguration: [],
+  PostBillingPortalConfigurationsConfiguration: [],
+  PostBillingPortalSessions: ["configuration"],
   GetSubscriptionSchedules: ["data.subscription", "data.customer"],
   PostSubscriptionSchedules: ["subscription", "customer"],
   GetSubscriptionSchedulesSchedule: ["subscription", "customer"],
@@ -2018,6 +2085,72 @@ const BROWSER_OPERATIONS: readonly { path: string; method: string; operation: Js
         "302": { description: "redirect to success_url or cancel_url" },
         "200": htmlResponse("the form again, with the decline message"),
         "404": htmlResponse("unknown session"),
+      },
+    },
+  },
+  {
+    path: "/p/session/{session}",
+    method: "get",
+    operation: {
+      operationId: "GetPortalPage",
+      security: [],
+      parameters: [
+        { name: "session", in: "path", required: true, schema: { type: "string" } },
+        { name: "flow", in: "query", schema: { type: "string", maxLength: 64 } },
+        { name: "subscription", in: "query", schema: { type: "string", maxLength: 255 } },
+      ],
+      responses: {
+        "200": htmlResponse("the customer portal"),
+        "404": htmlResponse("unknown portal session"),
+      },
+    },
+  },
+  {
+    path: "/p/session/{session}",
+    method: "post",
+    operation: {
+      operationId: "PostPortalPage",
+      security: [],
+      parameters: [{ name: "session", in: "path", required: true, schema: { type: "string" } }],
+      requestBody: {
+        content: {
+          "application/x-www-form-urlencoded": {
+            schema: {
+              type: "object",
+              additionalProperties: true,
+              properties: {
+                action: {
+                  type: "string",
+                  enum: [
+                    "cancel",
+                    "renew",
+                    "preview_update",
+                    "update",
+                    "accept_retention",
+                    "add_payment_method",
+                    "set_default_payment_method",
+                    "detach_payment_method",
+                    "update_customer",
+                  ],
+                },
+                subscription: { type: "string", maxLength: 255 },
+                price: { type: "string", maxLength: 255 },
+                quantity: { type: "string", maxLength: 10 },
+                reason: { type: "string", maxLength: 64 },
+                comment: { type: "string", maxLength: 5000 },
+                payment_method: { type: "string", maxLength: 255 },
+                card: { type: "string", maxLength: 32 },
+                exp: { type: "string", maxLength: 7 },
+                cvc: { type: "string", maxLength: 4 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        "302": { description: "redirect to the return URL or the next portal page" },
+        "200": htmlResponse("the portal again, with a confirmation or an error"),
+        "404": htmlResponse("unknown portal session"),
       },
     },
   },
