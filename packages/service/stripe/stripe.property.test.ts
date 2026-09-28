@@ -105,6 +105,7 @@ describe("StripeAPI", () => {
             PostPaymentMethodsPaymentMethodAttach: 4,
             GetPaymentMethodsPaymentMethod: 3,
             PostSubscriptions: 3,
+            PostInvoiceitemsInvoiceitem: 3,
           },
           seed,
           sleep: async () => {},

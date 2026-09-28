@@ -19,6 +19,8 @@ import { paginate } from "./list.js"
 import { bodyParams, queryParams } from "./params.js"
 import { attachPaymentMethod, paymentMethodFromCard } from "./payments.js"
 import {
+  type PortalProduct,
+  portalProducts,
   renderCustomer,
   renderPaymentMethod,
   renderPortalConfiguration,
@@ -101,7 +103,9 @@ const dashboardFeatures = (): PortalFeatures => ({
 })
 
 /** The account's default configuration, created on first use as the dashboard would have. */
-export const ensureDefaultConfiguration = (scope: RequestScope): BillingPortalConfigurationRecord => {
+export const ensureDefaultConfiguration = (
+  scope: RequestScope,
+): BillingPortalConfigurationRecord => {
   const existing = scope.account.portalConfigurations
     .list({ order: "oldest", where: (config) => config.is_default })
     .at(0)?.value
@@ -125,44 +129,8 @@ export const ensureDefaultConfiguration = (scope: RequestScope): BillingPortalCo
   return record
 }
 
-export type PortalProduct = {
-  product: string
-  prices: string[]
-  adjustable_quantity: { enabled: boolean; maximum: number | null; minimum: number }
-}
-
-/** The products (and prices) a configuration lets customers switch between. */
-export const portalProducts = (
-  scope: RequestScope,
-  config: BillingPortalConfigurationRecord,
-): PortalProduct[] => {
-  const configured = config.features.subscription_update.products
-  if (configured !== null) return configured
-  const byProduct = new Map<string, string[]>()
-  for (const { value: price } of scope.account.prices.list({ order: "oldest" })) {
-    if (!price.active || price.recurring === null || price.recurring.usage_type !== "licensed")
-      continue
-    if (scope.account.products.get(price.product)?.active !== true) continue
-    byProduct.set(price.product, [...(byProduct.get(price.product) ?? []), price.id])
-  }
-  return [...byProduct.entries()].slice(0, 10).map(([product, prices]) => ({
-    product,
-    prices,
-    adjustable_quantity: { enabled: true, maximum: 99, minimum: 1 },
-  }))
-}
-
 const renderConfiguration = (scope: RequestScope, config: BillingPortalConfigurationRecord) =>
-  renderPortalConfiguration({
-    ...config,
-    features: {
-      ...config.features,
-      subscription_update: {
-        ...config.features.subscription_update,
-        products: portalProducts(scope, config),
-      },
-    },
-  })
+  renderPortalConfiguration(config, scope.account)
 
 // --- configuration parameters -------------------------------------------------------------------
 
@@ -173,11 +141,7 @@ const enabledOf = (raw: RecordValue | undefined, current: boolean) =>
   booleanOf(raw?.enabled) ?? current
 
 /** Merge `features[…]` parameters onto a configuration's features, validating references. */
-const mergeFeatures = (
-  scope: RequestScope,
-  base: PortalFeatures,
-  raw: unknown,
-): PortalFeatures => {
+const mergeFeatures = (scope: RequestScope, base: PortalFeatures, raw: unknown): PortalFeatures => {
   const features = recordOf(raw)
   if (features === undefined) return base
   const customerUpdate = recordOf(features.customer_update)
@@ -446,22 +410,23 @@ const parseFlow = (
       return { ...flow, subscription_update: { subscription: subscription.id } }
     const items = Array.isArray(body?.items) ? body.items : []
     if (items.length === 0) throw parameterMissing("flow_data[subscription_update_confirm][items]")
-    const offered = portalProducts(scope, config).flatMap((product) => product.prices)
+    const offered = portalProducts(scope.account, config).flatMap((product) => product.prices)
     const current = subscriptionItems(scope, subscription)
     const parsed = items.map((entry, index) => {
       const item = recordOf(entry) ?? {}
       const itemParam = `flow_data[subscription_update_confirm][items][${index}]`
       const id = stringOf(item, "id")
       if (id === null) throw parameterMissing(`${itemParam}[id]`)
-      if (!current.some((existing) => existing.id === id))
-        throw resourceMissing("subscription_item", id, `${itemParam}[id]`)
+      const existing = current.find((candidate) => candidate.id === id)
+      if (existing === undefined) throw resourceMissing("subscription_item", id, `${itemParam}[id]`)
       const price = stringOf(item, "price")
       if (price !== null && !offered.includes(price))
         throw invalidRequest(
           `The price ${price} is not one of the prices this portal configuration offers.`,
           `${itemParam}[price]`,
         )
-      return { id, price, quantity: intOf(item.quantity) ?? 1 }
+      // An omitted quantity keeps the item's current one.
+      return { id, price, quantity: intOf(item.quantity) ?? existing.quantity ?? 1 }
     })
     const discounts = Array.isArray(body?.discounts)
       ? body.discounts.map((entry) => {
@@ -562,11 +527,7 @@ export const billingPortalHandlers = (services: Services): Record<string, Operat
     scope.account.portalConfigurations.update(current.id, next)
     const before = renderConfiguration(scope, current)
     const rendered = renderConfiguration(scope, next)
-    scope.emit(
-      "billing_portal.configuration.updated",
-      rendered,
-      changedFields(before, rendered),
-    )
+    scope.emit("billing_portal.configuration.updated", rendered, changedFields(before, rendered))
     return jsonResponse(200, rendered)
   },
   PostBillingPortalSessions: async (context) => {
@@ -689,7 +650,9 @@ export const portalChange = (
     throw invalidRequest("Changing plans is not enabled for this portal.")
   if (quantity !== (item.quantity ?? 1) && !allowed.includes("quantity"))
     throw invalidRequest("Changing the quantity is not enabled for this portal.")
-  const product = portalProducts(scope, config).find((entry) => entry.prices.includes(price))
+  const product = portalProducts(scope.account, config).find((entry) =>
+    entry.prices.includes(price),
+  )
   if (price !== item.price && product === undefined)
     throw invalidRequest("That plan is not available.")
   if (!Number.isInteger(quantity) || quantity < 1)
@@ -811,10 +774,24 @@ export const runPortalAction = (
       const update = features.subscription_update
       const endTrial =
         change.subscription.status === "trialing" && update.trial_update_behavior === "end_trial"
+      // A deep-linked confirmation carries the discounts the merchant attached to the change.
+      const confirm = session.flow?.subscription_update_confirm
+      const discounts =
+        confirm?.subscription === change.subscription.id
+          ? (confirm.discounts ?? []).flatMap(
+              (discount): Array<Record<string, string>> =>
+                discount.promotion_code !== null
+                  ? [{ promotion_code: discount.promotion_code }]
+                  : discount.coupon !== null
+                    ? [{ coupon: discount.coupon }]
+                    : [],
+            )
+          : []
       updateSubscription(scope, change.subscription, {
         items: [{ id: change.itemId, price: change.price, quantity: change.quantity }],
         proration_behavior: update.proration_behavior,
         ...(endTrial ? { trial_end: "now" } : {}),
+        ...(discounts.length === 0 ? {} : { discounts }),
       })
       return completeFlow(scope, session, "Your plan has been updated.")
     }

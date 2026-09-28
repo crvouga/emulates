@@ -38,7 +38,7 @@ Do not work around a mock in your own project: file a GitHub issue on crvouga/mo
 - [@crvouga/mockingbird-service-rxvortex SUPPORT.md](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/rxvortex/SUPPORT.md): coverage matrix
 - [@crvouga/mockingbird-service-sqlite](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/sqlite/README.md): Pure TypeScript in-memory SQLite implementation with zero WASM/native dependencies
 - [@crvouga/mockingbird-service-sqlite COMPATIBILITY.md](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/sqlite/COMPATIBILITY.md): coverage matrix
-- [@crvouga/mockingbird-service-stripe](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/stripe/README.md): Stateful mock of the Stripe API (accounts by key, customers, payments, subscriptions with renewals, invoices, checkout with a hosted page, a Stripe.js stand-in, signed webhooks) at API versions 2024-06-20 and 2025-02-24.acacia, verified by differential property tests against Stripe test mode.
+- [@crvouga/mockingbird-service-stripe](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/stripe/README.md): Stateful mock of the Stripe API (accounts by key, customers, payments, subscriptions that renew, pause, resume and cancel, invoices, checkout with a hosted page, a hosted customer portal, a Stripe.js stand-in, signed webhooks) at API versions 2024-06-20 and 2025-02-24.acacia, verified by differential property tests against Stripe test mode.
 - [@crvouga/mockingbird-service-stripe SUPPORT.md](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/stripe/SUPPORT.md): coverage matrix
 
 ## Work in progress

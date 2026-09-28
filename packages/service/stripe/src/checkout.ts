@@ -245,7 +245,11 @@ export const completeSession = (
               : "paid",
       }
     } else {
-      const attached = attachPaymentMethod(scope, method as PaymentMethodRecord, customerId as string)
+      const attached = attachPaymentMethod(
+        scope,
+        method as PaymentMethodRecord,
+        customerId as string,
+      )
       const id = scope.ids.next("seti_", 24)
       const setup: SetupIntentRecord = {
         id,

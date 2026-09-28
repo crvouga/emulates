@@ -8,6 +8,7 @@ import {
   cycleSubscription,
   INACTIVE_PRICE,
   parseDiscounts,
+  resolveDiscountSource,
   resumeSubscription,
   saveSubscription,
   subscriptionItems,
@@ -26,7 +27,7 @@ import {
   stringOf,
 } from "./internal.js"
 import { matchesCreated, paginate } from "./list.js"
-import { bodyParams, type Params, queryParams } from "./params.js"
+import { bodyParams, deleteParams, type Params, queryParams } from "./params.js"
 import {
   renderDeletedSubscriptionItem,
   renderSubscription,
@@ -114,6 +115,7 @@ const cancellationDetailsOf = (raw: unknown) => {
  * Change a subscription's items. `proration_behavior=none` just swaps prices;
  * `always_invoice` bills the difference for the rest of the period now; the default
  * (`create_prorations`) leaves the difference as pending proration items for the next invoice.
+ * Every request is validated before anything is written, so a refused change leaves no trace.
  */
 const changeItems = (
   scope: RequestScope,
@@ -129,6 +131,9 @@ const changeItems = (
   const left = Math.max(0, subscription.current_period_end - now) / span
   const amountOf = (priceId: string, quantity: number) =>
     Math.round(Number(requirePrice(scope, priceId).unit_amount_decimal) * quantity)
+  const writes: Array<() => void> = []
+  const finalPrices = new Map(existing.map((item) => [item.id, item.price]))
+  const added: string[] = []
   requests.forEach((request, index) => {
     const current =
       request.id === null ? undefined : existing.find((item) => item.id === request.id)
@@ -136,48 +141,57 @@ const changeItems = (
       throw resourceMissing("subscription_item", request.id, `items[${index}][id]`)
     if (current && request.deleted) {
       prorationAmount -= Math.round(amountOf(current.price, current.quantity ?? 1) * left)
-      scope.account.subscriptionItems.delete(current.id)
-      itemIds.splice(itemIds.indexOf(current.id), 1)
+      finalPrices.delete(current.id)
+      writes.push(() => {
+        scope.account.subscriptionItems.delete(current.id)
+        itemIds.splice(itemIds.indexOf(current.id), 1)
+      })
       return
     }
     if (current) {
       const price = request.price ?? current.price
-      if (request.price !== null) requireSubscribablePrice(scope, price, `items[${index}][price]`)
+      // Staying on an archived price is fine; only moving to one is refused.
+      if (price !== current.price) requireSubscribablePrice(scope, price, `items[${index}][price]`)
       const quantity = request.quantity ?? current.quantity ?? 1
       prorationAmount += Math.round(
         (amountOf(price, quantity) - amountOf(current.price, current.quantity ?? 1)) * left,
       )
-      scope.account.subscriptionItems.update(current.id, {
-        ...current,
-        price,
-        quantity,
-        metadata: request.metadata ?? current.metadata,
-      })
+      finalPrices.set(current.id, price)
+      writes.push(() =>
+        scope.account.subscriptionItems.update(current.id, {
+          ...current,
+          price,
+          quantity,
+          metadata: request.metadata ?? current.metadata,
+        }),
+      )
       return
     }
     if (request.price === null) throw parameterMissing(`items[${index}][price]`)
     const price = requireSubscribablePrice(scope, request.price, `items[${index}][price]`)
-    const itemId = scope.ids.next("si_", 14)
-    const record: SubscriptionItemRecord = {
-      id: itemId,
-      created: now,
-      metadata: request.metadata ?? {},
-      price: price.id,
-      quantity: request.quantity ?? 1,
-      subscription: subscription.id,
-      discount_ids: [],
-    }
-    scope.account.subscriptionItems.insert(itemId, record)
-    itemIds.push(itemId)
-    prorationAmount += Math.round(amountOf(price.id, record.quantity ?? 1) * left)
+    const quantity = request.quantity ?? 1
+    added.push(price.id)
+    prorationAmount += Math.round(amountOf(price.id, quantity) * left)
+    writes.push(() => {
+      const itemId = scope.ids.next("si_", 14)
+      const record: SubscriptionItemRecord = {
+        id: itemId,
+        created: now,
+        metadata: request.metadata ?? {},
+        price: price.id,
+        quantity,
+        subscription: subscription.id,
+        discount_ids: [],
+      }
+      scope.account.subscriptionItems.insert(itemId, record)
+      itemIds.push(itemId)
+    })
   })
-  if (proration === "none") prorationAmount = 0
   assertCompatiblePrices(
-    itemIds
-      .map((id) => scope.account.subscriptionItems.get(id))
-      .filter((item): item is SubscriptionItemRecord => item !== undefined)
-      .map((item) => requirePrice(scope, item.price)),
+    [...finalPrices.values(), ...added].map((price) => requirePrice(scope, price)),
   )
+  for (const write of writes) write()
+  if (proration === "none") prorationAmount = 0
   return { itemIds, prorationAmount }
 }
 
@@ -219,15 +233,26 @@ export const updateSubscription = (
   if (trialEndAt !== undefined && trialEndAt <= now)
     throw invalidRequest(FUTURE_TIMESTAMP, "trial_end")
   const pauseCollection = pauseCollectionOf(params.pause_collection, now)
+  const discounts = parseDiscounts(params.discounts)
+  // Refuse bad discounts before any item changes; applying them happens after.
+  if (discounts !== undefined && discounts !== "clear")
+    discounts.forEach((request, index) => {
+      if (request.discount !== undefined) {
+        if (!current.discount_ids.includes(request.discount))
+          throw resourceMissing("discount", request.discount, `discounts[${index}][discount]`)
+      } else resolveDiscountSource(scope, request, `discounts[${index}]`)
+    })
   const previousItems = { items: renderSubscription(current, scope.account).items }
   const proration = stringOf(params, "proration_behavior") ?? "create_prorations"
   const itemRequests = requestedItems(params)
-  const { itemIds, prorationAmount } =
+  const changed =
     itemRequests.length === 0
       ? { itemIds: current.item_ids, prorationAmount: 0 }
       : changeItems(scope, current, itemRequests, proration)
+  const itemIds = changed.itemIds
+  // A trial is free: changing plans during one prorates nothing.
+  const prorationAmount = current.status === "trialing" ? 0 : changed.prorationAmount
   const cancelAtPeriodEnd = booleanOf(params.cancel_at_period_end)
-  const discounts = parseDiscounts(params.discounts)
   const discountIds =
     discounts === undefined
       ? current.discount_ids
@@ -251,9 +276,7 @@ export const updateSubscription = (
         : (stringOf(params, "default_payment_method") ?? current.default_payment_method),
     metadata: mergeRecordMetadata(current.metadata, params.metadata),
     payment_settings: recordOf(params.payment_settings) ?? current.payment_settings ?? null,
-    ...(params.description === undefined
-      ? {}
-      : { description: stringOf(params, "description") }),
+    ...(params.description === undefined ? {} : { description: stringOf(params, "description") }),
     ...(pauseCollection === undefined ? {} : { pause_collection: pauseCollection }),
     ...(trialSettings === undefined ? {} : { trial_settings: trialSettings }),
   }
@@ -307,6 +330,8 @@ export const updateSubscription = (
     const trialing = scope.account.subscriptions.get(current.id) ?? next
     const ended = { ...trialing, trial_end: now, current_period_end: now }
     scope.account.subscriptions.update(current.id, ended)
+    // Stripe sends the trial reminder when a trial is ended immediately, too.
+    scope.emit("customer.subscription.trial_will_end", renderSubscription(ended, scope.account))
     cycleSubscription(scope, ended)
   }
   return scope.account.subscriptions.get(current.id) ?? next
@@ -435,7 +460,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
     },
     DeleteSubscriptionsSubscriptionExposedId: async (context) => {
       const scope = requestScope(services, context)
-      const params = bodyParams(context)
+      const params = deleteParams(context)
       const current = requireSubscriptionRecord(scope, context.params.subscription_exposed_id ?? "")
       if (current.status === "canceled")
         throw invalidRequest(
@@ -569,7 +594,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
     },
     DeleteSubscriptionItemsItem: async (context) => {
       const scope = requestScope(services, context)
-      const params = bodyParams(context)
+      const params = deleteParams(context)
       const id = context.params.item ?? ""
       const item = scope.account.subscriptionItems.get(id)
       if (!item)

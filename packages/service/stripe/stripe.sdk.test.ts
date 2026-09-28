@@ -14,6 +14,8 @@ import { partnerClient, stripeClientOptions } from "./test/consumer.js"
 const BROWSER_OPS = [
   "GetCheckoutPage",
   "PostCheckoutPage",
+  "GetPortalPage",
+  "PostPortalPage",
   "GetStripeJs",
   "PostThreeDSecureAuthenticate",
 ]
@@ -382,6 +384,35 @@ const walk = async (stripe: Stripe, tag: string) => {
   const upcoming = await stripe.invoices.retrieveUpcoming({ subscription: subscription.id })
   expect(upcoming.next_payment_attempt).toBe(subscription.current_period_end)
 
+  // Customer portal and paused collection.
+  const portalConfig = await stripe.billingPortal.configurations.create({
+    business_profile: { headline: "Manage your membership" },
+    features: {
+      invoice_history: { enabled: true },
+      payment_method_update: { enabled: true },
+      subscription_cancel: { enabled: true, mode: "at_period_end" },
+      subscription_update: {
+        enabled: true,
+        default_allowed_updates: ["price"],
+        proration_behavior: "none",
+        products: [{ product: product.id, prices: [successor.id] }],
+      },
+    },
+  })
+  await stripe.billingPortal.configurations.update(portalConfig.id, { metadata: { tag } })
+  await stripe.billingPortal.configurations.retrieve(portalConfig.id)
+  await stripe.billingPortal.configurations.list({ limit: 10 })
+  const portal = await stripe.billingPortal.sessions.create(
+    { customer: customer.id, configuration: portalConfig.id, return_url: "http://localhost/me" },
+    { idempotencyKey: `portal-${tag}` },
+  )
+  expect(portal.url).toContain("/p/session/")
+  const paused = await stripe.subscriptions.update(subscription.id, {
+    pause_collection: { behavior: "void" },
+  })
+  expect(paused.pause_collection?.behavior).toBe("void")
+  await stripe.subscriptions.update(subscription.id, { pause_collection: "" })
+
   // Invoices and invoice items.
   const invoice = await stripe.invoices.create({
     customer: customer.id,
@@ -519,8 +550,20 @@ const walk = async (stripe: Stripe, tag: string) => {
   await stripe.subscriptionItems.retrieve(itemId)
   await stripe.testHelpers.testClocks.list()
 
-  // Time travel and cleanup.
+  // Time travel: a trial without a card pauses, then resumes once one is added.
+  const pausing = await stripe.subscriptions.create({
+    customer: clocked.id,
+    items: [{ price: successor.id }],
+    trial_end: now + 3_600,
+    trial_settings: { end_behavior: { missing_payment_method: "pause" } },
+  })
   await stripe.testHelpers.testClocks.advance(clock.id, { frozen_time: now + 86_400 })
+  expect((await stripe.subscriptions.retrieve(pausing.id)).status).toBe("paused")
+  const card = await stripe.paymentMethods.attach("pm_card_visa", { customer: clocked.id })
+  await stripe.customers.update(clocked.id, {
+    invoice_settings: { default_payment_method: card.id },
+  })
+  expect((await stripe.subscriptions.resume(pausing.id)).status).toBe("active")
   await stripe.customers.del(clocked.id)
   await stripe.testHelpers.testClocks.del(clock.id)
 }

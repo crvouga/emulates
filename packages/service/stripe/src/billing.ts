@@ -967,7 +967,7 @@ export const createSubscription = (
           offSession: input.offSession ?? false,
           ...(input.autoAuthenticate ? { autoAuthenticate: true } : {}),
         })
-        if (invoice.status === "paid") status = "active"
+        if (invoice.status === "paid") status = trialing ? "trialing" : "active"
       } catch (error) {
         if (behavior === "error_if_incomplete") {
           rollbackSubscription(scope, id, invoice.id)
@@ -1199,12 +1199,40 @@ export const cycleSubscription = (scope: RequestScope, current: SubscriptionReco
   scope.emit("customer.subscription.updated", after, changed)
 }
 
-/** The cents one period of a subscription's items bills, before discounts. */
-const periodAmount = (scope: RequestScope, subscription: SubscriptionRecord) =>
-  subscriptionItems(scope, subscription).reduce(
-    (sum, item) => sum + priceAmount(requirePrice(scope, item.price), item.quantity ?? 1),
-    0,
+/** The cents one period of a subscription's items bills, after its discounts live at `at`. */
+const periodAmount = (scope: RequestScope, subscription: SubscriptionRecord, at: number) => {
+  const lines = subscriptionItems(scope, subscription).map((item) => {
+    const price = requirePrice(scope, item.price)
+    return {
+      amount: priceAmount(price, item.quantity ?? 1),
+      price: price.id,
+      currency: price.currency,
+    }
+  })
+  const subtotal = lines.reduce((sum, line) => sum + line.amount, 0)
+  const { totals } = discountLines(
+    scope,
+    liveDiscounts(scope, subscription.discount_ids, at),
+    lines,
   )
+  return subtotal - totals.reduce((sum, entry) => sum + entry.amount, 0)
+}
+
+/** A net-negative invoice is settled at $0 and its credit lands on the customer's balance. */
+const creditNegativeInvoice = (scope: RequestScope, invoice: InvoiceRecord) => {
+  if (invoice.subtotal >= 0 || invoice.customer === null) return
+  const customer = findCustomer(scope, invoice.customer)
+  if (!customer) return
+  applyBalanceTransaction(scope, {
+    customer,
+    amount: invoice.subtotal,
+    currency: invoice.currency,
+    description: null,
+    metadata: {},
+    type: "applied_to_invoice",
+    invoice: invoice.id,
+  })
+}
 
 /**
  * Bill a proration: `create_prorations` leaves a pending proration item for the customer's next
@@ -1247,6 +1275,7 @@ export const billProration = (
         subscriptionMetadata: subscription.metadata,
       }),
     )
+    creditNegativeInvoice(scope, invoice)
     let settled = invoice
     if (invoice.status === "open" && invoice.collection_method === "charge_automatically") {
       try {
@@ -1301,7 +1330,10 @@ export const resumeSubscription = (
   const recurring = recurringOf(scope, current)
   let next: SubscriptionRecord
   if (options.billingCycleAnchor === "now") {
-    const period = { start: now, end: addInterval(now, recurring.interval, recurring.interval_count) }
+    const period = {
+      start: now,
+      end: addInterval(now, recurring.interval, recurring.interval_count),
+    }
     const moved: SubscriptionRecord = {
       ...current,
       current_period_start: period.start,
@@ -1351,7 +1383,7 @@ export const resumeSubscription = (
     billProration(
       scope,
       moved,
-      Math.round(periodAmount(scope, moved) * left),
+      Math.round(periodAmount(scope, moved, at) * left),
       options.prorationBehavior,
       { period: { start: at, end }, description: "Remaining time after resuming (prorated)" },
     )
@@ -1389,7 +1421,7 @@ export const cancelSubscription = (
     billProration(
       scope,
       current,
-      -Math.round(periodAmount(scope, current) * left),
+      -Math.round(periodAmount(scope, current, now) * left),
       "create_prorations",
       {
         period: { start: now, end: current.current_period_end },
@@ -1426,7 +1458,11 @@ export const cancelSubscription = (
  * The final invoice of a subscription canceled with `invoice_now`: every pending proration item
  * of the customer. A net credit lands on the customer's balance.
  */
-const invoicePendingItems = (scope: RequestScope, subscription: SubscriptionRecord, now: number) => {
+const invoicePendingItems = (
+  scope: RequestScope,
+  subscription: SubscriptionRecord,
+  now: number,
+) => {
   const pending = scope.account.invoiceItems.list({
     order: "oldest",
     where: (item) =>
@@ -1459,25 +1495,12 @@ const invoicePendingItems = (scope: RequestScope, subscription: SubscriptionReco
     subscriptionMetadata: subscription.metadata,
   })
   claimInvoiceItems(scope, draft)
-  const credit = draft.subtotal < 0 ? draft.subtotal : 0
   const collected = collectCycleInvoice(
     scope,
     { ...subscription, pause_collection: null },
     finalizeInvoice(scope, draft),
   )
-  if (credit < 0) {
-    const customer = findCustomer(scope, subscription.customer)
-    if (customer)
-      applyBalanceTransaction(scope, {
-        customer,
-        amount: credit,
-        currency: draft.currency,
-        description: null,
-        metadata: {},
-        type: "applied_to_invoice",
-        invoice: draft.id,
-      })
-  }
+  creditNegativeInvoice(scope, draft)
   const latest = scope.account.subscriptions.get(subscription.id) ?? subscription
   scope.account.subscriptions.update(latest.id, { ...latest, latest_invoice: collected.invoice.id })
 }

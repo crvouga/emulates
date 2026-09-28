@@ -1,5 +1,5 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
-import { type LifecycleSettings, runLifecycle } from "./billing.js"
+import { addInterval, type LifecycleSettings, runLifecycle } from "./billing.js"
 import { invalidRequest, parameterMissing, resourceMissing } from "./errors.js"
 import { intOf, type RequestScope, requestScope, type Services, stringOf } from "./internal.js"
 import { paginate } from "./list.js"
@@ -80,13 +80,25 @@ export const testClockHandlers = (
         .filter((entry) => entry.kind === "live" && entry.customer.test_clock === current.id)
         .map((entry) => (entry.kind === "live" ? entry.customer.id : "")),
     )
+    // Measured by each subscription's billing interval: a trial shorter than it is no limit.
     const longestInterval = scope.account.subscriptions
-      .list({ where: (subscription) => customers.has(subscription.customer) })
-      .reduce(
-        (longest, entry) =>
-          Math.max(longest, entry.value.current_period_end - entry.value.current_period_start),
-        0,
-      )
+      .list({
+        where: (subscription) =>
+          customers.has(subscription.customer) &&
+          !["canceled", "incomplete_expired"].includes(subscription.status),
+      })
+      .reduce((longest, entry) => {
+        const subscription = entry.value
+        const price = scope.account.prices.get(
+          scope.account.subscriptionItems.get(subscription.item_ids[0] ?? "")?.price ?? "",
+        )
+        const start = subscription.current_period_start
+        const interval =
+          price?.recurring == null
+            ? subscription.current_period_end - start
+            : addInterval(start, price.recurring.interval, price.recurring.interval_count) - start
+        return Math.max(longest, interval)
+      }, 0)
     if (
       longestInterval > 0 &&
       target - current.frozen_time > longestInterval * MAX_ADVANCE_INTERVALS

@@ -426,8 +426,9 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
         "`subscription_data[trial_end]` must be at least 48 hours in the future.",
         "subscription_data[trial_end]",
       )
-    const trialBehavior = recordOf(recordOf(subscriptionData?.trial_settings)?.end_behavior)
-      ?.missing_payment_method
+    const trialBehavior = recordOf(
+      recordOf(subscriptionData?.trial_settings)?.end_behavior,
+    )?.missing_payment_method
     const collection = stringOf(params, "payment_method_collection")
     // Every parameter is valid: the inline catalog objects the lines reference can be stored.
     for (const product of inline.products) {
@@ -478,7 +479,9 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
         description:
           typeof subscriptionData?.description === "string" ? subscriptionData.description : null,
         trial_settings:
-          trialBehavior === "cancel" || trialBehavior === "create_invoice" || trialBehavior === "pause"
+          trialBehavior === "cancel" ||
+          trialBehavior === "create_invoice" ||
+          trialBehavior === "pause"
             ? { end_behavior: { missing_payment_method: trialBehavior } }
             : null,
       },

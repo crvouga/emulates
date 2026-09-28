@@ -2,14 +2,15 @@
 
 Stateful, in-process mock of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
 chosen by API key, customers and balances, payment methods, payment and setup intents, charges,
-refunds, disputes, checkout (with a hosted page and a Stripe.js stand-in), invoices, subscriptions
-that renew when the clock moves, subscription schedules, coupons, promotion codes, products,
+refunds, disputes, checkout (with a hosted page and a Stripe.js stand-in), the customer portal
+(configurations, sessions and the hosted portal page), invoices, subscriptions that renew, pause,
+resume and cancel as the clock moves, subscription schedules, coupons, promotion codes, products,
 prices, test clocks, webhook endpoints, the balance ledger and the event log — with signed webhooks
 fanned out to every matching endpoint. Responses are rendered at the caller's `Stripe-Version`
 (`2024-06-20`, `2025-02-24.acacia`, or the vendored latest), and the whole surface is verified by
 differential property tests against Stripe test mode.
 
-- Operation coverage (111 of 115 operations in the vendored spec, with reasons for each gap):
+- Operation coverage (119 of 123 operations in the vendored spec, with reasons for each gap):
   [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/stripe/SUPPORT.md)
 - Stripe API reference: https://docs.stripe.com/api · Upstream OpenAPI: https://github.com/stripe/openapi
 
@@ -152,7 +153,19 @@ clock-driven lifecycle, so their webhooks fire at once; the served mock also tic
   finalized and charged off-session to the default payment method, then `invoice.paid` +
   `customer.subscription.updated` (`previous_attributes.current_period_end`), or
   `invoice.payment_failed` and `past_due`. Trials end into a cycle; `cancel_at_period_end` cancels
-  (`customer.subscription.deleted`). `invoice.upcoming` fires 3 days before renewal.
+  (`customer.subscription.deleted`). `invoice.upcoming` fires 3 days before renewal and
+  `customer.subscription.trial_will_end` 3 days before a trial ends (once per trial).
+- **Trials without a card**: `trial_settings[end_behavior][missing_payment_method]` decides what a
+  trial ending with no default payment method does — `create_invoice` (the default) invoices and
+  goes `past_due`, `cancel` cancels at the trial's end, `pause` sets status `paused`
+  (`customer.subscription.paused`) until `POST /v1/subscriptions/:id/resume`:
+  `billing_cycle_anchor=now` (default) starts a new period with a `subscription_update` invoice
+  (paid → `active`, failed → `past_due`); `unchanged` keeps the anchor and prorates the rest of the
+  period per `proration_behavior` (and `proration_date`). Both emit `customer.subscription.resumed`.
+- **Paused collection**: `pause_collection[behavior]` keeps periods moving while renewal invoices are
+  voided (`void`), marked `uncollectible` (`mark_uncollectible`, `invoice.marked_uncollectible`) or
+  left as drafts (`keep_as_draft`), never charged; the status holds. `pause_collection[resumes_at]`
+  lifts the pause on its own before the renewal it precedes; `pause_collection=""` lifts it now.
 - `incomplete` subscriptions become `incomplete_expired` after 23 h (their invoice is voided).
 - Checkout Sessions expire at `expires_at` (`checkout.session.expired`).
 - Schedule phases advance; the last one releases or cancels per `end_behavior`.
@@ -167,7 +180,11 @@ now and returns `incomplete` on a decline; `error_if_incomplete` fails the call 
 customer, and paying it through Stripe.js activates the subscription. `trial_end`,
 `backdate_start_date` + `billing_cycle_anchor` + `proration_behavior=none` (a $0 first invoice),
 item updates with `always_invoice` (billed now) or `create_prorations` (next invoice), and
-discounts with stable `di_` ids (`discounts=""` clears) are modelled. A $0 invoice is `paid` on
+discounts with stable `di_` ids (`discounts=""` clears) are modelled. Items must be active recurring
+prices sharing one currency and interval. `DELETE /v1/subscriptions/:id` takes
+`cancellation_details[comment|feedback]`, `prorate` (a credit for the unused time as a pending
+proration) and `invoice_now` (a final invoice; a net credit lands on the customer balance), in the
+query string (as stripe-node sends them) or the body. A $0 invoice is `paid` on
 finalize; a customer credit balance is applied at finalize; `void` works only on open invoices
 (`You can only pass in open invoices. This invoice isn't open.`).
 
@@ -182,9 +199,27 @@ finalize; a customer credit balance is applied at finalize; `void` works only on
   succeeding brands, declines (generic, insufficient funds, expired, attach-then-fail), 3D Secure
   and dispute. Each button fills every field, and with “Pay immediately after filling” ticked it
   submits the form too. Pay completes the session (creating the customer, the PaymentIntent with
-  `payment_intent_data.metadata`, the Subscription with `subscription_data.metadata`, or the
-  SetupIntent), emits `checkout.session.completed` and 302s to `success_url` with
-  `{CHECKOUT_SESSION_ID}` substituted raw and `%7B…%7D`-encoded; Cancel 302s to `cancel_url`.
+  `payment_intent_data.metadata`, the Subscription with `subscription_data` — metadata,
+  description, trial and `trial_settings` — or the SetupIntent), emits `checkout.session.completed`
+  and 302s to `success_url` with `{CHECKOUT_SESSION_ID}` substituted raw and `%7B…%7D`-encoded;
+  Cancel 302s to `cancel_url`. The page authenticates 3-D Secure cards in place in every mode, and
+  checks what was typed the way the Payment Element does (expiry in the past, incomplete CVC,
+  invalid email); a decline leaves the session open (in subscription and setup mode it creates no
+  customer; in payment mode it records the failed PaymentIntent and charge, as Stripe does). The email and name
+  typed become the new customer's and `customer_details`; `customer_email` pre-fills the email.
+- Subscription mode bills one-time lines once, on the first invoice, and `price_data` lines (with
+  or without `recurring`) create inline prices (and `product_data` products), so every line — and
+  the subscription — references a real price id. With `payment_method_collection=if_required` a
+  free trial shows no card fields (`stripe-mock-no-card`) and starts without a payment method.
+- `allow_promotion_codes=true` adds a promotion code field to the summary
+  (`stripe-mock-promotion-code`, `-apply`, `-remove`; a refusal shows
+  `stripe-mock-promotion-error` with Checkout's "This code is invalid."). Codes are
+  case-insensitive and checked for being active, unexpired, under their limits, for this customer,
+  first-time and minimum-amount restrictions, and applicable products; the session re-prices.
+- Creation is validated like Stripe: `customer` with `customer_email`, a recurring price in
+  `payment` mode, `allow_promotion_codes` with `discounts`, `subscription_data` outside
+  subscription mode, `payment_intent_data` outside payment mode, `customer_creation` outside
+  payment mode, inactive prices, mixed currencies, quantities below 1, `trial_end` under 48 h.
 - `POST /__admin/checkout/sessions/:id/complete {"card": "4242…"}` does the same without a browser;
   `…/expire` and `…/async_payment_succeeded` too.
 - `GET /v3` — the Stripe.js stand-in: `Stripe(pk)`, `elements()` → `create("payment"|"card")`,
@@ -195,6 +230,38 @@ finalize; a customer credit balance is applied at finalize; `void` works only on
 
 A publishable key may only confirm or read an intent whose `client_secret` it presents, and create
 payment methods; anything else is Stripe's 401.
+
+### Customer portal
+
+`POST /v1/billing_portal/sessions` returns a `url` on the mock (`/p/session/:id`, in place of
+billing.stripe.com) where the customer manages their billing, as the session's configuration allows:
+
+- **Configurations**: `POST|GET /v1/billing_portal/configurations[/:id]`
+  (`billing_portal.configuration.created|updated`). Each account has a default configuration, as if
+  saved in the dashboard: every feature on, cancellation at period end with a reason, plan and
+  quantity changes with `create_prorations` across every active product with active recurring
+  prices. API-created configurations start with every feature off; `products[].prices` must be
+  recurring prices of that product; the default cannot be deactivated.
+- **Sessions** check the customer, an active configuration, and `flow_data`: the subscription must
+  be the customer's and manageable, the feature enabled, `subscription_update_confirm` prices
+  offered, a retention coupon real (`billing_portal.session.created`). `return_url` falls back to
+  `default_return_url`.
+- **The page** (`data-testid="stripe-mock-portal"`, `data-view`): current subscriptions with their
+  status (trial end, cancels on, past due, paused, payments paused); **Cancel plan** (reason and
+  comment → `cancellation_details`; at period end, or immediately with the configured proration);
+  **Renew plan** for a subscription set to cancel; **Update plan** (price and quantity within the
+  configured bounds, a confirmation step showing the proration, then the configured
+  `proration_behavior`; `trial_update_behavior=end_trial` ends a trial); payment methods (**Add**
+  through a SetupIntent, which becomes the customer's and each subscription's default; **Make
+  default**; **Delete** a non-default card); billing information (the configured `allowed_updates`,
+  `customer.updated` with `previous_attributes`); invoice history with **Pay** for open invoices.
+- **Deep links** open on the flow's page — cancel (with a retention offer to accept), update, update
+  confirmation, payment method, billing details — and on completion honour `after_completion`:
+  `redirect` (302), `hosted_confirmation` (its `custom_message`) or the homepage. Every action
+  runs the same code as the API call it stands for, so the webhooks match.
+
+Like Stripe's portal, it has no pause control: pausing is `pause_collection` or
+`trial_settings` + `/resume` through the API, and the portal shows a paused subscription as such.
 
 ### Test values
 
@@ -299,6 +366,9 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
   `unpaid` and dunning emails are not run.
 - **Proration arithmetic** is day-fraction approximate (Stripe prorates to the second);
   `auto_advance` drafts are not finalized an hour later.
+- **Customer portal extras**: the login page (`login_page.url` is not served), `schedule_at_period_end`
+  downgrades, `billing_cycle_anchor` resets on plan changes, multi-item subscription updates, locales,
+  and payment method configurations. Portal sessions do not expire.
 - **Webhook endpoint `api_version`**: payloads render at the account's version, not per endpoint.
 - **Live keys** (`sk_live_…`) are refused with Stripe's 401: the mock is test mode only.
 - Operations marked unsupported in SUPPORT.md (charge create/update, checkout session update,

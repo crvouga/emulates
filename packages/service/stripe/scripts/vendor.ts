@@ -521,6 +521,12 @@ const unsettable = (schema: Schema): Schema => ({
   anyOf: [schema, { type: "string", enum: [""] }],
 })
 
+/**
+ * A timestamp or `"now"`. The integer branch comes first: form values arrive as strings, and the
+ * form parser reports the first branch's complaint when none matches.
+ */
+const TRIAL_END: Schema = { anyOf: [{ type: "integer" }, { type: "string", enum: ["now"] }] }
+
 const BODY_SHAPES: Record<string, Shape> = {
   PostCustomers: {
     "preferred_locales[]": LOCALE_ITEM,
@@ -890,7 +896,7 @@ const BODY_SHAPES: Record<string, Shape> = {
     proration_behavior: { type: "string", enum: ["always_invoice", "create_prorations", "none"] },
     backdate_start_date: { type: "integer" },
     billing_cycle_anchor: { type: "integer" },
-    trial_end: { type: "integer" },
+    trial_end: TRIAL_END,
     trial_period_days: { type: "integer", minimum: 1 },
     application_fee_percent: unsupported("Connect is not modelled"),
     automatic_tax: unsupported("tax is not modelled"),
@@ -910,6 +916,7 @@ const BODY_SHAPES: Record<string, Shape> = {
     transfer_data: unsupported("Connect is not modelled"),
   },
   PostSubscriptionsSubscriptionExposedId: {
+    trial_end: TRIAL_END,
     default_payment_method: { type: "string" },
     description: { type: "string", maxLength: 5000 },
     metadata: { type: "object" },
@@ -923,7 +930,6 @@ const BODY_SHAPES: Record<string, Shape> = {
     payment_settings: unsupported("subscription payment settings are not modelled"),
     pending_invoice_item_interval: unsupported("pending items are not modelled"),
     transfer_data: unsupported("Connect is not modelled"),
-    trial_end: { type: "integer" },
   },
   DeleteSubscriptionsSubscriptionExposedId: {},
   PostSubscriptionsSubscriptionResume: {

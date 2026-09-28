@@ -771,15 +771,52 @@ export const renderWebhookEndpoint = (
 export const renderEvent = (event: WebhookEventRecord): RecordValue =>
   JSON.parse(event.body) as RecordValue
 
+export type PortalProduct = {
+  product: string
+  prices: string[]
+  adjustable_quantity: { enabled: boolean; maximum: number | null; minimum: number }
+}
+
+/**
+ * The products (and prices) a configuration lets customers switch between. `products: null` (the
+ * mock's dashboard-saved default) means every active product with active licensed recurring prices.
+ */
+export const portalProducts = (
+  scope: AccountState,
+  config: BillingPortalConfigurationRecord,
+): PortalProduct[] => {
+  const configured = config.features.subscription_update.products
+  if (configured !== null) return configured
+  const byProduct = new Map<string, string[]>()
+  for (const { value: price } of scope.prices.list({ order: "oldest" })) {
+    if (!price.active || price.recurring === null || price.recurring.usage_type !== "licensed")
+      continue
+    if (scope.products.get(price.product)?.active !== true) continue
+    byProduct.set(price.product, [...(byProduct.get(price.product) ?? []), price.id])
+  }
+  return [...byProduct.entries()].slice(0, 10).map(([product, prices]) => ({
+    product,
+    prices,
+    adjustable_quantity: { enabled: true, maximum: 99, minimum: 1 },
+  }))
+}
+
 export const renderPortalConfiguration = (
   configuration: BillingPortalConfigurationRecord,
+  scope: AccountState,
 ): RecordValue => ({
   ...base(configuration.id, "billing_portal.configuration", configuration.created),
   active: configuration.active,
   application: null,
   business_profile: configuration.business_profile,
   default_return_url: configuration.default_return_url,
-  features: configuration.features,
+  features: {
+    ...configuration.features,
+    subscription_update: {
+      ...configuration.features.subscription_update,
+      products: portalProducts(scope, configuration),
+    },
+  },
   is_default: configuration.is_default,
   login_page: configuration.login_page,
   metadata: configuration.metadata,

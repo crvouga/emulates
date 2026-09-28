@@ -36751,7 +36751,11 @@ paths:
                   x-mockingbird-unsupported:
                     reason: Connect is not modelled
                 trial_end:
-                  type: integer
+                  anyOf:
+                    - type: integer
+                    - type: string
+                      enum:
+                        - now
                 trial_from_plan:
                   type: boolean
                 trial_period_days:
@@ -38009,7 +38013,11 @@ paths:
                   x-mockingbird-unsupported:
                     reason: Connect is not modelled
                 trial_end:
-                  type: integer
+                  anyOf:
+                    - type: integer
+                    - type: string
+                      enum:
+                        - now
                 trial_from_plan:
                   type: boolean
                 trial_settings:
