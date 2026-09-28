@@ -190,3 +190,13 @@ status for metrics/journal and avoids automatic mutation checkpointing for the
 read-only upgrade. The transport must emit the actual 101 and keep ordinary
 Fetch callers out of this admission path; Web Response cannot represent 101.
 The annotation is private object metadata, not a client-controlled header.
+
+### Slash-bearing terminal path parameters
+
+Operations can opt into a terminal parameter spanning multiple path segments with
+`x-mockingbird: { path: { parameter: "ref" } }`. The named placeholder must be the
+last entire segment of the OpenAPI path. Add `allowEmpty: true` when the provider
+also accepts an omitted suffix (with or without its preceding slash). The handler
+receives the decoded parameter, or an empty string for that omitted suffix.
+Dispatch and runtime operation matching share this contract, including fault rules
+and journals. Unannotated parameters continue to match one segment.

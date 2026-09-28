@@ -19,6 +19,7 @@ import {
   responseNotes,
 } from "./journal.js"
 import { createMetrics, type Metrics, type RequestLog } from "./metrics.js"
+import { operationPath } from "./path.js"
 import { createRng, type Rng, seedFrom } from "./rng.js"
 import { bootSqlite } from "./service.js"
 import { type NamespaceSnapshot, restoreNamespace, snapshotNamespace } from "./snapshot.js"
@@ -228,14 +229,7 @@ const operationMatcher = (document: OpenAPIDocument) => {
     .map((operation) => ({
       operationId: operation.operationId,
       method: operation.method.toUpperCase(),
-      pattern: new RegExp(
-        `^${operation.path
-          .split("/")
-          .map((segment) =>
-            segment.startsWith("{") ? "[^/]+" : segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-          )
-          .join("/")}/?$`,
-      ),
+      pattern: operationPath(operation).pattern,
       params: (operation.path.match(/\{/g) ?? []).length,
     }))
     .sort((a, b) => a.params - b.params)

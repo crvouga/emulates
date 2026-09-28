@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-github
 
 WIP GitHub REST mock targeting `X-GitHub-Api-Version: 2026-03-10`.
-Only repository observations are implemented. References and pull requests are
-inventoried but currently return an explicit mock-only 501 response.
+Repository observations and commit-backed references are implemented. Pull requests
+are inventoried but currently return an explicit mock-only 501 response.
 [API_EVIDENCE.md](API_EVIDENCE.md) pins the source and distinguishes research from
 runtime verification. [SUPPORT.md](SUPPORT.md) is generated from the contract.
 
@@ -81,3 +81,20 @@ provided. Seeded ancestry does not prove a real repository's contents. No
 expected-old-SHA or universal pull-request idempotency guarantee is added.
 Use synthetic fixture names only; journal records omit bodies and credential/query
 values. Package tests require no GitHub account or network service.
+
+## References
+
+`GET /repos/{owner}/{repo}/git/ref/heads/topic/nested` reads an exact ref;
+`GET .../git/matching-refs/heads/topic` returns prefix matches. Omit the suffix
+(with or without a trailing slash) to list all synthetic refs. Names are case-sensitive;
+owner/repository lookup remains case-insensitive. Matching refs are sorted by full name.
+
+Create with `POST .../git/refs` and `{ "ref": "refs/heads/topic", "sha": "<seeded SHA>" }`.
+Update with `PATCH .../git/refs/heads/topic` and `{ "sha": "<seeded SHA>" }`.
+Default `force: false` requires ancestry from the head current at mutation time.
+`force: true` permits a synthetic non-fast-forward update; it never invokes Git or
+GitHub. Unknown fields do not confer an expected-old-SHA lease or idempotency.
+
+Only commit-backed references are modeled; annotated tag objects and provider-managed
+pull refs are unsupported. Exact error wording, condition/status mapping and validation
+precedence are provisional until the bounded oracle compares them; see API_EVIDENCE.md.

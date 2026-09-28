@@ -10,6 +10,7 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { refHandlers } from "./refs.js"
 import { GitHubState } from "./state.js"
 
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
@@ -42,6 +43,7 @@ export class GitHubAPI implements FetchAPI {
       namespace: this.namespace,
       now: options.now,
       handlers: defineOperations<SupportedOperationId>({
+        ...refHandlers(this.state),
         "repos/get": async ({ params }) => {
           const repo = this.state.repository(params.owner ?? "", params.repo ?? "")
           return repo ? jsonRes(200, repo) : missing()

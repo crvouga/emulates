@@ -14,6 +14,7 @@ import {
   type SqliteClient,
 } from "@crvouga/mockingbird-sqlite"
 import { type Context, Hono } from "hono"
+import { operationPath } from "./path.js"
 
 /** Options every provider constructor accepts. */
 export type APIOptions = {
@@ -115,8 +116,6 @@ export type Service = FetchAPI & {
   reset(): Promise<void>
 }
 
-const honoPath = (template: string) => template.replace(/\{([^}]+)\}/g, ":$1")
-
 /** Static segments before parameters so `/v1/customers/search` beats `/v1/customers/:id`. */
 const routeOrder = (a: Operation, b: Operation) => {
   const sa = a.path.split("/")
@@ -156,6 +155,7 @@ export const createService = (options: ServiceOptions): Service => {
 
   const operations = [...listOperations(options.document)].sort(routeOrder)
   for (const operation of operations) {
+    const path = operationPath(operation)
     const metadata = operationMetadata(operation.operation)
     const handler = options.handlers[operation.operationId]
     const route = async (c: Context) => {
@@ -169,7 +169,7 @@ export const createService = (options: ServiceOptions): Service => {
       const context: OperationContext = {
         request,
         url,
-        params: c.req.param(),
+        params: { ...(path.emptyParameter ? { [path.emptyParameter]: "" } : {}), ...c.req.param() },
         query: queryOf(url),
         body: await readBody(request),
         sqlite: options.sqlite,
@@ -182,7 +182,7 @@ export const createService = (options: ServiceOptions): Service => {
       if (short) return short
       return handler(context)
     }
-    app.on(operation.method.toUpperCase(), honoPath(operation.path), route)
+    app.on(operation.method.toUpperCase(), path.routes, route)
   }
 
   return {

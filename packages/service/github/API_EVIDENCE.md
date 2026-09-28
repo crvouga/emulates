@@ -171,3 +171,32 @@ an explicit owned disposable repository and operations/cleanup scope; missing
 credentials must be reported by key name only. No default-branch update, merge,
 force-push or unrelated resource modification is allowed. All provider limitations
 must remain visible in SUPPORT/README and the oracle report.
+
+## US-026 reference implementation evidence
+
+Refreshed Context7 `/websites/github_en_rest` and official GitHub refs documentation
+on 2026-09-27 against the same pinned schema. Get is exact, list is prefix-based
+(including an omitted prefix), create requires a qualified name and a nonempty
+repository, and update accepts SHA plus optional force. The commit graph is synthetic;
+non-forced writes check the current head inside the write transaction. An ignored
+unknown `expected_sha` field cannot create an expected-head lease.
+
+Ref naming follows the [Git reference format rules](https://git-scm.com/docs/git-check-ref-format)
+for slash components, forbidden punctuation/control characters, `..`, `@{`, trailing
+dots and `.lock`. These rules are implemented locally, without invoking Git.
+Only seeded commit objects are modeled; annotated tags and provider-managed pull
+refs are not implemented. Force rewrites synthetic records only.
+
+Current errors use a documented provisional profile: missing repository/read ref
+404; creation in an empty repository409; duplicate or directory-name collision,
+missing target object/update ref, malformed input and non-fast-forward update422.
+Bodies contain message, documentation_url and string status. Exact condition/status
+mapping, validation precedence and messages are not live-verified against the pinned
+API. The schema's generic409/422 inventory alone does not establish these details;
+US-030 must compare and correct the provisional profile before claiming live parity.
+No real GitHub writes or notifications occurred during this implementation.
+
+Hono's [slash-bearing parameter documentation](https://hono.dev/docs/api/routing)
+and installed4.11.9 behavior support an explicit terminal-tail route. Shared core
+compiles dispatch and journal/fault matching from the same opt-in metadata. Ordinary
+parameters retain single-segment routing; only list-matching-refs allows empty tail.

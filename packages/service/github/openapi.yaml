@@ -9,7 +9,7 @@ info:
 servers:
   - url: https://api.github.com
 paths:
-  /repos/{owner}/{repo}:
+  "/repos/{owner}/{repo}":
     get:
       operationId: repos/get
       summary: Get a seeded repository
@@ -48,16 +48,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
-  /repos/{owner}/{repo}/git/ref/{ref}:
+  "/repos/{owner}/{repo}/git/ref/{ref}":
     get:
       operationId: git/get-ref
-      summary: Inventoried operation, not yet implemented
+      summary: Get a reference
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
+        path:
+          parameter: ref
       parameters:
         - in: path
           name: owner
@@ -75,22 +76,48 @@ paths:
           schema:
             type: string
       responses:
+        "200":
+          description: Reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reference"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
-  /repos/{owner}/{repo}/git/matching-refs/{ref}:
+  "/repos/{owner}/{repo}/git/matching-refs/{ref}":
     get:
       operationId: git/list-matching-refs
-      summary: Inventoried operation, not yet implemented
+      summary: List matching references
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
+        path:
+          parameter: ref
+          allowEmpty: true
       parameters:
         - in: path
           name: owner
@@ -108,19 +135,44 @@ paths:
           schema:
             type: string
       responses:
+        "200":
+          description: Reference
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reference"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
-  /repos/{owner}/{repo}/git/refs:
+  "/repos/{owner}/{repo}/git/refs":
     post:
       operationId: git/create-ref
-      summary: Inventoried operation, not yet implemented
+      summary: Create a reference
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
@@ -136,22 +188,62 @@ paths:
           schema:
             type: string
       responses:
+        "201":
+          description: Reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reference"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
-  /repos/{owner}/{repo}/git/refs/{ref}:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ref
+                - sha
+              properties:
+                sha:
+                  type: string
+                  pattern: "^[a-fA-F0-9]{40}$"
+                ref:
+                  type: string
+  "/repos/{owner}/{repo}/git/refs/{ref}":
     patch:
       operationId: git/update-ref
-      summary: Inventoried operation, not yet implemented
+      summary: Update a reference
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
+        path:
+          parameter: ref
       parameters:
         - in: path
           name: owner
@@ -169,16 +261,55 @@ paths:
           schema:
             type: string
       responses:
+        "200":
+          description: Reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reference"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
-  /repos/{owner}/{repo}/pulls:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sha
+              properties:
+                sha:
+                  type: string
+                  pattern: "^[a-fA-F0-9]{40}$"
+                force:
+                  type: boolean
+                  default: false
+  "/repos/{owner}/{repo}/pulls":
     get:
       operationId: pulls/list
-      summary: Inventoried operation, not yet implemented
+      summary: "Inventoried operation, not yet implemented"
       x-mockingbird:
         supported: false
         reason: Implementation is scheduled in the reference and pull-request stories.
@@ -205,7 +336,7 @@ paths:
                 $ref: "#/components/schemas/MockError"
     post:
       operationId: pulls/create
-      summary: Inventoried operation, not yet implemented
+      summary: "Inventoried operation, not yet implemented"
       x-mockingbird:
         supported: false
         reason: Implementation is scheduled in the reference and pull-request stories.
@@ -230,10 +361,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
-  /repos/{owner}/{repo}/pulls/{pull_number}:
+  "/repos/{owner}/{repo}/pulls/{pull_number}":
     get:
       operationId: pulls/get
-      summary: Inventoried operation, not yet implemented
+      summary: "Inventoried operation, not yet implemented"
       x-mockingbird:
         supported: false
         reason: Implementation is scheduled in the reference and pull-request stories.
@@ -265,7 +396,7 @@ paths:
                 $ref: "#/components/schemas/MockError"
     patch:
       operationId: pulls/update
-      summary: Inventoried operation, not yet implemented
+      summary: "Inventoried operation, not yet implemented"
       x-mockingbird:
         supported: false
         reason: Implementation is scheduled in the reference and pull-request stories.
@@ -299,7 +430,19 @@ components:
   schemas:
     Repository:
       type: object
-      required: [id, node_id, name, full_name, owner, private, fork, default_branch, url, html_url, created_at, updated_at]
+      required:
+        - id
+        - node_id
+        - name
+        - full_name
+        - owner
+        - private
+        - fork
+        - default_branch
+        - url
+        - html_url
+        - created_at
+        - updated_at
       properties:
         id:
           type: integer
@@ -314,7 +457,11 @@ components:
           type: string
         owner:
           type: object
-          required: [login, id, node_id, type]
+          required:
+            - login
+            - id
+            - node_id
+            - type
           properties:
             login:
               type: string
@@ -324,7 +471,8 @@ components:
               type: string
             type:
               type: string
-              enum: [Organization]
+              enum:
+                - Organization
         private:
           type: boolean
         fork:
@@ -341,7 +489,10 @@ components:
           type: string
     Error:
       type: object
-      required: [message, documentation_url, status]
+      required:
+        - message
+        - documentation_url
+        - status
       properties:
         message:
           type: string
@@ -351,10 +502,41 @@ components:
           type: string
     MockError:
       type: object
-      required: [message, code]
+      required:
+        - message
+        - code
       properties:
         message:
           type: string
         code:
           type: string
           const: mockingbird_unsupported
+    Reference:
+      type: object
+      required:
+        - ref
+        - node_id
+        - url
+        - object
+      properties:
+        ref:
+          type: string
+        node_id:
+          type: string
+        url:
+          type: string
+        object:
+          type: object
+          required:
+            - type
+            - sha
+            - url
+          properties:
+            type:
+              type: string
+              const: commit
+            sha:
+              type: string
+              pattern: "^[a-f0-9]{40}$"
+            url:
+              type: string

@@ -1,5 +1,13 @@
 import { Collection, IdSequence } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export class RefError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message)
+  }
+}
 
 export type Repository = {
   id: number
@@ -40,7 +48,7 @@ export class GitHubState {
   readonly repositories: Collection<Repository>
   readonly owners: Collection<Repository["owner"]>
   readonly commits: Collection<Commit>
-  readonly branches: Collection<{ ref: string; sha: string }>
+  readonly branches: Collection<{ ref: string; sha: string; node_id: string }>
   private readonly ids: IdSequence
   constructor(
     private readonly sqlite: SqliteClient,
@@ -58,6 +66,60 @@ export class GitHubState {
   }
   commit(owner: string, name: string, id: string) {
     return this.commits.get(`${key(owner, name)}:${id}`)
+  }
+  reference(owner: string, name: string, ref: string) {
+    const repo = this.repository(owner, name)
+    const stored = this.branches.get(`${key(owner, name)}:${ref}`)
+    if (!repo || !stored) return undefined
+    return {
+      ref: stored.ref,
+      node_id: stored.node_id,
+      url: `${repo.url}/git/refs/${ref.slice(5).split("/").map(encodeURIComponent).join("/")}`,
+      object: { type: "commit", sha: stored.sha, url: `${repo.url}/git/commits/${stored.sha}` },
+    }
+  }
+  references(owner: string, name: string, prefix = "") {
+    const repoPrefix = `${key(owner, name)}:`
+    return this.branches
+      .list()
+      .filter(
+        (entry) => entry.id.startsWith(repoPrefix) && entry.value.ref.startsWith(`refs/${prefix}`),
+      )
+      .map((entry) => this.reference(owner, name, entry.value.ref))
+      .filter((ref): ref is NonNullable<typeof ref> => ref !== undefined)
+      .sort((left, right) => (left.ref < right.ref ? -1 : left.ref > right.ref ? 1 : 0))
+  }
+  writeReference(
+    owner: string,
+    name: string,
+    ref: string,
+    sha: string,
+    create: boolean,
+    force: boolean,
+  ) {
+    return this.sqlite.transaction(() => {
+      const id = `${key(owner, name)}:${ref}`
+      const current = this.branches.get(id)
+      if (create) {
+        const refs = this.references(owner, name)
+        if (!refs.some((existing) => existing.ref.startsWith("refs/heads/")))
+          throw new RefError(409, "Git Repository is empty.")
+        if (current) throw new RefError(422, "Reference already exists")
+        if (
+          refs.some(
+            (existing) => existing.ref.startsWith(`${ref}/`) || ref.startsWith(`${existing.ref}/`),
+          )
+        )
+          throw new RefError(422, "Reference name conflicts with an existing reference")
+      } else if (!current) throw new RefError(422, "Reference does not exist")
+      if (!this.commit(owner, name, sha)) throw new RefError(422, "Object does not exist")
+      if (current && !force && !this.isAncestor(owner, name, current.sha, sha))
+        throw new RefError(422, "Update is not a fast forward")
+      const value = { ref, sha, node_id: current?.node_id ?? this.ids.next("REF_") }
+      if (current) this.branches.update(id, value)
+      else this.branches.insert(id, value)
+      return this.reference(owner, name, ref)
+    })
   }
   isAncestor(owner: string, name: string, ancestor: string, descendant: string): boolean {
     if (!this.commit(owner, name, ancestor)) return false
@@ -163,6 +225,7 @@ export class GitHubState {
         this.branches.insert(`${repoKey}:refs/heads/${branch}`, {
           ref: `refs/heads/${branch}`,
           sha: id as string,
+          node_id: this.ids.next("REF_"),
         })
       return repo
     })
