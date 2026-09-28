@@ -1,0 +1,11 @@
+{
+  "setup": ["./scripts/worktree/setup.sh"],
+  "run": [
+    {
+      "name": "docs",
+      "commands": ["./scripts/worktree/run.sh"],
+      "default": true
+    }
+  ],
+  "teardown": ["./scripts/worktree/teardown.sh"]
+}
