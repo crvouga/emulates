@@ -11,7 +11,7 @@ export const MASCOT = "🐦‍⬛"
  * docs site page. Flip `enabled` to `false` once the project is stable enough to drop it.
  */
 export const RISK_DISCLAIMER = {
-  enabled: true,
+  enabled: false,
   text: "**Use at your own risk.** Mockingbird is under active development — APIs, behavior and package names may change without notice.",
 }
 
