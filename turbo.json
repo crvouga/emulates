@@ -119,6 +119,9 @@
     "//#check:agents": {
       "cache": false
     },
+    "//#check:worktree": {
+      "inputs": ["scripts/worktree/**", ".superset/config.json", ".super.engineering/config.json"]
+    },
     "//#check:llms": {
       "inputs": [
         "llms.txt",

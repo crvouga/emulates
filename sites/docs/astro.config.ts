@@ -6,7 +6,7 @@ import { catalog } from "./integrations/catalog/index.ts"
 const docsRoot = fileURLToPath(new URL(".", import.meta.url))
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url))
 
-// .superset/run.sh sets this so each workspace keeps the port reserved for it.
+// scripts/worktree/run.sh sets this so each worktree keeps the port reserved for it.
 // Astro's server config has no strictPort; Vite's does, and that is what stops
 // the dev server from sliding onto the next workspace's port.
 const reservedDocsPort = Number(process.env.MOCKINGBIRD_DOCS_PORT)

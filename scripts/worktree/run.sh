@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the docs site's workspace dependencies, then serve it on this
-# workspace's reserved port. The Run button executes this script.
+# worktree's reserved port. Each host's Run action executes this script.
 set -euo pipefail
 
 # shellcheck source=/dev/null
@@ -15,6 +15,7 @@ fi
 
 # Record the shell before exec. exec keeps this pid, so teardown can stop the
 # server (and the dependency build, if delete happens mid-start).
+mkdir -p "$STATE_DIR"
 echo $$ >"$DEV_PID_FILE"
 
 port="$(reserve_docs_port)"
@@ -24,10 +25,9 @@ if [ -z "${NODE_OPTIONS:-}" ]; then
   export NODE_OPTIONS="--max-old-space-size=4096"
 fi
 
-if [ ! -d "$PROJECT_ROOT/node_modules" ]; then
-  echo "Dependencies are missing. Installing..."
-  bun install --frozen-lockfile
-fi
+# Always sync: a checkout set up before a workspace dependency was added has a
+# node_modules that is present but stale. A no-op install takes well under a second.
+bun install --frozen-lockfile
 
 echo "Docs dev server: http://127.0.0.1:$port"
 exec bun docs

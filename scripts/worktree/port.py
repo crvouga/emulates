@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Reserve one docs-server port per Superset workspace.
+"""Reserve one docs-server port per worktree, whichever orchestrator created it.
 
 Allocations live in ~/.superset/port-allocations.json, the shared file from
 https://docs.superset.sh/ports. Each value is the base of a 20-port slot
-aligned to 3000, the same layout superset-sh/superset writes, so workspaces
-from this repo and from others do not overlap. This repo serves the docs site
+aligned to 3000, the same layout superset-sh/superset writes, so worktrees
+from this repo (under any host) and Superset workspaces from others do not
+overlap. This repo serves the docs site
 on the base port.
 
 stdout is only the port number on `reserve`. Everything else goes to stderr.
@@ -12,6 +13,7 @@ stdout is only the port number on `reserve`. Everything else goes to stderr.
 
 from __future__ import annotations
 
+import errno
 import json
 import os
 import shutil
@@ -50,7 +52,7 @@ STALE_LOCK_SECONDS = 300
 
 
 def workspace_key() -> str:
-    raw = os.environ.get("SUPERSET_WORKSPACE_PATH") or os.getcwd()
+    raw = os.environ.get("WORKTREE_PATH") or os.getcwd()
     return os.path.realpath(raw)
 
 
@@ -76,7 +78,7 @@ def port_is_free(port: int) -> bool:
                 sock.bind((host, port))
         except OSError as error:
             # This address family is not available here; it cannot be a conflict.
-            if error.errno in {socket.EAFNOSUPPORT, socket.EADDRNOTAVAIL, socket.EINVAL}:
+            if error.errno in {errno.EAFNOSUPPORT, errno.EADDRNOTAVAIL, errno.EINVAL}:
                 continue
             return False
     return True
@@ -179,8 +181,8 @@ def descendant_pids(pid: int) -> set[int]:
 
 
 def workspace_holds_port(key: str, port: int) -> bool:
-    """True when this workspace's recorded dev server is alive and listening."""
-    pid_file = Path(key) / ".superset" / "dev-server.pid"
+    """True when this worktree's recorded dev server is alive and listening."""
+    pid_file = Path(key) / ".worktree" / "dev-server.pid"
     try:
         pid = int(pid_file.read_text().strip())
     except (OSError, ValueError):

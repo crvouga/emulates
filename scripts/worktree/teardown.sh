@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Stop the docs dev server started by run.sh and release its port.
 # Setup itself does not leave a process behind; the server is started on demand
-# by the Run button. Deleting a workspace still has to stop that process and
-# give the port back, or the next workspace cannot reuse the slot.
+# by the Run action. Deleting a worktree still has to stop that process and
+# give the port back, or the next worktree cannot reuse the slot.
 set -euo pipefail
 
 # shellcheck source=/dev/null
@@ -18,5 +18,5 @@ else
   exit 1
 fi
 
-rm -f "$DEV_PORT_FILE" "$PORTS_JSON"
+rm -f "$DEV_PORT_FILE" "$SUPERSET_PORTS_JSON"
 echo "Teardown complete."
