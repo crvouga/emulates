@@ -1,7 +1,10 @@
 import {
   Collection,
+  DroppedConnectionError,
+  faultEffect,
   IdSequence,
   jsonRes,
+  markMutationAccepted,
   type OperationHandler,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
@@ -258,7 +261,7 @@ export const pullHandlers = (
 ): Record<"pulls/create" | "pulls/get" | "pulls/list" | "pulls/update", OperationHandler> => {
   const handle =
     (kind: "create" | "get" | "list" | "update"): OperationHandler =>
-    ({ params, body, url }) => {
+    ({ params, body, url, request }) => {
       const docs = `https://docs.github.com/rest/pulls/pulls#${kind === "list" ? "list-pull-requests" : kind === "get" ? "get-a-pull-request" : kind === "create" ? "create-a-pull-request" : "update-a-pull-request"}`
       try {
         const repo = state.repository(params.owner ?? "", params.repo ?? "")
@@ -273,10 +276,11 @@ export const pullHandlers = (
         if (body.kind !== "empty" && body.kind !== "json")
           unsupported("non-JSON pull request bodies")
         const input = body.kind === "json" && record(body.value) ? body.value : {}
-        return jsonRes(
-          kind === "create" ? 201 : 200,
-          kind === "create" ? pulls.create(repo, input) : pulls.update(repo, number, input),
-        )
+        const result =
+          kind === "create" ? pulls.create(repo, input) : pulls.update(repo, number, input)
+        markMutationAccepted(request, { ids: { pullNumber: String(result.number) } })
+        if (faultEffect(request, "github.accepted_drop")) throw new DroppedConnectionError()
+        return jsonRes(kind === "create" ? 201 : 200, result)
       } catch (error) {
         if (!(error instanceof PullError)) throw error
         if (error.status === 501)

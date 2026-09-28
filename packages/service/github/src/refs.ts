@@ -1,4 +1,10 @@
-import { jsonRes, type OperationHandler } from "@crvouga/mockingbird-service"
+import {
+  DroppedConnectionError,
+  faultEffect,
+  jsonRes,
+  markMutationAccepted,
+  type OperationHandler,
+} from "@crvouga/mockingbird-service"
 import { type GitHubState, RefError, record } from "./state.js"
 
 export const validRef = (value: string): boolean =>
@@ -20,7 +26,7 @@ export const refHandlers = (
 > => {
   const handle =
     (kind: "get" | "list" | "create" | "update"): OperationHandler =>
-    ({ params, body }) => {
+    ({ params, body, request }) => {
       const owner = params.owner ?? "",
         name = params.repo ?? ""
       const docs = `https://docs.github.com/rest/git/refs#${kind === "get" ? "get-a-reference" : kind === "list" ? "list-matching-references" : kind === "create" ? "create-a-reference" : "update-a-reference"}`
@@ -53,6 +59,8 @@ export const refHandlers = (
           kind === "create",
           input.force === true,
         )
+        markMutationAccepted(request, { ids: { ref } })
+        if (faultEffect(request, "github.accepted_drop")) throw new DroppedConnectionError()
         return jsonRes(kind === "create" ? 201 : 200, result)
       } catch (error) {
         if (!(error instanceof RefError)) throw error

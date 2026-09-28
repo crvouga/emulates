@@ -130,3 +130,38 @@ If the response is lost, list by head/base across pages, then retrieve the match
 number; retrying create can yield the duplicate error. Duplicate-envelope evidence
 comes from public first-hand API reports, not a pinned-version live comparison.
 See API_EVIDENCE.md for the remaining oracle and error-precedence gaps.
+
+## Publication fault scenarios
+
+Activate a namespace-scoped preset through `POST /__admin/faults` with
+`{ "preset": "github_pr_create_accepted_drop" }`. List presets with
+`GET /__admin/faults/presets`. Existing shared fault overrides can narrow an
+operation/path, change a response or retire a scenario after a chosen count.
+
+- `github_pr_create_accepted_drop`, `github_pr_update_accepted_drop`,
+  `github_ref_create_accepted_drop`, `github_ref_update_accepted_drop`: the next
+  matching request reaches normal validation. Only a successful mutation is
+  accepted, checkpointed and followed by a dropped response. Invalid requests
+  retain their ordinary errors and consume that one-shot rule. In-process Fetch
+  rejects with TypeError; the Node HTTP adapter closes the connection. Recover
+  through provider reads; retrying a create may return a duplicate error.
+- `github_unavailable`: one503 before mutation for each of the four write operations.
+- `github_denied`: one403 with a scripted integration-denied message per write
+  operation. This does not inspect credentials or evaluate permissions/rules.
+- `github_rate_limited`: one secondary-limit429 per write operation, Retry-After60
+  and a synthetic remaining count1. Static headers exercise client backoff; there
+  is no automatic quota engine, timer-driven expiry, or claim that every GitHub
+  rate limit has this status/message/header combination.
+
+Accepted write journal entries record `accepted`, checkpoint and ref/PR-number
+metadata even when response status is0. Bodies are omitted. Fault settings follow
+shared runtime lifetime and are not rewound by provider-state checkout.
+
+To model a separate intervening actor, call `POST /__admin/github/refs/move` with
+`{ "owner": "synthetic-org", "repo": "example", "ref": "refs/heads/topic", "sha": "<seeded SHA>" }`
+between a client's read and write. This mock-only control requires an existing
+branch and a seeded fast-forward target, creates a separate checkpoint, and
+returns `simulated: true`. It cannot create refs, force rewrites or mutate another
+namespace. Invalid controls leave state/history unchanged. Subsequent writes use
+the current tip's ancestry; a stale observation alone is not grounds for rejection.
+This control models interleaving, not atomic publication or real branch enforcement.

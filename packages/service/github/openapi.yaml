@@ -194,6 +194,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Reference"
+        "403":
+          description: Scripted integration denial
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Error
           content:
@@ -212,12 +218,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "429":
+          description: Scripted secondary rate limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          headers:
+            Retry-After:
+              schema:
+                type: string
+            X-RateLimit-Remaining:
+              schema:
+                type: string
+            X-RateLimit-Resource:
+              schema:
+                type: string
         "501":
           description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
+        "503":
+          description: Scripted unavailability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: true
         content:
@@ -267,6 +295,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Reference"
+        "403":
+          description: Scripted integration denial
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Error
           content:
@@ -285,12 +319,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "429":
+          description: Scripted secondary rate limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          headers:
+            Retry-After:
+              schema:
+                type: string
+            X-RateLimit-Remaining:
+              schema:
+                type: string
+            X-RateLimit-Resource:
+              schema:
+                type: string
         "501":
           description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
+        "503":
+          description: Scripted unavailability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: true
         content:
@@ -444,6 +500,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Scripted integration denial
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Error
           content:
@@ -456,12 +518,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PullValidationError"
+        "429":
+          description: Scripted secondary rate limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          headers:
+            Retry-After:
+              schema:
+                type: string
+            X-RateLimit-Remaining:
+              schema:
+                type: string
+            X-RateLimit-Resource:
+              schema:
+                type: string
         "501":
           description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
+        "503":
+          description: Scripted unavailability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: true
         content:
@@ -587,6 +671,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Scripted integration denial
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Error
           content:
@@ -599,12 +689,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PullValidationError"
+        "429":
+          description: Scripted secondary rate limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          headers:
+            Retry-After:
+              schema:
+                type: string
+            X-RateLimit-Remaining:
+              schema:
+                type: string
+            X-RateLimit-Resource:
+              schema:
+                type: string
         "501":
           description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
+        "503":
+          description: Scripted unavailability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: false
         content:

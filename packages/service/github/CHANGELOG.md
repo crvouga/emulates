@@ -9,3 +9,4 @@
   checks and synthetic force behavior. Exact error profiles remain oracle-pending.
 - Add same-repository PR create/get/list/update, current-tip reads, duplicate
   validation, filtered pagination and namespace-preserving links.
+- Add scripted publication failures, accepted response loss and separate intervening ref movement controls.

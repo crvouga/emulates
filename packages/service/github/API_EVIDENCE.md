@@ -240,3 +240,23 @@ create, then independently lists and gets the PR. It proves recoverable stored s
 not a real network failure or live GitHub retry guarantee. Shared accepted-write
 transport-drop presets are the next story. No real PRs, notifications, credentials
 or external mutations were used here.
+
+## US-028 scripted publication faults
+
+Read on2026-09-28: GitHub's official
+[rate-limit guide](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
+and [troubleshooting guide](https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api)
+document primary/secondary failures as403 or429, primary remaining0, and waiting
+for Retry-After when supplied. They identify integration-denied errors as a
+permissions symptom. These sources support the response categories, not an exact
+universal envelope or the fixture's chosen remaining1/Retry-After60 values.
+The presets deliberately script secondary429, denied403 and unavailable503
+observations. No real credentials, permissions, protection rules, quotas or outages
+are evaluated; exact fault fixture wording is not pinned live parity evidence.
+
+Accepted-drop scenarios reuse shared acceptance/checkpoint and socket-drop handling;
+tests compare accepted state, metadata-only journal and restored history for all four
+write operations. A local loopback HTTP test verifies PR discovery after the Node
+adapter closes the response connection. This is local transport evidence, not a
+claim about GitHub's network. Ref movement uses a separate mock-only admin checkpoint
+and seeded fast-forward ancestry; no expected-old-SHA lease is introduced.

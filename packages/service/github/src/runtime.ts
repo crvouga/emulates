@@ -6,7 +6,9 @@ import {
 } from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { GITHUB_NAMESPACE, GitHubAPI } from "./index.js"
-import { SeedError } from "./state.js"
+import { presets } from "./presets.js"
+import { validRef } from "./refs.js"
+import { RefError, record, SeedError } from "./state.js"
 export type GitHubRuntimeOptions = Pick<
   RuntimeOptions<GitHubAPI>,
   "sqlite" | "clock" | "seed" | "adminKey" | "onLog" | "journalSize" | "maxCheckpoints"
@@ -17,7 +19,45 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
     ...options,
     name: GITHUB_NAMESPACE,
     document,
+    presets,
     admin: (runtime) => ({
+      "POST /github/refs/move": ({ body, namespace }) => {
+        if (
+          !record(body) ||
+          typeof body.owner !== "string" ||
+          typeof body.repo !== "string" ||
+          typeof body.ref !== "string" ||
+          !body.ref.startsWith("refs/heads/") ||
+          !validRef(body.ref) ||
+          typeof body.sha !== "string" ||
+          !/^[a-fA-F0-9]{40}$/.test(body.sha)
+        )
+          return jsonRes(400, {
+            code: "mockingbird_control_invalid",
+            message: "Expected owner, repo, full branch ref and seeded 40-hex sha",
+          })
+        try {
+          const reference = runtime
+            .instance(namespace)
+            .state.writeReference(
+              body.owner,
+              body.repo,
+              body.ref,
+              body.sha.toLowerCase(),
+              false,
+              false,
+            )
+          const checkpoint = runtime.checkpoint(namespace)
+          return jsonRes(200, { reference, checkpoint: checkpoint.id, simulated: true })
+        } catch (error) {
+          if (error instanceof RefError)
+            return jsonRes(error.status, {
+              code: "mockingbird_control_invalid",
+              message: error.message,
+            })
+          throw error
+        }
+      },
       "POST /github/repositories": ({ body, namespace }) => {
         try {
           const repo = runtime.instance(namespace).state.seed(body)
