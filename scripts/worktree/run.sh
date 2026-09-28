@@ -25,10 +25,9 @@ if [ -z "${NODE_OPTIONS:-}" ]; then
   export NODE_OPTIONS="--max-old-space-size=4096"
 fi
 
-if [ ! -d "$PROJECT_ROOT/node_modules" ]; then
-  echo "Dependencies are missing. Installing..."
-  bun install --frozen-lockfile
-fi
+# Always sync: a checkout set up before a workspace dependency was added has a
+# node_modules that is present but stale. A no-op install takes well under a second.
+bun install --frozen-lockfile
 
 echo "Docs dev server: http://127.0.0.1:$port"
 exec bun docs
