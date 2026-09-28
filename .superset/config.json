@@ -1,5 +1,5 @@
 {
-  "setup": ["./.superset/setup.sh"],
-  "teardown": ["./.superset/teardown.sh"],
-  "run": ["./.superset/run.sh"]
+  "setup": ["./scripts/worktree/setup.sh"],
+  "teardown": ["./scripts/worktree/teardown.sh"],
+  "run": ["./scripts/worktree/run.sh"]
 }

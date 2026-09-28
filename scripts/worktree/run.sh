@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the docs site's workspace dependencies, then serve it on this
-# workspace's reserved port. The Run button executes this script.
+# worktree's reserved port. Each host's Run action executes this script.
 set -euo pipefail
 
 # shellcheck source=/dev/null
@@ -15,6 +15,7 @@ fi
 
 # Record the shell before exec. exec keeps this pid, so teardown can stop the
 # server (and the dependency build, if delete happens mid-start).
+mkdir -p "$STATE_DIR"
 echo $$ >"$DEV_PID_FILE"
 
 port="$(reserve_docs_port)"

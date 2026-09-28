@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copy local untracked files (including .env.local) from the main checkout,
-# reserve a docs port for this workspace, then run the repo's one-command setup.
+# reserve a docs port for this worktree, then run the repo's one-command setup.
 set -euo pipefail
 
 # shellcheck source=/dev/null
