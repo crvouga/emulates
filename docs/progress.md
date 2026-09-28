@@ -902,3 +902,21 @@
 ```
 
 - No remediation/targeted pass or qualifying memory update. All US-023 checks/criteria pass, root571/571 and browser/package evidence above. WIP retained with explicit exclusions. Provisional completion awaits successful authorized commit. Intended commit feat(US-023): deliver hermes documentation and catalog integration. Commit status pending (not yet delivered). Next eligibleUS-024;8stories remain after delivery.
+
+## 2026-09-27 UTC - US-024 contract research and verification
+
+- US-023 delivered0f973b42; selected eligibleUS-024 with clean worktree/exact branch. Standard mode, documentation-only research; no advisors needed. Applied search-web and existing develop-code guidance for source validation. User's implementation/commit authorization persists; no sensitive operations needed.
+- Context7 resolved /websites/github_en_rest and queried repository identities, ref read/create/update/matching, PR CRUD/filter/pagination/idempotency. Results lacked pinned version and exact duplicates; reconciled with official version policy and immutable stable version-specific OpenAPI. Chose supported2026-03-10, not default2022-11-28 or descriptions-next. Commitc6721f32a17a71397ae46be21be90d7f1a173b6e, fileSHA256106b151eb723284d9449cd6dae26bc87e60d313f75e8ad98c18e9327d4281b88. Unversioned schema initially fetched only for discovery, then replaced as authority by explicit2026-03-10file. Read-only public retrieval only; no credentials/account/writes/notifications.
+- Added packages/service/github/API_EVIDENCE.md:9operation inventory,statuses,identity/namespace/ancestry boundaries,RESTsha/force without expected-old-SHA,PRreconciliation without fictional universalidempotency,pagination/errors and exact unresolved oracle questions. Explicit exclusions for Git transport,token issuance,ruleset/production authorization,atomicpublication/consumerpolicy. No runtime support or parity claim.
+- Direct schema validation confirms digest, complete update properties/force default, matchingrefs lackpageparameters,PRpage/per_pagedefaults. Root bun run typecheck191/191cachedpass (.mockingbird/us024-typecheck.log); whitespacepass. Documentation-only source/link validation, no artificial tests/UI. No package manifest/config/build/dependency changes.
+- Review selection: trivial staged documentation-only candidate under standard mode permits self-review; explicit CodexGoalMarkdown profile expanded-initial, pass initial, attempt1. This is not independent review. No native role substitution. Intended commit feat(US-024): define the versioned github rest contract. Commit status pending (not yet delivered). Completion unset until review. Next eligibleUS-025.
+
+## 2026-09-27 UTC - US-024 self-review and finalization
+
+- Expanded-initial/initial self-review inspected staged names/status/stat then complete path-scoped API_EVIDENCE patch against retrieved version-specific schema and primary docs. No native reviewer required for this trivial documentation-only candidate; no independent review claimed. Result:
+
+```json
+{"verdict":"pass","pass_type":"initial","findings":[],"resolved_findings":[],"executor_feedback":{"priority_order":[],"recommended_checks":[],"avoid":["Do not promote unresolved duplicate/error wording into verified runtime semantics."]},"residual_risks":["Exact mutation/duplicate error envelopes and live comparisons remain later implementation/oracle gates."],"learning_candidates":[]}
+```
+
+- No remediation/memory changes. Source and typecheck criteria pass; provisional completion awaits authorized commit. Intended commit feat(US-024): define the versioned github rest contract. Commit status pending (not yet delivered). Next eligibleUS-025;7stories remain after delivery.
