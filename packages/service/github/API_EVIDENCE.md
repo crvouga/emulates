@@ -200,3 +200,43 @@ Hono's [slash-bearing parameter documentation](https://hono.dev/docs/api/routing
 and installed4.11.9 behavior support an explicit terminal-tail route. Shared core
 compiles dispatch and journal/fault matching from the same opt-in metadata. Ordinary
 parameters retain single-segment routing; only list-matching-refs allows empty tail.
+
+## US-027 pull-request implementation evidence
+
+Context7 `/websites/github_en_rest` was refreshed for PR create/get/list/update,
+filters and pagination; request fields were checked directly against the pinned
+2026-03-10 schema. The unrelated update-branch operation has an expected_head_sha
+field; that is not the ref-update endpoint and is not part of this contract.
+
+Duplicate creation is grounded in first-hand public API error reports:
+[Renovate discussion19913](https://github.com/renovatebot/renovate/discussions/19913)
+contains a POST /pulls422 response, message Validation Failed, and an errors item
+with resource PullRequest, code custom, and a message identifying the existing
+owner-qualified head with a final period. [Release Please issue2773](https://github.com/googleapis/release-please/issues/2773)
+reports the same duplicate-create failure after lookup misses an existing PR in
+May2026. These are original incident observations, not a versioned GitHub guarantee;
+no real names or repository data from those reports are copied into fixtures.
+They establish the modeled duplicate shape, not all validation precedence or
+closed/reopened/cross-repository cases. US030 still needs the selected-version oracle.
+
+Same-repository PR identity and mutable title/body/state/base flags are stored in
+shared Collections with a separate per-repository number sequence. Open read/list
+responses project current branch-tip SHAs. Closed records retain captured tips until
+explicitly updated; timestamp/event propagation, tree/content differences, merge-base
+computation and actual mergeability are not claimed. Synthetic ancestry with head
+reachable from base cannot create a PR. Other validation envelopes and closed PR
+recreation/reopening behavior remain provisional until compared.
+
+Supported list filters are applied before sorting/paging. Default page1/per_page30,
+cap100 and Link navigation follow the pinned fields and pagination guide. Popularity
+and long-running sorts, issue conversion, cross-repository networks and non-JSON
+bodies are explicit limitations. Negative/noninteger pagination validation is a
+synthetic422 profile pending oracle evidence. Namespace pagination is rewritten at
+the GitHub runtime response boundary using the original public header/path carrier;
+physical Timeline storage namespaces are never exposed in links.
+
+The lost-ack test drops the caller's received response after a successful local
+create, then independently lists and gets the PR. It proves recoverable stored state,
+not a real network failure or live GitHub retry guarantee. Shared accepted-write
+transport-drop presets are the next story. No real PRs, notifications, credentials
+or external mutations were used here.

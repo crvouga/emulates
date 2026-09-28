@@ -10,7 +10,11 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { GitHubPulls, pullHandlers } from "./pulls.js"
 import { refHandlers } from "./refs.js"
+
+export type { PullRequest } from "./pulls.js"
+
 import { GitHubState } from "./state.js"
 
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
@@ -32,11 +36,13 @@ export class GitHubAPI implements FetchAPI {
   readonly sqlite: SqliteClient
   readonly namespace: string
   readonly state: GitHubState
+  readonly pulls: GitHubPulls
   private readonly service: Service
   constructor(options: GitHubAPIOptions = {}) {
     this.sqlite = bootSqlite(options.sqlite)
     this.namespace = options.namespace ?? GITHUB_NAMESPACE
     this.state = new GitHubState(this.sqlite, this.namespace, options.now ?? Date.now)
+    this.pulls = new GitHubPulls(this.sqlite, this.namespace, this.state, options.now ?? Date.now)
     this.service = createService({
       document,
       sqlite: this.sqlite,
@@ -44,6 +50,7 @@ export class GitHubAPI implements FetchAPI {
       now: options.now,
       handlers: defineOperations<SupportedOperationId>({
         ...refHandlers(this.state),
+        ...pullHandlers(this.state, this.pulls),
         "repos/get": async ({ params }) => {
           const repo = this.state.repository(params.owner ?? "", params.repo ?? "")
           return repo ? jsonRes(200, repo) : missing()

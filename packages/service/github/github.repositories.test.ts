@@ -64,7 +64,7 @@ test("missing repositories and unsupported routes are explicit; namespace reset 
     new Request("http://github.mock/ns/a/repos/synthetic-org/example"),
   )
   expect(path.status).toBe(200)
-  expect((await request(runtime, "/repos/synthetic-org/example/pulls")).status).toBe(501)
+  expect((await request(runtime, "/repos/synthetic-org/example/pulls")).status).toBe(200)
   await request(runtime, "/__admin/github/repositories", seed, "b")
   await request(runtime, "/__admin/reset", {}, "a")
   expect((await request(runtime, "/repos/synthetic-org/example")).status).toBe(404)

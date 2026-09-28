@@ -12,8 +12,8 @@ export type GitHubRuntimeOptions = Pick<
   "sqlite" | "clock" | "seed" | "adminKey" | "onLog" | "journalSize" | "maxCheckpoints"
 >
 export type GitHubRuntime = ServiceRuntime<GitHubAPI>
-export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime =>
-  createServiceRuntime({
+export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime => {
+  const runtime = createServiceRuntime<GitHubAPI>({
     ...options,
     name: GITHUB_NAMESPACE,
     document,
@@ -35,3 +35,29 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
     }),
     create: ({ sqlite, namespace, clock }) => new GitHubAPI({ sqlite, namespace, now: clock.now }),
   })
+
+  const fetch = runtime.fetch
+  runtime.fetch = async (request) => {
+    const response = await fetch(request)
+    const links = response.headers.get("link")
+    if (!links) return response
+    const source = new URL(request.url)
+    const prefix = /^\/ns\/([^/]+)(?:\/|$)/.exec(source.pathname)
+    const namespace =
+      request.headers.get("x-mockingbird-namespace") ??
+      (prefix?.[1] ? decodeURIComponent(prefix[1]) : undefined)
+    if (!namespace) return response
+    response.headers.set(
+      "link",
+      links.replace(/<([^>]+)>/g, (original, href: string) => {
+        const target = new URL(href, source)
+        if (target.origin !== source.origin || !target.pathname.startsWith("/repos/"))
+          return original
+        target.pathname = `/ns/${encodeURIComponent(namespace)}${target.pathname}`
+        return `<${target.href}>`
+      }),
+    )
+    return response
+  }
+  return runtime
+}

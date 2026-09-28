@@ -7,3 +7,5 @@
 
 - Add commit-backed ref get/list/create/update, nested names, current-head fast-forward
   checks and synthetic force behavior. Exact error profiles remain oracle-pending.
+- Add same-repository PR create/get/list/update, current-tip reads, duplicate
+  validation, filtered pagination and namespace-preserving links.

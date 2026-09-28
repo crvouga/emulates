@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: GitHub REST subset (Mockingbird)
-  version: "2026-03-10"
-  description: Synthetic repository observations; no Git transport or credential enforcement.
+  version: 2026-03-10
+  description: "Synthetic repository, commit-backed reference and pull-request subset; no Git transport or credential enforcement."
   x-mockingbird-upstream:
     url: https://github.com/github/rest-api-description/blob/c6721f32a17a71397ae46be21be90d7f1a173b6e/descriptions/api.github.com/api.github.com.2026-03-10.json
     note: Source-pinned REST subset. See API_EVIDENCE.md for limitations and pending parity.
@@ -309,10 +309,9 @@ paths:
   "/repos/{owner}/{repo}/pulls":
     get:
       operationId: pulls/list
-      summary: "Inventoried operation, not yet implemented"
+      summary: List pull requests
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
@@ -327,19 +326,97 @@ paths:
           required: true
           schema:
             type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+            enum:
+              - open
+              - closed
+              - all
+            default: open
+        - name: head
+          in: query
+          schema:
+            &schema
+            type: string
+        - name: base
+          in: query
+          schema:
+            *schema
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - created
+              - updated
+              - popularity
+              - long-running
+            default: created
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 30
       responses:
+        "200":
+          description: PullRequest
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PullRequest"
+          headers:
+            Link:
+              description: Pagination links retaining filters and namespace
+              schema:
+                &schema1
+                type: string
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: PullValidationError
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullValidationError"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
     post:
       operationId: pulls/create
-      summary: "Inventoried operation, not yet implemented"
+      summary: Create a pull request
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
@@ -355,19 +432,74 @@ paths:
           schema:
             type: string
       responses:
+        "201":
+          description: PullRequest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullRequest"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: PullValidationError
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullValidationError"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - head
+                - base
+              properties:
+                title:
+                  *schema1
+                body:
+                  *schema1
+                head:
+                  *schema1
+                base:
+                  *schema1
+                draft:
+                  &draft
+                  type: boolean
+                maintainer_can_modify:
+                  *draft
+                issue:
+                  type: integer
+                  x-mockingbird-unsupported:
+                    reason: Issue conversion is not implemented
+                head_repo:
+                  type: string
+                  x-mockingbird-unsupported:
+                    reason: Cross-repository heads are not implemented
   "/repos/{owner}/{repo}/pulls/{pull_number}":
     get:
       operationId: pulls/get
-      summary: "Inventoried operation, not yet implemented"
+      summary: Get a pull request
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
@@ -388,18 +520,41 @@ paths:
           schema:
             type: integer
       responses:
+        "200":
+          description: PullRequest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullRequest"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: PullValidationError
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullValidationError"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
     patch:
       operationId: pulls/update
-      summary: "Inventoried operation, not yet implemented"
+      summary: Update a pull request
       x-mockingbird:
-        supported: false
-        reason: Implementation is scheduled in the reference and pull-request stories.
+        supported: true
         parity:
           enabled: false
           reason: Live and property verification are scheduled after implementation.
@@ -420,12 +575,56 @@ paths:
           schema:
             type: integer
       responses:
+        "200":
+          description: PullRequest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullRequest"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: PullValidationError
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullValidationError"
         "501":
-          description: Mock-only unsupported operation or version
+          description: MockError
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MockError"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  *schema1
+                body:
+                  *schema1
+                state:
+                  type: string
+                  enum:
+                    - open
+                    - closed
+                base:
+                  *schema1
+                maintainer_can_modify:
+                  *draft
 components:
   schemas:
     Repository:
@@ -540,3 +739,119 @@ components:
               pattern: "^[a-f0-9]{40}$"
             url:
               type: string
+    PullBranch:
+      type: object
+      required:
+        - label
+        - ref
+        - sha
+        - repo
+      properties:
+        label:
+          *schema1
+        ref:
+          *schema1
+        sha:
+          type: string
+          pattern: "^[a-f0-9]{40}$"
+        repo:
+          $ref: "#/components/schemas/Repository"
+    PullRequest:
+      type: object
+      required:
+        - id
+        - node_id
+        - number
+        - url
+        - html_url
+        - state
+        - title
+        - body
+        - draft
+        - created_at
+        - updated_at
+        - closed_at
+        - merged
+        - merged_at
+        - mergeable
+        - merge_commit_sha
+        - maintainer_can_modify
+        - head
+        - base
+      properties:
+        id:
+          type: integer
+        node_id:
+          type: string
+        number:
+          type: integer
+          minimum: 1
+        url:
+          *schema1
+        html_url:
+          *schema1
+        state:
+          type: string
+          enum:
+            - open
+            - closed
+        title:
+          *schema1
+        body:
+          &body
+          type:
+            - string
+            - "null"
+        draft:
+          *draft
+        created_at:
+          *schema1
+        updated_at:
+          *schema1
+        closed_at:
+          *body
+        merged:
+          type: boolean
+          const: false
+        merged_at:
+          type: "null"
+        mergeable:
+          type: "null"
+        merge_commit_sha:
+          type: "null"
+        maintainer_can_modify:
+          *draft
+        head:
+          $ref: "#/components/schemas/PullBranch"
+        base:
+          $ref: "#/components/schemas/PullBranch"
+    PullValidationError:
+      type: object
+      required:
+        - message
+        - documentation_url
+        - errors
+      properties:
+        message:
+          *schema1
+        documentation_url:
+          *schema1
+        status:
+          *schema1
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+              - resource
+              - code
+            properties:
+              resource:
+                type: string
+                const: PullRequest
+              code:
+                *schema1
+              field:
+                *schema1
+              message:
+                *schema1

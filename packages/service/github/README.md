@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-github
 
 WIP GitHub REST mock targeting `X-GitHub-Api-Version: 2026-03-10`.
-Repository observations and commit-backed references are implemented. Pull requests
-are inventoried but currently return an explicit mock-only 501 response.
+Repository observations, commit-backed references, and same-repository pull-request
+create/get/list/update are implemented. Unsupported features return mock-only 501.
 [API_EVIDENCE.md](API_EVIDENCE.md) pins the source and distinguishes research from
 runtime verification. [SUPPORT.md](SUPPORT.md) is generated from the contract.
 
@@ -17,7 +17,7 @@ bun add @crvouga/mockingbird-service-github
 The portable entry exports `GitHubAPI`, `createRuntime`, `GITHUB_NAMESPACE`,
 `GITHUB_API_VERSION`, `document`, `operationIds`, and `supportedOperationIds`.
 Types include `GitHubAPIOptions`, `GitHubRuntime`, `GitHubRuntimeOptions`,
-`Repository`, `Commit`, `OperationId`, and `SupportedOperationId`.
+`Repository`, `Commit`, `PullRequest`, `OperationId`, and `SupportedOperationId`.
 The Node-only `/server` entry exports `createServer`, `DEFAULT_PORT`, `serveTarget`,
 `GitHubServerOptions`, and `GitHubServer`. The executable is `mockingbird-github`.
 
@@ -98,3 +98,35 @@ GitHub. Unknown fields do not confer an expected-old-SHA lease or idempotency.
 Only commit-backed references are modeled; annotated tag objects and provider-managed
 pull refs are unsupported. Exact error wording, condition/status mapping and validation
 precedence are provisional until the bounded oracle compares them; see API_EVIDENCE.md.
+
+
+## Pull requests
+
+Create with `POST /repos/{owner}/{repo}/pulls` and a title, head branch and base branch:
+`{ "title": "Synthetic change", "head": "topic", "base": "main" }`.
+Both branches must exist and the head must contain seeded ancestry absent from the
+base. An owner-qualified same-repository head is accepted; cross-repository heads
+and issue conversion are explicit501 limitations. No notifications are sent.
+
+Read `GET .../pulls/{number}` or list `GET .../pulls`. List supports state
+(`open` default, `closed`, `all`), `head=owner:branch`, base, created/updated sorting,
+direction, page (default1) and per_page (default30, clamped100). Follow Link relations;
+filters and explicit namespace header/path selections survive pagination. Continue
+sending shared history/branch headers if you selected a Timeline branch. Popularity
+and long-running sorts return501 because comments/activity are not modeled.
+
+Update title, body, base, state and maintainer_can_modify with `PATCH .../pulls/{number}`.
+An empty body string clears the description. Head is not an update field. Numbers
+are repository-scoped; id/node_id stay stable. The reduced response includes
+head/base names, repository identity and SHAs. Open PRs resolve current branch tips;
+closed PRs retain the last captured tips until explicitly updated. PR timestamps
+track create/update calls, not background provider events. Mergeability and merge
+commit SHA stay null; merged stays false. Author identity, comments, labels,
+reviews, merge execution and provider event propagation are not modeled.
+
+An open PR for the same head/base yields422 with a PullRequest/custom validation
+error. Consumer-private operation IDs and Idempotency-Key never deduplicate creates.
+If the response is lost, list by head/base across pages, then retrieve the matching
+number; retrying create can yield the duplicate error. Duplicate-envelope evidence
+comes from public first-hand API reports, not a pinned-version live comparison.
+See API_EVIDENCE.md for the remaining oracle and error-precedence gaps.
