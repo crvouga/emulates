@@ -23,6 +23,8 @@ paths:
         required: true
         content:
           application/json:
+            example:
+              input: synthetic playground prompt
             schema:
               type: object
               required: [input]

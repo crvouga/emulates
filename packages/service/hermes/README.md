@@ -1,7 +1,7 @@
 # @crvouga/mockingbird-service-hermes
 
 Work-in-progress mock for the Hermes Agent public peer-run API pinned to
-`v2026.8.31`. Submission and polling work with explicit synthetic lifecycle observations.
+`v2026.8.31`. Submission, polling and stop work with explicit synthetic lifecycle observations.
 Events, approval and steer remain unsupported. No agent or inference runs.
 [API_EVIDENCE.md](API_EVIDENCE.md) records source-backed semantics and gaps;
 [SUPPORT.md](SUPPORT.md) records current operation support.
@@ -59,7 +59,7 @@ Missing runs use the pinned `run_not_found` 404 envelope. Unknown paths return
   faults and diagnostic journal retain their standard independent lifetimes.
 - `POST /__admin/clock` controls the shared clock.
 - `POST /__admin/faults` configures scoped operation/path/method fault rules;
-  `DELETE /__admin/faults` clears them. No Hermes-specific presets exist yet.
+  `DELETE /__admin/faults` clears them. Named Hermes presets are documented below.
 - `GET /__admin/requests` exposes request metadata without bodies, query values
   or credentials. `DELETE /__admin/requests` clears selected diagnostic history.
 - `POST /__admin/checkpoints` captures shared Timeline state. Checkout through
@@ -245,6 +245,41 @@ separate from consumer intake and Kanban identities.
 
 Source evidence is not runtime parity. Package/shared-control tests do not establish
 compatibility with a real Hermes process. The opt-in
-[pinned oracle](oracle/README.md) separately passed33 documented public HTTP
+[pinned oracle](oracle/README.md) separately passed 33 documented public HTTP
 comparisons, including a fresh-process SQLite restart; its substitutions and
 limitations remain explicit. Keep this package WIP until independent Ready requirements are met.
+
+
+## HTTP replay example
+
+Start `mockingbird-hermes serve --port 8827`, then submit a synthetic delivery:
+
+```sh
+curl -sS http://127.0.0.1:8827/v1/runs \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: example-delivery' \
+  -d '{"input":"synthetic prompt"}'
+```
+
+Repeating the identical request returns the same `run_id` and a replay header.
+Poll `GET /v1/runs/<run_id>`; request interruption with
+`POST /v1/runs/<run_id>/stop`. A stop response is intermediate. Complete the
+scenario with `POST /__admin/hermes/runs/<run_id>/observe`, using a JSON body
+such as `{ "status": "cancelled" }`, then poll again. Use only synthetic input
+and result data. No Python dispatcher or Kanban integration is required.
+
+## Verification and evidence
+
+The package remains **WIP**. Three of six inventoried operations are supported;
+SSE events, approval execution and steering remain excluded. The shipped
+[oracle guide](oracle/README.md), [source manifest](oracle/source-lock.json), and
+[recorded comparisons](evidence/pinned-oracle.json) make the exact upstream pin
+and substitutions inspectable. Run the oracle only after separately authorizing
+its dependency, disposable database and process operations. Normal package tests
+need none of those operations or provider credentials.
+
+From this repository, run `bun test packages/service/hermes` and the package's
+`typecheck`, `lint`, `generate:check`, `openapi:check`, `build`, `portability` and
+`pack:check` scripts. Root `bun run check` also verifies catalog and generated
+documentation freshness. The docs catalog playground uses the same portable
+runtime; its state is local to the browser.

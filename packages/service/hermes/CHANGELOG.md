@@ -11,3 +11,4 @@
 - Model independent cache and durable retention with exact boundaries, scheduled sweep ticks, logical restart and shared Timeline restoration.
 - Add named submission-loss, poll-delay, throttle and draining scenarios, plus native HTTP consumer and parity test coverage.
 - Add and execute the exact-source Hermes oracle with 33 HTTP lifecycle, restart and retention comparisons against disposable SQLite state.
+- Complete HTTP replay guidance, ship oracle provenance, and integrate the WIP documentation catalog.

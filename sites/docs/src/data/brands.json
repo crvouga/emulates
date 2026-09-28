@@ -264,6 +264,20 @@
     "logo": "/brands/healthie.png",
     "logoSource": "site"
   },
+  "hermes": {
+    "vendor": "Hermes Agent",
+    "website": "https://hermes-agent.nousresearch.com",
+    "docs": "https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/",
+    "description": "Hermes Agent exposes asynchronous public peer-run APIs.",
+    "input": {
+      "website": "https://hermes-agent.nousresearch.com",
+      "docs": "https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/",
+      "description": "Hermes Agent exposes asynchronous public peer-run APIs."
+    },
+    "color": "#0000F2",
+    "logo": "/brands/hermes.ico",
+    "logoSource": "site"
+  },
   "intercom": {
     "vendor": "Intercom",
     "website": "https://www.intercom.com",

@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 through US-022 are complete; 9 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-023 are complete; 8 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -425,7 +425,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-023: Deliver Hermes documentation and package gates
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 23
 - Depends on: US-022
 - Relevant paths: Hermes README/support/evidence/metadata, `sites/docs/`, canonical README/llms generators.
