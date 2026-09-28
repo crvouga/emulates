@@ -1,14 +1,21 @@
 import type { OperationContext, OperationHandler } from "@crvouga/mockingbird-service"
 import { afterIntentSucceeded } from "./billing.js"
-import { completeSession, successUrlFor } from "./checkout.js"
+import {
+  amountDueNow,
+  type CompletionInput,
+  completeSession,
+  requiresCard,
+  successUrlFor,
+} from "./checkout.js"
 import { type CheckoutPageView, checkoutPage } from "./checkout-page.js"
+import { promotionCodeFor, repriceSession } from "./checkout-sessions.js"
 import { requestInfo } from "./context.js"
 import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
 import { findCustomer, type RequestScope, type Services, scopeForAccount } from "./internal.js"
 import { confirmIntent } from "./payments.js"
 import { renderPaymentIntent, renderSetupIntent } from "./render.js"
 import { confirmSetup } from "./setup-intents.js"
-import type { CheckoutSessionRecord } from "./state.js"
+import { type CheckoutSessionRecord, seconds } from "./state.js"
 import { stripeJs } from "./stripe-js.js"
 
 const html = (status: number, body: string) =>
@@ -23,16 +30,24 @@ const notFound = () => html(404, "<title>Not found</title><p>Unknown Checkout Se
 const viewFor = (
   scope: RequestScope,
   session: CheckoutSessionRecord,
-  extra: Pick<CheckoutPageView, "values" | "error" | "notice"> = {},
+  extra: Pick<CheckoutPageView, "values" | "error" | "notice" | "promotionError"> = {},
 ): CheckoutPageView => {
   const account = scope.account
   const merchant = scope.services.accounts.config(account.account)?.displayName ?? "Test business"
   const customer = session.customer === null ? undefined : findCustomer(scope, session.customer)
+  const promotion = (session.discount_refs ?? []).find((ref) => ref.promotion_code !== null)
   return {
     ...extra,
     session,
     merchant,
-    customerEmail: customer?.email ?? null,
+    customerEmail: customer?.email ?? session.customer_email ?? null,
+    dueNow: amountDueNow(scope, session),
+    needsCard: requiresCard(scope, session),
+    allowPromotionCodes: session.allow_promotion_codes === true,
+    promotionCode:
+      promotion?.promotion_code == null
+        ? null
+        : (account.promotionCodes.get(promotion.promotion_code)?.code ?? null),
     lines: session.line_items.map((line) => {
       const price = line.price === null ? undefined : account.prices.get(line.price)
       const productId = price?.product ?? (line as { product?: string | null }).product ?? null
@@ -60,7 +75,7 @@ const viewFor = (
 /** The fields a shopper typed, echoed back after a decline (never stored). */
 const postedValues = (form: Record<string, unknown>): Record<string, string> =>
   Object.fromEntries(
-    ["email", "card", "exp", "cvc", "name", "country", "zip"]
+    ["email", "card", "exp", "cvc", "name", "country", "zip", "promotion_code"]
       .map((key) => [key, form[key]])
       .filter((entry): entry is [string, string] => typeof entry[1] === "string"),
   )
@@ -81,6 +96,54 @@ const sessionScope = (services: Services, context: OperationContext) => {
 }
 
 const redirect = (location: string) => new Response(null, { status: 302, headers: { location } })
+
+const text = (form: Record<string, unknown>, key: string): string | null => {
+  const value = form[key]
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null
+}
+
+/**
+ * The card fields as Stripe's Payment Element checks them before anything is charged. Blank
+ * expiry and CVC are accepted (scripted posts send only a number); anything typed must be valid.
+ */
+export const readCardFields = (
+  form: Record<string, unknown>,
+  nowSeconds: number,
+): { ok: true; input: Omit<CompletionInput, "card"> } | { ok: false; message: string } => {
+  const email = text(form, "email")
+  if (email !== null && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return { ok: false, message: "Your email address is invalid." }
+  const exp = text(form, "exp")
+  let expMonth: number | undefined
+  let expYear: number | undefined
+  if (exp !== null) {
+    const match = /^(\d{1,2})\s*\/?\s*(\d{2}|\d{4})$/.exec(exp.replace(/\s+/g, ""))
+    if (!match) return { ok: false, message: "Your card's expiration date is incomplete." }
+    expMonth = Number(match[1])
+    expYear = Number(match[2]) + ((match[2] ?? "").length === 2 ? 2000 : 0)
+    if (expMonth < 1 || expMonth > 12)
+      return { ok: false, message: "Your card's expiration date is invalid." }
+    const now = new Date(nowSeconds * 1000)
+    const year = now.getUTCFullYear()
+    if (expYear < year) return { ok: false, message: "Your card's expiration year is in the past." }
+    if (expYear === year && expMonth < now.getUTCMonth() + 1)
+      return { ok: false, message: "Your card's expiration date is in the past." }
+  }
+  const cvc = text(form, "cvc")
+  if (cvc !== null && !/^\d{3,4}$/.test(cvc))
+    return { ok: false, message: "Your card's security code is incomplete." }
+  return {
+    ok: true,
+    input: {
+      email,
+      name: text(form, "name"),
+      country: text(form, "country"),
+      postalCode: text(form, "zip"),
+      ...(expMonth === undefined ? {} : { expMonth }),
+      ...(expYear === undefined ? {} : { expYear }),
+    },
+  }
+}
 
 export const browserHandlers = (services: Services): Record<string, OperationHandler> => ({
   GetCheckoutPage: (context) => {
@@ -105,11 +168,20 @@ export const browserHandlers = (services: Services): Record<string, OperationHan
       return page(session, { notice: "Checkout canceled." })
     }
     if (session.status !== "open") return page(session)
-    const card =
-      typeof form.card === "string" && form.card.trim() !== "" ? form.card : "4242424242424242"
     const values = postedValues(form)
+    if (form.action === "apply_promotion_code") {
+      const code = typeof form.promotion_code === "string" ? form.promotion_code : ""
+      const found = promotionCodeFor(scope, session, code)
+      if ("error" in found) return page(session, { values, promotionError: found.error })
+      return page(repriceSession(scope, session, [found]))
+    }
+    if (form.action === "remove_promotion_code") return page(repriceSession(scope, session, []))
+    const fields = readCardFields(form, seconds(scope.now))
+    if (!fields.ok) return page(session, { values, error: fields.message })
+    const typed = text(form, "card")
+    const card = typed ?? (requiresCard(scope, session) ? "4242424242424242" : null)
     try {
-      const result = completeSession(scope, session, card)
+      const result = completeSession(scope, session, { ...fields.input, card })
       if (!result.ok) return page(session, { values, error: result.message })
       const target = successUrlFor(result.session)
       return target === null ? page(result.session) : redirect(target)

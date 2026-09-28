@@ -487,6 +487,8 @@ export type CheckoutSessionLineRecord = {
   quantity: number | null
   unit_amount: number | null
   amount_discount?: number
+  /** The price's product, kept for coupons restricted to products (never rendered). */
+  product?: string | null
 }
 
 export type CheckoutSessionStatus = "open" | "complete" | "expired"
