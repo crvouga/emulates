@@ -1,14 +1,14 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
 import {
   applyDiscountRequests,
+  assertCompatiblePrices,
+  billProration,
   cancelSubscription,
-  createDraftInvoice,
   createSubscription,
   cycleSubscription,
-  finalizeInvoice,
-  lineFromPrice,
+  INACTIVE_PRICE,
   parseDiscounts,
-  payInvoice,
+  resumeSubscription,
   saveSubscription,
   subscriptionItems,
 } from "./billing.js"
@@ -32,7 +32,12 @@ import {
   renderSubscription,
   renderSubscriptionItem,
 } from "./render.js"
-import { type SubscriptionItemRecord, type SubscriptionRecord, seconds } from "./state.js"
+import type {
+  PauseCollection,
+  SubscriptionItemRecord,
+  SubscriptionRecord,
+  TrialEndBehavior,
+} from "./state.js"
 
 const listOf = (params: Params, key: string): string[] => {
   const value = params[key]
@@ -72,6 +77,39 @@ const requireSubscriptionRecord = (scope: RequestScope, id: string) => {
   return record
 }
 
+const FUTURE_TIMESTAMP = "Invalid timestamp: must be an integer Unix timestamp in the future."
+
+/** `trial_settings[end_behavior][missing_payment_method]`. */
+const trialSettingsOf = (raw: unknown): SubscriptionRecord["trial_settings"] | undefined => {
+  const behavior = recordOf(recordOf(raw)?.end_behavior)?.missing_payment_method
+  return behavior === "cancel" || behavior === "create_invoice" || behavior === "pause"
+    ? { end_behavior: { missing_payment_method: behavior as TrialEndBehavior } }
+    : undefined
+}
+
+/** `pause_collection[behavior]` / `[resumes_at]`, or `pause_collection=""` to resume. */
+const pauseCollectionOf = (raw: unknown, now: number): PauseCollection | null | undefined => {
+  if (raw === undefined) return undefined
+  if (raw === "") return null
+  const record = recordOf(raw)
+  const behavior = record?.behavior
+  if (behavior !== "keep_as_draft" && behavior !== "mark_uncollectible" && behavior !== "void")
+    throw parameterMissing("pause_collection[behavior]")
+  const resumesAt = intOf(record?.resumes_at) ?? null
+  if (resumesAt !== null && resumesAt <= now)
+    throw invalidRequest(FUTURE_TIMESTAMP, "pause_collection[resumes_at]")
+  return { behavior, resumes_at: resumesAt }
+}
+
+/** `cancellation_details[comment]` / `[feedback]`; `""` clears either. */
+const cancellationDetailsOf = (raw: unknown) => {
+  const record = recordOf(raw)
+  if (record === undefined) return undefined
+  const text = (value: unknown) =>
+    value === undefined ? undefined : typeof value === "string" && value !== "" ? value : null
+  return { comment: text(record.comment), feedback: text(record.feedback) }
+}
+
 /**
  * Change a subscription's items. `proration_behavior=none` just swaps prices;
  * `always_invoice` bills the difference for the rest of the period now; the default
@@ -104,7 +142,7 @@ const changeItems = (
     }
     if (current) {
       const price = request.price ?? current.price
-      requirePrice(scope, price, `items[${index}][price]`)
+      if (request.price !== null) requireSubscribablePrice(scope, price, `items[${index}][price]`)
       const quantity = request.quantity ?? current.quantity ?? 1
       prorationAmount += Math.round(
         (amountOf(price, quantity) - amountOf(current.price, current.quantity ?? 1)) * left,
@@ -118,7 +156,7 @@ const changeItems = (
       return
     }
     if (request.price === null) throw parameterMissing(`items[${index}][price]`)
-    const price = requirePrice(scope, request.price, `items[${index}][price]`)
+    const price = requireSubscribablePrice(scope, request.price, `items[${index}][price]`)
     const itemId = scope.ids.next("si_", 14)
     const record: SubscriptionItemRecord = {
       id: itemId,
@@ -134,7 +172,144 @@ const changeItems = (
     prorationAmount += Math.round(amountOf(price.id, record.quantity ?? 1) * left)
   })
   if (proration === "none") prorationAmount = 0
+  assertCompatiblePrices(
+    itemIds
+      .map((id) => scope.account.subscriptionItems.get(id))
+      .filter((item): item is SubscriptionItemRecord => item !== undefined)
+      .map((item) => requirePrice(scope, item.price)),
+  )
   return { itemIds, prorationAmount }
+}
+
+const ONE_TIME_ONLY =
+  "The price specified is set to `type=one_time` but this field only accepts prices with `type=recurring`."
+
+/** A price a subscription item may move to: it exists, recurs, and is still for sale. */
+const requireSubscribablePrice = (scope: RequestScope, id: string, param: string) => {
+  const price = requirePrice(scope, id, param)
+  if (price.recurring === null) throw invalidRequest(ONE_TIME_ONLY, param)
+  if (!price.active) throw invalidRequest(INACTIVE_PRICE, param)
+  return price
+}
+
+/**
+ * `POST /v1/subscriptions/:id` — shared by the API and the customer portal, which posts the
+ * same parameters a merchant would.
+ */
+export const updateSubscription = (
+  scope: RequestScope,
+  current: SubscriptionRecord,
+  params: Params,
+): SubscriptionRecord => {
+  if (current.status === "canceled" || current.status === "incomplete_expired") {
+    const onlyMetadata = Object.keys(params).every((key) =>
+      ["metadata", "cancellation_details", "expand"].includes(key),
+    )
+    if (!onlyMetadata)
+      throw invalidRequest(
+        "A canceled subscription can only update its cancellation_details and metadata.",
+      )
+  }
+  const now = customerNow(scope, current.customer)
+  const trialEnd = params.trial_end
+  const trialEndAt =
+    typeof trialEnd === "number" || (typeof trialEnd === "string" && /^\d+$/.test(trialEnd))
+      ? Number(trialEnd)
+      : undefined
+  if (trialEndAt !== undefined && trialEndAt <= now)
+    throw invalidRequest(FUTURE_TIMESTAMP, "trial_end")
+  const pauseCollection = pauseCollectionOf(params.pause_collection, now)
+  const previousItems = { items: renderSubscription(current, scope.account).items }
+  const proration = stringOf(params, "proration_behavior") ?? "create_prorations"
+  const itemRequests = requestedItems(params)
+  const { itemIds, prorationAmount } =
+    itemRequests.length === 0
+      ? { itemIds: current.item_ids, prorationAmount: 0 }
+      : changeItems(scope, current, itemRequests, proration)
+  const cancelAtPeriodEnd = booleanOf(params.cancel_at_period_end)
+  const discounts = parseDiscounts(params.discounts)
+  const discountIds =
+    discounts === undefined
+      ? current.discount_ids
+      : discounts === "clear"
+        ? []
+        : applyDiscountRequests(
+            scope,
+            discounts,
+            { customer: current.customer, subscription: current.id },
+            current.discount_ids,
+          )
+  const details = cancellationDetailsOf(params.cancellation_details)
+  const trialSettings = trialSettingsOf(params.trial_settings)
+  let next: SubscriptionRecord = {
+    ...current,
+    item_ids: itemIds,
+    discount_ids: discountIds,
+    default_payment_method:
+      params.default_payment_method === ""
+        ? null
+        : (stringOf(params, "default_payment_method") ?? current.default_payment_method),
+    metadata: mergeRecordMetadata(current.metadata, params.metadata),
+    payment_settings: recordOf(params.payment_settings) ?? current.payment_settings ?? null,
+    ...(params.description === undefined
+      ? {}
+      : { description: stringOf(params, "description") }),
+    ...(pauseCollection === undefined ? {} : { pause_collection: pauseCollection }),
+    ...(trialSettings === undefined ? {} : { trial_settings: trialSettings }),
+  }
+  if (cancelAtPeriodEnd !== undefined) {
+    next = {
+      ...next,
+      cancel_at_period_end: cancelAtPeriodEnd,
+      cancel_at: cancelAtPeriodEnd ? current.current_period_end : null,
+      canceled_at: cancelAtPeriodEnd ? now : null,
+      cancellation_details: {
+        comment: null,
+        feedback: null,
+        reason: cancelAtPeriodEnd ? "cancellation_requested" : null,
+      },
+    }
+  }
+  if (params.cancel_at !== undefined) {
+    const at = intOf(params.cancel_at)
+    next = { ...next, cancel_at: at ?? null, canceled_at: at === undefined ? null : now }
+  }
+  if (details !== undefined) {
+    const base = next.cancellation_details ?? { comment: null, feedback: null, reason: null }
+    next = {
+      ...next,
+      cancellation_details: {
+        ...base,
+        ...(details.comment === undefined ? {} : { comment: details.comment }),
+        ...(details.feedback === undefined ? {} : { feedback: details.feedback }),
+      },
+    }
+  }
+  const endTrialNow = trialEnd === "now" && current.status === "trialing"
+  if (trialEndAt !== undefined)
+    next = {
+      ...next,
+      trial_end: trialEndAt,
+      trial_start: next.status === "trialing" ? next.trial_start : now,
+      current_period_end: trialEndAt,
+      ...(next.status === "active" ? { status: "trialing" as const } : {}),
+    }
+  saveSubscription(scope, current, next, previousItems)
+  billProration(scope, next, prorationAmount, proration, {
+    period: { start: now, end: current.current_period_end },
+    description:
+      proration === "always_invoice"
+        ? "Remaining time on the new price (prorated)"
+        : "Proration for subscription change",
+    failOnDecline: stringOf(params, "payment_behavior") === "error_if_incomplete",
+  })
+  if (endTrialNow) {
+    const trialing = scope.account.subscriptions.get(current.id) ?? next
+    const ended = { ...trialing, trial_end: now, current_period_end: now }
+    scope.account.subscriptions.update(current.id, ended)
+    cycleSubscription(scope, ended)
+  }
+  return scope.account.subscriptions.get(current.id) ?? next
 }
 
 export const subscriptionHandlers = (services: Services): Record<string, OperationHandler> => {
@@ -200,6 +375,14 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const defaultMethod = stringOf(params, "default_payment_method")
       if (defaultMethod !== null && !scope.account.paymentMethods.get(defaultMethod))
         throw resourceMissing("PaymentMethod", defaultMethod, "default_payment_method")
+      const trialEndAt = intOf(params.trial_end)
+      if (
+        params.trial_end !== "now" &&
+        trialEndAt !== undefined &&
+        trialEndAt <= customerNow(scope, customer)
+      )
+        throw invalidRequest(FUTURE_TIMESTAMP, "trial_end")
+      const trialSettings = trialSettingsOf(params.trial_settings)
       const { subscription } = createSubscription(scope, {
         customer,
         items: items.map((item, index) => {
@@ -228,6 +411,8 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
         daysUntilDue: intOf(params.days_until_due) ?? null,
         offSession: booleanOf(params.off_session) === true,
         cancelAtPeriodEnd: booleanOf(params.cancel_at_period_end) === true,
+        description: stringOf(params, "description"),
+        ...(trialSettings === undefined ? {} : { trialSettings }),
       })
       return jsonResponse(200, render(scope, subscription))
     },
@@ -246,139 +431,11 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const scope = requestScope(services, context)
       const params = bodyParams(context)
       const current = requireSubscriptionRecord(scope, context.params.subscription_exposed_id ?? "")
-      if (current.status === "canceled" || current.status === "incomplete_expired") {
-        const onlyMetadata = Object.keys(params).every((key) =>
-          ["metadata", "cancellation_details", "expand"].includes(key),
-        )
-        if (!onlyMetadata)
-          throw invalidRequest(
-            "A canceled subscription can only update its cancellation_details and metadata.",
-          )
-      }
-      const previousItems = { items: renderSubscription(current, scope.account).items }
-      const proration = stringOf(params, "proration_behavior") ?? "create_prorations"
-      const itemRequests = requestedItems(params)
-      const { itemIds, prorationAmount } =
-        itemRequests.length === 0
-          ? { itemIds: current.item_ids, prorationAmount: 0 }
-          : changeItems(scope, current, itemRequests, proration)
-      const now = customerNow(scope, current.customer)
-      const cancelAtPeriodEnd = booleanOf(params.cancel_at_period_end)
-      const discounts = parseDiscounts(params.discounts)
-      const discountIds =
-        discounts === undefined
-          ? current.discount_ids
-          : discounts === "clear"
-            ? []
-            : applyDiscountRequests(
-                scope,
-                discounts,
-                { customer: current.customer, subscription: current.id },
-                current.discount_ids,
-              )
-      let next: SubscriptionRecord = {
-        ...current,
-        item_ids: itemIds,
-        discount_ids: discountIds,
-        default_payment_method:
-          params.default_payment_method === ""
-            ? null
-            : (stringOf(params, "default_payment_method") ?? current.default_payment_method),
-        metadata: mergeRecordMetadata(current.metadata, params.metadata),
-        payment_settings: recordOf(params.payment_settings) ?? current.payment_settings ?? null,
-      }
-      if (cancelAtPeriodEnd !== undefined) {
-        next = {
-          ...next,
-          cancel_at_period_end: cancelAtPeriodEnd,
-          cancel_at: cancelAtPeriodEnd ? current.current_period_end : null,
-          canceled_at: cancelAtPeriodEnd ? now : null,
-          cancellation_details: {
-            comment: null,
-            feedback: null,
-            reason: cancelAtPeriodEnd ? "cancellation_requested" : null,
-          },
-        }
-      }
-      if (params.cancel_at !== undefined) {
-        const at = intOf(params.cancel_at)
-        next = { ...next, cancel_at: at ?? null, canceled_at: at === undefined ? null : now }
-      }
-      const trialEnd = params.trial_end
-      const endTrialNow = trialEnd === "now" && current.status === "trialing"
-      if (typeof trialEnd === "number" || (typeof trialEnd === "string" && /^\d+$/.test(trialEnd)))
-        next = { ...next, trial_end: Number(trialEnd), current_period_end: Number(trialEnd) }
-      saveSubscription(scope, current, next, previousItems)
-      if (prorationAmount !== 0 && proration === "always_invoice") {
-        const period = { start: now, end: current.current_period_end }
-        const firstItem = scope.account.subscriptionItems.get(itemIds[0] ?? "")
-        const price = requirePrice(scope, firstItem?.price ?? "")
-        const line = {
-          ...lineFromPrice(scope, price, 1, period, {
-            subscription: current.id,
-            subscriptionItem: firstItem?.id ?? null,
-            amount: prorationAmount,
-            description: "Remaining time on the new price (prorated)",
-          }),
-          proration: true,
-        }
-        const invoice = finalizeInvoice(
-          scope,
-          createDraftInvoice(scope, {
-            customer: current.customer,
-            subscription: current.id,
-            lines: [line],
-            billingReason: "subscription_update",
-            period,
-            subscriptionMetadata: next.metadata,
-          }),
-        )
-        let settled = invoice
-        if (invoice.status === "open") {
-          try {
-            settled = payInvoice(scope, invoice, { offSession: true })
-          } catch (error) {
-            if (
-              !(error instanceof StripeError) ||
-              stringOf(params, "payment_behavior") === "error_if_incomplete"
-            )
-              throw error
-            settled = scope.account.invoices.get(invoice.id) ?? invoice
-          }
-        }
-        const latest = scope.account.subscriptions.get(current.id) ?? next
-        saveSubscription(scope, latest, { ...latest, latest_invoice: settled.id })
-      } else if (prorationAmount !== 0 && proration === "create_prorations") {
-        const itemId = scope.ids.next("ii_", 24)
-        scope.account.invoiceItems.insert(itemId, {
-          id: itemId,
-          amount: prorationAmount,
-          created: seconds(scope.now),
-          currency: current.currency,
-          customer: current.customer,
-          date: now,
-          description: "Proration for subscription change",
-          discountable: false,
-          invoice: null,
-          metadata: {},
-          period: { start: now, end: current.current_period_end },
-          price: null,
-          proration: true,
-          quantity: 1,
-          unit_amount: prorationAmount,
-        })
-      }
-      if (endTrialNow) {
-        const trialing = scope.account.subscriptions.get(current.id) ?? next
-        const ended = { ...trialing, trial_end: now, current_period_end: now }
-        scope.account.subscriptions.update(current.id, ended)
-        cycleSubscription(scope, ended)
-      }
-      return jsonResponse(200, render(scope, scope.account.subscriptions.get(current.id) ?? next))
+      return jsonResponse(200, render(scope, updateSubscription(scope, current, params)))
     },
     DeleteSubscriptionsSubscriptionExposedId: async (context) => {
       const scope = requestScope(services, context)
-      bodyParams(context)
+      const params = bodyParams(context)
       const current = requireSubscriptionRecord(scope, context.params.subscription_exposed_id ?? "")
       if (current.status === "canceled")
         throw invalidRequest(
@@ -386,7 +443,47 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
           "subscription_exposed_id",
           "resource_missing",
         )
-      return jsonResponse(200, render(scope, cancelSubscription(scope, current)))
+      const details = cancellationDetailsOf(params.cancellation_details)
+      return jsonResponse(
+        200,
+        render(
+          scope,
+          cancelSubscription(scope, current, "cancellation_requested", undefined, {
+            ...(details?.comment === undefined ? {} : { comment: details.comment }),
+            ...(details?.feedback === undefined ? {} : { feedback: details.feedback }),
+            prorate: booleanOf(params.prorate) === true,
+            invoiceNow: booleanOf(params.invoice_now) === true,
+          }),
+        ),
+      )
+    },
+    PostSubscriptionsSubscriptionResume: async (context) => {
+      const scope = requestScope(services, context)
+      const params = bodyParams(context)
+      const id = context.params.subscription ?? ""
+      const current = scope.account.subscriptions.get(id)
+      if (!current) throw resourceMissing("subscription", id, "subscription")
+      if (current.status !== "paused")
+        throw invalidRequest(
+          `Only a paused subscription can be resumed; this subscription's status is ${current.status}.`,
+        )
+      const anchor = stringOf(params, "billing_cycle_anchor") === "unchanged" ? "unchanged" : "now"
+      const proration = stringOf(params, "proration_behavior")
+      const prorationDate = intOf(params.proration_date)
+      return jsonResponse(
+        200,
+        render(
+          scope,
+          resumeSubscription(scope, current, {
+            billingCycleAnchor: anchor,
+            prorationBehavior:
+              proration === "always_invoice" || proration === "none"
+                ? proration
+                : "create_prorations",
+            prorationDate,
+          }),
+        ),
+      )
     },
     GetSubscriptionItems: async (context) => {
       const scope = requestScope(services, context)

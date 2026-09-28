@@ -712,7 +712,7 @@ export const renderSubscription = (
 
 const customerTestClock = (scope: AccountState, customer: string): string | null => {
   const entry = scope.customers.get(customer)
-  return entry?.kind === "live" ? entry.customer.test_clock : null
+  return entry?.kind === "live" ? (entry.customer.test_clock ?? null) : null
 }
 
 export const renderDeletedSubscriptionItem = (id: string) => ({
