@@ -17,8 +17,7 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Pinned runtime oracle is scheduled for US-022.
+          enabled: true
           safe: false
       requestBody:
         required: true
@@ -66,6 +65,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HermesError"
+        "429":
+          description: Pinned capacity throttle, available as an explicit fault scenario
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                const: "1"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThrottleError"
+        "503":
+          description: Pinned gateway-draining envelope, available as an explicit fault scenario
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                const: "1"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HermesError"
         "501":
           description: Explicit unsupported request outside the implemented subset
           content:
@@ -79,8 +100,7 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Pinned runtime oracle is scheduled for US-022.
+          enabled: true
           safe: true
       parameters:
         - in: path
@@ -88,6 +108,8 @@ paths:
           required: true
           schema:
             type: string
+            x-mockingbird-resource-ref:
+              type: run
       responses:
         "200":
           description: Current public run observation
@@ -108,8 +130,7 @@ paths:
       x-mockingbird:
         supported: true
         parity:
-          enabled: false
-          reason: Pinned runtime oracle is scheduled for US-022.
+          enabled: true
           safe: false
       parameters:
         - in: path
@@ -117,6 +138,8 @@ paths:
           required: true
           schema:
             type: string
+            x-mockingbird-resource-ref:
+              type: run
       responses:
         "200":
           description: Stop accepted, or an unchanged terminal observation
@@ -237,6 +260,24 @@ components:
               type: "null"
             code:
               type: [string, "null"]
+    ThrottleError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message, type, param, code]
+          properties:
+            message:
+              type: string
+            type:
+              type: string
+              const: rate_limit_error
+            param:
+              type: "null"
+            code:
+              type: string
+              const: rate_limit_exceeded
     Run:
       type: object
       required: [object, run_id, status, created_at, updated_at, session_id, model]

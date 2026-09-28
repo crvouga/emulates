@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 through US-020 are complete; 11 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-021 are complete; 10 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -391,7 +391,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-021: Verify Hermes faults and consumer contracts
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 21
 - Depends on: US-020
 - Relevant paths: Hermes fault controls, property/acceptance tests and consumer fixtures.

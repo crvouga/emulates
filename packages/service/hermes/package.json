@@ -75,6 +75,7 @@
     "hono": "4.11.9"
   },
   "devDependencies": {
+    "@crvouga/mockingbird-parity": "workspace:*",
     "@crvouga/mockingbird-testing": "workspace:*",
     "@crvouga/mockingbird-openapi-codegen": "workspace:*",
     "@crvouga/mockingbird-core": "workspace:*",

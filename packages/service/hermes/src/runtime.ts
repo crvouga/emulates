@@ -6,6 +6,7 @@ import {
 } from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { HERMES_NAMESPACE, HermesAPI } from "./index.js"
+import { presets } from "./presets.js"
 import { HermesError } from "./runs.js"
 
 export type HermesRuntimeOptions = Pick<
@@ -20,6 +21,7 @@ export const createRuntime = (options: HermesRuntimeOptions = {}): HermesRuntime
     ...options,
     name: HERMES_NAMESPACE,
     document,
+    presets,
     admin: (runtime) => ({
       "POST /hermes/sweep": ({ namespace }) => {
         const result = runtime.instance(namespace).idempotency.sweep()

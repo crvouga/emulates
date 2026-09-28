@@ -4,7 +4,9 @@ import {
   annotateResponse,
   bootSqlite,
   createService,
+  DroppedConnectionError,
   defineOperations,
+  faultEffect,
   forwardRequestContext,
   jsonRes,
   markMutationAccepted,
@@ -54,7 +56,10 @@ export class HermesAPI implements FetchAPI {
           const key = strip(request.headers.get("Idempotency-Key") ?? "")
           if (body.kind !== "text") throw new HermesError(400, "Invalid JSON")
           const { run, replayed } = await this.idempotency.submit(body.value, key, memoryKey)
-          if (!replayed) markMutationAccepted(request, { ids: { runId: run.run_id } })
+          if (!replayed) {
+            markMutationAccepted(request, { ids: { runId: run.run_id } })
+            if (faultEffect(request, "hermes.accepted_drop")) throw new DroppedConnectionError()
+          }
           const response = jsonRes(202, {
             run_id: run.run_id,
             status: replayed ? run.status : "started",

@@ -212,6 +212,28 @@ restores both layers, ownership, the sweep schedule and controlled clock togethe
 These are shared-storage and logical-restart guarantees, not process-crash or disk
 durability evidence. SSE buffer and hosted-room retention remain outside the subset.
 
+## Fault and consumer scenarios
+
+Use `POST /__admin/faults` with `{ "preset": "hermes_submit_accepted_drop" }` to
+admit one new run and lose its response. The shared journal records acceptance and
+its checkpoint even though delivery fails. Retry the same body and idempotency key
+to recover the original run. Validation failures still return their normal errors.
+
+Other one-shot presets are `hermes_poll_timeout` (delay one poll by 1000ms),
+`hermes_throttled` (429 with the pinned default-capacity envelope), and
+`hermes_draining` (503 with the pinned draining envelope). Both rejection presets
+include `Retry-After: 1` and run before admission. These are explicit scenarios;
+they do not automatically count capacity or simulate a real draining gateway.
+To script an executor failure, use `observe` with `status: "failed"` and synthetic
+`error` text, then poll or replay the same run.
+
+The Node HTTP consumer fixture owns its disposable server and uses an independent
+HTTP client to test lost responses, replay, polling, stopping, client deadlines and
+expiry. It does not import Initiative or impose a consumer retry policy. Property
+tests compare eligible peer operations and assert coverage; a seeded poll check
+injects a schema-valid lifecycle divergence to test the comparator. Self-parity is
+consistency evidence, not an independent Hermes runtime compatibility claim.
+
 ## Deliberately not modelled
 
 Prompts, instructions and history are validated then discarded.

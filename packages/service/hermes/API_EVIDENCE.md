@@ -383,3 +383,18 @@ progress persistence, restart and Timeline. The mock folds elapsed sweep ticks
 into the next admission/observation and offers an explicit single-sweep control;
 it does not start a background worker. This source-backed model remains subject
 to the independent runtime comparison in US-022.
+
+## US-021 fault evidence
+
+Context7 resolution still lacks v2026.8.31; its general retry/current-main snippets
+were not used as pinned envelopes. Pinned A `_draining_response` lines1693–1704
+returns503, invalid_request_error/gateway_draining and Retry-After1. Capacity check
+lines7190–7208 returns429, rate_limit_error/rate_limit_exceeded and Retry-After1;
+the fixture message uses the pinned default limit10. The explicit presets do not
+implement automatic capacity accounting or gateway lifecycle.
+
+Response loss and poll delay are Mockingbird transport scenarios, not invented
+Hermes error responses. Scripted executor failure uses the existing pinned failed
+observation envelope. The native Node consumer uses literal HTTP contracts and no
+provider state helpers. Eligible self-parity and deliberate lifecycle divergence
+tests exercise the comparator; actual pinned runtime execution remains US-022.
