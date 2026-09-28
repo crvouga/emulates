@@ -11,7 +11,7 @@
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
 - Authorization: the user explicitly approved the planning baseline commit and implementation of all 31 stories with one commit per story after required checks and review pass. Installs, restricted configuration changes, provider operations, and publication retain their separate authorization gates.
 - Delivery: one explicitly authorized commit per verified and reviewed story; no automatic push or deployment.
-- Current status: US-001 through US-024 are complete; 7 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
+- Current status: US-001 through US-025 are complete; 6 stories remain incomplete. Select the lowest-priority-number eligible incomplete story during authorized execution.
 
 ## Verification and execution rules
 
@@ -458,7 +458,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 
 ### US-025: Scaffold GitHub and implement repository observations
 
-- [ ] Story complete
+- [x] Story complete
 - Priority: 25
 - Depends on: US-024
 - Relevant paths: `packages/service/github/`, repository state and observation tests.

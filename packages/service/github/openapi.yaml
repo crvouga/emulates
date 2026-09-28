@@ -1,0 +1,360 @@
+openapi: 3.1.0
+info:
+  title: GitHub REST subset (Mockingbird)
+  version: "2026-03-10"
+  description: Synthetic repository observations; no Git transport or credential enforcement.
+  x-mockingbird-upstream:
+    url: https://github.com/github/rest-api-description/blob/c6721f32a17a71397ae46be21be90d7f1a173b6e/descriptions/api.github.com/api.github.com.2026-03-10.json
+    note: Source-pinned REST subset. See API_EVIDENCE.md for limitations and pending parity.
+servers:
+  - url: https://api.github.com
+paths:
+  /repos/{owner}/{repo}:
+    get:
+      operationId: repos/get
+      summary: Get a seeded repository
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seeded repository identity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Repository"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /repos/{owner}/{repo}/git/ref/{ref}:
+    get:
+      operationId: git/get-ref
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: ref
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /repos/{owner}/{repo}/git/matching-refs/{ref}:
+    get:
+      operationId: git/list-matching-refs
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: ref
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /repos/{owner}/{repo}/git/refs:
+    post:
+      operationId: git/create-ref
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /repos/{owner}/{repo}/git/refs/{ref}:
+    patch:
+      operationId: git/update-ref
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: ref
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /repos/{owner}/{repo}/pulls:
+    get:
+      operationId: pulls/list
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+    post:
+      operationId: pulls/create
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+  /repos/{owner}/{repo}/pulls/{pull_number}:
+    get:
+      operationId: pulls/get
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: pull_number
+          required: true
+          schema:
+            type: integer
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+    patch:
+      operationId: pulls/update
+      summary: Inventoried operation, not yet implemented
+      x-mockingbird:
+        supported: false
+        reason: Implementation is scheduled in the reference and pull-request stories.
+        parity:
+          enabled: false
+          reason: Live and property verification are scheduled after implementation.
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: pull_number
+          required: true
+          schema:
+            type: integer
+      responses:
+        "501":
+          description: Mock-only unsupported operation or version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MockError"
+components:
+  schemas:
+    Repository:
+      type: object
+      required: [id, node_id, name, full_name, owner, private, fork, default_branch, url, html_url, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+        node_id:
+          type: string
+          x-mockingbird-resource:
+            type: repository
+            identity: true
+        name:
+          type: string
+        full_name:
+          type: string
+        owner:
+          type: object
+          required: [login, id, node_id, type]
+          properties:
+            login:
+              type: string
+            id:
+              type: integer
+            node_id:
+              type: string
+            type:
+              type: string
+              enum: [Organization]
+        private:
+          type: boolean
+        fork:
+          type: boolean
+        default_branch:
+          type: string
+        url:
+          type: string
+        html_url:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    Error:
+      type: object
+      required: [message, documentation_url, status]
+      properties:
+        message:
+          type: string
+        documentation_url:
+          type: string
+        status:
+          type: string
+    MockError:
+      type: object
+      required: [message, code]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+          const: mockingbird_unsupported

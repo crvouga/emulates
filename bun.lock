@@ -662,6 +662,27 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/github": {
+      "name": "@crvouga/mockingbird-service-github",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-github": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+      },
+    },
     "packages/service/google-calendar": {
       "name": "@crvouga/mockingbird-service-google-calendar",
       "version": "0.0.0-development",
@@ -2030,6 +2051,8 @@
     "@crvouga/mockingbird-service-fullscript": ["@crvouga/mockingbird-service-fullscript@workspace:packages/service/fullscript"],
 
     "@crvouga/mockingbird-service-genebygene": ["@crvouga/mockingbird-service-genebygene@workspace:packages/service/genebygene"],
+
+    "@crvouga/mockingbird-service-github": ["@crvouga/mockingbird-service-github@workspace:packages/service/github"],
 
     "@crvouga/mockingbird-service-google-calendar": ["@crvouga/mockingbird-service-google-calendar@workspace:packages/service/google-calendar"],
 
