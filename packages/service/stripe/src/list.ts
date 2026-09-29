@@ -1,5 +1,5 @@
 import type { Collection, Stored } from "@crvouga/mockingbird-service"
-import { invalidRequest, resourceMissing } from "./errors.js"
+import { invalidRequest, parameterInvalidEmpty, resourceMissing } from "./errors.js"
 import type { Params } from "./params.js"
 
 const DEFAULT_LIMIT = 10
@@ -38,6 +38,8 @@ export const paginate = async <T>(
     kind: string
     /** The `param` of a missing-cursor error, where Stripe names the resource, not the cursor. */
     cursorParam?: string
+    /** Stripe refuses an empty cursor on some lists; most treat `""` as absent. */
+    rejectEmptyCursors?: boolean
     where: (record: T) => boolean
     /** Existence check for cursors; deleted tombstones count as missing. */
     exists?: (record: T) => boolean
@@ -48,6 +50,10 @@ export const paginate = async <T>(
   const endingBefore = params.ending_before
   const all = await collection.list({ order: "newest" })
   const exists = options.exists ?? (() => true)
+  if (options.rejectEmptyCursors) {
+    if (startingAfter === "") throw parameterInvalidEmpty("starting_after")
+    if (endingBefore === "") throw parameterInvalidEmpty("ending_before")
+  }
   const cursorIndex = (id: string, param: string) => {
     const index = all.findIndex(
       (entry: Stored<T> & { id: string }) => entry.id === id && exists(entry.value),

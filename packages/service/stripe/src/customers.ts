@@ -269,6 +269,7 @@ export const customerHandlers = (services: Services): Record<string, OperationHa
         url: `/v1/customers/${id}/balance_transactions`,
         // Stripe names an unknown cursor on this list by its internal model.
         kind: "abstracttransaction",
+        rejectEmptyCursors: true,
         where: (record) => record.customer === id && matchesCreated(record.created, params.created),
         render: renderCustomerBalanceTransaction,
       })
