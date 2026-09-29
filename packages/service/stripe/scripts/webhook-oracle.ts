@@ -87,6 +87,13 @@ type StripeOracle = {
   close(): Promise<void>
 }
 
+/** Startup output explains a failed `stripe listen`; keys and signing secrets never leave it. */
+const redact = (text: string): string =>
+  text
+    .replace(/\b(?:whsec|sk|rk|pk)_[A-Za-z0-9_]+/g, "<redacted>")
+    .trim()
+    .slice(0, 1_000)
+
 /** Stripe CLI owns the websocket connection; its HTTP forwarder feeds the shared Hono receiver. */
 export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOracle> => {
   const rows: WebhookRow[] = []
@@ -123,6 +130,7 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
     },
   )
   let ready = false
+  let startupOutput = ""
   let exitCode: number | undefined
   let readyResolve: (() => void) | undefined
   let readyReject: ((error: Error) => void) | undefined
@@ -141,6 +149,7 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
         // Do not log CLI output: its ready line contains the webhook signing secret.
         const chunk = tail + decoder.decode(value, { stream: true })
         tail = chunk.slice(-16)
+        if (!ready && startupOutput.length < 4_000) startupOutput += chunk
         if (chunk.includes("Ready!")) {
           ready = true
           readyResolve?.()
@@ -154,7 +163,10 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   const stderr = drain(cli.stderr)
   void cli.exited.then((code) => {
     exitCode = code
-    if (!ready) readyReject?.(new Error(`stripe listen exited before ready (status ${code})`))
+    if (!ready)
+      readyReject?.(
+        new Error(`stripe listen exited before ready (status ${code}): ${redact(startupOutput)}`),
+      )
   })
   let readyTimer: ReturnType<typeof setTimeout> | undefined
   try {
