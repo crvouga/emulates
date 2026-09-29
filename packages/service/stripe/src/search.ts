@@ -94,8 +94,9 @@ export const searchRecords = <T extends RecordValue>(
   },
 ): SearchPage<unknown> => {
   const { query } = params
-  if (params.expand === "") throw parameterInvalidEmpty("expand")
+  // Stripe refuses an empty `query` before an empty `expand` (probed against live Stripe).
   if (query === "") throw parameterInvalidEmpty("query")
+  if (params.expand === "") throw parameterInvalidEmpty("expand")
   if (params.page === "") throw parameterInvalidEmpty("page")
   if (params.limit !== undefined) {
     const limit = Number(params.limit)
