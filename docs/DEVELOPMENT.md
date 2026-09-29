@@ -66,6 +66,8 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | Agent commands | `bun run check:agents` | Every `.agents/commands/*.md` is symlinked into each agent harness (`bun run agents:sync` repairs) |
 | Parity tiers | `bun run check:parity-tiers` | Every service's `mockingbird.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
 | Worktree lifecycle | `bun run check:worktree` | Every orchestrator's config (`.superset/`, `.super.engineering/`) runs the same [`scripts/worktree`](../scripts/worktree/README.md) setup, run and teardown (`bun run worktree:sync` regenerates) |
+| Scripts | `bun run check:scripts` | Every `scripts/**/*.ts` typechecks under the base tsconfig (`scripts/tsconfig.json`), and `bun test ./scripts` passes |
+| Workflows | `bun run check:workflows` | Every `.github/workflows/*.yml` passes a pinned, checksum-verified [actionlint](https://github.com/rhysd/actionlint) (its `run:` scripts through shellcheck when that is installed, as on GitHub's runners) |
 
 ### Git hooks (Husky)
 
@@ -124,6 +126,13 @@ reported behavior against the oracle, add a regression test, fix the mock, and s
 `/pr-ready` with `Fixes #<n>`. `feature` requests become acceptance tests plus contract changes;
 `new-service` requests become new packages built through
 [AUTHORING_A_SERVICE.md](AUTHORING_A_SERVICE.md).
+`bun github:resolve-issues [<issue…>]` runs that command on GitHub, unattended, as you. It starts
+the [Resolve issues](../.github/workflows/resolve-issues.yml) workflow with a GitHub token minted for
+the run, which expires within 8 hours and reaches only this repository, plus your Claude
+subscription token. No repo secret is involved. For each issue, an agent opens a draft PR and
+carries it to ready-to-merge. With no issue named, it takes the queue in the command's order. The
+repo owner runs `bun github:resolve-issues setup` once first.
+[SECRETS.md](SECRETS.md#resolving-issues-on-github) lists the safeguards.
 
 ### Package publishing
 

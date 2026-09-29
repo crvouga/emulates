@@ -28,7 +28,10 @@ gh issue edit <n> --add-assignee @me
 ```
 
 The assignee is the claim, so concurrent agents do not take the same issue. Skip issues that are
-already assigned. Start from an up-to-date `main` on a new branch, `fix/<service>-<n>`.
+already assigned. Start from an up-to-date `main` on a new branch, `fix/<service>-<n>`, unless an
+open draft PR for the issue already has one: the Resolve issues workflow (`bun github:resolve-issues`)
+opens `resolve-issues/<n>` before it starts you, so work on that branch and PR instead. If triage
+ends without a fix, close that draft PR with a comment saying why and delete its branch.
 
 ## 2. Triage
 
@@ -93,7 +96,8 @@ For `parity` and `bug` issues:
 Commit with a Conventional Commit, `fix(<service>): <what now matches the oracle>` (`feat(<service>): …`
 for `feature` and `new-service`), and a
 `Fixes #<n>` line in the body. Then run `/pr-ready`. Its PR body must include `Fixes #<n>` and the
-oracle evidence from step 3, so the issue closes when the PR merges.
+oracle evidence from step 3, so the issue closes when the PR merges. When the PR already exists (a
+draft the workflow opened), set that title and body with `gh pr edit` before `/pr-ready`.
 
 Continue with the next issue only if the user asked for the whole queue. Report every issue you
 touched: fixed (PR link), closed as invalid or duplicate, or waiting on information.

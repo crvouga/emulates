@@ -6,6 +6,8 @@ account, or any self-hosted service.
 - **Secrets** — GitHub Actions repo secrets are the only store ([docs/SECRETS.md](docs/SECRETS.md)).
   Never print, invent, or commit secret values; if one is missing, tell the human the key name and
   stop. Local values go in `.env.local` (gitignored, loaded by Bun).
+- **AI access** — subscription only (Claude Code with `CLAUDE_CODE_OAUTH_TOKEN`). Never add a
+  pay-per-use API integration (`ANTHROPIC_API_KEY`, OpenAI or any other provider's per-token billing).
 - **Live parity** — `bun run parity:remote -- <service…>` runs it on GitHub with the repo's
   `<SERVICE>_*` secrets (needs only `gh auth login`); `bun run parity:service -- <service…>` runs
   it locally with keys from `.env.local`. `bun run secrets:doctor` shows which services have keys.
@@ -28,7 +30,8 @@ see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#agent-commands).
 Agents in other projects report parity mismatches, missing features and bugs, and request new
 services, as GitHub issues labelled `agent-reported` ([docs/REPORTING_ISSUES.md](docs/REPORTING_ISSUES.md),
 templates in `.github/ISSUE_TEMPLATE/`, labels in `.github/labels.json`); `/resolve-issues` works
-that queue. Only public third-party vendor APIs get a mock: decline requests to mock a company's
+that queue, by hand or unattended on GitHub as you (`bun github:resolve-issues`, which carries each
+issue to a green PR). Only public third-party vendor APIs get a mock: decline requests to mock a company's
 own internal services, and keep fixtures and test data free of any real customer's name.
 
 `README.md` and `llms.txt` are generated: edit their sources (`sites/docs/src/lib/content.ts`, each
