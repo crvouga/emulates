@@ -290,7 +290,6 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   )
 
   const property = fc.asyncProperty(commands, async (steps) => {
-    lastWalkFailure = undefined
     const walkNumber = walks + 1
     const gap = lastWalkEnd + (clockSkewSeconds + 1) * 1000 - now()
     if (lastWalkEnd > 0 && gap > 0) await sleep(gap)
@@ -398,7 +397,8 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       throw webhookFailure
     }
     if (walkError !== undefined) {
-      if (walkError instanceof ParityError) lastWalkFailure = walkError
+      // Kept across walks: shrinking replays passing candidates after the last failing walk.
+      lastWalkFailure = walkError instanceof ParityError ? walkError : undefined
       throw walkError
     }
     if (ok) {
