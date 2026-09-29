@@ -61,7 +61,7 @@ Every package is self-contained ESM with TypeScript types, for Node >= 22 or Bun
 - **Checked against the real thing.** Random walks generated from each vendored OpenAPI contract run against two mock instances in CI, and against the live sandbox when credentials exist.
 - **No network, no waiting.** Everything runs in your test process. No sandbox keys, rate limits, shared test accounts or flaky round trips.
 - **Runs anywhere JavaScript runs.** Most mocks are portable: Node, Bun, browsers and Workers. The docs site's playgrounds run the published packages in your browser tab.
-- **One contract for every service.** Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals and per-namespace isolation.
+- **One contract for every service.** Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.
 
 The full rationale, and when not to use it: [docs/WHY.md](docs/WHY.md).
 
@@ -149,6 +149,8 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 | `createRuntime()` · `createServer()` (`./server`) · `mockingbird-<service> serve` | The mock as one runtime-neutral `fetch`, or a listening server from Node or the CLI |
 | `GET /health` | Unauthenticated readiness probe, outside the vendor's auth gate |
 | `/__admin/*` (`x-mockingbird-admin-key` optional) | Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes |
+| `GET /__admin/state` | The collections in the selected namespace: declared shape, live `Collection` fields, and stored rows. Create, replace, merge, and delete records through the same paths on every mock |
+| `GET /__admin/ui` | The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API |
 | `x-mockingbird-namespace` | Per-request isolation: parallel workers share one process without sharing data |
 | `--seed`, clock control | Seeded randomness and an injectable clock, so a run replays exactly |
 | `--log json` | One structured line per request: operation id, status, duration, namespace, fault |

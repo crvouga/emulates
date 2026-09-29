@@ -51,7 +51,7 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | --- | --- | --- |
 | Format | `bun run check:format` | [Biome](https://biomejs.dev) formatting |
 | Lint | `bun run lint` | Biome lint (types, style, complexity) |
-| Typecheck | `bun run typecheck` | `tsc` for every package |
+| Typecheck | `bun run typecheck` | `tsc` for every package. `@crvouga/mockingbird-service-conformance` proves each HTTP mock's `createRuntime` accepts `{ sqlite?, clock?, seed?, adminKey? }` and returns the shared `MockSurface` |
 | Boundaries | `bun run check:boundaries` | Intra-workspace dep graph plus the state architecture: internal deps resolve, no cycles or self-deps, imports are declared, published dependency rules hold, and providers cannot bypass or reimplement the shared Timeline history coordinator |
 | Package integrity | `bun run pack:check` | `dist` + `exports` + `files`, tarball contents, [publint](https://publint.dev), [arethetypeswrong](https://arethetypeswrong.github.io) (ESM-only consumer resolution) |
 | Portability | `bun run portability` | Built `dist` matches the package's `mockingbird.runtime` (portable / node / bun) — no Node/Bun-only API usage where it isn't allowed |

@@ -120,7 +120,7 @@ the body is read.
 | `PACKAGE_VERSION` / `UNRELEASED_VERSION` | `string` | The bundled service's version (stamped by `release:publish`); `"0.0.0-development"` from source. |
 | `createJournal` | `(size = 1000) => Journal` | Per-namespace ring buffer of request logs behind `GET /__admin/requests`. |
 | `annotateResponse` / `responseNotes` | `(response, { ids?, adopted?, issues? }) => Response` | Attach the ids a handler touched (and, on a rejection, the body issues behind it) to a response for the journal and log, without changing what the client sees. |
-| `createRuntime` | `(options: RuntimeOptions) => ServiceRuntime` | Wrap a service in the full contract: `/health`, `/__admin/*`, namespaces (header, `/ns/<name>/…` prefix, or `credential`-mapped via `PUT /__admin/credentials`), clock, faults and `presets`, metrics, journal, optional `webhooks` hub. |
+| `createRuntime` | `(options: RuntimeOptions) => ServiceRuntime` | Wrap a service in the full contract: `/health`, `/__admin/*`, namespaces (header, `/ns/<name>/…` prefix, or `credential`-mapped via `PUT /__admin/credentials`), clock, faults and `presets`, metrics, journal, optional `webhooks` hub, `GET /__admin/state`, and `GET /__admin/ui`. |
 | `BRANCH_HEADER` / `AT_HEADER` / `CHECKPOINT_HEADER` | HTTP header constants | `x-mockingbird-branch` selects an isolated branch; `x-mockingbird-at` reads/forks from a checkpoint; successful mutations return `x-mockingbird-checkpoint`. Omitting them preserves normal behavior. |
 | `faultEffect` / `faultEffects` | `(request, name?) => params \| list` | The `effect` fault rules that fired for a request, so a handler can switch on a named vendor misbehaviour. |
 | `DroppedConnectionError` | `class extends TypeError` | What an in-process `runtime.fetch` throws for a `drop: true` fault; the Node adapter destroys the socket instead. |
@@ -136,6 +136,11 @@ the body is read.
 | `bodyIssues` / `issuesByField` | `(context) => BodyIssue[]` | Validate the body against the operation's contract schema for the media type it sent; group issues Laravel-style. Each issue has a `kind`: `media_type` (a present body whose `content-type` is missing or not one the contract lists — never "required"), `syntax`, `required` (an empty body), `schema`. |
 | `unsupportedMediaType` | `(context, { includeEmpty? }) => { mediaType, accepted } \| undefined` | The `415` case on its own: the request's media type and the ones the operation accepts (`application/*+json` wildcards understood). `includeEmpty` treats an empty body the way ASP.NET Core does (the header alone decides). |
 | `putObject` / `signV4` | | SigV4-signed S3 `PutObject` (for vendors that hand the app an `s3://` object). |
+| `defineMock` | `<T extends MockSurface>(runtime: T) => T` | Prove a runtime has the shared surface and keep its extra methods. `createRuntime` already returns one. |
+| `STANDARD_ADMIN_ROUTES` | `readonly string[]` | The `/__admin` keys every mock answers. Service routes add keys beside these. |
+| `assertAdminUi` | `(ui?: AdminUi) => void` | Reject a panel id or an empty title before the shell mounts it. Called by `createRuntime`. |
+| `inspectState` | `(scope) => StateView` | Collections for one namespace: declarations, `Collection` fields on the instance, and stored names, with field kinds sampled from rows. |
+| `STATE_FIELD_KINDS` | `"string" \| "number" \| …` | The kinds a state field can report. |
 
 Types:
 
@@ -144,7 +149,7 @@ Types:
 - `OperationContext` (handler argument): `{ request; url; params; query: FormObject; body: DecodedBody; sqlite; namespace; operation; now }`.
 - `OperationHandler`: `(context) => Response | Promise<Response>`; `OperationHandlers`: `Record<string, OperationHandler>`.
 - `APIOptions`: `{ sqlite?: SqliteClient; now?: () => number }`, the options every provider mock accepts.
-- `ServiceRuntime`: also exposes `checkpoint(namespace?, branch?)`, `branch(name, { namespace?, at? })`, `checkout(id, { namespace?, branch? })`, and `timeline(namespace?)`. Equivalent HTTP control routes are `GET /__admin/timeline`, `POST /__admin/checkpoints`, `POST /__admin/branches/:name`, and `POST /__admin/branches/:name/checkout`.
+- `ServiceRuntime`: also exposes `state(namespace?)` (the same collection view as `GET /__admin/state`), `checkpoint(namespace?, branch?)`, `branch(name, { namespace?, at? })`, `checkout(id, { namespace?, branch? })`, and `timeline(namespace?)`. Equivalent HTTP control routes are `GET /__admin/timeline`, `POST /__admin/checkpoints`, `POST /__admin/branches/:name`, and `POST /__admin/branches/:name/checkout`. `RuntimeOptions.state` declares collections before any row exists. `RuntimeOptions.adminUi` adds panels or replaces `GET /__admin/ui`.
 - `RuntimeIO`: injectable `wallNow`, `monotonicNow`, and `sleep`; pass a partial value as `RuntimeOptions.io` for fully controlled observations and fault delays. `WebhookHubOptions` likewise accepts `now`, `id`, `schedule`, `cancel`, and `fetch`.
 
 Provider state must live in the shared `Collection` storage and receives version history only from

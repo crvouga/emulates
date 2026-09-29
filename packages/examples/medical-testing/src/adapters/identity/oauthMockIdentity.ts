@@ -1,4 +1,4 @@
-import { OAuthAPI } from "@crvouga/mockingbird-service-oauth"
+import { createRuntime, type OAuthRuntime } from "@crvouga/mockingbird-service-oauth"
 import * as oauth from "oauth4webapi"
 import type { HostedFlowStep } from "../../app/ports/hostedFlow.js"
 import type {
@@ -41,8 +41,8 @@ type PendingFlow = {
   expires: number
 }
 
-/** Builds one branded provider mock per key, seeded with a single demo account. */
-const createProviderApis = (): Record<IdentityProviderKey, OAuthAPI> => {
+/** One runtime per provider, so each admin tab sees that provider's own accounts and grants. */
+const createProviderRuntimes = (): Record<IdentityProviderKey, OAuthRuntime> => {
   const client = (provider: IdentityProviderKey) => {
     const config = CLIENTS[provider]
     return {
@@ -54,7 +54,8 @@ const createProviderApis = (): Record<IdentityProviderKey, OAuthAPI> => {
     }
   }
   return {
-    google: new OAuthAPI({
+    google: createRuntime({
+      runtimeName: "google",
       provider: "google",
       issuer: CLIENTS.google.issuer,
       accounts: [
@@ -70,7 +71,8 @@ const createProviderApis = (): Record<IdentityProviderKey, OAuthAPI> => {
       ],
       clients: [client("google")],
     }),
-    apple: new OAuthAPI({
+    apple: createRuntime({
+      runtimeName: "apple",
       provider: "apple",
       issuer: CLIENTS.apple.issuer,
       accounts: [
@@ -82,7 +84,7 @@ const createProviderApis = (): Record<IdentityProviderKey, OAuthAPI> => {
 }
 
 const dispatchFor =
-  (api: OAuthAPI) =>
+  (api: { fetch(request: Request): Promise<Response> }) =>
   (
     input: string | URL,
     init?: oauth.CustomFetchOptions<string, URLSearchParams | undefined> | RequestInit,
@@ -125,9 +127,15 @@ const decodeHtmlEntities = (value: string): string =>
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
 
+export type MockAdmin = {
+  id: string
+  label: string
+  fetch: (request: Request) => Promise<Response>
+}
+
 /** Implements `IdentityProvider` against Mockingbird's in-process OAuth mock. */
-export const createOAuthMockIdentity = (): IdentityProvider => {
-  const apis = createProviderApis()
+export const createOAuthMockIdentity = (): { client: IdentityProvider; admins: MockAdmin[] } => {
+  const apis = createProviderRuntimes()
   const flows = new Map<string, PendingFlow>()
 
   const pruneExpired = (): void => {
@@ -204,7 +212,7 @@ export const createOAuthMockIdentity = (): IdentityProvider => {
 
   const handleProviderResponse = async (
     flowId: string,
-    api: OAuthAPI,
+    api: { fetch(request: Request): Promise<Response> },
     response: Response,
   ): Promise<HostedFlowStep<IdentityProfile>> => {
     const flow = flows.get(flowId)
@@ -324,5 +332,11 @@ export const createOAuthMockIdentity = (): IdentityProvider => {
     }
   }
 
-  return { startSignIn, continueSignIn }
+  return {
+    client: { startSignIn, continueSignIn },
+    admins: [
+      { id: "google", label: "Google", fetch: (request) => apis.google.fetch(request) },
+      { id: "apple", label: "Apple", fetch: (request) => apis.apple.fetch(request) },
+    ],
+  }
 }
