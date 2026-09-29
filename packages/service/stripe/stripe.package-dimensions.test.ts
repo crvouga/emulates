@@ -73,3 +73,15 @@ test("exponent-notation dimensions are reported in field order once the places c
   })
   expect(error.param).toBe("package_dimensions[width]")
 })
+
+// Live parity: an exponent-notation width is reported before a later weight's places error.
+test("an exponent-notation dimension is reported before a later field's decimal-places error", async () => {
+  const { error } = await createProduct({
+    length: "0",
+    width: "5e-324",
+    height: "0",
+    weight: "-0.000001",
+  })
+  expect(error.param).toBe("package_dimensions[width]")
+  expect(error.message).toBe("Invalid decimal: 5e-324")
+})
