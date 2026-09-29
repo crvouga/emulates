@@ -324,10 +324,11 @@ export const bodyParams = (context: OperationContext, options: ParamOptions = {}
     raw.preferred_locales === ""
   )
     delete raw.preferred_locales
-  if (typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === "")
-    throw parameterInvalidEmpty("expand")
   const { rest, expand } = withoutExpand(raw)
   const params = stringMetadata(parseParams(formBodySchema(context), rest, options))
+  // Probed live: the other parameters' errors come before an empty `expand`.
+  if (typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === "")
+    throw parameterInvalidEmpty("expand")
   return expand.length === 0 ? params : { ...params, expand }
 }
 

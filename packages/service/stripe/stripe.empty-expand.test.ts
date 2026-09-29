@@ -60,3 +60,20 @@ test("listing schedules with an empty customer_account and a bad released_at nam
   expect(error.code).toBe("parameter_invalid_empty")
   expect(error.param).toBe("customer_account")
 })
+
+// Live parity: a bad enum value on a POST is reported before an empty `expand`.
+test("a POST with an invalid tax_exempt and empty expand names tax_exempt", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee5", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/customers/cus_missing`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${KEY}`,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ expand: "", tax_exempt: " " }),
+  })
+  const { error } = (await response.json()) as { error: { param: string } }
+  expect(response.status).toBe(400)
+  expect(error.param).toBe("tax_exempt")
+})
