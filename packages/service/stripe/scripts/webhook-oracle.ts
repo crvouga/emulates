@@ -113,6 +113,9 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
       "stripe",
       "listen",
       "--skip-update",
+      // Newer CLIs no longer default to all events and refuse to start without a selection.
+      "--events",
+      "*",
       "--forward-to",
       `http://127.0.0.1:${receiver.port}/stripe`,
     ],
