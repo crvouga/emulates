@@ -81,6 +81,9 @@ export const compareStripeWebhooks = (
   return `event signature differs at sorted index ${index}: real=${realSignatures[index]} mock=${mockSignatures[index]}`
 }
 
+const redactStripeSecrets = (text: string) =>
+  text.replace(/\b(?:whsec|[sr]k_(?:test|live))_[A-Za-z0-9_*]+/g, "[redacted]")
+
 type StripeOracle = {
   cursor(): number
   collect(cursor: number, expected: number): Promise<unknown[]>
@@ -130,6 +133,9 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
     readyResolve = resolve
     readyReject = reject
   })
+  // Startup output only, kept to explain an early exit; never logged once the ready line (which
+  // carries the signing secret) has appeared.
+  let startupOutput = ""
   const drain = async (stream: ReadableStream<Uint8Array>) => {
     const reader = stream.getReader()
     const decoder = new TextDecoder()
@@ -139,8 +145,10 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
         const { done, value } = await reader.read()
         if (done) break
         // Do not log CLI output: its ready line contains the webhook signing secret.
-        const chunk = tail + decoder.decode(value, { stream: true })
+        const text = decoder.decode(value, { stream: true })
+        const chunk = tail + text
         tail = chunk.slice(-16)
+        if (!ready && startupOutput.length < 2_000) startupOutput += text
         if (chunk.includes("Ready!")) {
           ready = true
           readyResolve?.()
@@ -152,9 +160,15 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   }
   const stdout = drain(cli.stdout)
   const stderr = drain(cli.stderr)
-  void cli.exited.then((code) => {
+  void cli.exited.then(async (code) => {
     exitCode = code
-    if (!ready) readyReject?.(new Error(`stripe listen exited before ready (status ${code})`))
+    await Promise.allSettled([stdout, stderr])
+    if (!ready)
+      readyReject?.(
+        new Error(
+          `stripe listen exited before ready (status ${code}): ${redactStripeSecrets(startupOutput).trim()}`,
+        ),
+      )
   })
   let readyTimer: ReturnType<typeof setTimeout> | undefined
   try {
