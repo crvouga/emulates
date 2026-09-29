@@ -68,6 +68,8 @@ export type Recurring = {
   interval: "day" | "week" | "month" | "year"
   interval_count: number
   usage_type: "licensed" | "metered"
+  /** Default trial a subscription started with `trial_from_plan=true` gets. */
+  trial_period_days: number | null
 }
 
 export type PriceRecord = {

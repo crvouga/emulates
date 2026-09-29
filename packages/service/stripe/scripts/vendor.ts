@@ -1246,6 +1246,9 @@ const EXTRA_BODY_PARAMS: Record<string, Shape> = {
   PostSubscriptions: {
     pause_collection: unsupported("collection is paused on an existing subscription only"),
   },
+  // Stripe still accepts (and returns) a default trial on a recurring price; a subscription
+  // started with `trial_from_plan=true` uses it.
+  PostPrices: { "recurring.trial_period_days": { type: "integer", minimum: 1 } },
 }
 
 /**
@@ -1279,9 +1282,13 @@ const acceptRawCard = (operation: Json) => {
 }
 
 const applyExtraBodyParams = (schema: Schema, shape: Shape) => {
-  const properties = isObject(schema.properties) ? (schema.properties as Json) : {}
-  schema.properties = properties
-  for (const [key, edit] of Object.entries(shape)) {
+  for (const [path, edit] of Object.entries(shape)) {
+    // A dotted path names a property of a nested object, e.g. `recurring.trial_period_days`.
+    const [parentPath, key] = parentAndKey(path)
+    const parent = parentPath.length === 0 ? schema : propertyContainer(schema, parentPath)
+    if (!parent) throw new Error(`extra body parameter ${path}: parent not found`)
+    const properties = isObject(parent.properties) ? (parent.properties as Json) : {}
+    parent.properties = properties
     if (edit === null) {
       delete properties[key]
       continue

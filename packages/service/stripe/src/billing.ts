@@ -73,7 +73,14 @@ export const recurringOf = (scope: RequestScope, subscription: SubscriptionRecor
     .map((id) => scope.account.subscriptionItems.get(id))
     .find((item) => item !== undefined)
   const price = first === undefined ? undefined : scope.account.prices.get(first.price)
-  return price?.recurring ?? { interval: "month", interval_count: 1, usage_type: "licensed" }
+  return (
+    price?.recurring ?? {
+      interval: "month",
+      interval_count: 1,
+      usage_type: "licensed",
+      trial_period_days: null,
+    }
+  )
 }
 
 // --- discounts ----------------------------------------------------------------------------------
@@ -770,6 +777,8 @@ export type CreateSubscriptionInput = {
   paymentBehavior: string | null
   trialEnd: number | "now" | null
   trialPeriodDays?: number | null
+  /** Start the trial the price(s) declare in `recurring.trial_period_days`. */
+  trialFromPlan?: boolean
   backdateStartDate?: number | undefined
   billingCycleAnchor?: number | undefined
   prorationBehavior?: string | null
@@ -845,10 +854,13 @@ export const createSubscription = (
   const recurring = first.price.recurring as Recurring
   const now = customerNow(scope, input.customer)
   const start = input.backdateStartDate ?? now
+  // With several items, the longest plan trial wins.
+  const planTrialDays = input.trialFromPlan
+    ? Math.max(0, ...priced.map((entry) => entry.price.recurring?.trial_period_days ?? 0))
+    : 0
+  const trialDays = input.trialPeriodDays || planTrialDays
   const trialEnd =
-    input.trialEnd === "now"
-      ? null
-      : (input.trialEnd ?? (input.trialPeriodDays ? now + input.trialPeriodDays * DAY : null))
+    input.trialEnd === "now" ? null : (input.trialEnd ?? (trialDays ? now + trialDays * DAY : null))
   const trialing = trialEnd !== null && trialEnd > now
   let periodEnd = trialing
     ? (trialEnd as number)
