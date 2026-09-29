@@ -239,4 +239,15 @@ describe("service contract", () => {
       error: { message: "Invalid array", param: "preferred_locales" },
     })
   })
+
+  test("creating a customer upper-cases a two-letter country and keeps any other as sent", async () => {
+    const { call } = harness()
+    const two = await call("/v1/customers", form({ "address[country]": "sN" }))
+    expect(await two.json()).toMatchObject({ address: { country: "SN" } })
+    const one = await call(
+      "/v1/customers",
+      form({ "shipping[address][country]": "a", "shipping[name]": "n" }),
+    )
+    expect(await one.json()).toMatchObject({ shipping: { address: { country: "a" } } })
+  })
 })

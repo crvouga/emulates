@@ -42,11 +42,12 @@ const toAddress = (raw: unknown): Address => {
   const out = {} as Record<(typeof ADDRESS_KEYS)[number], string | null>
   for (const key of ADDRESS_KEYS) {
     const value = input[key]
-    // Stripe upper-cases the country code it stores (live: "sN" comes back "SN").
+    // Stripe upper-cases a two-letter country code it stores (live: "sN" comes back "SN") and
+    // keeps anything else as sent (live: "a" comes back "a").
     out[key] =
       value === undefined
         ? null
-        : key === "country"
+        : key === "country" && value.length === 2
           ? value.replace(/[a-z]/g, (letter) => letter.toUpperCase())
           : value
   }
