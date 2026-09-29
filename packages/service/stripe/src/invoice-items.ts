@@ -111,7 +111,7 @@ const requireItem = (scope: RequestScope, id: string): InvoiceItemRecord => {
       status: 404,
       code: "resource_missing",
       message: `No such Invoice Item: '${id}'(livemode=false)`,
-      param: "invoiceitem",
+      param: "id",
     })
   return item
 }

@@ -108,7 +108,7 @@ export const searchRecords = <T extends RecordValue>(
         param: "limit",
       })
   }
-  // Stripe range-checks `limit` before it refuses an empty `page`.
+  // Stripe validates a typed `limit` before it notices an empty `page` (verified in test mode).
   if (params.page === "") throw parameterInvalidEmpty("page")
   if (params.expand === "") throw parameterInvalidEmpty("expand")
   if (typeof query !== "string" || query.trim() === "")
