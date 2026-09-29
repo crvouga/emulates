@@ -48,18 +48,3 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `get_orders_v3_orders_get` | `GET /v3/orders` | ✅ supported | ✅ |  |
 | `get_order_transaction_v3_order_transaction__transaction_id__get` | `GET /v3/order_transaction/{transaction_id}` | ✅ supported | ❌ disabled | order transactions are not available to the sandbox team (feature not available) |
 | `get_order_transaction_result_v3_order_transaction__transaction_id__result_get` | `GET /v3/order_transaction/{transaction_id}/result` | ✅ supported | ❌ disabled | lab results are not available to the sandbox team (feature not available) |
-
-### Asynchronous testkit simulation
-
-A completion-target simulation on an active testkit advances through delivery and queues
-completion for the next millisecond of the injected `now` clock. This is a deterministic
-mock scheduling boundary, not a claim about Junction's processing latency. Order, result,
-transaction, and order-list reads apply due work to its owning order. A second simulation
-is not required. Results remain unavailable while the testkit is `delivered_to_lab`.
-Cancelled orders never complete from queued simulation work.
-
-The parity harness polls order reads after successful immediate completion simulations on
-both targets. Testkit completion must settle within 15 seconds or verification fails;
-explicitly delayed simulations and unsuccessful requests are not treated as settled.
-The USSL testkit result metadata follows the observed sandbox fixture (null specimen dates
-and CLIA `05D2130115`); other laboratories retain their existing metadata behavior.

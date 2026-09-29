@@ -892,4 +892,19 @@ bun run parity -- --mode=empty                   # legacy empty-start differenti
 Webhook parity needs a public receiver; see
 [docs/webhook-parity.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/junction/docs/webhook-parity.md).
 
+## Asynchronous testkit simulation
+
+A completion-target simulation on an active testkit advances through delivery and queues
+completion for the next millisecond of the injected `now` clock. This is a deterministic
+mock scheduling boundary, not a claim about Junction's processing latency. Order, result,
+transaction, and order-list reads apply due work to its owning order. A second simulation
+is not required. Results remain unavailable while the testkit is `delivered_to_lab`.
+Cancelled orders never complete from queued simulation work.
+
+The parity harness polls order reads after successful immediate completion simulations on
+both targets. Testkit completion must settle within 15 seconds or verification fails;
+explicitly delayed simulations and unsuccessful requests are not treated as settled.
+The USSL testkit result metadata follows the observed sandbox fixture (null specimen dates
+and CLIA `05D2130115`); other laboratories retain their existing metadata behavior.
+
 Part of [mockingbird](https://github.com/crvouga/mockingbird) — agent integration guide: [README](https://github.com/crvouga/mockingbird#readme) · [llms.txt](https://github.com/crvouga/mockingbird/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md).
