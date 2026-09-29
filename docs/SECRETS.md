@@ -20,7 +20,7 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 | [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>`, `-- --all` or `-- --tier=warm`; by [tier](TESTING.md#parity-tiers) also on each PR that changes a hot service ([Advisory](../.github/workflows/advisory.yml), non-blocking, not for forks) and weekly for warm services |
 | [Verify](../.github/workflows/verify.yml) | `JUNCTION_API_KEY` | daily, or `gh workflow run verify.yml` |
 | [Release](../.github/workflows/ci.yml) | `NPM_TOKEN` (new packages only) | automatic on merge to `main` |
-| [Resolve issues](../.github/workflows/resolve-issues.yml) | `RESOLVE_ISSUES_GITHUB_TOKEN`, and `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` | `bun run resolve-issues:remote -- [<issue…>]`, or the Actions tab ([below](#resolving-issues-on-github)) |
+| [Resolve issues](../.github/workflows/resolve-issues.yml) | `RESOLVE_ISSUES_GITHUB_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN` | `bun run resolve-issues:remote -- [<issue…>]`, or the Actions tab ([below](#resolving-issues-on-github)) |
 
 ## Live parity
 
@@ -101,15 +101,17 @@ bun run resolve-issues:remote              # the queue: up to 3 unassigned parit
 bun run resolve-issues:remote -- 190 191   # these issues (a new-service issue runs only when named)
 ```
 
-Each run needs three secrets. `bun run secrets` shows them under `workflows`, and a run that is
+Each run needs two secrets. `bun run secrets` shows them under `workflows`, and a run that is
 missing one fails at once and names it:
 
 - **`RESOLVE_ISSUES_GITHUB_TOKEN`**: a fine-grained token for this repository only, with read and
   write on Contents, Issues, Pull requests and Actions. Leave out Workflows, so an agent cannot
   edit a workflow file. The built-in `GITHUB_TOKEN` does not work here: a PR pushed with it never
   triggers the CI workflow, so it never turns green. Commits and PRs are made as the token's owner.
-- **`ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`**: the agent's model access. The workflow uses
-  whichever one is set.
+- **`CLAUDE_CODE_OAUTH_TOKEN`**: the agents' model access, from a Claude subscription. Create it
+  with `claude setup-token` on a machine logged in to the subscription. AI access in this repo is
+  subscription-only: never add a pay-per-use API key (`ANTHROPIC_API_KEY` or any other provider's).
+  The workflow unsets `ANTHROPIC_API_KEY` so Claude Code cannot fall back to one.
 
 The agents read issue text that anyone can write, so the job gets no vendor sandbox keys. To
 check a report against the oracle, an agent dispatches the Parity workflow
@@ -167,7 +169,7 @@ what `main` already built and tested. No token, no server.
 | `NPM_TOKEN` | repo secret | creating new packages, deprecations |
 | `<SERVICE>_*` sandbox keys | repo secrets (+ optionally your `.env.local`) | live parity only |
 | `RESOLVE_ISSUES_GITHUB_TOKEN` | repo secret | Resolve issues: pushing agent branches and opening PRs |
-| `ANTHROPIC_API_KEY` / `CLAUDE_CODE_OAUTH_TOKEN` | repo secret (either one) | Resolve issues: the agents' model access |
+| `CLAUDE_CODE_OAUTH_TOKEN` | repo secret | Resolve issues: the agents' model access (Claude subscription) |
 | `GITGUARDIAN_API_KEY` | your `.env.local` | optional: `pr:ready guardian ignore` |
 
 Inventory: [`secrets.manifest.yaml`](../secrets.manifest.yaml) (non-parity secrets and the

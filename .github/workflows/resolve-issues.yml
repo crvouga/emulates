@@ -12,7 +12,9 @@
 #                                requests and Actions read/write, no Workflows. The built-in
 #                                GITHUB_TOKEN will not do: a PR it pushes never triggers pr.yml,
 #                                so it could never turn green.
-#   ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN  the agent's model access.
+#   CLAUDE_CODE_OAUTH_TOKEN      the agents' model access, from a Claude subscription
+#                                (`claude setup-token`). Never a pay-per-use API key: the run
+#                                unsets ANTHROPIC_API_KEY so Claude Code cannot fall back to one.
 # Vendor sandbox keys are deliberately not in the job: to check the oracle the agent dispatches
 # the Parity workflow (bun run parity:remote), so the keys never reach a job that reads issue text.
 #
@@ -57,7 +59,7 @@ jobs:
       - name: Secrets
         env:
           HAS_GITHUB_TOKEN: ${{ secrets.RESOLVE_ISSUES_GITHUB_TOKEN != '' }}
-          HAS_MODEL_ACCESS: ${{ secrets.ANTHROPIC_API_KEY != '' || secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+          HAS_MODEL_ACCESS: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         run: |
           missing=0
           if [[ "$HAS_GITHUB_TOKEN" != "true" ]]; then
@@ -65,7 +67,7 @@ jobs:
             missing=1
           fi
           if [[ "$HAS_MODEL_ACCESS" != "true" ]]; then
-            echo "::error::Missing repo secret ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN (see docs/SECRETS.md)"
+            echo "::error::Missing repo secret CLAUDE_CODE_OAUTH_TOKEN (see docs/SECRETS.md)"
             missing=1
           fi
           exit "$missing"
@@ -127,12 +129,10 @@ jobs:
           MODEL: ${{ inputs.model }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_TOKEN: ${{ secrets.RESOLVE_ISSUES_GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
-          # Only the model credential that is set: an empty one would shadow the other.
-          [[ -n "$ANTHROPIC_API_KEY" ]] || unset ANTHROPIC_API_KEY
-          [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]] || unset CLAUDE_CODE_OAUTH_TOKEN
+          # Subscription access only: Claude Code prefers an API key when one is set.
+          unset ANTHROPIC_API_KEY
           system=$(cat <<EOF
           You are running unattended in GitHub Actions ($RUN_URL) with no human to answer.
           Resolve only issue #$ISSUE, following /resolve-issues to the end: when a fix is warranted,

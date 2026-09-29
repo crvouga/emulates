@@ -6,6 +6,8 @@ account, or any self-hosted service.
 - **Secrets** — GitHub Actions repo secrets are the only store ([docs/SECRETS.md](docs/SECRETS.md)).
   Never print, invent, or commit secret values; if one is missing, tell the human the key name and
   stop. Local values go in `.env.local` (gitignored, loaded by Bun).
+- **AI access** — subscription only (Claude Code with `CLAUDE_CODE_OAUTH_TOKEN`). Never add a
+  pay-per-use API integration (`ANTHROPIC_API_KEY`, OpenAI or any other provider's per-token billing).
 - **Live parity** — `bun run parity:remote -- <service…>` runs it on GitHub with the repo's
   `<SERVICE>_*` secrets (needs only `gh auth login`); `bun run parity:service -- <service…>` runs
   it locally with keys from `.env.local`. `bun run secrets:doctor` shows which services have keys.
