@@ -87,6 +87,15 @@ type StripeOracle = {
   close(): Promise<void>
 }
 
+/**
+ * Stripe CLI 1.52+ refuses to start without an explicit event selection and rejects `--events '*'`;
+ * older CLIs have no `--all-snapshot` and default to every event.
+ */
+const allSnapshotEventsFlags = (): string[] => {
+  const help = Bun.spawnSync(["stripe", "listen", "--help"], { stdout: "pipe", stderr: "pipe" })
+  return help.stdout.toString().includes("--all-snapshot") ? ["--all-snapshot"] : []
+}
+
 /** Stripe CLI owns the websocket connection; its HTTP forwarder feeds the shared Hono receiver. */
 export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOracle> => {
   const rows: WebhookRow[] = []
@@ -113,9 +122,7 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
       "stripe",
       "listen",
       "--skip-update",
-      // Newer CLIs refuse to start without an explicit event selection.
-      "--events",
-      "*",
+      ...allSnapshotEventsFlags(),
       "--forward-to",
       `http://127.0.0.1:${receiver.port}/stripe`,
     ],
