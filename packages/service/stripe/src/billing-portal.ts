@@ -108,7 +108,10 @@ const dashboardFeatures = (): PortalFeatures => ({
   },
 })
 
-/** The account's default configuration, created when a portal session first needs it. */
+/**
+ * The account's default configuration, created on first use as the dashboard would have. Listing
+ * does not create it: a fresh live account has none until a portal session or the dashboard does.
+ */
 export const ensureDefaultConfiguration = (
   scope: RequestScope,
 ): BillingPortalConfigurationRecord => {

@@ -56,6 +56,23 @@ describe("service contract", () => {
     expect(vendor.headers.get("x-mockingbird")).toMatch(/^stripe@.+; ns=default$/)
   })
 
+  test("a product image list reports the first bad element, whichever check it fails", async () => {
+    const { call } = harness()
+    const response = await call(
+      "/v1/products",
+      form({ name: "a", "images[0]": " ", "images[1]": "" }),
+    )
+    expect(response.status).toBe(400)
+    const { error } = (await response.json()) as {
+      error: { code: string; param: string; message: string }
+    }
+    expect(error).toMatchObject({
+      code: "url_invalid",
+      param: "images[0]",
+      message: "Not a valid URL",
+    })
+  })
+
   test("namespaces by header, by /ns/ prefix and by API key all isolate state", async () => {
     const { call, admin } = harness()
     const created = await call(

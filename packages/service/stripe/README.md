@@ -86,7 +86,7 @@ the mock's hosted page.
 
 State is partitioned by **account**, and the account is chosen by API key:
 
-- `PUT /__admin/accounts {"accounts": [{id, keys, apiVersion?, webhookSecrets?, corpus?, displayName?}]}`
+- `PUT /__admin/accounts {"accounts": [{id, keys, apiVersion?, webhookSecrets?, corpus?, displayName?, billing?}]}`
   (also `createRuntime({accounts})` / `serve --accounts <json|file>`). Every key listed on an
   account acts as it. Any other test key is an account of its own (`accountOfKey(key)`), so an MSO
   key reading a PC object gets Stripe's exact `404 resource_missing` (`No such payment_intent: 'pi_…'`).
@@ -94,6 +94,8 @@ State is partitioned by **account**, and the account is chosen by API key:
   its webhook payloads render at (default `2024-06-20`, what every backend receiver of ours pins).
 - `webhookSecrets: {"<receiver url>": "whsec_…"}` delivers every event of the account there.
 - `corpus: true` seeds the recorded catalog (below).
+- `billing: {retries: {scheduleDays?, afterAllFail?}}` sets the account's failed-renewal retries
+  (see Lifecycles and the clock); unset fields use `createRuntime({lifecycle: {paymentRetries}})`.
 
 **Namespaces** isolate parallel workers; each namespace has its own copy of every account. Carriers:
 the `x-mockingbird-namespace` header, the `/ns/<namespace>/…` path prefix, or **by API key**:
@@ -118,7 +120,7 @@ holds, ancestors included); Stripe's own rules are enforced: a non-expandable fi
 
 Every state change records an event in the account's log (`GET /v1/events`, filterable by
 `types[]` and `created`) and publishes it through the shared webhook hub, signed
-`Stripe-Signature: t=<wall-clock unix>,v1=<hex HMAC-SHA256(secret, "t.body")>` over the exact bytes —
+`Stripe-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256(secret, "t.body")>` over the exact bytes —
 `stripe.webhooks.constructEvent` verifies them.
 
 - Endpoints: `PUT /__admin/webhook-endpoints [{account, url, secret, enabledEvents: ["*"|…]}]`
@@ -126,6 +128,11 @@ Every state change records an event in the account's log (`GET /v1/events`, filt
   `serve --webhook-url/--webhook-secret`, accounts' `webhookSecrets`, and endpoints created through
   `POST /v1/webhook_endpoints` (signed with the `whsec_` returned at creation). One event fans out to
   every matching endpoint, as on Stripe. Retries follow the hub's schedule.
+- `t` is the wall clock, unless the runtime's `clock` is injected (`createRuntime({ clock })`):
+  then `t`, retries and the attempt timeout run on that clock, so a virtual-time suite verifies with
+  `constructEventAsync(body, sig, secret, tolerance, undefined, clock.now())` and sees a retry when it
+  advances the clock (`runtime.clock.advance`, or `runtime.tick()` after moving its own clock).
+  `webhooks: { now, schedule, cancel, id }` override the hub's sources directly.
 - `GET /__admin/webhooks`, `/webhooks/events`, `POST /__admin/webhooks/:id/replay`, `/webhooks/flush`.
 - Delivery faults: presets `webhook_duplicate` (same event id twice — our receiver's in-flight
   dedupe answers 500), `webhook_reorder` (the next two swapped), `webhook_drop` (never delivered,
@@ -166,6 +173,18 @@ clock-driven lifecycle, so their webhooks fire at once; the served mock also tic
   voided (`void`), marked `uncollectible` (`mark_uncollectible`, `invoice.marked_uncollectible`) or
   left as drafts (`keep_as_draft`), never charged; the status holds. `pause_collection[resumes_at]`
   lifts the pause on its own before the renewal it precedes; `pause_collection=""` lifts it now.
+- **Payment retries**: a declined renewal (`charge_automatically`) leaves the invoice `open` with
+  `attempt_count: 1` and `next_payment_attempt`, and the subscription `past_due`. Each retry
+  `scheduleDays` after the first failure (default `[3, 5, 7]`, Stripe's classic "3 retries over
+  1 week") charges again when the clock reaches it: a decline bumps `attempt_count`, emits
+  `invoice.payment_failed` and moves `next_payment_attempt`; a working default payment method pays
+  the invoice (`invoice.paid`) and the subscription is `active` again
+  (`customer.subscription.updated`). After the last retry `next_payment_attempt` is `null` and
+  `afterAllFail` applies: `cancel` (the default: `canceled`, `cancellation_details.reason:
+  payment_failed`, `customer.subscription.deleted`), `unpaid` (`customer.subscription.updated`) or
+  `past_due` (nothing changes). An empty schedule applies it at the first failure. The schedule is
+  fixed, not Stripe's ML-timed Smart Retries; set it per account (`billing.retries`, also
+  `PUT /__admin/accounts`) or for the runtime (`lifecycle.paymentRetries`). Dunning emails are not sent.
 - `incomplete` subscriptions become `incomplete_expired` after 23 h (their invoice is voided).
 - Checkout Sessions expire at `expires_at` (`checkout.session.expired`).
 - Schedule phases advance; the last one releases or cancels per `end_behavior`.
@@ -362,8 +381,6 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
   PaymentSheet cannot be redirected (member-app native keeps its fake provider).
 - **Connect** (`Stripe-Account`, application fees, transfers), tax, shipping, Radar, mandates,
   meters, quotes, credit notes, payouts, and non-card payment methods (bank debits, wallets).
-- **Smart retries / dunning**: a failed renewal goes `past_due` once; later automatic retries,
-  `unpaid` and dunning emails are not run.
 - **Proration arithmetic** is day-fraction approximate (Stripe prorates to the second);
   `auto_advance` drafts are not finalized an hour later.
 - **Customer portal extras**: the login page (`login_page.url` is not served), `schedule_at_period_end`

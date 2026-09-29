@@ -53,19 +53,16 @@ jobs:
         run: bunx turbo run build --output-logs=errors-only
 
       # Stripe's webhook oracle (packages/service/stripe/scripts/webhook-oracle.ts) spawns
-      # `stripe listen` to receive the real events.
-      - name: Install the Stripe CLI
-        if: contains(format(' {0} ', inputs.services), ' stripe ') || inputs.services == '--all'
+      # `stripe listen`; ubuntu-latest does not ship the CLI.
+      - name: Install Stripe CLI
+        if: contains(format(' {0} ', inputs.services), ' stripe ') || contains(inputs.services, '--all')
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -fsSL https://packages.stripe.dev/api/security/keypair/stripe-cli-gpg/public \
-            | gpg --dearmor \
-            | sudo tee /usr/share/keyrings/stripe.gpg > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/stripe.gpg] https://packages.stripe.dev/stripe-cli-debian-local stable main" \
-            | sudo tee /etc/apt/sources.list.d/stripe.list
-          sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/stripe.list \
-            -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0
-          sudo apt-get install -y stripe
-          stripe --version
+          gh release download --repo stripe/stripe-cli --pattern 'stripe_*_linux_x86_64.tar.gz' --dir "$RUNNER_TEMP/stripe-cli"
+          tar -xzf "$RUNNER_TEMP"/stripe-cli/stripe_*_linux_x86_64.tar.gz -C "$RUNNER_TEMP/stripe-cli"
+          echo "$RUNNER_TEMP/stripe-cli" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/stripe-cli/stripe" --version
 
       # Sandbox keys, mapped one by one. Dumping the whole secrets context (toJSON(secrets))
       # makes GitHub hold every run as "may be malicious" until someone approves it by hand.
