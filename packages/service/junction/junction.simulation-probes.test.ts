@@ -74,3 +74,13 @@ test("a simulation 500 is recorded without retry and the other independent cases
   expect(JSON.stringify(report)).not.toContain("sensitive")
   expect(requests.filter((request) => request.method === "DELETE")).toHaveLength(1)
 })
+
+test("cancelled testkit completion matches the four-case sandbox observation without changing lifecycle", async () => {
+  const { call } = fixture()
+  const report = await probeSimulationLifecycle(call, "cancelled-regression")
+  expect(report.complete).toBe(true)
+  expect(report.cases.map((entry) => entry.status)).toEqual([200, 200, 500, 500])
+  for (const entry of report.cases.filter((entry) => entry.cancelled)) {
+    expect(entry.after).toEqual(entry.before)
+  }
+})
