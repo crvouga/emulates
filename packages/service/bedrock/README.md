@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-bedrock
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, scriptable mock of **Amazon Bedrock Runtime** for test suites: `Converse`,
 `ConverseStream` (byte-exact `application/vnd.amazon.eventstream` frames), `InvokeModel`
 (Anthropic Messages bodies and Titan text embeddings), `InvokeModelWithBidirectionalStream`

@@ -259,7 +259,7 @@
   height: 24px;
   padding: 0 9px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-mono);
@@ -469,8 +469,62 @@
   padding: 4px 14px 14px;
 }
 
-.sql-editor .pg-text {
+.sql-field {
+  position: relative;
   min-height: 190px;
+}
+
+.sql-highlight,
+.sql-field .pg-text {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.sql-highlight {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  scrollbar-gutter: stable;
+  pointer-events: none;
+  color: var(--fg);
+}
+
+.sql-field .pg-text {
+  position: relative;
+  z-index: 1;
+  min-height: 190px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  color: transparent;
+  caret-color: var(--fg);
+  background: transparent;
+  resize: vertical;
+}
+
+.sql-k {
+  color: var(--clay);
+}
+
+.sql-s {
+  color: var(--ok);
+}
+
+.sql-n {
+  color: var(--m-put);
+}
+
+.sql-c {
+  color: var(--fg-subtle);
+  font-style: italic;
 }
 
 .sql-actions {

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-paddle
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Paddle Billing** API for test suites. Customers, addresses, businesses,
 products and prices behave as Paddle's do (validation, `invalid_field` errors, `include=`,
 cursor pagination). Transactions carry **computed totals**. Subscriptions are created the way

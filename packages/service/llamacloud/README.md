@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-llamacloud
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **LlamaCloud** platform API (LlamaIndex's managed indexes) for test suites:
 project and pipeline lookup, pipeline documents (list, get, insert, upsert, delete), and
 retrieval. Retrieval is deterministic: a scripted answer when a test sets one, otherwise a

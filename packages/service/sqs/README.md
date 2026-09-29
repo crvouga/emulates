@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-sqs
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful Amazon SQS mock for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
 
 ## Install

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-mediaconvert
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful AWS Elemental MediaConvert mock for the official SDK v3 client. It supports endpoint discovery, asynchronous jobs, deterministic controls, EventBridge-compatible events, and output writes to a configured mock S3 service.
 
 ## Install

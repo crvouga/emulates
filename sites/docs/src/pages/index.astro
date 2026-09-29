@@ -5,7 +5,16 @@ import Install from "../components/Install.astro"
 import Monogram from "../components/Monogram.astro"
 import ServiceCard from "../components/ServiceCard.astro"
 import Base from "../layouts/Base.astro"
-import { AGENTS, CONTRACT, FEATURES, HEADLINE, PITCH, QUICK_START } from "../lib/content.ts"
+import {
+  AGENTS,
+  CONTRACT,
+  FEATURES,
+  HEADLINE,
+  IDENTITY,
+  PITCH,
+  PLATE_HREF,
+  QUICK_START,
+} from "../lib/content.ts"
 import { inline } from "../lib/inline.ts"
 
 const { totals } = catalog
@@ -17,12 +26,12 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
   <section class="hero">
     <div class="container hero-grid">
       <div class="hero-copy">
-        <a class="pill" href="/services?tier=ready">
-          <span class="emoji" aria-hidden="true">🐦‍⬛</span>
-          <span class="pill-dot"></span>{totals.ready} ready to use · {totals.wip} in progress
-          <Icon name="arrow-right" />
-        </a>
-        <h1>{HEADLINE.lead} <span class="accent">{HEADLINE.accent}</span></h1>
+        <p class="species">
+          <em>Mimus polyglottos</em>
+          <a href="/services?tier=ready">{totals.ready} ready to use · {totals.wip} in progress</a>
+        </p>
+        <h1>{HEADLINE.lead}<br /><em>{HEADLINE.accent}</em></h1>
+        <p class="note">{IDENTITY.note}</p>
         <p class="lede" set:html={inline(PITCH)} />
         <div class="hero-cta">
           <a class="btn btn-primary" href="/services">Browse services <Icon name="arrow-right" /></a>
@@ -32,17 +41,18 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
           <Install pkg={QUICK_START.package} />
         </div>
       </div>
-      <div class="hero-code">
-        <div class="window">
-          <div class="window-bar">
-            <span class="dots"><i /><i /><i /></span>
-            <span class="window-title">{QUICK_START.file}</span>
-            <a href="/services/stripe" class="window-link">Try it live <Icon name="arrow-right" /></a>
-          </div>
-          <Fragment set:html={catalog.quickStart.html} />
-        </div>
-        <p class="hero-caption">The README's quick start. The build runs it against the published package.</p>
-      </div>
+      <figure class="plate">
+        <img
+          src={PLATE_HREF}
+          width="1536"
+          height="1024"
+          alt="Northern mockingbird on a fruiting branch: gray above, pale below, two white bars on the wing, a long tail."
+        />
+        <figcaption>
+          <span>Plate I</span>
+          <span>Northern mockingbird, singing a call it learned</span>
+        </figcaption>
+      </figure>
     </div>
   </section>
 
@@ -54,6 +64,22 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     <div><strong>0</strong><span>network calls</span></div>
   </section>
   </div>
+
+  <section class="section container">
+    <div class="section-head">
+      <span class="eyebrow">Quick start</span>
+      <h2>A call, answered.</h2>
+      <p>The README's quick start. The build runs it against the published package.</p>
+    </div>
+    <div class="window">
+      <div class="window-bar">
+        <span class="window-mark" aria-hidden="true"></span>
+        <span class="window-title">{QUICK_START.file}</span>
+        <a href="/services/stripe" class="window-link">Try it live <Icon name="arrow-right" /></a>
+      </div>
+      <Fragment set:html={catalog.quickStart.html} />
+    </div>
+  </section>
 
   <section class="section container ready-section">
     <div class="section-head">
@@ -78,9 +104,9 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     </div>
     <div class="values">
       {
-        FEATURES.map((v) => (
+        FEATURES.map((v, i) => (
           <div class="value">
-            <span class="value-icon"><Icon name={v.icon} /></span>
+            <span class="value-index">{String(i + 1).padStart(2, "0")}</span>
             <h3>{v.title}</h3>
             <p set:html={inline(v.body)} />
           </div>
@@ -156,11 +182,11 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     </div>
   </section>
 
-  <section class="container">
-    <div class="cta">
+  <section class="cta-band">
+    <div class="container cta">
       <h2>Take the vendor off your test suite's critical path.</h2>
       <div class="hero-cta">
-        <a class="btn btn-accent" href="/services">Find your API <Icon name="arrow-right" /></a>
+        <a class="btn btn-primary" href="/services">Find your API <Icon name="arrow-right" /></a>
         <a class="btn btn-secondary" href={catalog.repo} target="_blank" rel="noopener"><Icon name="github" /> Star on GitHub</a>
       </div>
     </div>
@@ -169,50 +195,40 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 
 <style>
   .hero {
-    position: relative;
-    padding-block: 72px 40px;
-    overflow: hidden;
-  }
-
-  .hero::before {
-    content: "";
-    position: absolute;
-    inset: -40% -10% auto;
-    height: 640px;
-    background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%);
-    pointer-events: none;
+    padding-block: 56px 28px;
   }
 
   .hero-grid {
-    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    gap: 56px;
-    align-items: center;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 48px;
+    align-items: start;
   }
 
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 32px;
-    padding: 0 12px 0 10px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--bg);
+  .species {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 16px;
+    margin: 0;
+    color: var(--clay);
+  }
+
+  .species em {
+    font-family: var(--font-display);
+    font-size: 17px;
+  }
+
+  .species a {
     color: var(--fg-muted);
     font-size: 13px;
-    font-weight: 500;
-    box-shadow: var(--shadow-sm);
-    transition: border-color 0.15s var(--ease);
+    text-decoration: underline;
+    text-decoration-color: var(--clay);
+    text-underline-offset: 3px;
   }
 
-  .pill-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--ok);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent);
+  .species a:hover {
+    color: var(--fg);
   }
 
   .ready-section {
@@ -257,35 +273,33 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     color: var(--warn);
   }
 
-  .pill:hover {
-    border-color: var(--border-strong);
-    color: var(--fg);
+  .hero h1 {
+    margin-top: 14px;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    font-weight: 600;
   }
 
-  .pill .i {
-    width: 14px;
-    height: 14px;
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--clay);
   }
 
-  h1 {
-    margin-top: 22px;
-    font-size: clamp(36px, 5.2vw, 58px);
-    line-height: 1.04;
-    letter-spacing: -0.04em;
-    font-weight: 700;
-  }
-
-  .accent {
-    background: linear-gradient(100deg, var(--fg) 0%, var(--accent) 55%, #b35fe8 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .note {
+    margin-top: 18px;
+    max-width: 42ch;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.45;
   }
 
   .hero .lede {
-    margin-top: 20px;
-    max-width: 540px;
-    font-size: 18px;
+    margin-top: 14px;
+    max-width: 52ch;
+    font-size: 16.5px;
   }
 
   .hero-cta {
@@ -300,8 +314,41 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     max-width: 480px;
   }
 
-  .hero-code {
-    min-width: 0;
+  .plate {
+    margin: 0;
+    padding: 12px 12px 0;
+    border: 1px solid #243f34;
+    background: #f3eee4;
+  }
+
+  .plate img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    background: #111;
+  }
+
+  .plate figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 2px 12px;
+    color: #5c675f;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  .plate figcaption span:first-child {
+    flex: none;
+    color: #8d4a32;
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
   .window :global(.code) {
@@ -316,10 +363,9 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
   }
 
   .window {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border: 1px solid var(--fg);
+    border-radius: 0;
     background: var(--bg-inset);
-    box-shadow: var(--shadow-lg);
     overflow: hidden;
   }
 
@@ -333,16 +379,20 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     background: var(--bg-subtle);
   }
 
-  .dots {
-    display: flex;
-    gap: 6px;
-  }
-
-  .dots i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--border-strong);
+  .window-mark {
+    width: 22px;
+    height: 7px;
+    flex: none;
+    background-image:
+      linear-gradient(var(--fg), var(--fg)),
+      linear-gradient(var(--fg), var(--fg));
+    background-repeat: no-repeat;
+    background-size:
+      100% 2px,
+      68% 1px;
+    background-position:
+      left top,
+      left 5px;
   }
 
   .window-title {
@@ -376,26 +426,12 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     background: transparent !important;
   }
 
-  .hero-caption {
-    margin-top: 12px;
-    color: var(--fg-subtle);
-    font-size: 12.5px;
-    text-align: center;
-  }
-
-  .hero-caption a {
-    color: var(--fg-muted);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
   .stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    margin-top: 48px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--bg-subtle);
+    margin-top: 28px;
+    border-block: 1px solid var(--border);
+    background: transparent;
   }
 
   .stats > * {
@@ -410,8 +446,9 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
   }
 
   .stats strong {
-    font-size: 30px;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: 560;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
   }
@@ -423,32 +460,36 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 
   .values {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--border);
-    overflow: hidden;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 56px;
   }
 
   .value {
-    padding: 26px;
-    background: var(--bg);
+    padding: 22px 0 28px;
+    background-image:
+      linear-gradient(var(--fg), var(--fg)),
+      linear-gradient(var(--fg), var(--fg));
+    background-repeat: no-repeat;
+    background-size:
+      28px 2px,
+      18px 1px;
+    background-position:
+      left top,
+      left 5px;
   }
 
-  .value-icon {
-    display: inline-grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-    background: var(--accent-soft);
-    color: var(--accent-soft-fg);
+  .value-index {
+    display: block;
+    margin-top: 12px;
+    color: var(--clay);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 18px;
   }
 
   .value h3 {
-    margin-top: 16px;
-    font-size: 15.5px;
+    margin-top: 6px;
+    font-size: 20px;
   }
 
   .value p {
@@ -470,13 +511,14 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     gap: 8px;
     padding: 18px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
     transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
   }
 
   .cat:hover {
-    border-color: var(--border-strong);
-    box-shadow: var(--shadow-md);
+    border-color: var(--fg);
+    box-shadow: inset 3px 0 0 var(--clay);
   }
 
   .cat-head {
@@ -513,9 +555,10 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     gap: 10px 26px;
     margin-top: 40px;
     color: var(--fg-faint);
-    font-size: 15px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    font-weight: 500;
   }
 
   .contract-note {
@@ -547,10 +590,20 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     grid-template-columns: 1fr 1fr;
     gap: 48px;
     align-items: center;
-    padding: 40px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--bg-subtle);
+    padding: 36px 0 0;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    background-image:
+      linear-gradient(var(--fg), var(--fg)),
+      linear-gradient(var(--fg), var(--fg));
+    background-repeat: no-repeat;
+    background-size:
+      100% 2px,
+      100% 1px;
+    background-position:
+      left top,
+      left 4px;
   }
 
   .agents h2 {
@@ -575,10 +628,11 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     display: flex;
     gap: 12px;
     align-items: flex-start;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg);
+    padding: 12px 0;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
     transition: border-color 0.15s var(--ease);
   }
 
@@ -603,23 +657,38 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     font-size: 13.5px;
   }
 
-  .cta {
+  .cta-band {
     margin-top: 80px;
-    padding: 56px 32px;
-    border-radius: var(--radius-lg);
-    background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%), var(--bg-subtle);
-    border: 1px solid var(--border);
-    text-align: center;
+    padding: 72px 0 80px;
+    background: var(--accent);
+    color: var(--accent-fg);
   }
 
   .cta h2 {
-    max-width: 620px;
-    margin-inline: auto;
-    font-size: clamp(24px, 3.2vw, 32px);
+    max-width: 18em;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.05;
   }
 
-  .cta .hero-cta {
-    justify-content: center;
+  .cta-band .btn-primary {
+    background: var(--accent-fg);
+    color: var(--accent);
+  }
+
+  .cta-band .btn-primary:hover {
+    background: var(--bg);
+  }
+
+  .cta-band .btn-secondary {
+    background: transparent;
+    color: var(--accent-fg);
+    border-color: color-mix(in srgb, var(--accent-fg) 45%, transparent);
+    box-shadow: none;
+  }
+
+  .cta-band .btn-secondary:hover {
+    background: color-mix(in srgb, var(--accent-fg) 12%, transparent);
+    border-color: var(--accent-fg);
   }
 
   @media (max-width: 960px) {
@@ -627,8 +696,8 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     .agents {
       grid-template-columns: minmax(0, 1fr);
     }
-    .values {
-      grid-template-columns: 1fr 1fr;
+    .plate {
+      max-width: 640px;
     }
   }
 
@@ -649,7 +718,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
       grid-template-columns: 1fr;
     }
     .agents {
-      padding: 24px;
+      padding-top: 28px;
     }
   }
 </style>

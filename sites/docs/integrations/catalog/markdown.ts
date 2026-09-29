@@ -1,7 +1,7 @@
 import { posix } from "node:path"
 import GithubSlugger from "github-slugger"
 import { Marked, type Tokens } from "marked"
-import { createHighlighter, type Highlighter } from "shiki"
+import { createHighlighter, type Highlighter, type ThemedToken } from "shiki"
 import { guideSlug } from "../../src/lib/guides.ts"
 import type { TocEntry } from "../../src/lib/types.ts"
 
@@ -32,7 +32,15 @@ const ALIASES: Record<string, string> = {
   zsh: "bash",
   yml: "yaml",
   py: "python",
+  postgres: "sql",
+  postgresql: "sql",
+  pgsql: "sql",
+  sqlite: "sql",
 }
+
+const THEMES = { light: "github-light", dark: "github-dark" } as const
+const SQLISH =
+  /\b(select|insert|update|delete|create|alter|drop|with|begin|commit|rollback|from|where|join|values)\b/i
 
 let highlighter: Promise<Highlighter> | undefined
 
@@ -62,13 +70,75 @@ function renderCode(h: Highlighter, code: string, rawLang: string | undefined): 
   const requested = (rawLang ?? "").trim().split(/\s+/)[0]?.toLowerCase() ?? ""
   const lang = ALIASES[requested] ?? requested
   const known = (LANGS as readonly string[]).includes(lang)
-  const html = h.codeToHtml(code.replace(/\n$/, ""), {
-    lang: known ? lang : "text",
-    themes: { light: "github-light", dark: "github-dark" },
-    defaultColor: false,
-  })
+  const use = known ? lang : "text"
+  const source = code.replace(/\n$/, "")
+  const html =
+    use === "typescript" || use === "javascript"
+      ? renderScript(h, source, use)
+      : h.codeToHtml(source, {
+          lang: use,
+          themes: THEMES,
+          defaultColor: false,
+        })
   const label = LANG_LABELS[lang] ?? (known ? lang : requested || "Text")
   return `<figure class="code"><figcaption><span>${escapeHtml(label)}</span><button type="button" class="copy" data-copy aria-label="Copy code"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-check" aria-hidden="true"><use href="#i-check"/></svg></button></figcaption>${html}</figure>`
+}
+
+/** TypeScript and JavaScript blocks recolor SQL inside template strings with the SQL grammar. */
+function renderScript(h: Highlighter, source: string, lang: "typescript" | "javascript"): string {
+  const { tokens, fg, bg } = h.codeToTokens(source, {
+    lang,
+    themes: THEMES,
+    defaultColor: false,
+    includeExplanation: true,
+  })
+  const embedded = tokens.some((line) => line.some(isSqlTemplate))
+  if (!embedded) {
+    return h.codeToHtml(source, { lang, themes: THEMES, defaultColor: false })
+  }
+  const lines = tokens
+    .map(
+      (line) =>
+        `<span class="line">${line.map((token) => (isSqlTemplate(token) ? sqlTemplate(h, token) : tokenSpan(token))).join("")}</span>`,
+    )
+    .join("\n")
+  return `<pre class="shiki shiki-themes github-light github-dark" style="--shiki-light:${fg};--shiki-dark:${fg};--shiki-light-bg:${bg};--shiki-dark-bg:${bg}" tabindex="0"><code>${lines}</code></pre>`
+}
+
+function isSqlTemplate(token: ThemedToken): boolean {
+  const scopes =
+    token.explanation?.flatMap((part) => part.scopes.map((scope) => scope.scopeName)) ?? []
+  if (!scopes.some((scope) => scope === "string.template.ts" || scope === "string.template.js"))
+    return false
+  return SQLISH.test(token.content.replace(/^`+|`+$/g, ""))
+}
+
+/** A one-line template can include its backticks in the same token. Keep those in the string color. */
+function sqlTemplate(h: Highlighter, token: ThemedToken): string {
+  let content = token.content
+  let lead = ""
+  let tail = ""
+  if (content.startsWith("`")) {
+    lead = tokenSpan({ ...token, content: "`" })
+    content = content.slice(1)
+  }
+  if (content.endsWith("`")) {
+    tail = tokenSpan({ ...token, content: "`" })
+    content = content.slice(0, -1)
+  }
+  return `${lead}${sqlSpans(h, content)}${tail}`
+}
+
+function sqlSpans(h: Highlighter, content: string): string {
+  const { tokens } = h.codeToTokens(content, { lang: "sql", themes: THEMES, defaultColor: false })
+  return tokens.map((line) => line.map(tokenSpan).join("")).join("\n")
+}
+
+function tokenSpan(token: ThemedToken): string {
+  const style = token.htmlStyle ?? {}
+  const light = style["--shiki-light"] ?? style.color ?? "inherit"
+  const dark = style["--shiki-dark"] ?? light
+  return `<span style="--shiki-light:${light};--shiki-dark:${dark}">${escapeHtml(token.content)}</span>`
 }
 
 export interface LinkContext {

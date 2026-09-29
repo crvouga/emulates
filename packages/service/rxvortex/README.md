@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-rxvortex
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **RxVortex (Strive)** compounding-pharmacy API for test suites: the
 client-credentials token, order submit, status, cancel, the recovery lookup by sender order id,
 the preset catalog, and the signed status webhooks the pharmacy posts back. Orders move only

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-medplum
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, in-process mock of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
 for test suites. It covers:
 

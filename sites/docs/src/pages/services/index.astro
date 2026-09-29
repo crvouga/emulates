@@ -1,5 +1,6 @@
 ---
 import catalog from "virtual:mockingbird/catalog"
+import BirdMark from "../../components/BirdMark.astro"
 import Icon from "../../components/Icon.astro"
 import ServiceCard from "../../components/ServiceCard.astro"
 import Base from "../../layouts/Base.astro"
@@ -11,6 +12,7 @@ const { services, categories, totals } = catalog
 <Base title="Services" description={`Search and filter ${totals.services} stateful mocks by category, runtime and surface.`}>
   <div class="container">
     <header class="page-head">
+      <span class="eyebrow">The field collection</span>
       <h1>Services</h1>
       <p class="lede">
         {totals.services} stateful mocks: <strong>{totals.ready} ready to use</strong>, {totals.wip} still in progress.{" "}
@@ -78,7 +80,7 @@ const { services, categories, totals } = catalog
     </script>
 
     <div class="empty" data-empty hidden>
-      <span class="emoji" aria-hidden="true">🐦‍⬛</span>
+      <BirdMark size={56} />
       <h2>No services match</h2>
       <p>Try a vendor name, a keyword or an operation id, or clear the filters.</p>
       <button type="button" class="btn btn-secondary btn-sm" data-clear>Clear filters</button>
@@ -162,7 +164,7 @@ const { services, categories, totals } = catalog
     height: 30px;
     padding: 0 11px;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--fg-muted);
     font-size: 13px;
@@ -205,7 +207,7 @@ const { services, categories, totals } = catalog
     height: 32px;
     padding: 0 10px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     color: var(--fg-muted);
     font-size: 13px;
     white-space: nowrap;
@@ -220,7 +222,7 @@ const { services, categories, totals } = catalog
     height: 32px;
     padding: 0 8px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--bg);
     color: var(--fg-muted);
     font-size: 13px;
@@ -230,7 +232,7 @@ const { services, categories, totals } = catalog
     display: inline-flex;
     padding: 2px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
   }
 
   .seg button {
@@ -239,7 +241,7 @@ const { services, categories, totals } = catalog
     width: 28px;
     height: 26px;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--fg-subtle);
   }

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-textract
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful Amazon Textract mock for the official SDK v3 client. It models synchronous and asynchronous document analysis, connected block graphs, stable pagination, idempotency, and completion notifications.
 
 ## Install

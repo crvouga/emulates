@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-formbricks
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of open-source **[Formbricks](https://github.com/formbricks/formbricks)** (6.x) for
 test suites: the client environment state the JS SDK loads surveys from, response creation with
 upstream's validation and `{code, message, details}` errors, the v1 management API (responses and

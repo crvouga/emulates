@@ -3,25 +3,73 @@ import { KEYS, store } from "./storage.ts"
 const root = document.documentElement
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
 
-// Theme: explicit choice persists; otherwise follow the OS live.
-for (const button of document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")) {
-  button.addEventListener("click", () => {
-    const next = root.dataset.theme === "dark" ? "light" : "dark"
-    root.dataset.theme = next
-    store.set(KEYS.theme, next)
-  })
-}
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-  if (!store.get(KEYS.theme)) root.dataset.theme = e.matches ? "dark" : "light"
-})
+// Theme: system follows the OS, and it is the default until a choice is stored.
+type ThemeMode = "system" | "light" | "dark"
+const themeModes: ThemeMode[] = ["system", "light", "dark"]
+const isThemeMode = (value: string | undefined): value is ThemeMode =>
+  themeModes.includes(value as ThemeMode)
+const systemTheme = () => (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
 
-// Header gains a border once the page scrolls.
-const header = document.querySelector<HTMLElement>("[data-header]")
-if (header) {
-  const update = () => header.toggleAttribute("data-scrolled", window.scrollY > 4)
-  update()
-  addEventListener("scroll", update, { passive: true })
+const applyTheme = (mode: ThemeMode, persist: boolean) => {
+  const theme = mode === "system" ? systemTheme() : mode
+  root.dataset.theme = theme
+  root.dataset.themeMode = mode
+  if (persist) store.set(KEYS.theme, mode)
+  for (const item of document.querySelectorAll<HTMLButtonElement>("[data-theme-mode]")) {
+    item.setAttribute("aria-checked", String(item.dataset.themeMode === mode))
+  }
+  document.querySelector("[data-theme-toggle]")?.setAttribute("aria-label", `Theme: ${mode}`)
+  const color = theme === "dark" ? "#161c19" : "#f3eee4"
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    meta.content = color
+  }
 }
+
+const storedMode = store.get(KEYS.theme)
+applyTheme(isThemeMode(storedMode ?? undefined) ? (storedMode as ThemeMode) : "system", false)
+
+const picker = document.querySelector<HTMLElement>("[data-theme-picker]")
+const themeToggle = picker?.querySelector<HTMLButtonElement>("[data-theme-toggle]")
+const themeMenu = picker?.querySelector<HTMLElement>("[data-theme-menu]")
+const closeThemeMenu = () => {
+  if (!themeMenu || !themeToggle) return
+  themeMenu.hidden = true
+  themeToggle.setAttribute("aria-expanded", "false")
+}
+themeToggle?.addEventListener("click", () => {
+  if (!themeMenu) return
+  const open = themeMenu.hidden
+  themeMenu.hidden = !open
+  themeToggle.setAttribute("aria-expanded", String(open))
+  if (open) themeMenu.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus()
+})
+themeMenu?.addEventListener("click", (event) => {
+  const item = (event.target as Element).closest<HTMLButtonElement>("[data-theme-mode]")
+  if (!item || !isThemeMode(item.dataset.themeMode)) return
+  applyTheme(item.dataset.themeMode, true)
+  closeThemeMenu()
+  themeToggle?.focus()
+})
+themeMenu?.addEventListener("keydown", (event) => {
+  const items = [...themeMenu.querySelectorAll<HTMLButtonElement>("[data-theme-mode]")]
+  const current = items.indexOf(document.activeElement as HTMLButtonElement)
+  if (event.key === "Escape") {
+    event.preventDefault()
+    closeThemeMenu()
+    themeToggle?.focus()
+    return
+  }
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
+  event.preventDefault()
+  const next = items[(current + (event.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]
+  next?.focus()
+})
+document.addEventListener("click", (event) => {
+  if (picker && !picker.contains(event.target as Node)) closeThemeMenu()
+})
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (root.dataset.themeMode === "system") applyTheme("system", false)
+})
 
 if (!isMac) {
   for (const kbd of document.querySelectorAll("[data-mod-key]")) kbd.textContent = "Ctrl K"

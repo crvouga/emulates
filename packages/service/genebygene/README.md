@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-genebygene
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Gene by Gene's Nucleus API v2** (and its OAuth auth host) for test suites:
 client-credentials tokens with the credential-blocking failures, both recorded product catalogs,
 zone-priced shipping quotes, the production split between a quote that succeeds and a place that

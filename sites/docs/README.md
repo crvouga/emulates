@@ -20,6 +20,7 @@ bun run docs:preview
 | Playground | The published module itself, bundled as a lazy chunk and run in the browser tab |
 | Sample requests | Generated from the contract's schemas, then sent to a fresh mock during the build; operations whose sample succeeds are marked |
 | SQL console snippets | `src/lib/sql.ts`, executed against the real engine during the build |
+| Field guide | `src/pages/identity.astro` shows the live tokens. The mark and Plate I are in `public/identity/`. The rules are [`docs/DESIGN.md`](../../docs/DESIGN.md), the sentence is `IDENTITY` in `src/lib/content.ts` |
 
 `integrations/catalog` does the reading (`load.ts`) and exposes it as two virtual modules:
 `virtual:mockingbird/catalog` for pages and `virtual:mockingbird/runtimes` (one `import()` per

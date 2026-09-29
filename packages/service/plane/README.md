@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-plane
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Plane** REST API (v1) for test suites, covering what our bug-report
 dedup and resolution jobs call on one project: work items (Plane's cursor-paginated list, get,
 create, patch), comments, links, states and labels, with Plane's rate limit and error shapes.

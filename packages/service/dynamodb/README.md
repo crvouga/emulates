@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-dynamodb
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, portable Amazon DynamoDB mock for the AWS SDK v3 low-level client and `DynamoDBDocumentClient`. It preserves DynamoDB attribute types while modelling CRUD, expressions, indexes, pagination, batches, transactions, TTL, streams, and conditional writes without contacting AWS.
 
 ## Install

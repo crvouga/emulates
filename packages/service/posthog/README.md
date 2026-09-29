@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-posthog
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **PostHog** for test suites: remote feature-flag evaluation (`/flags` v2 and
 the legacy `/decide` shape), remote config, event capture (`/batch/`, `/e/`, `/i/v0/e/`),
 session-recording intake, the posthog-js asset and survey endpoints, and the slice of the

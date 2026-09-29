@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-slack
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Slack** for test suites: incoming webhooks and the Web API methods our apps
 call, with an **outbox** of everything the app "sent". A suite asserts that an alert fired
 (`GET /__admin/outbox?webhook=…` or `?channel=…`) without a real workspace, and drives the

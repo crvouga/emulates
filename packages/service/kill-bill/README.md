@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-kill-bill
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful Kill Bill REST mock for billing integration tests. It models tenant-scoped accounts, payment methods, subscriptions, bundles, invoices, payments, credits, refunds, retries, catalogs, audit metadata, a test clock, and secret-protected lifecycle webhooks.
 
 ## Install

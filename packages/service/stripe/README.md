@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-stripe
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, in-process mock of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
 chosen by API key, customers and balances, payment methods, payment and setup intents, charges,
 refunds, disputes, checkout (with a hosted page and a Stripe.js stand-in), the customer portal

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-vpi
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 > [!WARNING]
 > **Our app's `VPI_API_URL` defaults to PRODUCTION** (`https://api.vpicompounding.net`, see
 > `apps/backend/src/modules/erx/clients/vpi-api.client.ts`). An unset variable sends real
