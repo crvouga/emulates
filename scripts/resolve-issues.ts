@@ -197,6 +197,16 @@ const sh = async (strings: TemplateStringsArray, ...values: unknown[]) => {
   }
 }
 
+/** `gh api` with a JSON body; the parsed response, or an error naming the call. */
+async function ghApi(path: string, method: string, body: unknown): Promise<unknown> {
+  const input = Buffer.from(JSON.stringify(body))
+  const result = await $`gh api ${path} --method ${method} --input - < ${input}`.quiet().nothrow()
+  if (result.exitCode !== 0) {
+    throw new Error(`gh api ${method} ${path} failed: ${result.stderr.toString().trim()}`)
+  }
+  return JSON.parse(result.stdout.toString() || "null")
+}
+
 const USAGE =
   "usage: bun github:resolve-issues [<issue>…] [--max=<k>] [--model=<id>] [--ref=<branch>] [--dry-run]"
 
@@ -268,21 +278,11 @@ async function dispatch(args: string[]) {
   }
   const list = issues.map((n) => `#${n}`).join(" ")
 
-  const gist = JSON.parse(
-    (
-      await $`gh api gists --method POST --input -`
-        .stdin(
-          Buffer.from(
-            JSON.stringify({
-              description: `Encrypted credential handover for a ${repo} Resolve issues run; deleted when the run has them.`,
-              public: false,
-              files: { "README.md": { content: "Encrypted, one-time credential handover.\n" } },
-            }),
-          ),
-        )
-        .quiet()
-    ).stdout.toString(),
-  ) as { id: string }
+  const gist = (await ghApi("gists", "POST", {
+    description: `Encrypted credential handover for a ${repo} Resolve issues run; deleted when the run has them.`,
+    public: false,
+    files: { "README.md": { content: "Encrypted, one-time credential handover.\n" } },
+  })) as { id: string }
 
   // Ctrl-C skips `finally`; the gist holds only ciphertext, but it should not outlive the run.
   const deleteGist = () => sh`gh api gists/${gist.id} --method DELETE`
@@ -350,9 +350,6 @@ async function handOver(
   const dir = mkdtempSync(join(tmpdir(), "resolve-issues-"))
   try {
     while (Date.now() < deadline) {
-      const status = await sh`gh run view ${runId} --repo ${repo} --json status --jq .status`
-      if (status.out === "completed") break
-
       const artifacts =
         await sh`gh api ${`repos/${repo}/actions/runs/${runId}/artifacts`} --jq ${".artifacts[].name"}`
       const names = new Set(artifacts.out.split("\n"))
@@ -365,17 +362,9 @@ async function handOver(
         if (!download.ok) continue
         const publicKey = readFileSync(join(target, "public.key"), "utf8").trim()
         const sealed = await seal(credentials, publicKey, handoverContext(repo, runId, issue))
-        const patch = await $`gh api ${`gists/${gistId}`} --method PATCH --input -`
-          .stdin(
-            Buffer.from(
-              JSON.stringify({
-                files: { [`issue-${issue}.json`]: { content: JSON.stringify(sealed) } },
-              }),
-            ),
-          )
-          .quiet()
-          .nothrow()
-        if (patch.exitCode !== 0) continue
+        await ghApi(`gists/${gistId}`, "PATCH", {
+          files: { [`issue-${issue}.json`]: { content: JSON.stringify(sealed) } },
+        })
         waiting.delete(issue)
         console.log(`  #${issue}: credentials sealed to its job's key`)
       }
@@ -386,6 +375,9 @@ async function handOver(
         if (jobs.ok && issues.every((issue) => received(JSON.parse(jobs.out) as Job[], issue)))
           return
       }
+      // After the check above: a dry run can finish between two polls.
+      const status = await sh`gh run view ${runId} --repo ${repo} --json status --jq .status`
+      if (status.out === "completed") break
       await Bun.sleep(POLL_MS)
     }
   } finally {
@@ -443,12 +435,17 @@ async function receive(dir: string) {
     )
   }
 
+  const privateKey = readFileSync(privateKeyPath, "utf8")
+  rmSync(privateKeyPath, { force: true })
   const credentials = await open(
     sealed,
-    readFileSync(privateKeyPath, "utf8"),
+    privateKey,
     handoverContext(repo, runId, Number(issue)),
+  ).catch((error: Error) =>
+    fail(
+      `the credentials in the handover gist do not open with this job's key (${error.message}). They were sealed for another run or job: dispatch again with bun github:resolve-issues.`,
+    ),
   )
-  rmSync(privateKeyPath, { force: true })
   // Mask before anything else can print them, then hand them to the later steps.
   console.log(`::add-mask::${credentials.githubToken}`)
   console.log(`::add-mask::${credentials.claudeCodeOAuthToken}`)
