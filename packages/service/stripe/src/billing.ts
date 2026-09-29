@@ -67,7 +67,7 @@ export const addInterval = (
   return Math.floor(target.getTime() / 1000)
 }
 
-const recurringOf = (scope: RequestScope, subscription: SubscriptionRecord): Recurring => {
+export const recurringOf = (scope: RequestScope, subscription: SubscriptionRecord): Recurring => {
   const first = subscription.item_ids
     .map((id) => scope.account.subscriptionItems.get(id))
     .find((item) => item !== undefined)
@@ -1308,6 +1308,77 @@ export const billProration = (
     unit_amount: amount,
   })
   return undefined
+}
+
+/** Do two recurring prices bill on the same period (`interval` and `interval_count`)? */
+export const sameBillingPeriod = (a: Recurring, b: Recurring) =>
+  a.interval === b.interval && a.interval_count === b.interval_count
+
+/**
+ * Invoice a billing cycle anchor reset. Switching to a price with a different billing period
+ * moves the subscription's period to start now (the caller has already saved it): the customer
+ * is invoiced for the whole new period at once, less a credit for the unused time on the
+ * `previous` items unless `prorate` is off, and charged off-session: paid → `active`, declined →
+ * `past_due`, the change stands either way.
+ */
+export const invoiceBillingCycleReset = (
+  scope: RequestScope,
+  subscription: SubscriptionRecord,
+  previous: { items: SubscriptionItemRecord[]; period: { start: number; end: number } },
+  prorate: boolean,
+) => {
+  const period = { start: subscription.current_period_start, end: subscription.current_period_end }
+  const left =
+    Math.max(0, previous.period.end - period.start) /
+    (previous.period.end - previous.period.start || 1)
+  const credits = prorate
+    ? previous.items.map((item) => {
+        const price = requirePrice(scope, item.price)
+        return {
+          ...lineFromPrice(
+            scope,
+            price,
+            item.quantity ?? 1,
+            { start: period.start, end: previous.period.end },
+            {
+              subscription: subscription.id,
+              subscriptionItem: item.id,
+              amount: -Math.round(priceAmount(price, item.quantity ?? 1) * left),
+              description: "Unused time on the previous price (prorated)",
+            },
+          ),
+          proration: true,
+        }
+      })
+    : []
+  const draft = createDraftInvoice(scope, {
+    customer: subscription.customer,
+    subscription: subscription.id,
+    lines: [
+      ...credits.filter((line) => line.amount !== 0),
+      ...cycleLines(scope, subscription, period),
+    ],
+    billingReason: "subscription_update",
+    discountIds: liveDiscounts(scope, subscription.discount_ids, period.start),
+    period,
+    collectionMethod: subscription.collection_method,
+    daysUntilDue: subscription.days_until_due,
+    subscriptionMetadata: subscription.metadata,
+  })
+  claimInvoiceItems(scope, draft)
+  const finalized = finalizeInvoice(scope, draft)
+  creditNegativeInvoice(scope, finalized)
+  const collected = collectCycleInvoice(scope, subscription, finalized)
+  const latest = scope.account.subscriptions.get(subscription.id) ?? subscription
+  const charged =
+    finalized.status === "open" &&
+    !subscription.pause_collection &&
+    finalized.collection_method === "charge_automatically"
+  saveSubscription(scope, latest, {
+    ...latest,
+    status: charged ? (collected.failed ? "past_due" : "active") : latest.status,
+    latest_invoice: collected.invoice.id,
+  })
 }
 
 export type ResumeOptions = {

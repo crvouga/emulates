@@ -5,6 +5,7 @@ import {
   formatDate,
   type PortalChange,
   previewProration,
+  resetsBillingPeriod,
 } from "./billing-portal.js"
 import { formatMoney } from "./checkout-page.js"
 import { findCustomer, type RequestScope } from "./internal.js"
@@ -438,7 +439,7 @@ const confirmUpdatePage = (context: PortalContext, change: PortalChange) => {
   const currency = after?.currency ?? change.subscription.currency
   const behavior = config.features.subscription_update.proration_behavior
   const dueLine =
-    behavior === "always_invoice"
+    behavior === "always_invoice" || resetsBillingPeriod(scope, change)
       ? due < 0
         ? `<div class="row total"><span>Credit to your balance</span><span data-testid="stripe-mock-portal-amount-due">−${formatMoney(-due, currency)}</span></div>`
         : `<div class="row total"><span>Amount due today</span><span data-testid="stripe-mock-portal-amount-due">${formatMoney(due, currency)}</span></div>`

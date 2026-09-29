@@ -180,8 +180,12 @@ now and returns `incomplete` on a decline; `error_if_incomplete` fails the call 
 customer, and paying it through Stripe.js activates the subscription. `trial_end`,
 `backdate_start_date` + `billing_cycle_anchor` + `proration_behavior=none` (a $0 first invoice),
 item updates with `always_invoice` (billed now) or `create_prorations` (next invoice), and
-discounts with stable `di_` ids (`discounts=""` clears) are modelled. Items must be active recurring
-prices sharing one currency and interval. `DELETE /v1/subscriptions/:id` takes
+discounts with stable `di_` ids (`discounts=""` clears) are modelled. An item update to a price with
+a different billing period (say monthly → yearly, through the API or the portal's **Update plan**)
+resets `billing_cycle_anchor` to now, starts a new period and invoices it at once (less a
+proration credit for the unused time unless `proration_behavior=none`); a trialing subscription
+keeps its trial end instead. Items must be active recurring prices sharing one currency and
+interval. `DELETE /v1/subscriptions/:id` takes
 `cancellation_details[comment|feedback]`, `prorate` (a credit for the unused time as a pending
 proration) and `invoice_now` (a final invoice; a net credit lands on the customer balance), in the
 query string (as stripe-node sends them) or the body. A $0 invoice is `paid` on
@@ -364,10 +368,13 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
   meters, quotes, credit notes, payouts, and non-card payment methods (bank debits, wallets).
 - **Smart retries / dunning**: a failed renewal goes `past_due` once; later automatic retries,
   `unpaid` and dunning emails are not run.
+- **Billing cycle anchor resets** other than a price change to a different billing period through
+  `POST /v1/subscriptions/:id`: an explicit `billing_cycle_anchor=now|unchanged` on update is ignored,
+  and the `/v1/subscription_items` endpoints change prices without resetting the period.
 - **Proration arithmetic** is day-fraction approximate (Stripe prorates to the second);
   `auto_advance` drafts are not finalized an hour later.
 - **Customer portal extras**: the login page (`login_page.url` is not served), `schedule_at_period_end`
-  downgrades, `billing_cycle_anchor` resets on plan changes, multi-item subscription updates, locales,
+  downgrades, multi-item subscription updates, locales,
   and payment method configurations. Portal sessions do not expire.
 - **Webhook endpoint `api_version`**: payloads render at the account's version, not per endpoint.
 - **Live keys** (`sk_live_…`) are refused with Stripe's 401: the mock is test mode only.
