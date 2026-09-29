@@ -161,11 +161,17 @@ bun run pr:ready pr --ready
 bun run pr:ready checks
 ```
 
-`checks` covers **every** check on the PR: Commitlint, Check, and GitGuardian Security Checks.
-Each one is a required status check on `main`. A check that ran and is not in that list fails
-this command — add its name to `REQUIRED_CHECKS` in `scripts/pr-ready.ts` and run
-`bun run pr:ready ruleset --apply`. A skipped check is not a pull-request check (Release runs
-only after merge). A failing check blocks this command: fix it like any other.
+`checks` covers **every** check on the PR. The required ones are Commitlint, Check, and
+GitGuardian Security Checks. Check rolls up the other CI jobs (Static, Shard i, Consumer smoke),
+so a failing shard fails Check too; fix the shard. A check that ran outside the CI and Advisory
+workflows and is not in that list fails this command — add its name to `REQUIRED_CHECKS` in
+`scripts/pr-ready.ts` and run `bun run pr:ready ruleset --apply`. A skipped check is not a
+pull-request check (Release runs only after merge). A failing check blocks this command: fix it
+like any other.
+
+Advisory checks (`advisory` in the output: lint annotations, live parity) never block and are
+never waited on. A red one is still worth reading: live parity divergence is a mock bug to fix or
+report, unless the vendor sandbox itself failed.
 
 - exit 4 (`pending`/`timedOut`) → not done; run `checks` again.
 - exit 1 (`failing`) → for each failing check:

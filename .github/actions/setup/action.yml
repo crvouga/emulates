@@ -1,13 +1,29 @@
 name: Setup
-description: Bun + cached node_modules + a Turborepo cache kept in the GitHub Actions cache.
+description: Bun + cached node_modules + Turborepo's cache kept in the GitHub Actions cache.
 
 # No external services and no secrets: everything here is GitHub-hosted, so forks and new
 # contributors get the same setup as maintainers.
+#
+# Cache layout (the GitHub Actions cache is the remote cache; there is no turbo token or server):
+#   deps-…                     node_modules for one lockfile. Saved only on main, where every PR
+#                              can read it; a PR that changes the lockfile installs (~10 s).
+#   turbo-v3-<os>-static-…     the Static job's tasks (lint + root checks).
+#   turbo-v3-<os>-shard-<i>-…  shard i's tasks (scripts/ci-plan.ts). Only the Static and shard
+#                              jobs of .github/workflows/pr.yml save; everything else reads.
+#   smoke-v1-<os>-<fingerprint> an empty stamp: the consumer smoke passed for these tarballs
+#                              (`bun scripts/ci-plan.ts smoke-key`), so pr.yml skips re-running it.
+# A cache is looked up in the current ref first, then main. pr.yml also runs on every push to main,
+# so main always holds a warm cache per scope and a PR's first run replays everything it did not
+# change. Turbo's content hashes decide what replays, so a stale restore is harmless.
+#
+# Every job that builds restores all four shard caches: together they hold every package's build,
+# so which shard built a package does not matter. Keep the shard steps in step with SHARDS in
+# scripts/ci-plan.ts (it fails if one is missing).
 
 inputs:
   turbo-cache:
-    description: Restore and save turbo's local cache (.turbo/cache) through actions/cache.
-    default: "true"
+    description: "`graph` (every shard's cache: builds and per-package checks), `static`, or `false`."
+    default: graph
 
 runs:
   using: composite
@@ -16,10 +32,8 @@ runs:
       with:
         bun-version: "1.4.0"
 
-    # node_modules is keyed on the lockfile and manifests. A hit skips `bun install` entirely,
-    # including the slow postinstall (embedded-postgres).
     - id: deps
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v5
       with:
         path: |
           node_modules
@@ -32,20 +46,54 @@ runs:
       shell: bash
       run: bun install --frozen-lockfile
 
-    # Turbo's own content hashes decide what replays, so a stale restore is harmless. Each run
-    # saves under its commit; restore-keys picks the newest entry this ref can see (its own
-    # earlier runs, else main's). GitHub evicts old entries past the repo's cache quota.
-    # Restore only: the job saves with ./.github/actions/turbo-cache-save under `if: always()`,
-    # because actions/cache's post step skips the save when the job fails, and a failed run is
-    # exactly the one whose retry should replay the tasks that already passed.
-    - if: inputs.turbo-cache == 'true'
-      uses: actions/cache/restore@v4
+    # 330 MB per lockfile: saving it per PR ref filled the 10 GB quota and evicted main's caches.
+    - if: steps.deps.outputs.cache-hit != 'true' && github.ref == 'refs/heads/main'
+      uses: actions/cache/save@v5
+      with:
+        path: |
+          node_modules
+          packages/*/node_modules
+          packages/*/*/node_modules
+          sites/*/node_modules
+        key: ${{ steps.deps.outputs.cache-primary-key }}
+
+    - if: inputs.turbo-cache == 'static'
+      uses: actions/cache/restore@v5
       with:
         path: .turbo/cache
-        key: turbo-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
-        restore-keys: |
-          turbo-${{ runner.os }}-${{ github.job }}-
-          turbo-${{ runner.os }}-
+        key: turbo-v3-${{ runner.os }}-static-${{ github.sha }}
+        restore-keys: turbo-v3-${{ runner.os }}-static-
 
+    - if: inputs.turbo-cache == 'graph'
+      uses: actions/cache/restore@v5
+      with:
+        path: .turbo/cache
+        key: turbo-v3-${{ runner.os }}-shard-1-${{ github.sha }}
+        restore-keys: turbo-v3-${{ runner.os }}-shard-1-
+
+    - if: inputs.turbo-cache == 'graph'
+      uses: actions/cache/restore@v5
+      with:
+        path: .turbo/cache
+        key: turbo-v3-${{ runner.os }}-shard-2-${{ github.sha }}
+        restore-keys: turbo-v3-${{ runner.os }}-shard-2-
+
+    - if: inputs.turbo-cache == 'graph'
+      uses: actions/cache/restore@v5
+      with:
+        path: .turbo/cache
+        key: turbo-v3-${{ runner.os }}-shard-3-${{ github.sha }}
+        restore-keys: turbo-v3-${{ runner.os }}-shard-3-
+
+    - if: inputs.turbo-cache == 'graph'
+      uses: actions/cache/restore@v5
+      with:
+        path: .turbo/cache
+        key: turbo-v3-${{ runner.os }}-shard-4-${{ github.sha }}
+        restore-keys: turbo-v3-${{ runner.os }}-shard-4-
+
+    # Every turbo run writes .turbo/runs/<id>.json; turbo-cache-save keeps only the hashes in it.
     - shell: bash
-      run: echo "TURBO_TELEMETRY_DISABLED=1" >> "$GITHUB_ENV"
+      run: |
+        echo "TURBO_TELEMETRY_DISABLED=1" >> "$GITHUB_ENV"
+        echo "TURBO_RUN_SUMMARY=true" >> "$GITHUB_ENV"

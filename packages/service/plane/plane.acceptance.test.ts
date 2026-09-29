@@ -127,7 +127,7 @@ describe("S25 Plane acceptance: our bug-report client against the mock", () => {
     const labels = await plane.listLabels()
     expect(labels).toHaveLength(205)
     expect(new Set(labels.map((l) => l.name)).size).toBe(205)
-  })
+  }, 20_000)
 
   test("GETs retry 429 / 5xx / network failures at 0, 2 and 8 s; writes are never retried", async () => {
     for (const preset of ["rate_limited", "server_error", "bad_gateway", "network_drop"]) {

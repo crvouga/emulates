@@ -117,6 +117,17 @@ equal to '0'.`, `'Status' has a range of values which does not include 'a'.`). `
 `/api/v2/kitorderlines` answers an empty 500 for a `productType` or `attributesFilter` it cannot
 parse, but only when rows remain to filter.
 
+A POST body is bound the way ASP.NET Core's input formatters bind it (recorded in
+`corpus/live-errors.json` `bodies`): a `content-type` that is missing or not one the operation
+reads (`application/json`, `text/json`, `application/*+json`) is **415**
+`{"type": "…rfc9110#section-15.5.16", "title": "Unsupported Media Type", "status": 415}`, even for
+an empty body, so a JSON body sent as `text/plain` or with no header never reads as a missing body.
+With a JSON content-type, an empty body is 400 `{"errors": {"": ["A non-empty request body is
+required."]}}`, a body that is not JSON is 400 with the reader's message keyed `""` (`Unexpected end
+when reading JSON. Path '', line 1, position 1.` for `{`), and an empty `items` is 400
+`{"errors": {"": ["'' must be between 1 and 5. You entered 0."], "items": ["'Items' must not be
+empty."]}}`.
+
 ### Shipping and addresses
 
 Two checks exist, and they do not agree — on purpose, because production does not. The quote is
@@ -303,9 +314,9 @@ bun test                           # self-parity (incl. the address walk), accep
                                    # test/consumer.ts, contract, served-over-HTTP
 bun scripts/vendor-openapi.ts <gxg-openapi.json>  # re-vendor openapi.yaml, then bun run generate
 bun run parity                     # live parity against GxG staging; exits 2 without
-                                   # MOCKINGBIRD_GENEBYGENE_CLIENT_ID / _CLIENT_SECRET (env / .env.local);
+                                   # GENEBYGENE_CLIENT_ID / _CLIENT_SECRET (env / .env.local);
                                    # compares and records corpus/address-parity.json, corpus/live-errors.json
-                                   # and src/corpus/live-catalogs.json; MOCKINGBIRD_GENEBYGENE_UNSAFE=1
+                                   # and src/corpus/live-catalogs.json; GENEBYGENE_UNSAFE=1
                                    # also places (and cancels) one real order on demo/staging
 bun run parity:remote -- genebygene  # the same on GitHub Actions with the repo's secrets; download the
                                    # recordings with gh run download <run-id> -n parity-corpus

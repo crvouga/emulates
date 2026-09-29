@@ -14,7 +14,9 @@ import type { SealedCorpus } from "./sealed-corpus.js"
  *
  * The scenario also replays every order-scoped operation against a random unknown order
  * (each 404 body compared exactly) and, with `orders` and a corpus holding an account whose
- * `team_id_allowlist` is empty, orders through that account with and without its id.
+ * `team_id_allowlist` is empty, orders through that account with and without its id. With
+ * `orders`, it also orders through every other active account by id with `billing_type`
+ * omitted, which shows the billing type the team defaults to.
  *
  * Only a sandbox team should be used: the scenario creates, and always deletes, one
  * user (and, with `orders`, places and cancels its orders).
@@ -356,6 +358,58 @@ const scenario = (corpus: SealedCorpus, withOrders: boolean): Step[] => {
         capture: captureExtraOrder,
       },
     )
+  }
+  // Several active accounts for one lab with the id omitted: the mock places the order with
+  // the first (a consumer's sandbox team was observed doing so, #136); a team with that layout
+  // checks it here.
+  if (withOrders) {
+    const byLab = new Map<string, number>()
+    for (const account of corpus.labAccounts) {
+      if (account.status !== "active") continue
+      const lab = String(account.lab).toLowerCase()
+      byLab.set(lab, (byLab.get(lab) ?? 0) + 1)
+    }
+    for (const [lab, count] of byLab) {
+      if (count < 2 || lab === String(openAccount?.lab ?? "").toLowerCase()) continue
+      const labTest = corpus.catalog.labTests.find(
+        (test) => String(test.lab?.slug ?? "").toLowerCase() === lab,
+      )
+      if (!labTest) continue
+      steps.push({
+        name: `order.create for ${lab} with lab_account_id omitted (${count} active accounts)`,
+        compare: "shape",
+        request: (ctx) => ({
+          method: "POST",
+          path: "/v3/order",
+          body: orderBody(ctx.userId, labTest.id),
+        }),
+        capture: captureExtraOrder,
+      })
+    }
+  }
+  // Which billing_type an order that omits it is evaluated as is not visible from outside
+  // (documented: client_bill; one sandbox team evaluated BioReference as
+  // patient_bill_passthrough). Order through each active account by id with billing_type
+  // omitted, so a mock whose `defaultBillingTypes` disagree with the team diverges here.
+  if (withOrders) {
+    const labTestFor = (lab: unknown) =>
+      corpus.catalog.labTests.find(
+        (test) => String(test.lab?.slug ?? "").toLowerCase() === String(lab).toLowerCase(),
+      )
+    for (const account of corpus.labAccounts) {
+      const labTest = labTestFor(account.lab)
+      if (account.status !== "active" || account === openAccount || !labTest) continue
+      steps.push({
+        name: `order.create via ${String(account.lab)} account ${String(account.id)} with billing_type omitted`,
+        compare: "shape",
+        request: (ctx) => ({
+          method: "POST",
+          path: "/v3/order",
+          body: orderBody(ctx.userId, labTest.id, { lab_account_id: account.id }),
+        }),
+        capture: captureExtraOrder,
+      })
+    }
   }
   steps.push({
     name: "user.delete",

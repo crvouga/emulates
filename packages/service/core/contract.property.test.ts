@@ -322,6 +322,21 @@ describe("webhooks", () => {
     expect(hub.deliveries().at(-1)?.state).toBe("dropped")
   })
 
+  test("clear drops deliveries still queued for their first attempt", async () => {
+    const sink = receiver()
+    const hub = createWebhookHub({
+      signer: signers.none(),
+      fetch: sink.fetch,
+      endpoints: [{ url: "http://app.local/hook" }],
+    })
+    hub.publish({ namespace: "default", type: "a", body: {} })
+    hub.publish({ namespace: "default", type: "b", body: {} })
+    hub.clear("default")
+    await hub.idle()
+    expect(sink.received).toHaveLength(0)
+    expect(hub.deliveries()).toHaveLength(0)
+  })
+
   test("admin endpoints, events, and reset clears a namespace's deliveries", async () => {
     const { runtime, hub } = notesRuntime()
     await runtime.fetch(

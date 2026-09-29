@@ -18,7 +18,7 @@ import {
   type ResponseNotes,
   responseNotes,
 } from "./journal.js"
-import { createMetrics, type Metrics, type RequestLog } from "./metrics.js"
+import { createMetrics, type Metrics, type RejectedRequest, type RequestLog } from "./metrics.js"
 import { operationPath } from "./path.js"
 import { createRng, type Rng, seedFrom } from "./rng.js"
 import { bootSqlite } from "./service.js"
@@ -577,8 +577,19 @@ export const createRuntime = <T extends ServiceInstance>(
       const operationId = operationIdFor(request, url.pathname)
       let accepted: ServiceCheckpoint | undefined
       let acceptedNotes: ResponseNotes | undefined
+      // What a rejection records about the body. The runtime never reads the request stream —
+      // consuming it would break a streaming request (e.g. a bidirectional model stream) — so the
+      // byte count comes from `content-length` when the client sent it, and is null otherwise.
+      const contentLength = request.headers.get("content-length")
+      const received: RejectedRequest = {
+        contentType: request.headers.get("content-type"),
+        bodyBytes:
+          contentLength !== null && /^\d+$/.test(contentLength) ? Number(contentLength) : null,
+        transferEncoding: request.headers.get("transfer-encoding"),
+      }
       const log = (status: number, faultId?: string, response?: Response) => {
         const noted = { ...acceptedNotes, ...(response ? responseNotes(response) : {}) }
+        const rejected = status >= 400 && faultId === undefined
         const entry: RequestLog = {
           service: options.name,
           namespace,
@@ -592,6 +603,10 @@ export const createRuntime = <T extends ServiceInstance>(
           ...(noted?.ids && Object.keys(noted.ids).length > 0 ? { ids: noted.ids } : {}),
           ...(noted?.adopted ? { adopted: true } : {}),
           ...(accepted ? { accepted: true, checkpoint: accepted.id } : {}),
+          ...(rejected ? { request: { ...received } } : {}),
+          ...(rejected && noted?.issues && noted.issues.length > 0
+            ? { issues: noted.issues.map((issue) => ({ ...issue })) }
+            : {}),
         }
         metrics.record(entry)
         journal.record({ ...entry, at: new Date(clock.now()).toISOString() })

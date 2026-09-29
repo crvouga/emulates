@@ -2,12 +2,12 @@
  * Live parity against Gene by Gene (Nucleus API v2), staging by default. Credentials come from
  * the environment (`.env.local` locally, repo secrets in the Parity workflow):
  *
- *   MOCKINGBIRD_GENEBYGENE_CLIENT_ID      (or GENE_BY_GENE_CLIENT_ID, the repo secret's name)
- *   MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET  (or GENE_BY_GENE_CLIENT_SECRET)
- *   MOCKINGBIRD_GENEBYGENE_API_URL    optional, default https://staging-api.genebygene.com
- *                                     (MOCKINGBIRD_GENEBYGENE_BASE_URL is the older name)
- *   MOCKINGBIRD_GENEBYGENE_TOKEN_URL  optional, default https://staging-auth.genebygene.com/connect/token
- *   MOCKINGBIRD_GENEBYGENE_UNSAFE=1   also place (and cancel) real orders; demo/staging only
+ *   GENEBYGENE_CLIENT_ID      (or GENE_BY_GENE_CLIENT_ID, the vendor's name)
+ *   GENEBYGENE_CLIENT_SECRET  (or GENE_BY_GENE_CLIENT_SECRET)
+ *   GENEBYGENE_API_URL    optional, default https://staging-api.genebygene.com
+ *                                     (GENEBYGENE_BASE_URL is the older name)
+ *   GENEBYGENE_TOKEN_URL  optional, default https://staging-auth.genebygene.com/connect/token
+ *   GENEBYGENE_UNSAFE=1   also place (and cancel) real orders; demo/staging only
  *
  * Without credentials it prints the missing variable names and exits 2. It never prints a
  * secret value. What it checks:
@@ -22,7 +22,7 @@
  * 3. The structural cases (long line, PO Box, non-US, the not-found street) are recorded into
  *    `corpus/address-parity.json` (`recorded: true`); the acceptance suite replays that file.
  * 4. A random walk over the other safe operations, mock vs live.
- * 5. With MOCKINGBIRD_GENEBYGENE_UNSAFE=1 (never against production): one order to
+ * 5. With GENEBYGENE_UNSAFE=1 (never against production): one order to
  *    `1445 N Loop W`, canceled in the same run, and one to `501 N 5th St`, which must answer the
  *    Address Not Found 400. Responses are redacted to status, message and id shape.
  */
@@ -43,17 +43,16 @@ try {
     {
       provider: "genebygene",
       fields: {
-        MOCKINGBIRD_GENEBYGENE_CLIENT_ID: "MOCKINGBIRD_GENEBYGENE_CLIENT_ID",
-        MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET: "MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET",
+        GENEBYGENE_CLIENT_ID: "GENEBYGENE_CLIENT_ID",
+        GENEBYGENE_CLIENT_SECRET: "GENEBYGENE_CLIENT_SECRET",
       },
     },
     {
       env: {
-        MOCKINGBIRD_GENEBYGENE_CLIENT_ID:
-          process.env.MOCKINGBIRD_GENEBYGENE_CLIENT_ID || process.env.GENE_BY_GENE_CLIENT_ID,
-        MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET:
-          process.env.MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET ||
-          process.env.GENE_BY_GENE_CLIENT_SECRET,
+        GENEBYGENE_CLIENT_ID:
+          process.env.GENEBYGENE_CLIENT_ID || process.env.GENE_BY_GENE_CLIENT_ID,
+        GENEBYGENE_CLIENT_SECRET:
+          process.env.GENEBYGENE_CLIENT_SECRET || process.env.GENE_BY_GENE_CLIENT_SECRET,
       },
     },
   )
@@ -68,16 +67,15 @@ try {
 }
 
 const tokenUrl =
-  process.env.MOCKINGBIRD_GENEBYGENE_TOKEN_URL ??
-  "https://staging-auth.genebygene.com/connect/token"
+  process.env.GENEBYGENE_TOKEN_URL ?? "https://staging-auth.genebygene.com/connect/token"
 const baseUrl = (
-  process.env.MOCKINGBIRD_GENEBYGENE_API_URL ??
-  process.env.MOCKINGBIRD_GENEBYGENE_BASE_URL ??
+  process.env.GENEBYGENE_API_URL ??
+  process.env.GENEBYGENE_BASE_URL ??
   "https://staging-api.genebygene.com"
 ).replace(/\/$/, "")
-const unsafe = process.env.MOCKINGBIRD_GENEBYGENE_UNSAFE === "1"
+const unsafe = process.env.GENEBYGENE_UNSAFE === "1"
 if (unsafe && /(^|\/\/)api\.genebygene\.com/.test(baseUrl)) {
-  console.error("genebygene parity: MOCKINGBIRD_GENEBYGENE_UNSAFE never runs against production")
+  console.error("genebygene parity: GENEBYGENE_UNSAFE never runs against production")
   process.exit(2)
 }
 
@@ -115,8 +113,8 @@ const requestToken = (
 
 const tokenResponse = await requestToken(
   (r) => live(r),
-  credentials.values.MOCKINGBIRD_GENEBYGENE_CLIENT_ID ?? "",
-  credentials.values.MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET ?? "",
+  credentials.values.GENEBYGENE_CLIENT_ID ?? "",
+  credentials.values.GENEBYGENE_CLIENT_SECRET ?? "",
 )
 if (!tokenResponse.ok) {
   console.error(`genebygene parity: token request failed (${tokenResponse.status})`)
@@ -128,8 +126,8 @@ const redact = createRedactor([...credentials.secrets, realToken])
 // The mock answers the staging catalog, the host this script talks to by default, and knows the
 // same tenant client staging does (held in memory only), so an unknown client is refused alike.
 const tenantClient = {
-  client_id: credentials.values.MOCKINGBIRD_GENEBYGENE_CLIENT_ID ?? "",
-  client_secret: credentials.values.MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET ?? "",
+  client_id: credentials.values.GENEBYGENE_CLIENT_ID ?? "",
+  client_secret: credentials.values.GENEBYGENE_CLIENT_SECRET ?? "",
 }
 const createMock = () =>
   new GeneByGeneAPI({ settings: { catalog: "staging", clients: [tenantClient] } })
@@ -452,6 +450,42 @@ const probe = async (method: string, path: string, token = realToken) => {
     ),
   }
 }
+/**
+ * A POST whose body can never place an order (`items` is required and must not be empty), to
+ * record how staging binds it: the byte-identical JSON with the right, a missing and a text
+ * `content-type`, an empty body, and malformed JSON. A byte body sends no `content-type` of
+ * its own (a string body would be sent as `text/plain`).
+ */
+const probeBody = async (path: string, body: string, contentType: string | undefined) => {
+  const headers: Record<string, string> = {
+    authorization: `Bearer ${realToken}`,
+    accept: "application/json",
+  }
+  if (contentType !== undefined) headers["content-type"] = contentType
+  const bytes = new TextEncoder().encode(body)
+  const response = await live(
+    new Request(`${baseUrl}${path}`, { method: "POST", headers, body: bytes }),
+  )
+  const text = await response.text()
+  await Bun.sleep(500)
+  let answer: unknown = text
+  try {
+    answer = text.length > 0 ? JSON.parse(text) : null
+  } catch {}
+  return {
+    method: "POST",
+    path,
+    contentType: contentType ?? null,
+    bodyBytes: bytes.byteLength,
+    body,
+    status: response.status,
+    responseContentType: response.headers.get("content-type"),
+    response: ((b: unknown) =>
+      b !== null && typeof b === "object" && "traceId" in b ? { ...b, traceId: "<volatile>" } : b)(
+      JSON.parse(redact(JSON.stringify(answer))),
+    ),
+  }
+}
 const catalogs = {
   source: new URL(baseUrl).host,
   note: "Recorded by scripts/parity.ts from the live tenant: the event types, attribute definitions and product catalog it lists. Vendor catalog metadata only, no tenant data.",
@@ -472,6 +506,19 @@ const shapes = {
     await probe("GET", `/api/v2/orderLines/${ZERO}`),
     await probe("GET", `/api/v2/notificationSubscriptions/${ZERO}`),
     await probe("GET", "/api/v2/results/results/presignedUrl?kitNumber=WB000000&resultType=x"),
+  ],
+  // How the model binder answers a body by its media type (the mock's 415 / 400 rules replay
+  // these): none of them names a product, so none can place an order.
+  bodies: [
+    await probeBody("/api/v2/orders", '{"items":[]}', "application/json"),
+    await probeBody("/api/v2/orders", '{"items":[]}', "application/json; charset=utf-8"),
+    await probeBody("/api/v2/orders", '{"items":[]}', undefined),
+    await probeBody("/api/v2/orders", '{"items":[]}', "text/plain"),
+    await probeBody("/api/v2/orders", '{"items":[]}', "application/x-www-form-urlencoded"),
+    await probeBody("/api/v2/orders", '{"items":[]}', "application/vnd.api+json"),
+    await probeBody("/api/v2/orders", "", "application/json"),
+    await probeBody("/api/v2/orders", "", undefined),
+    await probeBody("/api/v2/orders", "{", "application/json"),
   ],
 }
 // Query validation: each list parameter with a junk value, and the candidate values of the

@@ -2,19 +2,26 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **115**
-- supported by the mock: **111**
-- parity enabled: **106**
+- operations in spec: **123**
+- supported by the mock: **119**
+- parity enabled: **112**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PostThreeDSecureAuthenticate` | `POST /c/3ds/{intent}/authenticate` | ✅ supported | ❌ disabled | the 3-D Secure challenge the Stripe.js stand-in completes has no public API |
 | `GetCheckoutPage` | `GET /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page is HTML served by the mock in place of checkout.stripe.com |
 | `PostCheckoutPage` | `POST /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page form post is served by the mock in place of checkout.stripe.com |
+| `GetPortalPage` | `GET /p/session/{session}` | ✅ supported | ❌ disabled | the customer portal is HTML served by the mock in place of billing.stripe.com |
+| `PostPortalPage` | `POST /p/session/{session}` | ✅ supported | ❌ disabled | the customer portal form post is served by the mock in place of billing.stripe.com |
 | `GetAccount` | `GET /v1/account` | ✅ supported | ✅ |  |
 | `GetBalance` | `GET /v1/balance` | ✅ supported | ✅ |  |
 | `GetBalanceTransactions` | `GET /v1/balance_transactions` | ✅ supported | ✅ |  |
 | `GetBalanceTransactionsId` | `GET /v1/balance_transactions/{id}` | ✅ supported | ✅ |  |
+| `GetBillingPortalConfigurations` | `GET /v1/billing_portal/configurations` | ✅ supported | ✅ |  |
+| `PostBillingPortalConfigurations` | `POST /v1/billing_portal/configurations` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `GetBillingPortalConfigurationsConfiguration` | `GET /v1/billing_portal/configurations/{configuration}` | ✅ supported | ✅ |  |
+| `PostBillingPortalConfigurationsConfiguration` | `POST /v1/billing_portal/configurations/{configuration}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `PostBillingPortalSessions` | `POST /v1/billing_portal/sessions` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetCharges` | `GET /v1/charges` | ✅ supported | ✅ |  |
 | `PostCharges` | `POST /v1/charges` | ❌ unsupported | — | charges are always created through PaymentIntents |
 | `GetChargesCharge` | `GET /v1/charges/{charge}` | ✅ supported | ✅ |  |
@@ -112,6 +119,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `GetSubscriptionsSubscriptionExposedId` | `GET /v1/subscriptions/{subscription_exposed_id}` | ✅ supported | ✅ |  |
 | `PostSubscriptionsSubscriptionExposedId` | `POST /v1/subscriptions/{subscription_exposed_id}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `DeleteSubscriptionsSubscriptionExposedId` | `DELETE /v1/subscriptions/{subscription_exposed_id}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `PostSubscriptionsSubscriptionResume` | `POST /v1/subscriptions/{subscription}/resume` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetTestHelpersTestClocks` | `GET /v1/test_helpers/test_clocks` | ✅ supported | ✅ |  |
 | `PostTestHelpersTestClocks` | `POST /v1/test_helpers/test_clocks` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetTestHelpersTestClocksTestClock` | `GET /v1/test_helpers/test_clocks/{test_clock}` | ✅ supported | ✅ |  |

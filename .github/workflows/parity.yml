@@ -1,10 +1,13 @@
 # Live parity against the real provider sandboxes, on demand, with the repo's secrets.
 #
-# Sandbox keys are GitHub Actions repo secrets named MOCKINGBIRD_* (docs/SECRETS.md). Nobody
+# Sandbox keys are GitHub Actions repo secrets named <SERVICE>_* (docs/SECRETS.md). Nobody
 # has to hand them out: anyone with write access dispatches this workflow, usually through
 #   bun run parity:remote -- stripe twilio      # or --all
 # which runs it on the current branch and streams the log. Values never leave GitHub and are
 # masked in the log.
+#
+# advisory.yml also calls it on pull requests, for the services a PR changes that have secrets
+# mapped below (scripts/ci-plan.ts reads them from this file).
 #
 # Not a required check — it depends on live vendors.
 name: Parity
@@ -16,10 +19,12 @@ on:
         description: "Services to verify, space-separated (e.g. `stripe junction`), or `--all`"
         required: true
         default: junction
-
-concurrency:
-  group: parity-${{ github.ref }}-${{ inputs.services }}
-  cancel-in-progress: false
+  workflow_call:
+    inputs:
+      services:
+        description: "Services to verify, space-separated"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -32,9 +37,15 @@ jobs:
     name: Live parity
     runs-on: ubuntu-latest
     timeout-minutes: 80
+    # Job-level so it also applies when advisory.yml calls this workflow (whose own concurrency
+    # group cancels superseded PR runs).
+    concurrency:
+      group: parity-${{ github.ref }}-${{ inputs.services }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
 
+      # Replays every package's build from pr.yml's turbo caches; parity itself is never cached.
       - uses: ./.github/actions/setup
 
       - name: Build
@@ -43,17 +54,18 @@ jobs:
 
       # Sandbox keys, mapped one by one. Dumping the whole secrets context (toJSON(secrets))
       # makes GitHub hold every run as "may be malicious" until someone approves it by hand.
-      # A service's parity script reads MOCKINGBIRD_<SERVICE>_*; add its secrets here.
+      # A service's parity script reads <SERVICE>_*; add its secrets here.
       - name: Live parity (${{ inputs.services }})
         # A full default walk against a rate-limited vendor (Gene by Gene: 25 walks at 2 rps with
         # ~1.6 s median latency, plus its recorded probes) needs most of this.
         timeout-minutes: 55
         env:
           PARITY_SERVICES: ${{ inputs.services }}
-          MOCKINGBIRD_GENEBYGENE_CLIENT_ID: ${{ secrets.MOCKINGBIRD_GENEBYGENE_CLIENT_ID }}
-          MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET: ${{ secrets.MOCKINGBIRD_GENEBYGENE_CLIENT_SECRET }}
-          MOCKINGBIRD_JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
-          MOCKINGBIRD_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          GENEBYGENE_CLIENT_ID: ${{ secrets.GENEBYGENE_CLIENT_ID }}
+          GENEBYGENE_CLIENT_SECRET: ${{ secrets.GENEBYGENE_CLIENT_SECRET }}
+          JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
+          PADDLE_API_KEY: ${{ secrets.PADDLE_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         # One argument per service; parity-service.ts rejects anything that is not a
         # service with a parity script.
         run: |
@@ -71,6 +83,3 @@ jobs:
             packages/service/*/corpus/
             packages/service/*/src/corpus/
           if-no-files-found: ignore
-
-      - if: always()
-        uses: ./.github/actions/turbo-cache-save

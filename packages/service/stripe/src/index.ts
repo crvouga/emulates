@@ -17,6 +17,7 @@ import type { Hono } from "hono"
 import { accountOfKey } from "./account.js"
 import { type AccountConfig, AccountDirectory, DEFAULT_WEBHOOK_API_VERSION } from "./accounts.js"
 import { DEFAULT_LIFECYCLE, type LifecycleSettings, runLifecycle } from "./billing.js"
+import { billingPortalHandlers } from "./billing-portal.js"
 import { browserHandlers } from "./browser.js"
 import { chargeHandlers } from "./charges.js"
 import { checkoutSessionHandlers } from "./checkout-sessions.js"
@@ -131,7 +132,7 @@ const PUBLISHABLE_ROUTES: ReadonlyArray<{ method: string; pattern: RegExp }> = [
 ]
 
 /** Browser surfaces the mock serves without an API key. */
-const BROWSER_PATH = /^\/(?:c\/pay\/[^/]+|v3|c\/3ds\/[^/]+\/authenticate)\/?$/
+const BROWSER_PATH = /^\/(?:c\/pay\/[^/]+|p\/session\/[^/]+|v3|c\/3ds\/[^/]+\/authenticate)\/?$/
 
 const CORS_HEADERS: Record<string, string> = {
   "access-control-allow-origin": "*",
@@ -221,6 +222,7 @@ export class StripeAPI implements FetchAPI {
       ...invoiceItemHandlers(services),
       ...subscriptionHandlers(services),
       ...subscriptionScheduleHandlers(services),
+      ...billingPortalHandlers(services),
       ...couponHandlers(services),
       ...promotionCodeHandlers(services),
       ...productHandlers(services),

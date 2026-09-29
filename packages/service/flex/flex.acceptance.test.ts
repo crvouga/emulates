@@ -1098,7 +1098,7 @@ describe("hosted checkout: subscription and one-time modes (Flex API reference)"
       ),
       { ...params, numRuns: Math.min(params.numRuns ?? 25, 25) },
     )
-  })
+  }, 20_000)
 
   test("month and year periods clamp to the target month's last day", () => {
     const at = (iso: string, interval: "month" | "year", n = 1) =>

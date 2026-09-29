@@ -62,6 +62,10 @@ const allowsEmptyString = (document: OpenAPIDocument, schema: SchemaObject): boo
 
 const codePoints = (value: string) => [...value].length
 
+/** `{ enum: [""] }`: the branch form-encoded APIs use to let a field be cleared with `""`. */
+const isUnsetMarker = (schema: SchemaObject): boolean =>
+  Array.isArray(schema.enum) && schema.enum.length === 1 && schema.enum[0] === ""
+
 /**
  * Coerce a bracket-decoded form value against an OpenAPI schema the way form-encoded APIs do:
  * every leaf arrives as a string, so integers/numbers/booleans are parsed, unknown keys are
@@ -69,7 +73,8 @@ const codePoints = (value: string) => [...value].length
  * for string-typed leaves (providers decide whether that means "unset"), become `[]` for arrays
  * when the schema permits it, and are reported as invalid for numeric/boolean leaves.
  *
- * `anyOf`/`oneOf` picks the branch matching the value's shape (object/array/scalar).
+ * `anyOf`/`oneOf` picks the branch matching the value's shape (object/array/scalar); among
+ * scalar branches, one whose `enum` names the value exactly wins over the first.
  */
 export const parseForm = (
   document: OpenAPIDocument,
@@ -95,7 +100,14 @@ const walk = (
     if (raw === "" && allowsEmptyString(document, resolved)) return ""
     const branches = union.map((branch) => resolveSchema(document, branch))
     const shape = isObject(raw) ? "object" : Array.isArray(raw) ? "array" : "scalar"
+    // A scalar spelled exactly like one of a branch's enum values (`trial_end=now` against
+    // `integer | "now"`) takes that branch; otherwise the first scalar branch decides.
+    const named =
+      shape === "scalar" && typeof raw === "string" && raw !== ""
+        ? branches.find((branch) => Array.isArray(branch.enum) && branch.enum.includes(raw))
+        : undefined
     const pick =
+      named ??
       branches.find((branch) => {
         const types = schemaTypes(branch)
         if (shape === "object") return types.includes("object") || branch.properties !== undefined
@@ -103,9 +115,13 @@ const walk = (
         return (
           !types.includes("object") &&
           !types.includes("array") &&
-          !(types.length === 1 && types[0] === "null")
+          !(types.length === 1 && types[0] === "null") &&
+          // An `enum: [""]` branch only models "unset"; a real scalar must fall through to the
+          // structural branch so the caller reports "invalid object"/"invalid array".
+          !isUnsetMarker(branch)
         )
-      }) ?? undefined
+      }) ??
+      undefined
     if (!pick) {
       const first = branches[0]
       const firstTypes = first ? schemaTypes(first) : []

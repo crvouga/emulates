@@ -424,9 +424,14 @@ export const createRuntime = (options: StripeRuntimeOptions = {}): StripeRuntime
       return guard(() => {
         const session = scope.account.checkoutSessions.get(id)
         if (!session) return adminError(404, `no checkout session ${id}`)
-        const card =
-          isRecord(body) && typeof body.card === "string" ? body.card : "4242424242424242"
-        const result = completeSession(scope, session, card)
+        const field = (key: string) =>
+          isRecord(body) && typeof body[key] === "string" ? (body[key] as string) : null
+        // Without a `card`, a card is still used wherever the session requires one.
+        const result = completeSession(scope, session, {
+          card: field("card"),
+          email: field("email"),
+          name: field("name"),
+        })
         if (!result.ok)
           return json(402, {
             error: { type: "card_error", code: result.code, message: result.message },
