@@ -136,3 +136,21 @@ test("listing schedules with scheduled and released_at names the conflict first"
     "You may only specify one of these parameters: released_at, scheduled.",
   )
 })
+
+// Live parity: an empty invoice filter on a customer's balance transactions is refused.
+test("listing balance transactions with an empty invoice names invoice", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee10", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const headers = { authorization: `Bearer ${KEY}` }
+  const customer = (await (
+    await fetch(`${server.url}/v1/customers`, { method: "POST", headers })
+  ).json()) as { id: string }
+  const response = await fetch(
+    `${server.url}/v1/customers/${customer.id}/balance_transactions?invoice=`,
+    { headers },
+  )
+  const { error } = (await response.json()) as { error: { code: string; param: string } }
+  expect(response.status).toBe(400)
+  expect(error.code).toBe("parameter_invalid_empty")
+  expect(error.param).toBe("invoice")
+})
