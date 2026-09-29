@@ -1,7 +1,8 @@
 import { type APIOptions, bootSqlite, Collection, seedFrom } from "@crvouga/mockingbird-service"
 import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { type BehaviorInput, BehaviorState, type OAuthBehavior } from "./behavior.js"
-import { halfHash, hash, random, Signer, verifyAppleSecret } from "./crypto.js"
+import { type CredentialOptions, Credentials } from "./credentials.js"
+import { halfHash, hash, type Signer, verifyAppleSecret } from "./crypto.js"
 import type {
   Account,
   AppleNotificationType,
@@ -23,6 +24,7 @@ export type {
   OAuthScenario,
 } from "./behavior.js"
 export { OAUTH_SCENARIOS } from "./behavior.js"
+export type { CredentialOptions, SigningKey } from "./credentials.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { OAuthMount, OAuthMultiRuntime, OAuthMultiRuntimeOptions } from "./multi.js"
 export { createMultiRuntime } from "./multi.js"
@@ -37,25 +39,26 @@ export type {
   Provider,
 } from "./types.js"
 
-export type OAuthAPIOptions = APIOptions & {
-  /** Browser Fetch forbids Cookie/Set-Cookie; local transports may explicitly remap them. */
-  cookieHeaders?: { request: string; response: string }
-  provider?: Provider
-  /** Public issuer including any mount prefix. Defaults to request origin plus namespace prefix. */
-  issuer?: string
-  /** Path at which a composed runtime is publicly mounted. */
-  mountPath?: string
-  publicNamespace?: string
-  accounts?: Account[]
-  clients?: Client[]
-  behavior?: BehaviorInput
-  /** Replays behavior choices, never credentials. */
-  seed?: number | string
-  /** CSP nonce source for form-post responses. Defaults to `crypto.randomUUID`. */
-  nonce?: () => string
-  /** Outbound delivery of Sign in with Apple server-to-server notifications. Defaults to global `fetch`. */
-  webhooks?: { fetch?: (request: Request) => Promise<Response> }
-}
+export type OAuthAPIOptions = APIOptions &
+  CredentialOptions & {
+    /** Browser Fetch forbids Cookie/Set-Cookie; local transports may explicitly remap them. */
+    cookieHeaders?: { request: string; response: string }
+    provider?: Provider
+    /** Public issuer including any mount prefix. Defaults to request origin plus namespace prefix. */
+    issuer?: string
+    /** Path at which a composed runtime is publicly mounted. */
+    mountPath?: string
+    publicNamespace?: string
+    accounts?: Account[]
+    clients?: Client[]
+    behavior?: BehaviorInput
+    /** Replays behavior choices; also credentials when `deterministicCredentials` is set. */
+    seed?: number | string
+    /** CSP nonce source for form-post responses. Defaults to `crypto.randomUUID`. */
+    nonce?: () => string
+    /** Outbound delivery of Sign in with Apple server-to-server notifications. Defaults to global `fetch`. */
+    webhooks?: { fetch?: (request: Request) => Promise<Response> }
+  }
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "cache-control": "no-store", pragma: "no-cache" } })
 const fail = (error: string, description: string, status = 400) =>
@@ -95,10 +98,11 @@ export class OAuthAPI {
   private readonly tokens: Collection<Token>
   private readonly sessions: Collection<{ accountId: string; expires: number; authTime: number }>
   private readonly consents: Collection<{ scope: string }>
-  private signer = new Signer()
+  private signer: Signer
+  private readonly credentials: Credentials
   private previousSigners: Signer[] = []
   /** Never published: signs ID tokens for `tokens.idTokenSigningKey: "unpublished"`. */
-  private unpublishedSigner?: Signer
+  private unpublishedSigner: Signer | undefined
   readonly behavior: BehaviorState
   private readonly identities: Collection<Grant["identity"]>
   private readonly appleDisclosures: Collection<{ disclosed: boolean }>
@@ -133,6 +137,8 @@ export class OAuthAPI {
       options.seed ?? 0,
       options.behavior ?? {},
     )
+    this.credentials = new Credentials(this.sqlite, this.namespace, options.seed, options)
+    this.signer = this.credentials.signer()
     this.seed()
   }
   private seed() {
@@ -235,6 +241,12 @@ export class OAuthAPI {
   async reset(): Promise<void> {
     clearNamespace(this.sqlite, this.namespace)
     this.behavior.configure(this.options.behavior ?? {})
+    if (this.options.deterministicCredentials || this.options.signingKeys) {
+      this.credentials.restart()
+      this.previousSigners = []
+      this.unpublishedSigner = undefined
+      this.signer = this.credentials.signer()
+    }
     this.seed()
   }
   issuer(request: Request): string {
@@ -252,7 +264,7 @@ export class OAuthAPI {
   }
   rotateSigningKey(retainPrevious = true): { kid: string } {
     this.previousSigners = retainPrevious ? [this.signer, ...this.previousSigners].slice(0, 4) : []
-    this.signer = new Signer()
+    this.signer = this.credentials.signer()
     return { kid: this.signer.kid }
   }
   /**
@@ -331,7 +343,7 @@ export class OAuthAPI {
         iss: iss.replace(/\/$/, ""),
         aud: client.id,
         iat: Math.floor(this.now() / 1000),
-        jti: random(),
+        jti: this.credentials.token(),
         events: JSON.stringify({
           type,
           sub,
@@ -573,7 +585,7 @@ export class OAuthAPI {
     const skew = tokens?.idTokenClockSkewSeconds ?? 0
     const iat = Math.floor(this.now() / 1000) + skew
     const unpublished = tokens?.idTokenSigningKey === "unpublished"
-    if (unpublished) this.unpublishedSigner ??= new Signer()
+    if (unpublished) this.unpublishedSigner ??= this.credentials.unpublishedSigner()
     return ((unpublished && this.unpublishedSigner) || this.signer).sign({
       ...this.profile(account, grant),
       iss: issuer,
@@ -818,6 +830,9 @@ export class OAuthAPI {
       return page(
         "Identity sandbox",
         '<span class="eyebrow">Mockingbird Identity</span><h1 id="title">Make sign-in<br>feel real.</h1><p>Your identity sandbox is ready. Start sign-in from your application to choose an account, create a new identity, and review access.</p><div class="account"><span class="avatar" aria-hidden="true">✓</span><span class="identity"><strong>Ready when you are</strong><small>OAuth 2.0 · OpenID Connect</small></span></div>',
+        200,
+        undefined,
+        this.credentials.nonce(),
       )
     return fail("not_found", "Unknown endpoint", 404)
   }
@@ -946,7 +961,7 @@ export class OAuthAPI {
       if (!granted) return error("consent_required", "Consent is required")
       return this.finish({ ...auth, accountId: current.id, authTime: session.authTime }, issuer)
     }
-    const id = random()
+    const id = this.credentials.token()
     if (current && session && !prompt.has("login") && !prompt.has("select_account")) {
       auth.accountId = current.id
       auth.authTime = session.authTime
@@ -964,7 +979,16 @@ export class OAuthAPI {
         (a, b) =>
           Number(b.email === hint || b.id === hint) - Number(a.email === hint || a.id === hint),
       )
-    return loginPage(id, client.name, accounts, issuer, formAction(auth.redirectUri))
+    return loginPage(
+      id,
+      client.name,
+      accounts,
+      issuer,
+      formAction(auth.redirectUri),
+      false,
+      "",
+      this.credentials.nonce(),
+    )
   }
   private consent(
     id: string,
@@ -993,6 +1017,7 @@ export class OAuthAPI {
             choice: (this.behavior.config.apple?.emailMode ?? "choose") === "choose",
           }
         : undefined,
+      this.credentials.nonce(),
     )
   }
   private async interact(request: Request, issuer: string): Promise<Response> {
@@ -1014,7 +1039,7 @@ export class OAuthAPI {
         '<span class="eyebrow">Let’s try again</span><h1 id="title">This sign-in expired</h1><p>Return to your application and start sign-in again.</p>',
         400,
         undefined,
-        undefined,
+        this.credentials.nonce(),
         "oauth-mock-error",
       )
     const accounts = () =>
@@ -1027,6 +1052,8 @@ export class OAuthAPI {
         issuer,
         formAction(auth.redirectUri),
         p.get("screen") === "signup",
+        "",
+        this.credentials.nonce(),
       )
     const action = p.get("action")
     if (action === "deny") {
@@ -1048,6 +1075,7 @@ export class OAuthAPI {
           formAction(auth.redirectUri),
           true,
           "Enter a full name and a valid email address.",
+          this.credentials.nonce(),
         )
       if (
         accounts().some((a) => a.email === email) ||
@@ -1061,8 +1089,14 @@ export class OAuthAPI {
           formAction(auth.redirectUri),
           true,
           "This email already has an account. Go back to choose it.",
+          this.credentials.nonce(),
         )
-      const account = this.seedAccount({ id: random(), email, name, emailVerified: true })
+      const account = this.seedAccount({
+        id: this.credentials.token(),
+        email,
+        name,
+        emailVerified: true,
+      })
       auth.accountId = account.id
       auth.authTime = this.now()
       this.transactions.update(id, auth)
@@ -1079,6 +1113,7 @@ export class OAuthAPI {
           formAction(auth.redirectUri),
           false,
           "Choose an available account.",
+          this.credentials.nonce(),
         )
       auth.accountId = account.id
       auth.authTime = this.now()
@@ -1131,7 +1166,7 @@ export class OAuthAPI {
     authTime: number,
     issuer: string,
   ): Response {
-    const session = random()
+    const session = this.credentials.token()
     this.sessions.insert(session, { accountId, authTime, expires: this.now() + 86400000 })
     result.headers.append(
       this.options.cookieHeaders?.response ?? "set-cookie",
@@ -1178,14 +1213,14 @@ export class OAuthAPI {
           googleRefresh !== "never" &&
           (googleRefresh === "always" || auth.forceConsent || !previous)
         : this.provider === "apple" || scopes(scope).has("offline_access")
-    const code = random()
+    const code = this.credentials.token()
     const grant: Grant = {
       ...auth,
       scope,
       identity,
       issueRefresh,
       expires: this.now() + (behavior.tokens?.codeTtlSeconds ?? 300) * 1000,
-      family: random(),
+      family: this.credentials.token(),
     }
     this.codes.insert(code, grant)
     this.consents.insert(key, { scope: [...scopes(`${previous?.scope ?? ""} ${scope}`)].join(" ") })
@@ -1223,7 +1258,7 @@ export class OAuthAPI {
     if (auth.state) values.state = auth.state
     const redirect = new URL(auth.redirectUri)
     if (auth.responseMode === "form_post") {
-      const nonce = this.options.nonce?.() ?? crypto.randomUUID()
+      const nonce = this.options.nonce?.() ?? this.credentials.nonce()
       const result = page(
         "Continue to your app",
         `<span class="eyebrow">All set</span><h1 id="title">Back to your app</h1><p>Your sign-in response is ready.</p><form id="callback" method="post" action="${escapeHtml(auth.redirectUri)}">${Object.entries(
@@ -1408,7 +1443,7 @@ export class OAuthAPI {
     if (type === "refresh_token")
       this.tokens.update(key, { ...stored, kind: "refresh", lastUsed: this.now() })
     const accessTtl = behavior.tokens?.accessTtlSeconds ?? 3600
-    const access = random()
+    const access = this.credentials.token()
     const result: Record<string, unknown> = {
       access_token: access,
       token_type: "Bearer",
@@ -1448,7 +1483,7 @@ export class OAuthAPI {
       rotating ||
       microsoftRefresh
     ) {
-      const refresh = random()
+      const refresh = this.credentials.token()
       const basicScopes = [
         "openid",
         "email",
