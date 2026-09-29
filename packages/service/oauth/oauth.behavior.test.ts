@@ -48,13 +48,17 @@ async function login(api: OAuthAPI, params: Record<string, string> = {}, choice?
   const consent = await api.fetch(
     req("/interaction", { transaction: tx, action: "select", account: "ada" }),
   )
-  const result = await api.fetch(
-    req("/interaction", {
-      transaction: tx,
-      action: "allow",
-      ...(choice ? { email_choice: choice } : {}),
-    }),
-  )
+  // Google skips the consent card when the account already granted these scopes.
+  const result =
+    consent.status === 302
+      ? consent
+      : await api.fetch(
+          req("/interaction", {
+            transaction: tx,
+            action: "allow",
+            ...(choice ? { email_choice: choice } : {}),
+          }),
+        )
   const html = await result.text()
   const url = result.headers.get("location")
   return {
@@ -472,6 +476,76 @@ test("provider session reuse can be disabled and prompt=select_account always fo
   expect((await authorize()).status).toBe(302)
   expect(await (await authorize("select_account")).text()).toContain("Choose an account")
   expect(() => api.behavior.configure({ session: { reuseLastAccount: "yes" } })).toThrow()
+})
+
+test("Google skips consent after the account chooser when the scopes were already granted", async () => {
+  const api = make("google")
+  let cookie = ""
+  const send = async (request: Request) => {
+    if (cookie) request.headers.set("cookie", cookie)
+    const response = await api.fetch(request)
+    for (const set of response.headers.getSetCookie()) cookie = set.split(";")[0] ?? ""
+    return response
+  }
+  // Start a select_account sign-in and choose Ada; returns the response to the choice.
+  const choose = async (params: Record<string, string> = {}) => {
+    const query = new URLSearchParams({
+      client_id: "app",
+      redirect_uri: callback,
+      response_type: "code",
+      scope: "openid profile email",
+      prompt: "select_account",
+      ...params,
+    })
+    const chooser = await (await send(req(`/authorize?${query}`))).text()
+    const transaction = field(chooser, "transaction")
+    expect(transaction).not.toBe("")
+    return {
+      transaction,
+      response: await send(req("/interaction", { transaction, action: "select", account: "ada" })),
+    }
+  }
+  const allow = async (transaction: string) => {
+    const done = await send(req("/interaction", { transaction, action: "allow" }))
+    const code = new URL(done.headers.get("location") ?? "").searchParams.get("code") ?? ""
+    expect((await exchange(api, code)).status).toBe(200)
+  }
+
+  const first = await choose()
+  expect(first.response.status).toBe(200)
+  expect(await first.response.text()).toContain('value="allow"')
+  await allow(first.transaction)
+
+  // Returning user: the same scopes complete straight to the redirect, with a fresh session.
+  cookie = ""
+  const returning = await choose({ state: "s" })
+  expect(returning.response.status).toBe(302)
+  const location = new URL(returning.response.headers.get("location") ?? "")
+  expect(location.origin + location.pathname).toBe(callback)
+  expect(location.searchParams.get("state")).toBe("s")
+  expect(location.searchParams.get("error")).toBeNull()
+  expect((await exchange(api, location.searchParams.get("code") ?? "")).status).toBe(200)
+  expect(cookie).toStartWith("mb_session=")
+
+  // prompt=consent still asks.
+  const forced = await choose({ prompt: "select_account consent" })
+  expect(forced.response.status).toBe(200)
+  expect(await forced.response.text()).toContain('value="allow"')
+
+  // A scope the account has not granted yet still asks.
+  const wider = await choose({
+    scope: "openid profile email https://www.googleapis.com/auth/userinfo.email",
+  })
+  expect(wider.response.status).toBe(200)
+})
+
+test("only Google skips consent after choosing an account; other providers keep asking", async () => {
+  for (const provider of ["apple", "microsoft", "github", "oidc"] as const) {
+    const api = make(provider)
+    await login(api)
+    const { consent } = await login(api)
+    expect(consent).toContain('value="allow"')
+  }
 })
 
 test("neutral UI offers all appearance modes and Apple form-post scripts share one CSP nonce", async () => {

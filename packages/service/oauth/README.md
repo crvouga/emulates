@@ -97,7 +97,7 @@ For the CLI, put the same `mounts` array in a JSON file and run `npx mockingbird
 
 ### Accounts and signup
 
-The chooser displays seeded, enabled test accounts. Choosing an account opens explicit consent; creating an account validates the email/name, rejects duplicate email addresses, persists the identity and opens the same consent flow. This is intentionally passwordless test identity selection; never use real passwords or personal data.
+The chooser displays seeded, enabled test accounts. Choosing an account opens explicit consent (Google skips it when that account already granted every requested scope to the client; `prompt=consent` or a new scope asks again); creating an account validates the email/name, rejects duplicate email addresses, persists the identity and opens the same consent flow. This is intentionally passwordless test identity selection; never use real passwords or personal data.
 
 ```sh
 curl http://localhost:8810/__admin/clients -H 'content-type: application/json' \
