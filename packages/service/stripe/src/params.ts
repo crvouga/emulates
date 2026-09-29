@@ -236,18 +236,12 @@ export const parseParams = (
     }
     const issue = issues[0]
     if (issue) {
-      // Stripe checks array elements in index order, so an empty element is only the first
-      // complaint when nothing earlier in the array fails the field's own check.
-      const validator = options.validate?.[key]
-      const value = params[key]
-      if (validator && issue.kind === "empty" && Array.isArray(value)) {
-        const elements = [...value]
-        for (const item of issues) {
-          const at = new RegExp(`^${key}\\[(\\d+)\\]$`).exec(item.path)
-          if (item.kind === "empty" && at) elements[Number(at[1])] = ""
-        }
-        validator({ ...params, [key]: elements })
-      }
+      // Stripe checks list elements in order, so an element ahead of the failing one is
+      // reported first when its semantic check fails.
+      const failing = /^[^[]+\[(\d+)\]/.exec(issue.path)?.[1]
+      const list = params[key]
+      if (failing !== undefined && Number(failing) > 0 && Array.isArray(list))
+        options.validate?.[key]?.({ ...params, [key]: list.slice(0, Number(failing)) })
       throw issueToError(issue)
     }
     options.validate?.[key]?.(params)

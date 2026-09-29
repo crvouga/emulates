@@ -1,8 +1,19 @@
 import { type APIOptions, bootSqlite, Collection, seedFrom } from "@crvouga/mockingbird-service"
 import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { type BehaviorInput, BehaviorState, type OAuthBehavior } from "./behavior.js"
-import { halfHash, hash, random, Signer, verifyAppleSecret } from "./crypto.js"
-import type { Account, Authorization, Client, Grant, Provider, Token } from "./types.js"
+import { type CredentialOptions, Credentials } from "./credentials.js"
+import { halfHash, hash, type Signer, verifyAppleSecret } from "./crypto.js"
+import type {
+  Account,
+  AppleNotificationType,
+  Authorization,
+  Client,
+  Grant,
+  GrantView,
+  NotificationDelivery,
+  Provider,
+  Token,
+} from "./types.js"
 import { consentPage, escapeHtml, loginPage, page } from "./ui.js"
 
 export type {
@@ -13,30 +24,41 @@ export type {
   OAuthScenario,
 } from "./behavior.js"
 export { OAUTH_SCENARIOS } from "./behavior.js"
+export type { CredentialOptions, SigningKey } from "./credentials.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { OAuthMount, OAuthMultiRuntime, OAuthMultiRuntimeOptions } from "./multi.js"
 export { createMultiRuntime } from "./multi.js"
 export type { OAuthRuntime, OAuthRuntimeOptions } from "./runtime.js"
 export { createRuntime, OAUTH_PRESETS } from "./runtime.js"
-export type { Account, Client, Provider } from "./types.js"
+export type {
+  Account,
+  AppleNotificationType,
+  Client,
+  GrantView,
+  NotificationDelivery,
+  Provider,
+} from "./types.js"
 
-export type OAuthAPIOptions = APIOptions & {
-  /** Browser Fetch forbids Cookie/Set-Cookie; local transports may explicitly remap them. */
-  cookieHeaders?: { request: string; response: string }
-  provider?: Provider
-  /** Public issuer including any mount prefix. Defaults to request origin plus namespace prefix. */
-  issuer?: string
-  /** Path at which a composed runtime is publicly mounted. */
-  mountPath?: string
-  publicNamespace?: string
-  accounts?: Account[]
-  clients?: Client[]
-  behavior?: BehaviorInput
-  /** Replays behavior choices, never credentials. */
-  seed?: number | string
-  /** CSP nonce source for form-post responses. Defaults to `crypto.randomUUID`. */
-  nonce?: () => string
-}
+export type OAuthAPIOptions = APIOptions &
+  CredentialOptions & {
+    /** Browser Fetch forbids Cookie/Set-Cookie; local transports may explicitly remap them. */
+    cookieHeaders?: { request: string; response: string }
+    provider?: Provider
+    /** Public issuer including any mount prefix. Defaults to request origin plus namespace prefix. */
+    issuer?: string
+    /** Path at which a composed runtime is publicly mounted. */
+    mountPath?: string
+    publicNamespace?: string
+    accounts?: Account[]
+    clients?: Client[]
+    behavior?: BehaviorInput
+    /** Replays behavior choices; also credentials when `deterministicCredentials` is set. */
+    seed?: number | string
+    /** CSP nonce source for form-post responses. Defaults to `crypto.randomUUID`. */
+    nonce?: () => string
+    /** Outbound delivery of Sign in with Apple server-to-server notifications. Defaults to global `fetch`. */
+    webhooks?: { fetch?: (request: Request) => Promise<Response> }
+  }
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "cache-control": "no-store", pragma: "no-cache" } })
 const fail = (error: string, description: string, status = 400) =>
@@ -76,8 +98,11 @@ export class OAuthAPI {
   private readonly tokens: Collection<Token>
   private readonly sessions: Collection<{ accountId: string; expires: number; authTime: number }>
   private readonly consents: Collection<{ scope: string }>
-  private signer = new Signer()
+  private signer: Signer
+  private readonly credentials: Credentials
   private previousSigners: Signer[] = []
+  /** Never published: signs ID tokens for `tokens.idTokenSigningKey: "unpublished"`. */
+  private unpublishedSigner: Signer | undefined
   readonly behavior: BehaviorState
   private readonly identities: Collection<Grant["identity"]>
   private readonly appleDisclosures: Collection<{ disclosed: boolean }>
@@ -112,6 +137,8 @@ export class OAuthAPI {
       options.seed ?? 0,
       options.behavior ?? {},
     )
+    this.credentials = new Credentials(this.sqlite, this.namespace, options.seed, options)
+    this.signer = this.credentials.signer()
     this.seed()
   }
   private seed() {
@@ -197,15 +224,32 @@ export class OAuthAPI {
       throw new Error(
         "Apple client requires teamId, keyId and a public P-256 JWK, without a static secret",
       )
+    if (
+      client.apple?.notificationUrl !== undefined &&
+      !(
+        typeof client.apple.notificationUrl === "string" &&
+        safeRedirect(client.apple.notificationUrl) &&
+        WEB_SCHEMES.has(new URL(client.apple.notificationUrl).protocol)
+      )
+    )
+      throw new Error(
+        "apple.notificationUrl must be an HTTP(S) URL without fragment or credentials",
+      )
     this.clients.insert(client.id, structuredClone(client))
     return client
   }
   async reset(): Promise<void> {
     clearNamespace(this.sqlite, this.namespace)
     this.behavior.configure(this.options.behavior ?? {})
+    if (this.options.deterministicCredentials || this.options.signingKeys) {
+      this.credentials.restart()
+      this.previousSigners = []
+      this.unpublishedSigner = undefined
+      this.signer = this.credentials.signer()
+    }
     this.seed()
   }
-  private issuer(request: Request): string {
+  issuer(request: Request): string {
     const prefix =
       this.options.publicNamespace && this.options.publicNamespace !== "default"
         ? `/ns/${encodeURIComponent(this.options.publicNamespace)}`
@@ -220,10 +264,115 @@ export class OAuthAPI {
   }
   rotateSigningKey(retainPrevious = true): { kid: string } {
     this.previousSigners = retainPrevious ? [this.signer, ...this.previousSigners].slice(0, 4) : []
-    this.signer = new Signer()
+    this.signer = this.credentials.signer()
     return { kid: this.signer.kid }
   }
-  revokeConsent(clientId: string, accountId: string): void {
+  /**
+   * Withdraws one client's consent. When the client registered `apple.notificationUrl` and held
+   * the consent, Apple's `consent-revoked` notification is delivered before this resolves.
+   */
+  async revokeConsent(
+    clientId: string,
+    accountId: string,
+    issuer?: string,
+  ): Promise<NotificationDelivery[]> {
+    const targets = this.notifiable(accountId).filter((t) => t.client.id === clientId)
+    this.forget(clientId, accountId)
+    return this.notify(targets, "consent-revoked", issuer)
+  }
+  /**
+   * Deletes an account with its grants and sessions, after telling every client that held a
+   * consent (`account-delete`).
+   */
+  async deleteAccount(accountId: string, issuer?: string): Promise<NotificationDelivery[]> {
+    if (!this.accounts.has(accountId)) throw new Error("Unknown account")
+    const targets = this.notifiable(accountId)
+    for (const { value: client } of this.clients.list()) this.forget(client.id, accountId)
+    for (const row of this.codes.list({ where: (c) => c.accountId === accountId }))
+      this.codes.delete(row.id)
+    for (const row of this.tokens.list({ where: (t) => t.accountId === accountId }))
+      this.tokens.delete(row.id)
+    for (const row of this.transactions.list({ where: (t) => t.accountId === accountId }))
+      this.transactions.delete(row.id)
+    for (const row of this.sessions.list({ where: (s) => s.accountId === accountId }))
+      this.sessions.delete(row.id)
+    this.accounts.delete(accountId)
+    return this.notify(targets, "account-delete", issuer)
+  }
+  /**
+   * Tells every client whose identity for the account is a private relay address that the user
+   * turned forwarding off (`email-disabled`) or on (`email-enabled`).
+   */
+  async setRelayForwarding(
+    accountId: string,
+    forwarding: boolean,
+    issuer?: string,
+  ): Promise<NotificationDelivery[]> {
+    if (!this.accounts.has(accountId)) throw new Error("Unknown account")
+    return this.notify(
+      this.notifiable(accountId).filter((t) => t.relay),
+      forwarding ? "email-enabled" : "email-disabled",
+      issuer,
+      true,
+    )
+  }
+  /** Clients with a notification endpoint that hold a consent for the account. */
+  private notifiable(accountId: string) {
+    return this.clients.list({ order: "oldest" }).flatMap(({ value: client }) => {
+      const identity = this.identities.get(this.identityKey(client, accountId))
+      return client.apple?.notificationUrl &&
+        identity &&
+        this.consents.has(JSON.stringify([client.id, accountId]))
+        ? [{ client, sub: identity.sub, email: identity.email, relay: identity.privateEmail }]
+        : []
+    })
+  }
+  private async notify(
+    targets: { client: Client; sub: string; email: string }[],
+    type: AppleNotificationType,
+    issuer: string | undefined,
+    withEmail = false,
+  ): Promise<NotificationDelivery[]> {
+    if (!targets.length) return []
+    const iss = issuer ?? this.options.issuer
+    if (!iss) throw new Error("A notification needs the issuer option or an issuer argument")
+    const send = this.options.webhooks?.fetch ?? ((r: Request) => fetch(r))
+    const deliveries: NotificationDelivery[] = []
+    for (const { client, sub, email } of targets) {
+      const payload = await this.signer.sign({
+        iss: iss.replace(/\/$/, ""),
+        aud: client.id,
+        iat: Math.floor(this.now() / 1000),
+        jti: this.credentials.token(),
+        events: JSON.stringify({
+          type,
+          sub,
+          ...(withEmail ? { email, is_private_email: "true" } : {}),
+          event_time: this.now(),
+        }),
+      })
+      try {
+        const response = await send(
+          new Request(client.apple?.notificationUrl ?? "", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ payload }),
+          }),
+        )
+        deliveries.push({
+          clientId: client.id,
+          type,
+          delivered: response.ok,
+          status: response.status,
+        })
+      } catch (error) {
+        deliveries.push({ clientId: client.id, type, delivered: false, error: String(error) })
+      }
+    }
+    return deliveries
+  }
+  /** Drops one client's grant for an account: consent, identity, first-use disclosure, codes, tokens. */
+  private forget(clientId: string, accountId: string): void {
     const key = JSON.stringify([clientId, accountId])
     this.consents.delete(key)
     this.refreshIssued.delete(key)
@@ -240,6 +389,42 @@ export class OAuthAPI {
       where: (t) => t.clientId === clientId && t.accountId === accountId,
     }))
       this.tokens.delete(row.id)
+  }
+  /**
+   * What `clientId` sees for `accountId` (a test control mirroring private provider state), or
+   * `null` for an unknown client or account. For a client that never authorized the account,
+   * `subject` is the id token `sub` it would receive and `email` the real address.
+   */
+  async grant(clientId: string, accountId: string): Promise<GrantView | null> {
+    const client = this.clients.get(clientId)
+    const account = this.accounts.get(accountId)
+    if (!client || !account) return null
+    const key = this.identityKey(client, account.id)
+    const identity = this.identities.get(key)
+    const consent = this.consents.get(JSON.stringify([clientId, accountId]))
+    return {
+      subject:
+        identity?.sub ??
+        (this.provider === "apple" || this.provider === "microsoft" ? await hash(key) : account.id),
+      granted: consent !== undefined,
+      scopes: [...scopes(consent?.scope ?? "")],
+      emailChoice:
+        this.provider === "apple" && identity ? (identity.privateEmail ? "hide" : "share") : null,
+      email: identity?.email ?? account.email,
+      isPrivateEmail: identity?.privateEmail ?? false,
+      userDisclosed: this.appleDisclosures.has(key),
+    }
+  }
+  /** The grant view of every account that has authorized `clientId`, oldest account first. */
+  async grants(clientId: string): Promise<(GrantView & { accountId: string })[] | null> {
+    if (!this.clients.has(clientId)) return null
+    const rows: (GrantView & { accountId: string })[] = []
+    for (const { id, value } of this.accounts.list({ order: "oldest" })) {
+      if (!this.consents.has(JSON.stringify([clientId, id]))) continue
+      const view = await this.grant(clientId, value.id)
+      if (view) rows.push({ accountId: value.id, ...view })
+    }
+    return rows
   }
   private paths() {
     const paths = {
@@ -396,13 +581,18 @@ export class OAuthAPI {
   private async idToken(grant: Grant, issuer: string, extra: Record<string, unknown> = {}) {
     const account = this.accounts.get(grant.accountId)
     if (!account) throw new Error("Account no longer exists")
-    return this.signer.sign({
+    const tokens = this.behavior.config.tokens
+    const skew = tokens?.idTokenClockSkewSeconds ?? 0
+    const iat = Math.floor(this.now() / 1000) + skew
+    const unpublished = tokens?.idTokenSigningKey === "unpublished"
+    if (unpublished) this.unpublishedSigner ??= this.credentials.unpublishedSigner()
+    return ((unpublished && this.unpublishedSigner) || this.signer).sign({
       ...this.profile(account, grant),
       iss: issuer,
       aud: grant.clientId,
-      iat: Math.floor(this.now() / 1000),
-      exp: Math.floor(this.now() / 1000) + (this.behavior.config.tokens?.accessTtlSeconds ?? 3600),
-      auth_time: Math.floor(grant.authTime / 1000),
+      iat,
+      exp: iat + (tokens?.accessTtlSeconds ?? 3600),
+      auth_time: Math.floor(grant.authTime / 1000) + skew,
       ...(grant.nonce ? { nonce: grant.nonce } : {}),
       ...extra,
     })
@@ -640,6 +830,9 @@ export class OAuthAPI {
       return page(
         "Identity sandbox",
         '<span class="eyebrow">Mockingbird Identity</span><h1 id="title">Make sign-in<br>feel real.</h1><p>Your identity sandbox is ready. Start sign-in from your application to choose an account, create a new identity, and review access.</p><div class="account"><span class="avatar" aria-hidden="true">✓</span><span class="identity"><strong>Ready when you are</strong><small>OAuth 2.0 · OpenID Connect</small></span></div>',
+        200,
+        undefined,
+        this.credentials.nonce(),
       )
     return fail("not_found", "Unknown endpoint", 404)
   }
@@ -768,7 +961,7 @@ export class OAuthAPI {
       if (!granted) return error("consent_required", "Consent is required")
       return this.finish({ ...auth, accountId: current.id, authTime: session.authTime }, issuer)
     }
-    const id = random()
+    const id = this.credentials.token()
     if (current && session && !prompt.has("login") && !prompt.has("select_account")) {
       auth.accountId = current.id
       auth.authTime = session.authTime
@@ -786,7 +979,16 @@ export class OAuthAPI {
         (a, b) =>
           Number(b.email === hint || b.id === hint) - Number(a.email === hint || a.id === hint),
       )
-    return loginPage(id, client.name, accounts, issuer, formAction(auth.redirectUri))
+    return loginPage(
+      id,
+      client.name,
+      accounts,
+      issuer,
+      formAction(auth.redirectUri),
+      false,
+      "",
+      this.credentials.nonce(),
+    )
   }
   private consent(
     id: string,
@@ -815,6 +1017,7 @@ export class OAuthAPI {
             choice: (this.behavior.config.apple?.emailMode ?? "choose") === "choose",
           }
         : undefined,
+      this.credentials.nonce(),
     )
   }
   private async interact(request: Request, issuer: string): Promise<Response> {
@@ -836,7 +1039,7 @@ export class OAuthAPI {
         '<span class="eyebrow">Let’s try again</span><h1 id="title">This sign-in expired</h1><p>Return to your application and start sign-in again.</p>',
         400,
         undefined,
-        undefined,
+        this.credentials.nonce(),
         "oauth-mock-error",
       )
     const accounts = () =>
@@ -849,6 +1052,8 @@ export class OAuthAPI {
         issuer,
         formAction(auth.redirectUri),
         p.get("screen") === "signup",
+        "",
+        this.credentials.nonce(),
       )
     const action = p.get("action")
     if (action === "deny") {
@@ -870,6 +1075,7 @@ export class OAuthAPI {
           formAction(auth.redirectUri),
           true,
           "Enter a full name and a valid email address.",
+          this.credentials.nonce(),
         )
       if (
         accounts().some((a) => a.email === email) ||
@@ -883,8 +1089,14 @@ export class OAuthAPI {
           formAction(auth.redirectUri),
           true,
           "This email already has an account. Go back to choose it.",
+          this.credentials.nonce(),
         )
-      const account = this.seedAccount({ id: random(), email, name, emailVerified: true })
+      const account = this.seedAccount({
+        id: this.credentials.token(),
+        email,
+        name,
+        emailVerified: true,
+      })
       auth.accountId = account.id
       auth.authTime = this.now()
       this.transactions.update(id, auth)
@@ -901,6 +1113,7 @@ export class OAuthAPI {
           formAction(auth.redirectUri),
           false,
           "Choose an available account.",
+          this.credentials.nonce(),
         )
       auth.accountId = account.id
       auth.authTime = this.now()
@@ -953,7 +1166,7 @@ export class OAuthAPI {
     authTime: number,
     issuer: string,
   ): Response {
-    const session = random()
+    const session = this.credentials.token()
     this.sessions.insert(session, { accountId, authTime, expires: this.now() + 86400000 })
     result.headers.append(
       this.options.cookieHeaders?.response ?? "set-cookie",
@@ -1000,14 +1213,14 @@ export class OAuthAPI {
           googleRefresh !== "never" &&
           (googleRefresh === "always" || auth.forceConsent || !previous)
         : this.provider === "apple" || scopes(scope).has("offline_access")
-    const code = random()
+    const code = this.credentials.token()
     const grant: Grant = {
       ...auth,
       scope,
       identity,
       issueRefresh,
       expires: this.now() + (behavior.tokens?.codeTtlSeconds ?? 300) * 1000,
-      family: random(),
+      family: this.credentials.token(),
     }
     this.codes.insert(code, grant)
     this.consents.insert(key, { scope: [...scopes(`${previous?.scope ?? ""} ${scope}`)].join(" ") })
@@ -1045,7 +1258,7 @@ export class OAuthAPI {
     if (auth.state) values.state = auth.state
     const redirect = new URL(auth.redirectUri)
     if (auth.responseMode === "form_post") {
-      const nonce = this.options.nonce?.() ?? crypto.randomUUID()
+      const nonce = this.options.nonce?.() ?? this.credentials.nonce()
       const result = page(
         "Continue to your app",
         `<span class="eyebrow">All set</span><h1 id="title">Back to your app</h1><p>Your sign-in response is ready.</p><form id="callback" method="post" action="${escapeHtml(auth.redirectUri)}">${Object.entries(
@@ -1230,7 +1443,7 @@ export class OAuthAPI {
     if (type === "refresh_token")
       this.tokens.update(key, { ...stored, kind: "refresh", lastUsed: this.now() })
     const accessTtl = behavior.tokens?.accessTtlSeconds ?? 3600
-    const access = random()
+    const access = this.credentials.token()
     const result: Record<string, unknown> = {
       access_token: access,
       token_type: "Bearer",
@@ -1270,7 +1483,7 @@ export class OAuthAPI {
       rotating ||
       microsoftRefresh
     ) {
-      const refresh = random()
+      const refresh = this.credentials.token()
       const basicScopes = [
         "openid",
         "email",

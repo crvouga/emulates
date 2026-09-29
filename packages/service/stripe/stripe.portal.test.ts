@@ -97,7 +97,9 @@ const expectStripeError = async (promise: Promise<unknown>) =>
 describe("billing portal API", () => {
   test("the default configuration exists as if saved in the dashboard; API configurations start disabled", async () => {
     const h = await harness()
-    await plans(h.stripe)
+    const { customer } = await member(h)
+    expect((await h.stripe.billingPortal.configurations.list()).data.length).toBe(0)
+    await h.stripe.billingPortal.sessions.create({ customer: customer.id })
     const listed = await h.stripe.billingPortal.configurations.list({ is_default: true })
     expect(listed.data.length).toBe(1)
     const defaults = listed.data[0] as Stripe.BillingPortal.Configuration
@@ -328,6 +330,95 @@ describe("hosted portal", () => {
     const invoice = await h.stripe.invoices.retrieve(updated.latest_invoice as string)
     expect(invoice.billing_reason).toBe("subscription_update")
     expect(invoice.status).toBe("paid")
+  })
+
+  test("change plan to a yearly price resets the billing cycle anchor and bills the year now", async () => {
+    const h = await harness()
+    const { customer, subscription, proProduct } = await member(h)
+    const yearly = await h.stripe.prices.create({
+      product: proProduct.id,
+      currency: "usd",
+      unit_amount: 30_000,
+      recurring: { interval: "year" },
+    })
+    const config = await h.stripe.billingPortal.configurations.create({
+      features: {
+        subscription_update: {
+          enabled: true,
+          default_allowed_updates: ["price"],
+          proration_behavior: "create_prorations",
+          products: [{ product: proProduct.id, prices: [yearly.id] }],
+        },
+      },
+    })
+    const session = await h.stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      configuration: config.id,
+    })
+    await h.advance("10d")
+    const preview = await post(session.url, {
+      action: "preview_update",
+      subscription: subscription.id,
+      price: yearly.id,
+      quantity: "1",
+    })
+    // Billed now (not "on your next invoice"): the year less the unused days of the month.
+    expect(preview.html).toContain("Amount due today")
+    await post(session.url, { action: "update", subscription: subscription.id, price: yearly.id })
+    const updated = await h.stripe.subscriptions.retrieve(subscription.id)
+    expect(updated.items.data[0]?.price.id).toBe(yearly.id)
+    // The anchor is the moment of the change, ten days into the month.
+    expect(updated.billing_cycle_anchor).toBe(updated.current_period_start)
+    expect(updated.current_period_start - subscription.current_period_start).toBeGreaterThanOrEqual(
+      10 * 86_400,
+    )
+    const start = new Date(updated.current_period_start * 1000)
+    start.setUTCFullYear(start.getUTCFullYear() + 1)
+    expect(updated.current_period_end).toBe(Math.floor(start.getTime() / 1000))
+    const invoice = await h.stripe.invoices.retrieve(updated.latest_invoice as string)
+    expect(invoice.billing_reason).toBe("subscription_update")
+    expect(invoice.status).toBe("paid")
+    expect(invoice.total).toBeLessThan(30_000)
+    expect(invoice.total).toBeGreaterThan(29_000 - 1)
+    expect(invoice.lines.data.some((line) => line.amount === 30_000)).toBe(true)
+  })
+
+  test("a trial that continues through a portal plan change keeps its trial end", async () => {
+    const h = await harness()
+    const { customer, pro, proProduct } = await member(h)
+    const yearly = await h.stripe.prices.create({
+      product: proProduct.id,
+      currency: "usd",
+      unit_amount: 30_000,
+      recurring: { interval: "year" },
+    })
+    const trialing = await h.stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: pro.id }],
+      trial_period_days: 14,
+    })
+    // stripe-node 16's types predate `trial_update_behavior`; the API has it.
+    const update = {
+      enabled: true,
+      default_allowed_updates: ["price"],
+      proration_behavior: "create_prorations",
+      trial_update_behavior: "continue_trial",
+      products: [{ product: proProduct.id, prices: [yearly.id] }],
+    } as Stripe.BillingPortal.ConfigurationCreateParams.Features.SubscriptionUpdate
+    const config = await h.stripe.billingPortal.configurations.create({
+      features: { subscription_update: update },
+    })
+    const session = await h.stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      configuration: config.id,
+    })
+    await post(session.url, { action: "update", subscription: trialing.id, price: yearly.id })
+    const updated = await h.stripe.subscriptions.retrieve(trialing.id)
+    expect(updated.items.data[0]?.price.id).toBe(yearly.id)
+    expect(updated.status).toBe("trialing")
+    expect(updated.trial_end).toBe(trialing.trial_end)
+    expect(updated.billing_cycle_anchor).toBe(trialing.billing_cycle_anchor)
+    expect(updated.latest_invoice).toBe(trialing.latest_invoice)
   })
 
   test("payment methods: add (a decline is refused), make default everywhere, delete", async () => {

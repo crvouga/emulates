@@ -76,7 +76,6 @@ const productValidators = (
     images: (params) => {
       if (!Array.isArray(params.images)) return
       params.images.forEach((image, index) => {
-        if (image === "") throw parameterInvalidEmpty(`${at("images")}[${index}]`)
         if (typeof image === "string") validateUrl(image, `${at("images")}[${index}]`)
       })
     },

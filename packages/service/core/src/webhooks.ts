@@ -7,9 +7,10 @@ import { signSvix, signTimestamped, signTwilio } from "./signing.js"
  * A service publishes a message (the exact bytes the vendor would send); the hub fans it out
  * to every matching endpoint, signs each delivery with the vendor's scheme, retries on the
  * vendor's schedule, and keeps a record a suite can read, replay or flush through
- * `/__admin/webhooks*`. Signature timestamps always use the wall clock, never the mock
- * clock: receivers check them against their own time, and an advanced mock clock would
- * otherwise fail every delivery.
+ * `/__admin/webhooks*`. Signature timestamps use the wall clock unless a service injects
+ * `now`: receivers check them against their own time, and an advanced mock clock would
+ * otherwise fail every delivery. A service whose caller injected the clock (Stripe) passes it,
+ * so a virtual-time receiver verifies at the mock's time.
  */
 
 /** What a signer sees for one delivery attempt. */
@@ -17,7 +18,7 @@ export type SignInput = {
   messageId: string
   /** Exact bytes about to be sent. */
   body: string
-  /** Wall-clock unix seconds of this attempt. */
+  /** Unix seconds of this attempt: wall clock, or the hub's injected `now`. */
   timestampSeconds: number
   /** Where the delivery is posted. */
   url: string
@@ -160,7 +161,7 @@ export type WebhookHubOptions = {
   onMessage?: (message: WebhookMessage) => void
   /** Messages kept per namespace for `GET /__admin/webhooks/events`. Default 500. */
   keep?: number
-  /** Injectable wall clock for signatures and attempt records. */
+  /** Injectable clock (default wall clock) for signatures and attempt records. */
   now?: () => number
   /** Injectable deterministic identifier source. Receives `"msg_"` or `"dlv_"`. */
   id?: (prefix: string) => string

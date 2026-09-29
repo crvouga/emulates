@@ -1213,11 +1213,9 @@ paths:
       summary: List portal configurations
       x-mockingbird:
         supported: true
-        reason: the list holds whatever the real account has saved (none in the sandbox), while the mock always has the default configuration
         parity:
-          enabled: false
+          enabled: true
           safe: true
-          reason: the list holds whatever the real account has saved (none in the sandbox), while the mock always has the default configuration
     post:
       operationId: PostBillingPortalConfigurations
       requestBody:

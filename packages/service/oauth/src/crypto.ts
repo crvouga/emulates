@@ -7,18 +7,27 @@ export const base64url = (bytes: Uint8Array): string =>
 export const random = (): string => base64url(crypto.getRandomValues(new Uint8Array(32)))
 export const hash = async (value: string): Promise<string> =>
   base64url(new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(value))))
+const RSA = { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }
 export class Signer {
-  private readonly pair = crypto.subtle.generateKey(
-    {
-      name: "RSASSA-PKCS1-v1_5",
-      modulusLength: 2048,
-      publicExponent: new Uint8Array([1, 0, 1]),
-      hash: "SHA-256",
-    },
-    true,
-    ["sign", "verify"],
-  )
-  readonly kid = random()
+  private readonly pair: Promise<CryptoKeyPair>
+  readonly kid: string
+  /** Generates a fresh key pair unless `key` supplies one; `kid` names a generated pair. */
+  constructor(
+    key?: { privateJwk: JsonWebKey; publicJwk: JsonWebKey; kid: string },
+    kid: string = random(),
+  ) {
+    this.kid = key?.kid ?? kid
+    this.pair = key
+      ? Promise.all([
+          crypto.subtle.importKey("jwk", key.privateJwk, RSA, true, ["sign"]),
+          crypto.subtle.importKey("jwk", key.publicJwk, RSA, true, ["verify"]),
+        ]).then(([privateKey, publicKey]) => ({ privateKey, publicKey }))
+      : crypto.subtle.generateKey(
+          { ...RSA, modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]) },
+          true,
+          ["sign", "verify"],
+        )
+  }
   async jwks() {
     const pair = await this.pair
     return {

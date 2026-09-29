@@ -4,7 +4,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **123**
 - supported by the mock: **119**
-- parity enabled: **111**
+- parity enabled: **112**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -17,7 +17,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `GetBalance` | `GET /v1/balance` | ✅ supported | ✅ |  |
 | `GetBalanceTransactions` | `GET /v1/balance_transactions` | ✅ supported | ✅ |  |
 | `GetBalanceTransactionsId` | `GET /v1/balance_transactions/{id}` | ✅ supported | ✅ |  |
-| `GetBillingPortalConfigurations` | `GET /v1/billing_portal/configurations` | ✅ supported | ❌ disabled | the list holds whatever the real account has saved (none in the sandbox), while the mock always has the default configuration |
+| `GetBillingPortalConfigurations` | `GET /v1/billing_portal/configurations` | ✅ supported | ✅ |  |
 | `PostBillingPortalConfigurations` | `POST /v1/billing_portal/configurations` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetBillingPortalConfigurationsConfiguration` | `GET /v1/billing_portal/configurations/{configuration}` | ✅ supported | ✅ |  |
 | `PostBillingPortalConfigurationsConfiguration` | `POST /v1/billing_portal/configurations/{configuration}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
