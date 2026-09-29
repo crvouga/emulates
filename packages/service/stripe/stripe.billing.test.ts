@@ -278,6 +278,95 @@ describe("trials that end without a payment method", () => {
   })
 })
 
+describe("price.recurring.trial_period_days", () => {
+  const trialPrice = async (stripe: Stripe, trialDays?: number) => {
+    const product = await stripe.products.create({ name: "Plus" })
+    return stripe.prices.create({
+      product: product.id,
+      currency: "usd",
+      unit_amount: 700,
+      recurring: {
+        interval: "month",
+        ...(trialDays === undefined ? {} : { trial_period_days: trialDays }),
+      },
+    })
+  }
+
+  test("is accepted on create and returned on the price", async () => {
+    const h = await harness()
+    const price = await trialPrice(h.stripe, 7)
+    expect(price.recurring?.trial_period_days).toBe(7)
+    expect((await h.stripe.prices.retrieve(price.id)).recurring?.trial_period_days).toBe(7)
+    expect(
+      (await h.stripe.prices.list({ product: price.product as string })).data[0],
+    ).toMatchObject({ recurring: { trial_period_days: 7 } })
+    expect((await trialPrice(h.stripe)).recurring?.trial_period_days).toBeNull()
+  })
+
+  test("trial_from_plan=true starts the subscription with the price's trial", async () => {
+    const h = await harness()
+    const customer = await payingCustomer(h.stripe)
+    const price = await trialPrice(h.stripe, 7)
+    const start = Math.floor(await h.now())
+    const subscription = await h.stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: price.id }],
+      trial_from_plan: true,
+    })
+    expect(subscription.status).toBe("trialing")
+    expect(subscription.trial_start).toBe(start)
+    expect(subscription.trial_end).toBe(start + 7 * 86_400)
+  })
+
+  test("a subscription ignores the price's trial unless trial_from_plan is set", async () => {
+    const h = await harness()
+    const customer = await payingCustomer(h.stripe)
+    const price = await trialPrice(h.stripe, 7)
+    const plain = await h.stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: price.id }],
+    })
+    expect(plain.status).toBe("active")
+    expect(plain.trial_end).toBeNull()
+    const explicit = await h.stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: price.id }],
+      trial_from_plan: false,
+    })
+    expect(explicit.status).toBe("active")
+  })
+
+  test("trial_from_plan on a price without a trial starts no trial", async () => {
+    const h = await harness()
+    const customer = await payingCustomer(h.stripe)
+    const price = await trialPrice(h.stripe)
+    const subscription = await h.stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: price.id }],
+      trial_from_plan: true,
+    })
+    expect(subscription.status).toBe("active")
+    expect(subscription.trial_end).toBeNull()
+  })
+
+  test("trial_from_plan together with trial_end is refused", async () => {
+    const h = await harness()
+    const customer = await payingCustomer(h.stripe)
+    const price = await trialPrice(h.stripe, 7)
+    const failure = await h.stripe.subscriptions
+      .create({
+        customer: customer.id,
+        items: [{ price: price.id }],
+        trial_from_plan: true,
+        trial_end: Math.floor(await h.now()) + 86_400,
+      })
+      .catch((error: unknown) => error as Stripe.errors.StripeInvalidRequestError)
+    const error = failure as Stripe.errors.StripeInvalidRequestError
+    expect(error.statusCode).toBe(400)
+    expect(error.param).toBe("trial_from_plan")
+  })
+})
+
 describe("canceling and updating", () => {
   test("DELETE with prorate + invoice_now credits unused time; cancellation_details are kept", async () => {
     const h = await harness()

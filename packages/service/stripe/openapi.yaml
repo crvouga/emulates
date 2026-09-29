@@ -25674,6 +25674,9 @@ paths:
                         - licensed
                         - metered
                       type: string
+                    trial_period_days:
+                      type: integer
+                      minimum: 1
                   required:
                     - interval
                   title: recurring

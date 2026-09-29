@@ -104,6 +104,7 @@ export const seedCorpus = (account: AccountState, corpus: Corpus): boolean => {
               interval: price.recurring.interval,
               interval_count: price.recurring.interval_count,
               usage_type: "licensed",
+              trial_period_days: null,
             },
       tax_behavior: "unspecified",
       unit_amount_decimal: String(price.unit_amount),

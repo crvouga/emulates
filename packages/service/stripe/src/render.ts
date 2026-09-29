@@ -124,7 +124,7 @@ export const renderPrice = (price: PriceRecord): RecordValue => ({
           interval: price.recurring.interval,
           interval_count: price.recurring.interval_count,
           meter: null,
-          trial_period_days: null,
+          trial_period_days: price.recurring.trial_period_days,
           usage_type: price.recurring.usage_type,
         },
   tax_behavior: price.tax_behavior,

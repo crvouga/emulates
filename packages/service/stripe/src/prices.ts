@@ -36,6 +36,7 @@ export const parseRecurring = (raw: unknown): Recurring => {
     interval: Recurring["interval"]
     interval_count?: number
     usage_type?: Recurring["usage_type"]
+    trial_period_days?: number
   }
   const interval_count = input.interval_count ?? 1
   const cap = MAX_INTERVAL_COUNT[input.interval]
@@ -49,7 +50,12 @@ export const parseRecurring = (raw: unknown): Recurring => {
     throw invalidRequest(
       "Starting with Stripe version `2025-03-31.basil`, metered prices must be backed by meters.",
     )
-  return { interval: input.interval, interval_count, usage_type }
+  return {
+    interval: input.interval,
+    interval_count,
+    usage_type,
+    trial_period_days: input.trial_period_days ?? null,
+  }
 }
 
 const assertLookupKeyFree = (

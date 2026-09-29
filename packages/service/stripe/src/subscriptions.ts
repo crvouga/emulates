@@ -407,6 +407,11 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
         trialEndAt <= customerNow(scope, customer)
       )
         throw invalidRequest(FUTURE_TIMESTAMP, "trial_end")
+      if (booleanOf(params.trial_from_plan) === true && params.trial_end !== undefined)
+        throw invalidRequest(
+          "You may not specify `trial_end` when `trial_from_plan` is true.",
+          "trial_from_plan",
+        )
       const trialSettings = trialSettingsOf(params.trial_settings)
       const { subscription } = createSubscription(scope, {
         customer,
@@ -419,6 +424,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
         paymentBehavior: stringOf(params, "payment_behavior"),
         trialEnd: params.trial_end === "now" ? "now" : (intOf(params.trial_end) ?? null),
         trialPeriodDays: intOf(params.trial_period_days) ?? null,
+        trialFromPlan: booleanOf(params.trial_from_plan) === true,
         ...(intOf(params.backdate_start_date) === undefined
           ? {}
           : { backdateStartDate: intOf(params.backdate_start_date) }),
