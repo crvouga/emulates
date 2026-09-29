@@ -255,6 +255,11 @@ billing.stripe.com) where the customer manages their billing, as the session's c
   through a SetupIntent, which becomes the customer's and each subscription's default; **Make
   default**; **Delete** a non-default card); billing information (the configured `allowed_updates`,
   `customer.updated` with `previous_attributes`); invoice history with **Pay** for open invoices.
+  Repeated choices carry a per-option `data-testid` on the wrapping `<label class="option">`
+  (tapping it checks the radio), so a test-id-only driver can pick one: each plan is
+  `stripe-mock-portal-price-option-<price lookup_key, else price id>` and each cancellation reason
+  is `stripe-mock-portal-reason-<reason>` (e.g. `…-too_expensive`). The generic
+  `stripe-mock-portal-price-option` and `stripe-mock-portal-reason` ids stay on the radios.
 - **Deep links** open on the flow's page — cancel (with a retention offer to accept), update, update
   confirmation, payment method, billing details — and on completion honour `after_completion`:
   `redirect` (302), `hosted_confirmation` (its `custom_message`) or the homepage. Every action

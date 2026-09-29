@@ -600,3 +600,65 @@ describe("hosted portal", () => {
     expect(home.html).toContain("Payments paused")
   })
 })
+
+describe("hosted portal per-option test ids", () => {
+  /** The radio's value inside the one element carrying `testId`; fails unless exactly one does. */
+  const radioValueOf = (html: string, testId: string) => {
+    const attribute = `data-testid="${testId}"`
+    expect(html.split(attribute).length - 1).toBe(1)
+    const start = html.indexOf(attribute)
+    const label = html.slice(html.lastIndexOf("<label", start), html.indexOf("</label>", start))
+    return /<input type="radio"[^>]* value="([^"]*)"/.exec(label)?.[1]
+  }
+
+  test("each plan option carries its price's lookup key, and activating it selects that price", async () => {
+    const h = await harness()
+    const { customer, subscription, basic, pro } = await member(h)
+    const yearly = await h.stripe.prices.create({
+      product: pro.product as string,
+      currency: "usd",
+      unit_amount: 30_000,
+      recurring: { interval: "year" },
+      lookup_key: "subscription_yearly",
+    })
+    await h.stripe.prices.update(basic.id, { lookup_key: "subscription_monthly" })
+    const session = await h.stripe.billingPortal.sessions.create({ customer: customer.id })
+    const choose = await page(`${session.url}?flow=update&subscription=${subscription.id}`)
+    expect(radioValueOf(choose.html, "stripe-mock-portal-price-option-subscription_yearly")).toBe(
+      yearly.id,
+    )
+    expect(radioValueOf(choose.html, "stripe-mock-portal-price-option-subscription_monthly")).toBe(
+      basic.id,
+    )
+    // A price without a lookup key falls back to its id.
+    expect(radioValueOf(choose.html, `stripe-mock-portal-price-option-${pro.id}`)).toBe(pro.id)
+    // The generic id stays, on the radios, one per option.
+    expect(choose.html.split('data-testid="stripe-mock-portal-price-option"').length - 1).toBe(3)
+    const preview = await post(session.url, {
+      action: "preview_update",
+      subscription: subscription.id,
+      price: radioValueOf(choose.html, "stripe-mock-portal-price-option-subscription_yearly") ?? "",
+      quantity: "1",
+    })
+    expect(preview.html).toContain(`name="price" value="${yearly.id}"`)
+    expect(preview.html).toContain('data-testid="stripe-mock-portal-amount-due"')
+  })
+
+  test("each cancellation reason has its own test id, and the chosen one becomes the feedback", async () => {
+    const h = await harness()
+    const { customer, subscription } = await member(h)
+    const session = await h.stripe.billingPortal.sessions.create({ customer: customer.id })
+    const cancelPage = await page(`${session.url}?flow=cancel&subscription=${subscription.id}`)
+    expect(cancelPage.html).toContain('data-testid="stripe-mock-portal-reason"')
+    const reason = radioValueOf(cancelPage.html, "stripe-mock-portal-reason-too_expensive")
+    expect(reason).toBe("too_expensive")
+    expect(radioValueOf(cancelPage.html, "stripe-mock-portal-reason-unused")).toBe("unused")
+    await post(session.url, {
+      action: "cancel",
+      subscription: subscription.id,
+      reason: reason ?? "",
+    })
+    const canceled = await h.stripe.subscriptions.retrieve(subscription.id)
+    expect(canceled.cancellation_details?.feedback).toBe("too_expensive")
+  })
+})
