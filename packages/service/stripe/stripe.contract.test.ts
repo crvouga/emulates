@@ -185,4 +185,15 @@ describe("service contract", () => {
     ])
       expect(routes).toContain(route)
   })
+
+  test("retrieving a Checkout Session refuses an empty expand before it looks the session up", async () => {
+    const { call } = harness()
+    const response = await call("/v1/checkout/sessions/cs_missing?expand=", {
+      headers: { authorization: `Bearer ${KEY}` },
+    })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { code: "parameter_invalid_empty", param: "expand" },
+    })
+  })
 })
