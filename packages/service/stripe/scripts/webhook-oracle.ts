@@ -116,6 +116,8 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
       "stripe",
       "listen",
       "--skip-update",
+      // Stripe CLI >= 1.5x refuses to start without an events flag; forward every event, as the old default did.
+      "--all-snapshot",
       "--forward-to",
       `http://127.0.0.1:${receiver.port}/stripe`,
     ],
