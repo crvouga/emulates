@@ -9,7 +9,7 @@ import {
   saveSubscription,
   subscriptionItems,
 } from "./billing.js"
-import { invalidRequest, resourceMissing } from "./errors.js"
+import { invalidRequest, parameterInvalidEmpty, resourceMissing } from "./errors.js"
 import {
   customerNow,
   mergeRecordMetadata,
@@ -203,6 +203,8 @@ export const subscriptionScheduleHandlers = (
 
   GetSubscriptionSchedules: async (context) => {
     const scope = requestScope(services, context)
+    // Refused as empty (probed live) ahead of the timestamp filters' own validation.
+    if (context.query.customer_account === "") throw parameterInvalidEmpty("customer_account")
     const params = queryParams(context)
     // `scheduled` excludes the timestamp filters; Stripe names the first conflict in this order.
     if (params.scheduled !== undefined) {
