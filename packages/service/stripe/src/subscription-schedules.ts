@@ -29,7 +29,7 @@ type RecordValue = Record<string, unknown>
 
 const requireSchedule = (scope: RequestScope, id: string): SubscriptionScheduleRecord => {
   const record = scope.account.subscriptionSchedules.get(id)
-  if (!record) throw resourceMissing("subscription_schedule", id, "schedule")
+  if (!record) throw resourceMissing("subscription schedule", id, "id")
   return record
 }
 
@@ -216,7 +216,7 @@ export const subscriptionScheduleHandlers = (
       params,
       {
         url: "/v1/subscription_schedules",
-        kind: "subscription_schedule",
+        kind: "subscription schedule",
         where: (record) =>
           matchesCreated(record.created, params.created) &&
           (customer === undefined || customer === "" || record.customer === customer),

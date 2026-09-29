@@ -39,6 +39,8 @@ export const paginate = async <T>(
     where: (record: T) => boolean
     /** Existence check for cursors; deleted tombstones count as missing. */
     exists?: (record: T) => boolean
+    /** Filter validation Stripe performs only after both cursors have resolved. */
+    check?: () => void
     render: (record: T) => unknown
   },
 ): Promise<Page<unknown>> => {
@@ -66,6 +68,9 @@ export const paginate = async <T>(
       "Received both starting_after and ending_before parameters. Please pass in only one.",
     )
   }
+  if (typeof endingBefore === "string" && endingBefore !== "")
+    cursorIndex(endingBefore, "ending_before")
+  options.check?.()
   const limit = clampLimit(params.limit)
   const matching = (entries: Array<Stored<T> & { id: string }>) =>
     entries.filter((entry) => options.where(entry.value))

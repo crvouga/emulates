@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **123**
-- supported by the mock: **119**
-- parity enabled: **112**
+- operations in spec: **125**
+- supported by the mock: **121**
+- parity enabled: **114**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -50,6 +50,8 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `PostDisputesDispute` | `POST /v1/disputes/{dispute}` | ❌ unsupported | — | the mock never creates or mutates disputes |
 | `GetEvents` | `GET /v1/events` | ✅ supported | ✅ |  |
 | `GetEventsId` | `GET /v1/events/{id}` | ✅ supported | ✅ |  |
+| `GetInvoicePayments` | `GET /v1/invoice_payments` | ✅ supported | ✅ |  |
+| `GetInvoicePaymentsInvoicePayment` | `GET /v1/invoice_payments/{invoice_payment}` | ✅ supported | ✅ |  |
 | `GetInvoiceitems` | `GET /v1/invoiceitems` | ✅ supported | ✅ |  |
 | `PostInvoiceitems` | `POST /v1/invoiceitems` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetInvoiceitemsInvoiceitem` | `GET /v1/invoiceitems/{invoiceitem}` | ✅ supported | ✅ |  |

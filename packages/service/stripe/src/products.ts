@@ -80,6 +80,13 @@ const productValidators = (
       })
     },
     url: notEmpty("url"),
+    marketing_features: (params) => {
+      if (!Array.isArray(params.marketing_features)) return
+      params.marketing_features.forEach((feature: { name?: unknown }, index) => {
+        if (feature?.name === "")
+          throw parameterInvalidEmpty(`${at("marketing_features")}[${index}][name]`)
+      })
+    },
     statement_descriptor: (params) => {
       const descriptor = params.statement_descriptor
       if (typeof descriptor !== "string" || descriptor === "") return
