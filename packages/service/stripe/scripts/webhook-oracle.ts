@@ -84,6 +84,8 @@ export const compareStripeWebhooks = (
 type StripeOracle = {
   cursor(): number
   collect(cursor: number, expected: number): Promise<unknown[]>
+  /** Wait until no event has arrived for `quietMs` (or `maxMs` passes), so late deliveries land before the next walk. */
+  settle(quietMs: number, maxMs: number): Promise<void>
   close(): Promise<void>
 }
 
@@ -214,6 +216,20 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
         await Bun.sleep(100)
       } while (Date.now() < deadline)
       return uniqueEvents()
+    },
+    async settle(quietMs, maxMs) {
+      const deadline = Date.now() + maxMs
+      let previousCount = rows.length
+      let stableSince = Date.now()
+      while (Date.now() < deadline && Date.now() - stableSince < quietMs) {
+        if (exitCode !== undefined)
+          throw new Error(`stripe listen exited during parity (status ${exitCode})`)
+        await Bun.sleep(100)
+        if (rows.length !== previousCount) {
+          previousCount = rows.length
+          stableSince = Date.now()
+        }
+      }
     },
     async close() {
       cli.kill()
