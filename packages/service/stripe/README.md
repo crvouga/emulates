@@ -398,6 +398,10 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
 - **Customer portal extras**: the login page (`login_page.url` is not served), `schedule_at_period_end`
   downgrades, multi-item subscription updates, locales,
   and payment method configurations. Portal sessions do not expire.
+- **Multi-currency prices** store, merge (on update) and return `currency_options` when expanded,
+  and a Checkout Session `currency` charges a payment-mode line in that option. Per-option
+  `tiers` and `custom_unit_amount`, and subscription-mode sessions in a non-default currency, are
+  refused with a 400; subscriptions and invoices always bill in the price's own currency.
 - **Webhook endpoint `api_version`**: payloads render at the account's version, not per endpoint.
 - **Live keys** (`sk_live_…`) are refused with Stripe's 401: the mock is test mode only.
 - Operations marked unsupported in SUPPORT.md (charge create/update, checkout session update,
