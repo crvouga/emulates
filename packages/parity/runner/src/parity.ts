@@ -268,6 +268,8 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   let done = 0
   const width = String(numRuns).length
   const coverage: Record<string, number> = {}
+  // The latest walk that failed, kept across passing walks: shrinking usually ends on one, and
+  // the report must still show the divergence of the failing walk it settled on.
   let lastWalkFailure: ParityError | undefined
 
   const commands = fc.commands(
@@ -290,7 +292,6 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   )
 
   const property = fc.asyncProperty(commands, async (steps) => {
-    lastWalkFailure = undefined
     const walkNumber = walks + 1
     const gap = lastWalkEnd + (clockSkewSeconds + 1) * 1000 - now()
     if (lastWalkEnd > 0 && gap > 0) await sleep(gap)
@@ -398,7 +399,7 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       throw webhookFailure
     }
     if (walkError !== undefined) {
-      if (walkError instanceof ParityError) lastWalkFailure = walkError
+      lastWalkFailure = walkError instanceof ParityError ? walkError : undefined
       throw walkError
     }
     if (ok) {
