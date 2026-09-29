@@ -59,6 +59,7 @@
       "docs": "https://developer.paddle.com/api-reference/overview"
     },
     "status": "ready",
+    "parityTier": "cold",
     "playground": {
       "operation": "CreateCustomer",
       "headers": {

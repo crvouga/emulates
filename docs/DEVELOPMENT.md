@@ -39,7 +39,7 @@ CI runs the same turbo graph as `bun run check`, spread over parallel runners ([
 
 The GitHub Actions cache is the remote cache ([`.github/actions/setup`](../.github/actions/setup/action.yml)); there is no turbo token or server. The CI workflow also runs on every push to `main`, so `main` holds a warm turbo cache per job and a PR's first run replays everything it did not change. Each job saves only the task hashes it used, `node_modules` is cached from `main` only, and [`cache-cleanup.yml`](../.github/workflows/cache-cleanup.yml) deletes a PR's caches when it closes and trims `main`'s daily. Locally turbo uses the same cache directory on disk.
 
-Non-blocking checks live in [`advisory.yml`](../.github/workflows/advisory.yml): Biome findings as inline annotations, and live parity (the [Parity](../.github/workflows/parity.yml) workflow) for each changed service with sandbox secrets. They depend on live vendors or only restate the blocking lint, so a red advisory check informs the PR without holding its merge.
+Non-blocking checks live in [`advisory.yml`](../.github/workflows/advisory.yml): Biome findings as inline annotations, and live parity (the [Parity](../.github/workflows/parity.yml) workflow) for each changed **hot** service (see [Parity tiers](TESTING.md#parity-tiers)). They depend on live vendors or only restate the blocking lint, so a red advisory check informs the PR without holding its merge.
 
 ```bash
 bun run setup          # first time: install + build
@@ -64,6 +64,7 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `mockingbird.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links) |
 | Docs site | `bun run docs:build` (part of `build`) | [`sites/docs`](../sites/docs) renders the same sources, sends every playground sample to a fresh mock, runs the quick start and SQL snippets, and fails on missing or stale service metadata |
 | Agent commands | `bun run check:agents` | Every `.agents/commands/*.md` is symlinked into each agent harness (`bun run agents:sync` repairs) |
+| Parity tiers | `bun run check:parity-tiers` | Every service's `mockingbird.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
 | Worktree lifecycle | `bun run check:worktree` | Every orchestrator's config (`.superset/`, `.super.engineering/`) runs the same [`scripts/worktree`](../scripts/worktree/README.md) setup, run and teardown (`bun run worktree:sync` regenerates) |
 
 ### Git hooks (Husky)

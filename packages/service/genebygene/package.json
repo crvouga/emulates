@@ -57,7 +57,8 @@
     "vendor": {
       "website": "https://www.genebygene.com"
     },
-    "status": "ready"
+    "status": "ready",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

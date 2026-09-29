@@ -21,9 +21,10 @@
  *
  * Extra arguments to `static` and `shard` go to turbo (e.g. `--output-logs=errors-only`).
  */
-import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from "node:fs"
+import { appendFileSync, existsSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { $ } from "bun"
+import { servicesInTier } from "./parity-tiers.ts"
 import { discoverPackages } from "./release/lib.ts"
 
 const root = join(import.meta.dir, "..")
@@ -56,6 +57,7 @@ const SHARD_IRRELEVANT = [
   ".github/pull_request_template.md",
   // Workflows other than pr.yml do not change what the pull-request gate runs.
   ".github/workflows/{advisory,cache-cleanup,ci,issue-labels,parity,publish,verify}.yml",
+  "scripts/parity-tiers.ts",
   "scripts/worktree/**",
   "scripts/secrets/**",
   "scripts/{agent-commands,ci-local,parity-remote,parity-service,pr-ready}.ts",
@@ -95,16 +97,6 @@ function checkTasks(): { static: string[]; shard: string[] } {
   return split
 }
 
-/** Services whose `<SERVICE>_*` sandbox secrets parity.yml maps into the run. */
-function liveParityServices(): string[] {
-  const workflow = readFileSync(join(root, ".github/workflows/parity.yml"), "utf8")
-  const secrets = [...workflow.matchAll(/secrets\.([A-Z0-9_]+)/g)].map((m) => m[1] as string)
-  return readdirSync(join(root, "packages/service")).filter((name) => {
-    const prefix = `${name.toUpperCase().replaceAll("-", "_")}_`
-    return secrets.some((s) => s.startsWith(prefix))
-  })
-}
-
 /** Every shard must have a turbo cache the setup action restores, or it always runs cold. */
 function assertSetupRestoresEveryShard(): void {
   const action = readFileSync(join(root, ".github/actions/setup/action.yml"), "utf8")
@@ -134,7 +126,8 @@ async function changes(args: string[]): Promise<void> {
   const shardSkippable = matcher(SHARD_IRRELEVANT)
   const smokeSkippable = matcher(SMOKE_IRRELEVANT)
   const parityIgnored = matcher(PARITY_IRRELEVANT)
-  const live = liveParityServices()
+  // Only hot services run on a PR (each service's tier is in its package.json).
+  const live = servicesInTier("hot")
 
   const shards = files === null || !files.every(shardSkippable)
   const smoke = files === null || !files.every(smokeSkippable)

@@ -58,7 +58,8 @@
       "website": "https://www.junction.com",
       "docs": "https://docs.junction.com"
     },
-    "status": "ready"
+    "status": "ready",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",
