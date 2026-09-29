@@ -37,18 +37,18 @@ const ADDRESS_KEYS = ["city", "country", "line1", "line2", "postal_code", "state
 /** Stripe's account currency in test mode; a customer picks it up once a balance is set. */
 const ACCOUNT_CURRENCY = "usd"
 
-const toAddress = (raw: unknown, normalizeCountry = true): Address => {
+const toAddress = (raw: unknown): Address => {
   const input = raw as Record<string, string | undefined>
   const out = {} as Record<(typeof ADDRESS_KEYS)[number], string | null>
   for (const key of ADDRESS_KEYS) {
     const value = input[key]
-    // Stripe upper-cases the billing address country it stores (live: "sN" comes back "SN");
-    // the shipping address keeps it verbatim (live: "a" comes back "a").
+    // Stripe upper-cases a two-letter country code it stores (live: "sN" comes back "SN") and
+    // keeps anything else verbatim (live: "a" comes back "a").
     out[key] =
       value === undefined
         ? null
-        : key === "country" && normalizeCountry
-          ? value.replace(/[a-z]/g, (letter) => letter.toUpperCase())
+        : key === "country" && /^[A-Za-z]{2}$/.test(value)
+          ? value.toUpperCase()
           : value
   }
   return out
@@ -75,7 +75,7 @@ const apply = (current: CustomerRecord, params: Params): CustomerRecord => {
     else {
       const shipping = params.shipping as { address: unknown; name: string; phone?: string }
       next.shipping = {
-        address: toAddress(shipping.address, false),
+        address: toAddress(shipping.address),
         name: shipping.name,
         phone: shipping.phone === undefined ? null : shipping.phone,
       }
