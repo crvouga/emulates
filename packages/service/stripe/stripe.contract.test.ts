@@ -202,4 +202,80 @@ describe("service contract", () => {
     ])
       expect(routes).toContain(route)
   })
+
+  test("retrieving a Checkout Session refuses an empty expand before it looks the session up", async () => {
+    const { call } = harness()
+    const response = await call("/v1/checkout/sessions/cs_missing?expand=", {
+      headers: { authorization: `Bearer ${KEY}` },
+    })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { code: "parameter_invalid_empty", param: "expand" },
+    })
+  })
+
+  test("creating a price refuses both amounts before it looks the product up", async () => {
+    const { call } = harness()
+    const response = await call(
+      "/v1/prices",
+      form({ currency: "usd", product: "prod_missing", unit_amount: "0", unit_amount_decimal: "" }),
+    )
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: {
+        message: "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+        param: "unit_amount",
+      },
+    })
+  })
+
+  test("listing payment methods resolves a missing cursor before a customer_account", async () => {
+    const { call } = harness()
+    const response = await call(
+      "/v1/payment_methods?customer_account=HTsnOF&type=card&ending_before=pm_missing",
+      { headers: { authorization: `Bearer ${KEY}` } },
+    )
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { message: "No such PaymentMethod: 'pm_missing'", param: "ending_before" },
+    })
+    const account = await call("/v1/payment_methods?customer_account=HTsnOF&type=card", {
+      headers: { authorization: `Bearer ${KEY}` },
+    })
+    expect(await account.json()).toMatchObject({ error: { param: "customer_account" } })
+  })
+
+  test("listing invoice items names a missing cursor an invoice item", async () => {
+    const { call } = harness()
+    const response = await call("/v1/invoiceitems?ending_before=ii_missing", {
+      headers: { authorization: `Bearer ${KEY}` },
+    })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { message: "No such invoice item: 'ii_missing'", param: "ending_before" },
+    })
+  })
+
+  test("creating a customer refuses a malformed preferred_locales before an empty invoice_settings", async () => {
+    const { call } = harness()
+    const response = await call(
+      "/v1/customers",
+      form({ invoice_settings: "", preferred_locales: "5" }),
+    )
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { message: "Invalid array", param: "preferred_locales" },
+    })
+  })
+
+  test("creating a customer upper-cases a two-letter country and keeps any other as sent", async () => {
+    const { call } = harness()
+    const two = await call("/v1/customers", form({ "address[country]": "sN" }))
+    expect(await two.json()).toMatchObject({ address: { country: "SN" } })
+    const one = await call(
+      "/v1/customers",
+      form({ "shipping[address][country]": "a", "shipping[name]": "n" }),
+    )
+    expect(await one.json()).toMatchObject({ shipping: { address: { country: "a" } } })
+  })
 })
