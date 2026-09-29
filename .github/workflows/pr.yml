@@ -1,20 +1,32 @@
 # Pull-request gate. A green run of this workflow is the release decision:
 # merging to main publishes (see ci.yml). Do not add a second quality bar there.
 #
-# Every job below is a required status check on main (scripts/pr-ready.ts
-# REQUIRED_CHECKS). Rename a job here and update that list in the same change.
-# GitGuardian Security Checks is the other required check; it is reported by
-# the GitGuardian app, not by a job in this file.
+# Required status checks on main (scripts/pr-ready.ts REQUIRED_CHECKS): Commitlint, and Check,
+# which passes only when every job it needs passed or was not needed. The jobs in between (Static,
+# Shard i, Consumer smoke) can be renamed or split freely; rename Commitlint or Check and update that
+# list in the same change. GitGuardian Security Checks is the other required check; it is reported
+# by the GitGuardian app, not by a job in this file.
+#
+# Together the Static and Shard jobs run exactly `bun run check` (scripts/ci-plan.ts splits it and
+# fails on drift), spread over parallel runners. Changes decides which jobs a change needs: turbo's
+# content hashes already skip unchanged packages, so it only skips a whole job when nothing that job
+# reads changed. Non-blocking checks (live parity, lint annotations) live in advisory.yml.
+#
+# It also runs on every push to main. That is what keeps main's turbo cache warm per job, so a PR's
+# first run replays everything it did not touch (see .github/actions/setup). Those runs are never
+# cancelled; PR runs are superseded by the next push.
 #
 # Local replica: bun run check:full
 name: CI
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -23,8 +35,30 @@ env:
   HUSKY: "0"
 
 jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+      smoke: ${{ steps.plan.outputs.smoke }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      # A pull_request checkout is the merge commit, so HEAD^1 is the base it will land on.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+
+      - id: plan
+        run: bun scripts/ci-plan.ts changes ${{ github.event_name == 'pull_request' && '--base HEAD^1' || '--all' }}
+
   commitlint:
     name: Commitlint
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -58,12 +92,37 @@ jobs:
             The PR title "{title}" looks empty after the type/scope prefix.
             Use a Conventional Commits title, e.g. "feat: add junction mock".
 
-  check:
-    name: Check
+  # Format, lint, boundaries and generated-file drift: no build, so it never waits on Changes.
+  static:
+    name: Static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup
+        with:
+          turbo-cache: static
+
+      - name: Format, lint, boundaries, agents, worktree, llms.txt, README, brands
+        run: bun scripts/ci-plan.ts static --output-logs=errors-only --continue=dependencies-successful
+
+      - if: always()
+        uses: ./.github/actions/turbo-cache-save
+        with:
+          scope: static
+
+  shard:
+    name: Shard ${{ matrix.shard }}
+    needs: changes
+    if: needs.changes.outputs.shards == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    permissions:
-      contents: read
+    strategy:
+      # Every shard finishes and saves its cache, so a retry replays what already passed.
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.changes.outputs.matrix) }}
     env:
       FC_NUM_RUNS: "40"
     steps:
@@ -71,14 +130,57 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Check (format, lint, typecheck, build, test, pack, portability, boundaries)
+      - name: Build, typecheck, test, pack, portability (shard ${{ matrix.shard }}/${{ strategy.job-total }})
         timeout-minutes: 20
-        run: bun run check -- --output-logs=errors-only
+        run: >-
+          bun scripts/ci-plan.ts shard ${{ matrix.shard }}/${{ strategy.job-total }}
+          --output-logs=errors-only --continue=dependencies-successful
 
-      # Pack every public package like the release does and install it into a clean npm project.
+      - if: always()
+        uses: ./.github/actions/turbo-cache-save
+        with:
+          scope: shard-${{ matrix.shard }}
+
+  # Pack every public package like the release does and install it into a clean npm project. Runs
+  # beside the shards rather than after them: it builds from the same caches, so waiting would only
+  # add their duration to its own.
+  smoke:
+    name: Consumer smoke
+    needs: changes
+    if: needs.changes.outputs.smoke == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup
+
+      - name: Build
+        timeout-minutes: 12
+        run: bunx turbo run build --output-logs=errors-only
+
       - name: Consumer smoke (npm install + import + typecheck every published entry point)
         timeout-minutes: 6
         run: bun run release:smoke
 
-      - if: always()
-        uses: ./.github/actions/turbo-cache-save
+  check:
+    name: Check
+    if: always()
+    needs: [changes, static, shard, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job this change needs passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$NEEDS" | jq -e '
+            def ran_or_not_needed($job; $needed):
+              .[$job].result == "success"
+              or (.[$job].result == "skipped" and .changes.outputs[$needed] == "false");
+            .changes.result == "success"
+            and .static.result == "success"
+            and ran_or_not_needed("shard"; "shards")
+            and ran_or_not_needed("smoke"; "smoke")
+          ' > /dev/null

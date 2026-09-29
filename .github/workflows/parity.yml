@@ -6,6 +6,9 @@
 # which runs it on the current branch and streams the log. Values never leave GitHub and are
 # masked in the log.
 #
+# advisory.yml also calls it on pull requests, for the services a PR changes that have secrets
+# mapped below (scripts/ci-plan.ts reads them from this file).
+#
 # Not a required check — it depends on live vendors.
 name: Parity
 
@@ -16,10 +19,12 @@ on:
         description: "Services to verify, space-separated (e.g. `stripe junction`), or `--all`"
         required: true
         default: junction
-
-concurrency:
-  group: parity-${{ github.ref }}-${{ inputs.services }}
-  cancel-in-progress: false
+  workflow_call:
+    inputs:
+      services:
+        description: "Services to verify, space-separated"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -32,9 +37,15 @@ jobs:
     name: Live parity
     runs-on: ubuntu-latest
     timeout-minutes: 80
+    # Job-level so it also applies when advisory.yml calls this workflow (whose own concurrency
+    # group cancels superseded PR runs).
+    concurrency:
+      group: parity-${{ github.ref }}-${{ inputs.services }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
 
+      # Replays every package's build from pr.yml's turbo caches; parity itself is never cached.
       - uses: ./.github/actions/setup
 
       - name: Build
@@ -72,6 +83,3 @@ jobs:
             packages/service/*/corpus/
             packages/service/*/src/corpus/
           if-no-files-found: ignore
-
-      - if: always()
-        uses: ./.github/actions/turbo-cache-save

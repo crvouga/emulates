@@ -1,10 +1,45 @@
 name: Save Turborepo cache
-description: "Save .turbo/cache under the key ./.github/actions/setup restores. Run it with `if: always()`."
+description: "Prune .turbo/cache to this job's tasks and save it under a scope ./.github/actions/setup restores. Run it with `if: always()`."
+
+# `if: always()` because actions/cache skips its save when the job fails, and a failed run is
+# exactly the one whose retry should replay the tasks that already passed. The key carries the run
+# attempt so that retry can save too (cache keys are immutable).
+#
+# Retention: the restore brought in other scopes' entries and the previous run's stale ones. Only
+# the task hashes this job's turbo runs used (their run summaries) are kept, so a scope's cache is
+# one task graph's worth and never grows run over run. No summary means turbo never finished (a
+# setup failure or a cancelled run): there is nothing new to keep, so nothing is saved.
+
+inputs:
+  scope:
+    description: "`static` or `shard-<i>`: the key prefix ./.github/actions/setup restores."
+    required: true
 
 runs:
   using: composite
   steps:
-    - uses: actions/cache/save@v4
+    - id: prune
+      shell: bash
+      run: |
+        shopt -s nullglob
+        summaries=(.turbo/runs/*.json)
+        if (( ${#summaries[@]} == 0 )) || [[ ! -d .turbo/cache ]]; then
+          echo "No turbo run summary; nothing to save."
+          echo "save=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        jq -r '.tasks[].hash' "${summaries[@]}" | sort -u > "$RUNNER_TEMP/turbo-keep"
+        before=$(du -sh .turbo/cache | cut -f1)
+        # Entries are <hash>.tar.zst, <hash>-meta.json and <hash>-manifest.json.
+        (cd .turbo/cache && ls | awk -v keep="$RUNNER_TEMP/turbo-keep" '
+          BEGIN { while ((getline h < keep) > 0) kept[h] = 1 }
+          { h = $0; sub(/[-.].*/, "", h); if (!(h in kept)) print }
+        ' | xargs -r rm -f)
+        echo "Pruned .turbo/cache from $before to $(du -sh .turbo/cache | cut -f1)."
+        echo "save=true" >> "$GITHUB_OUTPUT"
+
+    - if: steps.prune.outputs.save == 'true'
+      uses: actions/cache/save@v5
       with:
         path: .turbo/cache
-        key: turbo-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+        key: turbo-v3-${{ runner.os }}-${{ inputs.scope }}-${{ github.sha }}-${{ github.run_attempt }}

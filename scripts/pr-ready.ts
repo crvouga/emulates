@@ -10,10 +10,12 @@
  * Every command except `logs` prints exactly one JSON object on stdout.
  * `logs` prints a plain-text excerpt. Human/child noise never reaches stdout.
  *
- * Every check that runs on a PR is a required status check, and those checks are the
- * only merge requirement. The contexts are the job names in .github/workflows/pr.yml
- * (rename a job there and REQUIRED_CHECKS must follow) plus the GitGuardian app's check;
- * each is pinned to the app that reports it. Release (.github/workflows/ci.yml) is not a
+ * The required status checks are the only merge requirement: Commitlint and Check from
+ * .github/workflows/pr.yml (rename either and REQUIRED_CHECKS must follow) plus the GitGuardian
+ * app's check; each is pinned to the app that reports it. pr.yml's other jobs (Static, Shard i,
+ * Consumer smoke, …) are rolled up by Check, so they gate the merge without being required
+ * themselves. .github/workflows/advisory.yml's checks never gate: they are reported, not waited on.
+ * Any other check that runs on a PR must be required. Release (.github/workflows/ci.yml) is not a
  * PR check: a green PR merged to main is the release.
  */
 import { unlink } from "node:fs/promises"
@@ -37,6 +39,10 @@ const REQUIRED_CHECKS: RequiredStatusCheck[] = [
   { context: "GitGuardian Security Checks", integration_id: GITGUARDIAN_INTEGRATION_ID },
 ]
 const REQUIRED_CHECK_CONTEXTS = REQUIRED_CHECKS.map((check) => check.context)
+/** pr.yml's workflow name: its jobs gate through the required Check job, which needs them all. */
+const GATE_WORKFLOW = "CI"
+/** advisory.yml's workflow name: non-blocking checks, never a merge requirement. */
+const ADVISORY_WORKFLOW = "Advisory"
 const ALLOWED_MERGE_METHODS = ["merge"]
 
 const EXIT = { ok: 0, fail: 1, usage: 2, conflicts: 3, pending: 4 } as const
@@ -500,16 +506,25 @@ type PrView = {
 
 type Check = { name: string; state: string; bucket: string; link: string; workflow?: string }
 
-type CheckFetch = { ok: true; reported: boolean; checks: Check[] } | { ok: false; reason: string }
+/** `checks` gate the merge; `advisory` (advisory.yml) is reported alongside and never waited on. */
+type CheckFetch =
+  | { ok: true; reported: boolean; checks: Check[]; advisory: Check[] }
+  | { ok: false; reason: string }
 
 async function fetchChecks(branch: string): Promise<CheckFetch> {
   const res = await gh(["pr", "checks", branch, "--json", "name,state,bucket,link,workflow"])
   // gh exits nonzero for failing or pending checks even when --json returned valid data.
   if (res.stdout.startsWith("[")) {
-    return { ok: true, reported: true, checks: JSON.parse(res.stdout) as Check[] }
+    const all = JSON.parse(res.stdout) as Check[]
+    return {
+      ok: true,
+      reported: true,
+      checks: all.filter((check) => check.workflow !== ADVISORY_WORKFLOW),
+      advisory: all.filter((check) => check.workflow === ADVISORY_WORKFLOW),
+    }
   }
   if (/no checks reported/i.test(res.stderr) || /no checks reported/i.test(res.stdout)) {
-    return { ok: true, reported: false, checks: [] }
+    return { ok: true, reported: false, checks: [], advisory: [] }
   }
   return { ok: false, reason: res.stderr || res.stdout || "gh pr checks failed" }
 }
@@ -569,9 +584,10 @@ function summarize(checks: Check[], required: string[]): ChecksSummary {
         break
     }
   }
-  // Skipped jobs are not pull-request checks (release runs only after merge).
+  // Skipped jobs are not pull-request checks (release runs only after merge), and pr.yml's jobs
+  // gate through its required Check job.
   summary.notRequired = checks
-    .filter((check) => check.bucket !== "skipping")
+    .filter((check) => check.bucket !== "skipping" && check.workflow !== GATE_WORKFLOW)
     .map((check) => check.name)
     .filter((name) => !required.includes(name))
   return summary
@@ -1215,6 +1231,11 @@ async function cmdChecks(): Promise<void> {
             bucket: check.bucket,
             link: check.link,
           })),
+          advisory: fetched.advisory.map((check) => ({
+            name: check.name,
+            bucket: check.bucket,
+            link: check.link,
+          })),
         })
         return
       }
@@ -1302,9 +1323,10 @@ async function cmdRerun(): Promise<void> {
   const branch = await currentBranch()
   const fetched = await fetchChecks(branch)
   if (!fetched.ok) die(EXIT.fail, { step: "rerun", output: fetched.reason })
-  const match = fetched.checks.find((check) => check.name === name)
+  const every = [...fetched.checks, ...fetched.advisory]
+  const match = every.find((check) => check.name === name)
   if (!match) {
-    die(EXIT.usage, { error: "unknown check", available: fetched.checks.map((c) => c.name) })
+    die(EXIT.usage, { error: "unknown check", available: every.map((c) => c.name) })
   }
 
   const runId = match.link.match(/\/actions\/runs\/(\d+)/)?.[1]
