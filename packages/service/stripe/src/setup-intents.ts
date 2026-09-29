@@ -1,6 +1,6 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
 import { requestInfo } from "./context.js"
-import { cardError, invalidRequest, parameterMissing } from "./errors.js"
+import { cardError, invalidRequest, parameterMissing, resourceMissing } from "./errors.js"
 import {
   booleanOf,
   clientSecretFor,
@@ -21,7 +21,7 @@ import { chargeOutcomeFor } from "./test-tokens.js"
 
 const requireSetupIntent = (scope: RequestScope, id: string) => {
   const intent = scope.account.setupIntents.get(id)
-  if (!intent) throw invalidRequest(`No such setup_intent: '${id}'`, "intent", "resource_missing")
+  if (!intent) throw resourceMissing("setupintent", id, "intent")
   return intent
 }
 
