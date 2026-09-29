@@ -94,9 +94,9 @@ export const searchRecords = <T extends RecordValue>(
   },
 ): SearchPage<unknown> => {
   const { query } = params
-  if (params.expand === "") throw parameterInvalidEmpty("expand")
   if (query === "") throw parameterInvalidEmpty("query")
   if (params.page === "") throw parameterInvalidEmpty("page")
+  if (params.expand === "") throw parameterInvalidEmpty("expand")
   if (params.limit !== undefined) {
     const limit = Number(params.limit)
     if (limit < 1 || limit > 100)
@@ -110,7 +110,6 @@ export const searchRecords = <T extends RecordValue>(
         param: "limit",
       })
   }
-  if (query === "") throw parameterInvalidEmpty("query")
   if (typeof query !== "string" || query.trim() === "")
     throw invalidRequest("Missing required param: query.", "query", "parameter_missing")
   const groups = query.split(/\s+OR\s+/).map(parseSearchQuery)
