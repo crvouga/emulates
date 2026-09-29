@@ -113,6 +113,8 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
       "stripe",
       "listen",
       "--skip-update",
+      // Stripe CLI >= 1.52 refuses to listen without an explicit event selector.
+      "--all-snapshot",
       "--forward-to",
       `http://127.0.0.1:${receiver.port}/stripe`,
     ],
