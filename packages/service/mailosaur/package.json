@@ -57,7 +57,8 @@
       "website": "https://mailosaur.com",
       "docs": "https://mailosaur.com/docs/api"
     },
-    "status": "wip"
+    "status": "wip",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

@@ -11,7 +11,7 @@ import { matchesCreated, paginate } from "./list.js"
 import { bodyParams, type Params, queryParams, SUPPORTED_CURRENCIES } from "./params.js"
 import { createProduct, requireProduct, validateInlineProduct } from "./products.js"
 import { renderPrice, renderProduct } from "./render.js"
-import { type PriceRecord, type Recurring, seconds } from "./state.js"
+import { type PriceCurrencyOption, type PriceRecord, type Recurring, seconds } from "./state.js"
 
 /** Stripe caps recurring periods at three years. */
 const MAX_INTERVAL_COUNT: Record<Recurring["interval"], { limit: number; adjective: string }> = {
@@ -36,6 +36,7 @@ export const parseRecurring = (raw: unknown): Recurring => {
     interval: Recurring["interval"]
     interval_count?: number
     usage_type?: Recurring["usage_type"]
+    trial_period_days?: number
   }
   const interval_count = input.interval_count ?? 1
   const cap = MAX_INTERVAL_COUNT[input.interval]
@@ -49,7 +50,12 @@ export const parseRecurring = (raw: unknown): Recurring => {
     throw invalidRequest(
       "Starting with Stripe version `2025-03-31.basil`, metered prices must be backed by meters.",
     )
-  return { interval: input.interval, interval_count, usage_type }
+  return {
+    interval: input.interval,
+    interval_count,
+    usage_type,
+    trial_period_days: input.trial_period_days ?? null,
+  }
 }
 
 const assertLookupKeyFree = (
@@ -70,6 +76,64 @@ const assertLookupKeyFree = (
   throw invalidRequest(`A price (\`${clash.id}\`) already uses that lookup key.`, "lookup_key")
 }
 
+/** `currency_options[<code>][unit_amount | unit_amount_decimal | tax_behavior]`, merged over `current`. */
+const applyCurrencyOptions = (
+  current: PriceRecord,
+  raw: unknown,
+  taxBehavior: PriceRecord["tax_behavior"],
+): Record<string, PriceCurrencyOption> | undefined => {
+  if (typeof raw !== "object" || raw === null) return current.currency_options
+  const options: Record<string, PriceCurrencyOption> = { ...current.currency_options }
+  for (const [key, entry] of Object.entries(raw)) {
+    const param = `currency_options[${key}]`
+    const code = normalizeCurrency(key, param)
+    if (code === current.currency)
+      throw invalidRequest(
+        `The currency options can't include the price's own currency (\`${code}\`).`,
+        param,
+      )
+    const option = entry as Params
+    for (const unmodelled of ["custom_unit_amount", "tiers"])
+      if (option[unmodelled] !== undefined)
+        throw invalidRequest(
+          `\`${unmodelled}\` in currency_options is not modelled by this mock.`,
+          `${param}[${unmodelled}]`,
+        )
+    const hasAmount = option.unit_amount !== undefined
+    const hasDecimal = option.unit_amount_decimal !== undefined
+    if (hasAmount && hasDecimal)
+      throw invalidRequest(
+        "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+        `${param}[unit_amount]`,
+      )
+    const previous = options[code]
+    if (!hasAmount && !hasDecimal && previous === undefined)
+      throw invalidRequest(
+        "Prices require an `unit_amount` or `unit_amount_decimal` parameter to be set.",
+        param,
+      )
+    let unit_amount_decimal = previous?.unit_amount_decimal ?? ""
+    if (hasAmount) {
+      const amount = option.unit_amount as number
+      if (amount < 0) throw invalidRequest("Invalid non-negative integer", `${param}[unit_amount]`)
+      unit_amount_decimal = String(amount)
+    } else if (hasDecimal) {
+      unit_amount_decimal = parseUnitAmountDecimal(
+        option.unit_amount_decimal as string,
+        `${param}[unit_amount_decimal]`,
+      )
+    }
+    options[code] = {
+      tax_behavior:
+        (option.tax_behavior as PriceRecord["tax_behavior"] | undefined) ??
+        previous?.tax_behavior ??
+        taxBehavior,
+      unit_amount_decimal,
+    }
+  }
+  return options
+}
+
 const applyShared = (scope: RequestScope, current: PriceRecord, params: Params): PriceRecord => {
   const next: PriceRecord = { ...current }
   next.active = optionalBoolean(params, "active", current.active) ?? true
@@ -84,6 +148,8 @@ const applyShared = (scope: RequestScope, current: PriceRecord, params: Params):
   if (params.nickname !== undefined) next.nickname = strip(params.nickname as string)
   if (params.tax_behavior !== undefined)
     next.tax_behavior = params.tax_behavior as PriceRecord["tax_behavior"]
+  const currencyOptions = applyCurrencyOptions(current, params.currency_options, next.tax_behavior)
+  if (currencyOptions !== undefined) next.currency_options = currencyOptions
   return next
 }
 
@@ -101,7 +167,19 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
   return {
     PostPrices: async (context: OperationContext) => {
       const scope = requestScope(services, context)
-      const params = bodyParams(context)
+      // Stripe refuses naming both amounts before it reads any other parameter.
+      const params = bodyParams(context, {
+        order: ["unit_amount", "unit_amount_decimal"],
+        validate: {
+          unit_amount_decimal: (given) => {
+            if (given.unit_amount !== undefined && given.unit_amount_decimal !== undefined)
+              throw invalidRequest(
+                "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+                "unit_amount",
+              )
+          },
+        },
+      })
       const hasProduct = params.product !== undefined
       const hasProductData = params.product_data !== undefined
       if (hasProduct && hasProductData)
@@ -115,6 +193,7 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         )
       if (params.product === "") throw parameterInvalidEmpty("product")
       if (params.product_data === "") throw parameterInvalidEmpty("product_data")
+      if (params.metadata === "") throw parameterInvalidEmpty("metadata")
       const inline = hasProductData
         ? validateInlineProduct(params.product_data as Params)
         : undefined
@@ -124,11 +203,6 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
       const currency = normalizeCurrency(params.currency as string)
       const hasAmount = params.unit_amount !== undefined
       const hasDecimal = params.unit_amount_decimal !== undefined
-      if (hasAmount && hasDecimal)
-        throw invalidRequest(
-          "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
-          "unit_amount",
-        )
       if (!hasAmount && !hasDecimal)
         throw invalidRequest(
           "Prices require an `unit_amount` or `unit_amount_decimal` parameter to be set.",

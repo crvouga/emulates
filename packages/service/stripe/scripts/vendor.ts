@@ -66,6 +66,7 @@ const MISSING = {
   refund: "re_mockingbird_missing",
   dispute: "dp_mockingbird_missing",
   invoice: "in_mockingbird_missing",
+  invoice_payment: "inpay_mockingbird_missing",
   invoiceitem: "ii_mockingbird_missing",
   subscription: "sub_mockingbird_missing",
   subscription_item: "si_mockingbird_missing",
@@ -314,6 +315,11 @@ const RESPONSE_SHAPES: Record<string, Shape> = {
     discountable: { type: "boolean" },
     proration: { type: "boolean" },
   },
+  invoice_payment: {
+    id: identity("invoice_payment"),
+    created: volatile("timestamp"),
+    invoice: expandableId(identity("invoice")),
+  },
   invoice: {
     id: identity("invoice"),
     created: volatile("timestamp"),
@@ -384,8 +390,7 @@ const RESPONSE_SHAPES: Record<string, Shape> = {
     id: identity("price"),
     created: volatile("timestamp"),
     product: expandableId(identity("product")),
-    // Only present when expanded or when the pricing model uses them.
-    currency_options: null,
+    // Only present when the pricing model uses them.
     tiers: null,
   },
   subscription_schedule: {
@@ -502,6 +507,7 @@ const VERSIONED_FIELDS: Record<string, readonly string[]> = {
   invoice: ["charge", "payment_intent", "subscription"],
   subscription: ["current_period_start", "current_period_end"],
   payment_intent: ["invoice"],
+  charge: ["invoice"],
 }
 
 /** Request-body property edits keyed by operationId. */
@@ -582,7 +588,9 @@ const BODY_SHAPES: Record<string, Shape> = {
     currency: CURRENCY,
     "recurring.interval_count": { type: "integer", minimum: 1 },
     billing_scheme: unsupported("tiered billing is not modelled"),
-    currency_options: unsupported("multi-currency prices are not modelled"),
+    currency_options: unsupported(
+      "generated walks stay single-currency; per-currency options are covered by acceptance tests",
+    ),
     custom_unit_amount: unsupported("customer-chosen amounts are not modelled"),
     product: ref("product", MISSING.product),
     product_data: unsupported("inline product creation is not modelled"),
@@ -593,7 +601,9 @@ const BODY_SHAPES: Record<string, Shape> = {
     "recurring.meter": unsupported("billing meters are not modelled"),
   },
   PostPricesPrice: {
-    currency_options: unsupported("multi-currency prices are not modelled"),
+    currency_options: unsupported(
+      "generated walks stay single-currency; per-currency options are covered by acceptance tests",
+    ),
     transfer_lookup_key: unsupported("lookup key transfer is not modelled"),
   },
   // --- money movement: parameters the mock accepts but does not model are refused up front -----
@@ -1147,6 +1157,15 @@ const QUERY_SHAPES: Record<string, Shape> = {
     starting_after: unsupported("line item cursors are not modelled"),
     ending_before: unsupported("line item cursors are not modelled"),
   },
+  GetInvoicePayments: {
+    invoice: ref("invoice", MISSING.invoice),
+    "payment.payment_intent": ref("payment_intent", MISSING.payment_intent),
+    "payment.payment_record": unsupported("payment records are not modelled"),
+    starting_after: ref("invoice_payment", MISSING.invoice_payment),
+    ending_before: ref("invoice_payment", MISSING.invoice_payment),
+    "created.gte": scope("walk-start-unix"),
+  },
+  GetInvoicePaymentsInvoicePayment: {},
   GetInvoiceitems: {
     customer: ref("customer", MISSING.customer),
     invoice: ref("invoice", MISSING.invoice),
@@ -1227,6 +1246,9 @@ const EXTRA_BODY_PARAMS: Record<string, Shape> = {
   PostSubscriptions: {
     pause_collection: unsupported("collection is paused on an existing subscription only"),
   },
+  // Stripe still accepts (and returns) a default trial on a recurring price; a subscription
+  // started with `trial_from_plan=true` uses it.
+  PostPrices: { "recurring.trial_period_days": { type: "integer", minimum: 1 } },
 }
 
 /**
@@ -1260,9 +1282,13 @@ const acceptRawCard = (operation: Json) => {
 }
 
 const applyExtraBodyParams = (schema: Schema, shape: Shape) => {
-  const properties = isObject(schema.properties) ? (schema.properties as Json) : {}
-  schema.properties = properties
-  for (const [key, edit] of Object.entries(shape)) {
+  for (const [path, edit] of Object.entries(shape)) {
+    // A dotted path names a property of a nested object, e.g. `recurring.trial_period_days`.
+    const [parentPath, key] = parentAndKey(path)
+    const parent = parentPath.length === 0 ? schema : propertyContainer(schema, parentPath)
+    if (!parent) throw new Error(`extra body parameter ${path}: parent not found`)
+    const properties = isObject(parent.properties) ? (parent.properties as Json) : {}
+    parent.properties = properties
     if (edit === null) {
       delete properties[key]
       continue
@@ -1285,6 +1311,7 @@ const PATH_REFS: Record<string, Json> = {
   dispute: ref("dispute", MISSING.dispute),
   invoice: ref("invoice", MISSING.invoice),
   invoiceitem: ref("invoiceitem", MISSING.invoiceitem),
+  invoice_payment: ref("invoice_payment", MISSING.invoice_payment),
   subscription_exposed_id: ref("subscription", MISSING.subscription),
   schedule: ref("schedule", MISSING.schedule),
   coupon: ref("coupon", MISSING.coupon),
@@ -1426,6 +1453,8 @@ const OPERATIONS: Record<string, OperationConfig> = {
   PostInvoicesInvoicePay: { safe: false },
   PostInvoicesInvoiceVoid: { safe: false },
   GetInvoicesInvoiceLines: { safe: true },
+  GetInvoicePayments: { safe: true },
+  GetInvoicePaymentsInvoicePayment: { safe: true },
   GetInvoicesUpcoming: {
     safe: false,
     parity: false,
@@ -1613,10 +1642,13 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
   PostCheckoutSessions: ["payment_intent", "subscription", "setup_intent", "customer"],
   GetCheckoutSessionsSession: ["payment_intent", "subscription", "setup_intent", "customer"],
   PostCheckoutSessionsSessionExpire: ["payment_intent", "subscription", "setup_intent", "customer"],
+  GetInvoicePayments: ["data.invoice", "data.payment.payment_intent"],
+  GetInvoicePaymentsInvoicePayment: ["invoice", "payment.payment_intent"],
   GetInvoices: [
     "data.charge",
     "data.subscription",
     "data.payment_intent",
+    "data.payments",
     "data.discounts.coupon",
     "data.customer",
   ],
@@ -1625,6 +1657,7 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
     "charge",
     "subscription",
     "payment_intent",
+    "payments",
     "discount.coupon",
     "discount.promotion_code",
     "discounts.coupon",
@@ -1662,6 +1695,7 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
     "items.data.discounts",
     "items.data.price",
     "latest_invoice",
+    "latest_invoice.payments",
     "default_payment_method",
     "customer",
     "schedule",
@@ -1704,10 +1738,10 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
   GetProducts: ["data.default_price"],
   GetProductsId: ["default_price"],
   PostProductsId: ["default_price"],
-  PostPrices: ["product", "product_data"],
-  GetPrices: ["data.product"],
-  GetPricesPrice: ["product"],
-  PostPricesPrice: ["product"],
+  PostPrices: ["currency_options", "product", "product_data"],
+  GetPrices: ["data.currency_options", "data.product"],
+  GetPricesPrice: ["currency_options", "product"],
+  PostPricesPrice: ["currency_options", "product"],
 }
 
 // --- transforms --------------------------------------------------------------------------------

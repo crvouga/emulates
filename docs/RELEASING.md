@@ -10,7 +10,7 @@ A pull request whose checks passed is releasable. Merging it to `main` is the re
 
 Versions live in tags, so `package.json` keeps `0.0.0-development` and nothing is committed back to `main` (same model as semantic-release). Every step is idempotent — re-running a failed release job finishes it.
 
-OIDC cannot create a package that does not exist on npm yet. The release job reads the `NPM_TOKEN` GitHub Actions secret, creates missing packages with it, and attaches their Trusted Publisher automatically (`npm trust github`). `bun run release:bootstrap` securely prompts for a missing token, stores it as the repo secret with `gh secret set`, and starts the current CI workflow on `main`. `bun run release:seed` remains a local fallback using npm login; it reconciles npm with `origin/main` in a temporary worktree. See [docs/SECRETS.md](SECRETS.md).
+OIDC cannot create a package that does not exist on npm yet. The release job reads the `NPM_TOKEN` GitHub Actions secret, creates missing packages with it, and attaches their Trusted Publisher automatically (`npm trust github`). `bun run release:bootstrap` securely prompts for a missing token, stores it as the repo secret with `gh secret set`, and starts the current CI workflow on `main`. `bun run release:seed` remains a local fallback using npm login; it reconciles npm with `origin/main` in a temporary worktree. See [docs/SECRETS.md](SECRETS.md). Without the token, a never-published package fails the run (and so do its dependents) but every other package still releases; set the token and re-run to publish the rest.
 
 ```bash
 bun run release:plan                   # what the next push to main would release

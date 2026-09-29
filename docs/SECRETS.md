@@ -17,7 +17,7 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 
 | Workflow | Secrets it reads | How to run it |
 | --- | --- | --- |
-| [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>` or `-- --all`; also on each PR that changes a mapped service ([Advisory](../.github/workflows/advisory.yml), non-blocking, not for forks) |
+| [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>`, `-- --all` or `-- --tier=warm`; by [tier](TESTING.md#parity-tiers) also on each PR that changes a hot service ([Advisory](../.github/workflows/advisory.yml), non-blocking, not for forks) and weekly for warm services |
 | [Verify](../.github/workflows/verify.yml) | `JUNCTION_API_KEY` | daily, or `gh workflow run verify.yml` |
 | [Release](../.github/workflows/ci.yml) | `NPM_TOKEN` (new packages only) | automatic on merge to `main` |
 
@@ -33,6 +33,7 @@ has the same name.
 ```bash
 bun run parity:remote -- stripe            # one or more services
 bun run parity:remote -- --all             # every service with a parity script
+bun run parity:remote -- --tier=warm       # every service in a tier
 ```
 
 This dispatches the Parity workflow on your branch, which passes the sandbox keys its live-parity

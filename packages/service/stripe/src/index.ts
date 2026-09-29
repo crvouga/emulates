@@ -45,6 +45,7 @@ import {
   type WebhookPublisher,
 } from "./internal.js"
 import { invoiceItemHandlers } from "./invoice-items.js"
+import { invoicePaymentHandlers } from "./invoice-payments.js"
 import { invoiceHandlers } from "./invoices.js"
 import { ledgerHandlers } from "./ledger.js"
 import { paymentIntentHandlers } from "./payment-intents.js"
@@ -199,6 +200,10 @@ export class StripeAPI implements FetchAPI {
       publish: options.onWebhook,
       accounts,
       deliveryVersion: (account) => accounts.config(account)?.apiVersion ?? webhookVersion,
+      paymentRetries: (account) => ({
+        ...this.settings.paymentRetries,
+        ...accounts.config(account)?.billing?.retries,
+      }),
       pendingWebhooks: options.pendingWebhooks ?? (() => 0),
       namespacePrefix:
         options.publicNamespace === undefined || options.publicNamespace === "default"
@@ -219,6 +224,7 @@ export class StripeAPI implements FetchAPI {
       ...disputeHandlers(services),
       ...checkoutSessionHandlers(services),
       ...invoiceHandlers(services),
+      ...invoicePaymentHandlers(services),
       ...invoiceItemHandlers(services),
       ...subscriptionHandlers(services),
       ...subscriptionScheduleHandlers(services),
@@ -268,7 +274,12 @@ export class StripeAPI implements FetchAPI {
               "customer",
             ).init,
           )
-        if (customerAccount !== undefined && customerAccount !== "")
+        // Listing payment methods resolves its pagination cursors first, so its handler refuses it.
+        if (
+          customerAccount !== undefined &&
+          customerAccount !== "" &&
+          context.operation.operationId !== "GetPaymentMethods"
+        )
           return this.errorResponse(
             resourceMissing("customer", customerAccount, "customer_account", 400).init,
           )

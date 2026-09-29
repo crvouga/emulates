@@ -57,7 +57,8 @@
       "website": "https://customer.io",
       "docs": "https://docs.customer.io/api/"
     },
-    "status": "wip"
+    "status": "wip",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

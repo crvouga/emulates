@@ -58,6 +58,7 @@
       "description": "Wholescripts is a practitioner supplement dispensary that fulfils professional-grade and private-label supplement orders."
     },
     "status": "wip",
+    "parityTier": "cold",
     "playground": {
       "basicAuth": "mockingbird:mockingbird"
     }

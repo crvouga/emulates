@@ -106,6 +106,8 @@ would echo back.
    `<NAME>_*` secrets in the Parity workflow);
    without them print which keys are missing and `process.exit(2)`. Run only safe operations by
    default. Never print secret values; never send real messages, charges or orders to real people.
+   Declare `"parityTier": "cold"` in the package's `mockingbird` block (see
+   [Parity tiers](TESTING.md#parity-tiers)); a new service starts cold.
 
 Use `fcParameters(process.env)` so `FC_SEED` / `FC_NUM_RUNS` replay failures, and keep each test
 file under ~60 s.

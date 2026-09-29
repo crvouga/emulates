@@ -20,6 +20,12 @@ const BROWSER_OPS = [
   "PostThreeDSecureAuthenticate",
 ]
 
+/**
+ * Basil's InvoicePayments first shipped in stripe-node 18; the SDKs pinned here (16.12, 17.7) have
+ * no method for them, so `stripe.invoice-payments.test.ts` drives these over HTTP instead.
+ */
+const BASIL_ONLY_OPS = ["GetInvoicePayments", "GetInvoicePaymentsInvoicePayment"]
+
 let server: StripeServer
 beforeAll(async () => {
   server = await createServer()
@@ -585,7 +591,9 @@ const register = async (key: string, namespace: string) => {
 }
 
 describe("stripe-node drop-in (every S1.4 operation)", () => {
-  const expected = supportedOperationIds.filter((id) => !BROWSER_OPS.includes(id))
+  const expected = supportedOperationIds.filter(
+    (id) => !BROWSER_OPS.includes(id) && !BASIL_ONLY_OPS.includes(id),
+  )
 
   test(
     "stripe-node 16.12 at 2024-06-20",

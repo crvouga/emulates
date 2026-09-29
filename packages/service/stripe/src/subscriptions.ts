@@ -1,5 +1,6 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
 import {
+  addInterval,
   applyDiscountRequests,
   assertCompatiblePrices,
   billProration,
@@ -7,13 +8,22 @@ import {
   createSubscription,
   cycleSubscription,
   INACTIVE_PRICE,
+  invoiceBillingCycleReset,
   parseDiscounts,
+  recurringOf,
   resolveDiscountSource,
   resumeSubscription,
+  sameBillingPeriod,
   saveSubscription,
   subscriptionItems,
 } from "./billing.js"
-import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
+import {
+  invalidRequest,
+  parameterInvalidEmpty,
+  parameterMissing,
+  resourceMissing,
+  StripeError,
+} from "./errors.js"
 import {
   booleanOf,
   customerNow,
@@ -245,6 +255,11 @@ export const updateSubscription = (
   const previousItems = { items: renderSubscription(current, scope.account).items }
   const proration = stringOf(params, "proration_behavior") ?? "create_prorations"
   const itemRequests = requestedItems(params)
+  const previousBilling = {
+    items: subscriptionItems(scope, current),
+    recurring: recurringOf(scope, current),
+    period: { start: current.current_period_start, end: current.current_period_end },
+  }
   const changed =
     itemRequests.length === 0
       ? { itemIds: current.item_ids, prorationAmount: 0 }
@@ -317,15 +332,32 @@ export const updateSubscription = (
       current_period_end: trialEndAt,
       ...(next.status === "active" ? { status: "trialing" as const } : {}),
     }
+  // A price on a different billing period resets the billing cycle anchor to now: a new period
+  // starts and is invoiced at once. A trial keeps its end instead.
+  const nextRecurring = recurringOf(scope, next)
+  const resetsAnchor =
+    itemRequests.length > 0 &&
+    trialEndAt === undefined &&
+    (current.status === "active" || current.status === "past_due") &&
+    !sameBillingPeriod(previousBilling.recurring, nextRecurring)
+  if (resetsAnchor)
+    next = {
+      ...next,
+      billing_cycle_anchor: now,
+      current_period_start: now,
+      current_period_end: addInterval(now, nextRecurring.interval, nextRecurring.interval_count),
+    }
   saveSubscription(scope, current, next, previousItems)
-  billProration(scope, next, prorationAmount, proration, {
-    period: { start: now, end: current.current_period_end },
-    description:
-      proration === "always_invoice"
-        ? "Remaining time on the new price (prorated)"
-        : "Proration for subscription change",
-    failOnDecline: stringOf(params, "payment_behavior") === "error_if_incomplete",
-  })
+  if (resetsAnchor) invoiceBillingCycleReset(scope, next, previousBilling, proration !== "none")
+  else
+    billProration(scope, next, prorationAmount, proration, {
+      period: { start: now, end: current.current_period_end },
+      description:
+        proration === "always_invoice"
+          ? "Remaining time on the new price (prorated)"
+          : "Proration for subscription change",
+      failOnDecline: stringOf(params, "payment_behavior") === "error_if_incomplete",
+    })
   if (endTrialNow) {
     const trialing = scope.account.subscriptions.get(current.id) ?? next
     const ended = { ...trialing, trial_end: now, current_period_end: now }
@@ -348,12 +380,11 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const customer = stringOf(params, "customer")
       if (customer !== null && !scope.account.customers.get(customer))
         throw resourceMissing("customer", customer, "customer", 400)
+      if (params.price === "") throw parameterInvalidEmpty("price")
       const price = stringOf(params, "price")
       if (price !== null && !scope.account.prices.get(price))
         throw resourceMissing("price", price, "price", 400)
       const clock = stringOf(params, "test_clock")
-      if (clock !== null && !scope.account.testClocks.get(clock))
-        throw resourceMissing("billingclock", clock, "test_clock", 400)
       const statuses = listOf(params, "status")
       const visible = (record: SubscriptionRecord) =>
         statuses.length === 0
@@ -367,6 +398,11 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
         await paginate<SubscriptionRecord>(scope.account.subscriptions, params, {
           url: "/v1/subscriptions",
           kind: "subscription",
+          // Stripe resolves the cursors before it complains about an unknown test clock.
+          check: () => {
+            if (clock !== null && !scope.account.testClocks.get(clock))
+              throw resourceMissing("billingclock", clock, "test_clock", 400)
+          },
           where: (record) =>
             matchesCreated(record.created, params.created) &&
             (customer === null || record.customer === customer) &&
@@ -407,6 +443,11 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
         trialEndAt <= customerNow(scope, customer)
       )
         throw invalidRequest(FUTURE_TIMESTAMP, "trial_end")
+      if (booleanOf(params.trial_from_plan) === true && params.trial_end !== undefined)
+        throw invalidRequest(
+          "You may not specify `trial_end` when `trial_from_plan` is true.",
+          "trial_from_plan",
+        )
       const trialSettings = trialSettingsOf(params.trial_settings)
       const { subscription } = createSubscription(scope, {
         customer,
@@ -419,6 +460,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
         paymentBehavior: stringOf(params, "payment_behavior"),
         trialEnd: params.trial_end === "now" ? "now" : (intOf(params.trial_end) ?? null),
         trialPeriodDays: intOf(params.trial_period_days) ?? null,
+        trialFromPlan: booleanOf(params.trial_from_plan) === true,
         ...(intOf(params.backdate_start_date) === undefined
           ? {}
           : { backdateStartDate: intOf(params.backdate_start_date) }),
@@ -515,6 +557,8 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const params = queryParams(context)
       const subscription = stringOf(params, "subscription")
       if (subscription === null) throw parameterMissing("subscription")
+      if (!scope.account.subscriptions.get(subscription))
+        throw resourceMissing("subscription", subscription, "subscription")
       return jsonResponse(
         200,
         await paginate<SubscriptionItemRecord>(scope.account.subscriptionItems, params, {
@@ -527,7 +571,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
     },
     GetSubscriptionItemsItem: async (context) => {
       const scope = requestScope(services, context)
-      queryParams(context)
+      if (queryParams(context).expand === "") throw parameterInvalidEmpty("expand")
       const id = context.params.item ?? ""
       const record = scope.account.subscriptionItems.get(id)
       if (!record)

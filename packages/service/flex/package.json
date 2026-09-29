@@ -60,6 +60,7 @@
       "description": "Flex lets merchants accept HSA/FSA funds at checkout for eligible health and wellness products."
     },
     "status": "ready",
+    "parityTier": "cold",
     "playground": {
       "headers": {
         "authorization": "Bearer fsk_test_mockingbird"

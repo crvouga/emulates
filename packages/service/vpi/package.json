@@ -57,7 +57,8 @@
       "name": "VPI Compounding",
       "description": "VPI (Valescent Pharmaceuticals) is a compounding pharmacy with an API for clinics to submit and track prescriptions."
     },
-    "status": "wip"
+    "status": "wip",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

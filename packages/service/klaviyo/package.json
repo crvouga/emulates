@@ -57,6 +57,7 @@
       "docs": "https://developers.klaviyo.com/en/reference/api_overview"
     },
     "status": "wip",
+    "parityTier": "cold",
     "playground": {
       "headers": {
         "authorization": "Klaviyo-API-Key pk_mockingbird",
