@@ -52,6 +52,19 @@ jobs:
         timeout-minutes: 20
         run: bunx turbo run build --output-logs=errors-only
 
+      # Stripe's webhook oracle (packages/service/stripe/scripts/webhook-oracle.ts) spawns
+      # `stripe listen`, which forwards the live sandbox's events to a local receiver.
+      - name: Install Stripe CLI
+        if: contains(format(' {0} ', inputs.services), ' stripe ') || inputs.services == '--all'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          gh release download --repo stripe/stripe-cli --pattern '*_linux_x86_64.tar.gz' --output - \
+            | tar -xz -C "$HOME/.local/bin" stripe
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/stripe" version
+
       # Sandbox keys, mapped one by one. Dumping the whole secrets context (toJSON(secrets))
       # makes GitHub hold every run as "may be malicious" until someone approves it by hand.
       # A service's parity script reads <SERVICE>_*; add its secrets here.
