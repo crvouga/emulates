@@ -121,7 +121,7 @@ Set `adminKey` (CLI `--admin-key`) to require `x-mockingbird-admin-key`. Program
 
 ### Reproducible provider edge cases
 
-Behavioral randomness is **off by default**. Configure exact scenarios or probabilities; these are test frequencies you choose, not estimates of vendor incidence. OAuth credentials, authorization codes and signing keys always use cryptographic randomness.
+Behavioral randomness is **off by default**. Configure exact scenarios or probabilities; these are test frequencies you choose, not estimates of vendor incidence. OAuth credentials, authorization codes and signing keys use cryptographic randomness unless you opt in to [seeded credentials](#seeded-credentials).
 
 ```ts
 import { createRuntime } from "@crvouga/mockingbird-service-oauth"
@@ -175,6 +175,21 @@ curl -X POST http://localhost:8810/__admin/keys/rotate -H 'content-type: applica
 
 These routes use the shared admin-key and namespace controls. `revokeConsent(clientId, accountId)` removes that client's grants and resets first-use disclosure; it does not disable the account. `rotateSigningKey(true)` retains up to four previous public keys so existing tokens still verify; `false` withdraws them to test stale JWKS caches. Keys themselves are not included in snapshots, so restoring state does not undo a key rotation.
 
+### Seeded credentials
+
+For deterministic simulation tests, opt in so every opaque value the provider mints comes from the seed instead of `crypto`, and the same seed with the same requests replays byte-for-byte. It is **off by default**: without it, codes, tokens, transaction ids, nonces, `kid` and signing keys stay cryptographically random.
+
+```ts
+import { createRuntime } from "@crvouga/mockingbird-service-oauth"
+
+const runtime = createRuntime({ seed: "s1", deterministicCredentials: true, clients, accounts })
+```
+
+- Seeded: authorization codes, access and refresh tokens, `transaction` ids, session ids, grant families, CSP nonces (on every page and the `form_post` response), and the RS256 signing key with its `kid`. Values are guessable; use only in tests. Pin the clock (`clock`) as well when you compare ID tokens, whose `iat` / `exp` come from it.
+- Signing keys are a pure function of the seed and the rotation index, so JWKS, the ID-token header and (RS256 being deterministic) the signature replay too. Deriving a 2048-bit RSA key costs roughly half a second to a couple of seconds once per seed per process; it is cached afterwards.
+- The draw counter is part of the namespace state: it is snapshotted with it, and `reset` restarts both the counter and the key sequence, so a reset replays the run. The seed is not mixed with the namespace, so two namespaces or mounts with one seed mint the same values.
+- `createRuntime({ randomBytes: (length) => bytes })` replaces `crypto.getRandomValues` for every minted value instead (it wins over the seeded source), and `signingKeys: [{ privateJwk, publicJwk, kid }, ...]` supplies RS256 keys used in order: the first is current and each `POST /__admin/keys/rotate` takes the next. When the list runs out, rotation falls back to the seeded or random source. The `nonce` option still takes precedence for the `form_post` response.
+
 ### Shared service controls
 
 The runtime supplies `/health`, `/__admin/reset`, snapshots, mock clock, request journal, metrics, fault injection and namespace isolation. Use `x-mockingbird-namespace` for in-process tests or `/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
@@ -211,7 +226,7 @@ This is a ready-to-use local/test identity provider, **not a production authenti
 
 Vendor-hosted Google Identity Services/One Tap, native Apple AuthenticationServices, passkeys, MFA, CAPTCHA, password recovery, email delivery/relay forwarding, app-transfer migration, vendor risk engines, tokeninfo/introspection, logout, GitHub Apps installation/device flows, and Microsoft Graph/tenant administration are not implemented. Other configurable OIDC providers can use the generic profile, but their proprietary scopes and claims are not emulated. Scopes are limited to each profile plus explicitly configured additional scopes. Microsoft uses the configured mock issuer, not real Entra tenant routing. GitHub is the OAuth app login surface, not the full REST API.
 
-No implicit flow, dynamic client registration, wildcard redirect matching, persistent signing-key import, or distributed-session coordination is provided. Private-use redirect schemes work only when their complete URI is explicitly registered; executable/local schemes such as `javascript:`, `data:` and `file:` are rejected. Sign-in and consent pages extend CSP `form-action` with the transaction's redirect origin (or custom scheme) so browsers follow the redirect back to the client. Discovery, JWKS, token, userinfo and revoke answer `OPTIONS` preflights and reflect the request `Origin`, so browser (SPA + PKCE) clients can redeem codes directly; the interaction pages send no CORS headers. Snapshot restore is for the same runtime/instance; signing keys are not serialized. The default backing store is in-memory and state disappears when the process exits. A secure browser context and Web Crypto, Fetch and standard Web APIs are required; Node 22+, Bun and modern browsers provide them.
+No implicit flow, dynamic client registration, wildcard redirect matching, persistent signing-key storage (keys are held in memory; supply them through `signingKeys` or derive them from a seed), or distributed-session coordination is provided. Private-use redirect schemes work only when their complete URI is explicitly registered; executable/local schemes such as `javascript:`, `data:` and `file:` are rejected. Sign-in and consent pages extend CSP `form-action` with the transaction's redirect origin (or custom scheme) so browsers follow the redirect back to the client. Discovery, JWKS, token, userinfo and revoke answer `OPTIONS` preflights and reflect the request `Origin`, so browser (SPA + PKCE) clients can redeem codes directly; the interaction pages send no CORS headers. Snapshot restore is for the same runtime/instance; signing keys are not serialized. The default backing store is in-memory and state disappears when the process exits. A secure browser context and Web Crypto, Fetch and standard Web APIs are required; Node 22+, Bun and modern browsers provide them.
 
 References: [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect), [Apple authorization request](https://developer.apple.com/documentation/signinwithapplerestapi/request-an-authorization-to-the-sign-in-with-apple-server.), and [OpenID Connect Core](https://openid.net/specs/openid-connect-core-1_0.html).
 
