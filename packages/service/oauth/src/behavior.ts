@@ -35,6 +35,10 @@ export type OAuthBehavior = {
     refreshTtlSeconds?: number
     refreshRotation?: "reuse" | "rotate"
     refreshError?: "invalid_grant" | "invalid_rapt"
+    /** Offsets an ID token's iat and auth_time from the mock clock; exp stays iat + accessTtlSeconds. */
+    idTokenClockSkewSeconds?: number
+    /** "unpublished" signs ID tokens with a key no JWKS response ever contains. */
+    idTokenSigningKey?: "published" | "unpublished"
   }
   /** Additional scopes accepted for incremental/partial-consent tests. No resource APIs implied. */
   additionalScopes?: string[]
@@ -57,6 +61,9 @@ export const OAUTH_SCENARIOS = {
   short_lived_tokens: { tokens: { accessTtlSeconds: 5, codeTtlSeconds: 5, refreshTtlSeconds: 30 } },
   consent_denied: { consent: { error: "access_denied" } },
   intermittent_token_failure: { probabilities: { tokenUnavailable: 0.25 } },
+  id_token_clock_ahead: { tokens: { idTokenClockSkewSeconds: 600 } },
+  id_token_stale: { tokens: { idTokenClockSkewSeconds: -7200 } },
+  id_token_unknown_key: { tokens: { idTokenSigningKey: "unpublished" } },
 } as const satisfies Record<string, OAuthBehavior>
 export type OAuthScenario = keyof typeof OAUTH_SCENARIOS
 export type BehaviorInput = OAuthBehavior & { preset?: OAuthScenario }
@@ -166,9 +173,18 @@ export function validateBehavior(input: unknown): OAuthBehavior {
       "refreshTtlSeconds",
       "refreshRotation",
       "refreshError",
+      "idTokenClockSkewSeconds",
+      "idTokenSigningKey",
     ])
     enumeration(tokens.refreshRotation, ["reuse", "rotate"])
     enumeration(tokens.refreshError, ["invalid_grant", "invalid_rapt"])
+    enumeration(tokens.idTokenSigningKey, ["published", "unpublished"])
+    const skew = tokens.idTokenClockSkewSeconds
+    if (
+      skew !== undefined &&
+      (typeof skew !== "number" || !Number.isSafeInteger(skew) || Math.abs(skew) > 315360000)
+    )
+      throw new Error("idTokenClockSkewSeconds must be an integer in [-315360000,315360000]")
     for (const key of ["accessTtlSeconds", "codeTtlSeconds", "refreshTtlSeconds"]) {
       const v = tokens[key]
       if (
