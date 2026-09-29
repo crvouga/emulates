@@ -59,7 +59,8 @@
       "docs": "https://www.medplum.com/docs",
       "description": "Medplum is an open-source, FHIR-native healthcare developer platform: a headless EHR backend, auth and SDKs."
     },
-    "status": "ready"
+    "status": "ready",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js && bun scripts/generate-definitions.ts",

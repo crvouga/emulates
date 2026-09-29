@@ -69,6 +69,38 @@ OpenAPI spec
 | `bun run parity:genebygene` | staging auth + API | `GENEBYGENE_CLIENT_ID` / `_CLIENT_SECRET` |
 | `bun run parity:twilio` | `https://lookups.twilio.com` (free Lookup v2 only) | `TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` |
 | `cd packages/service/oauth && bun run parity` | Google, Apple, Microsoft discovery/JWKS plus GitHub REST auth error | None; public, read-only metadata |
-| `bun run parity:service -- <name…> \| --all` | each service's sandbox | `<NAME>_*` in env; reports `parity`, `diverged`, or `no credentials` per service |
-| `bun run parity:remote -- <name…> \| --all` | each service's sandbox, on GitHub Actions | the repo's `<NAME>_*` secrets; nothing local. Dispatches the [Parity workflow](../.github/workflows/parity.yml) on the pushed branch and streams its log |
+| `bun run parity:service -- <name…> \| --all \| --tier=<tier>` | each service's sandbox | `<NAME>_*` in env; reports `parity`, `diverged`, or `no credentials` per service |
+| `bun run parity:remote -- <name…> \| --all \| --tier=<tier>` | each service's sandbox, on GitHub Actions | the repo's `<NAME>_*` secrets; nothing local. Dispatches the [Parity workflow](../.github/workflows/parity.yml) on the pushed branch and streams its log |
 | `bun run verify:junction` | Junction sandbox | `mockingbird-junction verify`: corpus drift plus a stateful scenario; also runs daily in the [Verify workflow](../.github/workflows/verify.yml) |
+
+### Parity tiers
+
+Live parity spends a vendor's rate limit, so each service declares how often it may run, in its
+`package.json` (`scripts/parity-tiers.ts` is the only reader):
+
+```json
+"mockingbird": { "…": "…", "parityTier": "cold" }
+```
+
+| Tier | Runs | Where |
+| --- | --- | --- |
+| `hot` | on each PR that changes something in the service's dependency graph | [`advisory.yml`](../.github/workflows/advisory.yml) → [`parity.yml`](../.github/workflows/parity.yml) |
+| `warm` | on a schedule (weekly, Mondays 06:17 UTC) | `schedule:` in `parity.yml` |
+| `cold` | only when dispatched by hand | `bun run parity:remote -- <service>` |
+
+A hot service runs only when its dependency graph changed: its own package, or any workspace
+package it depends on, directly or transitively (Turborepo's graph, read by
+`scripts/affected.ts`). Modifying mock A never runs mock B; modifying `core` runs every hot
+service that depends on it. Edits that cannot change a result (`*.md`, tests) are ignored. Outside
+the graph, `tsconfig.base.json` (a turbo global dependency), `scripts/bundle-service*.ts`,
+`scripts/parity-service.ts` and a `bun.lock` change to an external package or to the root reach every
+hot service; a `bun.lock` change to one workspace's own entry reaches that service; root config,
+workflows and docs reach none. A service lists files it reads beyond its graph in
+`mockingbird.parityInputs` (junction: `PARITY_FAILURE_SEED_REGISTRY.json`).
+
+A service with no `parityTier` is cold, and every service starts there. **To promote one, change
+that one value** (`cold` → `warm` → `hot`); no workflow names a service. A manual run takes any
+service whatever its tier, or a whole tier: `bun run parity:remote -- --tier=warm`. Hot and warm
+services need their `<SERVICE>_*` secrets mapped in `parity.yml`'s `env:` first (a service without
+its keys reports `no credentials`, not a pass). `bun run parity:tiers` lists every service with its
+tier; `bun run check:parity-tiers` rejects a value that is not one of the three.
