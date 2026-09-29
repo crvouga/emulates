@@ -88,6 +88,74 @@ live-parity step (`STRIPE_X: ${{ secrets.STRIPE_X }}`). It maps each secret by n
 because GitHub holds a run that dumps the whole `secrets` context as "may be malicious" until
 someone approves it by hand.
 
+## Resolving issues on GitHub
+
+`bun github:resolve-issues` runs the [Resolve issues](../.github/workflows/resolve-issues.yml)
+workflow as **you**, with credentials bounded to that run. No repo secret is involved. The workflow
+starts one Claude Code agent per `agent-reported` issue. Each agent opens a draft PR, runs
+[`/resolve-issues <n>`](../.agents/commands/resolve-issues.md), and then runs `/pr-ready` until the
+PR is green and ready to merge. When a decision needs a human, the agent comments on the issue
+instead. It never merges.
+
+```bash
+bun github:resolve-issues setup           # once, by the repo owner (below)
+bun github:resolve-issues                 # the queue: up to 3 (--max=<k>, at most 10) unassigned parity, bug, then feature issues
+bun github:resolve-issues 190 191         # these issues (a new-service issue runs only when named)
+bun github:resolve-issues --dry-run 190   # hand over and check the credentials, then stop
+```
+
+### Safeguards
+
+- **You confirm each run.** The command shows the issues, model and ref, and asks before it
+  creates anything (`--yes` skips the prompt). You then approve the run's GitHub token in the
+  browser.
+- **The GitHub token is minted per run and reaches this repo only.** GitHub has no API that
+  creates a personal access token. So the command mints a GitHub App user access token with the
+  device flow, from the repo's own app:
+  - The app is installed on this repository alone.
+  - It has only Contents, Issues, Pull requests and Actions write, and Checks and Statuses read.
+    It has no Workflows, Administration, Secrets or Variables permission.
+  - The token expires within 8 hours, and commits and PRs made with it are yours, so they
+    trigger CI.
+
+  The command refuses a token that reaches more, or that does not expire, and the job checks it
+  again before using it (`scripts/github-app-token.ts`). So an agent misled by an issue's text
+  cannot reach your other repositories, change a workflow file, or push to `main` (the ruleset
+  also blocks that). Your `gh` login is used only on your machine, to dispatch the run and pass
+  the credentials over.
+- **Claude access is subscription-only.** `CLAUDE_CODE_OAUTH_TOKEN` comes from your `.env.local`
+  (`claude setup-token`). The job unsets `ANTHROPIC_API_KEY`, and Claude Code keeps its
+  credentials out of the agent's shell commands (`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`).
+- **Credentials are never workflow inputs.** The repository is public, and inputs are neither
+  masked nor secret. Instead, each job generates a key pair and uploads only its public key. The
+  command encrypts the credentials to that key, bound to the run and the issue, and passes the
+  ciphertext through a secret gist. It deletes the gist as soon as every job has read it; keep the
+  command running until it says so, which takes a minute or two. The job masks both tokens,
+  refuses anything that is not a one-line token, deletes its private key, and redacts both tokens
+  from the agent's report. A re-run job cannot get credentials, so dispatch again instead.
+- **Runs are bounded.** A run takes at most 10 issues, and each job stops after 3 hours. The job
+  holds no vendor sandbox keys: to check a report against the oracle, the agent dispatches the
+  Parity workflow (`bun run parity:remote`).
+
+To cut a run's token off before it expires, revoke the app's authorization at
+https://github.com/settings/apps/authorizations.
+
+### One-time setup (repo owner)
+
+```bash
+bun github:resolve-issues setup
+```
+
+1. It opens a localhost page that registers the app on GitHub from a manifest. The app is
+   private, has no webhook, and has only the permissions above. The command keeps only the app's
+   public client id and slug, in `.github/resolve-issues-app.json`. The app's private key and
+   client secret are dropped unread, so nothing can ever act as the app itself.
+2. In the app's settings, tick **Enable Device Flow**, and keep **Expire user authorization
+   tokens** on. Install the app on **Only select repositories** and pick this repository. The
+   command prints both links.
+3. Run `bun github:resolve-issues setup` again. It mints a token and checks all of the above.
+   Then commit `.github/resolve-issues-app.json`.
+
 ## Releasing
 
 The mock services (`@crvouga/mockingbird-service-*`, the only published packages) are released
@@ -139,6 +207,8 @@ what `main` already built and tested. No token, no server.
 | `GITHUB_TOKEN` | built into GitHub Actions | automatic |
 | `NPM_TOKEN` | repo secret | creating new packages, deprecations |
 | `<SERVICE>_*` sandbox keys | repo secrets (+ optionally your `.env.local`) | live parity only |
+| `CLAUDE_CODE_OAUTH_TOKEN` | your `.env.local` (never a repo secret) | `bun github:resolve-issues`: your Claude subscription |
+| Resolve issues GitHub App | its public client id in `.github/resolve-issues-app.json`; no private key or client secret is kept | `bun github:resolve-issues`: mints a token per run for this repo only (`setup` creates it) |
 | `GITGUARDIAN_API_KEY` | your `.env.local` | optional: `pr:ready guardian ignore` |
 
 Inventory: [`secrets.manifest.yaml`](../secrets.manifest.yaml) (non-parity secrets and the

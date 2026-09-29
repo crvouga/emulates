@@ -237,7 +237,7 @@ function findModuleSpecifiers(text: string): string[] {
   }
 
   const out = new Set<string>()
-  const isWordStart = (i: number): boolean => i === 0 || !/[A-Za-z0-9_$]/.test(text[i - 1])
+  const isWordStart = (i: number): boolean => i === 0 || !/[A-Za-z0-9_$]/.test(text[i - 1] ?? "")
   const readString = (qi: number): { spec: string; end: number } | null => {
     const quote = text[qi]
     if (quote !== "'" && quote !== '"') return null
@@ -265,7 +265,7 @@ function findModuleSpecifiers(text: string): string[] {
 
     if (text.startsWith("from", i)) {
       let j = i + 4
-      while (j < text.length && /\s/.test(text[j])) j++
+      while (j < text.length && /\s/.test(text[j] ?? "")) j++
       const found = readString(j)
       if (found) {
         out.add(found.spec)
@@ -273,10 +273,10 @@ function findModuleSpecifiers(text: string): string[] {
       }
     } else if (text.startsWith("require", i)) {
       let j = i + 7
-      while (j < text.length && /\s/.test(text[j])) j++
+      while (j < text.length && /\s/.test(text[j] ?? "")) j++
       if (text[j] === "(") {
         j++
-        while (j < text.length && /\s/.test(text[j])) j++
+        while (j < text.length && /\s/.test(text[j] ?? "")) j++
         const found = readString(j)
         if (found) {
           out.add(found.spec)
@@ -285,10 +285,10 @@ function findModuleSpecifiers(text: string): string[] {
       }
     } else if (text.startsWith("import", i)) {
       let j = i + 6
-      while (j < text.length && /\s/.test(text[j])) j++
+      while (j < text.length && /\s/.test(text[j] ?? "")) j++
       if (text[j] === "(") {
         j++
-        while (j < text.length && /\s/.test(text[j])) j++
+        while (j < text.length && /\s/.test(text[j] ?? "")) j++
         const found = readString(j)
         if (found) {
           out.add(found.spec)

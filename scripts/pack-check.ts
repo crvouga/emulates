@@ -78,7 +78,7 @@ if (!exportEntry) {
 }
 
 if (exportEntry && (exportEntry.default || exportEntry.import)) {
-  const mainRel = (exportEntry.default || exportEntry.import).replace(/^\.\//, "")
+  const mainRel = (exportEntry.default || exportEntry.import || "").replace(/^\.\//, "")
   if (!existsSync(join(pkgDir, mainRel))) {
     fail(
       `${name}: exports["."].${exportEntry.default ? "default" : "import"} points at ${mainRel} which does not exist`,

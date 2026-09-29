@@ -107,7 +107,7 @@ jobs:
         with:
           turbo-cache: static
 
-      - name: Format, lint, boundaries, agents, worktree, llms.txt, README, brands
+      - name: Format, lint, boundaries, agents, worktree, llms.txt, README, brands, scripts, workflows
         run: bun scripts/ci-plan.ts static --output-logs=errors-only --continue=dependencies-successful
 
       - if: always()
