@@ -115,6 +115,7 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         )
       if (params.product === "") throw parameterInvalidEmpty("product")
       if (params.product_data === "") throw parameterInvalidEmpty("product_data")
+      if (params.metadata === "") throw parameterInvalidEmpty("metadata")
       const hasAmount = params.unit_amount !== undefined
       const hasDecimal = params.unit_amount_decimal !== undefined
       // Stripe rejects the amount conflict before it looks the product up.
