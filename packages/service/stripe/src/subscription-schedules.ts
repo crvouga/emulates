@@ -216,7 +216,7 @@ export const subscriptionScheduleHandlers = (
       params,
       {
         url: "/v1/subscription_schedules",
-        kind: "subscription_schedule",
+        kind: "subscription schedule",
         where: (record) =>
           matchesCreated(record.created, params.created) &&
           (customer === undefined || customer === "" || record.customer === customer),
