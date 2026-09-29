@@ -101,6 +101,23 @@ describe("S12.3 acceptance: our consumers' logic against the mock", () => {
     })
   })
 
+  test("a MedPax box holds more than four pills, as the vendor's real boxes do", async () => {
+    // Real boxes carry up to 14 pills and the vendor places them, so the mock must not reject
+    // a realistic box at submit.
+    const { scheduler, runtime } = harness()
+    const times = ["AM", "PM", "AM with food", "PM with food"] as const
+    const order = sampleSchedulerOrder()
+    order.context.fulfillment_items = Array.from({ length: 7 }, (_, index) => ({
+      product_id: index % 2 === 0 ? "MPVD001" : "MP001",
+      quantity: 30,
+      fulfillment: "medpax",
+      dosing_time: times[index % times.length] ?? "AM",
+    }))
+    const placed = await scheduler.placeOrder(order)
+    expect(placed.status).toBe("placed")
+    expect(runtime.instance().orders()[0]?.items).toHaveLength(8)
+  })
+
   test("backend: private-label restructure, place, then read the status back", async () => {
     const { backend, runtime } = harness()
     const placed = await backend.placeOrder({
