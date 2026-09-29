@@ -83,7 +83,8 @@ export const compareStripeWebhooks = (
 
 type StripeOracle = {
   cursor(): number
-  collect(cursor: number, expected: number): Promise<unknown[]>
+  /** Events delivered since `cursor`, created at or after `since` (unix seconds) when given. */
+  collect(cursor: number, expected: number, since?: number): Promise<unknown[]>
   close(): Promise<void>
 }
 
@@ -189,7 +190,7 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   }
   return {
     cursor: () => rows.length,
-    async collect(cursor, expected) {
+    async collect(cursor, expected, since) {
       const deadline = Date.now() + 10_000
       let previousCount = -1
       let stableSince = Date.now()
@@ -197,6 +198,13 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
         const seen = new Set<string>()
         return rows.slice(cursor).flatMap((row) => {
           const payload = record(row.payload)
+          // A previous walk's cleanup can still be delivering its own events: skip those.
+          if (
+            since !== undefined &&
+            typeof payload?.created === "number" &&
+            payload.created < since
+          )
+            return []
           const id = typeof payload?.id === "string" ? payload.id : undefined
           if (id !== undefined) {
             if (seen.has(id)) return []

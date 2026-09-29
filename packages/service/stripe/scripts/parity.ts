@@ -1,4 +1,3 @@
-import { join } from "node:path"
 import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
 import { parity } from "@crvouga/mockingbird-parity"
 import { document, StripeAPI } from "../src/index.js"
@@ -254,8 +253,8 @@ try {
             beforeWalk: async () => {
               webhookCursor = webhookOracle.cursor()
             },
-            collectReal: async (_scope: unknown, mockEvents: readonly unknown[]) =>
-              webhookOracle.collect(webhookCursor, mockEvents.length),
+            collectReal: async (scope: { walkStartUnix: number }, mockEvents: readonly unknown[]) =>
+              webhookOracle.collect(webhookCursor, mockEvents.length, scope.walkStartUnix),
             collectMock: async (mock: unknown) =>
               (mock as StripeAPI).webhookEvents().map((event) => JSON.parse(event.body) as unknown),
             compare: compareStripeWebhooks,

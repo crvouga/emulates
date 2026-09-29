@@ -338,7 +338,6 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       const operationId = entry.split(" ")[0] ?? entry
       exercised[operationId] = (exercised[operationId] ?? 0) + 1
     }
-    lastWalkEnd = now()
 
     let webhookFailure: ParityError | undefined
     let webhookEvents: WalkWebhookEvents | undefined
@@ -405,6 +404,9 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
         },
       })
     }
+    // The walk ends once cleanup has finished: the deletes it issues raise events of their own,
+    // and the next walk must start after those, not while they are still being delivered.
+    lastWalkEnd = now()
 
     if (webhookFailure) {
       lastWalkFailure = webhookFailure
