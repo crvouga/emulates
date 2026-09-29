@@ -53,13 +53,15 @@ jobs:
         run: bunx turbo run build --output-logs=errors-only
 
       # Stripe's parity script compares webhook deliveries through `stripe listen`, which needs the
-      # Stripe CLI on PATH (the runner image does not ship it).
+      # Stripe CLI on PATH (the runner image does not ship it). Pinned: from 1.52 `stripe listen`
+      # refuses to start without --events/--all-snapshot, while the script relies on the older
+      # forward-everything default.
       - name: Install Stripe CLI
         if: contains(inputs.services, 'stripe') || contains(inputs.services, '--all')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download --repo stripe/stripe-cli --pattern 'stripe_*_linux_x86_64.tar.gz' --dir "$RUNNER_TEMP"
+          gh release download v1.45.0 --repo stripe/stripe-cli --pattern 'stripe_*_linux_x86_64.tar.gz' --dir "$RUNNER_TEMP"
           mkdir -p "$HOME/.local/bin"
           tar -xzf "$RUNNER_TEMP"/stripe_*_linux_x86_64.tar.gz -C "$HOME/.local/bin" stripe
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
