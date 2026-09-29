@@ -1652,6 +1652,7 @@
         "@crvouga/mockingbird-service-formbricks": "workspace:*",
         "@crvouga/mockingbird-service-fullscript": "workspace:*",
         "@crvouga/mockingbird-service-genebygene": "workspace:*",
+        "@crvouga/mockingbird-service-github": "workspace:*",
         "@crvouga/mockingbird-service-google-calendar": "workspace:*",
         "@crvouga/mockingbird-service-google-maps": "workspace:*",
         "@crvouga/mockingbird-service-healthie": "workspace:*",

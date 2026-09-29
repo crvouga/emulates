@@ -5,7 +5,7 @@ info:
   description: "Synthetic repository, commit-backed reference and pull-request subset; no Git transport or credential enforcement."
   x-mockingbird-upstream:
     url: https://github.com/github/rest-api-description/blob/c6721f32a17a71397ae46be21be90d7f1a173b6e/descriptions/api.github.com/api.github.com.2026-03-10.json
-    note: Source-pinned REST subset. See API_EVIDENCE.md for limitations and pending parity.
+    note: Source-pinned REST subset. See API_EVIDENCE.md for bounded live comparisons and remaining limitations.
 servers:
   - url: https://api.github.com
 paths:

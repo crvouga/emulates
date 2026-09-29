@@ -6,7 +6,7 @@
 
 **Mock the APIs you depend on, with the behavior they really have.**
 
-[![Ready](https://img.shields.io/badge/Ready-8-2ea44f)](#ready) [![Work in progress](https://img.shields.io/badge/In_progress-44-e36209)](#work-in-progress) [![CI](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml/badge.svg)](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml) [![License](https://img.shields.io/badge/license-MIT-5b4fe0)](#license)
+[![Ready](https://img.shields.io/badge/Ready-8-2ea44f)](#ready) [![Work in progress](https://img.shields.io/badge/In_progress-45-e36209)](#work-in-progress) [![CI](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml/badge.svg)](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml) [![License](https://img.shields.io/badge/license-MIT-5b4fe0)](#license)
 
 [Quick start](#quick-start) · [Services](#services) · [Why](docs/WHY.md) · [Guides](#guides) · [llms.txt](llms.txt)
 
@@ -65,10 +65,10 @@ The full rationale, and when not to use it: [docs/WHY.md](docs/WHY.md).
 
 ## Services
 
-52 services, each its own npm package. Every service declares a release tier:
+53 services, each its own npm package. Every service declares a release tier:
 
 - **Ready** (8): Complete, checked against the vendor, and kept stable. Use it in your test suite.
-- **Work in progress** (44): Usable, but incomplete: operations, response shapes and options can still change between releases. Pin an exact version.
+- **Work in progress** (45): Usable, but incomplete: operations, response shapes and options can still change between releases. Pin an exact version.
 
 ### Ready
 
@@ -112,6 +112,7 @@ The full rationale, and when not to use it: [docs/WHY.md](docs/WHY.md).
 | [AWS Secrets Manager & SSM](packages/service/aws-secrets) | [aws.amazon.com](https://aws.amazon.com/secrets-manager/) · [API docs](https://docs.aws.amazon.com/secretsmanager/latest/apireference/) | Identity | [`@crvouga/mockingbird-service-aws-secrets`](https://www.npmjs.com/package/@crvouga/mockingbird-service-aws-secrets) | Stateful AWS Secrets Manager and SSM Parameter Store mock with versions, stages, rotation, and redacted controls. |
 | [Persona](packages/service/persona) | [withpersona.com](https://withpersona.com) · [API docs](https://docs.withpersona.com) | Identity | [`@crvouga/mockingbird-service-persona`](https://www.npmjs.com/package/@crvouga/mockingbird-service-persona) | Stateful mock of the Persona identity-verification API: inquiry create, list (reusable lookup), get, a hosted flow page, admin lifecycle transitions, and Persona-Signature webhooks. |
 | [Docker Engine](packages/service/docker) | [docker.com](https://www.docker.com) · [API docs](https://docs.docker.com/reference/api/engine/version/v1.52/) | Infrastructure | [`@crvouga/mockingbird-service-docker`](https://www.npmjs.com/package/@crvouga/mockingbird-service-docker) | Stateful Docker Engine API v1.52 mock with portable controls and Node transport. |
+| [GitHub](packages/service/github) | [github.com](https://github.com) · [API docs](https://docs.github.com/en/rest) | Infrastructure | [`@crvouga/mockingbird-service-github`](https://www.npmjs.com/package/@crvouga/mockingbird-service-github) | Stateful GitHub REST API 2026-03-10 mock for repository, reference and pull-request scenarios. |
 | [Hermes Agent](packages/service/hermes) | [hermes-agent.nousresearch.com](https://hermes-agent.nousresearch.com) · [API docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/) | Infrastructure | [`@crvouga/mockingbird-service-hermes`](https://www.npmjs.com/package/@crvouga/mockingbird-service-hermes) | Hermes peer-run API mock with portable scripted lifecycle controls. |
 | [EasyPost](packages/service/easypost) | [easypost.com](https://www.easypost.com) · [API docs](https://docs.easypost.com/docs/trackers) | Maps & logistics | [`@crvouga/mockingbird-service-easypost`](https://www.npmjs.com/package/@crvouga/mockingbird-service-easypost) | Stateful mock of the EasyPost trackers API: create/re-use trackers, EasyPost's test tracking codes, admin status transitions and EasyPost's error envelope. |
 | [Google Maps](packages/service/google-maps) | [mapsplatform.google.com](https://mapsplatform.google.com) · [API docs](https://developers.google.com/maps/documentation/places/web-service) | Maps & logistics | [`@crvouga/mockingbird-service-google-maps`](https://www.npmjs.com/package/@crvouga/mockingbird-service-google-maps) | Mock of Google Places Autocomplete / Details / Find Place, the Geocoding API and a Maps JavaScript (places) shim, over a QA address corpus, with Google's status codes and fault presets. |

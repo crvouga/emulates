@@ -225,6 +225,20 @@
     "logo": "/brands/genebygene.png",
     "logoSource": "site"
   },
+  "github": {
+    "vendor": "GitHub",
+    "website": "https://github.com",
+    "docs": "https://docs.github.com/en/rest",
+    "description": "GitHub provides repository, Git reference and pull-request REST APIs.",
+    "input": {
+      "website": "https://github.com",
+      "docs": "https://docs.github.com/en/rest",
+      "description": "GitHub provides repository, Git reference and pull-request REST APIs."
+    },
+    "color": "#181717",
+    "logo": "/brands/github.svg",
+    "logoSource": "simple-icons"
+  },
   "google-calendar": {
     "vendor": "Google Calendar",
     "website": "https://workspace.google.com/products/calendar/",

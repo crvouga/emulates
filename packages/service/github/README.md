@@ -32,13 +32,48 @@ await github.fetch(new Request("http://github.mock/__admin/github/repositories",
   headers: { "content-type": "application/json" },
   body: JSON.stringify({
     owner: "synthetic-org", name: "example", default_branch: "main",
-    commits: [{ sha: "a".repeat(40), parents: [] }],
+    commits: [
+      { sha: "a".repeat(40), parents: [] },
+      { sha: "b".repeat(40), parents: ["a".repeat(40)] },
+    ],
     branches: { main: "a".repeat(40) },
   }),
 }))
 const response = await github.fetch(new Request("http://github.mock/repos/synthetic-org/example"))
 console.log(await response.json())
 ```
+
+Continue with the same runtime to publish a synthetic branch and PR:
+
+```ts
+const repo = "http://github.mock/repos/synthetic-org/example"
+const send = (path: string, method = "GET", body?: unknown) => github.fetch(
+  new Request(`${repo}${path}`, {
+    method,
+    headers: {
+      "content-type": "application/json",
+      "X-GitHub-Api-Version": "2026-03-10",
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  }),
+)
+const branch = await send("/git/refs", "POST", {
+  ref: "refs/heads/topic", sha: "b".repeat(40),
+})
+console.log(branch.status) // 201
+const created = await send("/pulls", "POST", {
+  title: "Synthetic change", head: "topic", base: "main", body: "Description",
+})
+const pr = await created.json()
+console.log(created.status, pr.number) // 201, 1
+const lookup = await send("/pulls?head=synthetic-org%3Atopic&base=main&state=open")
+console.log((await lookup.json())[0].number === pr.number) // true
+const edited = await send(`/pulls/${pr.number}`, "PATCH", { body: "" })
+console.log((await edited.json()).body === null) // true
+```
+
+All requests above stay inside the local Fetch runtime. The branch target must
+already exist in the synthetic commit graph; this is not a Git push.
 
 `createRuntime` adds health, namespaces, clock, scoped faults, redacted request
 journal and shared Timeline. Select a namespace with `x-mockingbird-namespace`
@@ -96,8 +131,9 @@ Default `force: false` requires ancestry from the head current at mutation time.
 GitHub. Unknown fields do not confer an expected-old-SHA lease or idempotency.
 
 Only commit-backed references are modeled; annotated tag objects and provider-managed
-pull refs are unsupported. Exact error wording, condition/status mapping and validation
-precedence are provisional until the bounded oracle compares them; see API_EVIDENCE.md.
+pull refs are unsupported. The bounded oracle compared successful ref operations and
+one non-fast-forward422 envelope. Other error wording, condition/status mapping and
+validation precedence remain provisional; see API_EVIDENCE.md.
 
 
 ## Pull requests
@@ -116,7 +152,7 @@ sending shared history/branch headers if you selected a Timeline branch. Popular
 and long-running sorts return501 because comments/activity are not modeled.
 
 Update title, body, base, state and maintainer_can_modify with `PATCH .../pulls/{number}`.
-An empty body string clears the description. Head is not an update field. Numbers
+An empty body string clears the description and returns null. Head is not an update field. Numbers
 are repository-scoped; id/node_id stay stable. The reduced response includes
 head/base names, repository identity and SHAs. Open PRs resolve current branch tips;
 closed PRs retain the last captured tips until explicitly updated. PR timestamps
@@ -127,9 +163,9 @@ reviews, merge execution and provider event propagation are not modeled.
 An open PR for the same head/base yields422 with a PullRequest/custom validation
 error. Consumer-private operation IDs and Idempotency-Key never deduplicate creates.
 If the response is lost, list by head/base across pages, then retrieve the matching
-number; retrying create can yield the duplicate error. Duplicate-envelope evidence
-comes from public first-hand API reports, not a pinned-version live comparison.
-See API_EVIDENCE.md for the remaining oracle and error-precedence gaps.
+number; retrying create can yield the duplicate error. The bounded live oracle
+confirmed this same-repository duplicate envelope at API version2026-03-10.
+See API_EVIDENCE.md for untested cases and error-precedence gaps.
 
 ## Publication fault scenarios
 
@@ -184,3 +220,24 @@ Parity metadata enables all nine operations; the four writes are marked unsafe
 and require explicit inclusion. Real-provider comparisons still require the
 separate bounded oracle and explicit disposable-resource authorization. WIP status
 remains until independent compatibility evidence supports a stronger claim.
+
+## Bounded live evidence and publication limits
+
+The separately approved 2026-09-29 oracle verification matched12comparisons across
+all nine operations after repairing the empty-body update mismatch found in its
+first run. Each run closed its fixture PR and deleted its two unchanged fixture
+branches; closed PR history and Git objects remain. The runner is available only
+in the repository checkout; see the
+[oracle guide](https://github.com/crvouga/mockingbird/tree/main/packages/service/github/oracle).
+It requires a reviewed manifest and explicit writes/notifications/cleanup approval,
+plus `MOCKINGBIRD_GITHUB_TOKEN` or explicitly selected authenticated `gh` usage.
+Ordinary package tests never invoke it.
+
+This evidence covers selected identity/state/ref/PR fields and two error cases.
+It does not establish complete upstream response schemas, all validation precedence,
+live multi-page behavior, real rate quotas or real network-loss guarantees. The
+package remains **WIP**. Scripted denied responses do not prove GitHub App identity,
+token permissions, branch protection or rulesets. There is no Git transport or
+token issuance, no expected-old-SHA compare-and-swap, and no atomic transaction
+covering ref movement and PR publication. Consumer reconciliation policy and
+cross-component Initiative acceptance remain outside this mock.
