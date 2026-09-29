@@ -19,9 +19,10 @@ export function page(
   status = 200,
   action = "'self'",
   nonce: string = crypto.randomUUID(),
+  testId = "",
 ): Response {
   return new Response(
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>${escapeHtml(title)} · OAuth Mock</title><style nonce="${nonce}">${style}</style></head><body><a class="skip" href="#main">Skip to content</a><header><span>OAuth Mock</span></header><main id="main"><section class="card" aria-labelledby="title">${body}</section><p class="note">Test accounts only.</p></main><footer><fieldset class="theme"><legend>Appearance</legend><label><input type="radio" name="oauth-theme" value="system" checked>System</label><label><input type="radio" name="oauth-theme" value="light">Light</label><label><input type="radio" name="oauth-theme" value="dark">Dark</label></fieldset></footer><script nonce="${nonce}">(()=>{const root=document.documentElement;const inputs=document.querySelectorAll('input[name="oauth-theme"]');const apply=value=>{root.dataset.theme=value;for(const input of inputs)input.checked=input.value===value;try{sessionStorage.setItem('oauth-mock-theme',value)}catch{}};try{const saved=sessionStorage.getItem('oauth-mock-theme');if(['system','light','dark'].includes(saved))apply(saved)}catch{}for(const input of inputs)input.addEventListener('change',()=>apply(input.value))})()</script></body></html>`,
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>${escapeHtml(title)} · OAuth Mock</title><style nonce="${nonce}">${style}</style></head><body><a class="skip" href="#main">Skip to content</a><header><span>OAuth Mock</span></header><main id="main"><section class="card" aria-labelledby="title"${testId ? ` data-testid="${testId}"` : ""}>${body}</section><p class="note">Test accounts only.</p></main><footer><fieldset class="theme"><legend>Appearance</legend><label><input type="radio" name="oauth-theme" value="system" checked>System</label><label><input type="radio" name="oauth-theme" value="light">Light</label><label><input type="radio" name="oauth-theme" value="dark">Dark</label></fieldset></footer><script nonce="${nonce}">(()=>{const root=document.documentElement;const inputs=document.querySelectorAll('input[name="oauth-theme"]');const apply=value=>{root.dataset.theme=value;for(const input of inputs)input.checked=input.value===value;try{sessionStorage.setItem('oauth-mock-theme',value)}catch{}};try{const saved=sessionStorage.getItem('oauth-mock-theme');if(['system','light','dark'].includes(saved))apply(saved)}catch{}for(const input of inputs)input.addEventListener('change',()=>apply(input.value))})()</script></body></html>`,
     {
       status,
       headers: {
@@ -45,15 +46,17 @@ export function loginPage(
 ): Response {
   const hidden = `<input type="hidden" name="transaction" value="${escapeHtml(transaction)}">`
   const endpoint = escapeHtml(`${base}/interaction`)
-  const intro = `<span class="eyebrow">Sign in</span><h1 id="title">${signup ? "Create your account" : "Choose an account"}</h1><p>${signup ? "Create an account to continue to" : "Choose an account to continue to"}<br><span class="app">${escapeHtml(client)}</span></p>${error ? `<div class="error" role="alert">${escapeHtml(error)}</div>` : ""}`
+  const intro = `<span class="eyebrow">Sign in</span><h1 id="title">${signup ? "Create your account" : "Choose an account"}</h1><p>${signup ? "Create an account to continue to" : "Choose an account to continue to"}<br><span class="app">${escapeHtml(client)}</span></p>${error ? `<div class="error" role="alert" data-testid="oauth-mock-${signup ? "signup" : "chooser"}-error">${escapeHtml(error)}</div>` : ""}`
   const body = signup
-    ? `<form method="post" action="${endpoint}">${hidden}<input type="hidden" name="action" value="signup"><div class="fields"><label for="name">Full name</label><input id="name" name="name" autocomplete="name" required maxlength="120"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="254" aria-describedby="email-help"><p id="email-help" class="note">Use a fictional address. No email will be sent.</p></div><button class="primary">Create account &amp; continue</button></form><a class="back" href="${endpoint}?transaction=${escapeHtml(transaction)}">Back to accounts</a>`
-    : `<div class="accounts">${accounts.map((a) => `<form method="post" action="${endpoint}">${hidden}<input type="hidden" name="action" value="select"><button class="account" name="account" value="${escapeHtml(a.id)}"><span class="avatar" aria-hidden="true">${escapeHtml(a.name.slice(0, 1).toUpperCase())}</span><span class="identity"><strong>${escapeHtml(a.name)}</strong><small>${escapeHtml(a.email)}</small></span><span class="arrow" aria-hidden="true">→</span></button></form>`).join("") || '<p class="empty">No accounts yet. Create your first test identity below.</p>'}</div><form method="get" action="${endpoint}">${hidden}<input type="hidden" name="screen" value="signup"><button class="secondary">＋ Create a new account</button></form>`
+    ? `<form method="post" action="${endpoint}">${hidden}<input type="hidden" name="action" value="signup"><div class="fields"><label for="name">Full name</label><input id="name" name="name" data-testid="oauth-mock-signup-name" autocomplete="name" required maxlength="120"><label for="email">Email address</label><input id="email" name="email" data-testid="oauth-mock-signup-email" type="email" autocomplete="email" required maxlength="254" aria-describedby="email-help"><p id="email-help" class="note">Use a fictional address. No email will be sent.</p></div><button class="primary" data-testid="oauth-mock-signup-submit">Create account &amp; continue</button></form><a class="back" href="${endpoint}?transaction=${escapeHtml(transaction)}">Back to accounts</a>`
+    : `<div class="accounts">${accounts.map((a) => `<form method="post" action="${endpoint}" data-testid="oauth-mock-account" data-account-id="${escapeHtml(a.id)}" data-email="${escapeHtml(a.email)}">${hidden}<input type="hidden" name="action" value="select"><button class="account" data-testid="oauth-mock-account-${escapeHtml(a.id)}" name="account" value="${escapeHtml(a.id)}"><span class="avatar" aria-hidden="true">${escapeHtml(a.name.slice(0, 1).toUpperCase())}</span><span class="identity"><strong>${escapeHtml(a.name)}</strong><small>${escapeHtml(a.email)}</small></span><span class="arrow" aria-hidden="true">→</span></button></form>`).join("") || '<p class="empty">No accounts yet. Create your first test identity below.</p>'}</div><form method="get" action="${endpoint}">${hidden}<input type="hidden" name="screen" value="signup"><button class="secondary" data-testid="oauth-mock-create-account">＋ Create a new account</button></form>`
   return page(
     signup ? "Create account" : "Choose an account",
-    `${intro}${body}<div class="divider"></div><form method="post" action="${endpoint}">${hidden}<button class="secondary" name="action" value="deny">Cancel sign-in</button></form>`,
+    `${intro}${body}<div class="divider"></div><form method="post" action="${endpoint}">${hidden}<button class="secondary" data-testid="oauth-mock-deny" name="action" value="deny">Cancel sign-in</button></form>`,
     error ? 400 : 200,
     action,
+    undefined,
+    signup ? "oauth-mock-signup" : "oauth-mock-chooser",
   )
 }
 export function consentPage(
@@ -74,7 +77,7 @@ export function consentPage(
   }
   const privacyFields = privacy
     ? privacy.choice
-      ? `<fieldset class="privacy"><legend>Choose what to share</legend><label><input type="radio" name="email_choice" value="share" ${!privacy.hideEmail ? "checked" : ""}><span>Share my email<small>Your app will receive ${escapeHtml(account.email)}.</small></span></label><label><input type="radio" name="email_choice" value="hide" ${privacy.hideEmail ? "checked" : ""}><span>Hide my email<small>Use a private relay address to keep your email private.</small></span></label></fieldset>`
+      ? `<fieldset class="privacy"><legend>Choose what to share</legend><label><input type="radio" name="email_choice" data-testid="oauth-mock-share-email" value="share" ${!privacy.hideEmail ? "checked" : ""}><span>Share my email<small>Your app will receive ${escapeHtml(account.email)}.</small></span></label><label><input type="radio" name="email_choice" data-testid="oauth-mock-hide-email" value="hide" ${privacy.hideEmail ? "checked" : ""}><span>Hide my email<small>Use a private relay address to keep your email private.</small></span></label></fieldset>`
       : `<p>${privacy.hideEmail ? "A private relay address will be shared with this app." : "Your email address will be shared with this app."}</p>`
     : ""
   return page(
@@ -88,8 +91,10 @@ export function consentPage(
       )
       .join(
         "",
-      )}</ul><p>You can cancel now without sharing anything.</p><form method="post" action="${escapeHtml(base)}/interaction"><input type="hidden" name="transaction" value="${escapeHtml(transaction)}">${privacyFields}<button class="primary" name="action" value="allow">Allow &amp; continue</button><button class="secondary" name="action" value="deny">Cancel</button></form>`,
+      )}</ul><p>You can cancel now without sharing anything.</p><form method="post" action="${escapeHtml(base)}/interaction"><input type="hidden" name="transaction" value="${escapeHtml(transaction)}">${privacyFields}<button class="primary" data-testid="oauth-mock-allow" name="action" value="allow">Allow &amp; continue</button><button class="secondary" data-testid="oauth-mock-deny" name="action" value="deny">Cancel</button></form>`,
     200,
     action,
+    undefined,
+    "oauth-mock-consent",
   )
 }
