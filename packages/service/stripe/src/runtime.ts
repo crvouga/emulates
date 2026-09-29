@@ -25,6 +25,7 @@ import { openDispute, paymentMethodFromCard } from "./payments.js"
 import { moveRefund } from "./refunds.js"
 import { renderCharge, renderCheckoutSession, renderDispute, renderRefund } from "./render.js"
 import { confirmSetup } from "./setup-intents.js"
+import { createClockTimers } from "./webhook-timers.js"
 
 /** `error` bodies of the canned responses, as Stripe words them. */
 const RATE_LIMITED = {
@@ -151,6 +152,19 @@ export type StripeRuntimeOptions = {
     endpoints?: WebhookEndpoint[]
     retryDelaysMs?: readonly number[]
     fetch?: (request: Request) => Promise<Response>
+    /**
+     * Sources for the hub's timestamps, timers and ids. With an injected `clock`, `now` is that
+     * clock (`Stripe-Signature` `t` is the mock's time, so `constructEventAsync(..., receivedAt)`
+     * verifies) and retries and attempt timeouts count down on it: they fire when
+     * `runtime.clock.advance`/`set`/`reset` or `runtime.tick()` finds them due (a suite that
+     * moves its own clock object calls `tick()` after). Without one they
+     * stay on the wall clock. Pass `schedule` and `cancel` together.
+     */
+    now?: () => number
+    schedule?: (callback: () => void, delayMs: number) => unknown
+    cancel?: (handle: unknown) => void
+    /** Receives `"msg_"` or `"dlv_"`. */
+    id?: (prefix: string) => string
   }
   /** Recorded catalog for accounts configured with `corpus: true` (default: the bundled one). */
   corpus?: Corpus
@@ -213,10 +227,18 @@ const guard = (run: () => Response): Response => {
  */
 export const createRuntime = (options: StripeRuntimeOptions = {}): StripeRuntime => {
   const accounts = new AccountDirectory(options.accounts ?? [])
+  const baseClock = options.clock ?? createClock()
+  const timers = options.clock ? createClockTimers(options.clock) : undefined
   const hub = createWebhookHub({
     signer: signers.timestamped("Stripe-Signature"),
     ...(options.webhooks?.retryDelaysMs ? { retryDelaysMs: options.webhooks.retryDelaysMs } : {}),
     ...(options.webhooks?.fetch ? { fetch: options.webhooks.fetch } : {}),
+    ...(options.clock ? { now: () => baseClock.now() } : {}),
+    ...(options.webhooks?.now ? { now: options.webhooks.now } : {}),
+    ...(timers ? { schedule: timers.schedule, cancel: timers.cancel } : {}),
+    ...(options.webhooks?.schedule ? { schedule: options.webhooks.schedule } : {}),
+    ...(options.webhooks?.cancel ? { cancel: options.webhooks.cancel } : {}),
+    ...(options.webhooks?.id ? { id: options.webhooks.id } : {}),
     endpoints: options.webhooks?.endpoints ?? [],
   })
   let runtimeRef: ServiceRuntime<StripeAPI> | undefined
@@ -290,8 +312,8 @@ export const createRuntime = (options: StripeRuntimeOptions = {}): StripeRuntime
     },
   }
 
-  const baseClock = options.clock ?? createClock()
   const tickAll = () => {
+    timers?.run()
     if (!runtimeRef) return
     for (const name of runtimeRef.namespaces()) runtimeRef.instance(name).tick(true)
   }

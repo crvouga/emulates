@@ -170,6 +170,16 @@ export class Credentials {
     const kid = this.token()
     return new Signer({ ...seededRsa(`${this.seed}:key:${index}`), kid })
   }
+  /**
+   * The key that signs ID tokens but is never published. Never taken from `signingKeys` (those are
+   * published); under a seed it is derived without touching the draw counter.
+   */
+  unpublishedSigner(): Signer {
+    if (!this.options.deterministicCredentials || this.options.randomBytes)
+      return new Signer(undefined, this.token())
+    const label = `${this.seed}:unpublished`
+    return new Signer({ ...seededRsa(label), kid: base64url(seededBytes(`${label}:kid`, 32)) })
+  }
   /** Start the signing-key sequence over; the draw counter is cleared with the namespace. */
   restart(): void {
     this.keyIndex = 0

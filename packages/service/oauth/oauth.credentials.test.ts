@@ -172,6 +172,25 @@ describe("opt-in seeded credentials", () => {
     expect((await jwks()).keys[1].n).toBe(keys[0]?.publicJwk.n)
   })
 
+  test("ID-token faults sign deterministically under a seed, including the unpublished key", async () => {
+    const options: OAuthAPIOptions = {
+      ...base,
+      seed: "faults",
+      deterministicCredentials: true,
+      behavior: { tokens: { idTokenSigningKey: "unpublished", idTokenClockSkewSeconds: 600 } },
+    }
+    const first = await run(new OAuthAPI(options))
+    const second = await run(new OAuthAPI(options))
+    expect(second.transcript).toBe(first.transcript)
+    const set = await (await new OAuthAPI(options).fetch(new Request(`${issuer}/jwks`))).json()
+    const { kid } = decodeProtectedHeader(first.tokens.id_token)
+    expect(set.keys.map((k: { kid: string }) => k.kid)).not.toContain(kid)
+    const api = new OAuthAPI(options)
+    await run(api)
+    await api.reset()
+    expect((await run(api)).transcript).toBe(first.transcript)
+  })
+
   test("without the option credentials stay cryptographically random", async () => {
     const first = await run(new OAuthAPI({ ...base, seed: "s1" }))
     const second = await run(new OAuthAPI({ ...base, seed: "s1" }))
