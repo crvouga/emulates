@@ -36,6 +36,8 @@ const harness = async (
     })
     return { status: response.status, body: (await response.json()) as Record<string, unknown> }
   }
+  // A frozen clock keeps every timestamp exact: only the tests move it.
+  await admin("POST", "/clock", { freeze: true })
   const now = async () => Number((await admin("GET", "/clock")).body.now) / 1000
   /** Move the clock to an absolute time (seconds); the lifecycle runs on every move. */
   const advanceTo = async (at: number) => {
