@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test"
 import { validateValue } from "@crvouga/mockingbird-openapi"
+import cancelledTestkitObservation from "./scripts/cancelled-testkit-observation.json" with {
+  type: "json",
+}
 import { probeSimulationLifecycle, type SimulationProbeCall } from "./scripts/simulation-probes.js"
 import { document, JunctionAPI } from "./src/index.js"
 
@@ -76,25 +79,34 @@ test("a simulation 500 is recorded without retry and the other independent cases
   expect(requests.filter((request) => request.method === "DELETE")).toHaveLength(1)
 })
 
-test("cancelled testkit completion matches the four-case sandbox observation without changing lifecycle", async () => {
-  const { call } = fixture()
-  const report = await probeSimulationLifecycle(async (method, path, body) => {
-    const reply = await call(method, path, body)
-    if (path.includes("/test?") && reply.status === 500) {
-      const operation = document.paths["/v3/order/{order_id}/test"]?.post
-      const response = operation?.responses?.[String(reply.status)]
-      const schema =
-        response && !("$ref" in response) ? response.content?.["text/plain"]?.schema : undefined
-      expect(schema).toBeDefined()
-      if (!schema) throw new Error("missing observed simulation response schema")
-      expect(validateValue(document, schema, reply.body)).toEqual([])
-      expect(reply.body).toBe("Internal Server Error")
+test.each([undefined, ...cancelledTestkitObservation.targets])(
+  "cancelled testkit simulation preserves the observed lifecycle for %s",
+  async (target) => {
+    const { call } = fixture()
+    const report = await probeSimulationLifecycle(async (method, path, body) => {
+      const reply = await call(
+        method,
+        target === undefined
+          ? path
+          : path.replace(/final_status=completed\.[^&]+/, `final_status=${target}`),
+        body,
+      )
+      if (path.includes("/test?") && reply.status === 500) {
+        const operation = document.paths["/v3/order/{order_id}/test"]?.post
+        const response = operation?.responses?.[String(reply.status)]
+        const schema =
+          response && !("$ref" in response) ? response.content?.["text/plain"]?.schema : undefined
+        expect(schema).toBeDefined()
+        if (!schema) throw new Error("missing observed simulation response schema")
+        expect(validateValue(document, schema, reply.body)).toEqual([])
+        expect(reply.body).toBe("Internal Server Error")
+      }
+      return reply
+    }, "cancelled-regression")
+    expect(report.complete).toBe(true)
+    expect(report.cases.map((entry) => entry.status)).toEqual([200, 200, 500, 500])
+    for (const entry of report.cases.filter((entry) => entry.cancelled)) {
+      expect(entry.after).toEqual(entry.before)
     }
-    return reply
-  }, "cancelled-regression")
-  expect(report.complete).toBe(true)
-  expect(report.cases.map((entry) => entry.status)).toEqual([200, 200, 500, 500])
-  for (const entry of report.cases.filter((entry) => entry.cancelled)) {
-    expect(entry.after).toEqual(entry.before)
-  }
-})
+  },
+)

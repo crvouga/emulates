@@ -1226,14 +1226,11 @@ export const orderHandlers = (state: JunctionState) => ({
       })
       return jsonRes(200, "Success")
     }
-    // Sandbox probe 2026-09-29 (PR #173): both completion targets return a plain
-    // 500 for cancelled testkits, leaving the order unchanged. Keep this quirk
-    // limited to the observed immediate requests; other modalities/delays are unprobed.
+    // Sandbox matrix 2026-09-29: all 54 valid targets return a plain 500 for cancelled
+    // testkits without changing the order. Other modalities/delays remain unprobed.
     if (
       order.lab_test.method === "testkit" &&
-      order.events.some((event) => event.status === "cancelled.testkit.cancelled") &&
-      (finalStatus === "completed.testkit.completed" ||
-        finalStatus === "completed.at_home_phlebotomy.completed")
+      order.events.some((event) => event.status === "cancelled.testkit.cancelled")
     ) {
       return new Response("Internal Server Error", {
         status: 500,
