@@ -18,6 +18,7 @@ import { document, JunctionAPI } from "../src/index.js"
 import { prefetchCoverageObservations } from "../src/prefetch.js"
 import { reshapeCoverageGeoCommand } from "../src/reshape.js"
 import { PARITY_SEEDS } from "../src/seeds.js"
+import { diagnoseSimulationFailure } from "./simulation-diagnostics.js"
 
 /** Docs: https://docs.junction.com/api-details/junction-api */
 const DEFAULT_JUNCTION_HOST = "api.sandbox.tryvital.io"
@@ -280,6 +281,7 @@ const retrySandbox5xx = async (request: Request): Promise<Response> => {
     await Bun.sleep(DEFAULT_MIN_INTERVAL_MS * (attempt + 2))
     response = await fetch(request.clone())
   }
+  await diagnoseSimulationFailure(request, response, fetch, console.warn)
   return response
 }
 
