@@ -62,3 +62,14 @@ test("a scalar metadata on a product names the metadata rule", async () => {
   expect(error.param).toBe("metadata")
   expect(error.message).toStartWith("Invalid value for `metadata`.")
 })
+
+// Live parity: exponent-notation values are still invalid decimals, reported in field order.
+test("exponent-notation dimensions are reported in field order once the places check passes", async () => {
+  const { error } = await createProduct({
+    length: "0",
+    width: "5e-324",
+    height: "0",
+    weight: "5e-324",
+  })
+  expect(error.param).toBe("package_dimensions[width]")
+})
