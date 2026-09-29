@@ -291,7 +291,7 @@ const loginPageOf = (
 const requireConfiguration = (scope: RequestScope, id: string, param = "configuration") => {
   if (!scope.account.portalConfigurations.get(id)) ensureDefaultConfiguration(scope)
   const config = scope.account.portalConfigurations.get(id)
-  if (!config) throw resourceMissing("billing portal configuration", id, param)
+  if (!config) throw resourceMissing("configuration", id, param)
   return config
 }
 
@@ -461,7 +461,7 @@ export const billingPortalHandlers = (services: Services): Record<string, Operat
       200,
       await paginate<BillingPortalConfigurationRecord>(scope.account.portalConfigurations, params, {
         url: "/v1/billing_portal/configurations",
-        kind: "billing portal configuration",
+        kind: "configuration",
         where: (config) =>
           (active === undefined || config.active === active) &&
           (isDefault === undefined || config.is_default === isDefault),

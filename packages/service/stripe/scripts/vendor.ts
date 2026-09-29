@@ -1483,7 +1483,12 @@ const OPERATIONS: Record<string, OperationConfig> = {
   PostPricesPrice: { safe: true },
   // customer portal (unsafe: configurations persist on a real account, and sessions need its
   // dashboard-saved default configuration)
-  GetBillingPortalConfigurations: { safe: true },
+  GetBillingPortalConfigurations: {
+    safe: true,
+    parity: false,
+    reason:
+      "the list holds whatever the real account has saved (none in the sandbox), while the mock always has the default configuration",
+  },
   PostBillingPortalConfigurations: { safe: false },
   GetBillingPortalConfigurationsConfiguration: { safe: true },
   PostBillingPortalConfigurationsConfiguration: { safe: false },
