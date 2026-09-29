@@ -1107,3 +1107,23 @@ describe("S1.10 corpus", () => {
     expect(byLookup.data.length).toBe(1)
   })
 })
+
+describe("price creation validation order", () => {
+  test("naming both amounts is refused before a malformed parameter is read", async () => {
+    const { base } = await harness()
+    const response = await fetch(`${base.origin}/v1/prices`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${KEYS.mso}`,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: "active=0&currency=usd&unit_amount=-1000000&unit_amount_decimal=",
+    })
+    expect(response.status).toBe(400)
+    const { error } = (await response.json()) as { error: { message: string; param: string } }
+    expect(error.param).toBe("unit_amount")
+    expect(error.message).toBe(
+      "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+    )
+  })
+})
