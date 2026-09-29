@@ -1,0 +1,58 @@
+# Retention for the GitHub Actions cache (10 GB per repo; past that GitHub evicts least recently
+# used entries, which used to be main's warm turbo caches).
+#
+#   PR closed  Delete every cache the PR's runs saved. Only that PR could read them.
+#   Daily      Keep the newest 3 entries per key prefix on main (turbo scope or deps) and delete
+#              the rest. Restores only ever pick the newest, so older ones are dead weight.
+#
+# pull_request_target so fork PRs get a token that can delete; it checks out no PR code.
+name: Cache cleanup
+
+on:
+  pull_request_target:
+    types: [closed]
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  pr:
+    name: Delete the PR's caches
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          gh cache list --ref "$REF" --limit 1000 --json id --jq '.[].id' |
+            while read -r id; do gh cache delete "$id"; done
+
+  main:
+    name: Trim main's caches
+    if: github.event_name != 'pull_request_target'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # A key is <prefix>-<commit sha>[-<run attempt>] for turbo, deps-<os>-<bun>-<lockfile hash>
+      # for node_modules, smoke-v1-<os>-<fingerprint> for a passed consumer smoke; the prefix is
+      # what a restore-keys lookup matches.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh cache list --ref refs/heads/main --limit 1000 --sort created_at --order desc \
+            --json id,key --jq '.[] | "\(.id) \(.key)"' |
+          awk '{
+            prefix = $2
+            if (prefix ~ /^turbo-/ && prefix !~ /^turbo-v3-/) { print $1; next }  # old layout
+            if (prefix ~ /^turbo-/) sub(/-[0-9a-f]+(-[0-9]+)?$/, "", prefix)
+            else if (prefix ~ /^(deps|smoke)-/) sub(/-[0-9a-f]+$/, "", prefix)
+            if (++seen[prefix] > 3) print $1
+          }' |
+          while read -r id; do gh cache delete "$id"; done

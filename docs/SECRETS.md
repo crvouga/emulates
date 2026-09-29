@@ -17,7 +17,7 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 
 | Workflow | Secrets it reads | How to run it |
 | --- | --- | --- |
-| [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>` or `-- --all` |
+| [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>` or `-- --all`; also on each PR that changes a mapped service ([Advisory](../.github/workflows/advisory.yml), non-blocking, not for forks) |
 | [Verify](../.github/workflows/verify.yml) | `JUNCTION_API_KEY` | daily, or `gh workflow run verify.yml` |
 | [Release](../.github/workflows/ci.yml) | `NPM_TOKEN` (new packages only) | automatic on merge to `main` |
 
@@ -127,7 +127,8 @@ Docs: https://docs.npmjs.com/trusted-publishers
 
 Turborepo uses its local cache (`.turbo/cache`) on your machine. In CI,
 [`.github/actions/setup`](../.github/actions/setup/action.yml) keeps that same directory in the
-GitHub Actions cache, so pull requests replay what `main` already built. No token, no server.
+GitHub Actions cache, one entry per CI job, warmed by every push to `main`, so pull requests replay
+what `main` already built and tested. No token, no server.
 
 ## What exists where
 

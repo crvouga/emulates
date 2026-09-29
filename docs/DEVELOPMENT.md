@@ -35,7 +35,11 @@ That is the whole onboarding: no secrets, no accounts, nothing self-hosted. `bun
 
 Every merge-blocking check is a single command you can run locally. `bun run check` runs the whole turbo graph; `bun run check:full` replicates the pull-request gate end-to-end (install + commitlint + check). Passing that gate is the release decision.
 
-CI is one turbo graph: the `Check` job runs `bun run check` with `node_modules` and turbo's cache (`.turbo/cache`) in the GitHub Actions cache ([`.github/actions/setup`](../.github/actions/setup/action.yml)), so a PR replays what `main` already built and only rebuilds and retests the packages it changed. Locally turbo uses the same cache directory on disk. No token, no server.
+CI runs the same turbo graph as `bun run check`, spread over parallel runners ([`scripts/ci-plan.ts`](../scripts/ci-plan.ts) splits it and fails if the split drifts from the `check` script): a **Static** job (format, lint, boundaries, generated-file drift) and four **Shard** jobs, each running build, typecheck, test, pack and portability for a quarter of the packages. **Consumer smoke** runs beside them. A **Changes** job skips a whole job only when every changed file is on a list of paths that job does not read (agent docs, worktree config, other workflows); otherwise turbo's content hashes decide, replaying every unchanged package from cache. The required **Check** job passes when every job the change needed passed.
+
+The GitHub Actions cache is the remote cache ([`.github/actions/setup`](../.github/actions/setup/action.yml)); there is no turbo token or server. The CI workflow also runs on every push to `main`, so `main` holds a warm turbo cache per job and a PR's first run replays everything it did not change. Each job saves only the task hashes it used, `node_modules` is cached from `main` only, and [`cache-cleanup.yml`](../.github/workflows/cache-cleanup.yml) deletes a PR's caches when it closes and trims `main`'s daily. Locally turbo uses the same cache directory on disk.
+
+Non-blocking checks live in [`advisory.yml`](../.github/workflows/advisory.yml): Biome findings as inline annotations, and live parity (the [Parity](../.github/workflows/parity.yml) workflow) for each changed service with sandbox secrets. They depend on live vendors or only restate the blocking lint, so a red advisory check informs the PR without holding its merge.
 
 ```bash
 bun run setup          # first time: install + build
@@ -77,11 +81,11 @@ pull-request check has passed:
 | Check | What it is |
 | --- | --- |
 | Commitlint | Conventional Commits on the PR's commits, and a Conventional Commits title |
-| Check | `bun run check` plus the consumer smoke install |
+| Check | `bun run check` plus the consumer smoke install (rolls up the Static, Shard and Consumer smoke jobs) |
 | GitGuardian Security Checks | Secret scanning |
 
-There is no required review, no required approval, and an unresolved review thread does not block
-the merge. A green pull request is releasable: merging it to `main` publishes. The Release
+Advisory checks ([`advisory.yml`](../.github/workflows/advisory.yml)) are not required. There is no
+required review, no required approval, and an unresolved review thread does not block the merge. A green pull request is releasable: merging it to `main` publishes. The Release
 workflow ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) builds (replaying main's turbo
 cache) and publishes. It does not re-run the pull-request checks. The branch must be up
 to date with `main` before merge, so those checks ran against the code that lands. Only merge

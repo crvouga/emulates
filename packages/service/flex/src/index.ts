@@ -798,6 +798,9 @@ export class FlexAPI implements FetchAPI {
     )
     const first = recurring[0]?.price_data.recurring ?? { interval: "month" as const }
     const data = session.subscription_data ?? {}
+    // One clock read: the period ends exactly `interval_count` intervals after it starts.
+    const startedMs = this.now()
+    const started = new Date(startedMs).toISOString()
     const subscription: SubscriptionRecord = {
       subscription_id: this.state.nextId("fsub_"),
       status: "active",
@@ -805,12 +808,12 @@ export class FlexAPI implements FetchAPI {
       customer: session.customer,
       default_payment_method: paymentMethod,
       cancel_at_period_end: data.cancel_at_period_end === true,
-      current_period_start: this.iso(),
-      current_period_end: new Date(periodEnd(this.now(), first)).toISOString(),
+      current_period_start: started,
+      current_period_end: new Date(periodEnd(startedMs, first)).toISOString(),
       canceled_at: null,
       metadata: data.metadata ?? null,
       test_mode: session.test_mode,
-      created_at: this.iso(),
+      created_at: started,
     }
     this.state.subscriptions.insert(subscription.subscription_id, subscription)
     this.emit("customer.subscription.created", { ...subscription }, session.test_mode)
