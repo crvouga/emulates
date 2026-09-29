@@ -342,8 +342,18 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
 
     let webhookFailure: ParityError | undefined
     let webhookEvents: WalkWebhookEvents | undefined
-    const firstStep = [...steps][0]
-    const firstCommand = firstStep instanceof Step ? firstStep.command : ({} as LogicalCommand)
+    // fast-check hands the walk `CommandWrapper`s; the `Step` is on `.cmd`.
+    const firstStep = [...steps][0] as { cmd?: unknown } | undefined
+    const firstCommand =
+      firstStep?.cmd instanceof Step
+        ? firstStep.cmd.command
+        : ({
+            operationId: "webhooks",
+            parameters: {},
+            body: undefined,
+            mediaType: undefined,
+            invalid: undefined,
+          } satisfies LogicalCommand)
     // A request mismatch takes precedence: the mock may have emitted an event for a request
     // Stripe rejected, and comparing that event would hide the original API divergence.
     if (options.webhooks && walkError === undefined) {
