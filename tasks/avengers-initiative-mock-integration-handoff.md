@@ -8,7 +8,7 @@ Intended destination:
 `/Users/corysiebler/Repositories/avengers-initiative/tasks/prd-mock-integration-and-recovery.md`.
 Transfer it from an authorized session in that repository after checking for an
 existing target. It has **not** been written there. No story below is included in
-Mockingbird's `PLAN.md`, and this handoff is not an active runner task source.
+Mockingbird's [archived plan](archive/infrastructure-orchestration-mocks/PLAN.md), and this handoff is not an active runner task source.
 
 ## 1. Overview
 

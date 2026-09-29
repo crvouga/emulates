@@ -5,7 +5,7 @@ Hermes peer-run, and GitHub REST packages.
 
 It implements
 [US-001 of the requirements](../tasks/prd-infrastructure-orchestration-mocks.md#us-001-define-package-boundaries-and-scenario-ownership).
-[PLAN.md](../PLAN.md) controls delivery order: Docker, then Hermes, then GitHub.
+The [archived plan](../tasks/archive/infrastructure-orchestration-mocks/PLAN.md) records delivery order: Docker, then Hermes, then GitHub.
 The scenarios below are requirements, not claims of implemented or verified support.
 Each package starts as `wip`; its eventual contract, generated support matrix, and
 versioned `API_EVIDENCE.md` will define the supported subset.

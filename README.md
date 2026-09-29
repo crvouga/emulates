@@ -189,7 +189,6 @@ Building, testing and `bun run check` need no secrets and no accounts. Live pari
 | [Releasing](docs/RELEASING.md) | How packages get from `main` to npm. Once the `NPM_TOKEN` repo secret is set, releases run automatically. |
 | [Secrets runbook](docs/SECRETS.md) | Where every credential lives, who needs it, and how to run live parity without ever holding a sandbox key: GitHub Actions repo secrets are the only secret store. |
 | [Infrastructure and orchestration mocks](docs/INFRASTRUCTURE_MOCKS.md) | This document defines the boundaries and planned evidence for the Docker Engine, Hermes peer-run, and GitHub REST packages. |
-| [Infrastructure and orchestration mock execution](docs/progress.md) | --- |
 
 ## License
 

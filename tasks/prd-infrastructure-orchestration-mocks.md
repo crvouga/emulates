@@ -15,7 +15,7 @@ The consumer use cases come from Avengers Initiative, but these packages model
 public third-party interfaces, not Initiative's private control services or policy.
 Initiative-owned implementation, host tests, and adoption are tracked separately
 in the [Initiative handoff](avengers-initiative-mock-integration-handoff.md).
-No Initiative task is part of [the Mockingbird plan](../PLAN.md).
+No Initiative task is part of [the archived Mockingbird plan](archive/infrastructure-orchestration-mocks/PLAN.md).
 
 ### Planned packages
 

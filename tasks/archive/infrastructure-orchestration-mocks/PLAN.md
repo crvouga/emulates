@@ -3,9 +3,9 @@
 ## Objective and context
 
 - Objective: deliver Mockingbird-only Docker Engine, Hermes peer-run, and GitHub REST mocks, in that order.
-- Requirements: [feature PRD](tasks/prd-infrastructure-orchestration-mocks.md). Each story maps one-to-one to the same PRD ID.
+- Requirements: [feature PRD](../../prd-infrastructure-orchestration-mocks.md). Each story maps one-to-one to the same PRD ID.
 - Scope: public provider contracts, stateful scenarios, socket transport, independent consumer fixtures, differential verification, package documentation, and justified shared-runtime improvements.
-- Non-goals: Initiative implementation, systemd package assessment, consumer policy, and host enforcement. Those remain in the [separate Initiative handoff](tasks/avengers-initiative-mock-integration-handoff.md).
+- Non-goals: Initiative implementation, systemd package assessment, consumer policy, and host enforcement. Those remain in the [separate Initiative handoff](../../avengers-initiative-mock-integration-handoff.md).
 - Owner: Mockingbird for every story. No Initiative story is an execution dependency.
 - Working branch: `ralph/infrastructure-orchestration-mocks` (created and checked out with user authorization). Commit the planning baseline before story execution.
 - Mode: standard, subject to the installed shared mode/risk and staged-review contract.
