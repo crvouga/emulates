@@ -20,3 +20,16 @@ test("retrieving a subscription item with an empty expand is refused before the 
   expect(error.code).toBe("parameter_invalid_empty")
   expect(error.param).toBe("expand")
 })
+
+// Live parity: on a search, Stripe refuses an empty `query` before an empty `expand`.
+test("a search with empty query and empty expand names the query", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee2", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/payment_intents/search?query=&expand=`, {
+    headers: { authorization: `Bearer ${KEY}` },
+  })
+  const { error } = (await response.json()) as { error: { code: string; param: string } }
+  expect(response.status).toBe(400)
+  expect(error.code).toBe("parameter_invalid_empty")
+  expect(error.param).toBe("query")
+})
