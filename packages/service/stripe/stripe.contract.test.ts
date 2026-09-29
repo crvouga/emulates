@@ -196,4 +196,19 @@ describe("service contract", () => {
       error: { code: "parameter_invalid_empty", param: "expand" },
     })
   })
+
+  test("creating a price refuses both amounts before it looks the product up", async () => {
+    const { call } = harness()
+    const response = await call(
+      "/v1/prices",
+      form({ currency: "usd", product: "prod_missing", unit_amount: "0", unit_amount_decimal: "" }),
+    )
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: {
+        message: "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+        param: "unit_amount",
+      },
+    })
+  })
 })

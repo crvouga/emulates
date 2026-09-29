@@ -113,6 +113,13 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         throw invalidRequest(
           "You must specify either `product` or `product_data` when creating a price.",
         )
+      const hasAmount = params.unit_amount !== undefined
+      const hasDecimal = params.unit_amount_decimal !== undefined
+      if (hasAmount && hasDecimal)
+        throw invalidRequest(
+          "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+          "unit_amount",
+        )
       if (params.product === "") throw parameterInvalidEmpty("product")
       if (params.product_data === "") throw parameterInvalidEmpty("product_data")
       const inline = hasProductData
@@ -122,13 +129,6 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         ? requireProduct(scope, params.product as string, "product", 400)
         : undefined
       const currency = normalizeCurrency(params.currency as string)
-      const hasAmount = params.unit_amount !== undefined
-      const hasDecimal = params.unit_amount_decimal !== undefined
-      if (hasAmount && hasDecimal)
-        throw invalidRequest(
-          "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
-          "unit_amount",
-        )
       if (!hasAmount && !hasDecimal)
         throw invalidRequest(
           "Prices require an `unit_amount` or `unit_amount_decimal` parameter to be set.",
