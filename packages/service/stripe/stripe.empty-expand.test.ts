@@ -90,3 +90,21 @@ test("listing invoice items for a missing customer is refused", async () => {
   expect(error.code).toBe("resource_missing")
   expect(error.param).toBe("customer")
 })
+
+// Live parity: creating a price with an empty metadata is refused before the product lookup.
+test("creating a price with empty metadata for a missing product names metadata", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee7", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/prices`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${KEY}`,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ currency: "usd", metadata: "", product: "prod_missing" }),
+  })
+  const { error } = (await response.json()) as { error: { code: string; param: string } }
+  expect(response.status).toBe(400)
+  expect(error.code).toBe("parameter_invalid_empty")
+  expect(error.param).toBe("metadata")
+})

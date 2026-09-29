@@ -72,7 +72,7 @@ describe("StripeAPI", () => {
       const exercised = new Set<string>()
       // Coverage-biased walks from fixed seeds, so the union is reproducible; each is a full
       // lockstep comparison with spec conformance, like the random walks above.
-      for (const seed of [3, 11, 12, 14, 15, 16]) {
+      for (const seed of [3, 11, 12, 14, 15, 16, 17, 18, 19, 20]) {
         const reference = new StripeAPI({ now })
         const report = await parity({
           provider: "stripe",
