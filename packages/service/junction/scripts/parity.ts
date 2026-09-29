@@ -19,6 +19,7 @@ import { prefetchCoverageObservations } from "../src/prefetch.js"
 import { reshapeCoverageGeoCommand } from "../src/reshape.js"
 import { PARITY_SEEDS } from "../src/seeds.js"
 import { diagnoseSimulationFailure } from "./simulation-diagnostics.js"
+import { probeSimulationLifecycle } from "./simulation-probes.js"
 
 /** Docs: https://docs.junction.com/api-details/junction-api */
 const DEFAULT_JUNCTION_HOST = "api.sandbox.tryvital.io"
@@ -661,6 +662,34 @@ const probeLabAccounts = async () => {
     `junction lab-account probes: wrote corpus/lab-account-probes.json (${probes.length} probes)`,
   )
 }
+const simulationProbe = await probeSimulationLifecycle(async (method, path, body) => {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: {
+      ...authHeaders,
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    signal: AbortSignal.timeout(30_000),
+  })
+  const text = await response.text()
+  let parsed: unknown = null
+  try {
+    parsed = JSON.parse(text)
+  } catch {}
+  await Bun.sleep(DEFAULT_MIN_INTERVAL_MS * 4)
+  return { status: response.status, body: parsed }
+}, crypto.randomUUID())
+const simulationCorpusDir = join(import.meta.dir, "..", "corpus")
+await mkdir(simulationCorpusDir, { recursive: true })
+await writeFile(
+  join(simulationCorpusDir, "simulation-probes.json"),
+  `${JSON.stringify(simulationProbe, null, 2)}\n`,
+)
+console.log(`junction simulation probes: ${JSON.stringify(simulationProbe)}`)
+if (!simulationProbe.complete)
+  throw new Error("junction simulation probes incomplete; see sanitized report")
+
 try {
   await probeLabAccounts()
 } catch (error) {
