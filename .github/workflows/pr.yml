@@ -159,9 +159,28 @@ jobs:
         timeout-minutes: 12
         run: bunx turbo run build --output-logs=errors-only
 
+      # The smoke is a pure function of the tarballs it installs: a fingerprint that already passed
+      # (on main or an earlier run of this PR) is not re-checked. Only the empty stamp is cached.
+      - id: smoke-key
+        run: echo "key=smoke-v1-${{ runner.os }}-$(bun scripts/ci-plan.ts smoke-key)" >> "$GITHUB_OUTPUT"
+
+      - id: smoke-stamp
+        uses: actions/cache/restore@v5
+        with:
+          path: .smoke-passed
+          key: ${{ steps.smoke-key.outputs.key }}
+          lookup-only: true
+
       - name: Consumer smoke (npm install + import + typecheck every published entry point)
+        if: steps.smoke-stamp.outputs.cache-hit != 'true'
         timeout-minutes: 6
-        run: bun run release:smoke
+        run: bun run release:smoke && mkdir -p .smoke-passed && touch .smoke-passed/ok
+
+      - if: steps.smoke-stamp.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: .smoke-passed
+          key: ${{ steps.smoke-key.outputs.key }}
 
   check:
     name: Check

@@ -17,12 +17,14 @@
  *   bun scripts/ci-plan.ts changes --all                # push to main: everything
  *   bun scripts/ci-plan.ts static                       # the static job
  *   bun scripts/ci-plan.ts shard 2/4                    # one shard job
+ *   bun scripts/ci-plan.ts smoke-key                    # fingerprint of what the smoke installs
  *
  * Extra arguments to `static` and `shard` go to turbo (e.g. `--output-logs=errors-only`).
  */
-import { appendFileSync, readdirSync, readFileSync } from "node:fs"
+import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { $ } from "bun"
+import { discoverPackages } from "./release/lib.ts"
 
 const root = join(import.meta.dir, "..")
 
@@ -203,6 +205,41 @@ async function shard(spec: string | undefined, extra: string[]): Promise<never> 
   return turbo(["run", ...checkTasks().shard, ...mine.map((p) => `--filter=${p.name}`), ...extra])
 }
 
+/** Files besides the tarballs whose change can change the consumer smoke's verdict. */
+const SMOKE_INPUTS = ["scripts/release/consumer-smoke.ts", "scripts/release/lib.ts"]
+
+/**
+ * A fingerprint of everything the consumer smoke installs: each public package's manifest and the
+ * `files` it packs (built `dist` included, so run it after the build), plus the smoke script. The
+ * smoke job skips when a run with the same fingerprint already passed.
+ */
+function smokeKey(): void {
+  const hasher = new Bun.CryptoHasher("sha256")
+  const add = (rel: string) => {
+    hasher.update(`${rel}\0`)
+    hasher.update(readFileSync(join(root, rel)))
+    hasher.update("\0")
+  }
+  hasher.update(`bun ${Bun.version}\0`)
+  for (const rel of SMOKE_INPUTS) add(rel)
+  const pkgs = discoverPackages()
+    .filter((p) => p.isPublic)
+    .sort((a, b) => a.relDir.localeCompare(b.relDir))
+  for (const pkg of pkgs) {
+    const manifest = JSON.parse(readFileSync(pkg.manifestPath, "utf8")) as { files?: string[] }
+    const files = new Set([join(pkg.relDir, "package.json")])
+    for (const entry of manifest.files ?? []) {
+      const rel = join(pkg.relDir, entry)
+      const abs = join(root, rel)
+      if (!existsSync(abs)) continue
+      if (!statSync(abs).isDirectory()) files.add(rel)
+      else for (const f of new Bun.Glob("**/*").scanSync({ cwd: abs })) files.add(join(rel, f))
+    }
+    for (const rel of [...files].sort()) add(rel)
+  }
+  console.log(hasher.digest("hex"))
+}
+
 const [command, ...rest] = process.argv.slice(2).filter((a) => a !== "--")
 switch (command) {
   case "changes":
@@ -214,9 +251,12 @@ switch (command) {
   case "shard":
     await shard(rest[0], rest.slice(1))
     break
+  case "smoke-key":
+    smokeKey()
+    break
   default:
     console.error(
-      "usage: bun scripts/ci-plan.ts changes [--base <ref> | --all] | static | shard <i>/<n>",
+      "usage: bun scripts/ci-plan.ts changes [--base <ref> | --all] | static | shard <i>/<n> | smoke-key",
     )
     process.exit(2)
 }

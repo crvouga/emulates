@@ -40,7 +40,8 @@ jobs:
     timeout-minutes: 5
     steps:
       # A key is <prefix>-<commit sha>[-<run attempt>] for turbo, deps-<os>-<bun>-<lockfile hash>
-      # for node_modules; the prefix is what a restore-keys lookup matches.
+      # for node_modules, smoke-v1-<os>-<fingerprint> for a passed consumer smoke; the prefix is
+      # what a restore-keys lookup matches.
       - env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -51,7 +52,7 @@ jobs:
             prefix = $2
             if (prefix ~ /^turbo-/ && prefix !~ /^turbo-v3-/) { print $1; next }  # old layout
             if (prefix ~ /^turbo-/) sub(/-[0-9a-f]+(-[0-9]+)?$/, "", prefix)
-            else if (prefix ~ /^deps-/) sub(/-[0-9a-f]+$/, "", prefix)
+            else if (prefix ~ /^(deps|smoke)-/) sub(/-[0-9a-f]+$/, "", prefix)
             if (++seen[prefix] > 3) print $1
           }' |
           while read -r id; do gh cache delete "$id"; done

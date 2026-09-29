@@ -10,6 +10,8 @@ description: Bun + cached node_modules + Turborepo's cache kept in the GitHub Ac
 #   turbo-v3-<os>-static-…     the Static job's tasks (lint + root checks).
 #   turbo-v3-<os>-shard-<i>-…  shard i's tasks (scripts/ci-plan.ts). Only the Static and shard
 #                              jobs of .github/workflows/pr.yml save; everything else reads.
+#   smoke-v1-<os>-<fingerprint> an empty stamp: the consumer smoke passed for these tarballs
+#                              (`bun scripts/ci-plan.ts smoke-key`), so pr.yml skips re-running it.
 # A cache is looked up in the current ref first, then main. pr.yml also runs on every push to main,
 # so main always holds a warm cache per scope and a PR's first run replays everything it did not
 # change. Turbo's content hashes decide what replays, so a stale restore is harmless.
