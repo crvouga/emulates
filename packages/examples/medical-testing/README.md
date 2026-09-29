@@ -74,7 +74,9 @@ would need to change.
 ## Run it
 
 **In the browser, no server:** visit `/examples/medical-testing` on the docs site and click
-"Launch the app" — everything runs in that tab.
+"Launch the app". The window has a tab for Cove and a tab for each mock it is using: Google, Apple,
+Stripe, and Junction open that mock's admin UI against the same in-process state, and Postgres lists
+the tables Cove writes.
 
 **As a standalone dev server:**
 

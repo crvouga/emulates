@@ -1,4 +1,4 @@
-import { JunctionAPI } from "@crvouga/mockingbird-service-junction"
+import { createRuntime } from "@crvouga/mockingbird-service-junction"
 import type {
   CreateLabOrderInput,
   LabCatalogEntry,
@@ -24,11 +24,16 @@ type JunctionCatalogResponse = { data: { id: string; method: string }[] }
 export const createJunctionMockLabTesting = (params: {
   dispatch: (request: Request) => Promise<Response>
   webhookUrl: string
-}): LabTestingClient => {
-  const junction = new JunctionAPI({ identity: "adopt-users" })
+}): {
+  client: LabTestingClient
+  admin: { id: "junction"; label: "Junction"; fetch: (request: Request) => Promise<Response> }
+} => {
+  // The runtime is what serves `/__admin/ui`. Vendor calls and `transitionOrder` share its instance.
+  const runtime = createRuntime({ identity: "adopt-users" })
+  const junction = runtime.instance()
 
   const request = (method: string, path: string, body?: unknown): Promise<Response> =>
-    junction.fetch(
+    runtime.fetch(
       new Request(`${BASE_URL}${path}`, {
         method,
         headers: { "x-vital-api-key": API_KEY, "content-type": "application/json" },
@@ -109,5 +114,8 @@ export const createJunctionMockLabTesting = (params: {
     return { type: "unhandled" }
   }
 
-  return { listCatalog, createOrder, parseWebhookEvent }
+  return {
+    client: { listCatalog, createOrder, parseWebhookEvent },
+    admin: { id: "junction", label: "Junction", fetch: (request) => runtime.fetch(request) },
+  }
 }

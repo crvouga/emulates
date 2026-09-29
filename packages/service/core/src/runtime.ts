@@ -1,6 +1,7 @@
 import { type Checkpoint, type FetchAPI, Timeline } from "@crvouga/mockingbird-core"
 import { listOperations, type OpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import { clearNamespace, type SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { adminUiRoutes } from "./admin-ui.js"
 import { type Clock, createClock } from "./clock.js"
 import { type AdminRoutes, createControlPlane, NAMESPACE_HEADER } from "./control.js"
 import { type CredentialRegistry, createCredentialRegistry, maskCredential } from "./credentials.js"
@@ -16,6 +17,13 @@ import { createMetrics, type Metrics, type RejectedRequest, type RequestLog } fr
 import { createRng, type Rng, seedFrom } from "./rng.js"
 import { bootSqlite } from "./service.js"
 import { type NamespaceSnapshot, restoreNamespace, snapshotNamespace } from "./snapshot.js"
+import {
+  inspectState,
+  type StateDeclaration,
+  type StateView,
+  stateAdminRoutes,
+} from "./state-view.js"
+import { type AdminUi, assertAdminUi, defineMock, type MockSurface } from "./surface.js"
 import { PACKAGE_VERSION } from "./version.js"
 import { type WebhookHub, webhookAdminRoutes } from "./webhooks.js"
 
@@ -85,6 +93,17 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   maxCheckpoints?: number
   /** Injectable process IO used for observability and delays; logical service time uses `clock`. */
   io?: Partial<RuntimeIO>
+  /**
+   * Collections the admin UI should show even before any row exists.
+   * Stored collections are always included, whether or not they are declared.
+   * A function may describe collections that depend on the live instance.
+   */
+  state?: readonly StateDeclaration[] | ((api: T, namespace: string) => readonly StateDeclaration[])
+  /**
+   * Panels added to the default admin UI, or a function that replaces the document.
+   * `render` receives `defaultHtml()` so a bespoke UI can wrap the shared shell.
+   */
+  adminUi?: AdminUi
 }
 
 export type RuntimeIO = {
@@ -130,7 +149,13 @@ export type ServiceRuntime<T extends ServiceInstance> = FetchAPI & {
   checkout(checkpoint: string, options?: { namespace?: string; branch?: string }): void
   /** Inspect the retained history for a namespace. */
   timeline(namespace?: string): Timeline<ServiceTimelineState>
+  /** Collections in one namespace: declared shape plus what the rows actually hold. */
+  state(namespace?: string): StateView
 }
+
+type _MockSurfaceProof = ServiceRuntime<ServiceInstance> extends MockSurface ? true : never
+const mockSurfaceProof: _MockSurfaceProof = true
+void mockSurfaceProof
 
 /** The namespace used when a request names none. */
 export const DEFAULT_NAMESPACE = "default"
@@ -231,6 +256,7 @@ const operationMatcher = (document: OpenAPIDocument) => {
 export const createRuntime = <T extends ServiceInstance>(
   options: RuntimeOptions<T>,
 ): ServiceRuntime<T> => {
+  assertAdminUi(options.adminUi)
   const sqlite = bootSqlite(options.sqlite)
   const clock = options.clock ?? createClock()
   const rng = createRng(options.seed ?? 0)
@@ -465,6 +491,20 @@ export const createRuntime = <T extends ServiceInstance>(
     else timeline(name)
   }
 
+  const declarationsFor = (namespace: string): readonly StateDeclaration[] => {
+    const declared = options.state
+    if (!declared) return []
+    return typeof declared === "function" ? declared(instance(namespace), namespace) : declared
+  }
+
+  const stateScope = (namespace: string) => ({
+    sqlite,
+    namespace,
+    storageNamespace: storageNamespace(namespace),
+    root: instance(namespace),
+    declarations: declarationsFor(namespace),
+  })
+
   const runtime: ServiceRuntime<T> = {
     name: options.name,
     sqlite,
@@ -504,6 +544,7 @@ export const createRuntime = <T extends ServiceInstance>(
     branch,
     checkout,
     timeline,
+    state: (namespace = DEFAULT_NAMESPACE) => inspectState(stateScope(namespace)),
     fetch: async (incoming) => {
       let request = incoming
       // `/ns/<name>/…` selects a namespace (and is stripped) for SDKs that cannot add headers.
@@ -723,11 +764,20 @@ export const createRuntime = <T extends ServiceInstance>(
       ...(options.presets ? presetRoutes(options.presets, runtime) : {}),
       ...(options.webhooks ? webhookAdminRoutes(options.webhooks) : {}),
       ...(options.admin?.(runtime) ?? {}),
+      // Standard state and UI routes win a colliding key. A service adds its own keys
+      // beside these; it does not replace `/state` or `/ui`.
+      ...stateAdminRoutes({
+        open: stateScope,
+        afterWrite: (namespace) => {
+          checkpoint(namespace, "main")
+        },
+      }),
+      ...adminUiRoutes(options.name, options.adminUi),
     },
     adminKey: options.adminKey,
   })
 
-  return runtime
+  return defineMock(runtime)
 }
 
 const mutableResponse = (response: Response): Response => {

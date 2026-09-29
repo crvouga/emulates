@@ -54,7 +54,10 @@ const verifyWebhookSignature = async (
 export const createStripeMockPayments = (params: {
   dispatch: (request: Request) => Promise<Response>
   webhookUrl: string
-}): PaymentsClient => {
+}): {
+  client: PaymentsClient
+  admin: { id: "stripe"; label: "Stripe"; fetch: (request: Request) => Promise<Response> }
+} => {
   const stripe = createRuntime({
     accounts: [{ id: ACCOUNT_ID, keys: [SECRET_KEY] }],
     onWebhook: (event: StripeWebhookEvent) => {
@@ -161,9 +164,12 @@ export const createStripeMockPayments = (params: {
   }
 
   return {
-    createCheckoutSession,
-    constructWebhookEvent,
-    openHostedCheckout,
-    continueHostedCheckout,
+    client: {
+      createCheckoutSession,
+      constructWebhookEvent,
+      openHostedCheckout,
+      continueHostedCheckout,
+    },
+    admin: { id: "stripe", label: "Stripe", fetch: (request) => stripe.fetch(request) },
   }
 }

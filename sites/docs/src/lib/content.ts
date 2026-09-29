@@ -52,7 +52,7 @@ export const FEATURES = [
   {
     icon: "terminal",
     title: "One contract for every service",
-    body: "Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals and per-namespace isolation.",
+    body: "Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
   },
 ] as const
 
@@ -101,6 +101,14 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
     [
       "`/__admin/*` (`x-mockingbird-admin-key` optional)",
       "Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes",
+    ],
+    [
+      "`GET /__admin/state`",
+      "The collections in the selected namespace: declared shape, live `Collection` fields, and stored rows. Create, replace, merge, and delete records through the same paths on every mock",
+    ],
+    [
+      "`GET /__admin/ui`",
+      "The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API",
     ],
     [
       "`x-mockingbird-namespace`",

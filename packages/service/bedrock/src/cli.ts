@@ -58,6 +58,7 @@ const serve: CliCommand = {
       console.log(
         `bedrock admin: ${listening.url}/__admin (${adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
       )
+      console.log(`bedrock admin ui: ${listening.url}/__admin/ui`)
       for (const line of serveTarget.banner?.(runtime) ?? []) console.log(`bedrock ${line}`)
       return await new Promise<number>((resolve) => {
         const stop = async () => {
