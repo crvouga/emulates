@@ -58,7 +58,11 @@
       "website": "https://www.junction.com",
       "docs": "https://docs.junction.com"
     },
-    "status": "ready"
+    "status": "ready",
+    "parityTier": "cold",
+    "parityInputs": [
+      "PARITY_FAILURE_SEED_REGISTRY.json"
+    ]
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

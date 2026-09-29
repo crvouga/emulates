@@ -5,6 +5,7 @@
  *
  *   bun run parity:remote -- stripe twilio     # the named services
  *   bun run parity:remote -- --all             # every service with a parity script
+ *   bun run parity:remote -- --tier=warm       # every service declared in that tier
  *
  * The branch must be pushed: the runner checks out what is on GitHub, not this working tree.
  */
@@ -14,7 +15,7 @@ const WORKFLOW = "parity.yml"
 
 const services = process.argv.slice(2).filter((arg) => arg !== "--")
 if (services.length === 0) {
-  console.error("usage: bun run parity:remote -- <service…> | --all")
+  console.error("usage: bun run parity:remote -- <service…> | --all | --tier=<hot|warm|cold>")
   process.exit(2)
 }
 

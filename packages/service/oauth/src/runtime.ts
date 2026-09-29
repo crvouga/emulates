@@ -64,12 +64,69 @@ export function createRuntime(options: OAuthRuntimeOptions = {}): OAuthRuntime {
           return Response.json({ error: String(error) }, { status: 400 })
         }
       },
-      "POST /consents/revoke": ({ namespace, body }) => {
+      "POST /consents/revoke": async ({ namespace, body, request }) => {
         const input = body as { clientId?: unknown; accountId?: unknown } | null
         if (!input || typeof input.clientId !== "string" || typeof input.accountId !== "string")
           return Response.json({ error: "clientId and accountId are required" }, { status: 400 })
-        runtime.instance(namespace).revokeConsent(input.clientId, input.accountId)
-        return Response.json({ revoked: true })
+        const api = runtime.instance(namespace)
+        const notifications = await api.revokeConsent(
+          input.clientId,
+          input.accountId,
+          api.issuer(request),
+        )
+        return Response.json({ revoked: true, notifications })
+      },
+      "POST /accounts/delete": async ({ namespace, body, request }) => {
+        const input = body as { accountId?: unknown } | null
+        if (!input || typeof input.accountId !== "string")
+          return Response.json({ error: "accountId is required" }, { status: 400 })
+        const api = runtime.instance(namespace)
+        if (!api.accounts.has(input.accountId))
+          return Response.json({ error: "Unknown account" }, { status: 404 })
+        const notifications = await api.deleteAccount(input.accountId, api.issuer(request))
+        return Response.json({ deleted: true, notifications })
+      },
+      "POST /relay-forwarding": async ({ namespace, body, request }) => {
+        const input = body as { accountId?: unknown; forwarding?: unknown } | null
+        if (!input || typeof input.accountId !== "string" || typeof input.forwarding !== "boolean")
+          return Response.json(
+            { error: "accountId and boolean forwarding are required" },
+            { status: 400 },
+          )
+        const api = runtime.instance(namespace)
+        if (!api.accounts.has(input.accountId))
+          return Response.json({ error: "Unknown account" }, { status: 404 })
+        const notifications = await api.setRelayForwarding(
+          input.accountId,
+          input.forwarding,
+          api.issuer(request),
+        )
+        return Response.json({ forwarding: input.forwarding, notifications })
+      },
+      "GET /grants": async ({ namespace, url }) => {
+        const api = runtime.instance(namespace)
+        const clientId = url.searchParams.get("clientId")
+        const accountId = url.searchParams.get("accountId")
+        const email = url.searchParams.get("email")?.toLowerCase().trim()
+        if (!clientId || (accountId !== null && email !== undefined))
+          return Response.json(
+            { error: "clientId is required, with at most one of accountId or email" },
+            { status: 400 },
+          )
+        if (accountId === null && email === undefined) {
+          const grants = await api.grants(clientId)
+          return grants
+            ? Response.json({ grants })
+            : Response.json({ error: "Unknown client" }, { status: 404 })
+        }
+        const id =
+          accountId ??
+          api.accounts.list({ where: (a) => a.email.toLowerCase() === email })[0]?.value.id ??
+          ""
+        const grant = await api.grant(clientId, id)
+        return grant
+          ? Response.json(grant)
+          : Response.json({ error: "Unknown client or account" }, { status: 404 })
       },
       "POST /keys/rotate": ({ namespace, body }) => {
         const input = body as { retainPrevious?: unknown } | null

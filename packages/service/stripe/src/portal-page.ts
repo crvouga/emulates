@@ -5,6 +5,7 @@ import {
   formatDate,
   type PortalChange,
   previewProration,
+  resetsBillingPeriod,
 } from "./billing-portal.js"
 import { formatMoney } from "./checkout-page.js"
 import { findCustomer, type RequestScope } from "./internal.js"
@@ -367,7 +368,7 @@ const cancelPage = (context: PortalContext, subscriptionId: string, messages: Po
         .filter((option) => (CANCELLATION_REASONS as readonly string[]).includes(option))
         .map(
           (option) =>
-            `<label class="option"><input type="radio" name="reason" value="${option}" data-testid="stripe-mock-portal-reason"${messages.values?.reason === option ? " checked" : ""}><span>${escapeHtml(REASON_LABELS[option] ?? option)}</span></label>`,
+            `<label class="option" data-testid="stripe-mock-portal-reason-${escapeHtml(option)}"><input type="radio" name="reason" value="${option}" data-testid="stripe-mock-portal-reason"${messages.values?.reason === option ? " checked" : ""}><span>${escapeHtml(REASON_LABELS[option] ?? option)}</span></label>`,
         )
         .join(
           "",
@@ -414,7 +415,7 @@ const updatePage = (context: PortalContext, subscriptionId: string, messages: Po
         .map((priceId) => {
           const price = scope.account.prices.get(priceId)
           if (!price?.active) return ""
-          return `<label class="option"><input type="radio" name="price" value="${price.id}" data-testid="stripe-mock-portal-price-option"${price.id === selected ? " checked" : ""}><span><strong>${escapeHtml(productName(context, price))}</strong>${price.id === item?.price ? '<span class="chip">Current plan</span>' : ""}<div class="meta">${escapeHtml(priceLabel(price))}</div></span></label>`
+          return `<label class="option" data-testid="stripe-mock-portal-price-option-${escapeHtml(price.lookup_key ?? price.id)}"><input type="radio" name="price" value="${price.id}" data-testid="stripe-mock-portal-price-option"${price.id === selected ? " checked" : ""}><span><strong>${escapeHtml(productName(context, price))}</strong>${price.id === item?.price ? '<span class="chip">Current plan</span>' : ""}<div class="meta">${escapeHtml(priceLabel(price))}</div></span></label>`
         })
         .join("")
     : `<input type="hidden" name="price" value="${item?.price ?? ""}">`
@@ -438,7 +439,7 @@ const confirmUpdatePage = (context: PortalContext, change: PortalChange) => {
   const currency = after?.currency ?? change.subscription.currency
   const behavior = config.features.subscription_update.proration_behavior
   const dueLine =
-    behavior === "always_invoice"
+    behavior === "always_invoice" || resetsBillingPeriod(scope, change)
       ? due < 0
         ? `<div class="row total"><span>Credit to your balance</span><span data-testid="stripe-mock-portal-amount-due">−${formatMoney(-due, currency)}</span></div>`
         : `<div class="row total"><span>Amount due today</span><span data-testid="stripe-mock-portal-amount-due">${formatMoney(due, currency)}</span></div>`

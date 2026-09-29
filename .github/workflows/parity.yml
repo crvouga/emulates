@@ -1,22 +1,30 @@
-# Live parity against the real provider sandboxes, on demand, with the repo's secrets.
+# Live parity against the real provider sandboxes, with the repo's secrets.
+#
+# Every parity service has a tier in its package.json (`mockingbird.parityTier`, read by
+# scripts/parity-tiers.ts) that says how often it may spend a vendor's rate limit:
+#   hot   advisory.yml calls this workflow on each PR that changes the service
+#   warm  the `schedule:` below runs every warm service
+#   cold  only a manual dispatch runs it (the default for a service with no tier)
+# Promoting a service is changing that one value; nothing in this file names a service.
 #
 # Sandbox keys are GitHub Actions repo secrets named <SERVICE>_* (docs/SECRETS.md). Nobody
 # has to hand them out: anyone with write access dispatches this workflow, usually through
-#   bun run parity:remote -- stripe twilio      # or --all
-# which runs it on the current branch and streams the log. Values never leave GitHub and are
-# masked in the log.
-#
-# advisory.yml also calls it on pull requests, for the services a PR changes that have secrets
-# mapped below (scripts/ci-plan.ts reads them from this file).
+#   bun run parity:remote -- stripe twilio      # or --all, or --tier=warm
+# which runs it on the current branch and streams the log. A manual run may name any service,
+# whatever its tier. Values never leave GitHub and are masked in the log.
 #
 # Not a required check — it depends on live vendors.
 name: Parity
 
 on:
+  # Warm tier. Weekly, Mondays 06:17 UTC (off the hour, when GitHub's schedule queue is busy).
+  # The cadence is a guess to tune: GitHub takes only a literal cron here.
+  schedule:
+    - cron: "17 6 * * 1"
   workflow_dispatch:
     inputs:
       services:
-        description: "Services to verify, space-separated (e.g. `stripe junction`), or `--all`"
+        description: "Services to verify, space-separated (e.g. `stripe junction`), `--all`, or `--tier=<hot|warm|cold>`"
         required: true
         default: junction
   workflow_call:
@@ -33,14 +41,38 @@ env:
   HUSKY: "0"
 
 jobs:
+  # Turns the selector (names, --all, --tier=…; a scheduled run has none, so it is the warm
+  # tier) into service names. A selector that matches nothing skips the build and the run.
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      services: ${{ steps.resolve.outputs.services }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+
+      - id: resolve
+        env:
+          PARITY_SELECTOR: ${{ inputs.services || '--tier=warm' }}
+        run: |
+          read -ra selector <<< "$PARITY_SELECTOR"
+          bun scripts/parity-tiers.ts resolve "${selector[@]}"
+
   parity:
     name: Live parity
+    needs: plan
+    if: needs.plan.outputs.services != ''
     runs-on: ubuntu-latest
     timeout-minutes: 80
     # Job-level so it also applies when advisory.yml calls this workflow (whose own concurrency
     # group cancels superseded PR runs).
     concurrency:
-      group: parity-${{ github.ref }}-${{ inputs.services }}
+      group: parity-${{ github.ref }}-${{ needs.plan.outputs.services }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
@@ -52,15 +84,27 @@ jobs:
         timeout-minutes: 20
         run: bunx turbo run build --output-logs=errors-only
 
+      # Stripe's webhook oracle (packages/service/stripe/scripts/webhook-oracle.ts) spawns
+      # `stripe listen`; ubuntu-latest does not ship the CLI.
+      - name: Install Stripe CLI
+        if: contains(format(' {0} ', needs.plan.outputs.services), ' stripe ')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo stripe/stripe-cli --pattern 'stripe_*_linux_x86_64.tar.gz' --dir "$RUNNER_TEMP/stripe-cli"
+          tar -xzf "$RUNNER_TEMP"/stripe-cli/stripe_*_linux_x86_64.tar.gz -C "$RUNNER_TEMP/stripe-cli"
+          echo "$RUNNER_TEMP/stripe-cli" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/stripe-cli/stripe" --version
+
       # Sandbox keys, mapped one by one. Dumping the whole secrets context (toJSON(secrets))
       # makes GitHub hold every run as "may be malicious" until someone approves it by hand.
       # A service's parity script reads <SERVICE>_*; add its secrets here.
-      - name: Live parity (${{ inputs.services }})
+      - name: Live parity (${{ needs.plan.outputs.services }})
         # A full default walk against a rate-limited vendor (Gene by Gene: 25 walks at 2 rps with
         # ~1.6 s median latency, plus its recorded probes) needs most of this.
         timeout-minutes: 55
         env:
-          PARITY_SERVICES: ${{ inputs.services }}
+          PARITY_SERVICES: ${{ needs.plan.outputs.services }}
           GENEBYGENE_CLIENT_ID: ${{ secrets.GENEBYGENE_CLIENT_ID }}
           GENEBYGENE_CLIENT_SECRET: ${{ secrets.GENEBYGENE_CLIENT_SECRET }}
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}

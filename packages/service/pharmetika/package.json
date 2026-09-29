@@ -55,7 +55,8 @@
     "vendor": {
       "website": "https://pharmetika.com"
     },
-    "status": "wip"
+    "status": "wip",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

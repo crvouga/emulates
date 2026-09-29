@@ -42,18 +42,32 @@ const toAddress = (raw: unknown): Address => {
   const out = {} as Record<(typeof ADDRESS_KEYS)[number], string | null>
   for (const key of ADDRESS_KEYS) {
     const value = input[key]
-    // Stripe upper-cases the country code it stores (live: "sN" comes back "SN").
+    // Stripe upper-cases a two-letter country code it stores (live: "sN" comes back "SN") and
+    // keeps anything else verbatim (live: "a" comes back "a").
     out[key] =
       value === undefined
         ? null
-        : key === "country"
-          ? value.replace(/[a-z]/g, (letter) => letter.toUpperCase())
+        : key === "country" && /^[A-Za-z]{2}$/.test(value)
+          ? value.toUpperCase()
           : value
   }
   return out
 }
 
+/** Stripe refuses an empty custom-field name or value before it checks any field's format. */
+const refuseEmptyCustomFields = (params: Params) => {
+  const customFields = (params.invoice_settings as { custom_fields?: unknown } | undefined)
+    ?.custom_fields
+  if (!Array.isArray(customFields)) return
+  customFields.forEach((field, index) => {
+    for (const key of ["name", "value"] as const)
+      if ((field as Record<string, unknown>)?.[key] === "")
+        throw parameterInvalidEmpty(`invoice_settings[custom_fields][${index}][${key}]`)
+  })
+}
+
 const apply = (current: CustomerRecord, params: Params): CustomerRecord => {
+  refuseEmptyCustomFields(params)
   const next: CustomerRecord = { ...current, invoice_settings: { ...current.invoice_settings } }
   if (params.address !== undefined)
     next.address = params.address === "" ? null : toAddress(params.address)
@@ -91,12 +105,6 @@ const apply = (current: CustomerRecord, params: Params): CustomerRecord => {
       footer?: string
     }
     if (settings.custom_fields !== undefined) {
-      if (Array.isArray(settings.custom_fields))
-        settings.custom_fields.forEach((field, index) => {
-          for (const key of ["name", "value"] as const)
-            if ((field as Record<string, unknown>)?.[key] === "")
-              throw parameterInvalidEmpty(`invoice_settings[custom_fields][${index}][${key}]`)
-        })
       next.invoice_settings.custom_fields =
         settings.custom_fields === ""
           ? []
@@ -123,6 +131,9 @@ const expanders = (scope: RequestScope): ExpandResolvers => {
   }
 }
 
+/** Stripe refuses a malformed `preferred_locales` before it looks at `invoice_settings` (observed). */
+const CUSTOMER_PARAM_ORDER = ["preferred_locales"]
+
 export const customerHandlers = (services: Services): Record<string, OperationHandler> => {
   const render = (scope: RequestScope, customer: CustomerRecord, params: Params) =>
     applyExpand(renderCustomer(customer), params.expand, expanders(scope))
@@ -130,7 +141,7 @@ export const customerHandlers = (services: Services): Record<string, OperationHa
   return {
     PostCustomers: async (context) => {
       const scope = requestScope(services, context)
-      const params = bodyParams(context)
+      const params = bodyParams(context, { order: CUSTOMER_PARAM_ORDER })
       const id = scope.ids.next("cus_")
       const base: CustomerRecord = {
         id,
@@ -264,11 +275,14 @@ export const customerHandlers = (services: Services): Record<string, OperationHa
       const scope = requestScope(services, context)
       const params = queryParams(context)
       const id = context.params.customer ?? ""
+      // Unlike most filters, an empty `invoice` is refused rather than read as unset (probed live).
+      if (params.invoice === "") throw parameterInvalidEmpty("invoice")
       // Stripe resolves the list cursor before the customer in the path.
       const page = await paginate(scope.account.balanceTransactions, params, {
         url: `/v1/customers/${id}/balance_transactions`,
         // Stripe names an unknown cursor on this list by its internal model.
         kind: "abstracttransaction",
+        rejectEmptyCursors: true,
         where: (record) => record.customer === id && matchesCreated(record.created, params.created),
         render: renderCustomerBalanceTransaction,
       })

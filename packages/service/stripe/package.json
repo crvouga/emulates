@@ -59,6 +59,7 @@
       "docs": "https://docs.stripe.com/api"
     },
     "status": "ready",
+    "parityTier": "cold",
     "playground": {
       "operation": "PostCustomers",
       "headers": {

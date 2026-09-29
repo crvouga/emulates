@@ -9,35 +9,34 @@
  *
  *   bun run parity:service -- twilio stripe      # the named services
  *   bun run parity:service -- --all              # every service with a parity script
+ *   bun run parity:service -- --tier=warm        # every service declared in that tier
+ *
+ * Tiers (hot: each PR, warm: scheduled, cold: manual only) are declared per service in
+ * package.json; see scripts/parity-tiers.ts.
  */
-import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { parityServices, resolveSelector } from "./parity-tiers.ts"
 
 const root = join(import.meta.dir, "..")
-const servicesDir = join(root, "packages/service")
-
-const withParity = readdirSync(servicesDir).filter((name) => {
-  try {
-    const pkg = JSON.parse(readFileSync(join(servicesDir, name, "package.json"), "utf8")) as {
-      scripts?: Record<string, string>
-    }
-    return typeof pkg.scripts?.parity === "string"
-  } catch {
-    return false
-  }
-})
 
 const args = process.argv.slice(2).filter((a) => a !== "--")
-const wanted = args.includes("--all") ? withParity : args
-if (wanted.length === 0) {
-  console.error(
-    `usage: bun run parity:service -- <service…> | --all\nservices: ${withParity.join(", ")}`,
-  )
+let wanted: string[] = []
+try {
+  wanted = resolveSelector(args)
+} catch (error) {
+  console.error((error as Error).message)
   process.exit(2)
 }
-const unknown = wanted.filter((name) => !withParity.includes(name))
-if (unknown.length > 0) {
-  console.error(`no parity script for: ${unknown.join(", ")}`)
+if (args.length > 0 && wanted.length === 0) {
+  console.log(`no services match ${args.join(" ")}; nothing to run`)
+  process.exit(0)
+}
+if (wanted.length === 0) {
+  console.error(
+    `usage: bun run parity:service -- <service…> | --all | --tier=<hot|warm|cold>\nservices: ${parityServices()
+      .map((s) => `${s.name} (${s.tier})`)
+      .join(", ")}`,
+  )
   process.exit(2)
 }
 

@@ -7,7 +7,13 @@ import {
   resolveDiscountSource,
 } from "./billing.js"
 import { formatMoney } from "./checkout-page.js"
-import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
+import {
+  invalidRequest,
+  parameterInvalidEmpty,
+  parameterMissing,
+  resourceMissing,
+  StripeError,
+} from "./errors.js"
 import { parseUnitAmountDecimal } from "./fields.js"
 import {
   booleanOf,
@@ -111,6 +117,26 @@ const inlineLinePrice = (
   return { price, productName }
 }
 
+/**
+ * What a price charges in the session's `currency`: its own amount by default, or the matching
+ * `currency_options` entry. Stripe refuses a currency the price is not offered in.
+ */
+const chargeIn = (price: PriceRecord, currency: string | undefined, mode: string) => {
+  const own = { currency: price.currency, unit_amount_decimal: price.unit_amount_decimal }
+  if (currency === undefined || currency === price.currency) return own
+  const option = price.currency_options?.[currency]
+  if (option === undefined)
+    throw invalidRequest(
+      `The price specified only supports \`${price.currency}\`. This doesn't match the expected currency: \`${currency}\`.`,
+    )
+  if (mode === "subscription")
+    throw invalidRequest(
+      "Subscription Checkout Sessions in a price's currency option are not modelled by this mock.",
+      "currency",
+    )
+  return { currency, unit_amount_decimal: option.unit_amount_decimal }
+}
+
 /** `line_items[0][price]` / `line_items[0][price_data][…]`, decoded by the form codec. */
 const requestedLines = (
   scope: RequestScope,
@@ -120,6 +146,9 @@ const requestedLines = (
 ): RequestedLine[] => {
   const raw = params.line_items
   if (!Array.isArray(raw) || raw.length === 0) throw parameterMissing("line_items")
+  const requestedCurrency = stringOf(params, "currency")
+  const sessionCurrency =
+    requestedCurrency === null ? undefined : normalizeCurrency(requestedCurrency)
   const lines = raw.map((entry, index) => {
     const line = recordOf(entry) ?? {}
     const quantity = intOf(line.quantity) ?? 1
@@ -149,13 +178,14 @@ const requestedLines = (
     }
     if (mode === "payment" && price.recurring !== null)
       throw invalidRequest(RECURRING_IN_PAYMENT_MODE, `line_items[${index}]`)
+    const charge = chargeIn(price, sessionCurrency, mode)
     return {
       priceId: price.id,
       product: price.product,
-      currency: price.currency,
+      currency: charge.currency,
       description: name,
       quantity,
-      unitAmount: Math.round(Number(price.unit_amount_decimal)),
+      unitAmount: Math.round(Number(charge.unit_amount_decimal)),
       recurring: price.recurring !== null,
     }
   })
@@ -501,7 +531,10 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
   },
   GetCheckoutSessionsSession: async (context) => {
     const scope = requestScope(services, context)
-    queryParams(context)
+    const params = queryParams(context)
+    // Unlike other reads, Checkout refuses an empty `expand` before it looks the session up
+    // (probed against live Stripe).
+    if (params.expand === "") throw parameterInvalidEmpty("expand")
     const id = context.params.session ?? ""
     const session = scope.account.checkoutSessions.get(id)
     // Stripe words this one without quotes or a param.

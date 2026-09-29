@@ -9,7 +9,7 @@ import {
   saveSubscription,
   subscriptionItems,
 } from "./billing.js"
-import { invalidRequest, resourceMissing } from "./errors.js"
+import { invalidRequest, parameterInvalidEmpty, resourceMissing } from "./errors.js"
 import {
   customerNow,
   mergeRecordMetadata,
@@ -29,7 +29,7 @@ type RecordValue = Record<string, unknown>
 
 const requireSchedule = (scope: RequestScope, id: string): SubscriptionScheduleRecord => {
   const record = scope.account.subscriptionSchedules.get(id)
-  if (!record) throw resourceMissing("subscription_schedule", id, "schedule")
+  if (!record) throw resourceMissing("subscription schedule", id, "id")
   return record
 }
 
@@ -198,11 +198,13 @@ export const subscriptionScheduleHandlers = (
 
   GetSubscriptionSchedules: async (context) => {
     const scope = requestScope(services, context)
-    const params = queryParams(context)
-    // `scheduled` excludes the timestamp filters; Stripe names the first conflict in this order.
-    if (params.scheduled !== undefined) {
+    // Probed live, in this order and all ahead of the timestamp filters' own validation:
+    // `scheduled` excludes the timestamp filters (Stripe names the first conflict below), then an
+    // empty `customer_account` is refused.
+    const query = context.query as Record<string, unknown>
+    if (query.scheduled !== undefined) {
       const conflict = ["completed_at", "released_at", "canceled_at"].find(
-        (key) => params[key] !== undefined,
+        (key) => query[key] !== undefined,
       )
       if (conflict)
         throw invalidRequest(
@@ -210,13 +212,15 @@ export const subscriptionScheduleHandlers = (
           conflict,
         )
     }
+    if (query.customer_account === "") throw parameterInvalidEmpty("customer_account")
+    const params = queryParams(context)
     const customer = typeof params.customer === "string" ? params.customer : undefined
     const page = await paginate<SubscriptionScheduleRecord>(
       scope.account.subscriptionSchedules,
       params,
       {
         url: "/v1/subscription_schedules",
-        kind: "subscription_schedule",
+        kind: "subscription schedule",
         where: (record) =>
           matchesCreated(record.created, params.created) &&
           (customer === undefined || customer === "" || record.customer === customer),
