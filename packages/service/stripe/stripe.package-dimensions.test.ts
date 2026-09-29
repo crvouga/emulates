@@ -45,3 +45,20 @@ test("a non-numeric dimension is still an invalid decimal", async () => {
   expect(error.param).toBe("package_dimensions[length]")
   expect(error.message).toBe("Invalid decimal: abc")
 })
+
+// Live parity: a scalar `metadata` on a product gets Stripe's metadata message, not "Invalid object".
+test("a scalar metadata on a product names the metadata rule", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_pd2", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/products`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${KEY}`,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ name: "!", metadata: "0" }),
+  })
+  const { error } = (await response.json()) as { error: { message: string; param: string } }
+  expect(error.param).toBe("metadata")
+  expect(error.message).toStartWith("Invalid value for `metadata`.")
+})
