@@ -166,10 +166,14 @@ const rubyFloat = (raw: string): string => {
   return text.includes(".") || text.includes("e") ? text : `${text}.0`
 }
 
+const isExponentNumber = (value: unknown) =>
+  typeof value === "string" && /^[+-]?(\d+\.?\d*|\.\d+)e[+-]?\d+$/i.test(value)
+
 /**
  * Stripe's checks on `package_dimensions` (probed in test mode): fields are tried in the order
  * length, width, height, weight; a value that is not a plain decimal or has more than 15
  * fraction digits is an "Invalid decimal"; then each may carry at most two decimal places.
+ * Exponent notation (`9.1e-276`) is a valid number to Stripe, so it trips neither check.
  */
 const packageDimensionsError = (
   issues: FormIssue[],
@@ -179,16 +183,20 @@ const packageDimensionsError = (
   const values = typeof raw === "object" && raw !== null ? (raw as Record<string, FormValue>) : {}
   for (const field of fields) {
     const issue = issues.find((item) => item.path === `package_dimensions[${field}]`)
-    if (issue) return issueToError(issue)
+    if (issue && !isExponentNumber(values[field])) return issueToError(issue)
     const value = values[field]
     if (typeof value === "string" && /\.\d{16,}$/.test(value))
       return invalidRequest(`Invalid decimal: ${value}`, `package_dimensions[${field}]`)
   }
-  if (issues[0]) return issueToError(issues[0])
+  const other = issues.find((item) => {
+    const field = /^package_dimensions\[(\w+)\]$/.exec(item.path)?.[1]
+    return field === undefined || !isExponentNumber(values[field])
+  })
+  if (other) return issueToError(other)
   for (const field of fields) {
     const value = values[field]
     const fraction = typeof value === "string" ? (value.split(".")[1] ?? "").replace(/0+$/, "") : ""
-    if (typeof value === "string" && fraction.length > 2)
+    if (typeof value === "string" && !isExponentNumber(value) && fraction.length > 2)
       return invalidRequest(
         `Invalid decimal: ${rubyFloat(value)}; must contain at maximum two decimal places.`,
         `package_dimensions[${field}]`,
