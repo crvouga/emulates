@@ -228,6 +228,17 @@ describe("service contract", () => {
     expect(await account.json()).toMatchObject({ error: { param: "customer_account" } })
   })
 
+  test("listing invoice items names a missing cursor an invoice item", async () => {
+    const { call } = harness()
+    const response = await call("/v1/invoiceitems?ending_before=ii_missing", {
+      headers: { authorization: `Bearer ${KEY}` },
+    })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { message: "No such invoice item: 'ii_missing'", param: "ending_before" },
+    })
+  })
+
   test("creating a customer refuses a malformed preferred_locales before an empty invoice_settings", async () => {
     const { call } = harness()
     const response = await call(
