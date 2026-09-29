@@ -360,7 +360,7 @@ interface DatabaseOptions {
   int8?: "bigint" | "number" | "string"  // default "bigint"; "number" is unsafe beyond MAX_SAFE_INTEGER
 }
 
-class Database {
+declare class Database {
   constructor(options?: DatabaseOptions)
   exec(sql: string): void
   registerFunction(spec: { name: string; args: string[]; returns: string; strict?: boolean;
@@ -379,13 +379,13 @@ class Database {
   readonly int8Mode: "bigint" | "number" | "string"
 }
 
-class Snapshot {
+declare class Snapshot {
   open(options?: DatabaseOptions): Database
   encode(): Uint8Array
   static decode(bytes: Uint8Array): Snapshot
 }
 
-class Statement {
+declare class Statement {
   readonly sql: string
   run(...params: BindValue[]): RunResult
   all<T = QueryRow>(...params: BindValue[]): T[]
@@ -399,12 +399,13 @@ interface ResultSet     { columns: string[]; columnTypes: string[]; rows: QueryR
 interface TextResultSet { columns: string[]; columnTypes: string[]; rows: (string | null)[][]; rowCount: number; command: string }
 // columnTypes are PostgreSQL internal type names, e.g. "int4", "numeric"
 
-class PostgresError extends Error {
+declare class PostgresError extends Error {
   readonly category: ErrorCategory   // "syntax", "undefined_table", "constraint_unique", "misuse", ...
   readonly sqlState: string          // five-character SQLSTATE
   readonly code: string              // === sqlState (node-postgres err.code convention)
 }
 
+type ErrorCategory = string // "syntax" | "undefined_table" | "constraint_unique" | "misuse" | ...
 type BindValue = null | undefined | boolean | number | bigint | string | Uint8Array | Date
 type JsValue   = null | boolean | number | bigint | string | Uint8Array
 type QueryRow  = Record<string, JsValue>
