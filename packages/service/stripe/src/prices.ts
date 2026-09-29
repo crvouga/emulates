@@ -101,7 +101,19 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
   return {
     PostPrices: async (context: OperationContext) => {
       const scope = requestScope(services, context)
-      const params = bodyParams(context)
+      // Stripe refuses naming both amounts before it reads any other parameter.
+      const params = bodyParams(context, {
+        order: ["unit_amount", "unit_amount_decimal"],
+        validate: {
+          unit_amount_decimal: (given) => {
+            if (given.unit_amount !== undefined && given.unit_amount_decimal !== undefined)
+              throw invalidRequest(
+                "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+                "unit_amount",
+              )
+          },
+        },
+      })
       const hasProduct = params.product !== undefined
       const hasProductData = params.product_data !== undefined
       if (hasProduct && hasProductData)
@@ -124,11 +136,6 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
       const currency = normalizeCurrency(params.currency as string)
       const hasAmount = params.unit_amount !== undefined
       const hasDecimal = params.unit_amount_decimal !== undefined
-      if (hasAmount && hasDecimal)
-        throw invalidRequest(
-          "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
-          "unit_amount",
-        )
       if (!hasAmount && !hasDecimal)
         throw invalidRequest(
           "Prices require an `unit_amount` or `unit_amount_decimal` parameter to be set.",
