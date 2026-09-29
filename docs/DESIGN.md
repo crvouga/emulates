@@ -20,8 +20,10 @@ the sentence in a package README or on a page.
 ## The mark
 
 `sites/docs/public/identity/mockingbird.png` is the mark: a northern mockingbird in profile,
-long tail, two white wing bars, inside a circular paper plate. The same file is the
-favicon, the header, and the image in the README (`IDENTITY.mark`).
+long tail, two white wing bars, inside a circular paper plate. That path is
+`MARK_REPO_PATH` in `sites/docs/src/lib/content.ts`. The docs site serves the same file
+for the favicon and the header. The README image is `IDENTITY.mark`, that file on `main`.
+`bun run check:readme` fails when the file is missing from the repo.
 
 `sites/docs/public/identity/mockingbird-field.webp` is Plate I, the hero specimen. It stays
 on paper in both themes. Do not recolor it, crop the wing bars out of it, or replace the
@@ -73,7 +75,7 @@ of the title is italic and clay. Species names are italic.
 Corners are `--radius` (3px) or `--radius-sm` (2px). A coverage meter may stay a thin bar.
 
 The page scrollbar stays visible, so moving between a short page and a long one does not
-shift the layout. Its track is `--bg-muted` and its thumb is sage.
+shift the layout. Its track is the page background (`--bg`) and its thumb is sage.
 
 ## What to refuse
 

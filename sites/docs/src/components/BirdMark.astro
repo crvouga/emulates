@@ -1,11 +1,13 @@
 ---
+import { MARK_HREF } from "../lib/content.ts"
+
 interface Props {
   size?: number
 }
 const { size = 34 } = Astro.props
 ---
 
-<img class="bird-mark" src="/identity/mockingbird.png" width={size} height={size} alt="" aria-hidden="true" />
+<img class="bird-mark" src={MARK_HREF} width={size} height={size} alt="" aria-hidden="true" />
 
 <style>
   .bird-mark { flex: none; }

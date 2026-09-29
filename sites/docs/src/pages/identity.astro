@@ -2,7 +2,7 @@
 import BirdMark from "../components/BirdMark.astro"
 import Icon from "../components/Icon.astro"
 import Base from "../layouts/Base.astro"
-import { IDENTITY } from "../lib/content.ts"
+import { IDENTITY, PLATE_HREF } from "../lib/content.ts"
 
 const swatches = [
   { name: "Paper", token: "--bg", note: "The notebook" },
@@ -32,7 +32,7 @@ const swatches = [
       </figure>
       <figure class="field-plate">
         <img
-          src="/identity/mockingbird-field.webp"
+          src={PLATE_HREF}
           width="1536"
           height="1024"
           alt="Northern mockingbird on a fruiting branch: gray above, pale below, two white bars on the wing, a long tail."

@@ -12,6 +12,7 @@ import {
   HEADLINE,
   IDENTITY,
   PITCH,
+  PLATE_HREF,
   QUICK_START,
 } from "../lib/content.ts"
 import { inline } from "../lib/inline.ts"
@@ -42,7 +43,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
       </div>
       <figure class="plate">
         <img
-          src="/identity/mockingbird-field.webp"
+          src={PLATE_HREF}
           width="1536"
           height="1024"
           alt="Northern mockingbird on a fruiting branch: gray above, pale below, two white bars on the wing, a long tail."

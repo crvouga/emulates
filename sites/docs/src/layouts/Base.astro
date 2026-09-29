@@ -3,7 +3,7 @@ import catalog from "virtual:mockingbird/catalog"
 import BirdMark from "../components/BirdMark.astro"
 import Icon from "../components/Icon.astro"
 import Sprite from "../components/Sprite.astro"
-import { IDENTITY, RISK_DISCLAIMER } from "../lib/content.ts"
+import { IDENTITY, MARK_HREF, RISK_DISCLAIMER } from "../lib/content.ts"
 import { inline } from "../lib/inline.ts"
 import "../styles/global.css"
 
@@ -44,7 +44,7 @@ const nav = [
     <meta property="og:type" content="website" />
     <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#161c19" media="(prefers-color-scheme: dark)" />
-    <link rel="icon" type="image/png" href="/identity/mockingbird.png" />
+    <link rel="icon" type="image/png" href={MARK_HREF} />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     {markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
     <script is:inline>

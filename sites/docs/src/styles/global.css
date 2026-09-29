@@ -122,7 +122,7 @@ html {
 html,
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--sage) var(--bg-muted);
+  scrollbar-color: var(--sage) var(--bg);
 }
 
 *::-webkit-scrollbar {
@@ -132,12 +132,12 @@ html,
 
 *::-webkit-scrollbar-track,
 *::-webkit-scrollbar-corner {
-  background: var(--bg-muted);
+  background: var(--bg);
 }
 
 *::-webkit-scrollbar-thumb {
   background: var(--sage);
-  border: 3px solid var(--bg-muted);
+  border: 3px solid var(--bg);
 }
 
 body {

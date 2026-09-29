@@ -15,7 +15,9 @@ import {
   FEATURES,
   HEADLINE,
   IDENTITY,
+  MARK_REPO_PATH,
   PITCH,
+  PLATE_REPO_PATH,
   QUICK_START,
   RISK_DISCLAIMER,
 } from "../sites/docs/src/lib/content.ts"
@@ -25,6 +27,17 @@ import type { ServiceStatus } from "../sites/docs/src/lib/types.ts"
 import { discoverPackages, REPO, root } from "./release/lib.ts"
 
 const OUT = join(root, "README.md")
+
+for (const rel of [MARK_REPO_PATH, PLATE_REPO_PATH]) {
+  if (!existsSync(join(root, rel))) {
+    console.error(`::error::missing identity file: ${rel}`)
+    process.exit(1)
+  }
+}
+if (!IDENTITY.mark.endsWith(`/${MARK_REPO_PATH}`)) {
+  console.error(`::error::IDENTITY.mark must be the main copy of ${MARK_REPO_PATH}`)
+  process.exit(1)
+}
 
 interface Manifest {
   description?: string
