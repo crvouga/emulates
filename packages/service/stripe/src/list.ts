@@ -36,6 +36,8 @@ export const paginate = async <T>(
   options: {
     url: string
     kind: string
+    /** The `param` of a missing-cursor error, where Stripe names the resource, not the cursor. */
+    cursorParam?: string
     where: (record: T) => boolean
     /** Existence check for cursors; deleted tombstones count as missing. */
     exists?: (record: T) => boolean
@@ -50,7 +52,7 @@ export const paginate = async <T>(
     const index = all.findIndex(
       (entry: Stored<T> & { id: string }) => entry.id === id && exists(entry.value),
     )
-    if (index === -1) throw resourceMissing(options.kind, id, param, 400)
+    if (index === -1) throw resourceMissing(options.kind, id, options.cursorParam ?? param, 400)
     return index
   }
   // Stripe resolves `starting_after` before it objects to receiving both cursors.
