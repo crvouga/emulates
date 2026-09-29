@@ -29,7 +29,7 @@ type RecordValue = Record<string, unknown>
 
 const requireSchedule = (scope: RequestScope, id: string): SubscriptionScheduleRecord => {
   const record = scope.account.subscriptionSchedules.get(id)
-  if (!record) throw resourceMissing("subscription_schedule", id, "schedule")
+  if (!record) throw resourceMissing("subscription schedule", id, "id")
   return record
 }
 
