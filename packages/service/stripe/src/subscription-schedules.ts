@@ -27,9 +27,14 @@ import type { SubscriptionScheduleRecord } from "./state.js"
 
 type RecordValue = Record<string, unknown>
 
-const requireSchedule = (scope: RequestScope, id: string): SubscriptionScheduleRecord => {
+/** Retrieve names the missing id as `id` (probed live); the other operations are unprobed. */
+const requireSchedule = (
+  scope: RequestScope,
+  id: string,
+  param = "schedule",
+): SubscriptionScheduleRecord => {
   const record = scope.account.subscriptionSchedules.get(id)
-  if (!record) throw resourceMissing("subscription_schedule", id, "schedule")
+  if (!record) throw resourceMissing("subscription schedule", id, param)
   return record
 }
 
@@ -229,7 +234,7 @@ export const subscriptionScheduleHandlers = (
   GetSubscriptionSchedulesSchedule: async (context) => {
     const scope = requestScope(services, context)
     queryParams(context)
-    const record = requireSchedule(scope, context.params.schedule ?? "")
+    const record = requireSchedule(scope, context.params.schedule ?? "", "id")
     return jsonResponse(200, renderSubscriptionSchedule(record))
   },
 
