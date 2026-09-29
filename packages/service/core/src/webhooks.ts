@@ -225,6 +225,9 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
   const faults = new Map<string, { mode: WebhookFault["mode"]; remaining: number }[]>()
   const held = new Map<string, WebhookMessage[]>()
   const inFlight = new Set<Promise<void>>()
+  // Immediate (delay 0) attempts chain onto this so two deliveries scheduled in the same tick
+  // (e.g. a reorder fault's swap) hit the receiver in schedule order, not fetch-race order.
+  let immediate: Promise<unknown> = Promise.resolve()
 
   const track = (work: Promise<void>) => {
     inFlight.add(work)
@@ -297,22 +300,22 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
       pending.delete(delivery.id)
       return
     }
-    const run = () => {
-      pending.delete(delivery.id)
-      track(
-        attempt(delivery).then((ok) => {
-          if (ok) delivery.state = "delivered"
-          else schedule(delivery)
-        }),
-      )
-    }
+    const settle = () =>
+      attempt(delivery).then((ok) => {
+        if (ok) delivery.state = "delivered"
+        else schedule(delivery)
+      })
     const delay = delays[index] ?? 0
     if (delay <= 0) {
-      pending.set(delivery.id, undefined)
-      run()
+      const task = immediate.then(settle)
+      immediate = task.catch(() => {})
+      track(task)
       return
     }
-    const timer = scheduleTimer(run, delay)
+    const timer = scheduleTimer(() => {
+      pending.delete(delivery.id)
+      track(settle())
+    }, delay)
     unref(timer)
     pending.set(delivery.id, timer)
   }
