@@ -123,6 +123,9 @@ const expanders = (scope: RequestScope): ExpandResolvers => {
   }
 }
 
+/** Stripe refuses a malformed `preferred_locales` before it looks at `invoice_settings` (observed). */
+const CUSTOMER_PARAM_ORDER = ["preferred_locales"]
+
 export const customerHandlers = (services: Services): Record<string, OperationHandler> => {
   const render = (scope: RequestScope, customer: CustomerRecord, params: Params) =>
     applyExpand(renderCustomer(customer), params.expand, expanders(scope))
@@ -130,7 +133,7 @@ export const customerHandlers = (services: Services): Record<string, OperationHa
   return {
     PostCustomers: async (context) => {
       const scope = requestScope(services, context)
-      const params = bodyParams(context)
+      const params = bodyParams(context, { order: CUSTOMER_PARAM_ORDER })
       const id = scope.ids.next("cus_")
       const base: CustomerRecord = {
         id,

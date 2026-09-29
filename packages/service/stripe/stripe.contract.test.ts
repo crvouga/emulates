@@ -227,4 +227,16 @@ describe("service contract", () => {
     })
     expect(await account.json()).toMatchObject({ error: { param: "customer_account" } })
   })
+
+  test("creating a customer refuses a malformed preferred_locales before an empty invoice_settings", async () => {
+    const { call } = harness()
+    const response = await call(
+      "/v1/customers",
+      form({ invoice_settings: "", preferred_locales: "5" }),
+    )
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { message: "Invalid array", param: "preferred_locales" },
+    })
+  })
 })
