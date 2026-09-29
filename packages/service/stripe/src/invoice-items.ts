@@ -176,6 +176,8 @@ export const invoiceItemHandlers = (services: Services): Record<string, Operatio
     const customer = stringOf(params, "customer")
     const invoice = stringOf(params, "invoice")
     const pending = params.pending === true || params.pending === "true"
+    if (customer !== null && !scope.account.customers.get(customer))
+      throw resourceMissing("customer", customer, "customer", 400)
     const page = await paginate<InvoiceItemRecord>(scope.account.invoiceItems, params, {
       url: "/v1/invoiceitems",
       kind: "invoiceitem",

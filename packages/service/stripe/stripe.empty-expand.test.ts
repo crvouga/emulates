@@ -77,3 +77,16 @@ test("a POST with an invalid tax_exempt and empty expand names tax_exempt", asyn
   expect(response.status).toBe(400)
   expect(error.param).toBe("tax_exempt")
 })
+
+// Live parity: filtering invoice items by a customer that does not exist is a 400, not an empty list.
+test("listing invoice items for a missing customer is refused", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee6", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/invoiceitems?customer=cus_missing`, {
+    headers: { authorization: `Bearer ${KEY}` },
+  })
+  const { error } = (await response.json()) as { error: { code: string; param: string } }
+  expect(response.status).toBe(400)
+  expect(error.code).toBe("resource_missing")
+  expect(error.param).toBe("customer")
+})
