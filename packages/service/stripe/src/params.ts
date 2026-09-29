@@ -42,6 +42,9 @@ const orderedAlternatives = (path: string, allowed: string[]) => {
   return [...known, ...allowed.filter((item) => !known.includes(item))]
 }
 
+const METADATA_NOT_OBJECT =
+  "Invalid value for `metadata`. Metadata must be a single object containing key-value pairs.  See the metadata documentation for more details: https://docs.stripe.com/api/metadata"
+
 export const issueToError = (issue: FormIssue): StripeError => {
   switch (issue.kind) {
     case "unknown":
@@ -57,17 +60,16 @@ export const issueToError = (issue: FormIssue): StripeError => {
     case "invalid-boolean":
       return invalidRequest(`Invalid boolean: ${issue.raw}`, issue.path)
     case "invalid-object":
-      return invalidRequest("Invalid object", issue.path)
+      return invalidRequest(
+        leafName(issue.path) === "metadata" ? METADATA_NOT_OBJECT : "Invalid object",
+        issue.path,
+      )
     case "invalid-array":
       return invalidRequest("Invalid array", issue.path)
     case "invalid-enum": {
       const leaf = leafName(issue.path)
       // `metadata` is an object or "" (unset); any other scalar gets Stripe's metadata message.
-      if (leaf === "metadata")
-        return invalidRequest(
-          "Invalid value for `metadata`. Metadata must be a single object containing key-value pairs.  See the metadata documentation for more details: https://docs.stripe.com/api/metadata",
-          issue.path,
-        )
+      if (leaf === "metadata") return invalidRequest(METADATA_NOT_OBJECT, issue.path)
       if (leaf === "currency")
         return invalidRequest(
           `Invalid currency: ${issue.raw}. Stripe currently supports these currencies: ${SUPPORTED_CURRENCIES.join(", ")}`,
