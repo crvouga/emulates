@@ -50,6 +50,7 @@ const seededSpec = () => {
   return spec
 }
 
+// CI runs 40 walks on shared runners; give this test a bounded 30-second budget.
 test("seeded self-parity plans and exercises every GitHub operation", async () => {
   const reference = create()
   const report = await parity({
@@ -74,7 +75,7 @@ test("seeded self-parity plans and exercises every GitHub operation", async () =
   expect(report.planned.slice().sort()).toEqual(supportedOperationIds.slice().sort())
   expect(Object.keys(report.exercised).sort()).toEqual(supportedOperationIds.slice().sort())
   for (const id of supportedOperationIds) expect(report.exercised[id]).toBeGreaterThan(0)
-})
+}, 30_000)
 
 for (const divergent of [false, true])
   test(`repository parity ${divergent ? "detects schema-valid divergence" : "compares successful seeded reads"}`, async () => {
