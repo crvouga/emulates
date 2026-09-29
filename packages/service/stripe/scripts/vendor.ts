@@ -384,8 +384,7 @@ const RESPONSE_SHAPES: Record<string, Shape> = {
     id: identity("price"),
     created: volatile("timestamp"),
     product: expandableId(identity("product")),
-    // Only present when expanded or when the pricing model uses them.
-    currency_options: null,
+    // Only present when the pricing model uses them.
     tiers: null,
   },
   subscription_schedule: {
@@ -582,7 +581,9 @@ const BODY_SHAPES: Record<string, Shape> = {
     currency: CURRENCY,
     "recurring.interval_count": { type: "integer", minimum: 1 },
     billing_scheme: unsupported("tiered billing is not modelled"),
-    currency_options: unsupported("multi-currency prices are not modelled"),
+    currency_options: unsupported(
+      "generated walks stay single-currency; per-currency options are covered by acceptance tests",
+    ),
     custom_unit_amount: unsupported("customer-chosen amounts are not modelled"),
     product: ref("product", MISSING.product),
     product_data: unsupported("inline product creation is not modelled"),
@@ -593,7 +594,9 @@ const BODY_SHAPES: Record<string, Shape> = {
     "recurring.meter": unsupported("billing meters are not modelled"),
   },
   PostPricesPrice: {
-    currency_options: unsupported("multi-currency prices are not modelled"),
+    currency_options: unsupported(
+      "generated walks stay single-currency; per-currency options are covered by acceptance tests",
+    ),
     transfer_lookup_key: unsupported("lookup key transfer is not modelled"),
   },
   // --- money movement: parameters the mock accepts but does not model are refused up front -----
@@ -1704,10 +1707,10 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
   GetProducts: ["data.default_price"],
   GetProductsId: ["default_price"],
   PostProductsId: ["default_price"],
-  PostPrices: ["product", "product_data"],
-  GetPrices: ["data.product"],
-  GetPricesPrice: ["product"],
-  PostPricesPrice: ["product"],
+  PostPrices: ["currency_options", "product", "product_data"],
+  GetPrices: ["data.currency_options", "data.product"],
+  GetPricesPrice: ["currency_options", "product"],
+  PostPricesPrice: ["currency_options", "product"],
 }
 
 // --- transforms --------------------------------------------------------------------------------
