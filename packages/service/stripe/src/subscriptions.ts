@@ -515,6 +515,8 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const params = queryParams(context)
       const subscription = stringOf(params, "subscription")
       if (subscription === null) throw parameterMissing("subscription")
+      if (!scope.account.subscriptions.get(subscription))
+        throw resourceMissing("subscription", subscription, "subscription")
       return jsonResponse(
         200,
         await paginate<SubscriptionItemRecord>(scope.account.subscriptionItems, params, {
