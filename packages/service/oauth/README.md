@@ -109,6 +109,35 @@ curl http://localhost:8810/__admin/accounts
 
 Set `adminKey` (CLI `--admin-key`) to require `x-mockingbird-admin-key`. Programmatically, `runtime.instance().seedAccount(account)` inserts or updates a stable subject; `registerClient(client)` inserts or updates a client. Accounts support `emailVerified`, `picture`, `givenName`, `familyName`, `locale`, `hostedDomain`, `privateEmail`, `relayEmail`, `omitEmail`, `omitName` and `disabled`. Apple fixtures also accept `realUserStatus` (`0`, `1`, or `2`) and `transferSub` for risk and app-transfer claim tests. Microsoft fixtures accept `preferredUsername`, `tenantId`, `objectId`; GitHub fixtures accept `github: { id, login, publicEmail, emails }`. An email-list entry contains `email`, `primary`, `verified` and `visibility` (`public`, `private` or `null`).
 
+### Test hooks on the interaction pages
+
+The chooser, signup, consent, `form_post` and error pages carry stable `data-testid` hooks, so a UI
+suite (Playwright's `getByTestId`, a driver that selects only by test id) can drive them without CSS
+classes or visible copy. The ids are part of the documented surface and do not change between versions.
+Each page has exactly one root (the page's card), and every interactive element has its own id.
+
+| Page | Element | `data-testid` |
+| --- | --- | --- |
+| chooser | page root | `oauth-mock-chooser` |
+| chooser | one wrapper per account (shared id, with `data-account-id` and `data-email`) | `oauth-mock-account` |
+| chooser | each account's button, unique per account | `oauth-mock-account-<account id>` |
+| chooser | "Create a new account" | `oauth-mock-create-account` |
+| chooser | "Choose an available account" error (`role="alert"`) | `oauth-mock-chooser-error` |
+| chooser, signup, consent | cancel / deny button | `oauth-mock-deny` |
+| signup | page root | `oauth-mock-signup` |
+| signup | full name / email inputs | `oauth-mock-signup-name`, `oauth-mock-signup-email` |
+| signup | submit button | `oauth-mock-signup-submit` |
+| signup | validation or duplicate-email error (`role="alert"`) | `oauth-mock-signup-error` |
+| consent | page root | `oauth-mock-consent` |
+| consent | Allow button | `oauth-mock-allow` |
+| consent (Apple, default `emailMode: "choose"`) | Share / Hide My Email radios | `oauth-mock-share-email`, `oauth-mock-hide-email` |
+| `form_post` | page root (the hand-off page) | `oauth-mock-form-post` |
+| `form_post` | no-JavaScript Continue button inside the `#callback` form | `oauth-mock-form-post-continue` |
+| expired or unknown sign-in | page root | `oauth-mock-error` |
+
+`<account id>` is HTML-escaped. A driver that runs no page scripts finishes Sign in with Apple by
+tapping `oauth-mock-form-post-continue`; with scripts, the page submits the form itself.
+
 ### Fidelity and lifecycle
 
 - Authorization-code flow with exact redirect matching, including explicitly registered private-use URI schemes for native apps, state and nonce; duplicate parameters rejected. Invalid clients/callbacks never redirect. Public native clients require S256 PKCE.
