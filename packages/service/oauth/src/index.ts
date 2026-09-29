@@ -842,6 +842,9 @@ export class OAuthAPI {
         "Session expired",
         '<span class="eyebrow">Let’s try again</span><h1 id="title">This sign-in expired</h1><p>Return to your application and start sign-in again.</p>',
         400,
+        undefined,
+        undefined,
+        "oauth-mock-error",
       )
     const accounts = () =>
       this.accounts.list({ order: "oldest", where: (a) => !a.disabled }).map((a) => a.value)
@@ -1058,10 +1061,11 @@ export class OAuthAPI {
           .map(([k, v]) => `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`)
           .join(
             "",
-          )}<button class="primary">Continue</button></form><script nonce="${nonce}">document.getElementById('callback').submit()</script>`,
+          )}<button class="primary" data-testid="oauth-mock-form-post-continue">Continue</button></form><script nonce="${nonce}">document.getElementById('callback').submit()</script>`,
         200,
         formTarget(auth.redirectUri),
         nonce,
+        "oauth-mock-form-post",
       )
       return result
     }
