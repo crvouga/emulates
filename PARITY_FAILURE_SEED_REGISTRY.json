@@ -46,8 +46,14 @@
     {
       "provider": "junction",
       "seed": 2058813869,
+      "status": "fixed",
+      "failure": "book_phlebotomy_appointment real=200 mock=200 but appointment events length real=2 mock=1 and location coordinates differ; exposed after simulation fix at path 4, walk seed 1746820281, Actions run 36537595637; not yet investigated with controlled booking probes; controlled cancellation/rebooking probe verified behavior; booking replay passed in Actions run 36593876971"
+    },
+    {
+      "provider": "junction",
+      "seed": 2058813869,
       "status": "open",
-      "failure": "book_phlebotomy_appointment real=200 mock=200 but appointment events length real=2 mock=1 and location coordinates differ; exposed after simulation fix at path 4, walk seed 1746820281, Actions run 36537595637; not yet investigated with controlled booking probes"
+      "failure": "cancel_phlebotomy_appointment on a non-phlebotomy order: both 404, real detail=This order doesn't have a phlebotomy order. vs mock=No appointment for this order; path 4, walk seed 1746820281, Actions run 36593876971; modality guard regression added, live replay pending"
     },
     {
       "provider": "junction",

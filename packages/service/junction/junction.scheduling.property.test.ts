@@ -719,3 +719,21 @@ describe("Junction scheduling state space", () => {
     )
   })
 })
+
+test("phlebotomy cancellation checks collection method before looking for an appointment", async () => {
+  const api = new JunctionAPI()
+  const userId = await createUser(api, "cancel-modality-regression")
+  for (const [labId, detail] of [
+    [LAB_WALK_IN, "This order doesn't have a phlebotomy order."],
+    [LAB_AT_HOME, "No appointment for this order"],
+  ] as const) {
+    const order = await createOrder(api, userId, labId)
+    const cancelled = await request(api, `/v3/order/${order.id}/phlebotomy/appointment/cancel`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ cancellation_reason_id: await cancellationReasonId(api, 0) }),
+    })
+    expect(cancelled.status).toBe(404)
+    expect(await cancelled.json()).toEqual({ detail })
+  }
+})
