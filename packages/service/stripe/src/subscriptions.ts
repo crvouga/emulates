@@ -13,7 +13,13 @@ import {
   saveSubscription,
   subscriptionItems,
 } from "./billing.js"
-import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
+import {
+  invalidRequest,
+  parameterInvalidEmpty,
+  parameterMissing,
+  resourceMissing,
+  StripeError,
+} from "./errors.js"
 import {
   booleanOf,
   customerNow,
@@ -533,7 +539,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
     },
     GetSubscriptionItemsItem: async (context) => {
       const scope = requestScope(services, context)
-      queryParams(context)
+      if (queryParams(context).expand === "") throw parameterInvalidEmpty("expand")
       const id = context.params.item ?? ""
       const record = scope.account.subscriptionItems.get(id)
       if (!record)
