@@ -83,8 +83,9 @@ export const compareStripeWebhooks = (
 
 type StripeOracle = {
   cursor(): number
-  /** Events delivered since `cursor`, created at or after `since` (unix seconds) when given. */
-  collect(cursor: number, expected: number, since?: number): Promise<unknown[]>
+  collect(cursor: number, expected: number): Promise<unknown[]>
+  /** Wait until no event has arrived for `quietMs` (or `maxMs` passes), so late deliveries land before the next walk. */
+  settle(quietMs: number, maxMs: number): Promise<void>
   close(): Promise<void>
 }
 
@@ -190,7 +191,7 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   }
   return {
     cursor: () => rows.length,
-    async collect(cursor, expected, since) {
+    async collect(cursor, expected) {
       const deadline = Date.now() + 10_000
       let previousCount = -1
       let stableSince = Date.now()
@@ -198,13 +199,6 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
         const seen = new Set<string>()
         return rows.slice(cursor).flatMap((row) => {
           const payload = record(row.payload)
-          // A previous walk's cleanup can still be delivering its own events: skip those.
-          if (
-            since !== undefined &&
-            typeof payload?.created === "number" &&
-            payload.created < since
-          )
-            return []
           const id = typeof payload?.id === "string" ? payload.id : undefined
           if (id !== undefined) {
             if (seen.has(id)) return []
@@ -225,6 +219,20 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
         await Bun.sleep(100)
       } while (Date.now() < deadline)
       return uniqueEvents()
+    },
+    async settle(quietMs, maxMs) {
+      const deadline = Date.now() + maxMs
+      let previousCount = rows.length
+      let stableSince = Date.now()
+      while (Date.now() < deadline && Date.now() - stableSince < quietMs) {
+        if (exitCode !== undefined)
+          throw new Error(`stripe listen exited during parity (status ${exitCode})`)
+        await Bun.sleep(100)
+        if (rows.length !== previousCount) {
+          previousCount = rows.length
+          stableSince = Date.now()
+        }
+      }
     },
     async close() {
       cli.kill()

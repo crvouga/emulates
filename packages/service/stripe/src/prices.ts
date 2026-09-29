@@ -193,8 +193,6 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         )
       if (params.product === "") throw parameterInvalidEmpty("product")
       if (params.product_data === "") throw parameterInvalidEmpty("product_data")
-      // A price cannot be created with its metadata "unset" (probed live), and this is checked
-      // before the product is looked up.
       if (params.metadata === "") throw parameterInvalidEmpty("metadata")
       const inline = hasProductData
         ? validateInlineProduct(params.product_data as Params)

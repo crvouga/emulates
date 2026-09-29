@@ -268,11 +268,7 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   let done = 0
   const width = String(numRuns).length
   const coverage: Record<string, number> = {}
-  // Set only by failing walks: the shrinker ends on a failing candidate, but later passing
-  // candidates run after it and must not erase its divergence.
   let lastWalkFailure: ParityError | undefined
-  // The last error a walk threw that was not a divergence (a crashed mock, a failed cleanup).
-  let lastWalkCrash: unknown
 
   const commands = fc.commands(
     [
@@ -338,21 +334,12 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       const operationId = entry.split(" ")[0] ?? entry
       exercised[operationId] = (exercised[operationId] ?? 0) + 1
     }
+    lastWalkEnd = now()
 
     let webhookFailure: ParityError | undefined
     let webhookEvents: WalkWebhookEvents | undefined
-    // fast-check hands the walk `CommandWrapper`s; the `Step` is on `.cmd`.
-    const firstStep = [...steps][0] as { cmd?: unknown } | undefined
-    const firstCommand =
-      firstStep?.cmd instanceof Step
-        ? firstStep.cmd.command
-        : ({
-            operationId: "webhooks",
-            parameters: {},
-            body: undefined,
-            mediaType: undefined,
-            invalid: undefined,
-          } satisfies LogicalCommand)
+    const firstStep = [...steps][0]
+    const firstCommand = firstStep instanceof Step ? firstStep.command : ({} as LogicalCommand)
     // A request mismatch takes precedence: the mock may have emitted an event for a request
     // Stripe rejected, and comparing that event would hide the original API divergence.
     if (options.webhooks && walkError === undefined) {
@@ -404,17 +391,14 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
         },
       })
     }
-    // The walk ends once cleanup has finished: the deletes it issues raise events of their own,
-    // and the next walk must start after those, not while they are still being delivered.
-    lastWalkEnd = now()
 
     if (webhookFailure) {
       lastWalkFailure = webhookFailure
       throw webhookFailure
     }
     if (walkError !== undefined) {
+      // Kept across walks: shrinking replays passing candidates after the last failing walk.
       lastWalkFailure = walkError instanceof ParityError ? walkError : undefined
-      if (!(walkError instanceof ParityError)) lastWalkCrash = walkError
       throw walkError
     }
     if (ok) {
@@ -449,14 +433,13 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       throw cause
     }
     if (error instanceof Error) {
-      // fast-check keeps the value the property threw as `cause`; a crash outside the walk's
-      // own try (mock setup, webhook collection, cleanup) surfaces only there.
-      const thrown = error.cause ?? lastWalkCrash
-      const crash =
-        thrown === undefined
-          ? ""
-          : `\n\nlast walk error: ${redact(thrown instanceof Error ? (thrown.stack ?? thrown.message) : String(thrown))}`
-      error.message = `${header}\n${error.message}${crash}`
+      // fast-check keeps the property's own error in `cause`; without it a non-divergence failure
+      // (a transport error, a crashing cleanup) reports only a counterexample.
+      const underlying =
+        error.cause instanceof Error
+          ? `\n\nCaused by: ${error.cause.stack ?? error.cause.message}`
+          : ""
+      error.message = `${header}\n${error.message}${underlying}`
     }
     throw error
   }

@@ -292,6 +292,8 @@ try {
           if (!response.ok) await archive(`/v1/products/${id}`)
         }
       }
+      // Cleanup emits real events (customer.deleted, ...); let them arrive before the next walk's cursor.
+      await webhookOracle?.settle(4_000, 15_000)
     },
   })
 } catch (error) {

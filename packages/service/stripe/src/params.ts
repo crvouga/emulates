@@ -42,7 +42,7 @@ const orderedAlternatives = (path: string, allowed: string[]) => {
   return [...known, ...allowed.filter((item) => !known.includes(item))]
 }
 
-const METADATA_MESSAGE =
+const METADATA_NOT_OBJECT =
   "Invalid value for `metadata`. Metadata must be a single object containing key-value pairs.  See the metadata documentation for more details: https://docs.stripe.com/api/metadata"
 
 export const issueToError = (issue: FormIssue): StripeError => {
@@ -61,7 +61,7 @@ export const issueToError = (issue: FormIssue): StripeError => {
       return invalidRequest(`Invalid boolean: ${issue.raw}`, issue.path)
     case "invalid-object":
       return invalidRequest(
-        leafName(issue.path) === "metadata" ? METADATA_MESSAGE : "Invalid object",
+        leafName(issue.path) === "metadata" ? METADATA_NOT_OBJECT : "Invalid object",
         issue.path,
       )
     case "invalid-array":
@@ -69,7 +69,7 @@ export const issueToError = (issue: FormIssue): StripeError => {
     case "invalid-enum": {
       const leaf = leafName(issue.path)
       // `metadata` is an object or "" (unset); any other scalar gets Stripe's metadata message.
-      if (leaf === "metadata") return invalidRequest(METADATA_MESSAGE, issue.path)
+      if (leaf === "metadata") return invalidRequest(METADATA_NOT_OBJECT, issue.path)
       if (leaf === "currency")
         return invalidRequest(
           `Invalid currency: ${issue.raw}. Stripe currently supports these currencies: ${SUPPORTED_CURRENCIES.join(", ")}`,
@@ -324,11 +324,12 @@ export const bodyParams = (context: OperationContext, options: ParamOptions = {}
     raw.preferred_locales === ""
   )
     delete raw.preferred_locales
+  const expandEmpty =
+    typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === ""
   const { rest, expand } = withoutExpand(raw)
   const params = stringMetadata(parseParams(formBodySchema(context), rest, options))
-  // Probed live: the other parameters' errors come before an empty `expand`.
-  if (typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === "")
-    throw parameterInvalidEmpty("expand")
+  // Stripe refuses an empty `expand` only after the other parameters have been read.
+  if (expandEmpty) throw parameterInvalidEmpty("expand")
   return expand.length === 0 ? params : { ...params, expand }
 }
 

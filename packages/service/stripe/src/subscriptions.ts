@@ -384,8 +384,6 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       if (price !== null && !scope.account.prices.get(price))
         throw resourceMissing("price", price, "price", 400)
       const clock = stringOf(params, "test_clock")
-      if (clock !== null && !scope.account.testClocks.get(clock))
-        throw resourceMissing("billingclock", clock, "test_clock", 400)
       const statuses = listOf(params, "status")
       const visible = (record: SubscriptionRecord) =>
         statuses.length === 0
@@ -399,6 +397,11 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
         await paginate<SubscriptionRecord>(scope.account.subscriptions, params, {
           url: "/v1/subscriptions",
           kind: "subscription",
+          // Stripe resolves the cursors before it complains about an unknown test clock.
+          check: () => {
+            if (clock !== null && !scope.account.testClocks.get(clock))
+              throw resourceMissing("billingclock", clock, "test_clock", 400)
+          },
           where: (record) =>
             matchesCreated(record.created, params.created) &&
             (customer === null || record.customer === customer) &&
