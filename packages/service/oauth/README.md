@@ -198,17 +198,33 @@ curl -X PUT http://localhost:8810/__admin/behavior -H 'content-type: application
 curl http://localhost:8810/__admin/behavior
 curl -X POST http://localhost:8810/__admin/consents/revoke -H 'content-type: application/json' \
   -d '{"clientId":"app","accountId":"ada"}'
+curl -X POST http://localhost:8810/__admin/accounts/delete -H 'content-type: application/json' \
+  -d '{"accountId":"ada"}'
+curl -X POST http://localhost:8810/__admin/relay-forwarding -H 'content-type: application/json' \
+  -d '{"accountId":"ada","forwarding":false}'
 curl -X POST http://localhost:8810/__admin/keys/rotate -H 'content-type: application/json' \
   -d '{"retainPrevious":true}'
 ```
 
-These routes use the shared admin-key and namespace controls. `revokeConsent(clientId, accountId)` removes that client's grants and resets first-use disclosure; it does not disable the account. `rotateSigningKey(true)` retains up to four previous public keys so existing tokens still verify; `false` withdraws them to test stale JWKS caches. Keys themselves are not included in snapshots, so restoring state does not undo a key rotation.
+These routes use the shared admin-key and namespace controls. `revokeConsent(clientId, accountId)` removes that client's grants and resets first-use disclosure; it does not disable the account. It is async because it can deliver a [server-to-server notification](#sign-in-with-apple-server-to-server-notifications). `rotateSigningKey(true)` retains up to four previous public keys so existing tokens still verify; `false` withdraws them to test stale JWKS caches. Keys themselves are not included in snapshots, so restoring state does not undo a key rotation.
+
+### Sign in with Apple server-to-server notifications
+
+Register an Apple client with `apple.notificationUrl` (an HTTP(S) URL; requires the JWT `apple` client form) and the mock behaves like Apple's [server-to-server notification endpoint](https://developer.apple.com/documentation/signinwithapplerestapi/processing-changes-for-sign-in-with-apple-accounts): it POSTs `{"payload": "<JWS>"}` as JSON. The JWS is signed by the current signing key (verify it against the JWKS) with `iss` = the issuer, `aud` = the client id, `iat` from the mock clock and a random `jti`. `events` is a JSON string of `{ type, sub, event_time }`, where `sub` is the client's identity for the account and `event_time` is milliseconds from the mock clock.
+
+| Trigger | Event `type` | Sent to |
+| --- | --- | --- |
+| `revokeConsent(clientId, accountId)` / `POST /__admin/consents/revoke` | `consent-revoked` | that client, when it held the consent |
+| `deleteAccount(accountId)` / `POST /__admin/accounts/delete {"accountId"}` | `account-delete` | every client holding a consent; then the account, its grants, sessions and pending sign-ins are removed |
+| `setRelayForwarding(accountId, forwarding)` / `POST /__admin/relay-forwarding {"accountId","forwarding"}` | `email-disabled` / `email-enabled`, with `email` (the relay address) and `is_private_email: "true"` | every client holding a consent whose identity is a private relay address |
+
+Delivery is awaited by the call that caused it, through `webhooks.fetch` (`createRuntime({ webhooks: { fetch } })`, default global `fetch`), so an in-process suite can route it through its own network model. The admin routes and methods return one `{ clientId, type, delivered, status?, error? }` per notification; a non-2xx response or a thrown error is reported there and never fails the call, and Apple's retries are not modelled. Without an `issuer` option, direct method calls need an `issuer` argument (admin routes derive it from the request). Unknown accounts return 404 from the admin routes and reject from the methods.
 
 ### Shared service controls
 
 The runtime supplies `/health`, `/__admin/reset`, snapshots, mock clock, request journal, metrics, fault injection and namespace isolation. Use `x-mockingbird-namespace` for in-process tests or `/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
 
-`OAUTH_PRESETS` includes `token_unavailable` and `access_denied`. Fault rules can also target a provider-specific path, e.g. `POST /__admin/faults` with `{"pathPrefix":"/auth/token","status":503,"body":{"error":"temporarily_unavailable"}}`. No outbound webhooks are modeled. Journals contain request metadata, never passwords or request bodies.
+`OAUTH_PRESETS` includes `token_unavailable` and `access_denied`. Fault rules can also target a provider-specific path, e.g. `POST /__admin/faults` with `{"pathPrefix":"/auth/token","status":503,"body":{"error":"temporarily_unavailable"}}`. The only outbound requests are the Apple notifications above. Journals contain request metadata, never passwords or request bodies.
 
 ## API
 
@@ -238,7 +254,7 @@ references below.
 
 This is a ready-to-use local/test identity provider, **not a production authentication server or a claim that every proprietary provider feature is implemented**. Its ready tier covers the documented OAuth/OIDC login, identity, consent, token, provider-edge-case, and UI surface. Applications should still run a small final check against each real provider before release.
 
-Vendor-hosted Google Identity Services/One Tap, native Apple AuthenticationServices, passkeys, MFA, CAPTCHA, password recovery, email delivery/relay forwarding, app-transfer migration, vendor risk engines, tokeninfo/introspection, logout, GitHub Apps installation/device flows, and Microsoft Graph/tenant administration are not implemented. Other configurable OIDC providers can use the generic profile, but their proprietary scopes and claims are not emulated. Scopes are limited to each profile plus explicitly configured additional scopes. Microsoft uses the configured mock issuer, not real Entra tenant routing. GitHub is the OAuth app login surface, not the full REST API.
+Vendor-hosted Google Identity Services/One Tap, native Apple AuthenticationServices, passkeys, MFA, CAPTCHA, password recovery, email delivery/relay forwarding (only Apple's notification of a forwarding change is sent), app-transfer migration, vendor risk engines, tokeninfo/introspection, logout, GitHub Apps installation/device flows, and Microsoft Graph/tenant administration are not implemented. Other configurable OIDC providers can use the generic profile, but their proprietary scopes and claims are not emulated. Scopes are limited to each profile plus explicitly configured additional scopes. Microsoft uses the configured mock issuer, not real Entra tenant routing. GitHub is the OAuth app login surface, not the full REST API.
 
 No implicit flow, dynamic client registration, wildcard redirect matching, persistent signing-key import, or distributed-session coordination is provided. Private-use redirect schemes work only when their complete URI is explicitly registered; executable/local schemes such as `javascript:`, `data:` and `file:` are rejected. Sign-in and consent pages extend CSP `form-action` with the transaction's redirect origin (or custom scheme) so browsers follow the redirect back to the client. Discovery, JWKS, token, userinfo and revoke answer `OPTIONS` preflights and reflect the request `Origin`, so browser (SPA + PKCE) clients can redeem codes directly; the interaction pages send no CORS headers. Snapshot restore is for the same runtime/instance; signing keys are not serialized. The default backing store is in-memory and state disappears when the process exits. A secure browser context and Web Crypto, Fetch and standard Web APIs are required; Node 22+, Bun and modern browsers provide them.
 

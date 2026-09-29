@@ -146,7 +146,7 @@ test("Apple share choice, preset relay override, boolean claims and returning-us
 test("Apple consent revocation resets first-use data and invalidates old credentials", async () => {
   const api = make("apple")
   const first = await tokens(api, {}, "hide")
-  api.revokeConsent("app", "ada")
+  await api.revokeConsent("app", "ada")
   expect((await refresh(api, first.tokens.refresh_token)).status).toBe(400)
   const next = await tokens(api, {}, "share")
   expect(next.html).toContain('name="user"')
