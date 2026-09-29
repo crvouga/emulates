@@ -1,5 +1,6 @@
 import type { OpenAPIDocument, Operation } from "@crvouga/mockingbird-openapi"
 import { StripeError } from "./errors.js"
+import { renderInvoicePayments } from "./invoice-payments.js"
 import {
   renderBalanceTransaction,
   renderCharge,
@@ -151,6 +152,7 @@ const EXPANDABLE: Record<string, readonly string[]> = {
     "test_clock",
     "total_discount_amounts",
   ],
+  invoice_payment: ["invoice", "payment"],
   invoiceitem: [
     "customer",
     "discounts",
@@ -438,6 +440,10 @@ const includable = (account: AccountState, node: RecordValue, field: string): un
       total_count: refunds.length,
       url: `/v1/charges/${node.id}/refunds`,
     }
+  }
+  if (node.object === "invoice" && field === "payments" && typeof node.id === "string") {
+    const invoice = account.invoices.get(node.id)
+    return invoice && renderInvoicePayments(invoice)
   }
   if (node.object === "coupon" && typeof node.id === "string") {
     const coupon = account.coupons.get(node.id)

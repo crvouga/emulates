@@ -66,6 +66,7 @@ const MISSING = {
   refund: "re_mockingbird_missing",
   dispute: "dp_mockingbird_missing",
   invoice: "in_mockingbird_missing",
+  invoice_payment: "inpay_mockingbird_missing",
   invoiceitem: "ii_mockingbird_missing",
   subscription: "sub_mockingbird_missing",
   subscription_item: "si_mockingbird_missing",
@@ -314,6 +315,11 @@ const RESPONSE_SHAPES: Record<string, Shape> = {
     discountable: { type: "boolean" },
     proration: { type: "boolean" },
   },
+  invoice_payment: {
+    id: identity("invoice_payment"),
+    created: volatile("timestamp"),
+    invoice: expandableId(identity("invoice")),
+  },
   invoice: {
     id: identity("invoice"),
     created: volatile("timestamp"),
@@ -502,6 +508,7 @@ const VERSIONED_FIELDS: Record<string, readonly string[]> = {
   invoice: ["charge", "payment_intent", "subscription"],
   subscription: ["current_period_start", "current_period_end"],
   payment_intent: ["invoice"],
+  charge: ["invoice"],
 }
 
 /** Request-body property edits keyed by operationId. */
@@ -1147,6 +1154,15 @@ const QUERY_SHAPES: Record<string, Shape> = {
     starting_after: unsupported("line item cursors are not modelled"),
     ending_before: unsupported("line item cursors are not modelled"),
   },
+  GetInvoicePayments: {
+    invoice: ref("invoice", MISSING.invoice),
+    "payment.payment_intent": ref("payment_intent", MISSING.payment_intent),
+    "payment.payment_record": unsupported("payment records are not modelled"),
+    starting_after: ref("invoice_payment", MISSING.invoice_payment),
+    ending_before: ref("invoice_payment", MISSING.invoice_payment),
+    "created.gte": scope("walk-start-unix"),
+  },
+  GetInvoicePaymentsInvoicePayment: {},
   GetInvoiceitems: {
     customer: ref("customer", MISSING.customer),
     invoice: ref("invoice", MISSING.invoice),
@@ -1285,6 +1301,7 @@ const PATH_REFS: Record<string, Json> = {
   dispute: ref("dispute", MISSING.dispute),
   invoice: ref("invoice", MISSING.invoice),
   invoiceitem: ref("invoiceitem", MISSING.invoiceitem),
+  invoice_payment: ref("invoice_payment", MISSING.invoice_payment),
   subscription_exposed_id: ref("subscription", MISSING.subscription),
   schedule: ref("schedule", MISSING.schedule),
   coupon: ref("coupon", MISSING.coupon),
@@ -1426,6 +1443,8 @@ const OPERATIONS: Record<string, OperationConfig> = {
   PostInvoicesInvoicePay: { safe: false },
   PostInvoicesInvoiceVoid: { safe: false },
   GetInvoicesInvoiceLines: { safe: true },
+  GetInvoicePayments: { safe: true },
+  GetInvoicePaymentsInvoicePayment: { safe: true },
   GetInvoicesUpcoming: {
     safe: false,
     parity: false,
@@ -1613,10 +1632,13 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
   PostCheckoutSessions: ["payment_intent", "subscription", "setup_intent", "customer"],
   GetCheckoutSessionsSession: ["payment_intent", "subscription", "setup_intent", "customer"],
   PostCheckoutSessionsSessionExpire: ["payment_intent", "subscription", "setup_intent", "customer"],
+  GetInvoicePayments: ["data.invoice", "data.payment.payment_intent"],
+  GetInvoicePaymentsInvoicePayment: ["invoice", "payment.payment_intent"],
   GetInvoices: [
     "data.charge",
     "data.subscription",
     "data.payment_intent",
+    "data.payments",
     "data.discounts.coupon",
     "data.customer",
   ],
@@ -1625,6 +1647,7 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
     "charge",
     "subscription",
     "payment_intent",
+    "payments",
     "discount.coupon",
     "discount.promotion_code",
     "discounts.coupon",
@@ -1662,6 +1685,7 @@ const EXPAND_PATHS: Record<string, readonly string[]> = {
     "items.data.discounts",
     "items.data.price",
     "latest_invoice",
+    "latest_invoice.payments",
     "default_payment_method",
     "customer",
     "schedule",

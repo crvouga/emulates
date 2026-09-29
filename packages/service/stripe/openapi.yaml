@@ -10371,6 +10371,342 @@ paths:
         parity:
           enabled: true
           safe: true
+  /v1/invoice_payments:
+    get:
+      operationId: GetInvoicePayments
+      parameters:
+        - explode: true
+          in: query
+          name: created
+          required: false
+          schema:
+            anyOf:
+              - properties:
+                  gt:
+                    type: integer
+                  gte:
+                    type: integer
+                    x-mockingbird-scope:
+                      value: walk-start-unix
+                  lt:
+                    type: integer
+                  lte:
+                    type: integer
+                title: range_query_specs
+                type: object
+              - type: integer
+          style: deepObject
+        - in: query
+          name: ending_before
+          required: false
+          schema:
+            maxLength: 5000
+            type: string
+            x-mockingbird-resource-ref:
+              type: invoice_payment
+              missing: inpay_mockingbird_missing
+          style: form
+        - explode: true
+          in: query
+          name: expand
+          required: false
+          schema:
+            items:
+              type: string
+              enum:
+                - data.invoice
+                - data.payment.payment_intent
+            type: array
+            maxItems: 2
+          style: deepObject
+        - in: query
+          name: invoice
+          required: false
+          schema:
+            maxLength: 5000
+            type: string
+            x-mockingbird-resource-ref:
+              type: invoice
+              missing: in_mockingbird_missing
+          style: form
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+          style: form
+        - explode: true
+          in: query
+          name: payment
+          required: false
+          schema:
+            properties:
+              payment_intent:
+                maxLength: 5000
+                type: string
+                x-mockingbird-resource-ref:
+                  type: payment_intent
+                  missing: pi_mockingbird_missing
+              payment_record:
+                maxLength: 5000
+                type: string
+                x-mockingbird-unsupported:
+                  reason: payment records are not modelled
+              type:
+                enum:
+                  - payment_intent
+                  - payment_record
+                type: string
+            required:
+              - type
+            title: payment_param
+            type: object
+          style: deepObject
+        - in: query
+          name: starting_after
+          required: false
+          schema:
+            maxLength: 5000
+            type: string
+            x-mockingbird-resource-ref:
+              type: invoice_payment
+              missing: inpay_mockingbird_missing
+          style: form
+        - in: query
+          name: status
+          required: false
+          schema:
+            enum:
+              - canceled
+              - open
+              - paid
+            type: string
+          style: form
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            encoding: {}
+            schema:
+              additionalProperties: false
+              properties: {}
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/invoice_payment"
+                    type: array
+                  has_more:
+                    type: boolean
+                  object:
+                    enum:
+                      - list
+                    type: string
+                  url:
+                    maxLength: 5000
+                    type: string
+                required:
+                  - data
+                  - has_more
+                  - object
+                  - url
+                title: InvoicesPaymentsListInvoicePayments
+                type: object
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "402":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "414":
+          description: Request-URI Too Large (nginx)
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - text/html
+              x-mockingbird-parity-header: true
+          content:
+            text/html:
+              schema:
+                type: string
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+      summary: List all payments for an invoice
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+  /v1/invoice_payments/{invoice_payment}:
+    get:
+      operationId: GetInvoicePaymentsInvoicePayment
+      parameters:
+        - explode: true
+          in: query
+          name: expand
+          required: false
+          schema:
+            items:
+              type: string
+              enum:
+                - invoice
+                - payment.payment_intent
+            type: array
+            maxItems: 2
+          style: deepObject
+        - in: path
+          name: invoice_payment
+          required: true
+          schema:
+            maxLength: 5000
+            type: string
+            x-mockingbird-resource-ref:
+              type: invoice_payment
+              missing: inpay_mockingbird_missing
+          style: simple
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            encoding: {}
+            schema:
+              additionalProperties: false
+              properties: {}
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/invoice_payment"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "402":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+        "414":
+          description: Request-URI Too Large (nginx)
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - text/html
+              x-mockingbird-parity-header: true
+          content:
+            text/html:
+              schema:
+                type: string
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                  - application/json
+              x-mockingbird-parity-header: true
+      summary: Retrieve an InvoicePayment
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
   /v1/invoiceitems:
     get:
       operationId: GetInvoiceitems
@@ -11411,10 +11747,11 @@ paths:
                 - data.charge
                 - data.subscription
                 - data.payment_intent
+                - data.payments
                 - data.discounts.coupon
                 - data.customer
             type: array
-            maxItems: 5
+            maxItems: 6
           style: deepObject
         - in: query
           name: limit
@@ -12525,6 +12862,7 @@ paths:
                 - charge
                 - subscription
                 - payment_intent
+                - payments
                 - discount.coupon
                 - discount.promotion_code
                 - discounts.coupon
@@ -12532,7 +12870,7 @@ paths:
                 - customer
                 - default_payment_method
             type: array
-            maxItems: 9
+            maxItems: 10
           style: deepObject
         - in: path
           name: invoice
@@ -37029,11 +37367,12 @@ paths:
                 - items.data.discounts
                 - items.data.price
                 - latest_invoice
+                - latest_invoice.payments
                 - default_payment_method
                 - customer
                 - schedule
             type: array
-            maxItems: 9
+            maxItems: 10
           style: deepObject
         - in: path
           name: subscription_exposed_id
@@ -43032,7 +43371,6 @@ components:
         - currency
         - disputed
         - id
-        - invoice
         - livemode
         - metadata
         - object
@@ -46337,18 +46675,25 @@ components:
         created:
           format: unix-time
           type: integer
+          x-mockingbird-volatile:
+            kind: timestamp
         currency:
           maxLength: 5000
           type: string
         id:
           maxLength: 5000
           type: string
+          x-mockingbird-resource:
+            type: invoice_payment
+            identity: true
         invoice:
-          anyOf:
-            - maxLength: 5000
-              type: string
-            - $ref: "#/components/schemas/invoice"
-            - $ref: "#/components/schemas/deleted_invoice"
+          type:
+            - string
+            - object
+            - "null"
+          x-mockingbird-resource:
+            type: invoice
+            identity: true
         is_default:
           type: boolean
         livemode:
