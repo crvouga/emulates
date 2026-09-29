@@ -108,18 +108,13 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
     port: 0,
     fetch: app.fetch,
   })
-  // CLI 1.52+ refuses to start without an explicit filter and rejects `--events '*'`; older
-  // CLIs have no --all-snapshot and default to every event.
-  const allEventsFlags = () =>
-    Bun.spawnSync(["stripe", "listen", "--help"]).stdout.toString().includes("--all-snapshot")
-      ? ["--all-snapshot"]
-      : []
   const cli = Bun.spawn(
     [
       "stripe",
       "listen",
       "--skip-update",
-      ...allEventsFlags(),
+      // Current CLIs refuse to start without an event selection ("--events '*'" is rejected).
+      "--all-snapshot",
       "--forward-to",
       `http://127.0.0.1:${receiver.port}/stripe`,
     ],
@@ -131,15 +126,19 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   )
   let ready = false
   let exitCode: number | undefined
+  let output = ""
   let readyResolve: (() => void) | undefined
   let readyReject: ((error: Error) => void) | undefined
   const readyPromise = new Promise<void>((resolve, reject) => {
     readyResolve = resolve
     readyReject = reject
   })
-  // The tail of the CLI's output, kept only to explain an early exit; secrets are redacted.
-  let output = ""
-  const redact = (text: string) => text.replace(/\b(?:whsec|sk|rk|pk)_\w+/g, "<redacted>")
+  // CLI output can hold the signing secret and API key; only ever surface it redacted.
+  const redacted = () =>
+    output
+      .replaceAll(apiKey, "[redacted]")
+      .replace(/\b(?:whsec|[rs]k_(?:test|live)|rk|sk)_\w+/g, "[redacted]")
+      .trim()
   const drain = async (stream: ReadableStream<Uint8Array>) => {
     const reader = stream.getReader()
     const decoder = new TextDecoder()
@@ -150,9 +149,9 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
         if (done) break
         // Do not log CLI output: its ready line contains the webhook signing secret.
         const text = decoder.decode(value, { stream: true })
-        output = (output + text).slice(-2000)
         const chunk = tail + text
         tail = chunk.slice(-16)
+        output = (output + text).slice(-2_000)
         if (chunk.includes("Ready!")) {
           ready = true
           readyResolve?.()
@@ -168,9 +167,7 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
     exitCode = code
     await Promise.allSettled([stdout, stderr])
     if (!ready)
-      readyReject?.(
-        new Error(`stripe listen exited before ready (status ${code}): ${redact(output).trim()}`),
-      )
+      readyReject?.(new Error(`stripe listen exited before ready (status ${code}): ${redacted()}`))
   })
   let readyTimer: ReturnType<typeof setTimeout> | undefined
   try {

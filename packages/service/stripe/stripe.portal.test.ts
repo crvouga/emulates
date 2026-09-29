@@ -97,7 +97,9 @@ const expectStripeError = async (promise: Promise<unknown>) =>
 describe("billing portal API", () => {
   test("the default configuration exists as if saved in the dashboard; API configurations start disabled", async () => {
     const h = await harness()
-    await plans(h.stripe)
+    const { customer } = await member(h)
+    expect((await h.stripe.billingPortal.configurations.list()).data.length).toBe(0)
+    await h.stripe.billingPortal.sessions.create({ customer: customer.id })
     const listed = await h.stripe.billingPortal.configurations.list({ is_default: true })
     expect(listed.data.length).toBe(1)
     const defaults = listed.data[0] as Stripe.BillingPortal.Configuration

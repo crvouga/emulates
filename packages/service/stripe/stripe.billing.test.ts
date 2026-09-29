@@ -795,6 +795,17 @@ describe("changing to a price with a different billing interval", () => {
     expect(updated.status).toBe("past_due")
     const invoice = await h.stripe.invoices.retrieve(updated.latest_invoice as string)
     expect(invoice.status).toBe("open")
+    // The decline starts the automatic retries: a working card pays the invoice on the next one.
+    expect(invoice.attempt_count).toBe(1)
+    expect(invoice.next_payment_attempt).not.toBeNull()
+    const good = await h.stripe.paymentMethods.attach("pm_card_visa", { customer: customer.id })
+    await h.stripe.customers.update(customer.id, {
+      invoice_settings: { default_payment_method: good.id },
+    })
+    await h.advance("4d")
+    const retried = await h.stripe.invoices.retrieve(invoice.id)
+    expect(retried.status).toBe("paid")
+    expect((await h.stripe.subscriptions.retrieve(subscription.id)).status).toBe("active")
   })
 
   test("the same interval keeps the anchor and period; a trial keeps its end", async () => {
