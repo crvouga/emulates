@@ -322,6 +322,48 @@ export async function npmVersions(name: string): Promise<string[] | { error: str
   return Array.isArray(parsed) ? parsed : [parsed]
 }
 
+/**
+ * Why a package cannot be published with the credentials this run has, or null.
+ * Trusted Publishing (OIDC) can only publish new versions of a package that exists on npm;
+ * creating one needs NPM_TOKEN or a local npm login. Only that package is blocked: the rest of
+ * the run keeps releasing (docs/RELEASING.md).
+ */
+export function initialPackageBlocker(
+  published: string[],
+  auth: { inCi: boolean; local: boolean; dryRun: boolean; npmToken: string },
+): string[] | null {
+  if (published.length > 0 || !auth.inCi || auth.local || auth.dryRun || auth.npmToken) return null
+  return [
+    "package does not exist on npm yet, and Trusted Publishing (OIDC) cannot create packages.",
+    "Fix once, either way:",
+    "  - run `bun run release:bootstrap` to store an npm granular access token (read+write,",
+    `    @crvouga scope) as the NPM_TOKEN Actions secret on ${REPO}, then re-run this workflow; or`,
+    "  - locally, from any checkout: bun run release:seed",
+  ]
+}
+
+/**
+ * Attempt every release in order (dependencies first). A release that fails, or whose
+ * dependency failed, never stops the independent ones. Returns the names that did not release.
+ */
+export async function releaseInOrder<R extends { pkg: { name: string; runtimeDeps: string[] } }>(
+  releases: R[],
+  attempt: (release: R) => Promise<boolean>,
+  onSkip: (release: R, blockedBy: string[]) => void,
+): Promise<Set<string>> {
+  const failed = new Set<string>()
+  for (const release of releases) {
+    const blockedBy = release.pkg.runtimeDeps.filter((d) => failed.has(d))
+    if (blockedBy.length > 0) {
+      failed.add(release.pkg.name)
+      onSkip(release, blockedBy)
+    } else if (!(await attempt(release))) {
+      failed.add(release.pkg.name)
+    }
+  }
+  return failed
+}
+
 export function redact(text: string): string {
   return text
     .replace(/npm_[A-Za-z0-9]{20,}/g, "npm_***")
