@@ -175,8 +175,8 @@ const isExponentNumber = (value: unknown) =>
  * Stripe's checks on `package_dimensions` (probed in test mode): fields are tried in the order
  * length, width, height, weight; a value that is not a plain decimal or has more than 15
  * fraction digits is an "Invalid decimal"; then each may carry at most two decimal places.
- * A value in exponent notation (`9.1e-276`) is also an "Invalid decimal", but only after every
- * field has passed the places check, and again in field order (probed live).
+ * A value in exponent notation (`9.1e-276`) is also an "Invalid decimal", but it counts as valid
+ * for the places check, so it is reported when its own turn in that field order comes (probed live).
  */
 const packageDimensionsError = (
   issues: FormIssue[],
@@ -204,8 +204,6 @@ const packageDimensionsError = (
         `Invalid decimal: ${rubyFloat(value)}; must contain at maximum two decimal places.`,
         `package_dimensions[${field}]`,
       )
-  }
-  for (const field of fields) {
     const issue = issues.find((item) => item.path === `package_dimensions[${field}]`)
     if (issue) return issueToError(issue)
   }
