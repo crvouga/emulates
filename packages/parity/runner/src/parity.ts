@@ -437,10 +437,13 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       throw cause
     }
     if (error instanceof Error) {
+      // fast-check keeps the value the property threw as `cause`; a crash outside the walk's
+      // own try (mock setup, webhook collection, cleanup) surfaces only there.
+      const thrown = error.cause ?? lastWalkCrash
       const crash =
-        lastWalkCrash === undefined
+        thrown === undefined
           ? ""
-          : `\n\nlast walk error: ${redact(lastWalkCrash instanceof Error ? (lastWalkCrash.stack ?? lastWalkCrash.message) : String(lastWalkCrash))}`
+          : `\n\nlast walk error: ${redact(thrown instanceof Error ? (thrown.stack ?? thrown.message) : String(thrown))}`
       error.message = `${header}\n${error.message}${crash}`
     }
     throw error
