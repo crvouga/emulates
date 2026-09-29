@@ -65,13 +65,14 @@ const SHARD_IRRELEVANT = [
   ".github/labels.json",
   ".github/pull_request_template.md",
   // Workflows other than pr.yml do not change what the pull-request gate runs.
-  ".github/workflows/{advisory,cache-cleanup,ci,issue-labels,parity,publish,verify}.yml",
+  ".github/workflows/{advisory,cache-cleanup,ci,issue-labels,parity,publish,resolve-issues,verify}.yml",
   // Read only by junction's live parity script (its `parityInputs`).
   "PARITY_FAILURE_SEED_REGISTRY.json",
   "scripts/parity-tiers.ts",
   "scripts/worktree/**",
   "scripts/secrets/**",
-  "scripts/{agent-commands,ci-local,parity-remote,parity-service,pr-ready}.ts",
+  "scripts/{agent-commands,ci-local,parity-remote,parity-service,pr-ready,resolve-issues}.ts",
+  "scripts/resolve-issues.test.ts",
 ]
 
 /**

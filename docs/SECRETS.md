@@ -11,7 +11,7 @@ bun test        # no secrets
 bun run check   # every CI gate, no secrets
 ```
 
-Secrets are only involved in three places, and all three run on GitHub with the repo's own
+Secrets are only involved in four places, and all four run on GitHub with the repo's own
 Actions secrets. Anyone with **write access** to `crvouga/mockingbird` can use them without
 seeing a value (GitHub never returns a secret's value, to anyone):
 
@@ -20,6 +20,7 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 | [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>`, `-- --all` or `-- --tier=warm`; by [tier](TESTING.md#parity-tiers) also on each PR that changes a hot service ([Advisory](../.github/workflows/advisory.yml), non-blocking, not for forks) and weekly for warm services |
 | [Verify](../.github/workflows/verify.yml) | `JUNCTION_API_KEY` | daily, or `gh workflow run verify.yml` |
 | [Release](../.github/workflows/ci.yml) | `NPM_TOKEN` (new packages only) | automatic on merge to `main` |
+| [Resolve issues](../.github/workflows/resolve-issues.yml) | `RESOLVE_ISSUES_GITHUB_TOKEN`, and `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` | `bun run resolve-issues:remote -- [<issue…>]`, or the Actions tab ([below](#resolving-issues-on-github)) |
 
 ## Live parity
 
@@ -88,6 +89,32 @@ live-parity step (`STRIPE_X: ${{ secrets.STRIPE_X }}`). It maps each secret by n
 because GitHub holds a run that dumps the whole `secrets` context as "may be malicious" until
 someone approves it by hand.
 
+## Resolving issues on GitHub
+
+The [Resolve issues](../.github/workflows/resolve-issues.yml) workflow starts one Claude Code agent
+per `agent-reported` issue. Each agent runs [`/resolve-issues <n>`](../.agents/commands/resolve-issues.md)
+and then `/pr-ready`, so it ends with a green PR that closes the issue, or with a comment on the
+issue that says what it needs. It never merges.
+
+```bash
+bun run resolve-issues:remote              # the queue: up to 3 unassigned parity, bug, then feature issues
+bun run resolve-issues:remote -- 190 191   # these issues (a new-service issue runs only when named)
+```
+
+Each run needs three secrets. `bun run secrets` shows them under `workflows`, and a run that is
+missing one fails at once and names it:
+
+- **`RESOLVE_ISSUES_GITHUB_TOKEN`**: a fine-grained token for this repository only, with read and
+  write on Contents, Issues, Pull requests and Actions. Leave out Workflows, so an agent cannot
+  edit a workflow file. The built-in `GITHUB_TOKEN` does not work here: a PR pushed with it never
+  triggers the CI workflow, so it never turns green. Commits and PRs are made as the token's owner.
+- **`ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`**: the agent's model access. The workflow uses
+  whichever one is set.
+
+The agents read issue text that anyone can write, so the job gets no vendor sandbox keys. To
+check a report against the oracle, an agent dispatches the Parity workflow
+(`bun run parity:remote`), and the keys stay in that run.
+
 ## Releasing
 
 The mock services (`@crvouga/mockingbird-service-*`, the only published packages) are released
@@ -139,6 +166,8 @@ what `main` already built and tested. No token, no server.
 | `GITHUB_TOKEN` | built into GitHub Actions | automatic |
 | `NPM_TOKEN` | repo secret | creating new packages, deprecations |
 | `<SERVICE>_*` sandbox keys | repo secrets (+ optionally your `.env.local`) | live parity only |
+| `RESOLVE_ISSUES_GITHUB_TOKEN` | repo secret | Resolve issues: pushing agent branches and opening PRs |
+| `ANTHROPIC_API_KEY` / `CLAUDE_CODE_OAUTH_TOKEN` | repo secret (either one) | Resolve issues: the agents' model access |
 | `GITGUARDIAN_API_KEY` | your `.env.local` | optional: `pr:ready guardian ignore` |
 
 Inventory: [`secrets.manifest.yaml`](../secrets.manifest.yaml) (non-parity secrets and the

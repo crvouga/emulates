@@ -124,6 +124,11 @@ reported behavior against the oracle, add a regression test, fix the mock, and s
 `/pr-ready` with `Fixes #<n>`. `feature` requests become acceptance tests plus contract changes;
 `new-service` requests become new packages built through
 [AUTHORING_A_SERVICE.md](AUTHORING_A_SERVICE.md).
+The [Resolve issues](../.github/workflows/resolve-issues.yml) workflow runs that command on
+GitHub with no one at the keyboard. Dispatch it with `bun run resolve-issues:remote -- [<issue…>]`
+or from the Actions tab. It starts one agent per issue and carries each one to a PR that is ready
+to merge. With no issue named, it takes the queue in the command's order. Its secrets are listed
+in [SECRETS.md](SECRETS.md#resolving-issues-on-github).
 
 ### Package publishing
 
