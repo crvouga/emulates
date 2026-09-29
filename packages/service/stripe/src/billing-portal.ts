@@ -102,7 +102,10 @@ const dashboardFeatures = (): PortalFeatures => ({
   },
 })
 
-/** The account's default configuration, created on first use as the dashboard would have. */
+/**
+ * The account's default configuration, created on first use as the dashboard would have. Listing
+ * does not create it: a fresh live account has none until a portal session or the dashboard does.
+ */
 export const ensureDefaultConfiguration = (
   scope: RequestScope,
 ): BillingPortalConfigurationRecord => {
@@ -291,7 +294,7 @@ const loginPageOf = (
 const requireConfiguration = (scope: RequestScope, id: string, param = "configuration") => {
   if (!scope.account.portalConfigurations.get(id)) ensureDefaultConfiguration(scope)
   const config = scope.account.portalConfigurations.get(id)
-  if (!config) throw resourceMissing("billing portal configuration", id, param)
+  if (!config) throw resourceMissing("configuration", id, param)
   return config
 }
 
@@ -454,14 +457,13 @@ export const billingPortalHandlers = (services: Services): Record<string, Operat
   GetBillingPortalConfigurations: async (context) => {
     const scope = requestScope(services, context)
     const params = queryParams(context)
-    ensureDefaultConfiguration(scope)
     const active = booleanOf(params.active)
     const isDefault = booleanOf(params.is_default)
     return jsonResponse(
       200,
       await paginate<BillingPortalConfigurationRecord>(scope.account.portalConfigurations, params, {
         url: "/v1/billing_portal/configurations",
-        kind: "billing portal configuration",
+        kind: "configuration",
         where: (config) =>
           (active === undefined || config.active === active) &&
           (isDefault === undefined || config.is_default === isDefault),
