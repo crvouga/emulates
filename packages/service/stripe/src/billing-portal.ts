@@ -102,7 +102,7 @@ const dashboardFeatures = (): PortalFeatures => ({
   },
 })
 
-/** The account's default configuration, created on first use as the dashboard would have. */
+/** The account's default configuration, created when a portal session first needs it. */
 export const ensureDefaultConfiguration = (
   scope: RequestScope,
 ): BillingPortalConfigurationRecord => {
@@ -454,7 +454,7 @@ export const billingPortalHandlers = (services: Services): Record<string, Operat
   GetBillingPortalConfigurations: async (context) => {
     const scope = requestScope(services, context)
     const params = queryParams(context)
-    ensureDefaultConfiguration(scope)
+    // A fresh account lists none: the default only exists once a portal session first uses it.
     const active = booleanOf(params.active)
     const isDefault = booleanOf(params.is_default)
     return jsonResponse(
