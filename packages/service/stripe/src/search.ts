@@ -95,7 +95,6 @@ export const searchRecords = <T extends RecordValue>(
 ): SearchPage<unknown> => {
   const { query } = params
   if (query === "") throw parameterInvalidEmpty("query")
-  if (params.expand === "") throw parameterInvalidEmpty("expand")
   if (params.page === "") throw parameterInvalidEmpty("page")
   if (params.limit !== undefined) {
     const limit = Number(params.limit)
@@ -110,6 +109,8 @@ export const searchRecords = <T extends RecordValue>(
         param: "limit",
       })
   }
+  // Probed live: an empty query and an invalid limit are both refused before an empty expand.
+  if (params.expand === "") throw parameterInvalidEmpty("expand")
   if (typeof query !== "string" || query.trim() === "")
     throw invalidRequest("Missing required param: query.", "query", "parameter_missing")
   const groups = query.split(/\s+OR\s+/).map(parseSearchQuery)
