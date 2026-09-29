@@ -108,3 +108,15 @@ test("creating a price with empty metadata for a missing product names metadata"
   expect(error.code).toBe("parameter_invalid_empty")
   expect(error.param).toBe("metadata")
 })
+
+// Live parity: Stripe calls a missing event a "notification", as its list cursors already do.
+test("retrieving a missing event says no such notification", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee8", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/events/evt_missing`, {
+    headers: { authorization: `Bearer ${KEY}` },
+  })
+  const { error } = (await response.json()) as { error: { message: string } }
+  expect(response.status).toBe(404)
+  expect(error.message).toStartWith("No such notification: 'evt_missing'")
+})
