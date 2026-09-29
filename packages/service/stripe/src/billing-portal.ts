@@ -1,6 +1,12 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
 import { cancelSubscription, markInvoicePaid, payInvoice, subscriptionItems } from "./billing.js"
-import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
+import {
+  invalidRequest,
+  parameterInvalidEmpty,
+  parameterMissing,
+  resourceMissing,
+  StripeError,
+} from "./errors.js"
 import {
   booleanOf,
   changedFields,
@@ -454,6 +460,9 @@ export const billingPortalHandlers = (services: Services): Record<string, Operat
   GetBillingPortalConfigurations: async (context) => {
     const scope = requestScope(services, context)
     const params = queryParams(context)
+    // Unlike most lists, this one rejects an empty cursor instead of reading it as unset.
+    for (const cursor of ["starting_after", "ending_before"])
+      if (params[cursor] === "") throw parameterInvalidEmpty(cursor)
     // A fresh account lists none: the default only exists once a portal session first uses it.
     const active = booleanOf(params.active)
     const isDefault = booleanOf(params.is_default)
