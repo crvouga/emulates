@@ -71,6 +71,31 @@ export function createRuntime(options: OAuthRuntimeOptions = {}): OAuthRuntime {
         runtime.instance(namespace).revokeConsent(input.clientId, input.accountId)
         return Response.json({ revoked: true })
       },
+      "GET /grants": async ({ namespace, url }) => {
+        const api = runtime.instance(namespace)
+        const clientId = url.searchParams.get("clientId")
+        const accountId = url.searchParams.get("accountId")
+        const email = url.searchParams.get("email")?.toLowerCase().trim()
+        if (!clientId || (accountId !== null && email !== undefined))
+          return Response.json(
+            { error: "clientId is required, with at most one of accountId or email" },
+            { status: 400 },
+          )
+        if (accountId === null && email === undefined) {
+          const grants = await api.grants(clientId)
+          return grants
+            ? Response.json({ grants })
+            : Response.json({ error: "Unknown client" }, { status: 404 })
+        }
+        const id =
+          accountId ??
+          api.accounts.list({ where: (a) => a.email.toLowerCase() === email })[0]?.value.id ??
+          ""
+        const grant = await api.grant(clientId, id)
+        return grant
+          ? Response.json(grant)
+          : Response.json({ error: "Unknown client or account" }, { status: 404 })
+      },
       "POST /keys/rotate": ({ namespace, body }) => {
         const input = body as { retainPrevious?: unknown } | null
         if (input?.retainPrevious !== undefined && typeof input.retainPrevious !== "boolean")

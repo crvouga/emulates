@@ -73,3 +73,13 @@ export type Grant = Authorization & {
   issueRefresh: boolean
 }
 export type Token = Grant & { kind: "access" | "refresh"; consumed?: boolean; lastUsed?: number }
+/** What one client sees for one account: see `OAuthAPI.grant`. */
+export type GrantView = {
+  subject: string
+  granted: boolean
+  scopes: string[]
+  emailChoice: "share" | "hide" | null
+  email: string
+  isPrivateEmail: boolean
+  userDisclosed: boolean
+}
