@@ -118,7 +118,7 @@ holds, ancestors included); Stripe's own rules are enforced: a non-expandable fi
 
 Every state change records an event in the account's log (`GET /v1/events`, filterable by
 `types[]` and `created`) and publishes it through the shared webhook hub, signed
-`Stripe-Signature: t=<wall-clock unix>,v1=<hex HMAC-SHA256(secret, "t.body")>` over the exact bytes —
+`Stripe-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256(secret, "t.body")>` over the exact bytes —
 `stripe.webhooks.constructEvent` verifies them.
 
 - Endpoints: `PUT /__admin/webhook-endpoints [{account, url, secret, enabledEvents: ["*"|…]}]`
@@ -126,6 +126,11 @@ Every state change records an event in the account's log (`GET /v1/events`, filt
   `serve --webhook-url/--webhook-secret`, accounts' `webhookSecrets`, and endpoints created through
   `POST /v1/webhook_endpoints` (signed with the `whsec_` returned at creation). One event fans out to
   every matching endpoint, as on Stripe. Retries follow the hub's schedule.
+- `t` is the wall clock, unless the runtime's `clock` is injected (`createRuntime({ clock })`):
+  then `t`, retries and the attempt timeout run on that clock, so a virtual-time suite verifies with
+  `constructEventAsync(body, sig, secret, tolerance, undefined, clock.now())` and sees a retry when it
+  advances the clock (`runtime.clock.advance`, or `runtime.tick()` after moving its own clock).
+  `webhooks: { now, schedule, cancel, id }` override the hub's sources directly.
 - `GET /__admin/webhooks`, `/webhooks/events`, `POST /__admin/webhooks/:id/replay`, `/webhooks/flush`.
 - Delivery faults: presets `webhook_duplicate` (same event id twice — our receiver's in-flight
   dedupe answers 500), `webhook_reorder` (the next two swapped), `webhook_drop` (never delivered,
