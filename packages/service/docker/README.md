@@ -69,6 +69,9 @@ adapter; use `createServer` for Docker's attach and Unix-socket transport.
 namespace. It never downloads an image or starts a process. For example:
 
 ```ts
+import { createRuntime } from "@crvouga/mockingbird-service-docker"
+
+const docker = createRuntime({ seed: 42 })
 await docker.fetch(new Request("http://docker.mock/__admin/docker/seed", {
   method: "POST",
   headers: { "content-type": "application/json" },
@@ -365,11 +368,17 @@ the separately invoked oracle performs the authorized provider comparison.
 restored container or a new execution after its lifetime ends.
 
 ```ts
-const [attachment] = server.attachments()
-if (attachment) {
-  await attachment.write("stdout", new TextEncoder().encode("synthetic output"))
-  const rawInput = attachment.takeStdin()
-  await attachment.end()
+import type { DockerServer } from "@crvouga/mockingbird-service-docker/server"
+
+// Call after a client attaches to a running container on this server.
+export async function writeAttachedOutput(server: DockerServer) {
+  const [attachment] = server.attachments()
+  if (attachment) {
+    await attachment.write("stdout", new TextEncoder().encode("synthetic output"))
+    const rawInput = attachment.takeStdin()
+    await attachment.end()
+    return rawInput
+  }
 }
 ```
 

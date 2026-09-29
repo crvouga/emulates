@@ -41,11 +41,8 @@ await github.fetch(new Request("http://github.mock/__admin/github/repositories",
 }))
 const response = await github.fetch(new Request("http://github.mock/repos/synthetic-org/example"))
 console.log(await response.json())
-```
 
-Continue with the same runtime to publish a synthetic branch and PR:
-
-```ts
+// Continue with the same runtime to publish a synthetic branch and PR.
 const repo = "http://github.mock/repos/synthetic-org/example"
 const send = (path: string, method = "GET", body?: unknown) => github.fetch(
   new Request(`${repo}${path}`, {

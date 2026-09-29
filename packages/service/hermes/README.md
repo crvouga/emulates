@@ -92,6 +92,9 @@ The executable `mockingbird-hermes` provides `serve`.
 ## Script a run
 
 ```ts
+import { createRuntime } from "@crvouga/mockingbird-service-hermes"
+
+const hermes = createRuntime({ seed: 42 })
 const accepted = await hermes.fetch(new Request("http://hermes.mock/v1/runs", {
   method: "POST",
   headers: { "content-type": "application/json" },
