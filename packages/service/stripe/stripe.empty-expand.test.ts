@@ -167,3 +167,21 @@ test("listing subscriptions with an empty price is refused", async () => {
   expect(error.code).toBe("parameter_invalid_empty")
   expect(error.param).toBe("price")
 })
+
+// Live parity: an empty custom-field name is refused before a malformed email.
+test("creating a customer with a bad email and an empty custom-field name names the field", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee6", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/customers`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${KEY}`,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: "email=%20&invoice_settings[custom_fields][0][name]=&invoice_settings[custom_fields][0][value]=",
+  })
+  const { error } = (await response.json()) as { error: { code: string; param: string } }
+  expect(response.status).toBe(400)
+  expect(error.code).toBe("parameter_invalid_empty")
+  expect(error.param).toBe("invoice_settings[custom_fields][0][name]")
+})
