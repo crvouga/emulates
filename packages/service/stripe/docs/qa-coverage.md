@@ -37,7 +37,7 @@ reference points for what had to be modelled, not dependencies of this repositor
 ## Deliberate gaps
 
 See the README's "Deliberately not modelled" section. In short: Connect, tax, shipping, Radar,
-mandates, non-card payment methods, smart retries/dunning beyond the first `past_due`, exact
+mandates, non-card payment methods, ML-timed Smart Retries and dunning emails, exact
 proration arithmetic, per-endpoint webhook API versions, and Stripe.js features our UI does not
 call. Hosted checkout, the Stripe.js stand-in, test clocks, webhook endpoints, the balance ledger,
 `invoice.payment_failed`, `invoice.upcoming`, `refund.failed` (admin) and
