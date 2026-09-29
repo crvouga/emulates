@@ -300,11 +300,15 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
       pending.delete(delivery.id)
       return
     }
-    const settle = () =>
-      attempt(delivery).then((ok) => {
+    const settle = async () => {
+      // `clear` can drop a delivery queued behind an earlier immediate attempt. Its attempt would
+      // record nothing and reschedule at the same index forever, starving the event loop.
+      if (!payloads.has(delivery.id)) return
+      await attempt(delivery).then((ok) => {
         if (ok) delivery.state = "delivered"
         else schedule(delivery)
       })
+    }
     const delay = delays[index] ?? 0
     if (delay <= 0) {
       const task = immediate.then(settle)
