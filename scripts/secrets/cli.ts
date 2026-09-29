@@ -81,12 +81,12 @@ async function setSecret(repoName: string, name: string, value: string): Promise
   return true
 }
 
-/** Known secrets grouped by where they come from: manifest (workflows), each parity service, extras. */
+/** Known secrets grouped by where they come from: manifest, each parity service, extras. */
 async function groups(remote: Set<string>): Promise<Array<{ group: string; names: string[] }>> {
   const manifest = await loadManifest()
   const out = [
     {
-      group: "workflows",
+      group: "release",
       names: manifest.secrets.filter(isGitHubSecretEntry).map((entry) => entry.github.name),
     },
     ...parityRequirements().map(({ service, env }) => ({ group: service, names: env })),

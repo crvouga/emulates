@@ -11,7 +11,7 @@ bun test        # no secrets
 bun run check   # every CI gate, no secrets
 ```
 
-Secrets are only involved in four places, and all four run on GitHub with the repo's own
+Secrets are only involved in three places, and all three run on GitHub with the repo's own
 Actions secrets. Anyone with **write access** to `crvouga/mockingbird` can use them without
 seeing a value (GitHub never returns a secret's value, to anyone):
 
@@ -20,7 +20,6 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 | [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>`, `-- --all` or `-- --tier=warm`; by [tier](TESTING.md#parity-tiers) also on each PR that changes a hot service ([Advisory](../.github/workflows/advisory.yml), non-blocking, not for forks) and weekly for warm services |
 | [Verify](../.github/workflows/verify.yml) | `JUNCTION_API_KEY` | daily, or `gh workflow run verify.yml` |
 | [Release](../.github/workflows/ci.yml) | `NPM_TOKEN` (new packages only) | automatic on merge to `main` |
-| [Resolve issues](../.github/workflows/resolve-issues.yml) | `RESOLVE_ISSUES_GITHUB_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN` | `bun run resolve-issues:remote -- [<issue…>]`, or the Actions tab ([below](#resolving-issues-on-github)) |
 
 ## Live parity
 
@@ -91,31 +90,42 @@ someone approves it by hand.
 
 ## Resolving issues on GitHub
 
-The [Resolve issues](../.github/workflows/resolve-issues.yml) workflow starts one Claude Code agent
-per `agent-reported` issue. Each agent runs [`/resolve-issues <n>`](../.agents/commands/resolve-issues.md)
-and then `/pr-ready`, so it ends with a green PR that closes the issue, or with a comment on the
-issue that says what it needs. It never merges.
+`bun github:resolve-issues` starts the [Resolve issues](../.github/workflows/resolve-issues.yml)
+workflow with **your** credentials. No repo secret is involved. The workflow starts one Claude Code
+agent per `agent-reported` issue. Each agent opens a draft PR, runs
+[`/resolve-issues <n>`](../.agents/commands/resolve-issues.md), and then runs `/pr-ready` until the
+PR is green and ready to merge. When a decision needs a human, the agent comments on the issue
+instead. It never merges.
 
 ```bash
-bun run resolve-issues:remote              # the queue: up to 3 unassigned parity, bug, then feature issues
-bun run resolve-issues:remote -- 190 191   # these issues (a new-service issue runs only when named)
+bun github:resolve-issues              # the queue: up to 3 (--max=<k>) unassigned parity, bug, then feature issues
+bun github:resolve-issues 190 191      # these issues (a new-service issue runs only when named)
+bun github:resolve-issues --dry-run 190   # hand over and check the credentials, then stop
 ```
 
-Each run needs two secrets. `bun run secrets` shows them under `workflows`, and a run that is
-missing one fails at once and names it:
+It reads two credentials from your environment. Bun loads `.env.local`, and neither is ever
+printed:
 
-- **`RESOLVE_ISSUES_GITHUB_TOKEN`**: a fine-grained token for this repository only, with read and
-  write on Contents, Issues, Pull requests and Actions. Leave out Workflows, so an agent cannot
-  edit a workflow file. The built-in `GITHUB_TOKEN` does not work here: a PR pushed with it never
-  triggers the CI workflow, so it never turns green. Commits and PRs are made as the token's owner.
-- **`CLAUDE_CODE_OAUTH_TOKEN`**: the agents' model access, from a Claude subscription. Create it
-  with `claude setup-token` on a machine logged in to the subscription. AI access in this repo is
-  subscription-only: never add a pay-per-use API key (`ANTHROPIC_API_KEY` or any other provider's).
-  The workflow unsets `ANTHROPIC_API_KEY` so Claude Code cannot fall back to one.
+- **`CLAUDE_CODE_OAUTH_TOKEN`** (required): your Claude subscription token. Create it with
+  `claude setup-token`. AI access in this repo is subscription-only: never use a pay-per-use API
+  key (`ANTHROPIC_API_KEY` or any other provider's). The workflow unsets `ANTHROPIC_API_KEY`, so
+  Claude Code cannot fall back to one.
+- **GitHub**: `gh auth token` by default, so commits and PRs are yours and they trigger CI. (The
+  built-in `GITHUB_TOKEN` cannot trigger CI, so its PRs could never turn green.) The agents read
+  issue text that anyone can write, so hand them as little as you can. Set
+  **`RESOLVE_ISSUES_GITHUB_TOKEN`** to a fine-grained token for this repository only: read and
+  write on Contents, Issues, Pull requests and Actions, with Workflows left out. A `gh` login token
+  reaches every repository you can.
 
-The agents read issue text that anyone can write, so the job gets no vendor sandbox keys. To
-check a report against the oracle, an agent dispatches the Parity workflow
-(`bun run parity:remote`), and the keys stay in that run.
+The repository is public, and workflow inputs are neither masked nor secret, so the credentials
+never travel as inputs. Instead, each job generates a key pair and uploads only its public key.
+The command encrypts the credentials to that key and passes the ciphertext through a secret gist,
+which it deletes as soon as every job has read it. Keep the command running until it says so,
+which takes a minute or two. A job that is re-run cannot get credentials, so dispatch again
+instead. Details are in [`scripts/resolve-issues.ts`](../scripts/resolve-issues.ts).
+
+The job holds no vendor sandbox keys. To check a report against the oracle, an agent dispatches
+the Parity workflow (`bun run parity:remote`), and the keys stay in that run.
 
 ## Releasing
 
@@ -168,8 +178,8 @@ what `main` already built and tested. No token, no server.
 | `GITHUB_TOKEN` | built into GitHub Actions | automatic |
 | `NPM_TOKEN` | repo secret | creating new packages, deprecations |
 | `<SERVICE>_*` sandbox keys | repo secrets (+ optionally your `.env.local`) | live parity only |
-| `RESOLVE_ISSUES_GITHUB_TOKEN` | repo secret | Resolve issues: pushing agent branches and opening PRs |
-| `CLAUDE_CODE_OAUTH_TOKEN` | repo secret | Resolve issues: the agents' model access (Claude subscription) |
+| `CLAUDE_CODE_OAUTH_TOKEN` | your `.env.local` (never a repo secret) | `bun github:resolve-issues`: your Claude subscription |
+| `RESOLVE_ISSUES_GITHUB_TOKEN` | your `.env.local`, optional | `bun github:resolve-issues`: a narrower GitHub token than `gh auth token` |
 | `GITGUARDIAN_API_KEY` | your `.env.local` | optional: `pr:ready guardian ignore` |
 
 Inventory: [`secrets.manifest.yaml`](../secrets.manifest.yaml) (non-parity secrets and the

@@ -52,7 +52,7 @@
     "parity:twilio": "turbo run parity --filter=@crvouga/mockingbird-service-twilio",
     "parity:service": "bun scripts/parity-service.ts",
     "parity:remote": "bun scripts/parity-remote.ts",
-    "resolve-issues:remote": "bun scripts/resolve-issues.ts dispatch",
+    "github:resolve-issues": "bun scripts/resolve-issues.ts dispatch",
     "verify:junction": "bun run --cwd packages/service/junction verify -- --sample 60 --orders",
     "check:boundaries": "bun scripts/check-boundaries.ts",
     "check:agents": "bun scripts/agent-commands.ts --check",

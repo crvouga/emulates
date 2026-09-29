@@ -30,8 +30,8 @@ see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#agent-commands).
 Agents in other projects report parity mismatches, missing features and bugs, and request new
 services, as GitHub issues labelled `agent-reported` ([docs/REPORTING_ISSUES.md](docs/REPORTING_ISSUES.md),
 templates in `.github/ISSUE_TEMPLATE/`, labels in `.github/labels.json`); `/resolve-issues` works
-that queue, by hand or unattended on GitHub (`bun run resolve-issues:remote`, the Resolve issues
-workflow, which carries each issue to a green PR). Only public third-party vendor APIs get a mock: decline requests to mock a company's
+that queue, by hand or unattended on GitHub as you (`bun github:resolve-issues`, which carries each
+issue to a green PR). Only public third-party vendor APIs get a mock: decline requests to mock a company's
 own internal services, and keep fixtures and test data free of any real customer's name.
 
 `README.md` and `llms.txt` are generated: edit their sources (`sites/docs/src/lib/content.ts`, each
