@@ -71,8 +71,9 @@ const SHARD_IRRELEVANT = [
   "scripts/parity-tiers.ts",
   "scripts/worktree/**",
   "scripts/secrets/**",
-  "scripts/{agent-commands,ci-local,parity-remote,parity-service,pr-ready,resolve-issues}.ts",
-  "scripts/resolve-issues.test.ts",
+  "scripts/{agent-commands,ci-local,github-app-token,parity-remote,parity-service,pr-ready,resolve-issues}.ts",
+  "scripts/{github-app-token,resolve-issues}.test.ts",
+  ".github/resolve-issues-app.json",
 ]
 
 /**

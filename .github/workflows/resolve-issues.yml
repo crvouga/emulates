@@ -10,13 +10,18 @@
 # never merges, approves, or enables auto-merge. Where a command says a human must decide, the agent
 # comments on the issue with what it needs and a link to this run.
 #
-# Credentials are the developer's, not the repo's: their GitHub token (commits and PRs are theirs,
-# and so they trigger CI) and their Claude subscription token (never an API key). They are not
-# inputs, because this repo is public and inputs are neither masked nor secret. Each job uploads
-# only an RSA public key; the command encrypts the credentials to it and hands the ciphertext over
-# in a secret gist (`handshake`), which it deletes once every job has read it. See
-# scripts/resolve-issues.ts. Vendor sandbox keys are not in the job either: the agent checks an
-# oracle through the Parity workflow (bun run parity:remote).
+# Credentials are the developer's, not the repo's, and each is bounded:
+#   - GitHub: a token the command mints for this run from the repo's GitHub App (device flow,
+#     approved in the browser). It expires within 8 hours, reaches this repository alone and holds
+#     no workflows, administration, secrets or variables permission. The job refuses it otherwise
+#     (verify-token), so the agent can neither touch a workflow file nor reach another repository.
+#   - Claude: the developer's subscription token (never an API key). Claude Code scrubs it from
+#     the agent's shell commands (CLAUDE_CODE_SUBPROCESS_ENV_SCRUB).
+# Neither is an input: this repo is public, and inputs are neither masked nor secret. Each job
+# uploads only an RSA public key; the command encrypts the credentials to it and hands the
+# ciphertext over in a secret gist (`handshake`), which it deletes once every job has read it. See
+# scripts/resolve-issues.ts and scripts/github-app-token.ts. Vendor sandbox keys are not in the
+# job either: the agent checks an oracle through the Parity workflow (bun run parity:remote).
 #
 # Not a pull-request check.
 name: Resolve issues
@@ -55,13 +60,13 @@ jobs:
     outputs:
       issues: ${{ steps.parse.outputs.issues }}
     steps:
-      # Positive integers only, or the run stops here.
+      # Positive integers only, at most 10 (scripts/resolve-issues.ts MAX_ISSUES), or the run stops.
       - id: parse
         env:
           REQUESTED: ${{ inputs.issues }}
         run: |
           issues=$(jq -cn --arg s "$REQUESTED" \
-            '[$s | splits(" +") | select(. != "") | tonumber | if . > 0 and . == floor then . else error("not an issue number: \(.)") end] | unique')
+            '[$s | splits(" +") | select(. != "") | tonumber | if . > 0 and . == floor then . else error("not an issue number: \(.)") end] | unique | if length > 10 then error("at most 10 issues per run") else . end')
           echo "issues=$issues" >> "$GITHUB_OUTPUT"
 
   resolve:
@@ -105,12 +110,20 @@ jobs:
           ISSUE: ${{ matrix.issue }}
         run: bun scripts/resolve-issues.ts receive "$RUNNER_TEMP/handover"
 
+      # Defense in depth: the command checked the token before sealing it; check it again here.
+      - name: Check the GitHub token's reach
+        run: bun scripts/resolve-issues.ts verify-token
+
+      # gh reads its hosts file too, so it keeps working whatever the agent's environment holds.
       - name: Git identity
         run: |
           read -r id login < <(gh api user --jq '"\(.id) \(.login)"')
-          echo "Acting as $login"
+          echo "Acting as $login, through a token that expires within 8 hours"
           git config --global user.name "$login"
           git config --global user.email "${id}+${login}@users.noreply.github.com"
+          mkdir -p ~/.config/gh
+          (umask 077 && printf 'github.com:\n    oauth_token: %s\n    user: %s\n    git_protocol: https\n' \
+            "$GH_TOKEN" "$login" > ~/.config/gh/hosts.yml)
           [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]]
 
       # The agents always work from main, whichever ref this workflow ran from. The developer's token
@@ -165,6 +178,8 @@ jobs:
           ISSUE: ${{ matrix.issue }}
           MODEL: ${{ inputs.model }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Claude Code keeps its own credentials out of the agent's shell commands.
+          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: "1"
         run: |
           # Subscription access only: Claude Code prefers an API key when one is set.
           unset ANTHROPIC_API_KEY
@@ -187,6 +202,9 @@ jobs:
             --permission-mode bypassPermissions \
             --append-system-prompt "$system" \
             --output-format json > "$RUNNER_TEMP/result.json" || true
-          jq -r '.result // "The agent produced no report."' "$RUNNER_TEMP/result.json" |
-            tee -a "$GITHUB_STEP_SUMMARY"
+          # Log masking does not cover the step summary, so redact the tokens from the report here.
+          report=$(jq -r '.result // "The agent produced no report."' "$RUNNER_TEMP/result.json")
+          report=${report//"$GH_TOKEN"/"***"}
+          report=${report//"$CLAUDE_CODE_OAUTH_TOKEN"/"***"}
+          printf '%s\n' "$report" | tee -a "$GITHUB_STEP_SUMMARY"
           jq -e '.is_error == false' "$RUNNER_TEMP/result.json" > /dev/null

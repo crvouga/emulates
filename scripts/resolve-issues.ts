@@ -1,37 +1,46 @@
 /**
  * `bun github:resolve-issues [<n>…]`: resolve agent-reported issues on GitHub Actions with Claude
- * Code agents, as you. The agents use your GitHub token and your Claude subscription token, so
- * commits and PRs are yours and the repo holds no secret for them.
+ * Code agents, as you. The agents use a GitHub token minted for this run and your Claude
+ * subscription token, so commits and PRs are yours and the repo holds no secret for them.
  *
- *   bun github:resolve-issues                  the queue: up to 3 issues (--max=<k>)
+ *   bun github:resolve-issues setup            once, by the repo owner: the GitHub App tokens come from
+ *   bun github:resolve-issues                  the queue: up to 3 issues (--max=<k>, at most 10)
  *   bun github:resolve-issues 190 191          these issues (a new-service issue runs only when named)
  *     --model=<id>     Claude model for the agents (default claude-opus-5-5)
  *     --ref=<branch>   branch whose workflow runs (default main); the agents always branch from main
  *     --dry-run        hand the credentials over and check them, then stop (no agent, no PR)
+ *     --yes            skip the confirmation prompt
  *
  * The queue is /resolve-issues' order: the oldest open `agent-reported` issues, parity first, then
  * bug, then feature, that nobody has claimed (no assignee), that wait on nobody (no `needs-info` or
  * `needs-oracle-check`) and that no open PR already closes.
  *
- * Credentials, from your environment (.env.local is loaded by Bun):
- *   CLAUDE_CODE_OAUTH_TOKEN      your Claude subscription token (`claude setup-token`). Required.
- *                                Subscription only: an API key is never used.
- *   RESOLVE_ISSUES_GITHUB_TOKEN  optional fine-grained token for the agents; otherwise `gh auth token`.
- *
- * The repo is public and workflow_dispatch inputs are neither masked nor secret, so credentials
- * never travel as inputs. Instead:
- *   1. This command creates a secret gist and dispatches the workflow with the gist's id.
- *   2. Each job generates an RSA key pair and uploads only the public key, as an artifact.
- *   3. This command encrypts the credentials to that key (RSA-OAEP wrapping AES-GCM, bound to the
- *      run and the issue) and adds the ciphertext to the gist.
- *   4. The job decrypts them, masks them, and deletes its private key. When every job has its
- *      credentials, this command deletes the gist.
- * A re-run job has a new key and no one to answer it, so it fails and says to dispatch again.
+ * Safeguards, in the order a run meets them:
+ *   - You confirm the plan (issues, model, ref) before anything is created.
+ *   - GitHub: never your `gh` login. A token is minted per run with the device flow (you approve it
+ *     in the browser) from the repo's GitHub App (scripts/github-app-token.ts). It expires in 8 hours
+ *     at most, and it is refused unless it reaches this repository alone with the app's short
+ *     permission list (no workflows, administration, secrets or variables). The job checks it again.
+ *   - Claude: CLAUDE_CODE_OAUTH_TOKEN from your environment (`claude setup-token`, kept in
+ *     .env.local). Subscription only: an API key is never used, and the job unsets ANTHROPIC_API_KEY.
+ *   - Handover: the repo is public and workflow_dispatch inputs are neither masked nor secret, so
+ *     credentials never travel as inputs. Instead:
+ *       1. This command creates a secret gist and dispatches the workflow with the gist's id.
+ *       2. Each job generates an RSA key pair and uploads only the public key, as an artifact.
+ *       3. This command encrypts the credentials to that key (RSA-OAEP wrapping AES-GCM, bound to
+ *          the run and the issue) and adds the ciphertext to the gist.
+ *       4. The job decrypts them, masks them, refuses anything that is not a one-line token, and
+ *          deletes its private key. When every job has its credentials, this command deletes the
+ *          gist. A re-run job has a new key and no one to answer it, so it fails; dispatch again.
+ *   - In the job, Claude Code scrubs its own credentials from the agent's shell commands
+ *     (CLAUDE_CODE_SUBPROCESS_ENV_SCRUB), and both tokens are redacted from the agent's report.
+ *   - At most MAX_ISSUES issues per run.
  *
  * The workflow (.github/workflows/resolve-issues.yml) calls the runner side:
  *   bun scripts/resolve-issues.ts keygen <dir>    write <dir>/public.key and <dir>/private.key
  *   bun scripts/resolve-issues.ts receive <dir>   wait for this job's ciphertext, decrypt it, mask
  *                                                 it, export GH_TOKEN and CLAUDE_CODE_OAUTH_TOKEN
+ *   bun scripts/resolve-issues.ts verify-token    refuse a GH_TOKEN that reaches beyond this repo
  */
 import {
   appendFileSync,
@@ -44,9 +53,21 @@ import {
 } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { $ } from "bun"
+import { $, type ShellExpression } from "bun"
+import {
+  APP_CONFIG_PATH,
+  type AppConfig,
+  checkTokenReach,
+  createApp,
+  deviceFlowToken,
+  loadAppConfig,
+  MAX_TOKEN_LIFETIME_S,
+} from "./github-app-token.ts"
 
+const root = join(import.meta.dir, "..")
 const WORKFLOW = "resolve-issues.yml"
+/** Most issues one run takes: bounds what a run can spend and touch. */
+export const MAX_ISSUES = 10
 const DEFAULT_MODEL = "claude-opus-5-5"
 /** How long a job waits for its credentials, and this command for every job's public key. */
 const HANDSHAKE_TIMEOUT_MS = 15 * 60_000
@@ -178,7 +199,7 @@ export async function open(
 
 // --- Commands -----------------------------------------------------------------------------------
 
-const fail = (message: string, code = 1): never => {
+function fail(message: string, code = 1): never {
   console.error(`resolve-issues: ${message}`)
   process.exit(code)
 }
@@ -186,7 +207,7 @@ const fail = (message: string, code = 1): never => {
 /** A bad command line: exit 2. Anything else thrown exits 1. */
 class UsageError extends Error {}
 
-const sh = async (strings: TemplateStringsArray, ...values: unknown[]) => {
+const sh = async (strings: TemplateStringsArray, ...values: ShellExpression[]) => {
   const result = await $(strings, ...values)
     .quiet()
     .nothrow()
@@ -208,7 +229,53 @@ async function ghApi(path: string, method: string, body: unknown): Promise<unkno
 }
 
 const USAGE =
-  "usage: bun github:resolve-issues [<issue>…] [--max=<k>] [--model=<id>] [--ref=<branch>] [--dry-run]"
+  "usage: bun github:resolve-issues [<issue>…] [--max=<k>] [--model=<id>] [--ref=<branch>] [--dry-run] [--yes] | setup [--new]"
+
+const openUrl = (url: string) => {
+  const opener = process.platform === "darwin" ? "open" : "xdg-open"
+  Bun.spawn([opener, url], { stdout: "ignore", stderr: "ignore" }).exited.catch(() => {})
+}
+
+/**
+ * A token for this run: minted with the device flow, then refused unless it expires and reaches
+ * this repository alone with the app's permissions.
+ */
+async function mintToken(config: AppConfig, repo: string): Promise<string> {
+  const minted = await deviceFlowToken(config, (userCode, uri) => {
+    console.log(`Authorize a token that reaches ${repo} only: open ${uri} and enter ${userCode}`)
+    openUrl(uri)
+  })
+  const settings = `https://github.com/settings/apps/${config.slug}`
+  if (minted.expiresIn === undefined || minted.expiresIn > MAX_TOKEN_LIFETIME_S) {
+    throw new Error(
+      `refusing the token: it does not expire within 8 hours. Turn on "Expire user authorization tokens" at ${settings}`,
+    )
+  }
+  const problems = await checkTokenReach(minted.token, repo)
+  if (problems.length > 0) {
+    throw new Error(
+      `refusing the token:\n  - ${problems.join("\n  - ")}\nInstall the app on ${repo} only (https://github.com/apps/${config.slug}/installations/new) and keep its permissions as bun github:resolve-issues setup made them.`,
+    )
+  }
+  return minted.token
+}
+
+function requireAppConfig(): AppConfig {
+  const config = loadAppConfig(root)
+  if (!config) {
+    throw new Error(
+      `no GitHub App in ${APP_CONFIG_PATH}. The repo owner runs \`bun github:resolve-issues setup\` once.`,
+    )
+  }
+  return config
+}
+
+function confirm(question: string, yes: boolean) {
+  if (yes) return
+  if (!process.stdin.isTTY) throw new UsageError("no terminal to confirm in: pass --yes")
+  const answer = prompt(`${question} [y/N]`)
+  if (!/^y(es)?$/i.test(answer?.trim() ?? "")) throw new Error("cancelled")
+}
 
 const flag = (args: string[], name: string) =>
   args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3)
@@ -242,8 +309,9 @@ async function dispatch(args: string[]) {
   const model = flag(args, "model") ?? DEFAULT_MODEL
   const ref = flag(args, "ref") ?? "main"
   const dryRun = args.includes("--dry-run")
+  const yes = args.includes("--yes")
   const unknown = args.filter(
-    (a) => a.startsWith("--") && !/^--(max|model|ref)=|^--dry-run$/.test(a),
+    (a) => a.startsWith("--") && !/^--(max|model|ref)=|^--(dry-run|yes)$/.test(a),
   )
   if (unknown.length > 0) throw new UsageError(`unknown option ${unknown.join(" ")}\n${USAGE}`)
   let named: number[]
@@ -253,30 +321,44 @@ async function dispatch(args: string[]) {
     throw new UsageError((error as Error).message)
   }
 
-  // Credentials first: fail before anything is created on GitHub. Never print their values.
+  // Everything that can fail locally fails before anything is created on GitHub. Never print
+  // a credential's value.
   if (!(await sh`gh auth status`).ok) fail("gh is not authenticated. Run: gh auth login")
+  const config = requireAppConfig()
   const claudeCodeOAuthToken = process.env.CLAUDE_CODE_OAUTH_TOKEN?.trim() ?? ""
   if (!claudeCodeOAuthToken) {
     fail(
       "CLAUDE_CODE_OAUTH_TOKEN is not set. Run `claude setup-token` and put the token in .env.local as CLAUDE_CODE_OAUTH_TOKEN=… (gitignored; never commit it). An API key is not accepted.",
     )
   }
-  const githubToken =
-    process.env.RESOLVE_ISSUES_GITHUB_TOKEN?.trim() || (await sh`gh auth token`).out
-  if (!isToken(githubToken)) fail("no GitHub token: run gh auth login")
   if (!isToken(claudeCodeOAuthToken)) fail("CLAUDE_CODE_OAUTH_TOKEN does not look like a token")
-  const credentials: Credentials = { githubToken, claudeCodeOAuthToken }
 
   const repo = (await sh`gh repo view --json nameWithOwner --jq .nameWithOwner`).out
   if (!repo) fail("not a GitHub checkout")
-  const agent = (await sh`gh api user --jq .login`.then((r) => r.out)) || "you"
 
   const issues = await selectIssues(repo, named, max)
   if (issues.length === 0) {
     console.log("Nothing to resolve.")
     return
   }
+  if (issues.length > MAX_ISSUES) {
+    throw new UsageError(`${issues.length} issues; one run takes at most ${MAX_ISSUES}`)
+  }
   const list = issues.map((n) => `#${n}`).join(" ")
+  console.log(
+    `${dryRun ? "Dry run for" : "Resolve"} ${list} on ${repo}: one Claude Code agent per issue (${model}), workflow from ${ref}, each ending in a draft PR taken to ready-to-merge (never merged).`,
+  )
+  confirm("Proceed?", yes)
+
+  const githubToken = await mintToken(config, repo)
+  const credentials: Credentials = { githubToken, claudeCodeOAuthToken }
+  const agent =
+    (await fetch("https://api.github.com/user", {
+      headers: { Authorization: `Bearer ${githubToken}` },
+    })
+      .then((r) => r.json() as Promise<{ login?: string }>)
+      .then((u) => u.login)
+      .catch(() => undefined)) ?? "you"
 
   const gist = (await ghApi("gists", "POST", {
     description: `Encrypted credential handover for a ${repo} Resolve issues run; deleted when the run has them.`,
@@ -391,6 +473,51 @@ async function handOver(
   )
 }
 
+/** Create the app (first run), or mint a token and check everything a run relies on. */
+async function setup(args: string[]) {
+  const repo = (await sh`gh repo view --json nameWithOwner --jq .nameWithOwner`).out
+  if (!repo) fail("not a GitHub checkout, or gh is not authenticated (gh auth login)")
+  const owner = (await sh`gh api user --jq .login`).out
+  const existing = loadAppConfig(root)
+
+  if (!existing || args.includes("--new")) {
+    const config = await createApp(repo, owner, openUrl)
+    writeFileSync(join(root, APP_CONFIG_PATH), `${JSON.stringify(config, null, 2)}\n`)
+    console.log(
+      `Created the GitHub App ${config.slug}; ${APP_CONFIG_PATH} holds its public client id.`,
+    )
+    console.log(
+      "Its private key and client secret were not kept: nothing can act as the app itself.",
+    )
+    console.log("Two settings GitHub does not take from a manifest:")
+    console.log(
+      `  1. https://github.com/settings/apps/${config.slug}: tick "Enable Device Flow" and keep "Expire user authorization tokens" on. Save.`,
+    )
+    console.log(
+      `  2. https://github.com/apps/${config.slug}/installations/new: install it on "Only select repositories" → ${repo}.`,
+    )
+    console.log(
+      `Then run \`bun github:resolve-issues setup\` again to check, and commit ${APP_CONFIG_PATH}.`,
+    )
+    return
+  }
+
+  await mintToken(existing, repo)
+  console.log(
+    `Ready: ${existing.slug} mints tokens that expire within 8 hours and reach ${repo} alone. Commit ${APP_CONFIG_PATH} if you have not.`,
+  )
+}
+
+/** Runner: refuse a GH_TOKEN that reaches beyond this repository, before anything uses it. */
+async function verifyToken() {
+  const { GH_TOKEN: token, GITHUB_REPOSITORY: repo } = process.env
+  if (!token || !repo) fail("verify-token runs inside the Resolve issues workflow", 2)
+  const problems = await checkTokenReach(token, repo)
+  if (problems.length > 0)
+    fail(`refusing the handed-over GitHub token:\n  - ${problems.join("\n  - ")}`)
+  console.log(`The GitHub token reaches ${repo} alone, with the agents' permissions.`)
+}
+
 /** Runner: write a fresh key pair; only public.key leaves the job. */
 async function keygen(dir: string) {
   mkdirSync(dir, { recursive: true, mode: 0o700 })
@@ -459,7 +586,9 @@ async function receive(dir: string) {
 if (import.meta.main) {
   const [command, ...rest] = process.argv.slice(2).filter((a) => a !== "--")
   try {
-    if (command === "dispatch") await dispatch(rest)
+    if (command === "dispatch" && rest[0] === "setup") await setup(rest.slice(1))
+    else if (command === "dispatch") await dispatch(rest)
+    else if (command === "verify-token") await verifyToken()
     else if (command === "keygen" && rest[0]) await keygen(rest[0])
     else if (command === "receive" && rest[0]) await receive(rest[0])
     else fail(USAGE, 2)

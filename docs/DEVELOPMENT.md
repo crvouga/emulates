@@ -124,11 +124,13 @@ reported behavior against the oracle, add a regression test, fix the mock, and s
 `/pr-ready` with `Fixes #<n>`. `feature` requests become acceptance tests plus contract changes;
 `new-service` requests become new packages built through
 [AUTHORING_A_SERVICE.md](AUTHORING_A_SERVICE.md).
-`bun github:resolve-issues [<issue…>]` runs that command on GitHub, unattended, as you. It
-starts the [Resolve issues](../.github/workflows/resolve-issues.yml) workflow with your GitHub token
-and your Claude subscription token, and no repo secret. For each issue, an agent opens a draft PR
-and carries it to ready-to-merge. With no issue named, it takes the queue in the command's order.
-[SECRETS.md](SECRETS.md#resolving-issues-on-github) explains how the credentials reach the run.
+`bun github:resolve-issues [<issue…>]` runs that command on GitHub, unattended, as you. It starts
+the [Resolve issues](../.github/workflows/resolve-issues.yml) workflow with a GitHub token minted for
+the run, which expires within 8 hours and reaches only this repository, plus your Claude
+subscription token. No repo secret is involved. For each issue, an agent opens a draft PR and
+carries it to ready-to-merge. With no issue named, it takes the queue in the command's order. The
+repo owner runs `bun github:resolve-issues setup` once first.
+[SECRETS.md](SECRETS.md#resolving-issues-on-github) lists the safeguards.
 
 ### Package publishing
 
