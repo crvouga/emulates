@@ -432,7 +432,15 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       cause.message = `${header}\n${minimalCounterexample(error instanceof Error ? error.message : String(error))}\n\n${cause.message}`
       throw cause
     }
-    if (error instanceof Error) error.message = `${header}\n${error.message}`
+    if (error instanceof Error) {
+      // fast-check keeps the property's own error in `cause`; without it a non-divergence failure
+      // (a transport error, a crashing cleanup) reports only a counterexample.
+      const underlying =
+        error.cause instanceof Error
+          ? `\n\nCaused by: ${error.cause.stack ?? error.cause.message}`
+          : ""
+      error.message = `${header}\n${error.message}${underlying}`
+    }
     throw error
   }
 
