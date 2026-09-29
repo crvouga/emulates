@@ -267,6 +267,7 @@ const reshapeCommand = (
   const shaped = reshapeCoverageGeoCommand(command, state, rng)
   if (shaped.operationId !== "create_order_v3_order_post") return shaped
   const body = shaped.body as Record<string, unknown>
+  const phoneNumber = `+120255501${String([...walkPatientId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 100).padStart(2, "0")}`
   return {
     ...shaped,
     body: {
@@ -275,7 +276,11 @@ const reshapeCommand = (
         ...(body.patient_details as Record<string, unknown>),
         last_name: `Fixture${walkPatientId.replace(/[^a-z]/gi, "")}`,
         email: `parity-${walkPatientId}@example.com`,
-        phone_number: `+120255501${String([...walkPatientId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 100).padStart(2, "0")}`,
+        phone_number: phoneNumber,
+      },
+      patient_address: {
+        ...(body.patient_address as Record<string, unknown>),
+        phone_number: phoneNumber,
       },
     },
   }
