@@ -23,6 +23,7 @@ import bookingObservation from "./booking-probe-observation.json" with { type: "
 import { probeBookingLifecycle } from "./booking-probes.js"
 import { diagnoseSimulationFailure } from "./simulation-diagnostics.js"
 import { probeSimulationLifecycle } from "./simulation-probes.js"
+import { withTestkitSettlement } from "./testkit-settlement.js"
 
 /** Docs: https://docs.junction.com/api-details/junction-api */
 const DEFAULT_JUNCTION_HOST = "api.sandbox.tryvital.io"
@@ -365,7 +366,7 @@ const runSeed = async (seed: number | undefined) => {
       real: {
         baseUrl,
         allowedHosts: [new URL(baseUrl).host],
-        fetch: (request: Request) => retrySandbox5xx(request),
+        fetch: withTestkitSettlement((request: Request) => retrySandbox5xx(request)),
         headers: () => ({
           ...authHeaders,
           "x-mockingbird-scope": Bun.env.MOCKINGBIRD_SCOPE ?? "junction-parity",
@@ -373,7 +374,12 @@ const runSeed = async (seed: number | undefined) => {
         minIntervalMs: DEFAULT_MIN_INTERVAL_MS,
       },
       mock: {
-        create: () => new JunctionAPI(),
+        create: () => {
+          const api = new JunctionAPI()
+          const fetch = api.fetch.bind(api)
+          api.fetch = withTestkitSettlement(fetch)
+          return api
+        },
         headers: () => ({ "x-vital-api-key": "sk_us_mockingbird" }),
       },
       ...(webhookParity === undefined ? {} : { webhooks: webhookParity }),

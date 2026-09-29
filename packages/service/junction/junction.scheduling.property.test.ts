@@ -879,3 +879,84 @@ test("phlebotomy cancellation checks collection method before looking for an app
     expect(await cancelled.json()).toEqual({ detail })
   }
 })
+
+test.each([false, true])(
+  "testkit completes automatically unless cancelled: %s",
+  async (cancelled) => {
+    const clock = makeNow()
+    const api = new JunctionAPI({ now: clock.now })
+    const user = await createUser(api, "async-testkit")
+    const catalog = (await (await request(api, "/v3/lab_test")).json()) as { data: Json[] }
+    const lab = catalog.data.find(
+      (entry) => entry.method === "testkit" && entry.is_active !== false,
+    )
+    if (!lab) throw new Error("Missing testkit fixture")
+    const order = await createOrder(api, user, lab.id as string)
+    const path = `/v3/order/${order.id}`
+    if (cancelled) {
+      expect(
+        (
+          await request(api, `${path}/test?final_status=completed.testkit.completed&delay=1`, {
+            method: "POST",
+          })
+        ).status,
+      ).toBe(200)
+      expect((await request(api, `${path}/cancel`, { method: "POST" })).status).toBe(200)
+      clock.advance(1001)
+      expect((await (await request(api, path)).json()).status).toBe("cancelled")
+      expect((await request(api, `${path}/result`)).status).toBe(404)
+      return
+    }
+    expect(
+      (
+        await request(api, `${path}/test?final_status=completed.testkit.completed`, {
+          method: "POST",
+        })
+      ).status,
+    ).toBe(200)
+    const before = await (await request(api, path)).json()
+    expect(before.last_event.status).toBe("sample_with_lab.testkit.delivered_to_lab")
+    expect(before.order_transaction.status).toBe("active")
+    expect((await request(api, `${path}/result`)).status).toBe(404)
+
+    clock.advance(1)
+    const results = await request(api, `${path}/result`)
+    expect(results.status).toBe(200)
+    const body = await results.json()
+    expect(body.metadata.date_collected).toBeNull()
+    expect(body.metadata.date_received).toBeNull()
+    expect(body.metadata["clia_#"]).toBe("05D2130115")
+    const after = await (await request(api, path)).json()
+    expect(after.status).toBe("completed")
+    expect(after.interpretation).toBe("abnormal")
+    expect(after.order_transaction.status).toBe("completed")
+    expect(after.order_transaction.orders[0].low_level_status).toBe("completed")
+    expect((await request(api, `${path}/result/pdf`)).status).toBe(200)
+    clock.advance(5000)
+    expect((await (await request(api, path)).json()).events).toEqual(after.events)
+  },
+)
+
+test("reading another order's results applies delayed transitions to the queued order", async () => {
+  const clock = makeNow()
+  const api = new JunctionAPI({ now: clock.now })
+  const user = await createUser(api, "queued-order-isolation")
+  const queued = await createOrder(api, user, LAB_WALK_IN)
+  const other = await createOrder(api, user, LAB_WALK_IN)
+  for (const order of [queued, other]) {
+    await request(
+      api,
+      `/v3/order/${order.id}/test?final_status=received.walk_in_test.requisition_created`,
+      { method: "POST" },
+    )
+  }
+  await request(
+    api,
+    `/v3/order/${queued.id}/test?final_status=completed.walk_in_test.completed&delay=1`,
+    { method: "POST" },
+  )
+  clock.advance(1000)
+  expect((await request(api, `/v3/order/${other.id}/result`)).status).toBe(404)
+  expect((await (await request(api, `/v3/order/${queued.id}`)).json()).status).toBe("completed")
+  expect((await (await request(api, `/v3/order/${other.id}`)).json()).status).toBe("received")
+})

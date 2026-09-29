@@ -18,8 +18,9 @@ type Interpretation = (typeof INTERPRETATIONS)[number]
 const RESULT_READY_STATUSES = ["sample_with_lab", "completed"]
 
 const resultsReady = (order: OrderRecord): boolean =>
-  RESULT_READY_STATUSES.some((prefix) => order.status.startsWith(prefix)) ||
-  order.last_event.status.endsWith("draw_completed")
+  order.last_event.status !== "sample_with_lab.testkit.delivered_to_lab" &&
+  (RESULT_READY_STATUSES.some((prefix) => order.status.startsWith(prefix)) ||
+    order.last_event.status.endsWith("draw_completed"))
 
 const parseInterpretation = (value: unknown): Interpretation =>
   INTERPRETATIONS.includes(value as Interpretation) ? (value as Interpretation) : "normal"
@@ -146,6 +147,8 @@ const metadataOf = (order: OrderRecord, _userClient: string) => {
       ? order.lab_test.lab.name
       : "Labcorp"
   const reportedAt = order.last_event.created_at
+  // Recorded USSL dried-blood-spot sandbox fixture; not a universal laboratory identifier.
+  const usslTestkit = order.lab_test.method === "testkit" && order.lab_test.lab.slug === "ussl"
   return {
     age: ageFromDob(dob, reportedAt),
     dob,
@@ -160,9 +163,9 @@ const metadataOf = (order: OrderRecord, _userClient: string) => {
     interpretation: order.interpretation,
     patient_id: order.user_id,
     account_id: null,
-    date_collected: reportedAt,
-    date_received: reportedAt,
-    "clia_#": null,
+    date_collected: usslTestkit ? null : reportedAt,
+    date_received: usslTestkit ? null : reportedAt,
+    "clia_#": usslTestkit ? "05D2130115" : null,
   }
 }
 
