@@ -43,6 +43,7 @@ export function loginPage(
   action: string,
   signup = false,
   error = "",
+  nonce?: string,
 ): Response {
   const hidden = `<input type="hidden" name="transaction" value="${escapeHtml(transaction)}">`
   const endpoint = escapeHtml(`${base}/interaction`)
@@ -55,7 +56,7 @@ export function loginPage(
     `${intro}${body}<div class="divider"></div><form method="post" action="${endpoint}">${hidden}<button class="secondary" data-testid="oauth-mock-deny" name="action" value="deny">Cancel sign-in</button></form>`,
     error ? 400 : 200,
     action,
-    undefined,
+    nonce,
     signup ? "oauth-mock-signup" : "oauth-mock-chooser",
   )
 }
@@ -67,6 +68,7 @@ export function consentPage(
   base: string,
   action: string,
   privacy?: { hideEmail: boolean; choice: boolean },
+  nonce?: string,
 ): Response {
   const labels: Record<string, string> = {
     openid: "Confirm your identity",
@@ -94,7 +96,7 @@ export function consentPage(
       )}</ul><p>You can cancel now without sharing anything.</p><form method="post" action="${escapeHtml(base)}/interaction"><input type="hidden" name="transaction" value="${escapeHtml(transaction)}">${privacyFields}<button class="primary" data-testid="oauth-mock-allow" name="action" value="allow">Allow &amp; continue</button><button class="secondary" data-testid="oauth-mock-deny" name="action" value="deny">Cancel</button></form>`,
     200,
     action,
-    undefined,
+    nonce,
     "oauth-mock-consent",
   )
 }
