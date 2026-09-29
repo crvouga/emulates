@@ -279,3 +279,32 @@ of a fast-forward despite a stale ignored expected_sha field, and Retry-After
 scheduling with logical time. No Initiative broker, real Git transport, live
 provider permission checks or remote notifications are involved. These local
 checks establish harness sensitivity and consumer interoperability, not live parity.
+
+## US-030 bounded live oracle, 2026-09-29
+
+An explicitly authorized run in a private disposable repository selected API
+2026-03-10, confirmed by GitHub's response header. Run
+`f01cada4-47b9-47b0-8c74-dbe4eddc76bc` used 26 requests and compared all nine
+supported operations. Eleven of twelve projected comparisons matched, including
+repository identity, ref creation/read/list/fast-forward, non-fast-forward422,
+PR creation/duplicate422/get/list. The PR update returned200 on both sides but
+did not match: clearing its body with an empty string produces null on GitHub.
+A subsequent read of the closed fixture PR confirmed null. The mock now converts
+an empty update body to null; a regression failed before the repair and passed
+afterward, covering update/get/list and subsequent omitted-body edits.
+
+Cleanup closed the acknowledged PR and deleted both unchanged acknowledged refs.
+Read-only reconciliation found only main at its original SHA. No uncertain writes
+were recorded. The closed PR and Git objects remain. The original report retains
+`complete: false`; it is not overwritten or reclassified after the local fix.
+A separately approved run `87b2f906-12fa-4f92-a373-09b7c4d85a21` then matched
+all 12 comparisons across the nine operations, including the repaired body update.
+It used26requests, closed its PR and deleted both owned refs, with no failures or
+uncertain writes. Read-only reconciliation again confirmed only unchanged main.
+Both local reports retain their actual outcomes independently.
+
+The checkout-only [oracle instructions](oracle/README.md) document exact manifests,
+ownership receipts, explicit notifications/cleanup grants, credential handling,
+request limits and conservative uncertain-write cleanup. Compared projections do
+not establish full response-schema parity, validation precedence, multi-page live
+pagination, real access control, rulesets, rate quotas or network-loss guarantees.

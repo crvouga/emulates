@@ -177,7 +177,7 @@ export class GitHubPulls {
         base,
         updated_at: now,
         title: typeof input.title === "string" ? input.title : before.title,
-        body: typeof input.body === "string" ? input.body : before.body,
+        body: typeof input.body === "string" ? input.body || null : before.body,
         maintainer_can_modify:
           typeof input.maintainer_can_modify === "boolean"
             ? input.maintainer_can_modify

@@ -114,7 +114,7 @@ test("updates validate atomically, close/reopen, and cannot replace head", async
   expect(changed.status).toBe(200)
   expect(await changed.json()).toMatchObject({
     title: "Updated",
-    body: "",
+    body: null,
     head: { ref: "topic" },
     base: { ref: "release" },
     state: "closed",
@@ -130,6 +130,20 @@ test("updates validate atomically, close/reopen, and cannot replace head", async
   expect(await (await request(`${root}/pulls/1`)).json()).toEqual(before)
   expect((await request(`${root}/pulls/1`, "PATCH", { state: "open" })).status).toBe(200)
   expect(await (await request(`${root}/pulls/1`)).json()).toMatchObject({ closed_at: null })
+})
+
+test("clearing a PR body returns null and persists across get, list and omitted-body edits", async () => {
+  const { request } = setup()
+  expect((await request(`${root}/pulls`, "POST", input)).status).toBe(201)
+  const cleared = await request(`${root}/pulls/1`, "PATCH", { body: "" })
+  expect(cleared.status).toBe(200)
+  expect((await cleared.json()).body).toBeNull()
+  expect((await (await request(`${root}/pulls/1`)).json()).body).toBeNull()
+  expect((await (await request(`${root}/pulls`)).json())[0].body).toBeNull()
+  const renamed = await request(`${root}/pulls/1`, "PATCH", { title: "Renamed" })
+  expect((await renamed.json()).body).toBeNull()
+  const restored = await request(`${root}/pulls/1`, "PATCH", { body: input.body })
+  expect((await restored.json()).body).toBe(input.body)
 })
 
 test("list filters precede pagination and links retain filters and namespace paths", async () => {
