@@ -380,6 +380,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const customer = stringOf(params, "customer")
       if (customer !== null && !scope.account.customers.get(customer))
         throw resourceMissing("customer", customer, "customer", 400)
+      if (params.price === "") throw parameterInvalidEmpty("price")
       const price = stringOf(params, "price")
       if (price !== null && !scope.account.prices.get(price))
         throw resourceMissing("price", price, "price", 400)
@@ -556,6 +557,8 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const params = queryParams(context)
       const subscription = stringOf(params, "subscription")
       if (subscription === null) throw parameterMissing("subscription")
+      if (!scope.account.subscriptions.get(subscription))
+        throw resourceMissing("subscription", subscription, "subscription")
       return jsonResponse(
         200,
         await paginate<SubscriptionItemRecord>(scope.account.subscriptionItems, params, {

@@ -54,7 +54,20 @@ const toAddress = (raw: unknown): Address => {
   return out
 }
 
+/** Stripe refuses an empty custom-field name or value before it checks any field's format. */
+const refuseEmptyCustomFields = (params: Params) => {
+  const customFields = (params.invoice_settings as { custom_fields?: unknown } | undefined)
+    ?.custom_fields
+  if (!Array.isArray(customFields)) return
+  customFields.forEach((field, index) => {
+    for (const key of ["name", "value"] as const)
+      if ((field as Record<string, unknown>)?.[key] === "")
+        throw parameterInvalidEmpty(`invoice_settings[custom_fields][${index}][${key}]`)
+  })
+}
+
 const apply = (current: CustomerRecord, params: Params): CustomerRecord => {
+  refuseEmptyCustomFields(params)
   const next: CustomerRecord = { ...current, invoice_settings: { ...current.invoice_settings } }
   if (params.address !== undefined)
     next.address = params.address === "" ? null : toAddress(params.address)
@@ -92,12 +105,6 @@ const apply = (current: CustomerRecord, params: Params): CustomerRecord => {
       footer?: string
     }
     if (settings.custom_fields !== undefined) {
-      if (Array.isArray(settings.custom_fields))
-        settings.custom_fields.forEach((field, index) => {
-          for (const key of ["name", "value"] as const)
-            if ((field as Record<string, unknown>)?.[key] === "")
-              throw parameterInvalidEmpty(`invoice_settings[custom_fields][${index}][${key}]`)
-        })
       next.invoice_settings.custom_fields =
         settings.custom_fields === ""
           ? []
