@@ -130,6 +130,14 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
     readyResolve = resolve
     readyReject = reject
   })
+  let output = ""
+  // The CLI's ready line carries the webhook signing secret, so its output is never logged;
+  // only a redacted tail is kept, to explain a failed start.
+  const redacted = () =>
+    output
+      .replaceAll(apiKey, "<api-key>")
+      .replace(/(whsec|sk|rk)_[A-Za-z0-9_]+/g, "$1_<redacted>")
+      .slice(-2_000)
   const drain = async (stream: ReadableStream<Uint8Array>) => {
     const reader = stream.getReader()
     const decoder = new TextDecoder()
@@ -138,8 +146,9 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
       for (;;) {
         const { done, value } = await reader.read()
         if (done) break
-        // Do not log CLI output: its ready line contains the webhook signing secret.
-        const chunk = tail + decoder.decode(value, { stream: true })
+        const text = decoder.decode(value, { stream: true })
+        output = (output + text).slice(-4_000)
+        const chunk = tail + text
         tail = chunk.slice(-16)
         if (chunk.includes("Ready!")) {
           ready = true
@@ -152,9 +161,12 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   }
   const stdout = drain(cli.stdout)
   const stderr = drain(cli.stderr)
-  void cli.exited.then((code) => {
+  void cli.exited.then(async (code) => {
     exitCode = code
-    if (!ready) readyReject?.(new Error(`stripe listen exited before ready (status ${code})`))
+    // Let the pipes drain so the error carries the CLI's own explanation.
+    await Promise.allSettled([stdout, stderr])
+    if (!ready)
+      readyReject?.(new Error(`stripe listen exited before ready (status ${code}):\n${redacted()}`))
   })
   let readyTimer: ReturnType<typeof setTimeout> | undefined
   try {
