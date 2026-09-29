@@ -368,7 +368,7 @@ const cancelPage = (context: PortalContext, subscriptionId: string, messages: Po
         .filter((option) => (CANCELLATION_REASONS as readonly string[]).includes(option))
         .map(
           (option) =>
-            `<label class="option"><input type="radio" name="reason" value="${option}" data-testid="stripe-mock-portal-reason"${messages.values?.reason === option ? " checked" : ""}><span>${escapeHtml(REASON_LABELS[option] ?? option)}</span></label>`,
+            `<label class="option" data-testid="stripe-mock-portal-reason-${escapeHtml(option)}"><input type="radio" name="reason" value="${option}" data-testid="stripe-mock-portal-reason"${messages.values?.reason === option ? " checked" : ""}><span>${escapeHtml(REASON_LABELS[option] ?? option)}</span></label>`,
         )
         .join(
           "",
@@ -415,7 +415,7 @@ const updatePage = (context: PortalContext, subscriptionId: string, messages: Po
         .map((priceId) => {
           const price = scope.account.prices.get(priceId)
           if (!price?.active) return ""
-          return `<label class="option"><input type="radio" name="price" value="${price.id}" data-testid="stripe-mock-portal-price-option"${price.id === selected ? " checked" : ""}><span><strong>${escapeHtml(productName(context, price))}</strong>${price.id === item?.price ? '<span class="chip">Current plan</span>' : ""}<div class="meta">${escapeHtml(priceLabel(price))}</div></span></label>`
+          return `<label class="option" data-testid="stripe-mock-portal-price-option-${escapeHtml(price.lookup_key ?? price.id)}"><input type="radio" name="price" value="${price.id}" data-testid="stripe-mock-portal-price-option"${price.id === selected ? " checked" : ""}><span><strong>${escapeHtml(productName(context, price))}</strong>${price.id === item?.price ? '<span class="chip">Current plan</span>' : ""}<div class="meta">${escapeHtml(priceLabel(price))}</div></span></label>`
         })
         .join("")
     : `<input type="hidden" name="price" value="${item?.price ?? ""}">`

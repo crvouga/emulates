@@ -7,7 +7,13 @@ import {
   resolveDiscountSource,
 } from "./billing.js"
 import { formatMoney } from "./checkout-page.js"
-import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
+import {
+  invalidRequest,
+  parameterInvalidEmpty,
+  parameterMissing,
+  resourceMissing,
+  StripeError,
+} from "./errors.js"
 import { parseUnitAmountDecimal } from "./fields.js"
 import {
   booleanOf,
@@ -525,7 +531,10 @@ export const checkoutSessionHandlers = (services: Services): Record<string, Oper
   },
   GetCheckoutSessionsSession: async (context) => {
     const scope = requestScope(services, context)
-    queryParams(context)
+    const params = queryParams(context)
+    // Unlike other reads, Checkout refuses an empty `expand` before it looks the session up
+    // (probed against live Stripe).
+    if (params.expand === "") throw parameterInvalidEmpty("expand")
     const id = context.params.session ?? ""
     const session = scope.account.checkoutSessions.get(id)
     // Stripe words this one without quotes or a param.

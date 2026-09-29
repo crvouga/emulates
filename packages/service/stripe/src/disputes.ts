@@ -22,6 +22,7 @@ export const disputeHandlers = (services: Services): Record<string, OperationHan
     const page = await paginate<DisputeRecord>(scope.account.disputes, params, {
       url: "/v1/disputes",
       kind: "dispute",
+      cursorParam: "dispute",
       where: (record) =>
         matchesCreated(record.created, params.created) &&
         (charge === null || record.charge === charge) &&

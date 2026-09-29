@@ -274,7 +274,12 @@ export class StripeAPI implements FetchAPI {
               "customer",
             ).init,
           )
-        if (customerAccount !== undefined && customerAccount !== "")
+        // Listing payment methods resolves its pagination cursors first, so its handler refuses it.
+        if (
+          customerAccount !== undefined &&
+          customerAccount !== "" &&
+          context.operation.operationId !== "GetPaymentMethods"
+        )
           return this.errorResponse(
             resourceMissing("customer", customerAccount, "customer_account", 400).init,
           )
