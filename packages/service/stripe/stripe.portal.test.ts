@@ -332,6 +332,95 @@ describe("hosted portal", () => {
     expect(invoice.status).toBe("paid")
   })
 
+  test("change plan to a yearly price resets the billing cycle anchor and bills the year now", async () => {
+    const h = await harness()
+    const { customer, subscription, proProduct } = await member(h)
+    const yearly = await h.stripe.prices.create({
+      product: proProduct.id,
+      currency: "usd",
+      unit_amount: 30_000,
+      recurring: { interval: "year" },
+    })
+    const config = await h.stripe.billingPortal.configurations.create({
+      features: {
+        subscription_update: {
+          enabled: true,
+          default_allowed_updates: ["price"],
+          proration_behavior: "create_prorations",
+          products: [{ product: proProduct.id, prices: [yearly.id] }],
+        },
+      },
+    })
+    const session = await h.stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      configuration: config.id,
+    })
+    await h.advance("10d")
+    const preview = await post(session.url, {
+      action: "preview_update",
+      subscription: subscription.id,
+      price: yearly.id,
+      quantity: "1",
+    })
+    // Billed now (not "on your next invoice"): the year less the unused days of the month.
+    expect(preview.html).toContain("Amount due today")
+    await post(session.url, { action: "update", subscription: subscription.id, price: yearly.id })
+    const updated = await h.stripe.subscriptions.retrieve(subscription.id)
+    expect(updated.items.data[0]?.price.id).toBe(yearly.id)
+    // The anchor is the moment of the change, ten days into the month.
+    expect(updated.billing_cycle_anchor).toBe(updated.current_period_start)
+    expect(updated.current_period_start - subscription.current_period_start).toBeGreaterThanOrEqual(
+      10 * 86_400,
+    )
+    const start = new Date(updated.current_period_start * 1000)
+    start.setUTCFullYear(start.getUTCFullYear() + 1)
+    expect(updated.current_period_end).toBe(Math.floor(start.getTime() / 1000))
+    const invoice = await h.stripe.invoices.retrieve(updated.latest_invoice as string)
+    expect(invoice.billing_reason).toBe("subscription_update")
+    expect(invoice.status).toBe("paid")
+    expect(invoice.total).toBeLessThan(30_000)
+    expect(invoice.total).toBeGreaterThan(29_000 - 1)
+    expect(invoice.lines.data.some((line) => line.amount === 30_000)).toBe(true)
+  })
+
+  test("a trial that continues through a portal plan change keeps its trial end", async () => {
+    const h = await harness()
+    const { customer, pro, proProduct } = await member(h)
+    const yearly = await h.stripe.prices.create({
+      product: proProduct.id,
+      currency: "usd",
+      unit_amount: 30_000,
+      recurring: { interval: "year" },
+    })
+    const trialing = await h.stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: pro.id }],
+      trial_period_days: 14,
+    })
+    // stripe-node 16's types predate `trial_update_behavior`; the API has it.
+    const update = {
+      enabled: true,
+      default_allowed_updates: ["price"],
+      proration_behavior: "create_prorations",
+      trial_update_behavior: "continue_trial",
+      products: [{ product: proProduct.id, prices: [yearly.id] }],
+    } as Stripe.BillingPortal.ConfigurationCreateParams.Features.SubscriptionUpdate
+    const config = await h.stripe.billingPortal.configurations.create({
+      features: { subscription_update: update },
+    })
+    const session = await h.stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      configuration: config.id,
+    })
+    await post(session.url, { action: "update", subscription: trialing.id, price: yearly.id })
+    const updated = await h.stripe.subscriptions.retrieve(trialing.id)
+    expect(updated.items.data[0]?.price.id).toBe(yearly.id)
+    expect(updated.status).toBe("trialing")
+    expect(updated.trial_end).toBe(trialing.trial_end)
+    expect(updated.billing_cycle_anchor).toBe(trialing.billing_cycle_anchor)
+    expect(updated.latest_invoice).toBe(trialing.latest_invoice)
+  })
+
   test("payment methods: add (a decline is refused), make default everywhere, delete", async () => {
     const h = await harness()
     const { customer, method, subscription } = await member(h)
@@ -600,5 +689,67 @@ describe("hosted portal", () => {
     const session = await h.stripe.billingPortal.sessions.create({ customer: customer.id })
     const home = await page(session.url)
     expect(home.html).toContain("Payments paused")
+  })
+})
+
+describe("hosted portal per-option test ids", () => {
+  /** The radio's value inside the one element carrying `testId`; fails unless exactly one does. */
+  const radioValueOf = (html: string, testId: string) => {
+    const attribute = `data-testid="${testId}"`
+    expect(html.split(attribute).length - 1).toBe(1)
+    const start = html.indexOf(attribute)
+    const label = html.slice(html.lastIndexOf("<label", start), html.indexOf("</label>", start))
+    return /<input type="radio"[^>]* value="([^"]*)"/.exec(label)?.[1]
+  }
+
+  test("each plan option carries its price's lookup key, and activating it selects that price", async () => {
+    const h = await harness()
+    const { customer, subscription, basic, pro } = await member(h)
+    const yearly = await h.stripe.prices.create({
+      product: pro.product as string,
+      currency: "usd",
+      unit_amount: 30_000,
+      recurring: { interval: "year" },
+      lookup_key: "subscription_yearly",
+    })
+    await h.stripe.prices.update(basic.id, { lookup_key: "subscription_monthly" })
+    const session = await h.stripe.billingPortal.sessions.create({ customer: customer.id })
+    const choose = await page(`${session.url}?flow=update&subscription=${subscription.id}`)
+    expect(radioValueOf(choose.html, "stripe-mock-portal-price-option-subscription_yearly")).toBe(
+      yearly.id,
+    )
+    expect(radioValueOf(choose.html, "stripe-mock-portal-price-option-subscription_monthly")).toBe(
+      basic.id,
+    )
+    // A price without a lookup key falls back to its id.
+    expect(radioValueOf(choose.html, `stripe-mock-portal-price-option-${pro.id}`)).toBe(pro.id)
+    // The generic id stays, on the radios, one per option.
+    expect(choose.html.split('data-testid="stripe-mock-portal-price-option"').length - 1).toBe(3)
+    const preview = await post(session.url, {
+      action: "preview_update",
+      subscription: subscription.id,
+      price: radioValueOf(choose.html, "stripe-mock-portal-price-option-subscription_yearly") ?? "",
+      quantity: "1",
+    })
+    expect(preview.html).toContain(`name="price" value="${yearly.id}"`)
+    expect(preview.html).toContain('data-testid="stripe-mock-portal-amount-due"')
+  })
+
+  test("each cancellation reason has its own test id, and the chosen one becomes the feedback", async () => {
+    const h = await harness()
+    const { customer, subscription } = await member(h)
+    const session = await h.stripe.billingPortal.sessions.create({ customer: customer.id })
+    const cancelPage = await page(`${session.url}?flow=cancel&subscription=${subscription.id}`)
+    expect(cancelPage.html).toContain('data-testid="stripe-mock-portal-reason"')
+    const reason = radioValueOf(cancelPage.html, "stripe-mock-portal-reason-too_expensive")
+    expect(reason).toBe("too_expensive")
+    expect(radioValueOf(cancelPage.html, "stripe-mock-portal-reason-unused")).toBe("unused")
+    await post(session.url, {
+      action: "cancel",
+      subscription: subscription.id,
+      reason: reason ?? "",
+    })
+    const canceled = await h.stripe.subscriptions.retrieve(subscription.id)
+    expect(canceled.cancellation_details?.feedback).toBe("too_expensive")
   })
 })

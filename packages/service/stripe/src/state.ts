@@ -68,6 +68,8 @@ export type Recurring = {
   interval: "day" | "week" | "month" | "year"
   interval_count: number
   usage_type: "licensed" | "metered"
+  /** Default trial a subscription started with `trial_from_plan=true` gets. */
+  trial_period_days: number | null
 }
 
 export type PriceRecord = {
@@ -82,6 +84,13 @@ export type PriceRecord = {
   recurring: Recurring | null
   tax_behavior: "exclusive" | "inclusive" | "unspecified"
   /** Canonical decimal string in cents (no trailing zeros), e.g. "100" or "100.5". */
+  unit_amount_decimal: string
+  /** Extra currencies the price is offered in, keyed by lowercase code; the default is not in it. */
+  currency_options?: Record<string, PriceCurrencyOption>
+}
+
+export type PriceCurrencyOption = {
+  tax_behavior: PriceRecord["tax_behavior"]
   unit_amount_decimal: string
 }
 

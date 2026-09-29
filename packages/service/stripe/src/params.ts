@@ -42,6 +42,9 @@ const orderedAlternatives = (path: string, allowed: string[]) => {
   return [...known, ...allowed.filter((item) => !known.includes(item))]
 }
 
+const METADATA_NOT_OBJECT =
+  "Invalid value for `metadata`. Metadata must be a single object containing key-value pairs.  See the metadata documentation for more details: https://docs.stripe.com/api/metadata"
+
 export const issueToError = (issue: FormIssue): StripeError => {
   switch (issue.kind) {
     case "unknown":
@@ -57,17 +60,16 @@ export const issueToError = (issue: FormIssue): StripeError => {
     case "invalid-boolean":
       return invalidRequest(`Invalid boolean: ${issue.raw}`, issue.path)
     case "invalid-object":
-      return invalidRequest("Invalid object", issue.path)
+      return invalidRequest(
+        leafName(issue.path) === "metadata" ? METADATA_NOT_OBJECT : "Invalid object",
+        issue.path,
+      )
     case "invalid-array":
       return invalidRequest("Invalid array", issue.path)
     case "invalid-enum": {
       const leaf = leafName(issue.path)
       // `metadata` is an object or "" (unset); any other scalar gets Stripe's metadata message.
-      if (leaf === "metadata")
-        return invalidRequest(
-          "Invalid value for `metadata`. Metadata must be a single object containing key-value pairs.  See the metadata documentation for more details: https://docs.stripe.com/api/metadata",
-          issue.path,
-        )
+      if (leaf === "metadata") return invalidRequest(METADATA_NOT_OBJECT, issue.path)
       if (leaf === "currency")
         return invalidRequest(
           `Invalid currency: ${issue.raw}. Stripe currently supports these currencies: ${SUPPORTED_CURRENCIES.join(", ")}`,
@@ -166,10 +168,15 @@ const rubyFloat = (raw: string): string => {
   return text.includes(".") || text.includes("e") ? text : `${text}.0`
 }
 
+const isExponentNumber = (value: unknown) =>
+  typeof value === "string" && /^[+-]?(\d+\.?\d*|\.\d+)e[+-]?\d+$/i.test(value)
+
 /**
  * Stripe's checks on `package_dimensions` (probed in test mode): fields are tried in the order
  * length, width, height, weight; a value that is not a plain decimal or has more than 15
  * fraction digits is an "Invalid decimal"; then each may carry at most two decimal places.
+ * A value in exponent notation (`9.1e-276`) is also an "Invalid decimal", but only after every
+ * field has passed the places check, and again in field order (probed live).
  */
 const packageDimensionsError = (
   issues: FormIssue[],
@@ -179,20 +186,28 @@ const packageDimensionsError = (
   const values = typeof raw === "object" && raw !== null ? (raw as Record<string, FormValue>) : {}
   for (const field of fields) {
     const issue = issues.find((item) => item.path === `package_dimensions[${field}]`)
-    if (issue) return issueToError(issue)
+    if (issue && !isExponentNumber(values[field])) return issueToError(issue)
     const value = values[field]
     if (typeof value === "string" && /\.\d{16,}$/.test(value))
       return invalidRequest(`Invalid decimal: ${value}`, `package_dimensions[${field}]`)
   }
-  if (issues[0]) return issueToError(issues[0])
+  const other = issues.find((item) => {
+    const field = /^package_dimensions\[(\w+)\]$/.exec(item.path)?.[1]
+    return field === undefined || !isExponentNumber(values[field])
+  })
+  if (other) return issueToError(other)
   for (const field of fields) {
     const value = values[field]
     const fraction = typeof value === "string" ? (value.split(".")[1] ?? "").replace(/0+$/, "") : ""
-    if (typeof value === "string" && fraction.length > 2)
+    if (typeof value === "string" && !isExponentNumber(value) && fraction.length > 2)
       return invalidRequest(
         `Invalid decimal: ${rubyFloat(value)}; must contain at maximum two decimal places.`,
         `package_dimensions[${field}]`,
       )
+  }
+  for (const field of fields) {
+    const issue = issues.find((item) => item.path === `package_dimensions[${field}]`)
+    if (issue) return issueToError(issue)
   }
   return undefined
 }
@@ -235,7 +250,15 @@ export const parseParams = (
       if (error) throw error
     }
     const issue = issues[0]
-    if (issue) throw issueToError(issue)
+    if (issue) {
+      // Stripe checks list elements in order, so an element ahead of the failing one is
+      // reported first when its semantic check fails.
+      const failing = /^[^[]+\[(\d+)\]/.exec(issue.path)?.[1]
+      const list = params[key]
+      if (failing !== undefined && Number(failing) > 0 && Array.isArray(list))
+        options.validate?.[key]?.({ ...params, [key]: list.slice(0, Number(failing)) })
+      throw issueToError(issue)
+    }
     options.validate?.[key]?.(params)
   }
   const stray = parsed.issues[0]
@@ -301,11 +324,12 @@ export const bodyParams = (context: OperationContext, options: ParamOptions = {}
     raw.preferred_locales === ""
   )
     delete raw.preferred_locales
+  const expandEmpty =
+    typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === ""
   const { rest, expand } = withoutExpand(raw)
   const params = stringMetadata(parseParams(formBodySchema(context), rest, options))
-  // Stripe reports every other invalid parameter before it refuses an empty `expand`.
-  if (typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === "")
-    throw parameterInvalidEmpty("expand")
+  // Stripe refuses an empty `expand` only after the other parameters have been read.
+  if (expandEmpty) throw parameterInvalidEmpty("expand")
   return expand.length === 0 ? params : { ...params, expand }
 }
 

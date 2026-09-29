@@ -85,7 +85,7 @@ export const eventHandlers = (services: Services): Record<string, OperationHandl
     const record = scope.account.events
       .list({ order: "newest" })
       .find((entry) => entry.value.id === id)?.value
-    if (!record) throw resourceMissing("event", id, "id")
+    if (!record) throw resourceMissing("notification", id, "id")
     return jsonResponse(200, renderEvent(record))
   },
 })

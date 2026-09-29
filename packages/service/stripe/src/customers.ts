@@ -124,6 +124,9 @@ const expanders = (scope: RequestScope): ExpandResolvers => {
   }
 }
 
+/** Stripe refuses a malformed `preferred_locales` before it looks at `invoice_settings` (observed). */
+const CUSTOMER_PARAM_ORDER = ["preferred_locales"]
+
 export const customerHandlers = (services: Services): Record<string, OperationHandler> => {
   const render = (scope: RequestScope, customer: CustomerRecord, params: Params) =>
     applyExpand(renderCustomer(customer), params.expand, expanders(scope))
@@ -131,7 +134,7 @@ export const customerHandlers = (services: Services): Record<string, OperationHa
   return {
     PostCustomers: async (context) => {
       const scope = requestScope(services, context)
-      const params = bodyParams(context)
+      const params = bodyParams(context, { order: CUSTOMER_PARAM_ORDER })
       const id = scope.ids.next("cus_")
       const base: CustomerRecord = {
         id,
@@ -265,11 +268,14 @@ export const customerHandlers = (services: Services): Record<string, OperationHa
       const scope = requestScope(services, context)
       const params = queryParams(context)
       const id = context.params.customer ?? ""
+      // Unlike most filters, an empty `invoice` is refused rather than read as unset (probed live).
+      if (params.invoice === "") throw parameterInvalidEmpty("invoice")
       // Stripe resolves the list cursor before the customer in the path.
       const page = await paginate(scope.account.balanceTransactions, params, {
         url: `/v1/customers/${id}/balance_transactions`,
         // Stripe names an unknown cursor on this list by its internal model.
         kind: "abstracttransaction",
+        rejectEmptyCursors: true,
         where: (record) => record.customer === id && matchesCreated(record.created, params.created),
         render: renderCustomerBalanceTransaction,
       })

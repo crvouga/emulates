@@ -86,7 +86,7 @@ the mock's hosted page.
 
 State is partitioned by **account**, and the account is chosen by API key:
 
-- `PUT /__admin/accounts {"accounts": [{id, keys, apiVersion?, webhookSecrets?, corpus?, displayName?}]}`
+- `PUT /__admin/accounts {"accounts": [{id, keys, apiVersion?, webhookSecrets?, corpus?, displayName?, billing?}]}`
   (also `createRuntime({accounts})` / `serve --accounts <json|file>`). Every key listed on an
   account acts as it. Any other test key is an account of its own (`accountOfKey(key)`), so an MSO
   key reading a PC object gets Stripe's exact `404 resource_missing` (`No such payment_intent: 'pi_…'`).
@@ -94,6 +94,8 @@ State is partitioned by **account**, and the account is chosen by API key:
   its webhook payloads render at (default `2024-06-20`, what every backend receiver of ours pins).
 - `webhookSecrets: {"<receiver url>": "whsec_…"}` delivers every event of the account there.
 - `corpus: true` seeds the recorded catalog (below).
+- `billing: {retries: {scheduleDays?, afterAllFail?}}` sets the account's failed-renewal retries
+  (see Lifecycles and the clock); unset fields use `createRuntime({lifecycle: {paymentRetries}})`.
 
 **Namespaces** isolate parallel workers; each namespace has its own copy of every account. Carriers:
 the `x-mockingbird-namespace` header, the `/ns/<namespace>/…` path prefix, or **by API key**:
@@ -107,7 +109,12 @@ headers). Hosted-page URLs carry the `/ns/<namespace>` prefix so the browser lan
 `paid` / `subscription_details`, `subscription.current_period_*` and `subscription.discount`, and
 invoice lines with `price` objects; `2025-02-24.acacia` adds `total_pretax_credit_amounts`;
 2025-03-31.basil and later (the vendored latest) drop those and use `parent`, `pricing`,
-`discount.source` and item-level periods. `charge.refunds` appears only with `expand[]=refunds` at
+`discount.source` and item-level periods; at basil `charge.invoice` and `payment_intent.invoice` are gone
+too, and an invoice's payments are `invoice_payment` objects (`inpay_…`): `expand[]=payments` on an
+invoice (or `latest_invoice.payments` on a subscription), `GET /v1/invoice_payments` (filter by
+`invoice`, `payment[type]=payment_intent&payment[payment_intent]`, `status`, `created`) and
+`GET /v1/invoice_payments/{id}`. One default payment per invoice that has a PaymentIntent, derived from
+the invoice; a $0 invoice has none, and payment records are not modelled. `charge.refunds` appears only with `expand[]=refunds` at
 every one of these versions. `GET /v1/invoices/upcoming` answers at the older versions and returns
 Stripe's "deprecated" 404 at basil and later. Expansion is generic (any path through ids the mock
 holds, ancestors included); Stripe's own rules are enforced: a non-expandable first segment is
@@ -171,6 +178,18 @@ clock-driven lifecycle, so their webhooks fire at once; the served mock also tic
   voided (`void`), marked `uncollectible` (`mark_uncollectible`, `invoice.marked_uncollectible`) or
   left as drafts (`keep_as_draft`), never charged; the status holds. `pause_collection[resumes_at]`
   lifts the pause on its own before the renewal it precedes; `pause_collection=""` lifts it now.
+- **Payment retries**: a declined renewal (`charge_automatically`) leaves the invoice `open` with
+  `attempt_count: 1` and `next_payment_attempt`, and the subscription `past_due`. Each retry
+  `scheduleDays` after the first failure (default `[3, 5, 7]`, Stripe's classic "3 retries over
+  1 week") charges again when the clock reaches it: a decline bumps `attempt_count`, emits
+  `invoice.payment_failed` and moves `next_payment_attempt`; a working default payment method pays
+  the invoice (`invoice.paid`) and the subscription is `active` again
+  (`customer.subscription.updated`). After the last retry `next_payment_attempt` is `null` and
+  `afterAllFail` applies: `cancel` (the default: `canceled`, `cancellation_details.reason:
+  payment_failed`, `customer.subscription.deleted`), `unpaid` (`customer.subscription.updated`) or
+  `past_due` (nothing changes). An empty schedule applies it at the first failure. The schedule is
+  fixed, not Stripe's ML-timed Smart Retries; set it per account (`billing.retries`, also
+  `PUT /__admin/accounts`) or for the runtime (`lifecycle.paymentRetries`). Dunning emails are not sent.
 - `incomplete` subscriptions become `incomplete_expired` after 23 h (their invoice is voided).
 - Checkout Sessions expire at `expires_at` (`checkout.session.expired`).
 - Schedule phases advance; the last one releases or cancels per `end_behavior`.
@@ -185,8 +204,12 @@ now and returns `incomplete` on a decline; `error_if_incomplete` fails the call 
 customer, and paying it through Stripe.js activates the subscription. `trial_end`,
 `backdate_start_date` + `billing_cycle_anchor` + `proration_behavior=none` (a $0 first invoice),
 item updates with `always_invoice` (billed now) or `create_prorations` (next invoice), and
-discounts with stable `di_` ids (`discounts=""` clears) are modelled. Items must be active recurring
-prices sharing one currency and interval. `DELETE /v1/subscriptions/:id` takes
+discounts with stable `di_` ids (`discounts=""` clears) are modelled. An item update to a price with
+a different billing period (say monthly → yearly, through the API or the portal's **Update plan**)
+resets `billing_cycle_anchor` to now, starts a new period and invoices it at once (less a
+proration credit for the unused time unless `proration_behavior=none`); a trialing subscription
+keeps its trial end instead. Items must be active recurring prices sharing one currency and
+interval. `DELETE /v1/subscriptions/:id` takes
 `cancellation_details[comment|feedback]`, `prorate` (a credit for the unused time as a pending
 proration) and `invoice_now` (a final invoice; a net credit lands on the customer balance), in the
 query string (as stripe-node sends them) or the body. A $0 invoice is `paid` on
@@ -260,6 +283,11 @@ billing.stripe.com) where the customer manages their billing, as the session's c
   through a SetupIntent, which becomes the customer's and each subscription's default; **Make
   default**; **Delete** a non-default card); billing information (the configured `allowed_updates`,
   `customer.updated` with `previous_attributes`); invoice history with **Pay** for open invoices.
+  Repeated choices carry a per-option `data-testid` on the wrapping `<label class="option">`
+  (tapping it checks the radio), so a test-id-only driver can pick one: each plan is
+  `stripe-mock-portal-price-option-<price lookup_key, else price id>` and each cancellation reason
+  is `stripe-mock-portal-reason-<reason>` (e.g. `…-too_expensive`). The generic
+  `stripe-mock-portal-price-option` and `stripe-mock-portal-reason` ids stay on the radios.
 - **Deep links** open on the flow's page — cancel (with a retention offer to accept), update, update
   confirmation, payment method, billing details — and on completion honour `after_completion`:
   `redirect` (302), `hosted_confirmation` (its `custom_message`) or the homepage. Every action
@@ -367,13 +395,18 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
   PaymentSheet cannot be redirected (member-app native keeps its fake provider).
 - **Connect** (`Stripe-Account`, application fees, transfers), tax, shipping, Radar, mandates,
   meters, quotes, credit notes, payouts, and non-card payment methods (bank debits, wallets).
-- **Smart retries / dunning**: a failed renewal goes `past_due` once; later automatic retries,
-  `unpaid` and dunning emails are not run.
+- **Billing cycle anchor resets** other than a price change to a different billing period through
+  `POST /v1/subscriptions/:id`: an explicit `billing_cycle_anchor=now|unchanged` on update is ignored,
+  and the `/v1/subscription_items` endpoints change prices without resetting the period.
 - **Proration arithmetic** is day-fraction approximate (Stripe prorates to the second);
   `auto_advance` drafts are not finalized an hour later.
 - **Customer portal extras**: the login page (`login_page.url` is not served), `schedule_at_period_end`
-  downgrades, `billing_cycle_anchor` resets on plan changes, multi-item subscription updates, locales,
+  downgrades, multi-item subscription updates, locales,
   and payment method configurations. Portal sessions do not expire.
+- **Multi-currency prices** store, merge (on update) and return `currency_options` when expanded,
+  and a Checkout Session `currency` charges a payment-mode line in that option. Per-option
+  `tiers` and `custom_unit_amount`, and subscription-mode sessions in a non-default currency, are
+  refused with a 400; subscriptions and invoices always bill in the price's own currency.
 - **Webhook endpoint `api_version`**: payloads render at the account's version, not per endpoint.
 - **Live keys** (`sk_live_…`) are refused with Stripe's 401: the mock is test mode only.
 - Operations marked unsupported in SUPPORT.md (charge create/update, checkout session update,

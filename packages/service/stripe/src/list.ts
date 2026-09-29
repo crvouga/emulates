@@ -1,5 +1,5 @@
 import type { Collection, Stored } from "@crvouga/mockingbird-service"
-import { invalidRequest, resourceMissing } from "./errors.js"
+import { invalidRequest, parameterInvalidEmpty, resourceMissing } from "./errors.js"
 import type { Params } from "./params.js"
 
 const DEFAULT_LIMIT = 10
@@ -36,9 +36,15 @@ export const paginate = async <T>(
   options: {
     url: string
     kind: string
+    /** The `param` of a missing-cursor error, where Stripe names the resource, not the cursor. */
+    cursorParam?: string
+    /** Stripe refuses an empty cursor on some lists; most treat `""` as absent. */
+    rejectEmptyCursors?: boolean
     where: (record: T) => boolean
     /** Existence check for cursors; deleted tombstones count as missing. */
     exists?: (record: T) => boolean
+    /** Filter validation Stripe performs only after both cursors have resolved. */
+    check?: () => void
     render: (record: T) => unknown
   },
 ): Promise<Page<unknown>> => {
@@ -46,11 +52,15 @@ export const paginate = async <T>(
   const endingBefore = params.ending_before
   const all = await collection.list({ order: "newest" })
   const exists = options.exists ?? (() => true)
+  if (options.rejectEmptyCursors) {
+    if (startingAfter === "") throw parameterInvalidEmpty("starting_after")
+    if (endingBefore === "") throw parameterInvalidEmpty("ending_before")
+  }
   const cursorIndex = (id: string, param: string) => {
     const index = all.findIndex(
       (entry: Stored<T> & { id: string }) => entry.id === id && exists(entry.value),
     )
-    if (index === -1) throw resourceMissing(options.kind, id, param, 400)
+    if (index === -1) throw resourceMissing(options.kind, id, options.cursorParam ?? param, 400)
     return index
   }
   // Stripe resolves `starting_after` before it objects to receiving both cursors.
@@ -66,6 +76,9 @@ export const paginate = async <T>(
       "Received both starting_after and ending_before parameters. Please pass in only one.",
     )
   }
+  if (typeof endingBefore === "string" && endingBefore !== "")
+    cursorIndex(endingBefore, "ending_before")
+  options.check?.()
   const limit = clampLimit(params.limit)
   const matching = (entries: Array<Stored<T> & { id: string }>) =>
     entries.filter((entry) => options.where(entry.value))

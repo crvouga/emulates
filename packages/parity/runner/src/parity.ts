@@ -290,7 +290,6 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   )
 
   const property = fc.asyncProperty(commands, async (steps) => {
-    lastWalkFailure = undefined
     const walkNumber = walks + 1
     const gap = lastWalkEnd + (clockSkewSeconds + 1) * 1000 - now()
     if (lastWalkEnd > 0 && gap > 0) await sleep(gap)
@@ -398,7 +397,8 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       throw webhookFailure
     }
     if (walkError !== undefined) {
-      if (walkError instanceof ParityError) lastWalkFailure = walkError
+      // Kept across walks: shrinking replays passing candidates after the last failing walk.
+      lastWalkFailure = walkError instanceof ParityError ? walkError : undefined
       throw walkError
     }
     if (ok) {
@@ -432,7 +432,15 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       cause.message = `${header}\n${minimalCounterexample(error instanceof Error ? error.message : String(error))}\n\n${cause.message}`
       throw cause
     }
-    if (error instanceof Error) error.message = `${header}\n${error.message}`
+    if (error instanceof Error) {
+      // fast-check keeps the property's own error in `cause`; without it a non-divergence failure
+      // (a transport error, a crashing cleanup) reports only a counterexample.
+      const underlying =
+        error.cause instanceof Error
+          ? `\n\nCaused by: ${error.cause.stack ?? error.cause.message}`
+          : ""
+      error.message = `${header}\n${error.message}${underlying}`
+    }
     throw error
   }
 
