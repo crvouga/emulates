@@ -1809,6 +1809,7 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePhlebotomyCapableOrder(order)
     const body = jsonObject(context)
     const reasonId =
       typeof body.cancellation_reason_id === "string" ? body.cancellation_reason_id : ""
