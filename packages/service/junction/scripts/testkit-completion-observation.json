@@ -1,0 +1,60 @@
+{
+  "observedAt": "2026-09-29",
+  "environment": "Junction sandbox",
+  "issue": 194,
+  "method": "One simulation per fresh synthetic USSL testkit; bounded read-only polling to completion; compared with the mock; every owned fixture cleaned up successfully. No exact vendor delay inferred.",
+  "observations": [
+    {
+      "target": "completed.testkit.completed",
+      "lab": "ussl",
+      "status": "completed",
+      "events": [
+        "received.testkit.ordered",
+        "received.testkit.requisition_created",
+        "collecting_sample.testkit.transit_customer",
+        "collecting_sample.testkit.out_for_delivery",
+        "collecting_sample.testkit.with_customer",
+        "collecting_sample.testkit.transit_lab",
+        "sample_with_lab.testkit.delivered_to_lab",
+        "completed.testkit.completed"
+      ],
+      "interpretation": "abnormal",
+      "transaction": "completed",
+      "lowLevel": ["completed"],
+      "resultStatus": 200,
+      "pdfStatus": 200,
+      "metadata": {
+        "clia": "05D2130115",
+        "collected": null,
+        "received": null,
+        "interpretation": "abnormal"
+      }
+    },
+    {
+      "target": "completed.at_home_phlebotomy.completed",
+      "lab": "ussl",
+      "status": "completed",
+      "events": [
+        "received.testkit.ordered",
+        "received.testkit.requisition_created",
+        "collecting_sample.testkit.transit_customer",
+        "collecting_sample.testkit.out_for_delivery",
+        "collecting_sample.testkit.with_customer",
+        "collecting_sample.testkit.transit_lab",
+        "sample_with_lab.testkit.delivered_to_lab",
+        "completed.testkit.completed"
+      ],
+      "interpretation": "abnormal",
+      "transaction": "completed",
+      "lowLevel": ["completed"],
+      "resultStatus": 200,
+      "pdfStatus": 200,
+      "metadata": {
+        "clia": "05D2130115",
+        "collected": null,
+        "received": null,
+        "interpretation": "abnormal"
+      }
+    }
+  ]
+}

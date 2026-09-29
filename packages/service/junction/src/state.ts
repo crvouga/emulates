@@ -106,6 +106,7 @@ export type BookingKeyRecord = {
 }
 
 export type PendingSimulateTransition = {
+  phase?: "testkit-completion"
   order_id: string
   due_at: number
   final_status: string
@@ -787,14 +788,19 @@ export class JunctionState {
   /** Apply any simulate transitions whose delay has elapsed; called lazily on reads. */
   applyDueSimulateTransitions(
     nowMs: number,
-    apply: (order: OrderRecord, finalStatus: string, flags: Record<string, unknown> | null) => void,
+    apply: (
+      order: OrderRecord,
+      finalStatus: string,
+      flags: Record<string, unknown> | null,
+      phase?: "testkit-completion",
+    ) => void,
   ): void {
     for (const entry of this.pendingSimulateTransitions.list({ order: "oldest" })) {
       const transition = entry.value
       if (transition.due_at > nowMs) continue
       const order = this.orders.get(transition.order_id)
-      if (order) apply(order, transition.final_status, transition.flags)
       this.pendingSimulateTransitions.delete(entry.id)
+      if (order) apply(order, transition.final_status, transition.flags, transition.phase)
     }
   }
 

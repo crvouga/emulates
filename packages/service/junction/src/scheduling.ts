@@ -1004,12 +1004,16 @@ const requireOrder = (state: JunctionState, orderId: string, context: OperationC
   if (!isUuid(orderId)) {
     throw new HttpError(422, { detail: [uuidError(orderId, ["path", "order_id"])] })
   }
-  const loaded: Order =
-    state.orders.get(orderId) ?? orderMissing(state, context.operation.operationId, orderId)
-  state.applyDueSimulateTransitions(context.now(), (_due, finalStatus, flags) => {
-    applySimulateTransition(state, loaded, finalStatus, flags, context)
-  })
+  if (!state.orders.has(orderId)) orderMissing(state, context.operation.operationId, orderId)
+  applyDueSimulations(state, context)
   return state.orders.get(orderId) ?? orderMissing(state, context.operation.operationId, orderId)
+}
+
+/** Drain pending work for its owning order, independent of which resource is being read. */
+export const applyDueSimulations = (state: JunctionState, context: OperationContext): void => {
+  state.applyDueSimulateTransitions(context.now(), (due, finalStatus, flags, phase) => {
+    applySimulateTransition(state, due, finalStatus, flags, context, phase)
+  })
 }
 
 const orderCollectionMethod = (order: Order): string => {
@@ -1109,7 +1113,8 @@ const applySimulationFlags = (order: Order, flags: Record<string, unknown> | nul
 
 /**
  * Mirror api.sandbox.tryvital.io `/v3/order/{id}/test` semantics (probed 2026-09):
- * - First call on a fresh order always creates `received.{method}.requisition_created`.
+ * - Testkit completion requests advance to delivered_to_lab, then complete on a later clock tick.
+ * - Other first calls on a fresh order create `received.{method}.requisition_created`.
  * - `at_home_phlebotomy` (and other non-walk-in methods): further `/test` calls are no-ops.
  * - `walk_in_test` after requisition:
  *   - matching `appointment_*` / `requisition_created` → no-op
@@ -1143,6 +1148,7 @@ const applySimulateTransition = (
   finalStatus: string,
   flags: Record<string, unknown> | null,
   context: OperationContext,
+  phase?: "testkit-completion",
 ): void => {
   const orderMethod =
     typeof order.lab_test.method === "string" && order.lab_test.method.length > 0
@@ -1180,7 +1186,33 @@ const applySimulateTransition = (
   let applyFlags = false
   let markCompleteDates = false
 
-  if (!hasRequisition) {
+  if (orderMethod === "testkit" && targetTail === "completed" && !hasCompleted) {
+    if (phase === "testkit-completion") {
+      statusesToApply = ["completed.testkit.completed"]
+      applyFlags = true
+      if (!flags || typeof flags.interpretation !== "string") order.interpretation = "abnormal"
+    } else if (
+      !order.events.some((event) => event.status === "sample_with_lab.testkit.delivered_to_lab")
+    ) {
+      statusesToApply = [
+        ...(!hasRequisition ? ["received.testkit.requisition_created"] : []),
+        "collecting_sample.testkit.transit_customer",
+        "collecting_sample.testkit.out_for_delivery",
+        "collecting_sample.testkit.with_customer",
+        "collecting_sample.testkit.transit_lab",
+        "sample_with_lab.testkit.delivered_to_lab",
+      ]
+      // A later virtual-clock tick models background work, not the vendor's wall-clock SLA.
+      // Reads apply this queued completion; a second simulation is neither needed nor sufficient.
+      state.queueSimulateTransition({
+        order_id: order.id,
+        due_at: context.now() + 1,
+        final_status: "completed.testkit.completed",
+        flags,
+        phase: "testkit-completion",
+      })
+    }
+  } else if (!hasRequisition) {
     statusesToApply = [`received.${orderMethod}.requisition_created`]
   } else if (orderMethod === "walk_in_test") {
     if (hasCompleted) {

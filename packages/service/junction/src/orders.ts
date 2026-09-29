@@ -16,7 +16,11 @@ import {
 } from "./lab-accounts.js"
 import { checkSimulateAllowed } from "./limits.js"
 import { orderMissing } from "./not-found.js"
-import { applySimulateTransition, cascadeCancelAppointments } from "./scheduling.js"
+import {
+  applyDueSimulations,
+  applySimulateTransition,
+  cascadeCancelAppointments,
+} from "./scheduling.js"
 import type { JunctionState, LabTestRecord, OrderRecord } from "./state.js"
 import { deterministicUuid } from "./state.js"
 
@@ -1244,9 +1248,7 @@ export const orderHandlers = (state: JunctionState) => ({
   get_order_v3_order__order_id__get: async (context: OperationContext) => {
     const id = context.params.order_id ?? ""
     if (!state.orders.has(id)) orderMissing(state, context.operation.operationId, id)
-    state.applyDueSimulateTransitions(context.now(), (due, finalStatus, flags) => {
-      applySimulateTransition(state, due, finalStatus, flags, context)
-    })
+    applyDueSimulations(state, context)
     const fresh = state.orders.get(id) ?? orderMissing(state, context.operation.operationId, id)
     const body = { ...fresh } as Record<string, unknown>
     if (body.result_types === null) delete body.result_types
@@ -1254,6 +1256,7 @@ export const orderHandlers = (state: JunctionState) => ({
   },
 
   get_orders_v3_orders_get: async (context: OperationContext) => {
+    applyDueSimulations(state, context)
     const page = queryInt(context, "page", 1)
     const size = queryInt(context, "size", 50)
     if (page < 1 || size < 1 || size > 100)
@@ -1291,6 +1294,7 @@ export const orderHandlers = (state: JunctionState) => ({
     context: OperationContext,
   ) => {
     const id = context.params.transaction_id ?? ""
+    applyDueSimulations(state, context)
     const binding = state.orderByTransaction.get(id)
     const order = binding ? state.orders.get(binding.order_id) : undefined
     if (!order) notFound("Order transaction not found")
@@ -1306,6 +1310,7 @@ export const orderHandlers = (state: JunctionState) => ({
     context: OperationContext,
   ) => {
     const id = context.params.transaction_id ?? ""
+    applyDueSimulations(state, context)
     const binding = state.orderByTransaction.get(id)
     const order = binding ? state.orders.get(binding.order_id) : undefined
     if (!order) notFound("Order transaction not found")
