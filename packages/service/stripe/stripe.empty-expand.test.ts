@@ -120,3 +120,19 @@ test("retrieving a missing event says no such notification", async () => {
   expect(response.status).toBe(404)
   expect(error.message).toStartWith("No such notification: 'evt_missing'")
 })
+
+// Live parity: the scheduled/timestamp conflict is reported before an empty customer_account.
+test("listing schedules with scheduled and released_at names the conflict first", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee9", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(
+    `${server.url}/v1/subscription_schedules?scheduled=false&released_at=5&customer_account=`,
+    { headers: { authorization: `Bearer ${KEY}` } },
+  )
+  const { error } = (await response.json()) as { error: { message: string; param: string } }
+  expect(response.status).toBe(400)
+  expect(error.param).toBe("released_at")
+  expect(error.message).toBe(
+    "You may only specify one of these parameters: released_at, scheduled.",
+  )
+})

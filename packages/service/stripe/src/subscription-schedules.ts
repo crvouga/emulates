@@ -203,13 +203,13 @@ export const subscriptionScheduleHandlers = (
 
   GetSubscriptionSchedules: async (context) => {
     const scope = requestScope(services, context)
-    // Refused as empty (probed live) ahead of the timestamp filters' own validation.
-    if (context.query.customer_account === "") throw parameterInvalidEmpty("customer_account")
-    const params = queryParams(context)
-    // `scheduled` excludes the timestamp filters; Stripe names the first conflict in this order.
-    if (params.scheduled !== undefined) {
+    // Probed live, in this order and all ahead of the timestamp filters' own validation:
+    // `scheduled` excludes the timestamp filters (Stripe names the first conflict below), then an
+    // empty `customer_account` is refused.
+    const query = context.query as Record<string, unknown>
+    if (query.scheduled !== undefined) {
       const conflict = ["completed_at", "released_at", "canceled_at"].find(
-        (key) => params[key] !== undefined,
+        (key) => query[key] !== undefined,
       )
       if (conflict)
         throw invalidRequest(
@@ -217,13 +217,15 @@ export const subscriptionScheduleHandlers = (
           conflict,
         )
     }
+    if (query.customer_account === "") throw parameterInvalidEmpty("customer_account")
+    const params = queryParams(context)
     const customer = typeof params.customer === "string" ? params.customer : undefined
     const page = await paginate<SubscriptionScheduleRecord>(
       scope.account.subscriptionSchedules,
       params,
       {
         url: "/v1/subscription_schedules",
-        kind: "subscription_schedule",
+        kind: "subscription schedule",
         where: (record) =>
           matchesCreated(record.created, params.created) &&
           (customer === undefined || customer === "" || record.customer === customer),
