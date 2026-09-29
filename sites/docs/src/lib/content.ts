@@ -4,7 +4,18 @@
  * markdown only: backticks, **bold** and [links](url).
  */
 
-export const MASCOT = "🐦‍⬛"
+/** Shared identity for the site, GitHub and the READMEs published to npm. */
+export const IDENTITY = {
+  name: "Mockingbird",
+  tagline: "Familiar calls. Faithful echoes.",
+  note: "Like its namesake, Mockingbird learns a familiar call and answers in kind. Real API shapes, stateful behavior, right inside your tests.",
+  mark: "https://raw.githubusercontent.com/crvouga/mockingbird/main/sites/docs/public/identity/mockingbird.png",
+  guide: "https://github.com/crvouga/mockingbird/blob/main/docs/DESIGN.md",
+  home: "https://github.com/crvouga/mockingbird",
+}
+
+/** Opening line of every published package README. `pack:check` requires it verbatim. */
+export const EPIGRAPH = `> ${IDENTITY.tagline} Part of [${IDENTITY.name}](${IDENTITY.home}).`
 
 /**
  * Single toggle for the "use at your own risk" banner shown at the top of the README and every
@@ -16,8 +27,8 @@ export const RISK_DISCLAIMER = {
 }
 
 export const HEADLINE = {
-  lead: "Mock the APIs you depend on,",
-  accent: "with the behavior they really have.",
+  lead: "Familiar calls.",
+  accent: "Faithful echoes.",
 }
 
 export const PITCH =
@@ -134,6 +145,7 @@ export const GUIDE_ORDER = [
   "TESTING",
   "AUTHORING_A_SERVICE",
   "DEVELOPMENT",
+  "DESIGN",
   "REPORTING_ISSUES",
   "RELEASING",
   "SECRETS",

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-otel
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of an **OTLP/HTTP collector** in front of the **OpenObserve (O2) search API**,
 over one store. Local and E2E runs stop exporting to production telemetry infrastructure, and a
 test can assert on structured events: emit through the real OpenTelemetry SDK, then read the

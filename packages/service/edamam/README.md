@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-edamam
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Edamam** APIs our apps call, answering from a built-in food and recipe
 corpus: the Food Database v2 parser (text and UPC), nutrients and image recognition, Nutrition
 Analysis (`nutrition-data`, `nutrition-details`), Recipe Search v2 (search with filters and

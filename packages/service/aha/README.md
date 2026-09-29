@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-aha
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **AHA (Advanced Health Academy) at-home phlebotomy** partner API for test
 suites: HMAC-signed create-order and cancel, and — its main job — the order-status webhooks AHA
 posts back. The vendor has no pull API, so every downstream effect (EMR appointment booking,

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-firstpromoter
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **FirstPromoter v2** affiliate API for test suites: promoter create (adopt
 before create by `cust_id`), lookups by id / `cust_id` / `ref_token` / email, list, update,
 archive, the dashboard iframe login, signup tracking by click `tid`, `promoter_id` or ref token,

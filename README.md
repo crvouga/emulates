@@ -2,13 +2,17 @@
 
 <div align="center">
 
-<h1>🐦‍⬛<br>Mockingbird</h1>
+<img src="https://raw.githubusercontent.com/crvouga/mockingbird/main/sites/docs/public/identity/mockingbird.png" width="88" height="88" alt="">
 
-**Mock the APIs you depend on, with the behavior they really have.**
+<h1>Mockingbird</h1>
 
-[![Ready](https://img.shields.io/badge/Ready-11-2ea44f)](#ready) [![Work in progress](https://img.shields.io/badge/In_progress-40-e36209)](#work-in-progress) [![CI](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml/badge.svg)](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml) [![License](https://img.shields.io/badge/license-MIT-5b4fe0)](#license)
+**Familiar calls. Faithful echoes.**
 
-[Quick start](#quick-start) · [Services](#services) · [Why](docs/WHY.md) · [Guides](#guides) · [llms.txt](llms.txt)
+Like its namesake, Mockingbird learns a familiar call and answers in kind. Real API shapes, stateful behavior, right inside your tests.
+
+[![Ready](https://img.shields.io/badge/Ready-11-2ea44f)](#ready) [![Work in progress](https://img.shields.io/badge/In_progress-40-8d4a32)](#work-in-progress) [![CI](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml/badge.svg)](https://github.com/crvouga/mockingbird/actions/workflows/pr.yml) [![License](https://img.shields.io/badge/license-MIT-243f34)](#license)
+
+[Quick start](#quick-start) · [Services](#services) · [Why](docs/WHY.md) · [Design](docs/DESIGN.md) · [Guides](#guides) · [llms.txt](llms.txt)
 
 </div>
 
@@ -182,6 +186,7 @@ Building, testing and `bun run check` need no secrets and no accounts. Live pari
 | [Testing and parity](docs/TESTING.md) | How every mock is proven to behave like its vendor: differential contracts, property-based walks, and live parity against real sandboxes. |
 | [Authoring a Mockingbird service](docs/AUTHORING_A_SERVICE.md) | How to add a vendor mock to this repo. The reference implementation is [`packages/service/rxvortex`](../packages/service/rxvortex): copy its layout and patterns. |
 | [Developing Mockingbird](docs/DEVELOPMENT.md) | Working on this repo: requirements, how the packages are layered, and the quality gates every change passes. |
+| [Design](docs/DESIGN.md) | Mockingbird looks like a field notebook kept on a northern mockingbird, Mimus polyglottos. The bird learns another bird's song and sings it back. The product does the same with an API: a familiar call, answered in kind. The site, this file, the GitHub README, llms.txt, and every package published to npm use the same sentence and the same mark. |
 | [Reporting issues](docs/REPORTING_ISSUES.md) | How coding agents in other projects file a GitHub issue when a mock diverges from its oracle, lacks a feature they call, or breaks, or when they need a service mocked that the catalog does not have yet. Agents in this repository pick the issues up and resolve them. |
 | [Releasing](docs/RELEASING.md) | How packages get from `main` to npm. Once the `NPM_TOKEN` repo secret is set, releases run automatically. |
 | [Secrets runbook](docs/SECRETS.md) | Where every credential lives, who needs it, and how to run live parity without ever holding a sandbox key: GitHub Actions repo secrets are the only secret store. |

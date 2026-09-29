@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-postgres
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Pure TypeScript, completely in-memory PostgreSQL engine aiming for **PostgreSQL 18 SQL dialect
 parity** (same statements, same results). Use it in tests (or the browser) wherever you want real
 PostgreSQL SQL semantics without a server: schema + migrations, constraints and SQLSTATE errors,
@@ -350,7 +352,7 @@ Stable runtime exports of the main entry:
 Signatures (types are exported too: `DatabaseOptions`, `RegisterFunctionOptions`, `ResultSet`,
 `RunResult`, `ErrorCategory`, `BindValue`, `JsValue`, `QueryRow`):
 
-```text
+```ts
 interface DatabaseOptions {
   seed?: number | bigint                 // default 1; ignored when random is "os"
   random?: "deterministic" | "os"        // default "deterministic"; "os" is CSPRNG like PostgreSQL

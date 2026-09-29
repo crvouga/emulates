@@ -1,0 +1,291 @@
+---
+import BirdMark from "../components/BirdMark.astro"
+import Icon from "../components/Icon.astro"
+import Base from "../layouts/Base.astro"
+import { IDENTITY } from "../lib/content.ts"
+
+const swatches = [
+  { name: "Paper", token: "--bg", note: "The notebook" },
+  { name: "Ink", token: "--fg", note: "Text, wing bars" },
+  { name: "Live oak", token: "--accent", note: "A filled action" },
+  { name: "Clay", token: "--clay", note: "The song. Labels, the current page" },
+  { name: "Sage", token: "--sage", note: "Plumage. A strong border" },
+  { name: "Eye", token: "--eye", note: "One highlight. Never a fill" },
+]
+---
+
+<Base title="Field guide" description={IDENTITY.note}>
+  <div class="container">
+    <header class="page-head">
+      <span class="eyebrow">Mimus polyglottos</span>
+      <h1>Field guide</h1>
+      <p class="lede">{IDENTITY.note}</p>
+    </header>
+
+    <div class="specimens">
+      <figure class="mark-plate">
+        <BirdMark size={160} />
+        <figcaption>
+          <span>The mark</span>
+          <span>Favicon, header, README.</span>
+        </figcaption>
+      </figure>
+      <figure class="field-plate">
+        <img
+          src="/identity/mockingbird-field.webp"
+          width="1536"
+          height="1024"
+          alt="Northern mockingbird on a fruiting branch: gray above, pale below, two white bars on the wing, a long tail."
+        />
+        <figcaption>
+          <span>Plate I</span>
+          <span>The specimen stays on paper in both themes.</span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">The sentence</span>
+        <h2>{IDENTITY.tagline}</h2>
+        <p>
+          That sentence is <code>IDENTITY</code> in <code>sites/docs/src/lib/content.ts</code>. The GitHub README, <code>llms.txt</code>, and the first line of every package on npm are generated or checked from it.
+          The written rules are the <a href="/docs/design">Design guide</a>, the same file GitHub renders.
+        </p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Color</span>
+        <h2>Drawn from the bird, not from a template.</h2>
+        <p>These are the live tokens. Switch theme and the chips follow. The hex values in the Design guide are the light theme.</p>
+      </div>
+      <ul class="swatches">
+        {
+          swatches.map((s) => (
+            <li>
+              <span class="chip" style={`background: var(${s.token})`}></span>
+              <span>
+                <strong>{s.name}</strong>
+                <code>{s.token}</code>
+                <span>{s.note}</span>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Type</span>
+        <h2>A serif for the entry. A sans for the tools.</h2>
+      </div>
+      <div class="type">
+        <p class="display">Familiar calls. <em>Faithful echoes.</em></p>
+        <p class="latin"><em>Mimus polyglottos</em> — many-tongued mimic.</p>
+        <p class="ui">Interface text is Avenir Next, then the system sans. Code stays in the system mono. No webfont is loaded.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head">
+        <span class="eyebrow">Motifs</span>
+        <h2>Wing bars, specimens, annotation.</h2>
+      </div>
+      <div class="motif">
+        <div>
+          <div class="wingbar" aria-hidden="true"></div>
+          <p>Two rules, thick then thin. The header, the footer, and a prose heading all close with them.</p>
+        </div>
+        <div class="specimen">
+          <strong>Specimen</strong>
+          <p>A paper rectangle. Almost no radius, no lift. Hover draws a clay bar on the leading edge.</p>
+        </div>
+      </div>
+      <div class="controls">
+        <a class="btn btn-primary" href="/services">Primary <Icon name="arrow-right" /></a>
+        <a class="btn btn-secondary" href="/docs">Secondary</a>
+        <span class="badge badge-ok"><span class="dot"></span>Ready</span>
+        <span class="badge badge-warn">In progress</span>
+        <span class="badge">Annotation stays a label</span>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .specimens {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .mark-plate,
+  .field-plate {
+    margin: 0;
+    padding: 12px 12px 0;
+    border: 1px solid #243f34;
+    background: #f3eee4;
+  }
+
+  .mark-plate {
+    display: grid;
+    justify-items: center;
+  }
+
+  .field-plate img {
+    width: 100%;
+    height: auto;
+  }
+
+  .mark-plate figcaption,
+  .field-plate figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 2px 12px;
+    color: #5c675f;
+    font-size: 13px;
+  }
+
+  .mark-plate figcaption span:first-child,
+  .field-plate figcaption span:first-child {
+    color: #8d4a32;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .block {
+    padding-top: 72px;
+  }
+
+  .block :global(code) {
+    font-size: 0.86em;
+  }
+
+  .block :global(a) {
+    color: var(--accent-soft-fg);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .swatches {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px 28px;
+  }
+
+  .swatches li {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .swatches .chip {
+    width: 48px;
+    height: 48px;
+    flex: none;
+    border: 1px solid var(--border-strong);
+  }
+
+  .swatches strong,
+  .swatches code,
+  .swatches li span span {
+    display: block;
+  }
+
+  .swatches strong {
+    font-family: var(--font-display);
+    font-size: 16px;
+  }
+
+  .swatches code {
+    color: var(--fg-subtle);
+    font-size: 12px;
+  }
+
+  .swatches li span span {
+    color: var(--fg-muted);
+    font-size: 13px;
+  }
+
+  .type {
+    max-width: 680px;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  .display em,
+  .latin {
+    font-family: var(--font-display);
+    font-style: italic;
+    color: var(--clay);
+  }
+
+  .latin {
+    margin-top: 10px;
+    font-size: 18px;
+  }
+
+  .ui {
+    margin-top: 16px;
+    max-width: 58ch;
+    color: var(--fg-muted);
+  }
+
+  .motif {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+
+  .motif p {
+    margin-top: 14px;
+    color: var(--fg-muted);
+  }
+
+  .specimen {
+    padding: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  }
+
+  .specimen:hover {
+    border-color: var(--fg);
+    box-shadow: inset 3px 0 0 var(--clay);
+  }
+
+  .specimen strong {
+    font-family: var(--font-display);
+    font-size: 18px;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  @media (max-width: 800px) {
+    .specimens,
+    .motif {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

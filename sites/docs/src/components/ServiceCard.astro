@@ -62,15 +62,14 @@ const search = [
     gap: 12px;
     padding: 18px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--bg);
-    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
   }
 
   .svc:hover {
-    border-color: var(--border-strong);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
+    border-color: var(--fg);
+    box-shadow: inset 3px 0 0 var(--clay);
   }
 
   .svc-top {

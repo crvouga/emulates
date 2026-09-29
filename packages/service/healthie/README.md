@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-healthie
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Healthie GraphQL API**, covering the legacy surface our backend still
 calls:
 

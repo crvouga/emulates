@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-step-functions
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, portable AWS Step Functions mock for the official SFN SDK v3 client. It models Standard execution identity, input/output strings, deterministic terminal transitions, callback tokens, stop requests, ordered history, pagination, and shared-clock scripts without contacting AWS.
 
 ## Install

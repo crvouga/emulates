@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-mailosaur
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Mailosaur** email/SMS testing API for test suites, plus an HTTP ingest so
 anything that "sends" mail (the Resend mock's `--forward-to-inbox`, the Twilio mock, Cognito
 hooks, a test) drops it into one inbox. The unmodified `mailosaur` SDK reads it: `messages.get`

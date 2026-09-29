@@ -9,7 +9,7 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { PITCH } from "../sites/docs/src/lib/content.ts"
+import { IDENTITY, PITCH } from "../sites/docs/src/lib/content.ts"
 import { TIER_ORDER, TIERS } from "../sites/docs/src/lib/tiers.ts"
 import type { ServiceStatus } from "../sites/docs/src/lib/types.ts"
 import { discoverPackages, REPO, root } from "./release/lib.ts"
@@ -43,9 +43,11 @@ for (const pkg of pkgs) {
 const body = [
   "# mockingbird",
   "",
-  `> ${PITCH} Every HTTP mock is a Fetch handler (\`createRuntime().fetch(request) → Promise<Response>\`) published to npm as \`@crvouga/mockingbird-service-<name>\`. ESM only; Node >= 22 or Bun >= 1.2.`,
+  `> ${IDENTITY.tagline} ${PITCH} Every HTTP mock is a Fetch handler (\`createRuntime().fetch(request) → Promise<Response>\`) published to npm as \`@crvouga/mockingbird-service-<name>\`. ESM only; Node >= 22 or Bun >= 1.2.`,
   "",
   "Install mocks as devDependencies; each package is self-contained. Prefer injecting the mock's `fetch` in-process; when a URL is required, run `npx mockingbird-<service> serve` (or `createServer` from `./server`); every HTTP service answers `GET /health`, `/__admin/*` and `x-mockingbird-namespace`. Read the README of each package you use — it is the integration guide for coding agents (also shipped in `node_modules/<package>/README.md`).",
+  "",
+  `The sentence above is the product's identity. The rules for the mark, the colors, and where that sentence has to appear: [Design](${RAW}/docs/DESIGN.md).`,
   "",
   `Release tiers: ${TIER_ORDER.map((t) => `**${TIERS[t].label}**: ${TIERS[t].blurb}`).join(" ")} Prefer ready services; pin exact versions of work-in-progress ones.`,
   "",

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-sqlite
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Pure TypeScript, completely in-memory SQLite engine aiming for **full SQLite3 SQL dialect parity**
 (same statements, same results). Use it in tests (or the browser) wherever you want real SQLite SQL
 semantics without native bindings: schema + migrations, constraints, transactions, JSON functions,
@@ -296,7 +298,7 @@ Stable runtime exports of the main entry:
 Signatures (types are exported too: `DatabaseOptions`, `RunResult`, `ResultSet`, `ErrorCategory`,
 `BindValue`, `QueryRow`, `QueryValue`):
 
-```text
+```ts
 interface DatabaseOptions {
   seed?: number | bigint                 // default 1; ignored when random is "os"
   random?: "deterministic" | "os"        // default "deterministic"; "os" is CSPRNG like SQLite

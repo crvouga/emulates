@@ -64,8 +64,10 @@ come from each package's `package.json`. Operations and coverage come from the b
 contract. A service's documentation is its package README, the same file npm ships.
 
 The repo README is generated from those same sources (`bun run readme:sync`), and CI fails when it
-is stale. The docs site renders the package READMEs, these guides and the same shared copy at
-build time. It sends every playground sample request to a fresh mock and runs the quick start and
+is stale. The name, the sentence, and the mark live in `sites/docs/src/lib/content.ts`. The README
+header, `llms.txt`, and the opening line of every published package README are generated or checked
+from that file. The rules are in [docs/DESIGN.md](DESIGN.md). The docs site renders the package
+READMEs, these guides and the same shared copy at build time. It sends every playground sample request to a fresh mock and runs the quick start and
 every SQL snippet against the real packages, so an example that stops working fails the build.
 
 ## For coding agents

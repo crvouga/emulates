@@ -114,10 +114,12 @@ file under ~60 s.
 
 ## Docs
 
-`README.md` must start `# @crvouga/mockingbird-service-<name>` and contain `## Install`,
-`## Usage` (with a ```ts example), and `## API` listing **every runtime export** of every entry
-point (pack-check enforces this). Also document: how to point the app at it (env vars), routes,
-webhooks, admin routes, presets, namespace carriers, and a **Deliberately not modelled** section.
+`README.md` must start `# @crvouga/mockingbird-service-<name>`, then a blank line, then the
+shared epigraph `EPIGRAPH` from `sites/docs/src/lib/content.ts` (pack-check prints the exact
+line). It must also contain `## Install`, `## Usage` (with a ```ts example), and `## API`
+listing **every runtime export** of every entry point. Also document: how to point the app at
+it (env vars), routes, webhooks, admin routes, presets, namespace carriers, and a **Deliberately
+not modelled** section.
 
 The docs site (`sites/docs`, `bun docs`) is built from the package itself: the README is the
 service page, the contract gives the operations list and coverage, and the built module runs in

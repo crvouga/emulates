@@ -1,26 +1,32 @@
-/* Mockingbird docs — one stylesheet, no framework. Tokens first, then base, then components. */
+/* Mockingbird docs — one stylesheet, no framework. Tokens first, then base, then components.
+   The palette is the northern mockingbird and its plate: paper, ink, live oak, clay, sage.
+   Rules live in docs/DESIGN.md. Specimens live at /identity. */
 
 :root {
   color-scheme: light;
-  --bg: #ffffff;
-  --bg-subtle: #fafafa;
-  --bg-muted: #f4f4f5;
-  --bg-inset: #f6f6f7;
-  --bg-elevated: #ffffff;
-  --border: #e7e7ea;
-  --border-strong: #d4d4d8;
-  --fg: #0b0b0f;
-  --fg-muted: #52525b;
-  --fg-subtle: #71717a;
-  --fg-faint: #a1a1aa;
+  --bg: #f3eee4;
+  --bg-subtle: #e7e1d4;
+  --bg-muted: #ddd6c6;
+  --bg-inset: #ebe6da;
+  --bg-elevated: #faf7f1;
+  --border: #d2cbbd;
+  --border-strong: #7d8a80;
+  --fg: #1e2823;
+  --fg-muted: #3e4a43;
+  --fg-subtle: #5c675f;
+  --fg-faint: #7a847c;
 
-  /* Blackbird iridescence: an indigo-violet accent. */
-  --accent: #5b4fe0;
-  --accent-hover: #4a3fd0;
-  --accent-fg: #ffffff;
-  --accent-soft: #efedff;
-  --accent-soft-fg: #4338ca;
-  --accent-ring: rgb(91 79 224 / 0.35);
+  /* Live oak fills an action. Clay is the song: labels, the title's second phrase, the current page. */
+  --accent: #243f34;
+  --accent-hover: #1a3028;
+  --accent-fg: #f7f4ee;
+  --accent-soft: #e1e6dc;
+  --accent-soft-fg: #243f34;
+  --accent-ring: rgb(36 63 52 / 0.35);
+  --clay: #8d4a32;
+  --sage: #7d8a80;
+  --eye: #c6a15a;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 
   --ok: #15803d;
   --ok-soft: #e7f6ec;
@@ -40,39 +46,42 @@
   --shadow-lg: 0 2px 4px rgb(15 15 20 / 0.04), 0 16px 40px rgb(15 15 20 / 0.12);
 
   --font-sans:
-    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
-    "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    "Avenir Next", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
+    "Segoe UI", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono:
     ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
 
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 14px;
-  --header-h: 60px;
+  --radius-sm: 2px;
+  --radius: 3px;
+  --radius-lg: 3px;
+  --header-h: 76px;
   --content: 1180px;
   --ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0a0a0c;
-  --bg-subtle: #0e0e11;
-  --bg-muted: #16161a;
-  --bg-inset: #111114;
-  --bg-elevated: #131316;
-  --border: #232329;
-  --border-strong: #33333b;
-  --fg: #f4f4f5;
-  --fg-muted: #a8a8b3;
-  --fg-subtle: #8a8a96;
-  --fg-faint: #5c5c66;
+  --bg: #161c19;
+  --bg-subtle: #1e2621;
+  --bg-muted: #2a342d;
+  --bg-inset: #1a211d;
+  --bg-elevated: #232c26;
+  --border: #3a463e;
+  --border-strong: #8aa08e;
+  --fg: #f3eee4;
+  --fg-muted: #c9cfc4;
+  --fg-subtle: #a8b2a6;
+  --fg-faint: #8b968c;
 
-  --accent: #8b80ff;
-  --accent-hover: #a198ff;
-  --accent-fg: #0a0a0c;
-  --accent-soft: #1c1a33;
-  --accent-soft-fg: #b6afff;
-  --accent-ring: rgb(139 128 255 / 0.45);
+  --accent: #d5e0cc;
+  --accent-hover: #e7efe2;
+  --accent-fg: #161c19;
+  --accent-soft: #2a342d;
+  --accent-soft-fg: #d5e0cc;
+  --accent-ring: rgb(213 224 204 / 0.4);
+  --clay: #e2b094;
+  --sage: #8aa08e;
+  --eye: #e2c98a;
 
   --ok: #4ade80;
   --ok-soft: #0f2418;
@@ -105,6 +114,30 @@ html {
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 16px);
   background: var(--bg);
+  /* Always reserve the page scrollbar so short and long pages share one width. */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+html,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sage) var(--bg-muted);
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: var(--bg-muted);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--sage);
+  border: 3px solid var(--bg-muted);
 }
 
 body {
@@ -129,9 +162,10 @@ h2,
 h3,
 h4 {
   margin: 0;
-  line-height: 1.2;
+  font-family: var(--font-display);
+  line-height: 1.15;
   letter-spacing: -0.02em;
-  font-weight: 650;
+  font-weight: 600;
   text-wrap: balance;
 }
 
@@ -243,12 +277,6 @@ button {
   line-height: 1;
 }
 
-/* The blackbird is black: give it a rim of light so it reads on dark surfaces. */
-[data-theme="dark"] .emoji {
-  filter: drop-shadow(0 0 0.5px rgb(255 255 255 / 0.95))
-    drop-shadow(0 0 8px rgb(139 128 255 / 0.45));
-}
-
 /* ---------- risk banner ---------- */
 
 .risk-banner {
@@ -274,15 +302,8 @@ button {
   top: 0;
   z-index: 40;
   height: var(--header-h);
-  border-bottom: 1px solid transparent;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: saturate(1.6) blur(14px);
-  -webkit-backdrop-filter: saturate(1.6) blur(14px);
-  transition: border-color 0.2s var(--ease);
-}
-
-.site-header[data-scrolled] {
-  border-bottom-color: var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .site-header .container {
@@ -295,9 +316,10 @@ button {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  font-weight: 650;
-  font-size: 16px;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
   letter-spacing: -0.02em;
 }
 
@@ -314,7 +336,8 @@ button {
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   color: var(--fg-muted);
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-size: 16px;
   font-weight: 500;
   transition:
     color 0.15s var(--ease),
@@ -328,6 +351,9 @@ button {
 
 .nav a[aria-current="page"] {
   color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--clay);
+  text-underline-offset: 8px;
 }
 
 .header-actions {
@@ -345,8 +371,8 @@ button {
   min-width: 220px;
   padding: 0 8px 0 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
   color: var(--fg-subtle);
   font-size: 13.5px;
   transition:
@@ -373,7 +399,7 @@ kbd {
   padding: 0 5px;
   border: 1px solid var(--border);
   border-bottom-width: 2px;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--fg-subtle);
   font-size: 11px;
@@ -387,7 +413,7 @@ kbd {
   width: 34px;
   height: 34px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--fg-muted);
   transition:
@@ -405,13 +431,65 @@ kbd {
   height: 18px;
 }
 
-.theme-toggle .i-moon,
-[data-theme="dark"] .theme-toggle .i-sun {
+.theme-picker {
+  position: relative;
+}
+
+.theme-picker .i {
   display: none;
 }
 
-[data-theme="dark"] .theme-toggle .i-moon {
+[data-theme-mode="system"] .theme-picker .i-system,
+[data-theme-mode="light"] .theme-picker .i-sun,
+[data-theme-mode="dark"] .theme-picker .i-moon {
   display: block;
+}
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 148px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--fg);
+  font-size: 14px;
+  text-align: left;
+}
+
+.theme-menu button::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+.theme-menu button:hover,
+.theme-menu button:focus-visible {
+  background: var(--bg-muted);
+}
+
+.theme-menu button[aria-checked="true"] {
+  color: var(--clay);
+}
+
+.theme-menu button[aria-checked="true"]::before {
+  background: var(--clay);
 }
 
 @media (max-width: 860px) {
@@ -453,10 +531,24 @@ kbd {
 
 .site-footer {
   margin-top: 96px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-subtle);
+  border-top: 0;
+  background-color: var(--bg-subtle);
+  background-image: linear-gradient(var(--fg), var(--fg)), linear-gradient(var(--fg), var(--fg));
+  background-repeat: no-repeat;
+  background-size:
+    100% 2px,
+    100% 1px;
+  background-position:
+    left top,
+    left 4px;
   color: var(--fg-muted);
   font-size: 14px;
+}
+
+.footer-tagline {
+  margin-block: 6px 12px;
+  font: italic 22px / 1.3 var(--font-display);
+  color: var(--fg);
 }
 
 .footer-grid {
@@ -468,10 +560,12 @@ kbd {
 
 .footer-grid h2 {
   margin-bottom: 12px;
-  color: var(--fg);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
+  color: var(--clay);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .footer-grid ul {
@@ -521,7 +615,7 @@ kbd {
   height: 40px;
   padding: 0 16px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -536,16 +630,16 @@ kbd {
   height: 32px;
   padding: 0 12px;
   font-size: 13px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .btn-primary {
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 
 .btn-primary:hover {
-  background: color-mix(in srgb, var(--fg) 86%, var(--bg));
+  background: var(--accent-hover);
 }
 
 .btn-accent {
@@ -591,8 +685,8 @@ kbd {
   height: 22px;
   padding: 0 8px;
   border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
   color: var(--fg-muted);
   font-size: 12px;
   font-weight: 500;
@@ -643,7 +737,7 @@ kbd {
   width: var(--size);
   height: var(--size);
   flex: none;
-  border-radius: calc(var(--size) * 0.28);
+  border-radius: calc(var(--size) * 0.08);
   background: oklch(0.955 0.035 var(--h));
   color: oklch(0.45 0.13 var(--h));
   font-weight: 700;
@@ -698,10 +792,11 @@ kbd {
 }
 
 .eyebrow {
-  color: var(--accent-soft-fg);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  color: var(--clay);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .lede {
@@ -715,7 +810,7 @@ kbd {
   height: 40px;
   padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--radius);
   background: var(--bg);
   outline: none;
   transition:
@@ -746,7 +841,7 @@ kbd {
   height: 44px;
   padding: 0 6px 0 14px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: var(--bg-subtle);
   font-family: var(--font-mono);
   font-size: 13.5px;
@@ -773,7 +868,7 @@ kbd {
   height: 30px;
   flex: none;
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--fg-subtle);
   transition:
@@ -800,7 +895,7 @@ kbd {
 
 .pm {
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: var(--radius);
   background: var(--bg-subtle);
   overflow: hidden;
 }
@@ -835,8 +930,8 @@ kbd {
   position: absolute;
   inset: auto 8px -1px;
   height: 2px;
-  border-radius: 2px;
-  background: var(--fg);
+  border-radius: 0;
+  background: var(--clay);
 }
 
 .pm .cmd {
@@ -901,8 +996,16 @@ kbd {
 
 .prose h2 {
   margin-top: 56px;
-  padding-top: 8px;
-  font-size: 24px;
+  padding-top: 16px;
+  font-size: 26px;
+  background-image: linear-gradient(var(--fg), var(--fg)), linear-gradient(var(--fg), var(--fg));
+  background-repeat: no-repeat;
+  background-size:
+    36px 2px,
+    22px 1px;
+  background-position:
+    left top,
+    left 5px;
 }
 
 .prose h3 {
@@ -957,7 +1060,7 @@ kbd {
 .prose :not(pre) > code {
   padding: 2px 5px;
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: var(--bg-muted);
   font-size: 0.86em;
   overflow-wrap: anywhere;
@@ -978,11 +1081,13 @@ kbd {
 
 .prose blockquote {
   margin-inline: 0;
-  padding: 12px 16px;
-  border-left: 3px solid var(--accent);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--accent-soft);
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid var(--clay);
+  border-radius: 0;
+  background: transparent;
   color: var(--fg);
+  font-family: var(--font-display);
+  font-style: italic;
 }
 
 .prose blockquote > * + * {
@@ -1074,6 +1179,19 @@ kbd {
 .page-head .lede {
   margin-top: 12px;
   max-width: 680px;
+}
+
+/* Two rules, thick then thin: the mockingbird's wing bars. Header and footer use the same pair. */
+.wingbar {
+  height: 7px;
+  background-image: linear-gradient(var(--fg), var(--fg)), linear-gradient(var(--fg), var(--fg));
+  background-repeat: no-repeat;
+  background-size:
+    100% 2px,
+    100% 1px;
+  background-position:
+    left top,
+    left 5px;
 }
 
 /* ---------- live examples ---------- */
