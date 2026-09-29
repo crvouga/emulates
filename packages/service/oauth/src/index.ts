@@ -937,6 +937,23 @@ export class OAuthAPI {
         )
       auth.accountId = account.id
       auth.authTime = this.now()
+      // Google skips the consent card once this account already granted every requested scope to
+      // the client; only prompt=consent or a new scope asks again.
+      const granted = this.consents.get(JSON.stringify([client.id, account.id]))
+      if (
+        this.provider === "google" &&
+        !auth.forceConsent &&
+        granted &&
+        [...scopes(auth.scope)].every((s) => scopes(granted.scope).has(s))
+      ) {
+        this.transactions.delete(id)
+        return this.startSession(
+          await this.finish(auth as Authorization & { accountId: string }, issuer),
+          account.id,
+          auth.authTime,
+          issuer,
+        )
+      }
       this.transactions.update(id, auth)
       return this.consent(id, client, account, auth, issuer)
     }
@@ -954,20 +971,28 @@ export class OAuthAPI {
       )
         auth.emailChoice = choice
       this.transactions.delete(id)
-      const result = await this.finish(auth as Authorization & { accountId: string }, issuer)
-      const session = this.credentials.token()
-      this.sessions.insert(session, {
-        accountId: account.id,
-        authTime: auth.authTime,
-        expires: this.now() + 86400000,
-      })
-      result.headers.append(
-        this.options.cookieHeaders?.response ?? "set-cookie",
-        `mb_session=${session}; Path=${new URL(issuer).pathname.replace(/\/$/, "") || "/"}; HttpOnly; SameSite=Lax; Max-Age=86400${issuer.startsWith("https:") ? "; Secure" : ""}`,
+      return this.startSession(
+        await this.finish(auth as Authorization & { accountId: string }, issuer),
+        account.id,
+        auth.authTime,
+        issuer,
       )
-      return result
     }
     return fail("invalid_request", "Invalid interaction action")
+  }
+  private startSession(
+    result: Response,
+    accountId: string,
+    authTime: number,
+    issuer: string,
+  ): Response {
+    const session = this.credentials.token()
+    this.sessions.insert(session, { accountId, authTime, expires: this.now() + 86400000 })
+    result.headers.append(
+      this.options.cookieHeaders?.response ?? "set-cookie",
+      `mb_session=${session}; Path=${new URL(issuer).pathname.replace(/\/$/, "") || "/"}; HttpOnly; SameSite=Lax; Max-Age=86400${issuer.startsWith("https:") ? "; Secure" : ""}`,
+    )
+    return result
   }
   private async finish(
     auth: Authorization & { accountId: string },
