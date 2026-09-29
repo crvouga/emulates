@@ -178,7 +178,7 @@ export const invoiceItemHandlers = (services: Services): Record<string, Operatio
     const pending = params.pending === true || params.pending === "true"
     const page = await paginate<InvoiceItemRecord>(scope.account.invoiceItems, params, {
       url: "/v1/invoiceitems",
-      kind: "invoiceitem",
+      kind: "invoice item",
       where: (item) =>
         matchesCreated(item.created, params.created) &&
         (customer === null || item.customer === customer) &&
