@@ -1,5 +1,5 @@
 import { faultEffect, type OperationContext, opaqueToken } from "@crvouga/mockingbird-service"
-import type { AccountDirectory } from "./accounts.js"
+import type { AccountDirectory, PaymentRetryPolicy } from "./accounts.js"
 import { requestInfo } from "./context.js"
 import { invalidRequest, parameterMissing, resourceMissing } from "./errors.js"
 import { mergeMetadata } from "./fields.js"
@@ -36,6 +36,8 @@ export type Services = {
   accounts: AccountDirectory
   /** Version webhook payloads render at, per account. */
   deliveryVersion: (account: string) => string
+  /** Automatic retries of a failed renewal and their final outcome, per account. */
+  paymentRetries: (account: string) => PaymentRetryPolicy
   /** How many endpoints an event of this account will be delivered to (`pending_webhooks`). */
   pendingWebhooks: (account: string, type: string) => number
   /** Path prefix that selects this instance's namespace (`/ns/<name>`), or `""`. */

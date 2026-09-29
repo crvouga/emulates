@@ -1,3 +1,4 @@
+import { DEFAULT_PAYMENT_RETRIES, type PaymentRetryPolicy } from "./accounts.js"
 import { invalidRequest, resourceMissing, StripeError, stateError } from "./errors.js"
 import {
   applyBalanceTransaction,
@@ -540,14 +541,30 @@ const activateAfterPayment = (
   saveSubscription(scope, subscription, next)
 }
 
-/** Record a failed collection attempt on an open invoice. */
+/**
+ * Record a failed collection attempt on an open invoice and schedule the next automatic retry:
+ * a subscription invoice retries `scheduleDays` after its first failure, then stops
+ * (`next_payment_attempt: null`). Other invoices keep the flat three-day hint.
+ */
 const markPaymentFailed = (scope: RequestScope, invoice: InvoiceRecord): InvoiceRecord => {
   const now = customerNow(scope, invoice.customer)
+  const attempts = invoice.attempt_count + 1
+  let next: number | null = now + 3 * DAY
+  if (invoice.subscription !== null) {
+    const days = scope.services.paymentRetries(scope.account.account).scheduleDays
+    // Days count from the first failure, whichever time the earlier retries actually ran.
+    const first =
+      attempts === 1 || invoice.next_payment_attempt === null
+        ? now
+        : invoice.next_payment_attempt - (days[attempts - 2] ?? 0) * DAY
+    const day = days[attempts - 1]
+    next = day === undefined ? null : first + day * DAY
+  }
   const failed: InvoiceRecord = {
     ...invoice,
-    attempt_count: invoice.attempt_count + 1,
+    attempt_count: attempts,
     attempted: true,
-    next_payment_attempt: now + 3 * DAY,
+    next_payment_attempt: next,
   }
   scope.account.invoices.update(failed.id, failed)
   scope.emit("invoice.payment_failed", renderInvoice(failed, scope.account))
@@ -1174,6 +1191,7 @@ export const cycleSubscription = (scope: RequestScope, current: SubscriptionReco
   })
   claimInvoiceItems(scope, invoice)
   let status: SubscriptionRecord["status"] = moved.status
+  let exhausted = false
   if (!keepDraft) {
     const finalized = finalizeInvoice(scope, invoice)
     const collected = collectCycleInvoice(scope, current, finalized)
@@ -1182,8 +1200,12 @@ export const cycleSubscription = (scope: RequestScope, current: SubscriptionReco
       finalized.status === "open" &&
       current.pause_collection === null &&
       finalized.collection_method === "charge_automatically"
-    )
+    ) {
       status = collected.failed ? "past_due" : "active"
+      // Declined at least once (no payment method at all schedules and exhausts nothing).
+      exhausted =
+        collected.failed && invoice.attempt_count > 0 && invoice.next_payment_attempt === null
+    }
   }
   const latest = scope.account.subscriptions.get(current.id) ?? moved
   const next: SubscriptionRecord = {
@@ -1197,6 +1219,46 @@ export const cycleSubscription = (scope: RequestScope, current: SubscriptionReco
   const after = renderSubscription(next, scope.account)
   const changed = changedFields(before, after)
   scope.emit("customer.subscription.updated", after, changed)
+  if (exhausted) applyFailedPaymentOutcome(scope, next)
+}
+
+/** Once every retry of a renewal has failed: cancel the subscription, mark it unpaid, or leave it. */
+const applyFailedPaymentOutcome = (scope: RequestScope, current: SubscriptionRecord) => {
+  const outcome = scope.services.paymentRetries(scope.account.account).afterAllFail
+  if (outcome === "cancel") cancelSubscription(scope, current, "payment_failed")
+  else if (outcome === "unpaid") saveSubscription(scope, current, { ...current, status: "unpaid" })
+}
+
+/**
+ * Run the scheduled collection retries of a subscription's open invoices that are due, oldest
+ * first: a paid retry reactivates the subscription (`activateAfterPayment`), a declined one
+ * schedules the next, and the last one applies the failed-payment outcome.
+ */
+const retryDueInvoices = (scope: RequestScope, subscription: SubscriptionRecord, now: number) => {
+  for (let guard = 0; guard < 50; guard += 1) {
+    const due = scope.account.invoices.list({
+      order: "oldest",
+      where: (invoice) =>
+        invoice.subscription === subscription.id &&
+        invoice.status === "open" &&
+        invoice.collection_method === "charge_automatically" &&
+        invoice.next_payment_attempt !== null &&
+        invoice.next_payment_attempt <= now,
+    })[0]?.value
+    if (due === undefined) return
+    let settled: InvoiceRecord
+    try {
+      settled = payInvoice(scope, due, { offSession: true })
+    } catch (error) {
+      if (!(error instanceof StripeError)) throw error
+      settled = scope.account.invoices.get(due.id) ?? due
+    }
+    const current = scope.account.subscriptions.get(subscription.id)
+    if (settled.status !== "open" || current === undefined) return
+    if (settled.next_payment_attempt === due.next_payment_attempt) return
+    if (settled.next_payment_attempt === null) applyFailedPaymentOutcome(scope, current)
+    if (settled.next_payment_attempt === null || current.status !== "past_due") return
+  }
 }
 
 /** The cents one period of a subscription's items bills, after its discounts live at `at`. */
@@ -1709,12 +1771,15 @@ export type LifecycleSettings = {
   trialWillEndDays: number
   /** An `incomplete` subscription expires after this many hours. */
   incompleteExpiryHours: number
+  /** Retries of a failed renewal and what follows the last one (an account's `billing` overrides). */
+  paymentRetries: PaymentRetryPolicy
 }
 
 export const DEFAULT_LIFECYCLE: LifecycleSettings = {
   upcomingInvoiceDays: 3,
   trialWillEndDays: 3,
   incompleteExpiryHours: 23,
+  paymentRetries: DEFAULT_PAYMENT_RETRIES,
 }
 
 /**
@@ -1770,6 +1835,10 @@ export const runLifecycle = (
       )
     }
     for (let guard = 0; guard < 120; guard += 1) {
+      if (subscription.status === "past_due") {
+        retryDueInvoices(scope, subscription, now)
+        subscription = scope.account.subscriptions.get(subscription.id) ?? subscription
+      }
       if (!["active", "trialing", "past_due"].includes(subscription.status)) break
       const cancelAt = subscription.cancel_at
       if (cancelAt !== null && cancelAt <= now) {

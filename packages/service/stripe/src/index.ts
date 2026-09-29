@@ -199,6 +199,10 @@ export class StripeAPI implements FetchAPI {
       publish: options.onWebhook,
       accounts,
       deliveryVersion: (account) => accounts.config(account)?.apiVersion ?? webhookVersion,
+      paymentRetries: (account) => ({
+        ...this.settings.paymentRetries,
+        ...accounts.config(account)?.billing?.retries,
+      }),
       pendingWebhooks: options.pendingWebhooks ?? (() => 0),
       namespacePrefix:
         options.publicNamespace === undefined || options.publicNamespace === "default"
