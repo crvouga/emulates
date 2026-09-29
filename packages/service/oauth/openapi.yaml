@@ -278,7 +278,7 @@
         "x-mockingbird": {
           "parity": {
             "enabled": false,
-            "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
+            "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests. The pages carry the documented oauth-mock-* data-testid hooks (README, \"Test hooks on the interaction pages\")."
           }
         },
         "responses": {
@@ -360,7 +360,7 @@
         "x-mockingbird": {
           "parity": {
             "enabled": false,
-            "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
+            "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests. The pages carry the documented oauth-mock-* data-testid hooks (README, \"Test hooks on the interaction pages\")."
           }
         },
         "responses": {

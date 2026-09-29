@@ -27,12 +27,14 @@ import { VERSION_PLACEHOLDER } from "../bundle-service-version.ts"
 import {
   changelog,
   computePlan,
+  initialPackageBlocker,
   npmVersions,
   packedManifest,
   pinManifest,
   REPO,
   type Release,
   redact,
+  releaseInOrder,
   releaseNotes,
   retiredPackages,
   root,
@@ -71,26 +73,6 @@ if (plan.releases.length === 0) {
   console.log(`release:publish: ${plan.releases.length} package(s)${dryRun ? " (dry-run)" : ""}`)
 }
 
-// Fail once before touching the workspace when CI cannot create initial packages.
-// Scheduled and manual runs retry the same plan once the NPM_TOKEN repo secret is set.
-if (inCi && !local && !dryRun && !npmToken) {
-  const unseeded: string[] = []
-  for (const release of plan.releases) {
-    const published = await npmVersions(release.pkg.name)
-    if (!Array.isArray(published)) {
-      throw new Error(`npm view ${release.pkg.name}: ${published.error}`)
-    }
-    if (published.length === 0) unseeded.push(release.pkg.name)
-  }
-  if (unseeded.length > 0) {
-    console.error(
-      `::error::${unseeded.length} initial npm package(s) need the NPM_TOKEN repo secret`,
-    )
-    console.error("Run bun run release:bootstrap locally to store the token securely and retry CI.")
-    process.exit(1)
-  }
-}
-
 // Pin every public package for packing: its own version, and its workspace
 // dependencies rewritten to the versions this run resolves them to.
 const originals = new Map<string, string>()
@@ -125,6 +107,8 @@ for (const release of plan.releases) {
 
 const packDir = mkdtempSync(join(tmpdir(), "mockingbird-release-"))
 const failed = new Set<string>()
+/** Never-published packages this run has no credential to create. */
+const needsToken: string[] = []
 /** `<name>@<version>` of everything this run put on npm, which `npm view` may not show yet. */
 const releasedNow = new Set<string>()
 // setup-node's .npmrc reads NODE_AUTH_TOKEN; leave it empty to force OIDC. Locally, use the npm login.
@@ -194,14 +178,10 @@ async function publish(release: Release): Promise<boolean> {
     return true
   }
   const isNew = published.length === 0
-  if (isNew && inCi && !local && !npmToken && !dryRun) {
-    fail(pkg.name, [
-      "package does not exist on npm yet, and Trusted Publishing (OIDC) cannot create packages.",
-      "Fix once, either way:",
-      "  - add an npm granular access token (read+write, @crvouga scope) as the NPM_TOKEN",
-      `    Actions secret on ${REPO}, then re-run this workflow; or`,
-      "  - locally, from any checkout: bun run release:seed",
-    ])
+  const blocker = initialPackageBlocker(published, { inCi, local, dryRun, npmToken })
+  if (blocker) {
+    needsToken.push(pkg.name)
+    fail(pkg.name, blocker)
     return false
   }
 
@@ -302,16 +282,18 @@ async function deprecateRetiredPackages(): Promise<void> {
 }
 
 try {
-  for (const release of plan.releases) {
-    const blockedBy = release.pkg.runtimeDeps.filter((d) => failed.has(d))
-    if (blockedBy.length > 0) {
-      fail(release.pkg.name, [`skipped: dependency failed to release (${blockedBy.join(", ")})`])
-      continue
-    }
-    if (!(await publish(release))) continue
-    await ensureTrustedPublisher(release.pkg.name)
-    await tagAndRelease(release)
-  }
+  // A package that cannot release never stops the independent ones; its dependents are skipped.
+  await releaseInOrder(
+    plan.releases,
+    async (release) => {
+      if (!(await publish(release))) return false
+      await ensureTrustedPublisher(release.pkg.name)
+      await tagAndRelease(release)
+      return true
+    },
+    (release, blockedBy) =>
+      fail(release.pkg.name, [`skipped: dependency failed to release (${blockedBy.join(", ")})`]),
+  )
   // Reconcile: every published service is trusted for OIDC, everything else is deprecated.
   for (const pkg of plan.packages) {
     if (!pkg.isPublic || failed.has(pkg.name)) continue
@@ -327,4 +309,12 @@ try {
 
 const ok = plan.releases.length - failed.size
 console.log(`release:publish: released=${ok} failed=${failed.size}${dryRun ? " (dry-run)" : ""}`)
+if (needsToken.length > 0) {
+  console.error(
+    `::error::${needsToken.length} initial npm package(s) need the NPM_TOKEN repo secret: ${needsToken.join(", ")}`,
+  )
+  console.error(
+    "Every other package was released. Run bun run release:bootstrap locally to store the token securely and retry CI.",
+  )
+}
 if (failed.size > 0) process.exit(1)

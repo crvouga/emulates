@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createLocalJWKSet, decodeJwt, jwtVerify } from "jose"
+import { createLocalJWKSet, decodeJwt, decodeProtectedHeader, jwtVerify } from "jose"
 import {
   createRuntime,
   OAUTH_SCENARIOS,
@@ -48,13 +48,17 @@ async function login(api: OAuthAPI, params: Record<string, string> = {}, choice?
   const consent = await api.fetch(
     req("/interaction", { transaction: tx, action: "select", account: "ada" }),
   )
-  const result = await api.fetch(
-    req("/interaction", {
-      transaction: tx,
-      action: "allow",
-      ...(choice ? { email_choice: choice } : {}),
-    }),
-  )
+  // Google skips the consent card when the account already granted these scopes.
+  const result =
+    consent.status === 302
+      ? consent
+      : await api.fetch(
+          req("/interaction", {
+            transaction: tx,
+            action: "allow",
+            ...(choice ? { email_choice: choice } : {}),
+          }),
+        )
   const html = await result.text()
   const url = result.headers.get("location")
   return {
@@ -142,7 +146,7 @@ test("Apple share choice, preset relay override, boolean claims and returning-us
 test("Apple consent revocation resets first-use data and invalidates old credentials", async () => {
   const api = make("apple")
   const first = await tokens(api, {}, "hide")
-  api.revokeConsent("app", "ada")
+  await api.revokeConsent("app", "ada")
   expect((await refresh(api, first.tokens.refresh_token)).status).toBe(400)
   const next = await tokens(api, {}, "share")
   expect(next.html).toContain('name="user"')
@@ -385,6 +389,111 @@ test("JWKS rotation retains old keys optionally and new tokens carry the new kid
   expect(jwtVerify(first.tokens.id_token, createLocalJWKSet(current))).rejects.toThrow()
 })
 
+test("ID-token issuer clock skew offsets iat, auth_time and exp, and survives refresh grants", async () => {
+  const now = Date.now()
+  const seconds = Math.floor(now / 1000)
+  const ahead = make("oidc", {
+    now: () => now,
+    behavior: { tokens: { idTokenClockSkewSeconds: 600, accessTtlSeconds: 900 } },
+  })
+  const first = await tokens(ahead)
+  const claims = decodeJwt(first.tokens.id_token)
+  expect(claims.iat).toBe(seconds + 600)
+  expect(claims.exp).toBe((claims.iat ?? 0) + 900)
+  expect(claims.auth_time).toBe(Math.floor(now / 1000) + 600)
+  const jwks = createLocalJWKSet(await (await ahead.fetch(req("/jwks"))).json())
+  const options = { currentDate: new Date(now), clockTolerance: 60 }
+  // A verifier with 60 s tolerance rejects a token issued 600 s in the future.
+  expect(
+    jwtVerify(first.tokens.id_token, jwks, { ...options, maxTokenAge: "1h" }),
+  ).rejects.toThrow()
+  // 120 s ahead is inside a 5-minute-tolerant verifier's window.
+  ahead.configureBehavior({ tokens: { idTokenClockSkewSeconds: 120 } })
+  const near = await tokens(ahead)
+  expect(decodeJwt(near.tokens.id_token).iat).toBe(seconds + 120)
+  await jwtVerify(near.tokens.id_token, jwks, { currentDate: new Date(now), clockTolerance: 300 })
+  // Refresh-grant ID tokens carry the same skew.
+  ahead.configureBehavior({ preset: "id_token_clock_ahead" })
+  const refreshed = await (await refresh(ahead, first.tokens.refresh_token)).json()
+  expect(decodeJwt(refreshed.id_token).iat).toBe(seconds + 600)
+
+  const stale = make("oidc", { now: () => now, behavior: { preset: "id_token_stale" } })
+  const old = await tokens(stale)
+  const staleClaims = decodeJwt(old.tokens.id_token)
+  expect(staleClaims.iat).toBe(seconds - 7200)
+  expect(staleClaims.exp).toBe(seconds - 3600)
+  const staleJwks = createLocalJWKSet(await (await stale.fetch(req("/jwks"))).json())
+  expect(jwtVerify(old.tokens.id_token, staleJwks, { currentDate: new Date(now) })).rejects.toThrow(
+    /exp/,
+  )
+
+  const plain = await tokens(make("oidc", { now: () => now }))
+  expect(decodeJwt(plain.tokens.id_token).iat).toBe(seconds)
+  for (const bad of [1.5, "600", NaN, 1e12])
+    expect(() =>
+      ahead.configureBehavior({ tokens: { idTokenClockSkewSeconds: bad as number } }),
+    ).toThrow()
+})
+
+test("ID tokens signed with an unpublished key never verify against any JWKS response", async () => {
+  const api = make("oidc", { behavior: { preset: "id_token_unknown_key" } })
+  const first = await tokens(api)
+  const { kid } = decodeProtectedHeader(first.tokens.id_token)
+  const before = await (await api.fetch(req("/jwks"))).json()
+  expect(before.keys.map((k: { kid: string }) => k.kid)).not.toContain(kid)
+  expect(jwtVerify(first.tokens.id_token, createLocalJWKSet(before))).rejects.toThrow(
+    /no applicable key/,
+  )
+  // The same unpublished key signs every ID token, including refresh grants; rotation never publishes it.
+  const refreshed = await (await refresh(api, first.tokens.refresh_token)).json()
+  expect(decodeProtectedHeader(refreshed.id_token).kid).toBe(kid)
+  api.rotateSigningKey()
+  api.rotateSigningKey(false)
+  const after = await (await api.fetch(req("/jwks"))).json()
+  expect(after.keys.map((k: { kid: string }) => k.kid)).not.toContain(kid)
+  // Switching back publishes the ID token key again.
+  api.configureBehavior({ tokens: { idTokenSigningKey: "published" } })
+  const normal = await tokens(api)
+  await jwtVerify(normal.tokens.id_token, createLocalJWKSet(after))
+  expect(() =>
+    api.configureBehavior({ tokens: { idTokenSigningKey: "hidden" as never } }),
+  ).toThrow()
+})
+
+test("ID-token faults compose through the behavior admin route and presets", async () => {
+  const runtime = createRuntime({
+    adminKey: "fixture",
+    accounts: [account],
+    clients: [client],
+  })
+  const admin = (path: string, init?: RequestInit) =>
+    runtime.fetch(
+      new Request(`${origin}/__admin${path}`, {
+        ...init,
+        headers: { "content-type": "application/json", "x-mockingbird-admin-key": "fixture" },
+      }),
+    )
+  const put = await admin("/behavior", {
+    method: "PUT",
+    body: JSON.stringify({
+      tokens: { idTokenClockSkewSeconds: 600, idTokenSigningKey: "unpublished" },
+    }),
+  })
+  expect(put.status).toBe(200)
+  expect((await put.json()).tokens).toEqual({
+    idTokenClockSkewSeconds: 600,
+    idTokenSigningKey: "unpublished",
+  })
+  const rejected = await admin("/behavior", {
+    method: "PUT",
+    body: JSON.stringify({ tokens: { idTokenClockSkewSeconds: "soon" } }),
+  })
+  expect(rejected.status).toBe(400)
+  const scenarios = await (await admin("/scenarios")).json()
+  for (const name of ["id_token_clock_ahead", "id_token_stale", "id_token_unknown_key"])
+    expect(Object.keys(scenarios)).toContain(name)
+})
+
 test("GitHub token errors are provider-shaped and accept JSON request bodies", async () => {
   const api = make("github")
   const authorization = await login(api)
@@ -472,6 +581,76 @@ test("provider session reuse can be disabled and prompt=select_account always fo
   expect((await authorize()).status).toBe(302)
   expect(await (await authorize("select_account")).text()).toContain("Choose an account")
   expect(() => api.behavior.configure({ session: { reuseLastAccount: "yes" } })).toThrow()
+})
+
+test("Google skips consent after the account chooser when the scopes were already granted", async () => {
+  const api = make("google")
+  let cookie = ""
+  const send = async (request: Request) => {
+    if (cookie) request.headers.set("cookie", cookie)
+    const response = await api.fetch(request)
+    for (const set of response.headers.getSetCookie()) cookie = set.split(";")[0] ?? ""
+    return response
+  }
+  // Start a select_account sign-in and choose Ada; returns the response to the choice.
+  const choose = async (params: Record<string, string> = {}) => {
+    const query = new URLSearchParams({
+      client_id: "app",
+      redirect_uri: callback,
+      response_type: "code",
+      scope: "openid profile email",
+      prompt: "select_account",
+      ...params,
+    })
+    const chooser = await (await send(req(`/authorize?${query}`))).text()
+    const transaction = field(chooser, "transaction")
+    expect(transaction).not.toBe("")
+    return {
+      transaction,
+      response: await send(req("/interaction", { transaction, action: "select", account: "ada" })),
+    }
+  }
+  const allow = async (transaction: string) => {
+    const done = await send(req("/interaction", { transaction, action: "allow" }))
+    const code = new URL(done.headers.get("location") ?? "").searchParams.get("code") ?? ""
+    expect((await exchange(api, code)).status).toBe(200)
+  }
+
+  const first = await choose()
+  expect(first.response.status).toBe(200)
+  expect(await first.response.text()).toContain('value="allow"')
+  await allow(first.transaction)
+
+  // Returning user: the same scopes complete straight to the redirect, with a fresh session.
+  cookie = ""
+  const returning = await choose({ state: "s" })
+  expect(returning.response.status).toBe(302)
+  const location = new URL(returning.response.headers.get("location") ?? "")
+  expect(location.origin + location.pathname).toBe(callback)
+  expect(location.searchParams.get("state")).toBe("s")
+  expect(location.searchParams.get("error")).toBeNull()
+  expect((await exchange(api, location.searchParams.get("code") ?? "")).status).toBe(200)
+  expect(cookie).toStartWith("mb_session=")
+
+  // prompt=consent still asks.
+  const forced = await choose({ prompt: "select_account consent" })
+  expect(forced.response.status).toBe(200)
+  expect(await forced.response.text()).toContain('value="allow"')
+
+  // A scope the account has not granted yet still asks.
+  const wider = await choose({
+    scope: "openid profile email https://www.googleapis.com/auth/userinfo.email",
+  })
+  expect(wider.response.status).toBe(200)
+})
+
+test("only Google skips consent after choosing an account; other providers keep asking", async () => {
+  for (const provider of ["apple", "microsoft", "github", "oidc"] as const) {
+    const api = make(provider)
+    await login(api)
+    const { consent } = await login(api)
+    expect(consent).toContain('value="allow"')
+  }
 })
 
 test("neutral UI offers all appearance modes and Apple form-post scripts share one CSP nonce", async () => {

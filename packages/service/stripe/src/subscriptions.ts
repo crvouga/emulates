@@ -1,5 +1,6 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
 import {
+  addInterval,
   applyDiscountRequests,
   assertCompatiblePrices,
   billProration,
@@ -7,9 +8,12 @@ import {
   createSubscription,
   cycleSubscription,
   INACTIVE_PRICE,
+  invoiceBillingCycleReset,
   parseDiscounts,
+  recurringOf,
   resolveDiscountSource,
   resumeSubscription,
+  sameBillingPeriod,
   saveSubscription,
   subscriptionItems,
 } from "./billing.js"
@@ -245,6 +249,11 @@ export const updateSubscription = (
   const previousItems = { items: renderSubscription(current, scope.account).items }
   const proration = stringOf(params, "proration_behavior") ?? "create_prorations"
   const itemRequests = requestedItems(params)
+  const previousBilling = {
+    items: subscriptionItems(scope, current),
+    recurring: recurringOf(scope, current),
+    period: { start: current.current_period_start, end: current.current_period_end },
+  }
   const changed =
     itemRequests.length === 0
       ? { itemIds: current.item_ids, prorationAmount: 0 }
@@ -317,15 +326,32 @@ export const updateSubscription = (
       current_period_end: trialEndAt,
       ...(next.status === "active" ? { status: "trialing" as const } : {}),
     }
+  // A price on a different billing period resets the billing cycle anchor to now: a new period
+  // starts and is invoiced at once. A trial keeps its end instead.
+  const nextRecurring = recurringOf(scope, next)
+  const resetsAnchor =
+    itemRequests.length > 0 &&
+    trialEndAt === undefined &&
+    (current.status === "active" || current.status === "past_due") &&
+    !sameBillingPeriod(previousBilling.recurring, nextRecurring)
+  if (resetsAnchor)
+    next = {
+      ...next,
+      billing_cycle_anchor: now,
+      current_period_start: now,
+      current_period_end: addInterval(now, nextRecurring.interval, nextRecurring.interval_count),
+    }
   saveSubscription(scope, current, next, previousItems)
-  billProration(scope, next, prorationAmount, proration, {
-    period: { start: now, end: current.current_period_end },
-    description:
-      proration === "always_invoice"
-        ? "Remaining time on the new price (prorated)"
-        : "Proration for subscription change",
-    failOnDecline: stringOf(params, "payment_behavior") === "error_if_incomplete",
-  })
+  if (resetsAnchor) invoiceBillingCycleReset(scope, next, previousBilling, proration !== "none")
+  else
+    billProration(scope, next, prorationAmount, proration, {
+      period: { start: now, end: current.current_period_end },
+      description:
+        proration === "always_invoice"
+          ? "Remaining time on the new price (prorated)"
+          : "Proration for subscription change",
+      failOnDecline: stringOf(params, "payment_behavior") === "error_if_incomplete",
+    })
   if (endTrialNow) {
     const trialing = scope.account.subscriptions.get(current.id) ?? next
     const ended = { ...trialing, trial_end: now, current_period_end: now }

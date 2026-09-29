@@ -11,8 +11,8 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `Discovery` | `GET /.well-known/openid-configuration` | ✅ supported | ✅ | Google, Apple and Microsoft discovery metadata is checked against their public live endpoints by scripts/parity.ts. |
 | `Jwks` | `GET /jwks` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |
 | `Authorize` | `GET /authorize` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |
-| `InteractionPage` | `GET /interaction` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |
-| `Interact` | `POST /interaction` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |
+| `InteractionPage` | `GET /interaction` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. The pages carry the documented oauth-mock-* data-testid hooks (README, "Test hooks on the interaction pages"). |
+| `Interact` | `POST /interaction` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. The pages carry the documented oauth-mock-* data-testid hooks (README, "Test hooks on the interaction pages"). |
 | `Token` | `POST /token` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |
 | `UserInfo` | `GET /userinfo` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |
 | `UserInfoPost` | `POST /userinfo` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |

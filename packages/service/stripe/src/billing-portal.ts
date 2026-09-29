@@ -1,5 +1,12 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
-import { cancelSubscription, markInvoicePaid, payInvoice, subscriptionItems } from "./billing.js"
+import {
+  cancelSubscription,
+  markInvoicePaid,
+  payInvoice,
+  recurringOf,
+  sameBillingPeriod,
+  subscriptionItems,
+} from "./billing.js"
 import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
 import {
   booleanOf,
@@ -102,7 +109,10 @@ const dashboardFeatures = (): PortalFeatures => ({
   },
 })
 
-/** The account's default configuration, created on first use as the dashboard would have. */
+/**
+ * The account's default configuration, created on first use as the dashboard would have. Listing
+ * does not create it: a fresh live account has none until a portal session or the dashboard does.
+ */
 export const ensureDefaultConfiguration = (
   scope: RequestScope,
 ): BillingPortalConfigurationRecord => {
@@ -454,14 +464,13 @@ export const billingPortalHandlers = (services: Services): Record<string, Operat
   GetBillingPortalConfigurations: async (context) => {
     const scope = requestScope(services, context)
     const params = queryParams(context)
-    ensureDefaultConfiguration(scope)
     const active = booleanOf(params.active)
     const isDefault = booleanOf(params.is_default)
     return jsonResponse(
       200,
       await paginate<BillingPortalConfigurationRecord>(scope.account.portalConfigurations, params, {
         url: "/v1/billing_portal/configurations",
-        kind: "billing portal configuration",
+        kind: "configuration",
         where: (config) =>
           (active === undefined || config.active === active) &&
           (isDefault === undefined || config.is_default === isDefault),
@@ -667,13 +676,26 @@ export const portalChange = (
   return { subscription, itemId: item.id, price, quantity }
 }
 
+/**
+ * Does the change move the subscription to a different billing period? Then the billing cycle
+ * anchor resets: the new period is invoiced now, whatever the proration setting.
+ */
+export const resetsBillingPeriod = (scope: RequestScope, change: PortalChange): boolean => {
+  const { subscription } = change
+  if (subscription.status === "trialing") return false
+  const price = scope.account.prices.get(change.price)?.recurring
+  return price != null && !sameBillingPeriod(recurringOf(scope, subscription), price)
+}
+
 /** The cents a change bills now for the rest of the period (a credit when negative). */
 export const previewProration = (
   scope: RequestScope,
   config: BillingPortalConfigurationRecord,
   change: PortalChange,
 ): number => {
-  if (config.features.subscription_update.proration_behavior === "none") return 0
+  const prorate = config.features.subscription_update.proration_behavior !== "none"
+  const resets = resetsBillingPeriod(scope, change)
+  if (!prorate && !resets) return 0
   const { subscription } = change
   if (subscription.status === "trialing") return 0
   const item = scope.account.subscriptionItems.get(change.itemId)
@@ -682,11 +704,11 @@ export const previewProration = (
   const now = customerNow(scope, subscription.customer)
   const span = Math.max(1, subscription.current_period_end - subscription.current_period_start)
   const left = Math.max(0, subscription.current_period_end - now) / span
-  return Math.round(
-    (amount(change.price, change.quantity) -
-      amount(item?.price ?? change.price, item?.quantity ?? 1)) *
-      left,
-  )
+  const next = amount(change.price, change.quantity)
+  const previous = amount(item?.price ?? change.price, item?.quantity ?? 1)
+  // A reset bills the whole new period less the unused time on the old one (none: no credit).
+  if (resets) return next - (prorate ? Math.round(previous * left) : 0)
+  return Math.round((next - previous) * left)
 }
 
 /**

@@ -43,12 +43,12 @@ const toAddress = (raw: unknown): Address => {
   for (const key of ADDRESS_KEYS) {
     const value = input[key]
     // Stripe upper-cases a two-letter country code it stores (live: "sN" comes back "SN") and
-    // keeps anything else as sent (live: "a" comes back "a").
+    // keeps anything else verbatim (live: "a" comes back "a").
     out[key] =
       value === undefined
         ? null
-        : key === "country" && value.length === 2
-          ? value.replace(/[a-z]/g, (letter) => letter.toUpperCase())
+        : key === "country" && /^[A-Za-z]{2}$/.test(value)
+          ? value.toUpperCase()
           : value
   }
   return out
