@@ -109,7 +109,12 @@ headers). Hosted-page URLs carry the `/ns/<namespace>` prefix so the browser lan
 `paid` / `subscription_details`, `subscription.current_period_*` and `subscription.discount`, and
 invoice lines with `price` objects; `2025-02-24.acacia` adds `total_pretax_credit_amounts`;
 2025-03-31.basil and later (the vendored latest) drop those and use `parent`, `pricing`,
-`discount.source` and item-level periods. `charge.refunds` appears only with `expand[]=refunds` at
+`discount.source` and item-level periods; at basil `charge.invoice` and `payment_intent.invoice` are gone
+too, and an invoice's payments are `invoice_payment` objects (`inpay_…`): `expand[]=payments` on an
+invoice (or `latest_invoice.payments` on a subscription), `GET /v1/invoice_payments` (filter by
+`invoice`, `payment[type]=payment_intent&payment[payment_intent]`, `status`, `created`) and
+`GET /v1/invoice_payments/{id}`. One default payment per invoice that has a PaymentIntent, derived from
+the invoice; a $0 invoice has none, and payment records are not modelled. `charge.refunds` appears only with `expand[]=refunds` at
 every one of these versions. `GET /v1/invoices/upcoming` answers at the older versions and returns
 Stripe's "deprecated" 404 at basil and later. Expansion is generic (any path through ids the mock
 holds, ancestors included); Stripe's own rules are enforced: a non-expandable first segment is

@@ -9,8 +9,8 @@ type RecordValue = Record<string, unknown>
  */
 const ABSENT: Record<string, Record<ApiEra, readonly string[]>> = {
   invoice: {
-    legacy: ["parent", "total_pretax_credit_amounts"],
-    acacia: ["parent"],
+    legacy: ["parent", "payments", "total_pretax_credit_amounts"],
+    acacia: ["parent", "payments"],
     basil: [
       "charge",
       "discount",
@@ -45,6 +45,11 @@ const ABSENT: Record<string, Record<ApiEra, readonly string[]>> = {
     legacy: ["promotion"],
     acacia: ["promotion"],
     basil: ["coupon"],
+  },
+  charge: {
+    legacy: [],
+    acacia: [],
+    basil: ["invoice"],
   },
   payment_intent: {
     legacy: [],

@@ -187,6 +187,7 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         )
       if (params.product === "") throw parameterInvalidEmpty("product")
       if (params.product_data === "") throw parameterInvalidEmpty("product_data")
+      if (params.metadata === "") throw parameterInvalidEmpty("metadata")
       const inline = hasProductData
         ? validateInlineProduct(params.product_data as Params)
         : undefined

@@ -268,8 +268,6 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   let done = 0
   const width = String(numRuns).length
   const coverage: Record<string, number> = {}
-  // The latest walk that failed, kept across passing walks: shrinking usually ends on one, and
-  // the report must still show the divergence of the failing walk it settled on.
   let lastWalkFailure: ParityError | undefined
 
   const commands = fc.commands(
@@ -399,6 +397,7 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       throw webhookFailure
     }
     if (walkError !== undefined) {
+      // Kept across walks: shrinking replays passing candidates after the last failing walk.
       lastWalkFailure = walkError instanceof ParityError ? walkError : undefined
       throw walkError
     }
@@ -433,7 +432,15 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       cause.message = `${header}\n${minimalCounterexample(error instanceof Error ? error.message : String(error))}\n\n${cause.message}`
       throw cause
     }
-    if (error instanceof Error) error.message = `${header}\n${error.message}`
+    if (error instanceof Error) {
+      // fast-check keeps the property's own error in `cause`; without it a non-divergence failure
+      // (a transport error, a crashing cleanup) reports only a counterexample.
+      const underlying =
+        error.cause instanceof Error
+          ? `\n\nCaused by: ${error.cause.stack ?? error.cause.message}`
+          : ""
+      error.message = `${header}\n${error.message}${underlying}`
+    }
     throw error
   }
 

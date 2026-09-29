@@ -45,6 +45,7 @@ import {
   type WebhookPublisher,
 } from "./internal.js"
 import { invoiceItemHandlers } from "./invoice-items.js"
+import { invoicePaymentHandlers } from "./invoice-payments.js"
 import { invoiceHandlers } from "./invoices.js"
 import { ledgerHandlers } from "./ledger.js"
 import { paymentIntentHandlers } from "./payment-intents.js"
@@ -223,6 +224,7 @@ export class StripeAPI implements FetchAPI {
       ...disputeHandlers(services),
       ...checkoutSessionHandlers(services),
       ...invoiceHandlers(services),
+      ...invoicePaymentHandlers(services),
       ...invoiceItemHandlers(services),
       ...subscriptionHandlers(services),
       ...subscriptionScheduleHandlers(services),
