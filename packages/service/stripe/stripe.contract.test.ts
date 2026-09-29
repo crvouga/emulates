@@ -211,4 +211,20 @@ describe("service contract", () => {
       },
     })
   })
+
+  test("listing payment methods resolves a missing cursor before a customer_account", async () => {
+    const { call } = harness()
+    const response = await call(
+      "/v1/payment_methods?customer_account=HTsnOF&type=card&ending_before=pm_missing",
+      { headers: { authorization: `Bearer ${KEY}` } },
+    )
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { message: "No such PaymentMethod: 'pm_missing'", param: "ending_before" },
+    })
+    const account = await call("/v1/payment_methods?customer_account=HTsnOF&type=card", {
+      headers: { authorization: `Bearer ${KEY}` },
+    })
+    expect(await account.json()).toMatchObject({ error: { param: "customer_account" } })
+  })
 })
