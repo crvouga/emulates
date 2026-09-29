@@ -271,6 +271,8 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   // Set only by failing walks: the shrinker ends on a failing candidate, but later passing
   // candidates run after it and must not erase its divergence.
   let lastWalkFailure: ParityError | undefined
+  // The last error a walk threw that was not a divergence (a crashed mock, a failed cleanup).
+  let lastWalkCrash: unknown
 
   const commands = fc.commands(
     [
@@ -400,6 +402,7 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
     }
     if (walkError !== undefined) {
       lastWalkFailure = walkError instanceof ParityError ? walkError : undefined
+      if (!(walkError instanceof ParityError)) lastWalkCrash = walkError
       throw walkError
     }
     if (ok) {
@@ -433,7 +436,13 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
       cause.message = `${header}\n${minimalCounterexample(error instanceof Error ? error.message : String(error))}\n\n${cause.message}`
       throw cause
     }
-    if (error instanceof Error) error.message = `${header}\n${error.message}`
+    if (error instanceof Error) {
+      const crash =
+        lastWalkCrash === undefined
+          ? ""
+          : `\n\nlast walk error: ${redact(lastWalkCrash instanceof Error ? (lastWalkCrash.stack ?? lastWalkCrash.message) : String(lastWalkCrash))}`
+      error.message = `${header}\n${error.message}${crash}`
+    }
     throw error
   }
 
