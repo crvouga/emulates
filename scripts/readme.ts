@@ -14,8 +14,10 @@ import {
   CONTRACT,
   FEATURES,
   HEADLINE,
-  MASCOT,
+  IDENTITY,
+  MARK_REPO_PATH,
   PITCH,
+  PLATE_REPO_PATH,
   QUICK_START,
   RISK_DISCLAIMER,
 } from "../sites/docs/src/lib/content.ts"
@@ -25,6 +27,17 @@ import type { ServiceStatus } from "../sites/docs/src/lib/types.ts"
 import { discoverPackages, REPO, root } from "./release/lib.ts"
 
 const OUT = join(root, "README.md")
+
+for (const rel of [MARK_REPO_PATH, PLATE_REPO_PATH]) {
+  if (!existsSync(join(root, rel))) {
+    console.error(`::error::missing identity file: ${rel}`)
+    process.exit(1)
+  }
+}
+if (!IDENTITY.mark.endsWith(`/${MARK_REPO_PATH}`)) {
+  console.error(`::error::IDENTITY.mark must be the main copy of ${MARK_REPO_PATH}`)
+  process.exit(1)
+}
 
 interface Manifest {
   description?: string
@@ -127,18 +140,22 @@ const body = [
   "",
   '<div align="center">',
   "",
-  `<h1>${MASCOT}<br>Mockingbird</h1>`,
+  `<img src="${IDENTITY.mark}" width="88" height="88" alt="">`,
+  "",
+  `<h1>${IDENTITY.name}</h1>`,
   "",
   `**${HEADLINE.lead} ${HEADLINE.accent}**`,
   "",
+  IDENTITY.note,
+  "",
   [
     `[![${TIERS.ready.label}](${badge(TIERS.ready.label, count("ready"), "2ea44f")})](#ready)`,
-    `[![${TIERS.wip.label}](${badge(TIERS.wip.short, count("wip"), "e36209")})](#work-in-progress)`,
+    `[![${TIERS.wip.label}](${badge(TIERS.wip.short, count("wip"), "8d4a32")})](#work-in-progress)`,
     `[![CI](https://github.com/${REPO}/actions/workflows/pr.yml/badge.svg)](https://github.com/${REPO}/actions/workflows/pr.yml)`,
-    `[![License](${badge("license", license, "5b4fe0")})](#license)`,
+    `[![License](${badge("license", license, "243f34")})](#license)`,
   ].join(" "),
   "",
-  "[Quick start](#quick-start) · [Services](#services) · [Why](docs/WHY.md) · [Guides](#guides) · [llms.txt](llms.txt)",
+  "[Quick start](#quick-start) · [Services](#services) · [Why](docs/WHY.md) · [Design](docs/DESIGN.md) · [Guides](#guides) · [llms.txt](llms.txt)",
   "",
   "</div>",
   "",

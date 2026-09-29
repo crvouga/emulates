@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-oauth
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 A portable, stateful OAuth 2.0 / OpenID Connect identity sandbox. Google, Apple, Microsoft and GitHub wire profiles share a vendor-neutral account chooser, signup and consent UI. Generic OIDC works with other configurable identity clients. Uses real RS256 signatures, discovery, JWKS, authorization codes, S256 PKCE, refresh tokens and revocation.
 
 ## Install

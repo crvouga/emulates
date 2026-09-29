@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-customerio
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Customer.io** for test suites, serving all three hosts our code talks to from
 one process: the Segment-compatible **CDP** (`identify`, `track`, `batch`, exactly as
 `@customerio/cdp-analytics-node` posts them), the **App API** transactional sends (email, SMS,

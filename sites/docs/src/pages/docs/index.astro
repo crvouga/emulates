@@ -7,6 +7,7 @@ import Base from "../../layouts/Base.astro"
 <Base title="Docs" description="Guides for using, testing and contributing to Mockingbird. The same markdown GitHub renders.">
   <div class="container">
     <header class="page-head">
+      <span class="eyebrow">Notes from the field</span>
       <h1>Docs</h1>
       <p class="lede">
         Guides for using, testing and contributing to Mockingbird. Each page is a file in <code>docs/</code>, the same markdown
@@ -49,7 +50,7 @@ import Base from "../../layouts/Base.astro"
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
     gap: 14px;
   }
 
@@ -75,7 +76,7 @@ import Base from "../../layouts/Base.astro"
     width: 34px;
     height: 34px;
     flex: none;
-    border-radius: 9px;
+    border-radius: var(--radius-sm);
     background: var(--accent-soft);
     color: var(--accent-soft-fg);
   }

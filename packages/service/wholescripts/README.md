@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-wholescripts
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Wholescripts** supplement fulfilment API for test suites: the product
 catalog, the private-label (MedPax) catalog, order submit, status polling and cancel. Orders
 move only when a test says so (an admin transition or an auto-advance path on the mock clock).

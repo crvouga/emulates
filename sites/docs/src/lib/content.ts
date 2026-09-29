@@ -4,7 +4,38 @@
  * markdown only: backticks, **bold** and [links](url).
  */
 
-export const MASCOT = "🐦‍⬛"
+/** Identity art lives in the repo, under the docs site's public directory. */
+const DOCS_PUBLIC = "sites/docs/public/"
+const HOME = "https://github.com/crvouga/mockingbird"
+
+export const MARK_REPO_PATH = `${DOCS_PUBLIC}identity/mockingbird.png`
+export const PLATE_REPO_PATH = `${DOCS_PUBLIC}identity/mockingbird-field.webp`
+
+function docsPublicHref(repoFile: string): string {
+  if (!repoFile.startsWith(DOCS_PUBLIC)) {
+    throw new Error(`identity art must live under ${DOCS_PUBLIC}`)
+  }
+  return `/${repoFile.slice(DOCS_PUBLIC.length)}`
+}
+
+/** Path the docs site serves for `MARK_REPO_PATH`. */
+export const MARK_HREF = docsPublicHref(MARK_REPO_PATH)
+/** Path the docs site serves for `PLATE_REPO_PATH`. */
+export const PLATE_HREF = docsPublicHref(PLATE_REPO_PATH)
+
+/** Shared identity for the site, GitHub and the READMEs published to npm. */
+export const IDENTITY = {
+  name: "Mockingbird",
+  tagline: "Familiar calls. Faithful echoes.",
+  note: "Like its namesake, Mockingbird learns a familiar call and answers in kind. Real API shapes, stateful behavior, right inside your tests.",
+  /** The mark on `main`. The README image uses this address; `check:readme` requires the file in this repo. */
+  mark: `${HOME.replace("https://github.com/", "https://raw.githubusercontent.com/")}/main/${MARK_REPO_PATH}`,
+  guide: `${HOME}/blob/main/docs/DESIGN.md`,
+  home: HOME,
+}
+
+/** Opening line of every published package README. `pack:check` requires it verbatim. */
+export const EPIGRAPH = `> ${IDENTITY.tagline} Part of [${IDENTITY.name}](${IDENTITY.home}).`
 
 /**
  * Single toggle for the "use at your own risk" banner shown at the top of the README and every
@@ -16,8 +47,8 @@ export const RISK_DISCLAIMER = {
 }
 
 export const HEADLINE = {
-  lead: "Mock the APIs you depend on,",
-  accent: "with the behavior they really have.",
+  lead: "Familiar calls.",
+  accent: "Faithful echoes.",
 }
 
 export const PITCH =
@@ -134,6 +165,7 @@ export const GUIDE_ORDER = [
   "TESTING",
   "AUTHORING_A_SERVICE",
   "DEVELOPMENT",
+  "DESIGN",
   "REPORTING_ISSUES",
   "RELEASING",
   "SECRETS",

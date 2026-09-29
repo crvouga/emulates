@@ -57,7 +57,7 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | Portability | `bun run portability` | Built `dist` matches the package's `mockingbird.runtime` (portable / node / bun) — no Node/Bun-only API usage where it isn't allowed |
 | Generate & OpenAPI | `bun run generate` / `bun run openapi:check` | Regenerate and verify provider contracts |
 | Test | `bun run test` | Contract, integration, unit, fuzz, and property suites (`FC_NUM_RUNS=40` in CI) |
-| Consumer docs | `bun run pack:check` | Every public package ships a README with `## Install`, `## Usage` (a TypeScript example) and `## API` listing every runtime export |
+| Consumer docs | `bun run pack:check` | Every public package ships a README that opens with the shared epigraph from `sites/docs/src/lib/content.ts`, then `## Install`, `## Usage` (a TypeScript example) and `## API` listing every runtime export |
 | Consumer smoke | `bun run release:smoke` | Packs every public package like the release, `npm install`s the tarballs into a clean project, imports every entry point under Node, and typechecks them plus every README TypeScript example |
 | llms.txt | `bun run check:llms` | [`llms.txt`](../llms.txt) lists every published mock service by release tier (`bun run llms:sync` regenerates) |
 | README | `bun run check:readme` | [`README.md`](../README.md) is generated from `sites/docs/src/lib/content.ts`, every service's `package.json` and these guides (`bun run readme:sync` regenerates); never edit it by hand |

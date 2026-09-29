@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-s3
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, portable Amazon S3 mock for AWS SDK v3. It preserves binary objects and the metadata applications read, supports path-style endpoints, multipart uploads, copies, ranges, pagination, presigned URLs, XML errors, namespace isolation, faults, and object notifications without contacting AWS.
 
 ## Install

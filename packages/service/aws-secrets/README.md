@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-aws-secrets
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, portable mock of AWS Secrets Manager and SSM Parameter Store for the official AWS SDK v3 clients. It models secret versions and stages, binary values, deterministic rotation, SecureString metadata, parameter versions, denials, decryption failures, and redacted controls without contacting AWS.
 
 ## Install

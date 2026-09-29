@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-livekit
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful LiveKit mock for `livekit-server-sdk`. It serves Twirp JSON room APIs, validates genuine HS256 LiveKit grants, models participant/track/data state, exposes deterministic SIP and egress controls, and emits correctly signed lifecycle webhooks.
 
 ## Install

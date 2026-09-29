@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-intercom
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Intercom REST API (version 2.11)** for test suites. It serves the calls
 our backend makes:
 

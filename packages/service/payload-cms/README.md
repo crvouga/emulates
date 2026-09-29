@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-payload-cms
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Payload CMS**'s collection REST API for test suites: `GET /api/<collection>`
 with Payload's paginated envelope (`docs`, `totalDocs`, `limit`, `totalPages`, `page`,
 `pagingCounter`, `hasPrevPage`, `hasNextPage`, `prevPage`, `nextPage`) and a `where` query
