@@ -291,7 +291,7 @@ const loginPageOf = (
 const requireConfiguration = (scope: RequestScope, id: string, param = "configuration") => {
   if (!scope.account.portalConfigurations.get(id)) ensureDefaultConfiguration(scope)
   const config = scope.account.portalConfigurations.get(id)
-  if (!config) throw resourceMissing("billing portal configuration", id, param)
+  if (!config) throw resourceMissing("configuration", id, param)
   return config
 }
 
