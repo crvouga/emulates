@@ -69,3 +69,14 @@ test("booking diagnostics whitelist fields and classify duplicate rejection with
   expect(summary.events).toEqual(["pending"])
   expect(JSON.stringify(summary)).not.toContain("private")
 })
+
+test("booking matches the observed duplicate guard, confirmation events, and documented address", async () => {
+  const { call } = fixture()
+  const report = await probeBookingLifecycle(call, "regression-isolated")
+  expect(report.complete).toBe(true)
+  expect(report.observations.map((entry) => entry.status)).toEqual([200, 422, 200, 200, 200])
+  expect(report.observations[0]?.appointment.events).toEqual(["pending", "scheduled"])
+  expect(report.observations[0]?.appointment.location).toEqual({ lat: 33.44219, lng: -112.075075 })
+  expect(report.observations[1]?.appointment.duplicatePatient).toBe(true)
+  expect(report.observations[3]?.appointment.events).toEqual(["pending", "scheduled", "cancelled"])
+})

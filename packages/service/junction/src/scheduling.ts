@@ -253,6 +253,39 @@ const zipTimezone = (zip: string): string => {
   return "America/Los_Angeles"
 }
 
+/** Recorded booking locations for the two synthetic addresses exercised in sandbox parity. */
+const observedPhlebotomyLocation = (address: Record<string, unknown>) => {
+  if (address.zip_code !== "85004") return undefined
+  if (address.first_line === "West Lincoln Street") return { lat: 33.44219, lng: -112.075075 }
+  if (address.first_line === "1 N Central Ave") return { lat: 33.4486237, lng: -112.0733246 }
+  return undefined
+}
+
+const duplicatePatientAppointment = (appointment: AppointmentRecord): never => {
+  const start = new Date(appointment.start_at as string)
+  const end = new Date(appointment.end_at as string)
+  const timeZone = appointment.iana_timezone ?? "America/Phoenix"
+  const date = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(start)
+    .replaceAll("/", "-")
+  const time = (value: Date) =>
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "numeric",
+      ...(value.getUTCMinutes() === 0 ? {} : { minute: "2-digit" as const }),
+    })
+      .format(value)
+      .replaceAll("\u202f", " ")
+  throw new HttpError(422, {
+    detail: `The patient already has an appointment with Getlabs on ${date} between ${time(start)} and ${time(end)}. Please cancel or reschedule the appointment before booking another appointment.`,
+  })
+}
+
 /** Known Vital sandbox centroids for booking location parity. */
 const ZIP_LOCATION: Readonly<Record<string, { lat: number; lng: number }>> = {
   "85004": { lat: 33.6242904, lng: -111.9283407 },
@@ -1555,6 +1588,23 @@ export const schedulingHandlers = (state: JunctionState) => ({
     ) {
       invalidBookingKey()
     }
+    // Controlled sandbox probe: a second order for the same patient cannot book
+    // an overlapping Getlabs appointment. Cancellation releases the patient slot.
+    const duplicate = state.appointments
+      .list()
+      .map((entry) => entry.value)
+      .find(
+        (appointment) =>
+          appointment.user_id === order.user_id &&
+          appointment.provider === "getlabs" &&
+          appointment.status !== "cancelled" &&
+          appointment.status !== "completed" &&
+          appointment.start_at !== null &&
+          appointment.end_at !== null &&
+          Date.parse(appointment.start_at) < Date.parse(record.end) &&
+          Date.parse(appointment.end_at) > Date.parse(record.start),
+      )
+    if (record.provider === "getlabs" && duplicate) duplicatePatientAppointment(duplicate)
     const nowIso = state.isoNow(context.now)
     const appointmentId = state.nextAppointmentId()
     const appointment: AppointmentRecord = {
@@ -1572,7 +1622,7 @@ export const schedulingHandlers = (state: JunctionState) => ({
       end_at: record.end,
       iana_timezone: zipTimezone(record.zip_code),
       address: record.address,
-      location: record.location,
+      location: observedPhlebotomyLocation(record.address) ?? record.location,
       can_reschedule: true,
       booking_key: record.key,
       site_code: null,
@@ -1584,7 +1634,7 @@ export const schedulingHandlers = (state: JunctionState) => ({
       updated_at: nowIso,
     }
     appendAppointmentEvent(appointment, "pending", nowIso)
-    appointment.event_status = "scheduled"
+    appendAppointmentEvent(appointment, "scheduled", nowIso)
     state.appointments.insert(appointmentId, appointment)
     state.appointmentsByOrder.insert(order.id, { appointment_id: appointmentId })
     record.consumed_by_order_id = order.id
@@ -1706,7 +1756,7 @@ export const schedulingHandlers = (state: JunctionState) => ({
       appointment.end_at = record.end
       appointment.iana_timezone = zipTimezone(record.zip_code)
       appointment.address = record.address
-      appointment.location = record.location
+      appointment.location = observedPhlebotomyLocation(record.address) ?? record.location
       appointment.booking_key = record.key
       appendAppointmentEvent(appointment, "scheduled", nowIso)
       state.appointments.update(appointment.id, appointment)

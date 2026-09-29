@@ -1,0 +1,99 @@
+{
+  "source": "https://github.com/crvouga/mockingbird/actions/runs/36591686265",
+  "observed_at": "2026-09-29",
+  "report": {
+    "complete": true,
+    "failure": null,
+    "observations": [
+      {
+        "step": "book first",
+        "status": 200,
+        "appointment": {
+          "status": "pending",
+          "eventStatus": "scheduled",
+          "events": ["pending", "scheduled"],
+          "location": {
+            "lat": 33.44219,
+            "lng": -112.075075
+          },
+          "duplicatePatient": false
+        }
+      },
+      {
+        "step": "duplicate same patient",
+        "status": 422,
+        "appointment": {
+          "status": null,
+          "eventStatus": null,
+          "events": [],
+          "location": null,
+          "duplicatePatient": true
+        }
+      },
+      {
+        "step": "cancel first",
+        "status": 200,
+        "appointment": {
+          "status": "cancelled",
+          "eventStatus": "cancelled",
+          "events": ["pending", "scheduled", "cancelled"],
+          "location": {
+            "lat": 33.44219,
+            "lng": -112.075075
+          },
+          "duplicatePatient": false
+        }
+      },
+      {
+        "step": "verify cancelled",
+        "status": 200,
+        "appointment": {
+          "status": "cancelled",
+          "eventStatus": "cancelled",
+          "events": ["pending", "scheduled", "cancelled"],
+          "location": {
+            "lat": 33.44219,
+            "lng": -112.075075
+          },
+          "duplicatePatient": false
+        }
+      },
+      {
+        "step": "book after cancellation",
+        "status": 200,
+        "appointment": {
+          "status": "pending",
+          "eventStatus": "scheduled",
+          "events": ["pending", "scheduled"],
+          "location": {
+            "lat": 33.44219,
+            "lng": -112.075075
+          },
+          "duplicatePatient": false
+        }
+      }
+    ],
+    "cleanup": [
+      {
+        "resource": "appointment",
+        "status": 400
+      },
+      {
+        "resource": "order",
+        "status": 200
+      },
+      {
+        "resource": "appointment",
+        "status": 200
+      },
+      {
+        "resource": "order",
+        "status": 200
+      },
+      {
+        "resource": "user",
+        "status": 200
+      }
+    ]
+  }
+}
