@@ -108,14 +108,18 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
     port: 0,
     fetch: app.fetch,
   })
+  // CLI 1.52+ refuses to start without an explicit filter and rejects `--events '*'`; older
+  // CLIs have no --all-snapshot and default to every event.
+  const allEventsFlags = () =>
+    Bun.spawnSync(["stripe", "listen", "--help"]).stdout.toString().includes("--all-snapshot")
+      ? ["--all-snapshot"]
+      : []
   const cli = Bun.spawn(
     [
       "stripe",
       "listen",
       "--skip-update",
-      // Newer CLIs refuse to start without an explicit filter; `*` is the older default.
-      "--events",
-      "*",
+      ...allEventsFlags(),
       "--forward-to",
       `http://127.0.0.1:${receiver.port}/stripe`,
     ],
