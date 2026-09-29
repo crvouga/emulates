@@ -52,6 +52,19 @@ jobs:
         timeout-minutes: 20
         run: bunx turbo run build --output-logs=errors-only
 
+      # Stripe's parity script compares webhook deliveries through `stripe listen`, which needs the
+      # Stripe CLI on PATH (the runner image does not ship it).
+      - name: Install Stripe CLI
+        if: contains(inputs.services, 'stripe') || contains(inputs.services, '--all')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo stripe/stripe-cli --pattern 'stripe_*_linux_x86_64.tar.gz' --dir "$RUNNER_TEMP"
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf "$RUNNER_TEMP"/stripe_*_linux_x86_64.tar.gz -C "$HOME/.local/bin" stripe
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/stripe" version
+
       # Sandbox keys, mapped one by one. Dumping the whole secrets context (toJSON(secrets))
       # makes GitHub hold every run as "may be malicious" until someone approves it by hand.
       # A service's parity script reads <SERVICE>_*; add its secrets here.
