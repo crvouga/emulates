@@ -18,6 +18,8 @@ import { document, JunctionAPI } from "../src/index.js"
 import { prefetchCoverageObservations } from "../src/prefetch.js"
 import { reshapeCoverageGeoCommand } from "../src/reshape.js"
 import { PARITY_SEEDS } from "../src/seeds.js"
+import { cancelWalkAppointments } from "./booking-cleanup.js"
+import bookingObservation from "./booking-probe-observation.json" with { type: "json" }
 import { probeBookingLifecycle } from "./booking-probes.js"
 import { diagnoseSimulationFailure } from "./simulation-diagnostics.js"
 import { probeSimulationLifecycle } from "./simulation-probes.js"
@@ -232,6 +234,13 @@ const cleanup = async ({
   real: { fetch: (request: Request) => Promise<Response>; baseUrl: string }
   scope: Scope
 }) => {
+  await cancelWalkAppointments(
+    probeCall,
+    table
+      .all()
+      .filter((resource) => resource.type === "order")
+      .flatMap((resource) => (resource.ids.real ? [resource.ids.real] : [])),
+  )
   for (const resource of table.all()) {
     const id = resource.ids.real
     if (id === undefined) continue
@@ -246,13 +255,31 @@ const cleanup = async ({
     }
   }
   await clearSandboxUsers()
+  walkPatientId = crypto.randomUUID()
 }
 
+let walkPatientId = crypto.randomUUID()
 const reshapeCommand = (
   command: LogicalCommand,
   state: ExploreState,
   rng: ExploreRng,
-): LogicalCommand => reshapeCoverageGeoCommand(command, state, rng)
+): LogicalCommand => {
+  const shaped = reshapeCoverageGeoCommand(command, state, rng)
+  if (shaped.operationId !== "create_order_v3_order_post") return shaped
+  const body = shaped.body as Record<string, unknown>
+  return {
+    ...shaped,
+    body: {
+      ...body,
+      patient_details: {
+        ...(body.patient_details as Record<string, unknown>),
+        last_name: `Fixture${walkPatientId.replace(/[^a-z]/gi, "")}`,
+        email: `parity-${walkPatientId}@example.com`,
+        phone_number: `+120255501${String([...walkPatientId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 100).padStart(2, "0")}`,
+      },
+    },
+  }
+}
 
 /**
  * The Vital sandbox intermittently answers 500/502/503/504 with a text body (documented
@@ -711,6 +738,12 @@ await writeFile(
 console.log(`junction booking probes: ${JSON.stringify(bookingProbe)}`)
 if (!bookingProbe.complete)
   throw new Error("junction booking probes incomplete; see sanitized report")
+if (
+  JSON.stringify(bookingProbe.observations) !==
+  JSON.stringify(bookingObservation.report.observations)
+) {
+  throw new Error("junction booking lifecycle baseline changed; see sanitized report")
+}
 
 try {
   await probeLabAccounts()

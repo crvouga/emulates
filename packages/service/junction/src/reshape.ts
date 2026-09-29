@@ -18,7 +18,7 @@ const AVAIL_PSC = "get_psc_appointment_availability_v3_order_psc_appointment_ava
 
 /** Stable address fields so availability observation-cache keys match prefetch (85004). */
 export const AVAILABILITY_ADDRESS = {
-  first_line: "1 N Central Ave",
+  first_line: "West Lincoln Street",
   second_line: null as string | null,
   city: "Phoenix",
   state: "AZ",
