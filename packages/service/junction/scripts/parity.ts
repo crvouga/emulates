@@ -689,6 +689,17 @@ await writeFile(
 console.log(`junction simulation probes: ${JSON.stringify(simulationProbe)}`)
 if (!simulationProbe.complete)
   throw new Error("junction simulation probes incomplete; see sanitized report")
+// Preserve the edge cases explicitly even if normal walk generation changes later.
+const expectedSimulationStatuses = [200, 200, 500, 500]
+if (
+  simulationProbe.cases.some(
+    (entry, index) =>
+      entry.status !== expectedSimulationStatuses[index] ||
+      (entry.cancelled && JSON.stringify(entry.before) !== JSON.stringify(entry.after)),
+  )
+) {
+  throw new Error("junction simulation edge-case baseline changed; see sanitized report")
+}
 
 try {
   await probeLabAccounts()
