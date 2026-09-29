@@ -470,7 +470,7 @@ export const billingPortalHandlers = (services: Services): Record<string, Operat
       200,
       await paginate<BillingPortalConfigurationRecord>(scope.account.portalConfigurations, params, {
         url: "/v1/billing_portal/configurations",
-        kind: "billing portal configuration",
+        kind: "configuration",
         where: (config) =>
           (active === undefined || config.active === active) &&
           (isDefault === undefined || config.is_default === isDefault),
