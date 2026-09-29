@@ -46,7 +46,26 @@ export type Client = {
   /** Apple developer/app grouping or OIDC pairwise identity sector. */
   subjectGroup?: string
   /** Verify an Apple ES256 client-secret JWT instead of a static fixture secret. */
-  apple?: { teamId: string; keyId: string; publicKey: JsonWebKey }
+  apple?: {
+    teamId: string
+    keyId: string
+    publicKey: JsonWebKey
+    /** Where Sign in with Apple server-to-server notifications are POSTed. */
+    notificationUrl?: string
+  }
+}
+export type AppleNotificationType =
+  | "consent-revoked"
+  | "account-delete"
+  | "email-disabled"
+  | "email-enabled"
+/** Outcome of one server-to-server notification; a failed delivery never throws. */
+export type NotificationDelivery = {
+  clientId: string
+  type: AppleNotificationType
+  delivered: boolean
+  status?: number
+  error?: string
 }
 export type Authorization = {
   clientId: string

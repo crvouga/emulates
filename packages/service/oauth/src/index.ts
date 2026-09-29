@@ -2,7 +2,16 @@ import { type APIOptions, bootSqlite, Collection, seedFrom } from "@crvouga/mock
 import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { type BehaviorInput, BehaviorState, type OAuthBehavior } from "./behavior.js"
 import { halfHash, hash, random, Signer, verifyAppleSecret } from "./crypto.js"
-import type { Account, Authorization, Client, Grant, Provider, Token } from "./types.js"
+import type {
+  Account,
+  AppleNotificationType,
+  Authorization,
+  Client,
+  Grant,
+  NotificationDelivery,
+  Provider,
+  Token,
+} from "./types.js"
 import { consentPage, escapeHtml, loginPage, page } from "./ui.js"
 
 export type {
@@ -18,7 +27,13 @@ export type { OAuthMount, OAuthMultiRuntime, OAuthMultiRuntimeOptions } from "./
 export { createMultiRuntime } from "./multi.js"
 export type { OAuthRuntime, OAuthRuntimeOptions } from "./runtime.js"
 export { createRuntime, OAUTH_PRESETS } from "./runtime.js"
-export type { Account, Client, Provider } from "./types.js"
+export type {
+  Account,
+  AppleNotificationType,
+  Client,
+  NotificationDelivery,
+  Provider,
+} from "./types.js"
 
 export type OAuthAPIOptions = APIOptions & {
   /** Browser Fetch forbids Cookie/Set-Cookie; local transports may explicitly remap them. */
@@ -36,6 +51,8 @@ export type OAuthAPIOptions = APIOptions & {
   seed?: number | string
   /** CSP nonce source for form-post responses. Defaults to `crypto.randomUUID`. */
   nonce?: () => string
+  /** Outbound delivery of Sign in with Apple server-to-server notifications. Defaults to global `fetch`. */
+  webhooks?: { fetch?: (request: Request) => Promise<Response> }
 }
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "cache-control": "no-store", pragma: "no-cache" } })
@@ -78,6 +95,8 @@ export class OAuthAPI {
   private readonly consents: Collection<{ scope: string }>
   private signer = new Signer()
   private previousSigners: Signer[] = []
+  /** Never published: signs ID tokens for `tokens.idTokenSigningKey: "unpublished"`. */
+  private unpublishedSigner?: Signer
   readonly behavior: BehaviorState
   private readonly identities: Collection<Grant["identity"]>
   private readonly appleDisclosures: Collection<{ disclosed: boolean }>
@@ -197,6 +216,17 @@ export class OAuthAPI {
       throw new Error(
         "Apple client requires teamId, keyId and a public P-256 JWK, without a static secret",
       )
+    if (
+      client.apple?.notificationUrl !== undefined &&
+      !(
+        typeof client.apple.notificationUrl === "string" &&
+        safeRedirect(client.apple.notificationUrl) &&
+        WEB_SCHEMES.has(new URL(client.apple.notificationUrl).protocol)
+      )
+    )
+      throw new Error(
+        "apple.notificationUrl must be an HTTP(S) URL without fragment or credentials",
+      )
     this.clients.insert(client.id, structuredClone(client))
     return client
   }
@@ -205,7 +235,7 @@ export class OAuthAPI {
     this.behavior.configure(this.options.behavior ?? {})
     this.seed()
   }
-  private issuer(request: Request): string {
+  issuer(request: Request): string {
     const prefix =
       this.options.publicNamespace && this.options.publicNamespace !== "default"
         ? `/ns/${encodeURIComponent(this.options.publicNamespace)}`
@@ -223,7 +253,112 @@ export class OAuthAPI {
     this.signer = new Signer()
     return { kid: this.signer.kid }
   }
-  revokeConsent(clientId: string, accountId: string): void {
+  /**
+   * Withdraws one client's consent. When the client registered `apple.notificationUrl` and held
+   * the consent, Apple's `consent-revoked` notification is delivered before this resolves.
+   */
+  async revokeConsent(
+    clientId: string,
+    accountId: string,
+    issuer?: string,
+  ): Promise<NotificationDelivery[]> {
+    const targets = this.notifiable(accountId).filter((t) => t.client.id === clientId)
+    this.forget(clientId, accountId)
+    return this.notify(targets, "consent-revoked", issuer)
+  }
+  /**
+   * Deletes an account with its grants and sessions, after telling every client that held a
+   * consent (`account-delete`).
+   */
+  async deleteAccount(accountId: string, issuer?: string): Promise<NotificationDelivery[]> {
+    if (!this.accounts.has(accountId)) throw new Error("Unknown account")
+    const targets = this.notifiable(accountId)
+    for (const { value: client } of this.clients.list()) this.forget(client.id, accountId)
+    for (const row of this.codes.list({ where: (c) => c.accountId === accountId }))
+      this.codes.delete(row.id)
+    for (const row of this.tokens.list({ where: (t) => t.accountId === accountId }))
+      this.tokens.delete(row.id)
+    for (const row of this.transactions.list({ where: (t) => t.accountId === accountId }))
+      this.transactions.delete(row.id)
+    for (const row of this.sessions.list({ where: (s) => s.accountId === accountId }))
+      this.sessions.delete(row.id)
+    this.accounts.delete(accountId)
+    return this.notify(targets, "account-delete", issuer)
+  }
+  /**
+   * Tells every client whose identity for the account is a private relay address that the user
+   * turned forwarding off (`email-disabled`) or on (`email-enabled`).
+   */
+  async setRelayForwarding(
+    accountId: string,
+    forwarding: boolean,
+    issuer?: string,
+  ): Promise<NotificationDelivery[]> {
+    if (!this.accounts.has(accountId)) throw new Error("Unknown account")
+    return this.notify(
+      this.notifiable(accountId).filter((t) => t.relay),
+      forwarding ? "email-enabled" : "email-disabled",
+      issuer,
+      true,
+    )
+  }
+  /** Clients with a notification endpoint that hold a consent for the account. */
+  private notifiable(accountId: string) {
+    return this.clients.list({ order: "oldest" }).flatMap(({ value: client }) => {
+      const identity = this.identities.get(this.identityKey(client, accountId))
+      return client.apple?.notificationUrl &&
+        identity &&
+        this.consents.has(JSON.stringify([client.id, accountId]))
+        ? [{ client, sub: identity.sub, email: identity.email, relay: identity.privateEmail }]
+        : []
+    })
+  }
+  private async notify(
+    targets: { client: Client; sub: string; email: string }[],
+    type: AppleNotificationType,
+    issuer: string | undefined,
+    withEmail = false,
+  ): Promise<NotificationDelivery[]> {
+    if (!targets.length) return []
+    const iss = issuer ?? this.options.issuer
+    if (!iss) throw new Error("A notification needs the issuer option or an issuer argument")
+    const send = this.options.webhooks?.fetch ?? ((r: Request) => fetch(r))
+    const deliveries: NotificationDelivery[] = []
+    for (const { client, sub, email } of targets) {
+      const payload = await this.signer.sign({
+        iss: iss.replace(/\/$/, ""),
+        aud: client.id,
+        iat: Math.floor(this.now() / 1000),
+        jti: random(),
+        events: JSON.stringify({
+          type,
+          sub,
+          ...(withEmail ? { email, is_private_email: "true" } : {}),
+          event_time: this.now(),
+        }),
+      })
+      try {
+        const response = await send(
+          new Request(client.apple?.notificationUrl ?? "", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ payload }),
+          }),
+        )
+        deliveries.push({
+          clientId: client.id,
+          type,
+          delivered: response.ok,
+          status: response.status,
+        })
+      } catch (error) {
+        deliveries.push({ clientId: client.id, type, delivered: false, error: String(error) })
+      }
+    }
+    return deliveries
+  }
+  /** Drops one client's grant for an account: consent, identity, first-use disclosure, codes, tokens. */
+  private forget(clientId: string, accountId: string): void {
     const key = JSON.stringify([clientId, accountId])
     this.consents.delete(key)
     this.refreshIssued.delete(key)
@@ -396,13 +531,18 @@ export class OAuthAPI {
   private async idToken(grant: Grant, issuer: string, extra: Record<string, unknown> = {}) {
     const account = this.accounts.get(grant.accountId)
     if (!account) throw new Error("Account no longer exists")
-    return this.signer.sign({
+    const tokens = this.behavior.config.tokens
+    const skew = tokens?.idTokenClockSkewSeconds ?? 0
+    const iat = Math.floor(this.now() / 1000) + skew
+    const unpublished = tokens?.idTokenSigningKey === "unpublished"
+    if (unpublished) this.unpublishedSigner ??= new Signer()
+    return ((unpublished && this.unpublishedSigner) || this.signer).sign({
       ...this.profile(account, grant),
       iss: issuer,
       aud: grant.clientId,
-      iat: Math.floor(this.now() / 1000),
-      exp: Math.floor(this.now() / 1000) + (this.behavior.config.tokens?.accessTtlSeconds ?? 3600),
-      auth_time: Math.floor(grant.authTime / 1000),
+      iat,
+      exp: iat + (tokens?.accessTtlSeconds ?? 3600),
+      auth_time: Math.floor(grant.authTime / 1000) + skew,
       ...(grant.nonce ? { nonce: grant.nonce } : {}),
       ...extra,
     })
@@ -835,6 +975,9 @@ export class OAuthAPI {
         "Session expired",
         '<span class="eyebrow">Let’s try again</span><h1 id="title">This sign-in expired</h1><p>Return to your application and start sign-in again.</p>',
         400,
+        undefined,
+        undefined,
+        "oauth-mock-error",
       )
     const accounts = () =>
       this.accounts.list({ order: "oldest", where: (a) => !a.disabled }).map((a) => a.value)
@@ -1051,10 +1194,11 @@ export class OAuthAPI {
           .map(([k, v]) => `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`)
           .join(
             "",
-          )}<button class="primary">Continue</button></form><script nonce="${nonce}">document.getElementById('callback').submit()</script>`,
+          )}<button class="primary" data-testid="oauth-mock-form-post-continue">Continue</button></form><script nonce="${nonce}">document.getElementById('callback').submit()</script>`,
         200,
         formTarget(auth.redirectUri),
         nonce,
+        "oauth-mock-form-post",
       )
       return result
     }
