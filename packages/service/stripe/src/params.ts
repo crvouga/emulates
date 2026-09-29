@@ -301,10 +301,12 @@ export const bodyParams = (context: OperationContext, options: ParamOptions = {}
     raw.preferred_locales === ""
   )
     delete raw.preferred_locales
-  if (typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === "")
-    throw parameterInvalidEmpty("expand")
+  const expandEmpty =
+    typeof raw === "object" && raw !== null && !Array.isArray(raw) && raw.expand === ""
   const { rest, expand } = withoutExpand(raw)
   const params = stringMetadata(parseParams(formBodySchema(context), rest, options))
+  // Stripe refuses an empty `expand` only after the other parameters have been read.
+  if (expandEmpty) throw parameterInvalidEmpty("expand")
   return expand.length === 0 ? params : { ...params, expand }
 }
 
