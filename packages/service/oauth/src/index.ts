@@ -8,6 +8,7 @@ import type {
   Authorization,
   Client,
   Grant,
+  GrantView,
   NotificationDelivery,
   Provider,
   Token,
@@ -31,6 +32,7 @@ export type {
   Account,
   AppleNotificationType,
   Client,
+  GrantView,
   NotificationDelivery,
   Provider,
 } from "./types.js"
@@ -375,6 +377,42 @@ export class OAuthAPI {
       where: (t) => t.clientId === clientId && t.accountId === accountId,
     }))
       this.tokens.delete(row.id)
+  }
+  /**
+   * What `clientId` sees for `accountId` (a test control mirroring private provider state), or
+   * `null` for an unknown client or account. For a client that never authorized the account,
+   * `subject` is the id token `sub` it would receive and `email` the real address.
+   */
+  async grant(clientId: string, accountId: string): Promise<GrantView | null> {
+    const client = this.clients.get(clientId)
+    const account = this.accounts.get(accountId)
+    if (!client || !account) return null
+    const key = this.identityKey(client, account.id)
+    const identity = this.identities.get(key)
+    const consent = this.consents.get(JSON.stringify([clientId, accountId]))
+    return {
+      subject:
+        identity?.sub ??
+        (this.provider === "apple" || this.provider === "microsoft" ? await hash(key) : account.id),
+      granted: consent !== undefined,
+      scopes: [...scopes(consent?.scope ?? "")],
+      emailChoice:
+        this.provider === "apple" && identity ? (identity.privateEmail ? "hide" : "share") : null,
+      email: identity?.email ?? account.email,
+      isPrivateEmail: identity?.privateEmail ?? false,
+      userDisclosed: this.appleDisclosures.has(key),
+    }
+  }
+  /** The grant view of every account that has authorized `clientId`, oldest account first. */
+  async grants(clientId: string): Promise<(GrantView & { accountId: string })[] | null> {
+    if (!this.clients.has(clientId)) return null
+    const rows: (GrantView & { accountId: string })[] = []
+    for (const { id, value } of this.accounts.list({ order: "oldest" })) {
+      if (!this.consents.has(JSON.stringify([clientId, id]))) continue
+      const view = await this.grant(clientId, value.id)
+      if (view) rows.push({ accountId: value.id, ...view })
+    }
+    return rows
   }
   private paths() {
     const paths = {

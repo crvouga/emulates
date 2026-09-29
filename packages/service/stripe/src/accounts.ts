@@ -2,6 +2,23 @@ import { accountOfKey } from "./account.js"
 import { isApiVersion } from "./version.js"
 
 /**
+ * Automatic collection retries of a failed `charge_automatically` subscription invoice: each
+ * entry of `scheduleDays` is a retry that many days after the first failure, and `afterAllFail`
+ * is what the subscription becomes once the last retry has failed (Stripe's "Manage failed
+ * payments for subscriptions" setting).
+ */
+export type PaymentRetryPolicy = {
+  scheduleDays: readonly number[]
+  afterAllFail: "cancel" | "unpaid" | "past_due"
+}
+
+/** Stripe's classic "retry up to 3 times over 1 week", then cancel the subscription. */
+export const DEFAULT_PAYMENT_RETRIES: PaymentRetryPolicy = {
+  scheduleDays: [3, 5, 7],
+  afterAllFail: "cancel",
+}
+
+/**
  * One Stripe account the mock stands in for. Several keys may act as the same account: our
  * backend's legacy `STRIPE_API_KEY` and `STRIPE_MSO_API_KEY` are both the MSO account and must
  * share state, and the EMR key maps to MSO unless configured otherwise.
@@ -19,6 +36,37 @@ export type AccountConfig = {
   corpus?: boolean
   /** `business_profile.name` / `settings.dashboard.display_name` on `GET /v1/account`. */
   displayName?: string
+  /** Failed-payment handling for this account; unset fields use the runtime's `lifecycle` default. */
+  billing?: { retries?: Partial<PaymentRetryPolicy> }
+}
+
+const RETRY_OUTCOMES = ["cancel", "unpaid", "past_due"]
+
+const validateRetries = (id: string, value: unknown): Partial<PaymentRetryPolicy> | string => {
+  const raw = (value as { retries?: unknown } | null)?.retries
+  if (typeof value !== "object" || value === null || typeof raw !== "object" || raw === null)
+    return `${id}: billing must be {"retries": {"scheduleDays": [3, 5, 7], "afterAllFail": "cancel"}}`
+  const { scheduleDays, afterAllFail } = raw as Record<string, unknown>
+  if (
+    scheduleDays !== undefined &&
+    (!Array.isArray(scheduleDays) ||
+      scheduleDays.some(
+        (day, index) =>
+          typeof day !== "number" ||
+          !Number.isFinite(day) ||
+          day <= 0 ||
+          (index > 0 && day <= (scheduleDays[index - 1] as number)),
+      ))
+  )
+    return `${id}: billing.retries.scheduleDays must be increasing positive numbers of days`
+  if (afterAllFail !== undefined && !RETRY_OUTCOMES.includes(afterAllFail as string))
+    return `${id}: billing.retries.afterAllFail must be one of ${RETRY_OUTCOMES.join(", ")}`
+  return {
+    ...(scheduleDays !== undefined ? { scheduleDays: scheduleDays as number[] } : {}),
+    ...(afterAllFail !== undefined
+      ? { afterAllFail: afterAllFail as PaymentRetryPolicy["afterAllFail"] }
+      : {}),
+  }
 }
 
 /** Default version of webhook payloads: the one every backend receiver of ours pins. */
@@ -65,8 +113,11 @@ export const validateAccounts = (value: unknown): AccountConfig[] | string => {
         Object.values(secrets).some((secret) => typeof secret !== "string"))
     )
       return `${raw.id}: webhookSecrets must map receiver URLs to whsec_ secrets`
+    const retries = raw.billing === undefined ? undefined : validateRetries(raw.id, raw.billing)
+    if (typeof retries === "string") return retries
     accounts.push({
       id: raw.id,
+      ...(retries ? { billing: { retries } } : {}),
       keys: raw.keys as string[],
       ...(typeof raw.apiVersion === "string" ? { apiVersion: raw.apiVersion } : {}),
       ...(secrets ? { webhookSecrets: secrets as Record<string, string> } : {}),

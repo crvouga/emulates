@@ -21,6 +21,7 @@ import { chargeOutcomeFor } from "./test-tokens.js"
 
 const requireSetupIntent = (scope: RequestScope, id: string) => {
   const intent = scope.account.setupIntents.get(id)
+  // Stripe words this one "setupintent", unlike every other resource.
   if (!intent) throw resourceMissing("setupintent", id, "intent")
   return intent
 }

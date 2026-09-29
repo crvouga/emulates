@@ -237,7 +237,15 @@ export const parseParams = (
       if (error) throw error
     }
     const issue = issues[0]
-    if (issue) throw issueToError(issue)
+    if (issue) {
+      // Stripe checks list elements in order, so an element ahead of the failing one is
+      // reported first when its semantic check fails.
+      const failing = /^[^[]+\[(\d+)\]/.exec(issue.path)?.[1]
+      const list = params[key]
+      if (failing !== undefined && Number(failing) > 0 && Array.isArray(list))
+        options.validate?.[key]?.({ ...params, [key]: list.slice(0, Number(failing)) })
+      throw issueToError(issue)
+    }
     options.validate?.[key]?.(params)
   }
   const stray = parsed.issues[0]
