@@ -9,7 +9,7 @@
  *
  * The branch must be pushed: the runner checks out what is on GitHub, not this working tree.
  */
-import { $ } from "bun"
+import { $, type ShellExpression } from "bun"
 
 const WORKFLOW = "parity.yml"
 
@@ -19,7 +19,7 @@ if (services.length === 0) {
   process.exit(2)
 }
 
-const sh = async (strings: TemplateStringsArray, ...values: unknown[]) => {
+const sh = async (strings: TemplateStringsArray, ...values: ShellExpression[]) => {
   const result = await $(strings, ...values)
     .quiet()
     .nothrow()

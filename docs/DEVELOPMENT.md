@@ -66,6 +66,8 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | Agent commands | `bun run check:agents` | Every `.agents/commands/*.md` is symlinked into each agent harness (`bun run agents:sync` repairs) |
 | Parity tiers | `bun run check:parity-tiers` | Every service's `mockingbird.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
 | Worktree lifecycle | `bun run check:worktree` | Every orchestrator's config (`.superset/`, `.super.engineering/`) runs the same [`scripts/worktree`](../scripts/worktree/README.md) setup, run and teardown (`bun run worktree:sync` regenerates) |
+| Scripts | `bun run check:scripts` | Every `scripts/**/*.ts` typechecks under the base tsconfig (`scripts/tsconfig.json`), and `bun test ./scripts` passes |
+| Workflows | `bun run check:workflows` | Every `.github/workflows/*.yml` passes a pinned, checksum-verified [actionlint](https://github.com/rhysd/actionlint) (its `run:` scripts through shellcheck when that is installed, as on GitHub's runners) |
 
 ### Git hooks (Husky)
 
