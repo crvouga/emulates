@@ -34,6 +34,8 @@ packages/service/<name>/
 | Contract item | How |
 | --- | --- |
 | `GET /health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-mockingbird` response header | automatic |
+| State introspection | automatic. `GET /__admin/state` lists every collection: ones you declare with `state:`, every `Collection` hanging off the instance, and every name already stored. `POST /__admin/state/:collection` with `{ id?, value }` creates a row; `PUT` replaces, `PATCH` shallow-merges an object, `DELETE` removes it. A successful write checkpoints `main`. The same view is `runtime.state(namespace?)`. |
+| Admin UI | automatic at `GET /__admin/ui` (the HTML shell is not behind the admin key; `/__admin/ui/manifest` and the data routes are). Pass `adminUi.panels` to add a view (`id`, `title`, `html`, optional `script` called as `(root, api) => void`). Pass `adminUi.render({ service, defaultHtml })` to replace the document; call `defaultHtml()` to keep the shared shell. [`packages/service/plane`](../packages/service/plane) is the bespoke-panel example. |
 | Namespaces by header | automatic (`x-mockingbird-namespace`) |
 | Namespaces by path prefix | automatic: `/ns/<name>/…` is stripped and selects `<name>` |
 | Namespaces by credential | pass `credential: (request) => string \| undefined` (`bearerToken`, `basicAuth(r)?.username`, `sigV4AccessKeyId`, or your own); suites map credentials with `PUT /__admin/credentials {"credentials": {"<cred>": "<ns>"}}` |
@@ -49,6 +51,14 @@ packages/service/<name>/
 | Write an object into the stack's S3 (s3rver) | `putObject({endpoint, bucket}, key, body, contentType)` (SigV4) |
 
 Handlers are keyed by `operationId` (`defineOperations<SupportedOperationId>({...})`). Use
+`createRuntime` returns a `MockSurface`. Extra methods (`tick`, a typed webhook hub, account
+directories) stay on the value; removing a shared member fails the typecheck.
+`packages/service/conformance` imports every HTTP mock's `createRuntime` and checks it is
+`(options?: MockCreateOptions) => MockSurface`, then probes `/health`, `/__admin`, `/__admin/ui`,
+and `/__admin/state`. A new mock has to be added there. `defineMock` is the same check for a
+runtime you build by hand. Service admin routes add keys beside the standard ones; a standard key
+keeps the shared handler.
+
 `Collection` for all durable or externally observable records (so reset and Timeline history cover
 them), `IdSequence` for deterministic ids, the injected `now` for every timestamp (the mock clock),
 and `annotateResponse(res, {ids})` to put touched resource ids in the journal. `Timeline` is the

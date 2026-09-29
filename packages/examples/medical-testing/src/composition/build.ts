@@ -1,6 +1,6 @@
 import type { Hono } from "hono"
 import { createPostgresMockDb } from "../adapters/db/postgresMockDb.js"
-import { createOAuthMockIdentity } from "../adapters/identity/oauthMockIdentity.js"
+import { createOAuthMockIdentity, type MockAdmin } from "../adapters/identity/oauthMockIdentity.js"
 import { createJunctionMockLabTesting } from "../adapters/labTesting/junctionMockLabTesting.js"
 import { createStripeMockPayments } from "../adapters/payments/stripeMockPayments.js"
 import { seedCatalog } from "../app/catalog/seed.js"
@@ -8,6 +8,16 @@ import { APP_ORIGIN } from "../app/checkout/createCheckout.js"
 import { migrate } from "../app/db/schema.js"
 import { type ClientAssets, createApp } from "../app/http/app.js"
 import type { AppEnv } from "../app/http/appEnv.js"
+import type { Db } from "../app/ports/db.js"
+
+export type { MockAdmin }
+
+/** The running app plus the live admin fetch for every mock it is talking to. */
+export type Demo = {
+  app: Hono<AppEnv>
+  db: Db
+  admins: readonly MockAdmin[]
+}
 
 /**
  * Wires a fresh instance of the whole app together: builds every adapter
@@ -23,7 +33,7 @@ import type { AppEnv } from "../app/http/appEnv.js"
  * dependency: the adapters close over a `dispatch` function that forwards
  * into whatever `appRef.current` is once construction finishes below.
  */
-export const buildApp = async (assets: ClientAssets): Promise<Hono<AppEnv>> => {
+export const buildDemo = async (assets: ClientAssets): Promise<Demo> => {
   const appRef: { current?: Hono<AppEnv> } = {}
   const dispatch = async (request: Request): Promise<Response> => {
     if (!appRef.current) throw new Error("App not ready yet")
@@ -42,9 +52,16 @@ export const buildApp = async (assets: ClientAssets): Promise<Hono<AppEnv>> => {
   })
 
   await migrate(db)
-  await seedCatalog(db, labTesting)
+  await seedCatalog(db, labTesting.client)
 
-  const app = createApp({ db, payments, labTesting, identity }, assets)
+  const app = createApp(
+    { db, payments: payments.client, labTesting: labTesting.client, identity: identity.client },
+    assets,
+  )
   appRef.current = app
-  return app
+  return { app, db, admins: [...identity.admins, payments.admin, labTesting.admin] }
 }
+
+/** The Hono app alone. Tests and the standalone server do not open the admin tabs. */
+export const buildApp = async (assets: ClientAssets): Promise<Hono<AppEnv>> =>
+  (await buildDemo(assets)).app

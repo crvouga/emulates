@@ -348,19 +348,23 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
           uptimeMs: context.wallNow() - context.startedAt,
           clock: context.clock.state(),
           namespaces: context.namespaces().length,
+          adminUi: `${ADMIN_PREFIX}/ui`,
           ...context.describe(),
         })
       }
       if (url.pathname !== ADMIN_PREFIX && !url.pathname.startsWith(`${ADMIN_PREFIX}/`)) {
         return undefined
       }
+      const path = url.pathname.slice(ADMIN_PREFIX.length) || "/"
+      // The shell has no data. Panel markup stays on GET /ui/manifest, which is locked.
+      const shell = request.method === "GET" && (path === "/ui" || path === "/ui/")
       if (
+        !shell &&
         context.adminKey !== undefined &&
         request.headers.get(ADMIN_KEY_HEADER) !== context.adminKey
       ) {
         return adminError(401, `missing or wrong ${ADMIN_KEY_HEADER}`)
       }
-      const path = url.pathname.slice(ADMIN_PREFIX.length) || "/"
       for (const route of routes) {
         if (route.method !== request.method) continue
         const params = matchRoute(route.pattern, path)

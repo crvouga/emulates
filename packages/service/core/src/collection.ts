@@ -19,8 +19,10 @@ type RecordRow = { id: string; seq: number; value: string }
 export class Collection<T> {
   constructor(
     private readonly sqlite: SqliteClient,
-    private readonly namespace: string,
-    private readonly name: string,
+    /** Storage namespace. Admin introspection uses this to ignore another namespace's tables. */
+    readonly namespace: string,
+    /** Table name inside the namespace. Stable across resets of the rows themselves. */
+    readonly collectionName: string,
   ) {}
 
   private bumpCollectionSeq(): number {
@@ -28,14 +30,14 @@ export class Collection<T> {
       .prepare(
         "SELECT value FROM mockingbird_sequences WHERE namespace = ? AND name = ? AND kind = 'collection'",
       )
-      .get<{ value: number }>(this.namespace, this.name)
+      .get<{ value: number }>(this.namespace, this.collectionName)
     const next = (row?.value ?? 0) + 1
     this.sqlite
       .prepare(
         `INSERT INTO mockingbird_sequences (namespace, name, kind, value) VALUES (?, ?, 'collection', ?)
          ON CONFLICT(namespace, name, kind) DO UPDATE SET value = excluded.value`,
       )
-      .run(this.namespace, this.name, next)
+      .run(this.namespace, this.collectionName, next)
     return next
   }
 
@@ -48,7 +50,7 @@ export class Collection<T> {
       .prepare(
         "SELECT value FROM mockingbird_records WHERE namespace = ? AND collection = ? AND id = ?",
       )
-      .get<{ value: string }>(this.namespace, this.name, id)
+      .get<{ value: string }>(this.namespace, this.collectionName, id)
     if (!row) return undefined
     return (JSON.parse(row.value) as Stored<T>).value
   }
@@ -58,7 +60,7 @@ export class Collection<T> {
       .prepare(
         "SELECT 1 AS ok FROM mockingbird_records WHERE namespace = ? AND collection = ? AND id = ?",
       )
-      .get<{ ok: number }>(this.namespace, this.name, id)
+      .get<{ ok: number }>(this.namespace, this.collectionName, id)
     return row !== undefined
   }
 
@@ -73,7 +75,7 @@ export class Collection<T> {
            VALUES (?, ?, ?, ?, ?)
            ON CONFLICT(namespace, collection, id) DO UPDATE SET seq = excluded.seq, value = excluded.value`,
         )
-        .run(this.namespace, this.name, id, seq, JSON.stringify(stored))
+        .run(this.namespace, this.collectionName, id, seq, JSON.stringify(stored))
       return stored
     })
   }
@@ -85,14 +87,14 @@ export class Collection<T> {
         .prepare(
           "SELECT seq, value FROM mockingbird_records WHERE namespace = ? AND collection = ? AND id = ?",
         )
-        .get<{ seq: number; value: string }>(this.namespace, this.name, id)
+        .get<{ seq: number; value: string }>(this.namespace, this.collectionName, id)
       if (!row) return undefined
       const stored = { seq: row.seq, value }
       this.sqlite
         .prepare(
           "UPDATE mockingbird_records SET value = ? WHERE namespace = ? AND collection = ? AND id = ?",
         )
-        .run(JSON.stringify(stored), this.namespace, this.name, id)
+        .run(JSON.stringify(stored), this.namespace, this.collectionName, id)
       return stored
     })
   }
@@ -100,7 +102,7 @@ export class Collection<T> {
   delete(id: string): boolean {
     const result = this.sqlite
       .prepare("DELETE FROM mockingbird_records WHERE namespace = ? AND collection = ? AND id = ?")
-      .run(this.namespace, this.name, id)
+      .run(this.namespace, this.collectionName, id)
     return result.changes > 0
   }
 
@@ -110,7 +112,7 @@ export class Collection<T> {
       .prepare(
         "SELECT COUNT(*) AS n FROM mockingbird_records WHERE namespace = ? AND collection = ?",
       )
-      .get<{ n: number }>(this.namespace, this.name)
+      .get<{ n: number }>(this.namespace, this.collectionName)
     return Number(row?.n ?? 0)
   }
 
@@ -119,7 +121,7 @@ export class Collection<T> {
       .prepare(
         "SELECT id, seq, value FROM mockingbird_records WHERE namespace = ? AND collection = ?",
       )
-      .all<RecordRow>(this.namespace, this.name)
+      .all<RecordRow>(this.namespace, this.collectionName)
     const out: Array<Stored<T> & { id: string }> = []
     for (const row of rows) {
       const stored = JSON.parse(row.value) as Stored<T>
