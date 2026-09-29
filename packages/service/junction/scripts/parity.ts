@@ -18,6 +18,7 @@ import { document, JunctionAPI } from "../src/index.js"
 import { prefetchCoverageObservations } from "../src/prefetch.js"
 import { reshapeCoverageGeoCommand } from "../src/reshape.js"
 import { PARITY_SEEDS } from "../src/seeds.js"
+import { probeBookingLifecycle } from "./booking-probes.js"
 import { diagnoseSimulationFailure } from "./simulation-diagnostics.js"
 import { probeSimulationLifecycle } from "./simulation-probes.js"
 
@@ -662,7 +663,7 @@ const probeLabAccounts = async () => {
     `junction lab-account probes: wrote corpus/lab-account-probes.json (${probes.length} probes)`,
   )
 }
-const simulationProbe = await probeSimulationLifecycle(async (method, path, body) => {
+const probeCall: Parameters<typeof probeBookingLifecycle>[0] = async (method, path, body) => {
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: {
@@ -679,7 +680,8 @@ const simulationProbe = await probeSimulationLifecycle(async (method, path, body
   } catch {}
   await Bun.sleep(DEFAULT_MIN_INTERVAL_MS * 4)
   return { status: response.status, body: parsed }
-}, crypto.randomUUID())
+}
+const simulationProbe = await probeSimulationLifecycle(probeCall, crypto.randomUUID())
 const simulationCorpusDir = join(import.meta.dir, "..", "corpus")
 await mkdir(simulationCorpusDir, { recursive: true })
 await writeFile(
@@ -700,6 +702,15 @@ if (
 ) {
   throw new Error("junction simulation edge-case baseline changed; see sanitized report")
 }
+
+const bookingProbe = await probeBookingLifecycle(probeCall, crypto.randomUUID())
+await writeFile(
+  join(simulationCorpusDir, "booking-probes.json"),
+  `${JSON.stringify(bookingProbe, null, 2)}\n`,
+)
+console.log(`junction booking probes: ${JSON.stringify(bookingProbe)}`)
+if (!bookingProbe.complete)
+  throw new Error("junction booking probes incomplete; see sanitized report")
 
 try {
   await probeLabAccounts()
