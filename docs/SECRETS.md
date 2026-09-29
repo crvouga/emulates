@@ -189,6 +189,16 @@ package at `https://www.npmjs.com/package/<name>/access`:
 - Repository: `mockingbird`
 - Workflow filename: `ci.yml`
 - Environment: (empty)
+- Allowed actions: npm publish
+
+`bun run health` checks every npm package whose repository is this repo, and every
+public workspace package, including one that has not been published yet. It lists
+the packages that still need that page, each as a link to `/access`. A publisher
+that can only stage, or that is pinned to an environment, is included: the Release
+workflow calls `npm publish` and sets no environment. It uses the `npm login` session
+and opens npm's security-key prompt, which `npm login` itself does not complete. If
+that page offers to skip two-factor for a few minutes, turn it on so one approval
+covers every package.
 
 Docs: https://docs.npmjs.com/trusted-publishers
 
