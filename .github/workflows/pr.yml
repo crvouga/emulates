@@ -8,9 +8,11 @@
 # by the GitGuardian app, not by a job in this file.
 #
 # Together the Static and Shard jobs run exactly `bun run check` (scripts/ci-plan.ts splits it and
-# fails on drift), spread over parallel runners. Changes decides which jobs a change needs: turbo's
-# content hashes already skip unchanged packages, so it only skips a whole job when nothing that job
-# reads changed. Non-blocking checks (live parity, lint annotations) live in advisory.yml.
+# fails on drift), spread over parallel runners. Changes decides what a change needs from
+# Turborepo's dependency graph: the Shard jobs run only the packages a change reaches (each changed
+# package and everything that depends on it), and skip entirely when it reaches none; turbo's
+# content hashes then replay what did not change inside those. Non-blocking checks (live parity,
+# lint annotations) live in advisory.yml.
 #
 # It also runs on every push to main. That is what keeps main's turbo cache warm per job, so a PR's
 # first run replays everything it did not touch (see .github/actions/setup). Those runs are never
@@ -43,6 +45,7 @@ jobs:
       shards: ${{ steps.plan.outputs.shards }}
       smoke: ${{ steps.plan.outputs.smoke }}
       matrix: ${{ steps.plan.outputs.matrix }}
+      packages: ${{ steps.plan.outputs.packages }}
     steps:
       # A pull_request checkout is the merge commit, so HEAD^1 is the base it will land on.
       - uses: actions/checkout@v5
@@ -132,6 +135,8 @@ jobs:
 
       - name: Build, typecheck, test, pack, portability (shard ${{ matrix.shard }}/${{ strategy.job-total }})
         timeout-minutes: 20
+        env:
+          AFFECTED_PACKAGES: ${{ needs.changes.outputs.packages }}
         run: >-
           bun scripts/ci-plan.ts shard ${{ matrix.shard }}/${{ strategy.job-total }}
           --output-logs=errors-only --continue=dependencies-successful

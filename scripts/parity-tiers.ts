@@ -11,6 +11,9 @@
  *   warm  on a schedule (parity.yml's `schedule:`)
  *   cold  only when someone dispatches it: `bun run parity:remote -- <service>`
  *
+ * On a PR a hot service runs only when something in its dependency graph changed (see
+ * scripts/affected.ts and ci-plan.ts); `parityInputs` lists files outside that graph it also reads.
+ *
  * A service with no `parityTier` is cold. Promoting a service is changing that one value: every
  * workflow selects by tier through this file, so none of them names a service.
  *
@@ -39,6 +42,11 @@ export interface ParityService {
   tier: Tier
   /** The value in package.json when it is not a tier (so `--check` can name it), else undefined. */
   invalid?: string
+  /**
+   * Repo-root-relative globs, beyond the service's own package and its workspace dependencies,
+   * whose change can change its parity result (`mockingbird.parityInputs`).
+   */
+  inputs: string[]
 }
 
 const isTier = (value: unknown): value is Tier => TIERS.includes(value as Tier)
@@ -51,14 +59,15 @@ export function parityServices(): ParityService[] {
     if (!existsSync(manifest)) continue
     const pkg = JSON.parse(readFileSync(manifest, "utf8")) as {
       scripts?: Record<string, string>
-      mockingbird?: { parityTier?: unknown }
+      mockingbird?: { parityTier?: unknown; parityInputs?: string[] }
     }
+    const inputs = pkg.mockingbird?.parityInputs ?? []
     if (typeof pkg.scripts?.parity !== "string") continue
     const declared = pkg.mockingbird?.parityTier
     if (declared === undefined || isTier(declared)) {
-      found.push({ name, tier: declared ?? DEFAULT_TIER })
+      found.push({ name, tier: declared ?? DEFAULT_TIER, inputs })
     } else {
-      found.push({ name, tier: DEFAULT_TIER, invalid: JSON.stringify(declared) })
+      found.push({ name, tier: DEFAULT_TIER, invalid: JSON.stringify(declared), inputs })
     }
   }
   return found

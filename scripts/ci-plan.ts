@@ -10,8 +10,11 @@
  * Together they are exactly the `check` script's task list; `changes` fails if they drift.
  *
  * Turbo's content hashes are the fine-grained filter: an unchanged package replays from cache.
- * `changes` is the coarse one: it skips a whole job only when every changed file is on a list of
- * paths that job provably does not read. Anything unlisted runs everything.
+ * `changes` is the coarse one, and works on Turborepo's dependency graph (scripts/affected.ts): a
+ * package is affected when a file in it or in a workspace package it depends on, transitively,
+ * changed. The shards run only the affected packages, and live parity only the hot services among
+ * them. A file that belongs to no package and is not on a list of paths the shards provably do not
+ * read runs every package.
  *
  *   bun scripts/ci-plan.ts changes --base origin/main   # what a PR against main would run
  *   bun scripts/ci-plan.ts changes --all                # push to main: everything
@@ -24,7 +27,13 @@
 import { appendFileSync, existsSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { $ } from "bun"
-import { servicesInTier } from "./parity-tiers.ts"
+import {
+  affectedPackages,
+  loadGraph,
+  lockfileImpactSince,
+  type WorkspaceGraph,
+} from "./affected.ts"
+import { parityServices } from "./parity-tiers.ts"
 import { discoverPackages } from "./release/lib.ts"
 
 const root = join(import.meta.dir, "..")
@@ -57,6 +66,8 @@ const SHARD_IRRELEVANT = [
   ".github/pull_request_template.md",
   // Workflows other than pr.yml do not change what the pull-request gate runs.
   ".github/workflows/{advisory,cache-cleanup,ci,issue-labels,parity,publish,verify}.yml",
+  // Read only by junction's live parity script (its `parityInputs`).
+  "PARITY_FAILURE_SEED_REGISTRY.json",
   "scripts/parity-tiers.ts",
   "scripts/worktree/**",
   "scripts/secrets/**",
@@ -69,8 +80,29 @@ const SHARD_IRRELEVANT = [
  */
 const SMOKE_IRRELEVANT = [...SHARD_IRRELEVANT, "sites/**", "docs/**", "llms.txt", "**/*.test.ts"]
 
-/** Files under a service that cannot change what its live parity run observes. */
+/** Files that cannot change what a live parity run observes, wherever they are. */
 const PARITY_IRRELEVANT = ["**/*.md", "**/*.test.ts", "**/tests/**", "**/test/**"]
+
+/**
+ * Files outside every package that every service's live parity run reads: how a service is
+ * bundled and how the runner drives it. (turbo.json's `globalDependencies` and `bun.lock` are
+ * handled separately, and a service's own extras are its `mockingbird.parityInputs`.) Root config,
+ * workflows and docs are not here: they do not change what a mock answers, and running every hot
+ * service's live parity for them is the load the tiers exist to avoid.
+ */
+const PARITY_GLOBAL = [
+  "scripts/bundle-service.ts",
+  "scripts/bundle-service-version.ts",
+  "scripts/parity-service.ts",
+]
+
+/** turbo.json's `globalDependencies`: they are inputs of every task of every package. */
+function turboGlobalDependencies(): string[] {
+  const turbo = JSON.parse(readFileSync(join(root, "turbo.json"), "utf8")) as {
+    globalDependencies?: string[]
+  }
+  return turbo.globalDependencies ?? []
+}
 
 const matcher = (patterns: string[]) => {
   const globs = patterns.map((p) => new Bun.Glob(p))
@@ -107,6 +139,23 @@ function assertSetupRestoresEveryShard(): void {
   }
 }
 
+/** Hot services whose dependency graph (or `parityInputs`) a PR's changed files reach. */
+function hotServicesToRun(
+  graph: WorkspaceGraph,
+  files: string[] | null,
+  reached: Set<string>,
+): string[] {
+  if (files === null) return []
+  return parityServices()
+    .filter((service) => service.tier === "hot")
+    .filter((service) => {
+      const owner = graph.packages.find((p) => p.dir === `packages/service/${service.name}`)
+      if (owner && reached.has(owner.name)) return true
+      return service.inputs.length > 0 && files.some(matcher(service.inputs))
+    })
+    .map((service) => service.name)
+}
+
 async function changedFiles(base: string): Promise<string[] | null> {
   const range = base === "HEAD^1" ? ["HEAD^1", "HEAD"] : [`${base}...HEAD`]
   const out = await $`git diff --name-only --no-renames ${range}`.cwd(root).nothrow().quiet()
@@ -126,22 +175,45 @@ async function changes(args: string[]): Promise<void> {
   const shardSkippable = matcher(SHARD_IRRELEVANT)
   const smokeSkippable = matcher(SMOKE_IRRELEVANT)
   const parityIgnored = matcher(PARITY_IRRELEVANT)
-  // Only hot services run on a PR (each service's tier is in its package.json).
-  const live = servicesInTier("hot")
+  const parityGlobal = matcher([...PARITY_GLOBAL, ...turboGlobalDependencies()])
 
-  const shards = files === null || !files.every(shardSkippable)
-  const smoke = files === null || !files.every(smokeSkippable)
-  const parity =
+  const graph = await loadGraph()
+  const everyPackage = graph.packages.map((p) => p.name)
+  const lockfile = base && files ? await lockfileImpactSince(base) : "all"
+
+  // Packages the shards run, and (for hot parity) the packages a parity-relevant change reaches.
+  const packages =
     files === null
-      ? []
-      : live.filter((name) =>
-          files.some((f) => f.startsWith(`packages/service/${name}/`) && !parityIgnored(f)),
-        )
+      ? new Set(everyPackage)
+      : affectedPackages(graph, files, {
+          ignored: shardSkippable,
+          global: () => false,
+          unowned: "all",
+          lockfile,
+        })
+  const parityReached =
+    files === null
+      ? new Set<string>()
+      : affectedPackages(graph, files, {
+          ignored: parityIgnored,
+          global: parityGlobal,
+          unowned: "none",
+          lockfile,
+        })
+
+  // Only hot services run on a PR (each service's tier is in its package.json), and only those
+  // whose dependency graph changed. Warm and cold services never run from here.
+  const parity = hotServicesToRun(graph, files, parityReached)
+
+  const shards = packages.size > 0
+  const smoke = files === null || !files.every(smokeSkippable)
+  const shardCount = Math.min(SHARDS, packages.size)
 
   const outputs = {
     shards: String(shards),
     smoke: String(smoke),
-    matrix: JSON.stringify(Array.from({ length: SHARDS }, (_, i) => i + 1)),
+    matrix: JSON.stringify(Array.from({ length: shardCount }, (_, i) => i + 1)),
+    packages: JSON.stringify([...packages].sort()),
     parity: parity.join(" "),
   }
   const scope = files === null ? "everything" : `${files.length} changed file(s) vs ${base}`
@@ -151,7 +223,7 @@ async function changes(args: string[]): Promise<void> {
     "| Job | Runs |",
     "| --- | --- |",
     "| Commitlint, Static | always |",
-    `| Shards 1–${SHARDS} (build, typecheck, test, pack, portability) | ${shards ? "yes" : "no: nothing they read changed"} |`,
+    `| Shards (build, typecheck, test, pack, portability) | ${shards ? `${packages.size} of ${everyPackage.length} packages, on ${shardCount} runner(s)` : "no: nothing they read changed"} |`,
     `| Consumer smoke | ${smoke ? "yes" : "no: no published package changed"} |`,
     `| Live parity (advisory) | ${parity.length > 0 ? parity.join(", ") : "none"} |`,
     "",
@@ -187,14 +259,22 @@ async function shard(spec: string | undefined, extra: string[]): Promise<never> 
   const listed = JSON.parse(await $`bunx turbo ls --output=json`.cwd(root).quiet().text()) as {
     packages: { items: { name: string; path: string }[] }
   }
+  // `changes` hands the affected packages over (AFFECTED_PACKAGES, a JSON array of names); without
+  // it, as when run by hand, every package is in scope. Turbo's `dependsOn` still builds whatever
+  // an affected package needs, whether or not it is in scope itself.
+  const scope = process.env.AFFECTED_PACKAGES
+    ? new Set(JSON.parse(process.env.AFFECTED_PACKAGES) as string[])
+    : null
   // Round-robin by path: packages cost within a few× of each other, so even counts balance, and
   // each shard restores every shard's cache, so reshuffling on a new package costs no misses.
   const mine = listed.packages.items
+    .filter((p) => scope === null || scope.has(p.name))
     .sort((a, b) => a.path.localeCompare(b.path))
     .filter((_, k) => k % total === index - 1)
   console.log(
     `shard ${index}/${total}: ${mine.length} packages\n  ${mine.map((p) => p.path).join("\n  ")}`,
   )
+  if (mine.length === 0) process.exit(0)
   return turbo(["run", ...checkTasks().shard, ...mine.map((p) => `--filter=${p.name}`), ...extra])
 }
 
