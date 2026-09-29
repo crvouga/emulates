@@ -198,6 +198,8 @@ curl -X PUT http://localhost:8810/__admin/behavior -H 'content-type: application
 curl http://localhost:8810/__admin/behavior
 curl -X POST http://localhost:8810/__admin/consents/revoke -H 'content-type: application/json' \
   -d '{"clientId":"app","accountId":"ada"}'
+curl 'http://localhost:8810/__admin/grants?clientId=app&accountId=ada'
+curl 'http://localhost:8810/__admin/grants?clientId=app'
 curl -X POST http://localhost:8810/__admin/accounts/delete -H 'content-type: application/json' \
   -d '{"accountId":"ada"}'
 curl -X POST http://localhost:8810/__admin/relay-forwarding -H 'content-type: application/json' \
@@ -205,6 +207,8 @@ curl -X POST http://localhost:8810/__admin/relay-forwarding -H 'content-type: ap
 curl -X POST http://localhost:8810/__admin/keys/rotate -H 'content-type: application/json' \
   -d '{"retainPrevious":true}'
 ```
+
+`GET /__admin/grants?clientId=<id>&accountId=<id>` (or `&email=<address>`) reads what that client sees for the account, without running a sign-in: `{ subject, granted, scopes, emailChoice, email, isPrivateEmail, userDisclosed }`. `subject` is the id token `sub` the client gets, or would get on a first authorization (it survives a consent revocation). `granted` says whether a consent exists, so whether the consent card is shown next time. `scopes` are the granted scopes, including Google `include_granted_scopes` merges. `emailChoice` is Apple's `"share"` or `"hide"`, and `null` before the first authorization, after a revocation, and on every other profile. `email` is the address the client receives: the relay for Hide My Email, the real address otherwise. `userDisclosed` is whether Apple's first-use `user` payload was already sent. Without `accountId` or `email` it returns `{ "grants": [...] }`, one row (with `accountId`) per account that currently has a grant with the client. An unknown client or account is `404`. Programmatically, `await runtime.instance().grant(clientId, accountId)` returns the same view, or `null`, and `grants(clientId)` the list. The view is read-only and follows namespaces.
 
 These routes use the shared admin-key and namespace controls. `revokeConsent(clientId, accountId)` removes that client's grants and resets first-use disclosure; it does not disable the account. It is async because it can deliver a [server-to-server notification](#sign-in-with-apple-server-to-server-notifications). `rotateSigningKey(true)` retains up to four previous public keys so existing tokens still verify; `false` withdraws them to test stale JWKS caches. Keys themselves are not included in snapshots, so restoring state does not undo a key rotation.
 
@@ -250,14 +254,14 @@ The runtime supplies `/health`, `/__admin/reset`, snapshots, mock clock, request
 
 - `createRuntime(options?)`: shared service runtime; `fetch`, `instance`, `reset`, `snapshot`, `restore`, clock, faults and journals.
 - `createMultiRuntime({ mounts })`: exact-path dispatcher for isolated provider runtimes on one origin, with aggregate health and admin controls.
-- `OAuthAPI`: standalone portable handler with `fetch`, `reset`, `seedAccount`, `registerClient`, `accounts`, `clients`, `provider`, `configureBehavior`, `behavior`, `revokeConsent`, `rotateSigningKey`.
+- `OAuthAPI`: standalone portable handler with `fetch`, `reset`, `seedAccount`, `registerClient`, `accounts`, `clients`, `provider`, `configureBehavior`, `behavior`, `revokeConsent`, `rotateSigningKey`, `grant`, `grants`.
 - `OAUTH_PRESETS`: named transport fault presets.
 - `OAUTH_SCENARIOS`: named provider-behavior scenarios.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
 - `createServer(options?)` from `./server`: Node HTTP adapter, returning `url`, `close` and `runtime`.
 - `createMultiServer({ mounts })` from `./server`: Node HTTP adapter for a multi-provider runtime.
 - `DEFAULT_PORT`, `serveTarget` from `./server`: CLI defaults and multi-service launcher integration.
-- Types: `Account`, `Client`, `Provider`, `OAuthAPIOptions`, `OAuthRuntimeOptions`, `OAuthRuntime`, `OAuthServerOptions`, `OAuthMount`, `OAuthMultiRuntimeOptions`, `OAuthMultiRuntime`, `OAuthMultiServerOptions`, `OAuthBehavior`, `BehaviorInput`, `OAuthScenario`, `EdgeCase`, `BehaviorEvent`.
+- Types: `Account`, `Client`, `GrantView`, `Provider`, `OAuthAPIOptions`, `OAuthRuntimeOptions`, `OAuthRuntime`, `OAuthServerOptions`, `OAuthMount`, `OAuthMultiRuntimeOptions`, `OAuthMultiRuntime`, `OAuthMultiServerOptions`, `OAuthBehavior`, `BehaviorInput`, `OAuthScenario`, `EdgeCase`, `BehaviorEvent`.
 
 ## Verification
 
