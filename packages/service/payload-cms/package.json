@@ -55,7 +55,8 @@
       "website": "https://payloadcms.com",
       "docs": "https://payloadcms.com/docs/rest-api/overview"
     },
-    "status": "wip"
+    "status": "wip",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

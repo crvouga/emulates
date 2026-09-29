@@ -59,6 +59,7 @@
       "docs": "https://www.twilio.com/docs"
     },
     "status": "wip",
+    "parityTier": "cold",
     "playground": {
       "headers": {
         "authorization": "Basic QUMwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDptb2NraW5nYmlyZA=="

@@ -63,6 +63,7 @@
       "description": "The OpenID Foundation maintains OpenID Connect, the identity layer on OAuth 2.0 used by Google, Apple, Microsoft and other sign-in providers."
     },
     "status": "ready",
+    "parityTier": "cold",
     "examples": [
       {
         "id": "google-login",

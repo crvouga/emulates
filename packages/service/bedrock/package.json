@@ -60,7 +60,8 @@
       "website": "https://aws.amazon.com/bedrock/",
       "docs": "https://docs.aws.amazon.com/bedrock/latest/APIReference/"
     },
-    "status": "wip"
+    "status": "wip",
+    "parityTier": "cold"
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

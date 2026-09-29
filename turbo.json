@@ -122,6 +122,9 @@
     "//#check:worktree": {
       "inputs": ["scripts/worktree/**", ".superset/config.json", ".super.engineering/config.json"]
     },
+    "//#check:parity-tiers": {
+      "inputs": ["scripts/parity-tiers.ts", "packages/service/*/package.json"]
+    },
     "//#check:llms": {
       "inputs": [
         "llms.txt",
