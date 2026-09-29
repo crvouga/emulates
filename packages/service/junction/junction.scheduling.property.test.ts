@@ -79,6 +79,148 @@ const createBookableOrder = async (api: Api, userId: string, labId: string): Pro
 
 type Slot = { booking_key: string; start: string }
 
+test("appointment reads and phlebotomy rescheduling match sandbox missing-appointment guards", async () => {
+  const api = new JunctionAPI({ now: () => baseTime })
+  const userId = await createUser(api, "appointment-guards")
+  for (const labId of [LAB_WALK_IN, LAB_AT_HOME, "0cb9f34f-c3df-4a13-8ca1-19429a82611b"]) {
+    const order = await createOrder(api, userId, labId)
+    for (const [method, suffix, status, detail] of [
+      [
+        "GET",
+        "psc/appointment",
+        404,
+        labId === LAB_WALK_IN
+          ? "Appointment not found."
+          : "This order is not a walk-in phlebotomy order.",
+      ],
+      [
+        "GET",
+        "phlebotomy/appointment",
+        404,
+        labId === LAB_AT_HOME
+          ? "Appointment not found."
+          : "This order doesn't have a phlebotomy order.",
+      ],
+      [
+        "PATCH",
+        "phlebotomy/appointment/reschedule",
+        labId === LAB_AT_HOME ? 400 : 404,
+        labId === LAB_AT_HOME
+          ? "This order doesn't have an appointment yet."
+          : "This order doesn't have a phlebotomy order.",
+      ],
+    ] as const) {
+      const response = await request(api, `/v3/order/${order.id}/${suffix}`, {
+        method,
+        headers: { "content-type": "application/json" },
+        ...(method === "PATCH" ? { body: JSON.stringify({ booking_key: "invalid" }) } : {}),
+      })
+      expect(response.status).toBe(status)
+      expect(await response.json()).toEqual({ detail })
+    }
+  }
+})
+
+test("PSC rescheduling checks modality and requisition before appointment lookup", async () => {
+  const api = new JunctionAPI({ now: () => baseTime })
+  const userId = await createUser(api, "psc-reschedule-guards")
+  for (const [labId, status, detail] of [
+    [LAB_WALK_IN, 400, "This order does not have a requisition, it's still in state ordered."],
+    [LAB_AT_HOME, 404, "This order is not a walk-in phlebotomy order."],
+    ["0cb9f34f-c3df-4a13-8ca1-19429a82611b", 404, "This order is not a walk-in phlebotomy order."],
+  ] as const) {
+    const order = await createOrder(api, userId, labId)
+    const response = await request(api, `/v3/order/${order.id}/psc/appointment/reschedule`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ booking_key: "invalid", site_code: "invalid" }),
+    })
+    expect(response.status).toBe(status)
+    expect(await response.json()).toEqual({ detail })
+  }
+})
+
+test("PSC cancellation checks order modality and lab before appointment lookup", async () => {
+  const api = new JunctionAPI({ now: () => baseTime })
+  const userId = await createUser(api, "psc-cancel-guards")
+  for (const [labId, status, detail] of [
+    [LAB_WALK_IN, 400, "This lab is not supported."],
+    [LAB_AT_HOME, 404, "This order is not a walk-in phlebotomy order."],
+    ["0cb9f34f-c3df-4a13-8ca1-19429a82611b", 404, "This order is not a walk-in phlebotomy order."],
+  ] as const) {
+    const order = await createOrder(api, userId, labId)
+    const response = await request(api, `/v3/order/${order.id}/psc/appointment/cancel`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        cancellationReasonId: "226a6520-667c-495f-8500-c20722d231d0",
+        note: null,
+      }),
+    })
+    expect(response.status).toBe(status)
+    expect(await response.json()).toEqual({ detail })
+  }
+})
+
+test("phlebotomy rescheduling preserves the sandbox event metadata on readback", async () => {
+  const api = new JunctionAPI({ now: () => baseTime })
+  const userId = await createUser(api, "reschedule-event-data")
+  const order = await createBookableOrder(api, userId, LAB_AT_HOME)
+  const availability = await phlebotomyAvailability(api, "85004")
+  const path = `/v3/order/${order.id}/phlebotomy/appointment`
+  const body = JSON.stringify({ booking_key: availability.slots[0]?.booking_key })
+  const headers = { "content-type": "application/json" }
+  const booked = await request(api, `${path}/book`, { method: "POST", body, headers })
+  expect(booked.status).toBe(200)
+  expect(((await booked.json()) as Json).event_data).toBeNull()
+  const rescheduled = await request(api, `${path}/reschedule`, { method: "PATCH", body, headers })
+  expect(rescheduled.status).toBe(200)
+  // Controlled Junction sandbox probe, 2026-09-29: API rescheduling uses origin "patient".
+  const metadata = { origin: "patient", is_reschedule: true }
+  const appointment = (await rescheduled.json()) as Json
+  expect(appointment.event_data).toEqual(metadata)
+  expect((appointment.events as Json[]).map((event) => event.data)).toEqual([null, null, metadata])
+  const fetched = await request(api, path)
+  expect(fetched.status).toBe(200)
+  expect(((await fetched.json()) as Json).event_data).toEqual(metadata)
+  const fetchedOrder = await request(api, `/v3/order/${order.id}`)
+  expect(fetchedOrder.status).toBe(200)
+  expect(
+    (((await fetchedOrder.json()) as Json).events as Json[]).map((event) => event.status),
+  ).toEqual([
+    "received.at_home_phlebotomy.ordered",
+    "received.at_home_phlebotomy.requisition_created",
+    "collecting_sample.at_home_phlebotomy.appointment_pending",
+    "collecting_sample.at_home_phlebotomy.appointment_scheduled",
+    "collecting_sample.at_home_phlebotomy.appointment_scheduled",
+  ])
+  const cancelled = await request(api, `${path}/cancel`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      cancellation_reason_id: await cancellationReasonId(api, 0),
+      notes: null,
+    }),
+  })
+  expect(cancelled.status).toBe(200)
+  const cancellation = (await cancelled.json()) as Json
+  const cancellationData = {
+    origin: "patient",
+    cancelation_notes: null,
+    cancelation_reason: "Did not fast for appointment",
+  }
+  expect(cancellation.event_data).toEqual(cancellationData)
+  expect((cancellation.events as Json[]).map((event) => event.data)).toEqual([
+    null,
+    null,
+    metadata,
+    cancellationData,
+  ])
+  const cancelledOrder = (await (await request(api, `/v3/order/${order.id}`)).json()) as Json
+  const transaction = cancelledOrder.order_transaction as { orders: Json[] }
+  expect(transaction.orders[0]?.low_level_status).toBe("appointment_cancelled")
+})
+
 /** Every phlebotomy cancellation reason is refundable; "Other" requires notes. */
 const cancellationReasonId = async (api: Api, index: number): Promise<string> => {
   const response = await request(api, "/v3/order/phlebotomy/appointment/cancellation-reasons")

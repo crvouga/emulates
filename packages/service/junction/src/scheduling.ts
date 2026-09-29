@@ -1275,25 +1275,19 @@ const cancelAppointment = (
   appointment: AppointmentRecord,
   order: Order,
   nowMs: number,
+  eventData?: Record<string, unknown>,
 ): AppointmentRecord => {
   const nowIso = state.isoNow(() => nowMs)
   appointment.status = "cancelled"
-  appendAppointmentEvent(appointment, "cancelled", nowIso)
+  const appointmentEvent = appendAppointmentEvent(appointment, "cancelled", nowIso)
+  if (eventData !== undefined) {
+    appointmentEvent.data = eventData
+    appointment.event_data = eventData
+  }
   state.appointments.update(appointment.id, appointment)
   const eventStatus = CANCELLED_ORDER_EVENT[appointment.type]
-  const event = {
-    id: order.events.length + 1,
-    created_at: nowIso,
-    status: eventStatus,
-    status_detail: null,
-  }
-  order.status = "collecting_sample"
-  order.updated_at = nowIso
-  order.events.push(event)
-  order.last_event = event
-  state.orders.update(order.id, order)
+  linkAppointmentToOrder(state, order, appointment, eventStatus, nowIso)
   state.publishAppointmentWebhook(appointment, order.team_id, nowMs)
-  state.publishOrderWebhook(order, "labtest.order.updated", nowMs)
   return appointment
 }
 
@@ -1552,8 +1546,9 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePhlebotomyCapableOrder(order)
     const appointment = appointmentOfOrder(state, order.id)
-    if (appointment?.type !== "phlebotomy") notFound("No appointment for this order")
+    if (appointment?.type !== "phlebotomy") notFound("Appointment not found.")
     return jsonRes(200, renderAppointment(appointment))
   },
 
@@ -1562,8 +1557,9 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePscCapableOrder(order)
     const appointment = appointmentOfOrder(state, order.id)
-    if (appointment?.type !== "patient_service_center") notFound("No appointment for this order")
+    if (appointment?.type !== "patient_service_center") notFound("Appointment not found.")
     return jsonRes(200, renderAppointment(appointment))
   },
 
@@ -1639,6 +1635,13 @@ export const schedulingHandlers = (state: JunctionState) => ({
     state.appointmentsByOrder.insert(order.id, { appointment_id: appointmentId })
     record.consumed_by_order_id = order.id
     state.bookingKeys.update(record.key, record)
+    linkAppointmentToOrder(
+      state,
+      order,
+      appointment,
+      "collecting_sample.at_home_phlebotomy.appointment_pending",
+      nowIso,
+    )
     linkAppointmentToOrder(state, order, appointment, SCHEDULED_ORDER_EVENT.phlebotomy, nowIso)
     state.publishAppointmentWebhook(appointment, order.team_id, context.now())
     return jsonRes(200, renderAppointment(appointment))
@@ -1736,10 +1739,13 @@ export const schedulingHandlers = (state: JunctionState) => ({
     async (context: OperationContext) => {
       const orderId = context.params.order_id ?? ""
       const order = requireOrder(state, orderId, context)
+      requirePhlebotomyCapableOrder(order)
       const body = jsonObject(context)
       const bookingKey = typeof body.booking_key === "string" ? body.booking_key : ""
       const appointment = appointmentOfOrder(state, order.id)
-      if (appointment?.type !== "phlebotomy") notFound("No appointment for this order")
+      if (appointment?.type !== "phlebotomy") {
+        throw new HttpError(400, { detail: "This order doesn't have an appointment yet." })
+      }
       if (appointment.status === "cancelled")
         throw new HttpError(400, { detail: "Cannot reschedule a cancelled appointment" })
       const record = bookingKey === "" ? undefined : state.bookingKeys.get(bookingKey)
@@ -1758,10 +1764,13 @@ export const schedulingHandlers = (state: JunctionState) => ({
       appointment.address = record.address
       appointment.location = observedPhlebotomyLocation(record.address) ?? record.location
       appointment.booking_key = record.key
-      appendAppointmentEvent(appointment, "scheduled", nowIso)
+      const event = appendAppointmentEvent(appointment, "scheduled", nowIso)
+      event.data = { origin: "patient", is_reschedule: true }
+      appointment.event_data = event.data
       state.appointments.update(appointment.id, appointment)
       record.consumed_by_order_id = order.id
       state.bookingKeys.update(record.key, record)
+      linkAppointmentToOrder(state, order, appointment, SCHEDULED_ORDER_EVENT.phlebotomy, nowIso)
       state.publishAppointmentWebhook(appointment, order.team_id, context.now())
       return jsonRes(200, renderAppointment(appointment))
     },
@@ -1771,6 +1780,8 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePscCapableOrder(order)
+    requireOrderHasRequisition(order)
     const body = jsonObject(context)
     const bookingKey = typeof body.booking_key === "string" ? body.booking_key : ""
     const appointment = appointmentOfOrder(state, order.id)
@@ -1824,7 +1835,12 @@ export const schedulingHandlers = (state: JunctionState) => ({
     }
     if (appointment.status === "cancelled") return jsonRes(200, renderAppointment(appointment))
     appointment.appointment_notes = typeof body.notes === "string" ? body.notes : null
-    cancelAppointment(state, appointment, order, context.now())
+    cancelAppointment(state, appointment, order, context.now(), {
+      origin: "patient",
+      // Junction spells these provider event fields with one "l".
+      cancelation_notes: appointment.appointment_notes,
+      cancelation_reason: reason.name,
+    })
     return jsonRes(200, renderAppointment(appointment))
   },
 
@@ -1833,6 +1849,10 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePscCapableOrder(order)
+    if (order.lab_test.lab.slug !== "quest") {
+      throw new HttpError(400, { detail: "This lab is not supported." })
+    }
     const body = jsonObject(context)
     const reasonId = typeof body.cancellationReasonId === "string" ? body.cancellationReasonId : ""
     const appointment = appointmentOfOrder(state, order.id)

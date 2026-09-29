@@ -51,6 +51,20 @@ export const reshapeCoverageGeoCommand = (
     labIds?: readonly number[]
   },
 ): LogicalCommand => {
+  // Idempotency keys are opaque, but generated Unicode cannot be sent as HTTP header bytes.
+  // Encode identically for both sides while retaining stable keys for replay.
+  const idempotencyKey = command.parameters["x-idempotency-key"]
+  if (typeof idempotencyKey === "string") {
+    command = {
+      ...command,
+      parameters: {
+        ...command.parameters,
+        "x-idempotency-key": encodeURIComponent(
+          new TextDecoder().decode(new TextEncoder().encode(idempotencyKey)),
+        ),
+      },
+    }
+  }
   const zips = options?.zips ?? COVERAGE_ZIPS
   const schedulingZips = options?.schedulingZips ?? PSC_AVAILABILITY_ZIPS
   const phlebotomyZips = options?.phlebotomyZips ?? PHLEBOTOMY_AVAILABILITY_ZIPS

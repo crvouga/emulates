@@ -68,6 +68,7 @@ export async function probeSimulationLifecycle(call: SimulationProbeCall, runId:
         stage = "read before"
         const before = await call("GET", path)
         const summary = simulationOrderSummary(before.body)
+        stage = `read before (HTTP ${before.status}, expected cancelled=${cancelled}, observed cancelled=${summary.cancelled})`
         if (!success(before) || summary.method !== "testkit" || summary.cancelled !== cancelled)
           throw new Error()
         stage = "simulate"
