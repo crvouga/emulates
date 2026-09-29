@@ -87,15 +87,6 @@ type StripeOracle = {
   close(): Promise<void>
 }
 
-/**
- * Stripe CLI 1.52+ refuses to start without an explicit event selection and rejects `--events '*'`;
- * older CLIs have no `--all-snapshot` and default to every event.
- */
-const allSnapshotEventsFlags = (): string[] => {
-  const help = Bun.spawnSync(["stripe", "listen", "--help"], { stdout: "pipe", stderr: "pipe" })
-  return help.stdout.toString().includes("--all-snapshot") ? ["--all-snapshot"] : []
-}
-
 /** Stripe CLI owns the websocket connection; its HTTP forwarder feeds the shared Hono receiver. */
 export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOracle> => {
   const rows: WebhookRow[] = []
@@ -122,7 +113,8 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
       "stripe",
       "listen",
       "--skip-update",
-      ...allSnapshotEventsFlags(),
+      // Current CLIs refuse to start without an event selection ("--events '*'" is rejected).
+      "--all-snapshot",
       "--forward-to",
       `http://127.0.0.1:${receiver.port}/stripe`,
     ],
@@ -134,14 +126,20 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   )
   let ready = false
   let exitCode: number | undefined
+  let output = ""
   let readyResolve: (() => void) | undefined
   let readyReject: ((error: Error) => void) | undefined
   const readyPromise = new Promise<void>((resolve, reject) => {
     readyResolve = resolve
     readyReject = reject
   })
-  let stderrText = ""
-  const drain = async (stream: ReadableStream<Uint8Array>, capture = false) => {
+  // CLI output can hold the signing secret and API key; only ever surface it redacted.
+  const redacted = () =>
+    output
+      .replaceAll(apiKey, "[redacted]")
+      .replace(/\b(?:whsec|[rs]k_(?:test|live)|rk|sk)_\w+/g, "[redacted]")
+      .trim()
+  const drain = async (stream: ReadableStream<Uint8Array>) => {
     const reader = stream.getReader()
     const decoder = new TextDecoder()
     let tail = ""
@@ -149,11 +147,11 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
       for (;;) {
         const { done, value } = await reader.read()
         if (done) break
-        // Do not log stdout: the CLI's ready line contains the webhook signing secret.
+        // Do not log CLI output: its ready line contains the webhook signing secret.
         const text = decoder.decode(value, { stream: true })
-        if (capture) stderrText = (stderrText + text).slice(-2_000)
         const chunk = tail + text
         tail = chunk.slice(-16)
+        output = (output + text).slice(-2_000)
         if (chunk.includes("Ready!")) {
           ready = true
           readyResolve?.()
@@ -164,17 +162,12 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
     }
   }
   const stdout = drain(cli.stdout)
-  const stderr = drain(cli.stderr, true)
+  const stderr = drain(cli.stderr)
   void cli.exited.then(async (code) => {
     exitCode = code
-    if (ready) return
-    await stderr.catch(() => undefined)
-    const detail = stderrText.replace(/\b(?:sk|rk|pk|whsec)_[A-Za-z0-9_]+/g, "<redacted>").trim()
-    readyReject?.(
-      new Error(
-        `stripe listen exited before ready (status ${code})${detail === "" ? "" : `: ${detail}`}`,
-      ),
-    )
+    await Promise.allSettled([stdout, stderr])
+    if (!ready)
+      readyReject?.(new Error(`stripe listen exited before ready (status ${code}): ${redacted()}`))
   })
   let readyTimer: ReturnType<typeof setTimeout> | undefined
   try {

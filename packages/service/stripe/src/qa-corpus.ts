@@ -19,17 +19,17 @@ export const QA_SURFACE_OPS: readonly string[] = supportedOperationIds.filter(
 
 /**
  * Operations whose answer depends on the whole real account rather than on what a walk created
- * (its profile, lifetime balance, lingering test clocks, configured webhook endpoints, whether the
- * dashboard saved a default portal configuration; the mock always behaves as if it did). Offline
- * walks cover them; live walks leave them out.
+ * (its profile, lifetime balance, lingering test clocks, configured webhook endpoints, saved
+ * portal configurations: the mock models a dashboard-saved default, a bare sandbox has none).
+ * Offline walks cover them; live walks leave them out.
  */
 export const ACCOUNT_GLOBAL_OPS: readonly string[] = [
   "GetAccount",
   "GetBalance",
   "GetBalanceTransactions",
+  "GetBillingPortalConfigurations",
   "GetTestHelpersTestClocks",
   "GetWebhookEndpoints",
-  "GetBillingPortalConfigurations",
 ]
 
 /** Pinned values the suites use, so offline walks exercise realistic shapes. */
