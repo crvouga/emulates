@@ -235,7 +235,21 @@ export const parseParams = (
       if (error) throw error
     }
     const issue = issues[0]
-    if (issue) throw issueToError(issue)
+    if (issue) {
+      // Stripe checks array elements in index order, so an empty element is only the first
+      // complaint when nothing earlier in the array fails the field's own check.
+      const validator = options.validate?.[key]
+      const value = params[key]
+      if (validator && issue.kind === "empty" && Array.isArray(value)) {
+        const elements = [...value]
+        for (const item of issues) {
+          const at = new RegExp(`^${key}\\[(\\d+)\\]$`).exec(item.path)
+          if (item.kind === "empty" && at) elements[Number(at[1])] = ""
+        }
+        validator({ ...params, [key]: elements })
+      }
+      throw issueToError(issue)
+    }
     options.validate?.[key]?.(params)
   }
   const stray = parsed.issues[0]
