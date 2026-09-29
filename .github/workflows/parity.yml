@@ -38,9 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 80
     # Job-level so it also applies when advisory.yml calls this workflow (whose own concurrency
-    # group cancels superseded PR runs).
+    # group cancels superseded PR runs). Keyed by service, not ref: every branch shares one vendor
+    # sandbox per service, and concurrent walks see each other's objects and webhook events.
     concurrency:
-      group: parity-${{ github.ref }}-${{ inputs.services }}
+      group: parity-${{ inputs.services }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
