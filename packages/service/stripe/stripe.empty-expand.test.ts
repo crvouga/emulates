@@ -154,3 +154,16 @@ test("listing balance transactions with an empty invoice names invoice", async (
   expect(error.code).toBe("parameter_invalid_empty")
   expect(error.param).toBe("invoice")
 })
+
+// Live parity: listing subscriptions with an empty `price` is refused, not treated as unset.
+test("listing subscriptions with an empty price is refused", async () => {
+  const server = await createServer({ accounts: [{ id: "acct_ee5", keys: [KEY] }] })
+  closers.push(() => server.close())
+  const response = await fetch(`${server.url}/v1/subscriptions?price=`, {
+    headers: { authorization: `Bearer ${KEY}` },
+  })
+  const { error } = (await response.json()) as { error: { code: string; param: string } }
+  expect(response.status).toBe(400)
+  expect(error.code).toBe("parameter_invalid_empty")
+  expect(error.param).toBe("price")
+})

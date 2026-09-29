@@ -380,6 +380,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
       const customer = stringOf(params, "customer")
       if (customer !== null && !scope.account.customers.get(customer))
         throw resourceMissing("customer", customer, "customer", 400)
+      if (params.price === "") throw parameterInvalidEmpty("price")
       const price = stringOf(params, "price")
       if (price !== null && !scope.account.prices.get(price))
         throw resourceMissing("price", price, "price", 400)
