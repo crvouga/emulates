@@ -115,6 +115,14 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         )
       if (params.product === "") throw parameterInvalidEmpty("product")
       if (params.product_data === "") throw parameterInvalidEmpty("product_data")
+      const hasAmount = params.unit_amount !== undefined
+      const hasDecimal = params.unit_amount_decimal !== undefined
+      // Stripe rejects the amount conflict before it looks the product up.
+      if (hasAmount && hasDecimal)
+        throw invalidRequest(
+          "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
+          "unit_amount",
+        )
       const inline = hasProductData
         ? validateInlineProduct(params.product_data as Params)
         : undefined
@@ -122,13 +130,6 @@ export const priceHandlers = (services: Services): Record<string, OperationHandl
         ? requireProduct(scope, params.product as string, "product", 400)
         : undefined
       const currency = normalizeCurrency(params.currency as string)
-      const hasAmount = params.unit_amount !== undefined
-      const hasDecimal = params.unit_amount_decimal !== undefined
-      if (hasAmount && hasDecimal)
-        throw invalidRequest(
-          "You may only specify one of these parameters: unit_amount, unit_amount_decimal.",
-          "unit_amount",
-        )
       if (!hasAmount && !hasDecimal)
         throw invalidRequest(
           "Prices require an `unit_amount` or `unit_amount_decimal` parameter to be set.",
