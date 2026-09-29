@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createLocalJWKSet, decodeJwt, jwtVerify } from "jose"
+import { createLocalJWKSet, decodeJwt, decodeProtectedHeader, jwtVerify } from "jose"
 import {
   createRuntime,
   OAUTH_SCENARIOS,
@@ -387,6 +387,111 @@ test("JWKS rotation retains old keys optionally and new tokens carry the new kid
   const current = await (await api.fetch(req("/jwks"))).json()
   expect(current.keys.length).toBe(1)
   expect(jwtVerify(first.tokens.id_token, createLocalJWKSet(current))).rejects.toThrow()
+})
+
+test("ID-token issuer clock skew offsets iat, auth_time and exp, and survives refresh grants", async () => {
+  const now = Date.now()
+  const seconds = Math.floor(now / 1000)
+  const ahead = make("oidc", {
+    now: () => now,
+    behavior: { tokens: { idTokenClockSkewSeconds: 600, accessTtlSeconds: 900 } },
+  })
+  const first = await tokens(ahead)
+  const claims = decodeJwt(first.tokens.id_token)
+  expect(claims.iat).toBe(seconds + 600)
+  expect(claims.exp).toBe((claims.iat ?? 0) + 900)
+  expect(claims.auth_time).toBe(Math.floor(now / 1000) + 600)
+  const jwks = createLocalJWKSet(await (await ahead.fetch(req("/jwks"))).json())
+  const options = { currentDate: new Date(now), clockTolerance: 60 }
+  // A verifier with 60 s tolerance rejects a token issued 600 s in the future.
+  expect(
+    jwtVerify(first.tokens.id_token, jwks, { ...options, maxTokenAge: "1h" }),
+  ).rejects.toThrow()
+  // 120 s ahead is inside a 5-minute-tolerant verifier's window.
+  ahead.configureBehavior({ tokens: { idTokenClockSkewSeconds: 120 } })
+  const near = await tokens(ahead)
+  expect(decodeJwt(near.tokens.id_token).iat).toBe(seconds + 120)
+  await jwtVerify(near.tokens.id_token, jwks, { currentDate: new Date(now), clockTolerance: 300 })
+  // Refresh-grant ID tokens carry the same skew.
+  ahead.configureBehavior({ preset: "id_token_clock_ahead" })
+  const refreshed = await (await refresh(ahead, first.tokens.refresh_token)).json()
+  expect(decodeJwt(refreshed.id_token).iat).toBe(seconds + 600)
+
+  const stale = make("oidc", { now: () => now, behavior: { preset: "id_token_stale" } })
+  const old = await tokens(stale)
+  const staleClaims = decodeJwt(old.tokens.id_token)
+  expect(staleClaims.iat).toBe(seconds - 7200)
+  expect(staleClaims.exp).toBe(seconds - 3600)
+  const staleJwks = createLocalJWKSet(await (await stale.fetch(req("/jwks"))).json())
+  expect(jwtVerify(old.tokens.id_token, staleJwks, { currentDate: new Date(now) })).rejects.toThrow(
+    /exp/,
+  )
+
+  const plain = await tokens(make("oidc", { now: () => now }))
+  expect(decodeJwt(plain.tokens.id_token).iat).toBe(seconds)
+  for (const bad of [1.5, "600", NaN, 1e12])
+    expect(() =>
+      ahead.configureBehavior({ tokens: { idTokenClockSkewSeconds: bad as number } }),
+    ).toThrow()
+})
+
+test("ID tokens signed with an unpublished key never verify against any JWKS response", async () => {
+  const api = make("oidc", { behavior: { preset: "id_token_unknown_key" } })
+  const first = await tokens(api)
+  const { kid } = decodeProtectedHeader(first.tokens.id_token)
+  const before = await (await api.fetch(req("/jwks"))).json()
+  expect(before.keys.map((k: { kid: string }) => k.kid)).not.toContain(kid)
+  expect(jwtVerify(first.tokens.id_token, createLocalJWKSet(before))).rejects.toThrow(
+    /no applicable key/,
+  )
+  // The same unpublished key signs every ID token, including refresh grants; rotation never publishes it.
+  const refreshed = await (await refresh(api, first.tokens.refresh_token)).json()
+  expect(decodeProtectedHeader(refreshed.id_token).kid).toBe(kid)
+  api.rotateSigningKey()
+  api.rotateSigningKey(false)
+  const after = await (await api.fetch(req("/jwks"))).json()
+  expect(after.keys.map((k: { kid: string }) => k.kid)).not.toContain(kid)
+  // Switching back publishes the ID token key again.
+  api.configureBehavior({ tokens: { idTokenSigningKey: "published" } })
+  const normal = await tokens(api)
+  await jwtVerify(normal.tokens.id_token, createLocalJWKSet(after))
+  expect(() =>
+    api.configureBehavior({ tokens: { idTokenSigningKey: "hidden" as never } }),
+  ).toThrow()
+})
+
+test("ID-token faults compose through the behavior admin route and presets", async () => {
+  const runtime = createRuntime({
+    adminKey: "fixture",
+    accounts: [account],
+    clients: [client],
+  })
+  const admin = (path: string, init?: RequestInit) =>
+    runtime.fetch(
+      new Request(`${origin}/__admin${path}`, {
+        ...init,
+        headers: { "content-type": "application/json", "x-mockingbird-admin-key": "fixture" },
+      }),
+    )
+  const put = await admin("/behavior", {
+    method: "PUT",
+    body: JSON.stringify({
+      tokens: { idTokenClockSkewSeconds: 600, idTokenSigningKey: "unpublished" },
+    }),
+  })
+  expect(put.status).toBe(200)
+  expect((await put.json()).tokens).toEqual({
+    idTokenClockSkewSeconds: 600,
+    idTokenSigningKey: "unpublished",
+  })
+  const rejected = await admin("/behavior", {
+    method: "PUT",
+    body: JSON.stringify({ tokens: { idTokenClockSkewSeconds: "soon" } }),
+  })
+  expect(rejected.status).toBe(400)
+  const scenarios = await (await admin("/scenarios")).json()
+  for (const name of ["id_token_clock_ahead", "id_token_stale", "id_token_unknown_key"])
+    expect(Object.keys(scenarios)).toContain(name)
 })
 
 test("GitHub token errors are provider-shaped and accept JSON request bodies", async () => {

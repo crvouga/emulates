@@ -95,6 +95,8 @@ export class OAuthAPI {
   private readonly consents: Collection<{ scope: string }>
   private signer = new Signer()
   private previousSigners: Signer[] = []
+  /** Never published: signs ID tokens for `tokens.idTokenSigningKey: "unpublished"`. */
+  private unpublishedSigner?: Signer
   readonly behavior: BehaviorState
   private readonly identities: Collection<Grant["identity"]>
   private readonly appleDisclosures: Collection<{ disclosed: boolean }>
@@ -529,13 +531,18 @@ export class OAuthAPI {
   private async idToken(grant: Grant, issuer: string, extra: Record<string, unknown> = {}) {
     const account = this.accounts.get(grant.accountId)
     if (!account) throw new Error("Account no longer exists")
-    return this.signer.sign({
+    const tokens = this.behavior.config.tokens
+    const skew = tokens?.idTokenClockSkewSeconds ?? 0
+    const iat = Math.floor(this.now() / 1000) + skew
+    const unpublished = tokens?.idTokenSigningKey === "unpublished"
+    if (unpublished) this.unpublishedSigner ??= new Signer()
+    return ((unpublished && this.unpublishedSigner) || this.signer).sign({
       ...this.profile(account, grant),
       iss: issuer,
       aud: grant.clientId,
-      iat: Math.floor(this.now() / 1000),
-      exp: Math.floor(this.now() / 1000) + (this.behavior.config.tokens?.accessTtlSeconds ?? 3600),
-      auth_time: Math.floor(grant.authTime / 1000),
+      iat,
+      exp: iat + (tokens?.accessTtlSeconds ?? 3600),
+      auth_time: Math.floor(grant.authTime / 1000) + skew,
       ...(grant.nonce ? { nonce: grant.nonce } : {}),
       ...extra,
     })
