@@ -25275,9 +25275,10 @@ paths:
             items:
               type: string
               enum:
+                - data.currency_options
                 - data.product
             type: array
-            maxItems: 1
+            maxItems: 2
           style: deepObject
         - in: query
           name: limit
@@ -25569,7 +25570,7 @@ paths:
                     type: object
                   type: object
                   x-mockingbird-unsupported:
-                    reason: multi-currency prices are not modelled
+                    reason: generated walks stay single-currency; per-currency options are covered by acceptance tests
                 custom_unit_amount:
                   properties:
                     enabled:
@@ -25590,10 +25591,11 @@ paths:
                   items:
                     type: string
                     enum:
+                      - currency_options
                       - product
                       - product_data
                   type: array
-                  maxItems: 2
+                  maxItems: 3
                 lookup_key:
                   maxLength: 200
                   type: string
@@ -25843,9 +25845,10 @@ paths:
             items:
               type: string
               enum:
+                - currency_options
                 - product
             type: array
-            maxItems: 1
+            maxItems: 2
           style: deepObject
         - in: path
           name: price
@@ -26038,14 +26041,15 @@ paths:
                         - ""
                       type: string
                   x-mockingbird-unsupported:
-                    reason: multi-currency prices are not modelled
+                    reason: generated walks stay single-currency; per-currency options are covered by acceptance tests
                 expand:
                   items:
                     type: string
                     enum:
+                      - currency_options
                       - product
                   type: array
-                  maxItems: 1
+                  maxItems: 2
                 lookup_key:
                   maxLength: 200
                   type: string
@@ -44559,6 +44563,35 @@ components:
         - invoice_line_items
       title: CreditedItemsInvoiceLineItems
       type: object
+    currency_option:
+      properties:
+        custom_unit_amount:
+          anyOf:
+            - $ref: "#/components/schemas/custom_unit_amount"
+            - type: "null"
+        tax_behavior:
+          enum:
+            - exclusive
+            - inclusive
+            - unspecified
+          type:
+            - string
+            - "null"
+        tiers:
+          items:
+            $ref: "#/components/schemas/price_tier"
+          type: array
+        unit_amount:
+          type:
+            - integer
+            - "null"
+        unit_amount_decimal:
+          format: decimal
+          type:
+            - string
+            - "null"
+      title: CurrencyOption
+      type: object
     custom_logo:
       properties:
         content_type:
@@ -57231,6 +57264,10 @@ components:
         currency:
           format: currency
           type: string
+        currency_options:
+          additionalProperties:
+            $ref: "#/components/schemas/currency_option"
+          type: object
         custom_unit_amount:
           anyOf:
             - $ref: "#/components/schemas/custom_unit_amount"
@@ -57319,6 +57356,32 @@ components:
         - product
         - type
       title: Price
+      type: object
+    price_tier:
+      properties:
+        flat_amount:
+          type:
+            - integer
+            - "null"
+        flat_amount_decimal:
+          format: decimal
+          type:
+            - string
+            - "null"
+        unit_amount:
+          type:
+            - integer
+            - "null"
+        unit_amount_decimal:
+          format: decimal
+          type:
+            - string
+            - "null"
+        up_to:
+          type:
+            - integer
+            - "null"
+      title: PriceTier
       type: object
     product:
       properties:

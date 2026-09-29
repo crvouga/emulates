@@ -85,6 +85,13 @@ export type PriceRecord = {
   tax_behavior: "exclusive" | "inclusive" | "unspecified"
   /** Canonical decimal string in cents (no trailing zeros), e.g. "100" or "100.5". */
   unit_amount_decimal: string
+  /** Extra currencies the price is offered in, keyed by lowercase code; the default is not in it. */
+  currency_options?: Record<string, PriceCurrencyOption>
+}
+
+export type PriceCurrencyOption = {
+  tax_behavior: PriceRecord["tax_behavior"]
+  unit_amount_decimal: string
 }
 
 export type PaymentMethodRecord = {

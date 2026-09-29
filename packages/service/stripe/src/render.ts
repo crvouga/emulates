@@ -16,6 +16,7 @@ import type {
   InvoiceRecord,
   PaymentIntentRecord,
   PaymentMethodRecord,
+  PriceCurrencyOption,
   PriceRecord,
   ProductRecord,
   PromotionCodeRecord,
@@ -134,6 +135,33 @@ export const renderPrice = (price: PriceRecord): RecordValue => ({
   unit_amount: unitAmountOf(price.unit_amount_decimal),
   unit_amount_decimal: price.unit_amount_decimal,
 })
+
+/**
+ * `currency_options` is includable: Stripe returns it only when expanded, one entry per currency
+ * (the price's own included), sorted by code.
+ */
+export const renderPriceCurrencyOptions = (price: PriceRecord): RecordValue => {
+  const entries: Record<string, PriceCurrencyOption> = {
+    ...price.currency_options,
+    [price.currency]: {
+      tax_behavior: price.tax_behavior,
+      unit_amount_decimal: price.unit_amount_decimal,
+    },
+  }
+  return Object.fromEntries(
+    Object.entries(entries)
+      .sort(([left], [right]) => (left < right ? -1 : 1))
+      .map(([code, option]) => [
+        code,
+        {
+          custom_unit_amount: null,
+          tax_behavior: option.tax_behavior,
+          unit_amount: unitAmountOf(option.unit_amount_decimal),
+          unit_amount_decimal: option.unit_amount_decimal,
+        },
+      ]),
+  )
+}
 
 /** Price as an inline object, falling back to the bare id when the record is gone. */
 export const priceOrId = (scope: AccountState, id: string): RecordValue | string => {

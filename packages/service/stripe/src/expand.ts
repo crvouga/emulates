@@ -14,6 +14,7 @@ import {
   renderPaymentMethod,
   renderPortalConfiguration,
   renderPrice,
+  renderPriceCurrencyOptions,
   renderProduct,
   renderPromotionCode,
   renderRefund,
@@ -445,6 +446,10 @@ const includable = (account: AccountState, node: RecordValue, field: string): un
     if (field === "applies_to") return renderCoupon(coupon, { appliesTo: true }).applies_to
     if (field === "currency_options")
       return renderCoupon(coupon, { currencyOptions: true }).currency_options
+  }
+  if (node.object === "price" && field === "currency_options" && typeof node.id === "string") {
+    const price = account.prices.get(node.id)
+    return price ? renderPriceCurrencyOptions(price) : undefined
   }
   if (node.object === "checkout.session" && field === "line_items" && typeof node.id === "string") {
     const session = account.checkoutSessions.get(node.id)
