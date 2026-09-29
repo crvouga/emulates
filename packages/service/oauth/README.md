@@ -182,7 +182,12 @@ For deterministic simulation tests, opt in so every opaque value the provider mi
 ```ts
 import { createRuntime } from "@crvouga/mockingbird-service-oauth"
 
-const runtime = createRuntime({ seed: "s1", deterministicCredentials: true, clients, accounts })
+const runtime = createRuntime({
+  seed: "s1",
+  deterministicCredentials: true,
+  clients: [{ id: "app", name: "App", redirectUris: ["https://app.test/callback"], secret: "fixture-secret" }],
+  accounts: [{ id: "ada", name: "Ada Lovelace", email: "ada@example.test" }],
+})
 ```
 
 - Seeded: authorization codes, access and refresh tokens, `transaction` ids, session ids, grant families, CSP nonces (on every page and the `form_post` response), and the RS256 signing key with its `kid`. Values are guessable; use only in tests. Pin the clock (`clock`) as well when you compare ID tokens, whose `iat` / `exp` come from it.
