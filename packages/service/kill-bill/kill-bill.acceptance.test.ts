@@ -876,14 +876,9 @@ describe("Kill Bill tenants and notification callbacks", () => {
         method: "POST",
         body: JSON.stringify({ accountId, planName: "example-monthly" }),
       })
-      const bundles = (await (await request(`/accounts/${accountId}/bundles`)).json()) as Array<{
-        bundleId: string
-        subscriptions: Array<{ subscriptionId: string }>
-      }>
-      expect(createdSubscription.headers.get("location")).toEndWith(
-        `/bundles/${bundles[0]?.bundleId}`,
-      )
-      const subscriptionId = bundles[0]?.subscriptions[0]?.subscriptionId as string
+      const location = createdSubscription.headers.get("location") ?? ""
+      const subscriptionId = location.split("/").at(-1) as string
+      expect(location).toEndWith(`/subscriptions/${subscriptionId}`)
       expect(
         (
           await request(`/subscriptions/${subscriptionId}?billingPolicy=END_OF_TERM`, {
@@ -925,14 +920,9 @@ describe("Kill Bill tenants and notification callbacks", () => {
         method: "POST",
         body: JSON.stringify({ accountId, planName: "example-monthly" }),
       })
-      const bundles = (await (await request(`/accounts/${accountId}/bundles`)).json()) as Array<{
-        bundleId: string
-        subscriptions: Array<{ subscriptionId: string }>
-      }>
-      expect(createdSubscription.headers.get("location")).toEndWith(
-        `/bundles/${bundles[0]?.bundleId}`,
-      )
-      const subscriptionId = bundles[0]?.subscriptions[0]?.subscriptionId as string
+      const location = createdSubscription.headers.get("location") ?? ""
+      const subscriptionId = location.split("/").at(-1) as string
+      expect(location).toEndWith(`/subscriptions/${subscriptionId}`)
       const undone = await request(`/subscriptions/${subscriptionId}/undoChangePlan`, {
         method: "PUT",
       })
@@ -1346,10 +1336,10 @@ describe("GET /1.0/kb/test/queues", () => {
       const queued = (await (
         await fetch(`${server.url}/__admin/state/kb_notifications`)
       ).json()) as { records: Array<{ value: { effectiveDate: string } }> }
-      const clock = (await (await request("/test/clock")).json()) as { utc: string }
+      const clock = (await (await request("/test/clock")).json()) as { currentUtcTime: string }
       expect(queued.records).toHaveLength(1)
       expect(Date.parse(queued.records[0]?.value.effectiveDate ?? "")).toBeGreaterThan(
-        Date.parse(clock.utc),
+        Date.parse(clock.currentUtcTime),
       )
       const started = performance.now()
       const response = await request("/test/queues?timeoutSec=1")
