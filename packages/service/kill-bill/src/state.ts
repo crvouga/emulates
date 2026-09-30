@@ -2,12 +2,21 @@ import { Collection, IdSequence } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type Account = Record<string, unknown> & {
   accountId: string
+  tenantId: string
   externalKey: string
   currency: string
   timeZone: string
   referenceTime: string
   accountBalance: number
   accountCBA: number
+}
+/** Kill Bill tenant. `callbacks` is the single-value PUSH_NOTIFICATION_CB list. */
+export type Tenant = {
+  tenantId: string
+  externalKey: string
+  apiKey: string
+  apiSecret: string
+  callbacks: string[]
 }
 export type PaymentMethod = Record<string, unknown> & {
   paymentMethodId: string
@@ -111,6 +120,7 @@ export class KillBillState {
   readonly plans: Collection<CatalogPlan>
   readonly audits: Collection<Audit>
   readonly settings: Collection<{ clockMs?: number; declineNext: boolean; pendingNext: boolean }>
+  readonly tenants: Collection<Tenant>
   readonly ids: IdSequence
   constructor(sqlite: SqliteClient, namespace: string) {
     this.accounts = new Collection(sqlite, namespace, "kb_accounts")
@@ -123,6 +133,7 @@ export class KillBillState {
     this.plans = new Collection(sqlite, namespace, "kb_plans")
     this.audits = new Collection(sqlite, namespace, "kb_audits")
     this.settings = new Collection(sqlite, namespace, "kb_settings")
+    this.tenants = new Collection(sqlite, namespace, "kb_tenants")
     this.ids = new IdSequence(sqlite, namespace, "killbill")
   }
 }

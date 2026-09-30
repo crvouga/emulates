@@ -10,6 +10,7 @@ import {
   type Payment,
   type PaymentMethod,
   type Subscription,
+  type Tenant,
   type Transaction,
 } from "./state.js"
 
@@ -25,6 +26,7 @@ export type {
   Payment,
   PaymentMethod,
   Subscription,
+  Tenant,
   Transaction,
 } from "./state.js"
 export { document, operationIds, supportedOperationIds }
@@ -46,6 +48,8 @@ export type KillBillAPIOptions = APIOptions & {
   plans?: readonly CatalogPlan[]
   onEvent?: (event: KillBillEvent) => void
 }
+const DEFAULT_TENANT_ID = "tenant-default"
+const NOTIFICATION_KEY = "PUSH_NOTIFICATION_CB"
 const money = (value: unknown) => Math.round((Number(value) + Number.EPSILON) * 100) / 100
 const object = (value: unknown): Input =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Input) : {}
@@ -175,6 +179,14 @@ export class KillBillAPI {
       { name: "standard-monthly", amount: 100, currency: "USD", intervalDays: 30 },
     ])
       this.state.plans.insert(plan.name, plan)
+    if (!this.tenantByApiKey(this.tenantKey))
+      this.state.tenants.insert(DEFAULT_TENANT_ID, {
+        tenantId: DEFAULT_TENANT_ID,
+        externalKey: this.tenantKey,
+        apiKey: this.tenantKey,
+        apiSecret: this.tenantSecret,
+        callbacks: [],
+      })
   }
   async reset() {
     clearNamespace(this.sqlite, this.namespace)
@@ -198,7 +210,13 @@ export class KillBillAPI {
       status,
     )
   }
-  private emit(eventType: string, objectType: string, objectId: string, accountId?: string) {
+  private async emit(
+    eventType: string,
+    objectType: string,
+    objectId: string,
+    accountId: string | undefined,
+    tenantId: string,
+  ) {
     this.options.onEvent?.({
       eventType,
       objectType,
@@ -211,6 +229,31 @@ export class KillBillAPI {
         1,
       effectiveDate: new Date(this.now()).toISOString(),
     })
+    const callbacks = this.state.tenants.get(tenantId)?.callbacks ?? []
+    if (callbacks.length === 0) return
+    // Kill Bill 0.24 PushNotificationListener posts NotificationJson and ignores failure.
+    const body = JSON.stringify({
+      eventType,
+      accountId: accountId ?? null,
+      objectType,
+      objectId,
+      metaData: null,
+    })
+    await Promise.all(callbacks.map((url) => this.postNotification(url, body)))
+  }
+  private async postNotification(url: string, body: string) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "user-agent": "KillBill/1.0",
+          "content-type": "application/json; charset=UTF-8",
+        },
+        body,
+      })
+    } catch {
+      // Delivery failure is retried by Kill Bill; it does not fail the API call.
+    }
   }
   private audit(request: Request, objectType: string, objectId: string) {
     const createdBy = request.headers.get("x-killbill-createdby") ?? "mockingbird"
@@ -229,16 +272,14 @@ export class KillBillAPI {
       createdAt: new Date(this.now()).toISOString(),
     })
   }
-  private authorized(request: Request) {
+  private basicAuthorized(request: Request) {
     const expected = `Basic ${btoa(`${this.username}:${this.password}`)}`
-    return (
-      request.headers.get("authorization") === expected &&
-      request.headers.get("x-killbill-apikey") === this.tenantKey &&
-      request.headers.get("x-killbill-apisecret") === this.tenantSecret
-    )
+    return request.headers.get("authorization") === expected
   }
-  private account(id: string) {
-    return this.state.accounts.get(id)
+  private tenantByApiKey(apiKey: string) {
+    return this.state.tenants
+      .list({ where: (tenant) => tenant.apiKey === apiKey })
+      .map(({ value }) => value)[0]
   }
   private defaultPaymentMethod(accountId: string) {
     return this.state.methods
@@ -269,14 +310,27 @@ export class KillBillAPI {
     const { invoiceId: _invoiceId, ...fields } = payment
     return { ...fields, targetInvoiceId }
   }
-  private byExternal(key: string) {
+  private authenticatedTenant(request: Request) {
+    const apiKey = request.headers.get("x-killbill-apikey")
+    const apiSecret = request.headers.get("x-killbill-apisecret")
+    if (!apiKey || !apiSecret) return undefined
+    const tenant = this.tenantByApiKey(apiKey)
+    if (!tenant || tenant.apiSecret !== apiSecret) return undefined
+    return tenant
+  }
+  private account(id: string, tenantId: string) {
+    const found = this.state.accounts.get(id)
+    return found?.tenantId === tenantId ? found : undefined
+  }
+  private byExternal(key: string, tenantId: string) {
     return this.state.accounts
-      .list({ where: (a) => a.externalKey === key })
+      .list({ where: (account) => account.externalKey === key && account.tenantId === tenantId })
       .map(({ value }) => value)[0]
   }
   private publicAccount(account: Account) {
+    const { tenantId: _tenantId, ...rest } = account
     return {
-      ...account,
+      ...rest,
       accountBalance: money(
         this.state.invoices
           .list({ where: (i) => i.accountId === account.accountId && i.status !== "VOID" })
@@ -336,8 +390,13 @@ export class KillBillAPI {
   private location(request: Request, path: string) {
     return new URL(path, request.url).toString()
   }
-  private createInvoice(accountId: string, itemInputs: Input[], description = "Invoice") {
-    const account = this.account(accountId)
+  private async createInvoice(
+    accountId: string,
+    tenantId: string,
+    itemInputs: Input[],
+    description = "Invoice",
+  ) {
+    const account = this.account(accountId, tenantId)
     if (!account) return undefined
     const invoiceId = this.state.ids.next("inv-", 32)
     const date = isoDate(this.now())
@@ -370,7 +429,7 @@ export class KillBillAPI {
       items,
     }
     this.state.invoices.insert(invoiceId, invoice)
-    this.emit("INVOICE_CREATION", "INVOICE", invoiceId, accountId)
+    await this.emit("INVOICE_CREATION", "INVOICE", invoiceId, accountId, tenantId)
     return invoice
   }
   private transaction(
@@ -395,14 +454,15 @@ export class KillBillAPI {
     }
     return transaction
   }
-  private pay(
+  private async pay(
     accountId: string,
+    tenantId: string,
     input: Input,
     invoiceId?: string,
     paymentMethodId?: string,
     external = false,
   ) {
-    const account = this.account(accountId)
+    const account = this.account(accountId, tenantId)
     if (!account) return undefined
     const paymentExternalKey =
       typeof input.paymentExternalKey === "string" ? input.paymentExternalKey : undefined
@@ -485,7 +545,7 @@ export class KillBillAPI {
           balance: money(Math.max(0, invoice.balance - amount)),
         })
     }
-    this.emit(
+    await this.emit(
       status === "SUCCESS"
         ? "PAYMENT_SUCCESS"
         : status === "PENDING"
@@ -494,13 +554,14 @@ export class KillBillAPI {
       "PAYMENT",
       paymentId,
       accountId,
+      tenantId,
     )
     return payment
   }
-  private billDue() {
+  private async billDue(tenantId: string) {
     const today = isoDate(this.now())
     for (const { value: subscription } of this.state.subscriptions.list({
-      where: (s) => s.state === "ACTIVE",
+      where: (s) => s.state === "ACTIVE" && this.account(s.accountId, tenantId) !== undefined,
     })) {
       if (subscription.pendingChangePlan) {
         subscription.planName = subscription.pendingChangePlan
@@ -510,8 +571,9 @@ export class KillBillAPI {
       if (due > today) continue
       const plan = this.plan(subscription.planName)
       if (!plan) continue
-      const invoice = this.createInvoice(
+      const invoice = await this.createInvoice(
         subscription.accountId,
+        tenantId,
         [
           {
             itemType: "RECURRING",
@@ -534,8 +596,9 @@ export class KillBillAPI {
         .list({ where: (m) => m.accountId === subscription.accountId && m.isDefault })
         .map(({ value }) => value)[0]
       if (invoice && method)
-        this.pay(
+        await this.pay(
           subscription.accountId,
+          tenantId,
           { amount: invoice.balance, transactionType: "PURCHASE", currency: invoice.currency },
           invoice.invoiceId,
           method.paymentMethodId,
@@ -551,16 +614,94 @@ export class KillBillAPI {
       return { raw: text }
     }
   }
+  private async tenants(request: Request, url: URL) {
+    if (request.method === "GET") {
+      const apiKey = url.searchParams.get("apiKey")
+      const tenant = apiKey ? this.tenantByApiKey(apiKey) : undefined
+      return tenant
+        ? this.json({
+            tenantId: tenant.tenantId,
+            externalKey: tenant.externalKey,
+            apiKey: tenant.apiKey,
+          })
+        : this.problem(
+            404,
+            "TENANT_DOES_NOT_EXIST",
+            `Tenant does not exist for api key ${apiKey ?? ""}`,
+          )
+    }
+    if (request.method !== "POST")
+      return this.problem(
+        404,
+        "NOT_FOUND",
+        `No Kill Bill route for ${request.method} ${url.pathname}`,
+      )
+    const body = await this.body(request)
+    const apiKey = typeof body.apiKey === "string" ? body.apiKey : ""
+    const apiSecret = typeof body.apiSecret === "string" ? body.apiSecret : ""
+    if (!apiKey || !apiSecret)
+      return this.problem(400, "INVALID_TENANT", "apiKey and apiSecret are required")
+    if (this.tenantByApiKey(apiKey)) {
+      const key =
+        typeof body.externalKey === "string" && body.externalKey ? body.externalKey : apiKey
+      return this.problem(409, "TENANT_ALREADY_EXISTS", `Tenant already exists for key ${key}`)
+    }
+    const tenantId = this.state.ids.next("tenant-", 32)
+    const externalKey = typeof body.externalKey === "string" ? body.externalKey : ""
+    this.state.tenants.insert(tenantId, {
+      tenantId,
+      externalKey,
+      apiKey,
+      apiSecret,
+      callbacks: [],
+    })
+    this.audit(request, "TENANT", tenantId)
+    return this.empty(201, { location: this.location(request, `/1.0/kb/tenants/${tenantId}`) })
+  }
+  private notificationCallback(request: Request, url: URL, tenant: Tenant) {
+    if (request.method === "GET")
+      return this.json({ key: NOTIFICATION_KEY, values: tenant.callbacks })
+    if (request.method === "DELETE") {
+      this.state.tenants.insert(tenant.tenantId, { ...tenant, callbacks: [] })
+      return this.empty()
+    }
+    if (request.method === "POST") {
+      const callback = url.searchParams.get("cb")
+      if (!callback) return this.problem(400, "INVALID_CALLBACK", "cb is required")
+      // PUSH_NOTIFICATION_CB is a single-value key: POST replaces the previous URL.
+      this.state.tenants.insert(tenant.tenantId, { ...tenant, callbacks: [callback] })
+      return this.empty(201, {
+        location: this.location(request, "/1.0/kb/tenants/registerNotificationCallback"),
+      })
+    }
+    return this.problem(
+      404,
+      "NOT_FOUND",
+      `No Kill Bill route for ${request.method} ${url.pathname}`,
+    )
+  }
+
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     if (url.pathname === "/1.0/healthcheck" || url.pathname === "/healthcheck")
       return this.json({ status: "UP" })
-    if (!this.authorized(request)) return this.problem(401, "UNAUTHORIZED", "Unauthorized")
+    if (!this.basicAuthorized(request)) return this.problem(401, "UNAUTHORIZED", "Unauthorized")
+    // Kill Bill 0.24 TenantFilter skips api key headers on exactly /1.0/kb/tenants.
+    if (url.pathname === "/1.0/kb/tenants") {
+      if (request.method !== "GET" && !request.headers.get("x-killbill-createdby"))
+        return this.problem(400, "MISSING_CREATED_BY", "X-Killbill-CreatedBy is required")
+      return this.tenants(request, url)
+    }
+    const tenant = this.authenticatedTenant(request)
+    if (!tenant) return this.problem(401, "UNAUTHORIZED", "Unauthorized")
     if (request.method !== "GET" && !request.headers.get("x-killbill-createdby"))
       return this.problem(400, "MISSING_CREATED_BY", "X-Killbill-CreatedBy is required")
+    const tenantId = tenant.tenantId
     const path = url.pathname.replace(/^\/1\.0\/kb\/?/, "")
     const parts = path.split("/").filter(Boolean)
     const body = await this.body(request)
+    if (parts[0] === "tenants" && parts[1] === "registerNotificationCallback")
+      return this.notificationCallback(request, url, tenant)
     if (parts[0] === "test" && parts[1] === "clock") {
       const zone = clockZone(url.searchParams.get("timeZone"))
       if (!zone) return this.problem(400, "INVALID_TIMEZONE", "Invalid timezone supplied")
@@ -576,7 +717,7 @@ export class KillBillAPI {
         pendingNext: false,
       }
       this.state.settings.insert("settings", { ...settings, clockMs: parsed })
-      this.billDue()
+      await this.billDue(tenantId)
       return this.json(clockJson(parsed, zone))
     }
     if (parts[0] === "catalog") {
@@ -608,7 +749,7 @@ export class KillBillAPI {
     if (parts[0] === "accounts" && parts.length === 1) {
       if (request.method === "GET") {
         const external = url.searchParams.get("externalKey")
-        const account = external ? this.byExternal(external) : undefined
+        const account = external ? this.byExternal(external, tenantId) : undefined
         return account
           ? this.json(this.publicAccount(account))
           : this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
@@ -617,8 +758,8 @@ export class KillBillAPI {
         typeof body.externalKey === "string"
           ? body.externalKey
           : this.state.ids.next("account-key-", 24)
-      const prior = this.byExternal(externalKey)
       // Kill Bill 0.24 maps ErrorCode.ACCOUNT_ALREADY_EXISTS (3000) to HTTP 409.
+      const prior = this.byExternal(externalKey, tenantId)
       if (prior)
         return this.json(
           {
@@ -637,6 +778,7 @@ export class KillBillAPI {
       const account: Account = {
         ...body,
         accountId,
+        tenantId,
         externalKey,
         currency: body.currency,
         timeZone: typeof body.timeZone === "string" ? body.timeZone : "UTC",
@@ -646,18 +788,20 @@ export class KillBillAPI {
       }
       this.state.accounts.insert(accountId, account)
       this.audit(request, "ACCOUNT", accountId)
-      this.emit("ACCOUNT_CREATION", "ACCOUNT", accountId, accountId)
+      await this.emit("ACCOUNT_CREATION", "ACCOUNT", accountId, accountId, tenantId)
       return this.empty(201, { location: this.location(request, `/1.0/kb/accounts/${accountId}`) })
     }
     if (parts[0] === "accounts" && parts.length === 2 && request.method === "GET") {
-      const account = this.account(parts[1] as string)
+      const account = this.account(parts[1] as string, tenantId)
       return account
         ? this.json(this.publicAccount(account))
         : this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
     }
     const accountId = parts[0] === "accounts" ? (parts[1] as string) : undefined
+    if (accountId && parts[2] && !this.account(accountId, tenantId))
+      return this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
     if (accountId && parts[2] === "paymentMethods") {
-      if (!this.account(accountId))
+      if (!this.account(accountId, tenantId))
         return this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
       if (request.method === "GET")
         return this.json(
@@ -668,7 +812,10 @@ export class KillBillAPI {
       const externalKey =
         typeof body.externalKey === "string" ? body.externalKey : this.state.ids.next("pm-key-", 24)
       const prior = this.state.methods
-        .list({ where: (m) => m.externalKey === externalKey })
+        .list({
+          where: (m) =>
+            m.externalKey === externalKey && this.account(m.accountId, tenantId) !== undefined,
+        })
         .map(({ value }) => value)[0]
       if (prior)
         return this.problem(400, "PAYMENT_METHOD_ALREADY_EXISTS", "Payment method already exists")
@@ -701,7 +848,7 @@ export class KillBillAPI {
         : this.state.methods
             .list({ where: (m) => m.externalKey === url.searchParams.get("externalKey") })
             .map(({ value }) => value)[0]
-      return method
+      return method && this.account(method.accountId, tenantId)
         ? this.json(method)
         : this.problem(404, "PAYMENT_METHOD_DOES_NOT_EXIST", "Payment method not found")
     }
@@ -712,7 +859,7 @@ export class KillBillAPI {
       for (const input of inputs) {
         if (
           typeof input.accountId !== "string" ||
-          !this.account(input.accountId) ||
+          !this.account(input.accountId, tenantId) ||
           typeof input.planName !== "string" ||
           !this.plan(input.planName)
         )
@@ -725,7 +872,12 @@ export class KillBillAPI {
           typeof input.externalKey === "string"
             ? input.externalKey
             : this.state.ids.next("sub-key-", 24)
-        if (this.state.subscriptions.list({ where: (s) => s.externalKey === externalKey }).length)
+        if (
+          this.state.subscriptions.list({
+            where: (s) =>
+              s.externalKey === externalKey && this.account(s.accountId, tenantId) !== undefined,
+          }).length
+        )
           return this.problem(
             400,
             "SUBSCRIPTION_ALREADY_EXISTS",
@@ -763,26 +915,33 @@ export class KillBillAPI {
             subscriptions: [...bundle.subscriptions, subscriptionId],
           })
         this.audit(request, "SUBSCRIPTION", subscriptionId)
-        this.emit("SUBSCRIPTION_CREATION", "SUBSCRIPTION", subscriptionId, input.accountId)
+        await this.emit(
+          "SUBSCRIPTION_CREATION",
+          "SUBSCRIPTION",
+          subscriptionId,
+          input.accountId,
+          tenantId,
+        )
       }
-      this.billDue()
+      await this.billDue(tenantId)
       return this.empty(201, {
         location: this.location(request, `/1.0/kb/subscriptions/${createdSubscriptionId}`),
       })
     }
     if (parts[0] === "subscriptions" && parts[1]) {
       const subscription = this.state.subscriptions.get(parts[1])
-      if (!subscription)
+      if (!subscription || !this.account(subscription.accountId, tenantId))
         return this.problem(404, "SUBSCRIPTION_DOES_NOT_EXIST", "Subscription not found")
       if (parts[2] === "uncancel" && request.method === "PUT") {
         const next = { ...subscription, state: "ACTIVE" as const }
         delete next.cancelledDate
         this.state.subscriptions.insert(subscription.subscriptionId, next)
-        this.emit(
+        await this.emit(
           "SUBSCRIPTION_UNCANCEL",
           "SUBSCRIPTION",
           subscription.subscriptionId,
           subscription.accountId,
+          tenantId,
         )
         return this.empty()
       }
@@ -801,11 +960,12 @@ export class KillBillAPI {
           cancelledDate: effective,
         }
         this.state.subscriptions.insert(subscription.subscriptionId, next)
-        this.emit(
+        await this.emit(
           "SUBSCRIPTION_CANCEL",
           "SUBSCRIPTION",
           subscription.subscriptionId,
           subscription.accountId,
+          tenantId,
         )
         return this.empty()
       }
@@ -819,11 +979,12 @@ export class KillBillAPI {
             ? { ...subscription, planName }
             : { ...subscription, pendingChangePlan: planName },
         )
-        this.emit(
+        await this.emit(
           "SUBSCRIPTION_CHANGE",
           "SUBSCRIPTION",
           subscription.subscriptionId,
           subscription.accountId,
+          tenantId,
         )
         return this.empty()
       }
@@ -870,7 +1031,7 @@ export class KillBillAPI {
       request.method === "POST"
     ) {
       const inputs = Array.isArray(body) ? (body as unknown as Input[]) : [body]
-      const invoice = this.createInvoice(parts[2], inputs)
+      const invoice = await this.createInvoice(parts[2], tenantId, inputs)
       return invoice
         ? this.empty(201, {
             location: this.location(request, `/1.0/kb/invoices/${invoice.invoiceId}`),
@@ -882,8 +1043,9 @@ export class KillBillAPI {
       const account = inputs[0]?.accountId
       if (typeof account !== "string")
         return this.problem(400, "INVALID_CREDIT", "accountId required")
-      const invoice = this.createInvoice(
+      const invoice = await this.createInvoice(
         account,
+        tenantId,
         inputs.map((item) => ({
           ...item,
           itemType: "CBA_ADJ",
@@ -898,7 +1060,8 @@ export class KillBillAPI {
     }
     if (parts[0] === "invoices" && parts[1]) {
       const invoice = this.state.invoices.get(parts[1])
-      if (!invoice) return this.problem(404, "INVOICE_DOES_NOT_EXIST", "Invoice not found")
+      if (!invoice || !this.account(invoice.accountId, tenantId))
+        return this.problem(404, "INVOICE_DOES_NOT_EXIST", "Invoice not found")
       if (parts[2] === "payments") {
         if (request.method === "GET")
           return this.json(
@@ -917,12 +1080,13 @@ export class KillBillAPI {
         const requestedMethod =
           typeof body.paymentMethodId === "string" ? body.paymentMethodId : undefined
         const paymentMethodId = externalPayment
-          ? this.account(payerId)
+          ? this.account(payerId, tenantId)
             ? this.externalPaymentMethod(payerId).paymentMethodId
             : undefined
           : (requestedMethod ?? this.defaultPaymentMethod(payerId)?.paymentMethodId)
-        const payment = this.pay(
+        const payment = await this.pay(
           payerId,
+          tenantId,
           {
             ...body,
             amount: body.purchasedAmount ?? body.amount ?? invoice.balance,
@@ -943,17 +1107,18 @@ export class KillBillAPI {
         if (invoice.balance !== invoice.amount)
           return this.problem(409, "INVOICE_NOT_WRITABLE", "Paid invoice cannot be voided")
         this.state.invoices.insert(invoice.invoiceId, { ...invoice, status: "VOID", balance: 0 })
-        this.emit("INVOICE_VOID", "INVOICE", invoice.invoiceId, invoice.accountId)
+        await this.emit("INVOICE_VOID", "INVOICE", invoice.invoiceId, invoice.accountId, tenantId)
         return this.empty()
       }
     }
     if (parts[0] === "accounts" && parts[1] === "payments" && request.method === "POST") {
       const account = url.searchParams.get("externalKey")
-        ? this.byExternal(url.searchParams.get("externalKey") as string)
+        ? this.byExternal(url.searchParams.get("externalKey") as string, tenantId)
         : undefined
       if (!account) return this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
-      const payment = this.pay(
+      const payment = await this.pay(
         account.accountId,
+        tenantId,
         body,
         undefined,
         url.searchParams.get("paymentMethodId") ?? undefined,
@@ -966,7 +1131,8 @@ export class KillBillAPI {
     }
     if (parts[0] === "payments" && parts[1]) {
       const payment = this.state.payments.get(parts[1])
-      if (!payment) return this.problem(404, "PAYMENT_DOES_NOT_EXIST", "Payment not found")
+      if (!payment || !this.account(payment.accountId, tenantId))
+        return this.problem(404, "PAYMENT_DOES_NOT_EXIST", "Payment not found")
       if (parts[2] === "refunds" && request.method === "POST") {
         const amount = money(body.amount ?? payment.purchasedAmount - payment.refundedAmount)
         if (amount <= 0 || amount > payment.purchasedAmount - payment.refundedAmount)
@@ -1011,7 +1177,7 @@ export class KillBillAPI {
             })
           }
         }
-        this.emit("PAYMENT_REFUND", "PAYMENT", payment.paymentId, payment.accountId)
+        await this.emit("PAYMENT_REFUND", "PAYMENT", payment.paymentId, payment.accountId, tenantId)
         return this.empty(201, {
           location: this.location(request, `/1.0/kb/payments/${payment.paymentId}`),
         })

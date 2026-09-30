@@ -624,3 +624,236 @@ describe("Kill Bill REST adapter", () => {
     }
   })
 })
+
+describe("Kill Bill tenants and notification callbacks", () => {
+  const basic = {
+    authorization: `Basic ${btoa("admin:password")}`,
+    "content-type": "application/json",
+    "x-killbill-createdby": "acceptance-test",
+  }
+  const call = (url: string, path: string, init: RequestInit = {}, extra: HeadersInit = {}) =>
+    fetch(`${url}/1.0/kb${path}`, {
+      ...init,
+      headers: { ...basic, ...extra, ...init.headers },
+    })
+  const tenantHeaders = (apiKey: string, apiSecret: string) => ({
+    "x-killbill-apikey": apiKey,
+    "x-killbill-apisecret": apiSecret,
+  })
+  const createTenant = async (
+    url: string,
+    apiKey: string,
+    apiSecret: string,
+    externalKey: string,
+  ) =>
+    call(url, "/tenants", {
+      method: "POST",
+      body: JSON.stringify({ apiKey, apiSecret, externalKey }),
+    })
+
+  test("creates a tenant and rejects a duplicate api key", async () => {
+    const server = await createServer()
+    try {
+      const created = await createTenant(server.url, "tenant-a", "secret-a", "env-a")
+      expect(created.status).toBe(201)
+      const duplicate = await createTenant(server.url, "tenant-a", "other-secret", "env-b")
+      expect(duplicate.status).toBe(409)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("looks up a tenant by api key with basic auth only", async () => {
+    const server = await createServer()
+    try {
+      expect((await createTenant(server.url, "tenant-a", "secret-a", "env-a")).status).toBe(201)
+      const found = await call(server.url, "/tenants?apiKey=tenant-a")
+      expect(found.status).toBe(200)
+      expect(await found.json()).toMatchObject({ apiKey: "tenant-a", externalKey: "env-a" })
+      expect((await call(server.url, "/tenants?apiKey=missing")).status).not.toBe(200)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("does not return another tenant's account", async () => {
+    const server = await createServer()
+    try {
+      expect((await createTenant(server.url, "tenant-a", "secret-a", "env-a")).status).toBe(201)
+      expect((await createTenant(server.url, "tenant-b", "secret-b", "env-b")).status).toBe(201)
+      const created = await call(
+        server.url,
+        "/accounts",
+        { method: "POST", body: JSON.stringify({ externalKey: "acct-ext", currency: "USD" }) },
+        tenantHeaders("tenant-a", "secret-a"),
+      )
+      expect(created.status).toBe(201)
+      const hidden = await call(
+        server.url,
+        "/accounts?externalKey=acct-ext",
+        {},
+        tenantHeaders("tenant-b", "secret-b"),
+      )
+      expect(hidden.status).not.toBe(200)
+      const visible = await call(
+        server.url,
+        "/accounts?externalKey=acct-ext",
+        {},
+        tenantHeaders("tenant-a", "secret-a"),
+      )
+      expect(visible.status).toBe(200)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("registers a notification callback url", async () => {
+    const server = await createServer()
+    const callback = "https://example.test/kb/"
+    try {
+      expect((await createTenant(server.url, "tenant-a", "secret-a", "env-a")).status).toBe(201)
+      const headers = tenantHeaders("tenant-a", "secret-a")
+      const registered = await call(
+        server.url,
+        `/tenants/registerNotificationCallback?cb=${encodeURIComponent(callback)}`,
+        { method: "POST" },
+        headers,
+      )
+      expect(registered.status).toBe(201)
+      const listed = await call(server.url, "/tenants/registerNotificationCallback", {}, headers)
+      expect(listed.status).toBe(200)
+      const body = (await listed.json()) as { values?: string[] }
+      expect(body.values?.[0]).toBe(callback)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("returns only the new callback url after delete", async () => {
+    const server = await createServer()
+    const first = "https://example.test/old/"
+    const next = "https://example.test/new/"
+    try {
+      expect((await createTenant(server.url, "tenant-a", "secret-a", "env-a")).status).toBe(201)
+      const headers = tenantHeaders("tenant-a", "secret-a")
+      expect(
+        (
+          await call(
+            server.url,
+            `/tenants/registerNotificationCallback?cb=${encodeURIComponent(first)}`,
+            { method: "POST" },
+            headers,
+          )
+        ).status,
+      ).toBe(201)
+      expect(
+        (
+          await call(
+            server.url,
+            "/tenants/registerNotificationCallback",
+            { method: "DELETE" },
+            headers,
+          )
+        ).status,
+      ).toBe(204)
+      expect(
+        (
+          await call(
+            server.url,
+            `/tenants/registerNotificationCallback?cb=${encodeURIComponent(next)}`,
+            { method: "POST" },
+            headers,
+          )
+        ).status,
+      ).toBe(201)
+      const listed = await call(server.url, "/tenants/registerNotificationCallback", {}, headers)
+      expect(listed.status).toBe(200)
+      expect(await listed.json()).toMatchObject({ values: [next] })
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("posts invoice or payment notifications to the registered callback", async () => {
+    const posted: Array<{
+      method: string
+      type: string | null
+      agent: string | null
+      objectType: string
+    }> = []
+    const hooked: string[] = []
+    const sink = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      async fetch(request) {
+        const body = (await request.json()) as { objectType?: string }
+        posted.push({
+          method: request.method,
+          type: request.headers.get("content-type"),
+          agent: request.headers.get("user-agent"),
+          objectType: body.objectType ?? "",
+        })
+        return new Response(null, { status: 204 })
+      },
+    })
+    const server = await createServer({
+      webhooks: {
+        endpoints: [
+          { url: "https://sink.test/kill-bill", secret: "webhook-secret", events: ["*"] },
+        ],
+        fetch: async (request) => {
+          hooked.push(((await request.json()) as { objectType?: string }).objectType ?? "")
+          return new Response(null, { status: 204 })
+        },
+      },
+    })
+    const callback = `http://127.0.0.1:${sink.port}/kb`
+    try {
+      expect((await createTenant(server.url, "tenant-a", "secret-a", "env-a")).status).toBe(201)
+      const headers = tenantHeaders("tenant-a", "secret-a")
+      expect(
+        (
+          await call(
+            server.url,
+            `/tenants/registerNotificationCallback?cb=${encodeURIComponent(callback)}`,
+            { method: "POST" },
+            headers,
+          )
+        ).status,
+      ).toBe(201)
+      const created = await call(
+        server.url,
+        "/accounts",
+        { method: "POST", body: JSON.stringify({ externalKey: "acct-ext", currency: "USD" }) },
+        headers,
+      )
+      const accountId = created.headers.get("location")?.split("/").at(-1)
+      expect(accountId).toBeTruthy()
+      expect(
+        (
+          await call(
+            server.url,
+            `/invoices/charges/${accountId}`,
+            { method: "POST", body: JSON.stringify([{ amount: 10, currency: "USD" }]) },
+            headers,
+          )
+        ).status,
+      ).toBe(201)
+      await server.runtime.webhooks.idle()
+      const invoiceOrPayment = (objectType: string) =>
+        objectType === "INVOICE" || objectType === "PAYMENT"
+      expect(posted.some((event) => invoiceOrPayment(event.objectType))).toBe(true)
+      expect(
+        posted
+          .filter((event) => invoiceOrPayment(event.objectType))
+          .every((event) => event.method === "POST"),
+      ).toBe(true)
+      expect(posted.every((event) => event.type?.includes("application/json"))).toBe(true)
+      expect(posted.every((event) => event.agent === "KillBill/1.0")).toBe(true)
+      expect(hooked.some(invoiceOrPayment)).toBe(true)
+    } finally {
+      sink.stop(true)
+      await server.close()
+    }
+  })
+})
