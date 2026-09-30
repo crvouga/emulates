@@ -307,15 +307,18 @@ describe("price.recurring.trial_period_days", () => {
     const h = await harness()
     const customer = await payingCustomer(h.stripe)
     const price = await trialPrice(h.stripe, 7)
-    const start = Math.floor(await h.now())
+    const before = Math.floor(await h.now())
     const subscription = await h.stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: price.id }],
       trial_from_plan: true,
     })
+    const after = Math.floor(await h.now())
     expect(subscription.status).toBe("trialing")
-    expect(subscription.trial_start).toBe(start)
-    expect(subscription.trial_end).toBe(start + 7 * 86_400)
+    // The harness clock is live, so create can land in the next second.
+    expect(subscription.trial_start).toBeGreaterThanOrEqual(before)
+    expect(subscription.trial_start).toBeLessThanOrEqual(after)
+    expect(subscription.trial_end).toBe((subscription.trial_start ?? 0) + 7 * 86_400)
   })
 
   test("a subscription ignores the price's trial unless trial_from_plan is set", async () => {
