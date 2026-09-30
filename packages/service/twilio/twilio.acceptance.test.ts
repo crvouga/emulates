@@ -534,9 +534,11 @@ describe("SMS delivery ambiguity", () => {
     expect(isDefiniteDeliveryFailure(error)).toBe(false)
     const outbox = await outboxOf(admin)
     expect(outbox).toHaveLength(1)
-    const fetched = await client.messages(outbox[0]?.sid as string).fetch()
+    const stored = outbox[0]
+    if (stored === undefined) throw new Error("expected one stored message")
+    const fetched = await client.messages(stored.sid).fetch()
     expect(fetched.body).toBe("Ambiguous")
-    expect(fetched.sid).toBe(outbox[0]?.sid)
+    expect(fetched.sid).toBe(stored.sid)
     expect(fetched.status).toBe("accepted")
   })
 
