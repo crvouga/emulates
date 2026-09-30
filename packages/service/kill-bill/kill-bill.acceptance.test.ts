@@ -519,4 +519,108 @@ describe("Kill Bill REST adapter", () => {
       currentUtcTime: "2015-12-14T23:02:15.000Z",
     })
   })
+
+  test("lists invoice payments with targetInvoiceId and records one external purchase", async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const json = async <T>(path: string, init?: RequestInit) =>
+      (await (await request(path, init)).json()) as T
+    const post = (path: string, body: unknown) =>
+      request(path, { method: "POST", body: JSON.stringify(body) })
+    try {
+      const created = await post("/accounts", { externalKey: "ext-pay", currency: "USD" })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const charge = await post(`/invoices/charges/${accountId}`, [
+        { amount: 10, currency: "USD", description: "Visit" },
+      ])
+      const invoiceId = charge.headers.get("location")?.split("/").at(-1) as string
+      await fetch(`${server.url}/__admin/payments/decline-next`, { method: "POST" })
+      const paid = await post(`/invoices/${invoiceId}/payments?externalPayment=true`, {
+        accountId,
+        purchasedAmount: 10,
+        currency: "USD",
+        paymentExternalKey: "ext-pay-1",
+      })
+      expect(paid.status).toBe(201)
+      const paymentId = paid.headers.get("location")?.split("/").at(-1) as string
+      const duplicate = await post(`/invoices/${invoiceId}/payments?externalPayment=true`, {
+        accountId,
+        purchasedAmount: 10,
+        currency: "USD",
+        paymentExternalKey: "ext-pay-1",
+      })
+      expect(duplicate.status).toBe(201)
+      expect(duplicate.headers.get("location")).toEndWith(paymentId)
+      const payments = await json<
+        Array<{
+          targetInvoiceId?: string
+          invoiceId?: string
+          accountId: string
+          paymentId: string
+          paymentExternalKey: string
+          paymentMethodId?: string
+          purchasedAmount: number
+          refundedAmount: number
+          currency: string
+          transactions: Array<{
+            transactionId: string
+            transactionExternalKey: string
+            paymentId: string
+            transactionType: string
+            amount: number
+            currency: string
+            status: string
+          }>
+        }>
+      >(`/invoices/${invoiceId}/payments`)
+      expect(payments).toHaveLength(1)
+      expect(payments[0]).toMatchObject({
+        targetInvoiceId: invoiceId,
+        accountId,
+        paymentId,
+        paymentExternalKey: "ext-pay-1",
+        purchasedAmount: 10,
+        refundedAmount: 0,
+        currency: "USD",
+      })
+      expect(payments[0]).not.toHaveProperty("invoiceId")
+      expect(payments[0]?.paymentMethodId).toEqual(expect.any(String))
+      expect(payments[0]?.transactions[0]).toEqual(
+        expect.objectContaining({
+          transactionId: expect.any(String),
+          transactionExternalKey: expect.any(String),
+          paymentId,
+          transactionType: "PURCHASE",
+          amount: 10,
+          currency: "USD",
+          status: "SUCCESS",
+        }),
+      )
+      expect((await json<{ balance: number }>(`/invoices/${invoiceId}`)).balance).toBe(0)
+      const method = await json<{ pluginName: string }>(
+        `/paymentMethods/${payments[0]?.paymentMethodId}`,
+      )
+      expect(method.pluginName).toBe("__EXTERNAL_PAYMENT__")
+
+      const card = await post(`/accounts/${accountId}/paymentMethods?isDefault=true`, {
+        pluginName: "stripe",
+      })
+      const paymentMethodId = card.headers.get("location")?.split("/").at(-1) as string
+      const second = await post(`/invoices/charges/${accountId}`, [{ amount: 4, currency: "USD" }])
+      const secondInvoiceId = second.headers.get("location")?.split("/").at(-1) as string
+      const gateway = await post(`/invoices/${secondInvoiceId}/payments`, {
+        amount: 4,
+        paymentMethodId,
+        paymentExternalKey: "gateway-pay",
+      })
+      const gatewayId = gateway.headers.get("location")?.split("/").at(-1) as string
+      expect(
+        (await json<{ transactions: Array<{ status: string }> }>(`/payments/${gatewayId}`))
+          .transactions[0]?.status,
+      ).toBe("PAYMENT_FAILURE")
+    } finally {
+      await server.close()
+    }
+  })
 })

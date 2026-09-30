@@ -240,6 +240,35 @@ export class KillBillAPI {
   private account(id: string) {
     return this.state.accounts.get(id)
   }
+  private defaultPaymentMethod(accountId: string) {
+    return this.state.methods
+      .list({ where: (method) => method.accountId === accountId && method.isDefault })
+      .map(({ value }) => value)[0]
+  }
+  // Kill Bill 0.24 creates or reuses __EXTERNAL_PAYMENT__ and does not call a gateway.
+  private externalPaymentMethod(accountId: string) {
+    const existing = this.state.methods
+      .list({
+        where: (method) =>
+          method.accountId === accountId && method.pluginName === "__EXTERNAL_PAYMENT__",
+      })
+      .map(({ value }) => value)[0]
+    if (existing) return existing
+    const paymentMethodId = this.state.ids.next("pm-", 32)
+    const method: PaymentMethod = {
+      paymentMethodId,
+      accountId,
+      externalKey: this.state.ids.next("pm-key-", 24),
+      pluginName: "__EXTERNAL_PAYMENT__",
+      isDefault: false,
+    }
+    this.state.methods.insert(paymentMethodId, method)
+    return method
+  }
+  private invoicePayment(payment: Payment, targetInvoiceId: string) {
+    const { invoiceId: _invoiceId, ...fields } = payment
+    return { ...fields, targetInvoiceId }
+  }
   private byExternal(key: string) {
     return this.state.accounts
       .list({ where: (a) => a.externalKey === key })
@@ -366,7 +395,13 @@ export class KillBillAPI {
     }
     return transaction
   }
-  private pay(accountId: string, input: Input, invoiceId?: string, paymentMethodId?: string) {
+  private pay(
+    accountId: string,
+    input: Input,
+    invoiceId?: string,
+    paymentMethodId?: string,
+    external = false,
+  ) {
     const account = this.account(accountId)
     if (!account) return undefined
     const paymentExternalKey =
@@ -394,12 +429,19 @@ export class KillBillAPI {
       input.amount ?? (invoiceId ? this.state.invoices.get(invoiceId)?.balance : 0),
     )
     const paymentId = this.state.ids.next("pay-", 32)
-    const status: Transaction["status"] = settings.declineNext
-      ? "PAYMENT_FAILURE"
-      : settings.pendingNext
-        ? "PENDING"
-        : "SUCCESS"
-    this.state.settings.insert("settings", { ...settings, declineNext: false, pendingNext: false })
+    const status: Transaction["status"] = external
+      ? "SUCCESS"
+      : settings.declineNext
+        ? "PAYMENT_FAILURE"
+        : settings.pendingNext
+          ? "PENDING"
+          : "SUCCESS"
+    if (!external)
+      this.state.settings.insert("settings", {
+        ...settings,
+        declineNext: false,
+        pendingNext: false,
+      })
     const type = (
       typeof input.transactionType === "string" ? input.transactionType : "PURCHASE"
     ) as Transaction["transactionType"]
@@ -861,18 +903,34 @@ export class KillBillAPI {
         if (request.method === "GET")
           return this.json(
             this.state.payments
-              .list({ where: (p) => p.invoiceId === invoice.invoiceId })
-              .map(({ value }) => value),
+              .list({ where: (payment) => payment.invoiceId === invoice.invoiceId })
+              .map(({ value }) => this.invoicePayment(value, invoice.invoiceId)),
           )
+        const externalPayment = url.searchParams.get("externalPayment") === "true"
+        if (externalPayment && typeof body.paymentMethodId === "string")
+          return this.problem(
+            400,
+            "INVALID_PAYMENT",
+            "InvoicePaymentJson should not contain a paymentMethodId when this is an external payment",
+          )
+        const payerId = typeof body.accountId === "string" ? body.accountId : invoice.accountId
+        const requestedMethod =
+          typeof body.paymentMethodId === "string" ? body.paymentMethodId : undefined
+        const paymentMethodId = externalPayment
+          ? this.account(payerId)
+            ? this.externalPaymentMethod(payerId).paymentMethodId
+            : undefined
+          : (requestedMethod ?? this.defaultPaymentMethod(payerId)?.paymentMethodId)
         const payment = this.pay(
-          invoice.accountId,
+          payerId,
           {
             ...body,
-            amount: body.amount ?? invoice.balance,
-            transactionType: body.transactionType ?? "PURCHASE",
+            amount: body.purchasedAmount ?? body.amount ?? invoice.balance,
+            transactionType: externalPayment ? "PURCHASE" : (body.transactionType ?? "PURCHASE"),
           },
           invoice.invoiceId,
-          typeof body.paymentMethodId === "string" ? body.paymentMethodId : undefined,
+          paymentMethodId,
+          externalPayment,
         )
         return payment
           ? this.empty(201, {

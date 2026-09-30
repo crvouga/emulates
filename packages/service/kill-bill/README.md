@@ -43,4 +43,4 @@ The default credentials are Basic auth `admin:password` plus tenant headers `X-K
 
 ## Fidelity boundary
 
-The mock targets deterministic adapter and lifecycle tests. It does not run Kill Bill plugins, tax engines, databases, queues, or production entitlement and dunning algorithms.
+The mock targets deterministic adapter and lifecycle tests. It does not run Kill Bill plugins, tax engines, databases, queues, or production entitlement and dunning algorithms. Invoice payments with `externalPayment=true` are the exception: they are stored on the built-in `__EXTERNAL_PAYMENT__` method and are not sent to a gateway. `GET /1.0/kb/invoices/{invoiceId}/payments` returns those payments with `targetInvoiceId`.
