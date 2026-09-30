@@ -540,11 +540,18 @@ export class KillBillAPI {
           ? body.externalKey
           : this.state.ids.next("account-key-", 24)
       const prior = this.byExternal(externalKey)
+      // Kill Bill 0.24 maps ErrorCode.ACCOUNT_ALREADY_EXISTS (3000) to HTTP 409.
       if (prior)
-        return this.problem(
-          400,
-          "ACCOUNT_ALREADY_EXISTS",
-          `Account externalKey ${externalKey} already exists`,
+        return this.json(
+          {
+            className: "org.killbill.billing.account.api.AccountApiException",
+            code: 3000,
+            message: `Account already exists for key ${externalKey}`,
+            causeClassName: null,
+            causeMessage: null,
+            stackTrace: [],
+          },
+          409,
         )
       if (typeof body.currency !== "string")
         return this.problem(400, "INVALID_ACCOUNT", "currency is required")

@@ -54,9 +54,19 @@ describe("Kill Bill REST adapter", () => {
       })
       expect(created.status).toBe(201)
       const accountId = created.headers.get("location")?.split("/").at(-1) as string
-      expect((await post("/accounts", { externalKey: "acct-ext", currency: "USD" })).status).toBe(
-        400,
-      )
+      const duplicateAccount = await post("/accounts", {
+        externalKey: "acct-ext",
+        currency: "USD",
+      })
+      expect(duplicateAccount.status).toBe(409)
+      expect(await duplicateAccount.json()).toEqual({
+        className: "org.killbill.billing.account.api.AccountApiException",
+        code: 3000,
+        message: "Account already exists for key acct-ext",
+        causeClassName: null,
+        causeMessage: null,
+        stackTrace: [],
+      })
       expect(await json<{ accountId: string }>("/accounts?externalKey=acct-ext")).toMatchObject({
         accountId,
       })
