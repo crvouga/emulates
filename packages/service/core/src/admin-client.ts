@@ -1004,8 +1004,17 @@ const clientPrelude = [isRecord, mountAdminBrand, startAdminBrand, faultPresetLi
   .map((fn) => fn.toString())
   .join("\n")
 
-/** The `<script>` embedded in the admin document, typechecked as {@link bootAdmin}. */
+/**
+ * The `<script>` embedded in the admin document, typechecked as {@link bootAdmin}.
+ * The call uses `bootAdmin.name` because a bundle that includes this module once per
+ * mock renames later copies (`bootAdmin2`, …). `toString()` follows the rename, so a
+ * literal `bootAdmin(` throws before the section buttons are wired.
+ */
 export const adminClientSource = (config: AdminBootConfig): string => {
   const payload = JSON.stringify(config).replace(/</g, "\\u003c")
-  return `<script>\n${clientPrelude}\nbootAdmin(${payload});\n</script>`
+  const entry = bootAdmin.name
+  if (!/^[A-Za-z_$][\w$]*$/.test(entry)) {
+    throw new Error("admin client cannot call its boot function")
+  }
+  return `<script>\n${clientPrelude}\n${entry}(${payload});\n</script>`
 }

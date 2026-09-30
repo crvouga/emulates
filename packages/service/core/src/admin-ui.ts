@@ -273,8 +273,16 @@ export const renderAdminDocument = (service: string): string => {
     input, select, textarea { font-size: 16px; }
     .brand, .vendor, .controls { width: 100%; }
     label.field, label.field select, label.field input { flex: 1; min-width: 0; }
-    .layout { grid-template-columns: minmax(0, 1fr); }
+    /* The layout fills the screen. A single-column grid stretches every auto
+       row, so the tab bar grew with the leftover height and the buttons floated
+       in the middle of it. The bar stays one row; the page below takes the rest. */
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      align-content: start;
+    }
     nav.side {
+      align-self: start; height: auto;
       flex-direction: row; align-items: center; overflow-x: auto; min-width: 0;
       border-right: 0; border-bottom: 1px solid var(--line);
       padding: 8px;

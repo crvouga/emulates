@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test"
-import { faultPresetList, isRecord, mountAdminBrand, startAdminBrand } from "./src/admin-client.js"
+import {
+  adminClientSource,
+  bootAdmin,
+  faultPresetList,
+  isRecord,
+  mountAdminBrand,
+  startAdminBrand,
+} from "./src/admin-client.js"
 import { ADMIN_BRANDS_URL, renderAdminDocument } from "./src/admin-ui.js"
 import {
   ADMIN_KEY_HEADER,
@@ -233,6 +240,22 @@ describe("admin ui", () => {
     expect(html.startsWith("<!-- notes -->")).toBe(true)
     expect(html).toContain("<!DOCTYPE html>")
     expect(html.endsWith("<!-- end notes -->")).toBe(true)
+  })
+
+  test("the embedded script calls its boot function by the name that function declares", () => {
+    const html = renderAdminDocument("stripe")
+    const script = html.slice(
+      html.lastIndexOf("<script>\n") + "<script>\n".length,
+      html.lastIndexOf("\n</script>"),
+    )
+    const declared = [...script.matchAll(/^function (\w+)\(/gm)].map((match) => match[1])
+    const call = script.trim().split("\n").at(-1) ?? ""
+    const callee = /^(\w+)\(/.exec(call)?.[1]
+    expect(callee).toBe(bootAdmin.name)
+    expect(declared.at(-1)).toBe(callee)
+    // A later copy of this module is renamed by the bundler. The call has to read
+    // the name at runtime; a literal `bootAdmin(` throws and the section buttons stay dead.
+    expect(adminClientSource.toString()).toContain("bootAdmin.name")
   })
 
   test("the header chip is painted from a remote record, never from the bundle", async () => {
