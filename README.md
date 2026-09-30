@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/crvouga/mockingbird/main/sites/docs/public/identity/mockingbird.png" width="88" height="88" alt="">
+<img src="https://raw.githubusercontent.com/crvouga/mockingbird/main/sites/docs/public/identity/mockingbird.png" width="88" alt="">
 
 <h1>Mockingbird</h1>
 
