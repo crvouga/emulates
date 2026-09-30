@@ -157,6 +157,46 @@ describe("SDK drop-in: @customerio/cdp-analytics-node against the mock", () => {
     await client.closeAndFlush({ timeout: 3000 })
   }, 10_000)
 
+  test("cdp_slow: the 10s delivery timeout wins, the SDK callback fires once, and flush returns", async () => {
+    const ns = `slow${++seq}`
+    await fetch(`${server.url}/__admin/credentials`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ credentials: { [`write_${ns}`]: ns, [`app_${ns}`]: ns } }),
+    })
+    await fetch(`${server.url}/__admin/faults?namespace=${ns}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ preset: "cdp_slow" }),
+    })
+    // The SDK aborts a request at 10s and retries. Waiting longer than `cdp_slow` lets the
+    // first attempt succeed, so the callback settles once and closeAndFlush is not held open.
+    const client = new Analytics({
+      writeKey: `write_${ns}`,
+      host: server.url,
+      maxEventsInBatch: 1,
+      flushInterval: 1000,
+      httpRequestTimeout: 30_000,
+    })
+    let callbacks = 0
+    client.identify({ userId: "7", traits: { email: "ada@example.com" } }, () => {
+      callbacks += 1
+    })
+    const result = await sendNotification(
+      client,
+      { email: "ada@example.com" },
+      request("txn_cdp_slow"),
+      config(ns),
+      (r) => fetch(r),
+    )
+    expect(result).toEqual({ failed: "CustomerIoDeliveryTimeoutError" })
+    expect(callbacks).toBe(0)
+    const flushedAt = Date.now()
+    await client.closeAndFlush({ timeout: 25_000 })
+    expect(Date.now() - flushedAt).toBeLessThan(20_000)
+    expect(callbacks).toBe(1)
+  }, 45_000)
+
   test("an inbox App API failure is reported with its status", async () => {
     const { ns, client, fault } = await workspace()
     await fault({ preset: "server_error", count: 1 })

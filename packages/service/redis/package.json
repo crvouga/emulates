@@ -1,0 +1,76 @@
+{
+  "name": "@crvouga/mockingbird-service-redis",
+  "version": "0.0.0-development",
+  "description": "In-process Redis RESP server for tests: strings, hashes, lists, sets, sorted sets, streams, transactions, pub/sub, and a Lua subset, with an injected clock. Not an HTTP mock.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "SUPPORT.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "bin": {
+    "mockingbird-redis": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/service/redis"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/redis#readme",
+  "keywords": [
+    "mockingbird",
+    "redis",
+    "resp",
+    "mock"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "entries": {
+      "server": "node",
+      "cli": "node"
+    },
+    "layer": "service",
+    "category": "databases",
+    "displayName": "Redis",
+    "status": "wip",
+    "vendor": {
+      "website": "https://redis.io",
+      "docs": "https://redis.io/docs/latest/commands/",
+      "icon": "redis",
+      "color": "#FF4438"
+    },
+    "parity": "RESP replies, expiration, transactions, and streams",
+    "parityTier": "cold"
+  },
+  "scripts": {
+    "build": "bun ../../../scripts/bundle-service.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test",
+    "parity": "bun scripts/parity.ts",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts"
+  },
+  "devDependencies": {
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "ioredis": "5.11.1"
+  }
+}

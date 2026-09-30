@@ -90,7 +90,7 @@ const { code, sid, status } = (await latest.json()) as { code: string; sid: stri
 | `POST /verify/v2/Services/{VA}/Verifications` | `To` (valid E.164, or an email for `Channel=email`), `Channel`, optional `CustomCode`. Creates a `VE…` verification with a 6-digit code (or `fixedCode`). Sending again to the same pending verification keeps its sid and code and adds a `send_code_attempts` entry. The 6th send to one number within 10 minutes is 429 `60203`. A bad `To` is 400 `60200`. An unknown service sid (not `VA` + 32 hex) is 404 `20404`. |
 | `POST /verify/v2/Services/{VA}/VerificationCheck` | `Code` plus `VerificationSid` or `To`. The right code returns 200 `approved`, `valid: true`. A wrong code returns 200 `pending` and counts an attempt. The 6th check is 429 `60202`. A missing, approved, canceled or expired (10 minutes on the mock clock) verification is 404 `20404`. |
 | `GET` / `POST /verify/v2/Services/{VA}/Verifications/{VE}` | Fetches a verification, or sets `Status=canceled\|approved` on one. |
-| `POST /api/2010-04-01/Accounts/{AC}/Messages.json` | `To`, `Body` or `MediaUrl`, and `From` or `MessagingServiceSid`. Returns 201 with an `SM…` sid (`MM…` with media), status `queued` (or `accepted` through a Messaging Service), and RFC 2822 dates. Errors: 21604 (no To), 21602 (no Body), 21603 (no From), 21211 (invalid To), 21617 (over 1600 characters). The message is recorded in the outbox. |
+| `POST /api/2010-04-01/Accounts/{AC}/Messages.json` | `To`, `Body` or `MediaUrl`, and `From` or `MessagingServiceSid`. Returns 201 with an `SM…` sid (`MM…` with media) and RFC 2822 dates. `MessagingServiceSid` alone is status `accepted`, `from: null`, `num_segments: "0"` (a sender is not chosen yet). `From` alone is status `queued`. Both are kept and the status is `queued` (Twilio queues on a specific sender). There is no idempotency key: the same body creates another sid. Errors: 21604 (no To), 21602 (no Body), 21603 (no From), 21211 (invalid To), 21617 (over 1600 characters). The message is recorded in the outbox. |
 | `GET /api/2010-04-01/Accounts/{AC}/Messages/{SM}.json` | Reads a message back. |
 | `GET /api/2010-04-01/Accounts/{AC}/Recordings/{RE}.wav` | The recording as a RIFF WAV. With `RequestedChannels=2` you get both channels. Otherwise a dual-channel recording is mixed down to mono, as Twilio does. |
 | `GET` / `DELETE /api/2010-04-01/Accounts/{AC}/Recordings/{RE}.json` | Metadata, or a delete (204; a second delete is 404, which our consumer tolerates). |
@@ -132,10 +132,7 @@ filters are `sms.inbound` and `voice.{twiml,disclosure,status,recording}`.
 | `GET /__admin/outbox?to=&since=&kind=sms\|verify` | Everything "sent": SMS (`{to, from, messagingServiceSid, body, sid}`) and every Verify code delivery (`{code, body: "Your verification code is: …"}`). |
 | `GET /__admin/messages` | Message resources in the namespace. |
 
-Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; list them with `GET /__admin/faults/presets`):
-`verify_5xx` (start and check answer 500 `20500`), `sms_socket_drop` (Messages.json drops the
-connection, an unknown outcome), `sms_4xx` (400 `21211`), `lookup_5xx` (503 `20503`; the EMR
-fails open), `webhook_duplicate`, `webhook_drop`.
+Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n, "latencyMs"?: n}`; list them with `GET /__admin/faults/presets`, and read `hits` / `remaining` from `GET /__admin/faults`). A preset applies to the calling namespace. `verify_5xx` (start and check answer 500 `20500`), `sms_drop_before_accept` (Messages.json drops the socket before a Message exists; still registered as `sms_socket_drop`), `sms_accepted_then_socket_drop` (the Message and outbox entry are stored, then the socket closes before any response bytes), `sms_4xx` (400 `21211`), `sms_429` (429 `20429` with `Retry-After: 1`), `sms_5xx` (500 `20500`, no `Retry-After`), `sms_missing_sid` (201 whose body omits `sid`; the outbox still has the message), `lookup_5xx` (503 `20503`; the EMR fails open), `webhook_duplicate`, `webhook_drop`. A 503 on Messages.json is the same envelope with code `20503` and `Retry-After` (a standard fault, not a separate preset). None of the status faults store a message.
 
 ### Namespaces
 
@@ -153,7 +150,6 @@ can also come from the `x-mockingbird-namespace` header or a `/ns/<name>` prefix
 - Verify channels other than SMS are accepted and recorded, but nothing is delivered. Verify
   Service configuration (code length, friendly name, rate-limit buckets) is global, set with
   `PUT /__admin/verify`.
-- "Sent, then the socket dropped": `sms_socket_drop` drops before the message is recorded.
 - Accounts: any `AC…` sid is its own account, and the path's `{AccountSid}` is not
   cross-checked against the credential.
 - libphonenumber-js drops "local only" lengths from its metadata. The mock restores them for

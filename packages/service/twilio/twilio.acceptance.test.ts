@@ -5,6 +5,7 @@ import { createRuntime, TWILIO_PRESETS } from "./src/index.js"
 import {
   emrValidatePhone,
   FetchRequestClient,
+  isDefiniteDeliveryFailure,
   memoryDelivery,
   SMS_DELIVERY_UNKNOWN_OUTCOME_EVENT,
   SMS_DELIVERY_UNKNOWN_OUTCOME_MESSAGE,
@@ -14,6 +15,7 @@ import {
   TwilioRecordingHttpAdapter,
   TwilioService,
   TwilioWebhookReceiver,
+  UnrecoverableError,
   UsersBackend,
 } from "./test/consumer.js"
 import { Twilio } from "./test/twilio-sdk.js"
@@ -333,6 +335,416 @@ describe("SMS through the notification dispatcher and the care-chat adapter", ()
     await expect(
       sendConversationSms(client, { from: CALLER_ID }, { to: "+15550100", bodyText: "Hi" }),
     ).rejects.toThrow("Care-chat SMS delivery failed")
+  })
+})
+
+const RFC2822 = /^[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} \+0000$/
+const ORDER_BODY = "Your order is ready\n\nManage: https://app.example.test/orders"
+
+type Runtime = ReturnType<typeof createRuntime>
+const basic = (account = ACCOUNT, token = TOKEN) => ({
+  authorization: `Basic ${btoa(`${account}:${token}`)}`,
+})
+const postMessage = (
+  runtime: Runtime,
+  form: Record<string, string>,
+  init: { account?: string; token?: string | null; namespace?: string; raw?: string } = {},
+) => {
+  const account = init.account ?? ACCOUNT
+  const headers: Record<string, string> = {
+    "content-type": "application/x-www-form-urlencoded",
+    ...(init.token === null ? {} : basic(account, init.token ?? TOKEN)),
+    ...(init.namespace ? { "x-mockingbird-namespace": init.namespace } : {}),
+  }
+  return runtime.fetch(
+    new Request(`${MOCK}/api/2010-04-01/Accounts/${account}/Messages.json`, {
+      method: "POST",
+      headers,
+      body: init.raw ?? new URLSearchParams(form).toString(),
+    }),
+  )
+}
+const outboxOf = async (admin: ReturnType<typeof harness>["admin"], to = PHONE) =>
+  (await admin(`/outbox?to=${encodeURIComponent(to)}&kind=sms`)).body.messages as {
+    sid: string
+    body: string
+    to: string
+    from: string | null
+  }[]
+
+describe("SMS delivery ambiguity", () => {
+  test("MessagingServiceSid create is 201 accepted, one outbox row, RFC 2822 dates", async () => {
+    const { client, runtime, admin } = harness()
+    runtime.clock.set(Date.UTC(2023, 7, 24, 5, 1, 45))
+    runtime.clock.freeze()
+    const message = await client.messages.create({
+      to: PHONE,
+      body: ORDER_BODY,
+      messagingServiceSid: MESSAGING_SERVICE,
+    })
+    expect(message.sid).toMatch(/^SM[0-9a-f]{32}$/)
+    expect(message.status).toBe("accepted")
+    expect(message.to).toBe(PHONE)
+    expect(message.body).toBe(ORDER_BODY)
+    expect(message.messagingServiceSid).toBe(MESSAGING_SERVICE)
+    expect(message.from).toBeNull()
+    expect(message.numSegments).toBe("0")
+    expect(message.dateCreated).toBeInstanceOf(Date)
+    const raw = (await (
+      await runtime.fetch(
+        new Request(`${MOCK}/api/2010-04-01/Accounts/${ACCOUNT}/Messages/${message.sid}.json`, {
+          headers: basic(),
+        }),
+      )
+    ).json()) as { date_created: string; date_updated: string; status: string }
+    expect(raw.date_created).toBe("Thu, 24 Aug 2023 05:01:45 +0000")
+    expect(raw.date_updated).toMatch(RFC2822)
+    expect(raw.status).toBe("accepted")
+    const outbox = await outboxOf(admin)
+    expect(outbox).toHaveLength(1)
+    expect(outbox[0]?.sid).toBe(message.sid)
+    const later = Number(runtime.clock.now()) + 1000
+    expect(
+      (await admin(`/outbox?to=${encodeURIComponent(PHONE)}&kind=sms&since=${later}`)).body
+        .messages,
+    ).toEqual([])
+  })
+
+  test("From is queued; From plus MessagingServiceSid keeps both fields and stays queued", async () => {
+    const { client } = harness()
+    const fromOnly = await client.messages.create({ to: PHONE, from: CALLER_ID, body: "Hello" })
+    expect(fromOnly.status).toBe("queued")
+    expect(fromOnly.from).toBe(CALLER_ID)
+    expect(fromOnly.messagingServiceSid).toBeNull()
+    expect(fromOnly.numSegments).toBe("1")
+    const both = await client.messages.create({
+      to: PHONE,
+      from: CALLER_ID,
+      messagingServiceSid: MESSAGING_SERVICE,
+      body: "Hello",
+    })
+    expect(both.status).toBe("queued")
+    expect(both.from).toBe(CALLER_ID)
+    expect(both.messagingServiceSid).toBe(MESSAGING_SERVICE)
+    expect(both.sid).not.toBe(fromOnly.sid)
+  })
+
+  test("a form body with newlines and an action link is stored byte-for-byte after decoding", async () => {
+    const { runtime, admin } = harness()
+    const raw = `To=${encodeURIComponent(PHONE)}&Body=Your+order+is+ready%0A%0AManage%3A+https%3A%2F%2Fapp.example.test%2Forders&MessagingServiceSid=${MESSAGING_SERVICE}`
+    const response = await postMessage(runtime, {}, { raw })
+    expect(response.status).toBe(201)
+    const created = (await response.json()) as { body: string; sid: string }
+    expect(created.body).toBe(ORDER_BODY)
+    expect((await outboxOf(admin))[0]?.body).toBe(ORDER_BODY)
+    const fetched = (await (
+      await runtime.fetch(
+        new Request(`${MOCK}/api/2010-04-01/Accounts/${ACCOUNT}/Messages/${created.sid}.json`, {
+          headers: basic(),
+        }),
+      )
+    ).json()) as { body: string }
+    expect(fetched.body).toBe(ORDER_BODY)
+  })
+
+  test("missing or invalid create fields return the documented Twilio error and store nothing", async () => {
+    const { runtime, admin } = harness()
+    const cases: { form: Record<string, string>; code: number }[] = [
+      { form: { Body: "hi", From: CALLER_ID }, code: 21604 },
+      { form: { To: "  ", Body: "hi", From: CALLER_ID }, code: 21604 },
+      { form: { To: PHONE, From: CALLER_ID }, code: 21602 },
+      { form: { To: PHONE, Body: "", From: CALLER_ID }, code: 21602 },
+      { form: { To: PHONE, Body: "hi" }, code: 21603 },
+      { form: { To: "+15550100", Body: "hi", From: CALLER_ID }, code: 21211 },
+      { form: { To: PHONE, Body: "x".repeat(1601), From: CALLER_ID }, code: 21617 },
+    ]
+    for (const entry of cases) {
+      const response = await postMessage(runtime, entry.form)
+      expect(response.status).toBe(400)
+      expect(response.headers.get("x-twilio-error-code")).toBe(String(entry.code))
+      expect(await response.json()).toEqual({
+        code: entry.code,
+        message: expect.any(String),
+        more_info: `https://www.twilio.com/docs/errors/${entry.code}`,
+        status: 400,
+      })
+    }
+    const boundary = await postMessage(runtime, {
+      To: PHONE,
+      Body: "x".repeat(1600),
+      From: CALLER_ID,
+    })
+    expect(boundary.status).toBe(201)
+    expect(await outboxOf(admin)).toHaveLength(1)
+  })
+
+  test("missing or wrong credentials are 401 20003 and create no message", async () => {
+    const runtime = createRuntime({ accounts: { [ACCOUNT]: TOKEN } })
+    const missing = await postMessage(
+      runtime,
+      { To: PHONE, Body: "hi", From: CALLER_ID },
+      { token: null },
+    )
+    expect(missing.status).toBe(401)
+    expect(await missing.json()).toMatchObject({ code: 20003, status: 401 })
+    expect(missing.headers.get("x-twilio-error-code")).toBe("20003")
+    const wrong = await postMessage(
+      runtime,
+      { To: PHONE, Body: "hi", From: CALLER_ID },
+      { token: "not-the-token" },
+    )
+    expect(wrong.status).toBe(401)
+    expect(await wrong.json()).toMatchObject({
+      code: 20003,
+      status: 401,
+      message: `authentication failed, auth token is not valid for account ${ACCOUNT}`,
+    })
+    const created = await postMessage(runtime, { To: PHONE, Body: "hi", From: CALLER_ID })
+    const sid = ((await created.json()) as { sid: string }).sid
+    const fetched = await runtime.fetch(
+      new Request(`${MOCK}/api/2010-04-01/Accounts/${ACCOUNT}/Messages/${sid}.json`, {
+        headers: basic(ACCOUNT, "not-the-token"),
+      }),
+    )
+    expect(fetched.status).toBe(401)
+    expect(await fetched.json()).toMatchObject({ code: 20003 })
+    expect(runtime.instance("default").messages()).toHaveLength(1)
+    expect(runtime.instance("default").outbox()).toHaveLength(1)
+  })
+
+  test("sms_drop_before_accept closes the socket before a Message exists", async () => {
+    const { client, runtime, admin } = harness()
+    runtime.applyPreset("sms_drop_before_accept", "default", { count: 1 })
+    const error = await client.messages
+      .create({ to: PHONE, from: CALLER_ID, body: "Reminder" })
+      .catch((caught: unknown) => caught)
+    expect(error).toBeInstanceOf(TypeError)
+    expect(isDefiniteDeliveryFailure(error)).toBe(false)
+    expect(await outboxOf(admin)).toEqual([])
+    expect(runtime.instance("default").messages()).toEqual([])
+  })
+
+  test("sms_accepted_then_socket_drop stores the message and the SDK sees a transport error", async () => {
+    const { client, runtime, admin } = harness()
+    runtime.applyPreset("sms_accepted_then_socket_drop", "default", { count: 1 })
+    const error = await client.messages
+      .create({ to: PHONE, messagingServiceSid: MESSAGING_SERVICE, body: "Ambiguous" })
+      .catch((caught: unknown) => caught)
+    expect(error).toBeInstanceOf(TypeError)
+    expect(isDefiniteDeliveryFailure(error)).toBe(false)
+    const outbox = await outboxOf(admin)
+    expect(outbox).toHaveLength(1)
+    const stored = outbox[0]
+    if (stored === undefined) throw new Error("expected one stored message")
+    const fetched = await client.messages(stored.sid).fetch()
+    expect(fetched.body).toBe("Ambiguous")
+    expect(fetched.sid).toBe(stored.sid)
+    expect(fetched.status).toBe("accepted")
+  })
+
+  test("an ordinary notification is not retried after an ambiguous drop, but the same payload is not deduplicated", async () => {
+    const { client, runtime, admin } = harness()
+    runtime.applyPreset("sms_accepted_then_socket_drop", "default", { count: 1 })
+    const channel = new SmsChannel(client, { serviceSid: MESSAGING_SERVICE })
+    const delivery = memoryDelivery()
+    const job = {
+      to: PHONE,
+      body: "Your order is ready",
+      templateId: "appointment.reminder_24h",
+      actions: [{ label: "Manage", url: "https://app.example.test/orders" }],
+    }
+    await expect(channel.send(job, delivery)).rejects.toThrow(SMS_DELIVERY_UNKNOWN_OUTCOME_MESSAGE)
+    expect(delivery.state?.status).toBe("pending")
+    await expect(channel.send(job, delivery)).rejects.toThrow(SMS_DELIVERY_UNKNOWN_OUTCOME_MESSAGE)
+    expect(await outboxOf(admin)).toHaveLength(1)
+    await client.messages.create({
+      to: PHONE,
+      messagingServiceSid: MESSAGING_SERVICE,
+      body: ORDER_BODY,
+    })
+    const outbox = await outboxOf(admin)
+    expect(outbox).toHaveLength(2)
+    expect(new Set(outbox.map((item) => item.sid)).size).toBe(2)
+  })
+
+  test("a retry-allowed notification after sms_drop_before_accept creates exactly one message", async () => {
+    const { client, runtime, admin } = harness()
+    runtime.applyPreset("sms_drop_before_accept", "default", { count: 1 })
+    const channel = new SmsChannel(client, { from: CALLER_ID })
+    const delivery = memoryDelivery()
+    const job = { to: PHONE, body: "Reset code", templateId: "account.password_reset_request" }
+    await expect(channel.send(job, delivery)).rejects.toThrow(TypeError)
+    expect(delivery.state).toBeUndefined()
+    expect(await outboxOf(admin)).toEqual([])
+    await channel.send(job, delivery)
+    expect(delivery.state?.status).toBe("accepted")
+    expect(await outboxOf(admin)).toHaveLength(1)
+  })
+
+  test("4xx is a definite failure, and 429/500/503 keep Twilio's envelope and Retry-After", async () => {
+    const { client, runtime, admin } = harness()
+    const definite = async (preset: string) => {
+      runtime.applyPreset(preset, "default", { count: 1 })
+      const error = await client.messages
+        .create({ to: PHONE, from: CALLER_ID, body: preset })
+        .catch((caught: unknown) => caught)
+      expect(isDefiniteDeliveryFailure(error)).toBe(true)
+      return error as { status: number; code: number; message: string; moreInfo: string }
+    }
+    expect(await definite("sms_4xx")).toMatchObject({ status: 400, code: 21211 })
+    expect(await definite("sms_429")).toMatchObject({
+      status: 429,
+      code: 20429,
+      message: "Too many requests",
+      moreInfo: "https://www.twilio.com/docs/errors/20429",
+    })
+    expect(await definite("sms_5xx")).toMatchObject({ status: 500, code: 20500 })
+    const limited = await postMessage(runtime, { To: PHONE, From: CALLER_ID, Body: "stored-ok" })
+    // The counted presets are spent, so this request is a normal create. Re-arm 429 for headers.
+    expect(limited.status).toBe(201)
+    runtime.applyPreset("sms_429", "default", { count: 1, latencyMs: 30 })
+    const again = await postMessage(runtime, { To: PHONE, From: CALLER_ID, Body: "rate-limited" })
+    expect(again.status).toBe(429)
+    expect(again.headers.get("retry-after")).toBe("1")
+    expect(again.headers.get("x-twilio-error-code")).toBe("20429")
+    runtime.applyPreset("sms_5xx", "default", { count: 1 })
+    const fiveHundred = await postMessage(runtime, {
+      To: PHONE,
+      From: CALLER_ID,
+      Body: "server-down",
+    })
+    expect(fiveHundred.status).toBe(500)
+    expect(fiveHundred.headers.get("retry-after")).toBeNull()
+    expect(await fiveHundred.json()).toMatchObject({ code: 20500, status: 500 })
+    await admin("/faults", {
+      operationId: "CreateMessage",
+      status: 503,
+      count: 1,
+      body: {
+        code: 20503,
+        message: "Service is unavailable. Please try again",
+        more_info: "https://www.twilio.com/docs/errors/20503",
+        status: 503,
+      },
+      headers: { "x-twilio-error-code": "20503", "retry-after": "30" },
+    })
+    const unavailable = await postMessage(runtime, {
+      To: PHONE,
+      From: CALLER_ID,
+      Body: "unavailable",
+    })
+    expect(unavailable.status).toBe(503)
+    expect(unavailable.headers.get("retry-after")).toBe("30")
+    expect(await unavailable.json()).toMatchObject({ code: 20503, status: 503 })
+    const faults = (await admin("/faults")).body.faults as {
+      preset?: string
+      hits: number
+      remaining: number | null
+      latencyMs?: number
+      namespace: string
+    }[]
+    const rateLimit = faults.find((fault) => fault.preset === "sms_429" && fault.latencyMs === 30)
+    expect(rateLimit).toMatchObject({ hits: 1, remaining: 0, latencyMs: 30, namespace: "default" })
+    const stored = (await outboxOf(admin)).map((item) => item.body)
+    expect(stored).toContain("stored-ok")
+    expect(stored).not.toContain("rate-limited")
+    expect(stored).not.toContain("server-down")
+    expect(stored).not.toContain("unavailable")
+    expect(stored).not.toContain("sms_4xx")
+  })
+
+  test("sms_missing_sid accepts the message but the create body has no sid", async () => {
+    const { client, runtime, admin } = harness()
+    runtime.applyPreset("sms_missing_sid", "default", { count: 2 })
+    const message = await client.messages.create({
+      to: PHONE,
+      messagingServiceSid: MESSAGING_SERVICE,
+      body: "No sid",
+    })
+    expect(message.sid).toBeUndefined()
+    const channel = new SmsChannel(client, { serviceSid: MESSAGING_SERVICE })
+    const delivery = memoryDelivery()
+    const error = await channel
+      .send({ to: PHONE, body: "No sid", templateId: "appointment.reminder_24h" }, delivery)
+      .catch((caught: unknown) => caught)
+    expect(error).toBeInstanceOf(UnrecoverableError)
+    expect(delivery.state?.status).toBe("pending")
+    const outbox = await outboxOf(admin)
+    expect(outbox).toHaveLength(2)
+    expect(outbox.every((item) => item.sid.startsWith("SM"))).toBe(true)
+    const fetched = await client.messages(outbox[0]?.sid as string).fetch()
+    expect(fetched.body).toBe("No sid")
+  })
+
+  test("two namespaces keep sids, outboxes, faults and recorded timestamps apart", async () => {
+    const runtime = createRuntime()
+    const other = "AC55555555555555555555555555555555"
+    await runtime.fetch(
+      new Request(`${MOCK}/__admin/credentials`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ credentials: { [ACCOUNT]: "worker-a", [other]: "worker-b" } }),
+      }),
+    )
+    runtime.clock.set(Date.UTC(2023, 7, 24, 5, 1, 45))
+    runtime.clock.freeze()
+    const form = { To: PHONE, Body: "Same payload", From: CALLER_ID }
+    const createdA = (await (await postMessage(runtime, form)).json()) as {
+      sid: string
+      date_created: string
+    }
+    runtime.clock.advance(60_000)
+    const createdB = (await (await postMessage(runtime, form, { account: other })).json()) as {
+      sid: string
+      date_created: string
+    }
+    expect(createdA.sid).toMatch(/^SM[0-9a-f]{32}$/)
+    expect(createdB.sid).toMatch(/^SM[0-9a-f]{32}$/)
+    expect(createdA.sid).not.toBe(createdB.sid)
+    expect(createdA.date_created).not.toBe(createdB.date_created)
+    runtime.applyPreset("sms_drop_before_accept", "worker-a", { count: 1 })
+    const dropped = await postMessage(runtime, form).catch((error: unknown) => error)
+    expect(dropped).toBeInstanceOf(TypeError)
+    const stillThere = await postMessage(runtime, form, { account: other })
+    expect(stillThere.status).toBe(201)
+    await runtime.reset("worker-a")
+    expect(runtime.instance("worker-a").outbox()).toEqual([])
+    expect(runtime.instance("worker-a").messages()).toEqual([])
+    const survived = runtime.instance("worker-b").messages()
+    expect(survived).toHaveLength(2)
+    expect(survived[0]?.date_created).toBe(createdB.date_created)
+    expect(runtime.instance("worker-b").outbox()).toHaveLength(2)
+  })
+
+  test("the request journal records the operation and sid, not the phone, body, link or token", async () => {
+    const token = "journal-must-not-see-this-token"
+    const runtime = createRuntime({ accounts: { [ACCOUNT]: token } })
+    runtime.clock.freeze()
+    const response = await postMessage(
+      runtime,
+      { To: PHONE, Body: ORDER_BODY, MessagingServiceSid: MESSAGING_SERVICE },
+      { token },
+    )
+    const created = (await response.json()) as { sid: string }
+    const journal = (await (
+      await runtime.fetch(new Request(`${MOCK}/__admin/requests`))
+    ).json()) as { requests: Record<string, unknown>[] }
+    const entry = journal.requests.find((item) => item.operationId === "CreateMessage")
+    expect(entry).toMatchObject({
+      operationId: "CreateMessage",
+      status: 201,
+      namespace: "default",
+      ids: { messageSid: created.sid },
+    })
+    expect(typeof entry?.durationMs).toBe("number")
+    const text = JSON.stringify(journal)
+    expect(text).not.toContain(PHONE)
+    expect(text).not.toContain(token)
+    expect(text).not.toContain("app.example.test")
+    expect(text).not.toContain("Your order is ready")
+    const sent = runtime.instance("default").outbox()
+    expect(sent[0]?.to).toBe(PHONE)
+    expect(sent[0]?.body).toBe(ORDER_BODY)
   })
 })
 

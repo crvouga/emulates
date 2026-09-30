@@ -53,11 +53,22 @@ export const TWILIO_PRESETS: Record<string, FaultPreset> = {
   },
   sms_socket_drop: {
     description:
-      "Messages.json drops the connection: an unknown outcome the notification dispatcher must not retry",
+      "Messages.json drops the connection before a Message resource exists (alias of sms_drop_before_accept)",
     rules: [{ operationId: "CreateMessage", drop: true }],
   },
+  sms_drop_before_accept: {
+    description:
+      "Messages.json drops the connection before a Message resource exists: an unknown outcome, safe to retry",
+    rules: [{ operationId: "CreateMessage", drop: true }],
+  },
+  sms_accepted_then_socket_drop: {
+    description:
+      "Messages.json stores the Message, then drops the connection before any response bytes: an ambiguous outcome",
+    rules: [{ operationId: "CreateMessage", effect: "accepted_then_socket_drop" }],
+  },
   sms_4xx: {
-    description: "Messages.json answers 400 21211 (invalid To): a definite failure",
+    description:
+      "Messages.json answers 400 21211 (invalid To): a definite failure, nothing is stored",
     rules: [
       {
         operationId: "CreateMessage",
@@ -66,6 +77,34 @@ export const TWILIO_PRESETS: Record<string, FaultPreset> = {
         headers: { "x-twilio-error-code": "21211" },
       },
     ],
+  },
+  sms_429: {
+    description:
+      "Messages.json answers 429 20429 with Retry-After: a definite failure, nothing is stored",
+    rules: [
+      {
+        operationId: "CreateMessage",
+        status: 429,
+        body: errorBody(429, 20429, "Too many requests"),
+        headers: { "x-twilio-error-code": "20429", "retry-after": "1" },
+      },
+    ],
+  },
+  sms_5xx: {
+    description:
+      "Messages.json answers 500 20500: a definite failure, nothing is stored. 500 has no Retry-After",
+    rules: [
+      {
+        operationId: "CreateMessage",
+        status: 500,
+        body: errorBody(500, 20500, "An internal server error has occurred"),
+        headers: { "x-twilio-error-code": "20500" },
+      },
+    ],
+  },
+  sms_missing_sid: {
+    description: "Messages.json accepts and stores the Message, but the 201 body omits sid",
+    rules: [{ operationId: "CreateMessage", effect: "missing_sid" }],
   },
   lookup_5xx: {
     description: "Lookup answers 503 (20503); the EMR phone validation fails open",

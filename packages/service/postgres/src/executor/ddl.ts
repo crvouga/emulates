@@ -8,6 +8,7 @@ import type {
   ColumnDef,
   CreateDomainStmt,
   CreateEnumStmt,
+  CreateExtensionStmt,
   CreateFunctionStmt,
   CreateIndexStmt,
   CreateSchemaStmt,
@@ -27,6 +28,8 @@ import type {
 import { checkChecks, checkForeignKeys, checkUnique, referencingConstraints } from "../constraints/enforce.ts";
 import { pgError, unsupported } from "../errors/error.ts";
 import { sequenceNextval } from "../functions/misc-fns.ts";
+import { installPgcrypto, pgcryptoInstalled, uninstallPgcrypto } from "../functions/pgcrypto.ts";
+import { assertGinTrgmIndex, installPgTrgm, pgTrgmInstalled, uninstallPgTrgm } from "../functions/pgtrgm.ts";
 import { parse } from "../parser/index.ts";
 import {
   type ColumnMeta,
@@ -44,6 +47,11 @@ import { evalScalar, executeSelectStmt } from "./select.ts";
 // ---------------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------------
+
+/** WITH NO DATA reads column shape even when a referenced matview is unpopulated. */
+function matviewQueryEnv(env: ExecEnv, allowUnpopulatedMatviews: boolean): ExecEnv {
+  return { ctx: env.ctx, params: null, ctes: new Map(), outer: null, allowUnpopulatedMatviews };
+}
 
 function targetSchema(env: ExecEnv, parts: string[]): { schema: SchemaData; name: string } {
   const state = env.ctx.state;
@@ -521,6 +529,7 @@ export function executeCreateIndex(env: ExecEnv, stmt: CreateIndexStmt): ExecRes
       }
     }
   }
+  assertGinTrgmIndex(state, table, stmt);
   schema.indexes.set(name, {
     name,
     schema: schema.name,
@@ -568,7 +577,7 @@ export function executeCreateView(env: ExecEnv, stmt: CreateViewStmt): ExecResul
   let matRows: Datum[][] | null = null;
   let matColumns: Array<{ name: string; type: TypeId }> | null = null;
   if (stmt.materialized) {
-    const rel = executeSelectStmt({ ctx: env.ctx, params: null, ctes: new Map(), outer: null }, stmt.query);
+    const rel = executeSelectStmt(matviewQueryEnv(env, !stmt.withData), stmt.query);
     matColumns = rel.columns.map((c, i) => ({
       name: stmt.columns?.[i] ?? c.name,
       type: c.type === UNKNOWN ? "text" : c.type,
@@ -595,13 +604,40 @@ export function executeRefreshMatView(env: ExecEnv, stmt: RefreshMaterializedVie
     throw pgError("undefined_table", `materialized view "${stmt.name.join(".")}" does not exist`, "42P01");
   }
   const view = env.ctx.state.ensureWritableView(found);
-  const rel = executeSelectStmt({ ctx: env.ctx, params: null, ctes: new Map(), outer: null }, view.query);
+  const rel = executeSelectStmt(matviewQueryEnv(env, !stmt.withData), view.query);
   view.matColumns = rel.columns.map((c, i) => ({
     name: view.columns?.[i] ?? c.name,
     type: c.type === UNKNOWN ? "text" : c.type,
   }));
   view.matRows = stmt.withData ? rel.rows : null;
   return commandResult("REFRESH MATERIALIZED VIEW", 0);
+}
+
+export function executeCreateExtension(env: ExecEnv, stmt: CreateExtensionStmt): ExecResult {
+  const state = env.ctx.state;
+  const schemaName = stmt.schema ?? state.currentSchema();
+  const install = () => {
+    if (stmt.name === "pgcrypto") {
+      if (pgcryptoInstalled(state)) return "exists" as const;
+      installPgcrypto(state, state.getSchema(schemaName).name);
+      return "installed" as const;
+    }
+    if (stmt.name === "pg_trgm") {
+      if (pgTrgmInstalled(state)) return "exists" as const;
+      installPgTrgm(state, state.getSchema(schemaName).name);
+      return "installed" as const;
+    }
+    return "unsupported" as const;
+  };
+  const outcome = install();
+  if (outcome === "unsupported") {
+    throw pgError("feature_not_supported", `extension "${stmt.name}" is not available`, "0A000");
+  }
+  if (outcome === "exists") {
+    if (stmt.ifNotExists) return commandResult("CREATE EXTENSION", 0);
+    throw pgError("duplicate_object", `extension "${stmt.name}" already exists`, "42710");
+  }
+  return commandResult("CREATE EXTENSION", 0);
 }
 
 export function executeCreateSchema(env: ExecEnv, stmt: CreateSchemaStmt): ExecResult {
@@ -1446,8 +1482,19 @@ export function executeDrop(env: ExecEnv, stmt: DropStmt): ExecResult {
         table.triggers.splice(idx, 1);
         break;
       }
-      case "extension":
-        break; // accepted no-op
+      case "extension": {
+        const ext = parts[parts.length - 1]!;
+        if (ext === "pgcrypto" && pgcryptoInstalled(state)) {
+          uninstallPgcrypto(state);
+          break;
+        }
+        if (ext === "pg_trgm" && pgTrgmInstalled(state)) {
+          uninstallPgTrgm(state);
+          break;
+        }
+        if (stmt.ifExists) break;
+        throw pgError("undefined_object", `extension "${ext}" does not exist`, "42704");
+      }
     }
   }
   const label = stmt.kind === "materialized_view" ? "MATERIALIZED VIEW" : stmt.kind.toUpperCase();

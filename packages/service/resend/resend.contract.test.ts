@@ -96,7 +96,14 @@ describe("the service contract", () => {
 
   test("every catalog preset is registered", async () => {
     expect(Object.keys(RESEND_PRESETS)).toEqual(
-      expect.arrayContaining(["send_422", "send_429", "send_500", "non_json_500", "network_drop"]),
+      expect.arrayContaining([
+        "send_422",
+        "send_429",
+        "send_500",
+        "non_json_500",
+        "network_drop",
+        "accepted_then_network_drop",
+      ]),
     )
     const { runtime, send } = harness()
     runtime.applyPreset("network_drop", "default", { count: 1 })

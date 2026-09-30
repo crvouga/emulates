@@ -108,14 +108,31 @@ export interface ExecEnv {
   /** CTE results by name (WITH clause); shadowed inner-to-outer */
   ctes: Map<string, Relation>;
   outer: RowScope | null;
+  /**
+   * CREATE/REFRESH MATERIALIZED VIEW … WITH NO DATA. An unpopulated matview
+   * contributes its column shape and no rows, matching PostgreSQL planning.
+   */
+  allowUnpopulatedMatviews?: boolean;
 }
 
 export function childEnv(env: ExecEnv, outer: RowScope | null): ExecEnv {
-  return { ctx: env.ctx, params: env.params, ctes: env.ctes, outer };
+  return {
+    ctx: env.ctx,
+    params: env.params,
+    ctes: env.ctes,
+    outer,
+    allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+  };
 }
 
 export function withCtes(env: ExecEnv, ctes: Map<string, Relation>): ExecEnv {
-  return { ctx: env.ctx, params: env.params, ctes, outer: env.outer };
+  return {
+    ctx: env.ctx,
+    params: env.params,
+    ctes,
+    outer: env.outer,
+    allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+  };
 }
 
 /** Final result surfaced by the API layer. */

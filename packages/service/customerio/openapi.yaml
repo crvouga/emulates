@@ -4,9 +4,10 @@ info:
   description: |
     Stateful mock subset of Customer.io: the Segment-compatible CDP ingestion endpoints
     (`identify`, `track`, `batch`, as `@customerio/cdp-analytics-node` posts them), the App API
-    transactional sends (email, SMS, inbox message) and transactional-message catalog, and the
-    link-tracking click endpoint. One process serves all three hosts (`cdp.customer.io`,
-    `api.customer.io`, the tracking domain); their paths do not collide.
+    transactional sends (email, SMS, inbox message), transactional-message catalog, profile
+    attribute reads, delivery-status reads, and the link-tracking click endpoint. One process
+    serves all three hosts (`cdp.customer.io`, `api.customer.io`, the tracking domain); their
+    paths do not collide.
   version: "1"
   x-mockingbird-upstream:
     note: >-
@@ -268,6 +269,81 @@ paths:
                 properties:
                   message:
                     $ref: "#/components/schemas/TransactionalMessage"
+        "401":
+          $ref: "#/components/responses/AppError"
+        "404":
+          $ref: "#/components/responses/AppError"
+  /v1/customers/{customer_id}/attributes:
+    parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 150
+      - name: id_type
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [id, email, cio_id]
+    get:
+      operationId: GetCustomerAttributes
+      description: |
+        App API profile read. `id_type` selects which identifier `customer_id` is
+        (`id` by default, or `email`, or `cio_id`).
+      security:
+        - appApiKey: []
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: The customer's identifiers and attributes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerAttributes"
+        "400":
+          $ref: "#/components/responses/AppError"
+        "401":
+          $ref: "#/components/responses/AppError"
+        "404":
+          $ref: "#/components/responses/AppError"
+  /v1/messages/{message_id}:
+    parameters:
+      - name: message_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+          x-mockingbird-resource-ref:
+            type: delivery
+            missing: missingdelivery00000000000000
+    get:
+      operationId: GetMessage
+      description: |
+        Delivery status for one transactional send. Missing ids, and ids still inside the
+        mock's visibility delay, are 404. The body never includes `message_data`.
+      security:
+        - appApiKey: []
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Delivery status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryMessage"
         "401":
           $ref: "#/components/responses/AppError"
         "404":
@@ -568,3 +644,70 @@ components:
           type: integer
         updated_at:
           type: integer
+    CustomerAttributes:
+      type: object
+      required: [customer]
+      properties:
+        customer:
+          type: object
+          required: [identifiers, attributes]
+          properties:
+            identifiers:
+              type: object
+              required: [id]
+              additionalProperties: true
+              properties:
+                id:
+                  type: string
+                email:
+                  type: string
+                cio_id:
+                  type: string
+            attributes:
+              type: object
+              additionalProperties: true
+            devices:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+    DeliveryMessage:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: object
+          required: [id, state, status, metrics, created]
+          additionalProperties: true
+          properties:
+            id:
+              type: string
+              x-mockingbird-resource:
+                type: delivery
+                identity: true
+              x-mockingbird-volatile:
+                kind: id
+            type:
+              type: string
+            recipient:
+              type: ["string", "null"]
+            customer_id:
+              type: ["string", "null"]
+            created:
+              type: integer
+              x-mockingbird-volatile:
+                kind: timestamp
+            state:
+              type: string
+            status:
+              type: string
+            metrics:
+              type: object
+              additionalProperties:
+                type: integer
+            failure_message:
+              type: ["string", "null"]
+            rejection_reason:
+              type: ["string", "null"]
+            error:
+              type: ["string", "null"]

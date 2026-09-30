@@ -2,12 +2,21 @@ import { Collection, IdSequence } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type Account = Record<string, unknown> & {
   accountId: string
+  tenantId: string
   externalKey: string
   currency: string
   timeZone: string
   referenceTime: string
   accountBalance: number
   accountCBA: number
+}
+/** Kill Bill tenant. `callbacks` is the single-value PUSH_NOTIFICATION_CB list. */
+export type Tenant = {
+  tenantId: string
+  externalKey: string
+  apiKey: string
+  apiSecret: string
+  callbacks: string[]
 }
 export type PaymentMethod = Record<string, unknown> & {
   paymentMethodId: string
@@ -22,11 +31,14 @@ export type Subscription = Record<string, unknown> & {
   bundleId: string
   externalKey: string
   planName: string
+  phaseType: string
   state: "PENDING" | "ACTIVE" | "CANCELLED"
   startDate: string
   chargedThroughDate?: string
   cancelledDate?: string
   pendingChangePlan?: string
+  /** Phase prices sent on create. Kill Bill 0.24 echoes these on GET. */
+  priceOverrides?: Record<string, unknown>[]
 }
 export type Bundle = {
   bundleId: string
@@ -86,10 +98,21 @@ export type Payment = {
   creditedAmount: number
   currency: string
   paymentMethodId?: string
+  /** Credit created by an external invoice-payment refund, linked to the purchase. */
+  linkedPaymentId?: string
   transactions: Transaction[]
   paymentAttempts: Record<string, unknown>[]
 }
 export type CatalogPlan = { name: string; amount: number; currency?: string; intervalDays?: number }
+export type QueuedNotification = {
+  id: string
+  effectiveDate: string
+  kind: string
+}
+export type QueuedBusEvent = {
+  id: string
+  eventType: string
+}
 export type Audit = {
   id: string
   objectType: string
@@ -109,7 +132,10 @@ export class KillBillState {
   readonly tags: Collection<{ objectId: string; tagDefinitionId: string }>
   readonly plans: Collection<CatalogPlan>
   readonly audits: Collection<Audit>
+  readonly notifications: Collection<QueuedNotification>
+  readonly busEvents: Collection<QueuedBusEvent>
   readonly settings: Collection<{ clockMs?: number; declineNext: boolean; pendingNext: boolean }>
+  readonly tenants: Collection<Tenant>
   readonly ids: IdSequence
   constructor(sqlite: SqliteClient, namespace: string) {
     this.accounts = new Collection(sqlite, namespace, "kb_accounts")
@@ -121,7 +147,10 @@ export class KillBillState {
     this.tags = new Collection(sqlite, namespace, "kb_tags")
     this.plans = new Collection(sqlite, namespace, "kb_plans")
     this.audits = new Collection(sqlite, namespace, "kb_audits")
+    this.notifications = new Collection(sqlite, namespace, "kb_notifications")
+    this.busEvents = new Collection(sqlite, namespace, "kb_bus_events")
     this.settings = new Collection(sqlite, namespace, "kb_settings")
+    this.tenants = new Collection(sqlite, namespace, "kb_tenants")
     this.ids = new IdSequence(sqlite, namespace, "killbill")
   }
 }

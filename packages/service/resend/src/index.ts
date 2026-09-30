@@ -7,7 +7,9 @@ import {
   bodyIssues,
   bootSqlite,
   createService,
+  DroppedConnectionError,
   defineOperations,
+  faultEffect,
   fromBase64,
   HttpError,
   jsonRes,
@@ -93,11 +95,22 @@ export type InboundInput = {
   inline?: boolean
 }
 
+export type SendOutcome = "accepted" | "lost" | "replayed"
+
+export type SendOutcomeEvent = {
+  outcome: SendOutcome
+  /** Public namespace the request selected. */
+  namespace: string
+  emailId?: string
+}
+
 export type ResendAPIOptions = APIOptions & {
   /** The public namespace name, for `/ns/<name>` download URLs. Default: the default namespace. */
   publicNamespace?: string
   /** Called after every accepted send (not replays); awaited before the response. */
   onSent?: (email: SentEmail) => Promise<void> | void
+  /** Accepted-then-drop and idempotent replays. The response has already been decided. */
+  onOutcome?: (event: SendOutcomeEvent) => void
 }
 
 const error = (statusCode: number, name: string, message: string) =>
@@ -138,6 +151,29 @@ const list = (value: unknown): string[] =>
       ? value.map(String)
       : [String(value)]
 
+/** Header names and values as sent. Keys are not case-folded. */
+const stringRecord = (value: unknown): Record<string, string> => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return {}
+  const headers: Record<string, string> = {}
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry === "string") headers[key] = entry
+  }
+  return headers
+}
+
+/** Tags in request order, including repeated name/value pairs. */
+const tagsOf = (value: unknown): { name: string; value: string }[] =>
+  Array.isArray(value)
+    ? value.flatMap((item) => {
+        if (typeof item !== "object" || item === null) return []
+        const name = (item as { name?: unknown }).name
+        const tagValue = (item as { value?: unknown }).value
+        return typeof name === "string" && typeof tagValue === "string"
+          ? [{ name, value: tagValue }]
+          : []
+      })
+    : []
+
 /** `Ada <ada@x.co>` → `ada@x.co` (lower-cased), as the outbox's `?to=` compares. */
 export const bareAddress = (value: string): string =>
   (/<([^<>]+)>\s*$/.exec(value)?.[1] ?? value).trim().toLowerCase()
@@ -171,6 +207,13 @@ export class ResendAPI implements FetchAPI {
   private readonly now: () => number
   private readonly publicNamespace: string | undefined
   private readonly onSent: ResendAPIOptions["onSent"]
+  private readonly onOutcome: ResendAPIOptions["onOutcome"]
+  /** Counts for the ambiguous-send path. Cleared with `reset`. */
+  private readonly outcomeCounts: Record<SendOutcome, number> = {
+    accepted: 0,
+    lost: 0,
+    replayed: 0,
+  }
 
   constructor(options: ResendAPIOptions = {}) {
     const sqlite = bootSqlite(options.sqlite)
@@ -178,6 +221,7 @@ export class ResendAPI implements FetchAPI {
     this.now = options.now ?? (() => Date.now())
     this.publicNamespace = options.publicNamespace
     this.onSent = options.onSent
+    this.onOutcome = options.onOutcome
     this.state = new ResendState(sqlite, namespace)
     const handlers = defineOperations<SupportedOperationId>({
       SendEmail: (context) => this.send(context),
@@ -213,12 +257,37 @@ export class ResendAPI implements FetchAPI {
     this.sqlite = this.service.sqlite
   }
 
-  fetch(request: Request): Promise<Response> {
-    return this.service.fetch(request)
+  async fetch(request: Request): Promise<Response> {
+    const response = await this.service.fetch(request)
+    if (response.headers.get("idempotent-replayed") === "true") {
+      await this.recordOutcome("replayed", response)
+      return response
+    }
+    const path = new URL(request.url).pathname
+    if (
+      request.method === "POST" &&
+      path === "/emails" &&
+      response.status === 200 &&
+      faultEffect(request, "accepted_then_network_drop") !== undefined
+    ) {
+      // The email and its idempotency record are already stored. Drop before any bytes leave.
+      await this.recordOutcome("accepted", response)
+      await this.recordOutcome("lost", response)
+      throw new DroppedConnectionError()
+    }
+    return response
   }
 
   async reset(): Promise<void> {
+    this.outcomeCounts.accepted = 0
+    this.outcomeCounts.lost = 0
+    this.outcomeCounts.replayed = 0
     await this.service.reset()
+  }
+
+  /** Accepted sends whose response was lost, those lost responses, and idempotent replays. */
+  sendOutcomes(): Record<SendOutcome, number> {
+    return { ...this.outcomeCounts }
   }
 
   /** Every sent email, oldest first. */
@@ -228,6 +297,22 @@ export class ResendAPI implements FetchAPI {
 
   private iso(offsetMs = 0): string {
     return new Date(this.now() + offsetMs).toISOString()
+  }
+
+  private async recordOutcome(outcome: SendOutcome, response: Response): Promise<void> {
+    this.outcomeCounts[outcome] += 1
+    let emailId: string | undefined
+    try {
+      const body = (await response.clone().json()) as { id?: unknown }
+      if (typeof body.id === "string") emailId = body.id
+    } catch {
+      emailId = undefined
+    }
+    this.onOutcome?.({
+      outcome,
+      namespace: this.publicNamespace ?? "default",
+      ...(emailId !== undefined ? { emailId } : {}),
+    })
   }
 
   private send(context: OperationContext): Promise<Response> | Response {
@@ -295,8 +380,8 @@ export class ResendAPI implements FetchAPI {
       subject: String(body.subject),
       html,
       text,
-      tags: Array.isArray(body.tags) ? (body.tags as SentEmail["tags"]) : [],
-      headers: (body.headers as Record<string, string> | undefined) ?? {},
+      tags: tagsOf(body.tags),
+      headers: stringRecord(body.headers),
       attachments: (Array.isArray(body.attachments) ? body.attachments : []).map((raw) => {
         const attachment = raw as Record<string, unknown>
         return {
@@ -332,6 +417,7 @@ export class ResendAPI implements FetchAPI {
         reply_to: email.replyTo.length > 0 ? email.replyTo : null,
         last_event: email.scheduledAt ? "scheduled" : "delivered",
         scheduled_at: email.scheduledAt,
+        headers: email.headers,
         tags: email.tags,
       }),
       { ids: { emailId: email.id } },

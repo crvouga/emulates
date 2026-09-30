@@ -531,7 +531,13 @@ function runStmt(env: ExecEnv, stmt: PlStmt, vars: PlVars, emit: Datum[][] | nul
       return;
     }
     case "for": {
-      const forEnv: ExecEnv = { ctx: env.ctx, params: env.params, ctes: env.ctes, outer: vars.scope() };
+      const forEnv: ExecEnv = {
+        ctx: env.ctx,
+        params: env.params,
+        ctes: env.ctes,
+        outer: vars.scope(),
+        allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+      };
       const rel = executeSelectStmt(forEnv, stmt.query);
       for (const row of rel.rows) {
         for (let i = 0; i < stmt.targets.length; i++) {
@@ -575,7 +581,13 @@ function initVars(env: ExecEnv, fn: FunctionData, bound: TypedValue[], program: 
   if (fn.returnsTable) {
     for (const c of fn.returnsTable) vars.declare(c.name, c.type, null);
   }
-  const seed = (): ExecEnv => ({ ctx: env.ctx, params: bound, ctes: new Map(), outer: vars.scope() });
+  const seed = (): ExecEnv => ({
+    ctx: env.ctx,
+    params: bound,
+    ctes: new Map(),
+    outer: vars.scope(),
+    allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+  });
   for (const d of program.decls) {
     const id = resolveTypeName(env.ctx.state, d.typeName).column.id;
     let val: Datum = null;
@@ -589,7 +601,13 @@ function initVars(env: ExecEnv, fn: FunctionData, bound: TypedValue[], program: 
 }
 
 function plpgsqlEnv(env: ExecEnv, bound: TypedValue[], vars: PlVars): ExecEnv {
-  return { ctx: env.ctx, params: bound, ctes: new Map(), outer: vars.scope() };
+  return {
+    ctx: env.ctx,
+    params: bound,
+    ctes: new Map(),
+    outer: vars.scope(),
+    allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+  };
 }
 
 export function callPlpgsqlScalar(env: ExecEnv, fn: FunctionData, args: TypedValue[]): TypedValue {

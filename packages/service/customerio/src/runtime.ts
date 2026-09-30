@@ -20,7 +20,12 @@ import {
   customerIoCredential,
   type ReportInput,
 } from "./index.js"
-import type { Settings, TransactionalMessage } from "./state.js"
+import {
+  DELIVERY_STATES,
+  type DeliveryState,
+  type Settings,
+  type TransactionalMessage,
+} from "./state.js"
 
 /** Where our backend receives reporting webhooks (`customer-io.reporting.controller.ts`). */
 export const REPORTING_WEBHOOK_PATH = "/v1/customer-io/reporting-webhook"
@@ -54,11 +59,13 @@ export const CUSTOMERIO_PRESETS: Record<string, FaultPreset> = {
     rules: onSends({ status: 404, body: { meta: { error: "not found" } } }),
   },
   request_timeout_408: {
-    description: "Sends answer 408: ambiguous, the reservation is kept",
+    description:
+      "Sends answer 408 before the handler runs (no delivery). Ambiguous: the caller keeps its reservation",
     rules: onSends({ status: 408, body: { meta: { error: "request timeout" } } }),
   },
   server_error: {
-    description: "Sends answer 500: ambiguous, the reservation is kept",
+    description:
+      "Sends answer 500 before the handler runs (no delivery). Ambiguous: the caller keeps its reservation",
     rules: onSends({ status: 500, body: { meta: { error: "internal server error" } } }),
   },
   accepted_but_500: {
@@ -82,11 +89,30 @@ export const CUSTOMERIO_PRESETS: Record<string, FaultPreset> = {
         status: 401,
         body: { meta: { error: "Unauthorized request" } },
       },
+      {
+        operationId: "GetCustomerAttributes",
+        status: 401,
+        body: { meta: { error: "Unauthorized request" } },
+      },
+      {
+        operationId: "GetMessage",
+        status: 401,
+        body: { meta: { error: "Unauthorized request" } },
+      },
     ],
   },
   send_drop: {
-    description: "Sends drop the connection mid-request: ambiguous (not ECONNREFUSED)",
+    description: "Sends drop the connection before the handler runs: ambiguous, no delivery",
     rules: SENDS.map((operationId) => ({ operationId, drop: true })),
+  },
+  send_drop_before_accept: {
+    description: "Sends drop the connection before enqueue: ambiguous, no delivery",
+    rules: SENDS.map((operationId) => ({ operationId, drop: true })),
+  },
+  send_drop_after_accept: {
+    description:
+      "Sends record the delivery, then drop the connection: ambiguous, exactly one delivery",
+    rules: SENDS.map((operationId) => ({ operationId, effect: "send_drop_after_accept" })),
   },
   cdp_unavailable: {
     description: "CDP calls answer 503 (the SDK retries, then fails the callback)",
@@ -122,6 +148,11 @@ export const CUSTOMERIO_PRESETS: Record<string, FaultPreset> = {
   webhook_drop: {
     description: "The next reporting event is never delivered",
     webhook: { mode: "drop" },
+  },
+  webhook_reorder: {
+    description:
+      "The next reporting event is held until the one after it, then the two are swapped",
+    webhook: { mode: "reorder" },
   },
 }
 
@@ -164,11 +195,23 @@ const adminRoutes = (runtime: ServiceRuntime<CustomerIoAPI>): AdminRoutes => ({
       const channel = params.get("channel")
       const message = params.get("transactional_message_id")
       const userId = params.get("userId")
-      if (channel === null && message === null && userId === null) return undefined
+      const recipient = params.get("recipient")
+      const deliveryId = params.get("deliveryId")
+      if (
+        channel === null &&
+        message === null &&
+        userId === null &&
+        recipient === null &&
+        deliveryId === null
+      ) {
+        return undefined
+      }
       return (item) =>
         (channel === null || item.channel === channel) &&
         (message === null || item.transactionalMessageId === message) &&
-        (userId === null || (item.identifiers as { id?: string }).id === userId)
+        (userId === null || (item.identifiers as { id?: string }).id === userId) &&
+        (deliveryId === null || item.id === deliveryId) &&
+        (recipient === null || String(item.to).toLowerCase() === recipient.toLowerCase())
     },
   ),
   "GET /cdp/events": ({ url, namespace }) => {
@@ -193,6 +236,43 @@ const adminRoutes = (runtime: ServiceRuntime<CustomerIoAPI>): AdminRoutes => ({
   "GET /profiles/:id": ({ params, namespace }) => {
     const profile = runtime.instance(namespace).state.profile(params.id as string)
     return profile ? json(200, profile) : adminError(404, `no profile ${params.id}`)
+  },
+  "PUT /profiles/:id": ({ params, body, namespace }) => {
+    if (!isRecord(body)) return adminError(400, "expected a JSON object")
+    const patch: {
+      traits?: Record<string, unknown>
+      email?: string | null
+      unsubscribed?: boolean
+      preferences?: { channels?: Record<string, boolean>; topics?: Record<string, boolean> }
+    } = {}
+    if (isRecord(body.traits)) patch.traits = body.traits
+    if (typeof body.email === "string" || body.email === null) patch.email = body.email
+    if (typeof body.unsubscribed === "boolean") patch.unsubscribed = body.unsubscribed
+    if (isRecord(body.preferences)) {
+      patch.preferences = body.preferences as {
+        channels?: Record<string, boolean>
+        topics?: Record<string, boolean>
+      }
+    }
+    return json(200, runtime.instance(namespace).mergeProfile(params.id as string, patch))
+  },
+  "POST /deliveries/:id": ({ params, body, namespace }) => {
+    if (!isRecord(body) || typeof body.state !== "string") {
+      return adminError(400, `expected {"state": ${DELIVERY_STATES.join("|")}}`)
+    }
+    if (!DELIVERY_STATES.includes(body.state as DeliveryState)) {
+      return adminError(400, `state must be one of ${DELIVERY_STATES.join(", ")}`)
+    }
+    const delivery = runtime
+      .instance(namespace)
+      .transitionDelivery(params.id as string, body.state as DeliveryState)
+    return delivery ? json(200, delivery) : adminError(404, `no delivery ${params.id}`)
+  },
+  "POST /namespace-clock": ({ body, namespace }) => {
+    if (!isRecord(body) || typeof body.advance !== "number" || !Number.isFinite(body.advance)) {
+      return adminError(400, 'expected {"advance": <milliseconds>}')
+    }
+    return json(200, runtime.instance(namespace).advanceClock(body.advance))
   },
   "POST /reporting-events": ({ body, namespace }) => {
     if (!isRecord(body) || typeof body.metric !== "string") {
@@ -248,6 +328,21 @@ const adminRoutes = (runtime: ServiceRuntime<CustomerIoAPI>): AdminRoutes => ({
     if (typeof body.strictMessages === "boolean") patch.strictMessages = body.strictMessages
     if (typeof body.trackingBase === "string") patch.trackingBase = body.trackingBase
     if (Array.isArray(body.keys)) patch.keys = body.keys.map(String)
+    if (
+      typeof body.statusVisibleAfterMs === "number" &&
+      Number.isFinite(body.statusVisibleAfterMs)
+    ) {
+      patch.statusVisibleAfterMs = body.statusVisibleAfterMs
+    }
+    if (typeof body.clockOffsetMs === "number" && Number.isFinite(body.clockOffsetMs)) {
+      patch.clockOffsetMs = body.clockOffsetMs
+    }
+    if (typeof body.retainMessageDataForTests === "boolean") {
+      patch.retainMessageDataForTests = body.retainMessageDataForTests
+    }
+    if (body.transactionalListKey === "messages" || body.transactionalListKey === "transactional") {
+      patch.transactionalListKey = body.transactionalListKey
+    }
     return json(200, runtime.instance(namespace).state.update(patch))
   },
 })

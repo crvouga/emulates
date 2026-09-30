@@ -1559,6 +1559,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/apps.connections.open:
+    post:
+      operationId: AppsConnectionsOpen
+      summary: 'apps.connections.open: mint a one-use Socket Mode WebSocket URL'
+      description: |
+        App-level token (`xapp-`) in the `Authorization` header. A missing token is `not_authed`,
+        a bot or user token is `not_allowed_token_type`, and a malformed, unknown, or revoked
+        app token is `invalid_auth` or `token_revoked`. Logical errors are HTTP 200. The `url`
+        is a `ws://` or `wss://` URL on this server (`/link/?ticket=…&app_id=…`).
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: {}
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          description: 'Slack envelope: `ok: true` and a WebSocket `url`, or `ok: false` with an `error` code'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionsOpenResponse'
+        '429':
+          description: Rate limited (`ratelimited`), with `retry-after` seconds
+          headers:
+            retry-after:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Slack is having trouble
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: Slack is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
 components:
   securitySchemes:
     bearerAuth:
@@ -1879,3 +1933,13 @@ components:
                 type: string
               bot_id:
                 type: string
+    ConnectionsOpenResponse:
+      allOf:
+      - $ref: '#/components/schemas/Envelope'
+      - type: object
+        properties:
+          url:
+            type: string
+            description: One-use Socket Mode WebSocket URL (`ticket` query parameter).
+            x-mockingbird-volatile:
+              kind: url

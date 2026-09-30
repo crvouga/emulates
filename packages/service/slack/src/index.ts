@@ -16,6 +16,7 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { closeSocketNamespace, issueSocketTicket } from "./sockets.js"
 import {
   type Settings,
   type SlackChannel,
@@ -45,6 +46,11 @@ export const SLACK_NAMESPACE = "slack"
 export type SlackAPIOptions = APIOptions & {
   /** Initial per-namespace settings (workspace identity, accepted tokens, strict channels). */
   settings?: Partial<Settings>
+  /**
+   * Public namespace (`default`, or the `x-mockingbird-namespace` value). Socket records are
+   * keyed by this, which is what `/__admin` selects. `namespace` is the storage key.
+   */
+  publicNamespace?: string
 }
 
 const WEBHOOK_PATH = /^\/services\/([^/]+\/[^/]+\/[^/]+)\/?$/
@@ -131,6 +137,16 @@ const str = (value: unknown): string | undefined =>
       ? String(value)
       : undefined
 
+/** Slack app-level tokens (`xapp-1-A…-…`). Bot tokens are a different credential. */
+const APP_TOKEN = /^xapp-[A-Za-z0-9][A-Za-z0-9_-]{8,}$/
+
+const flag = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") return value
+  if (value === "true") return true
+  if (value === "false") return false
+  return null
+}
+
 /** Blocks must be an array of objects with a `type`, at most 50. */
 const checkBlocks = (blocks: unknown): unknown[] | null => {
   if (blocks === undefined || blocks === null || blocks === "") return null
@@ -153,10 +169,12 @@ export class SlackAPI implements FetchAPI {
   readonly state: SlackState
   private readonly service: Service
   private readonly now: () => number
+  private readonly namespaceName: string
 
   constructor(options: SlackAPIOptions = {}) {
     const sqlite = bootSqlite(options.sqlite)
     const namespace = options.namespace ?? SLACK_NAMESPACE
+    this.namespaceName = options.publicNamespace ?? "default"
     this.now = options.now ?? (() => Date.now())
     this.state = new SlackState(sqlite, namespace, { settings: options.settings ?? {} })
     const api =
@@ -203,6 +221,7 @@ export class SlackAPI implements FetchAPI {
       FilesInfo: api((args) => this.fileInfo(args)),
       FilesInfoGet: api((args) => this.fileInfo(args)),
       ViewsOpen: api((args) => this.openView(args)),
+      AppsConnectionsOpen: (context) => this.connectionsOpen(context),
     })
     this.service = createService({
       document,
@@ -229,6 +248,7 @@ export class SlackAPI implements FetchAPI {
   }
 
   async reset(): Promise<void> {
+    closeSocketNamespace(this.namespaceName)
     await this.service.reset()
     this.state.ensureSeeded()
   }
@@ -258,7 +278,7 @@ export class SlackAPI implements FetchAPI {
       const code = status === 503 ? "service_unavailable" : "internal_error"
       return webhook ? text(status, code) : jsonRes(status, { ok: false, error: code })
     }
-    if (webhook) return undefined
+    if (webhook || context.operation.operationId === "AppsConnectionsOpen") return undefined
     if (faultEffect(context.request, "invalid_auth") !== undefined) return fail("invalid_auth")
     const token = bearerToken(context.request) ?? this.bodyToken(context)
     if (!token) return fail("not_authed")
@@ -321,12 +341,15 @@ export class SlackAPI implements FetchAPI {
     }
   }
 
-  private record(message: Omit<SlackMessage, "id" | "createdAt" | "reactions">): SlackMessage {
+  private record(
+    message: Omit<SlackMessage, "id" | "createdAt" | "reactions" | "workspace">,
+  ): SlackMessage {
     const stored: SlackMessage = {
       ...message,
       id: `${message.channel}:${message.ts}`,
       createdAt: this.iso(),
       reactions: [],
+      workspace: this.settings().teamId,
     }
     return this.state.outbox.record(stored)
   }
@@ -380,6 +403,7 @@ export class SlackAPI implements FetchAPI {
       user: null,
       ephemeral: false,
       edited: null,
+      unfurl_links: flag(payload.unfurl_links),
     })
     return annotateResponse(text(200, "ok"), { ids: { ts: message.ts, webhook: path } })
   }
@@ -406,6 +430,7 @@ export class SlackAPI implements FetchAPI {
       user: this.settings().botUserId,
       ephemeral: false,
       edited: null,
+      unfurl_links: flag(args.unfurl_links),
     })
     return reply(
       {
@@ -470,6 +495,7 @@ export class SlackAPI implements FetchAPI {
       user: user.id,
       ephemeral: true,
       edited: null,
+      unfurl_links: flag(args.unfurl_links),
     })
     return reply(
       { ok: true, message_ts: message.ts },
@@ -630,6 +656,73 @@ export class SlackAPI implements FetchAPI {
     const file = id ? this.state.files.get(id) : undefined
     if (!file) throw new SlackError("file_not_found")
     return reply({ ok: true, file: this.fileBody(file) })
+  }
+
+  /**
+   * `apps.connections.open`. The app token must be an `Authorization: Bearer xapp-…` header
+   * (Slack rejects a body token). The WebSocket URL is on this same host; the Node server
+   * accepts it. `@slack/socket-mode@2.0.4` reconnects by calling this method again — it does
+   * not read a URL out of a `disconnect` envelope, and Slack's documented envelope has none.
+   */
+  private connectionsOpen(context: OperationContext): Response {
+    const limited = faultEffect(context.request, "connections_open_429")
+    if (limited) {
+      const retryAfter = String(typeof limited.retryAfter === "number" ? limited.retryAfter : 1)
+      return jsonRes(429, { ok: false, error: "ratelimited" }, { "retry-after": retryAfter })
+    }
+    const broken = faultEffect(context.request, "connections_open_5xx")
+    if (broken) {
+      const status = typeof broken.status === "number" ? broken.status : 500
+      const code = status === 503 ? "service_unavailable" : "internal_error"
+      return jsonRes(status, { ok: false, error: code })
+    }
+    if (faultEffect(context.request, "connections_open_invalid_auth") !== undefined) {
+      return fail("invalid_auth")
+    }
+    const token = bearerToken(context.request)
+    if (!token) return fail("not_authed")
+    if (/^xox[abp]-/.test(token)) return fail("not_allowed_token_type")
+    if (!APP_TOKEN.test(token)) return fail("invalid_auth")
+    const settings = this.settings()
+    if (settings.revokedAppTokens.includes(token)) return fail("token_revoked")
+    if (settings.appTokens.length > 0 && !settings.appTokens.includes(token)) {
+      return fail("invalid_auth")
+    }
+    const latency = faultEffect(context.request, "socket_hello_latency")
+    const helloLatencyMs =
+      latency === undefined
+        ? 0
+        : typeof latency.latencyMs === "number"
+          ? latency.latencyMs
+          : typeof latency.delayMs === "number"
+            ? latency.delayMs
+            : 0
+    const issued = issueSocketTicket({
+      namespace: this.namespaceName,
+      appId: settings.appId,
+      helloLatencyMs,
+      closeAfterHello: faultEffect(context.request, "socket_close_after_hello") !== undefined,
+      abnormalClose: faultEffect(context.request, "socket_abnormal_close") !== undefined,
+      lifetimeMs: settings.socketLifetimeMs,
+    })
+    const host = context.request.headers.get("host") ?? context.url.host
+    const forwarded = context.request.headers.get("x-forwarded-proto")
+    const scheme = forwarded === "https" || context.url.protocol === "https:" ? "wss" : "ws"
+    const url = `${scheme}://${host}/link/?ticket=${encodeURIComponent(issued.ticket)}&app_id=${encodeURIComponent(settings.appId)}`
+    const contentType = context.request.headers.get("content-type") ?? ""
+    const json = contentType.includes("application/json")
+    const response = jsonRes(
+      200,
+      json && !/charset=/i.test(contentType)
+        ? {
+            ok: true,
+            url,
+            warning: "missing_charset",
+            response_metadata: { warnings: ["missing_charset"] },
+          }
+        : { ok: true, url },
+    )
+    return annotateResponse(response, { ids: { app_id: settings.appId } })
   }
 
   private openView(args: Args): Reply {

@@ -27,6 +27,10 @@ export type SlackMessage = {
   ephemeral: boolean
   edited: { user: string; ts: string } | null
   reactions: { name: string; users: string[]; count: number }[]
+  /** `unfurl_links` as the caller sent it, or `null` when the call omitted it. */
+  unfurl_links: boolean | null
+  /** Workspace id (`team_id`) the message was posted in. */
+  workspace: string
 }
 
 export type SlackChannel = {
@@ -79,6 +83,19 @@ export type Settings = {
    */
   tokens: string[]
   /**
+   * App-level tokens (`xapp-`) `apps.connections.open` accepts. Empty (the default) accepts
+   * any well-formed `xapp-` token; a token that is not in the list is `invalid_auth`.
+   */
+  appTokens: string[]
+  /** App-level tokens that answer `token_revoked` and open no socket. */
+  revokedAppTokens: string[]
+  /**
+   * Close an open Socket Mode connection after this many milliseconds with a `warning`
+   * disconnect. `null` (the default) leaves the socket up until the client or an admin
+   * disconnect closes it.
+   */
+  socketLifetimeMs: number | null
+  /**
    * Unknown channels answer `channel_not_found` when true. Default false: any channel id or
    * name is created on first use, so a suite need not seed the app's channel ids.
    */
@@ -93,6 +110,9 @@ export const DEFAULT_SETTINGS: Settings = {
   botId: "B0MOCKBOT",
   appId: "A0MOCKAPP",
   tokens: [],
+  appTokens: [],
+  revokedAppTokens: [],
+  socketLifetimeMs: null,
   strictChannels: false,
 }
 

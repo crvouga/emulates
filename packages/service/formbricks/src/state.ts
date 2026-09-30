@@ -36,6 +36,13 @@ export type ResponseRecord = {
   language: string | null
 }
 
+/**
+ * Which survey elements response creation validates.
+ * `present-only` is Formbricks after #7292 (only keys present in `data`).
+ * `finished-validates-all` is Formbricks before #7292 (every element when `finished` is true).
+ */
+export type ResponseValidation = "present-only" | "finished-validates-all"
+
 /** Per-namespace knobs, set through `PUT /__admin/settings`; cleared on reset. */
 export type Settings = {
   /** Workspace ids that exist and serve the shared corpus surveys. */
@@ -48,6 +55,8 @@ export type Settings = {
   webhookId: string
   /** Contacts are an Enterprise feature: when off, a response with a `contactId` is 403. */
   contactsEnabled: boolean
+  /** Element-validation rule. Default matches current Formbricks (`present-only`). */
+  validation: ResponseValidation
 }
 
 /** The default workspace every namespace starts with. */
@@ -61,6 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
   apiKeys: [],
   webhookId: "cwebhook00000000000000001",
   contactsEnabled: false,
+  validation: "present-only",
 }
 
 /** The synthetic survey corpus every namespace is seeded with (`src/corpus/surveys.json`). */

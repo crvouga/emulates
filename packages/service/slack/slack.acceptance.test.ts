@@ -552,7 +552,17 @@ describe("S17 contract", () => {
 
   test("every documented preset is registered", () => {
     expect(Object.keys(SLACK_PRESETS)).toEqual(
-      expect.arrayContaining(["rate_limited", "5xx", "channel_not_found"]),
+      expect.arrayContaining([
+        "rate_limited",
+        "5xx",
+        "channel_not_found",
+        "connections_open_invalid_auth",
+        "connections_open_429",
+        "connections_open_5xx",
+        "socket_close_after_hello",
+        "socket_abnormal_close",
+        "socket_hello_latency",
+      ]),
     )
   })
 

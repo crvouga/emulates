@@ -180,7 +180,8 @@ const SEED: Record<string, { status: CoverageStatus; evidence: string[]; notes: 
   "sql-creatematerializedview": {
     status: "PARTIALLY_VERIFIED",
     evidence: ["tests/contract/views/"],
-    notes: "materialized views are eager snapshots refreshed by REFRESH MATERIALIZED VIEW",
+    notes:
+      "eager snapshots; WITH NO DATA sets relispopulated false and may read an unpopulated matview; REFRESH populates; CONCURRENTLY is not modelled",
   },
   "sql-altermaterializedview": {
     status: "PARTIALLY_VERIFIED",

@@ -6,7 +6,9 @@ import {
   basicAuth,
   bootSqlite,
   createService,
+  DroppedConnectionError,
   defineOperations,
+  faultEffect,
   fromBase64,
   HttpError,
   jsonRes,
@@ -556,6 +558,9 @@ export class TwilioAPI implements FetchAPI {
     const now = this.now()
     const sid = this.state.sid(media.length > 0 ? "MM" : "SM")
     const base = `/2010-04-01/Accounts/${accountSid}/Messages/${sid}`
+    // Messaging Service with no From: accepted, and num_segments stays 0 until a sender is chosen.
+    // From, alone or with MessagingServiceSid, is queued and both fields are kept.
+    const selectingSender = Boolean(messagingServiceSid) && !from
     const message: MessageRecord = {
       sid,
       account_sid: accountSid,
@@ -564,9 +569,9 @@ export class TwilioAPI implements FetchAPI {
       to: recipient.phone_number,
       from: from ?? null,
       messaging_service_sid: messagingServiceSid ?? null,
-      status: messagingServiceSid ? "accepted" : "queued",
+      status: selectingSender ? "accepted" : "queued",
       direction: "outbound-api",
-      num_segments: String(segments(body)),
+      num_segments: selectingSender ? "0" : String(segments(body)),
       num_media: String(media.length),
       price: null,
       price_unit: "USD",
@@ -591,6 +596,14 @@ export class TwilioAPI implements FetchAPI {
       ...(media.length > 0 ? { mediaUrls: media } : {}),
       createdAt: new Date(now).toISOString(),
     })
+    // The resource exists; the caller never sees the response bytes.
+    if (faultEffect(context.request, "accepted_then_socket_drop") !== undefined) {
+      throw new DroppedConnectionError()
+    }
+    if (faultEffect(context.request, "missing_sid") !== undefined) {
+      const { sid: messageSid, ...withoutSid } = message
+      return annotateResponse(jsonRes(201, withoutSid), { ids: { messageSid } })
+    }
     return annotateResponse(jsonRes(201, message), { ids: { messageSid: sid } })
   }
 

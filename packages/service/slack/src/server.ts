@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type SlackRuntime, type SlackRuntimeOptions } from "./runtime.js"
+import { attachSocketServer } from "./socket-server.js"
 
 /** Port `mockingbird-slack serve` listens on when none is given. */
 export const DEFAULT_PORT = 8808
@@ -22,6 +23,7 @@ export const createServer = async (options: SlackServerOptions = {}): Promise<Sl
     port: port ?? 0,
     ...(host !== undefined ? { host } : {}),
   })
+  attachSocketServer(listening.server)
   return { ...listening, runtime }
 }
 
@@ -56,9 +58,13 @@ export const serveTarget: ServeTarget = {
       ...(common.onLog ? { onLog: common.onLog } : {}),
     })
   },
+  listening: (listening) => {
+    attachSocketServer(listening.server)
+  },
   banner: () => [
     "webhooks: point SLACK_*_WEBHOOK_URL at <this>/services/T000/B000/XXXX (any path works until you POST /__admin/hooks)",
     "web api: Authorization: Bearer xoxb-…; @slack/web-api: new WebClient(token, {slackApiUrl: '<this>/api/'})",
+    "socket mode: Authorization: Bearer xapp-… on POST <this>/api/apps.connections.open; Bolt: socketMode + clientOptions.slackApiUrl '<this>/api/'",
     "outbox: GET /__admin/outbox?webhook=/services/T/B/X or ?channel=C…",
   ],
 }

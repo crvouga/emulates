@@ -4,6 +4,7 @@ import {
   createRuntime,
   ENVIRONMENT_ID,
   FORMBRICKS_PRESETS,
+  type Settings,
   WEBHOOK_PATH,
   WORKSPACE_ID,
 } from "./src/index.js"
@@ -40,9 +41,10 @@ const onboardingAnswers = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 })
 
-const harness = () => {
+const harness = (settings?: Pick<Settings, "validation">) => {
   const deliveries: Request[] = []
   const runtime = createRuntime({
+    ...(settings ? { settings } : {}),
     webhooks: {
       url: `http://backend.local${WEBHOOK_PATH}?token=${TOKEN}`,
       secret: SIGNING,
@@ -194,6 +196,294 @@ describe("Formbricks acceptance: a consumer app's integration against the mock",
         })
       ).status,
     ).toBe(200)
+  })
+
+  const REQUIRED_SURVEY = "cm0reqsurvey00000000001x"
+  const requiredSurvey = {
+    id: REQUIRED_SURVEY,
+    name: "Required repro",
+    type: "app",
+    status: "inProgress",
+    blocks: [
+      {
+        id: "b1",
+        name: "Block 1",
+        elements: [
+          {
+            id: "symptoms",
+            type: "multipleChoiceMulti",
+            required: true,
+            headline: { default: "Which symptoms?" },
+            choices: [
+              { id: "c1", label: { default: "Fatigue" } },
+              { id: "c2", label: { default: "None of the above" } },
+            ],
+          },
+          {
+            id: "goals",
+            type: "openText",
+            required: true,
+            headline: { default: "Goals?" },
+          },
+        ],
+      },
+    ],
+  }
+
+  const seedRequiredSurvey = async (
+    admin: ReturnType<typeof harness>["admin"],
+    validation?: "finished-validates-all",
+  ) => {
+    expect((await admin("PUT", "/surveys", [requiredSurvey])).status).toBe(200)
+    if (validation) {
+      const updated = await admin("PUT", "/settings", { validation })
+      expect(updated.status).toBe(200)
+      expect(await updated.json()).toMatchObject({ validation })
+    }
+  }
+
+  const storedFor = async (admin: ReturnType<typeof harness>["admin"]) => {
+    const listed = await admin("GET", `/responses?surveyId=${REQUIRED_SURVEY}`)
+    const body = (await listed.json()) as { responses: { surveyId: string }[] }
+    return body.responses.filter((response) => response.surveyId === REQUIRED_SURVEY)
+  }
+
+  test("finished-validates-all: a finished response missing a required element is 400 and is not stored", async () => {
+    const { admin, post } = harness()
+    await seedRequiredSurvey(admin, "finished-validates-all")
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: REQUIRED_SURVEY,
+        finished: true,
+        data: { goals: "x" },
+      }),
+    ).toEqual({
+      status: 400,
+      body: {
+        code: "bad_request",
+        message: "Validation failed",
+        details: { "response.data.symptoms": "Please fill out this field" },
+      },
+    })
+    expect(await storedFor(admin)).toEqual([])
+  })
+
+  test("finished-validates-all: an unfinished response may omit a required element", async () => {
+    const { admin, post } = harness()
+    await seedRequiredSurvey(admin, "finished-validates-all")
+    const created = await post(WORKSPACE_ID, {
+      surveyId: REQUIRED_SURVEY,
+      finished: false,
+      data: { goals: "x" },
+    })
+    expect(created.status).toBe(200)
+    expect(created.body).toMatchObject({ data: { quotaFull: false } })
+    expect(await storedFor(admin)).toHaveLength(1)
+  })
+
+  test("finished-validates-all: a finished response that answers every required element is stored", async () => {
+    const { admin, post } = harness({ validation: "finished-validates-all" })
+    await seedRequiredSurvey(admin)
+    const created = await post(WORKSPACE_ID, {
+      surveyId: REQUIRED_SURVEY,
+      finished: true,
+      data: { symptoms: ["None of the above"], goals: "x" },
+    })
+    expect(created.status).toBe(200)
+    expect(created.body).toMatchObject({ data: { quotaFull: false } })
+    expect(await storedFor(admin)).toHaveLength(1)
+  })
+
+  test("present-only (the default) still accepts a finished response that omits a required element", async () => {
+    const { admin, post } = harness()
+    await seedRequiredSurvey(admin)
+    const settings = await admin("GET", "/settings")
+    expect(settings.status).toBe(200)
+    expect(await settings.json()).toMatchObject({ validation: "present-only" })
+    const created = await post(WORKSPACE_ID, {
+      surveyId: REQUIRED_SURVEY,
+      finished: true,
+      data: { goals: "x" },
+    })
+    expect(created.status).toBe(200)
+    expect(await storedFor(admin)).toHaveLength(1)
+  })
+
+  const OTHER_SURVEY = "cm0otherlength0000000001"
+  const repeated = (length: number, character = "x") => character.repeat(length)
+  const choice = (id: string, label: Record<string, string>) => ({ id, label })
+  const otherSurvey = {
+    id: OTHER_SURVEY,
+    name: "Other repro",
+    type: "app",
+    status: "inProgress",
+    blocks: [
+      {
+        id: "b1",
+        name: "Block 1",
+        elements: [
+          {
+            id: "concerns",
+            type: "multipleChoiceMulti",
+            required: false,
+            headline: { default: "Concerns?" },
+            choices: [
+              choice("c1", { default: "Sleep", de: "Schlaf" }),
+              choice("other", { default: "Other", de: "Andere" }),
+              choice("long", { default: repeated(251, "D"), de: repeated(251, "G") }),
+            ],
+          },
+          {
+            id: "one",
+            type: "multipleChoiceSingle",
+            required: false,
+            headline: { default: "One?" },
+            choices: [
+              choice("c1", { default: "Sleep", de: "Schlaf" }),
+              choice("other", { default: "Other" }),
+              choice(repeated(251, "i"), { default: "Id" }),
+            ],
+          },
+        ],
+      },
+    ],
+  }
+  const limitError = (questionId: string) => ({
+    status: 400,
+    body: {
+      code: "bad_request",
+      message: "Response exceeds character limit",
+      details: { questionId },
+    },
+  })
+  const storedOther = async (admin: ReturnType<typeof harness>["admin"]) => {
+    const listed = await admin("GET", `/responses?surveyId=${OTHER_SURVEY}`)
+    const body = (await listed.json()) as { responses: { data: Record<string, unknown> }[] }
+    return body.responses
+  }
+
+  test("an unmatched multiple-choice entry longer than 250 characters is 400 and is not stored", async () => {
+    const { admin, post, runtime, deliveries } = harness()
+    expect((await admin("PUT", "/surveys", [otherSurvey])).status).toBe(200)
+    const over = repeated(251)
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { concerns: [over] },
+      }),
+    ).toEqual(limitError("concerns"))
+    // A comma-joined multi-select is one unmatched string, not an array of labels.
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { concerns: ["Sleep", "Stress", over].join(",") },
+      }),
+    ).toEqual(limitError("concerns"))
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { concerns: ["Sleep", over] },
+      }),
+    ).toEqual(limitError("concerns"))
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { one: over },
+      }),
+    ).toEqual(limitError("one"))
+    // Choice ids are not labels, so a long id is still an "other" entry.
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { one: repeated(251, "i") },
+      }),
+    ).toEqual(limitError("one"))
+    // `de` does not fall back to the default label.
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        language: "de",
+        data: { concerns: [repeated(251, "D")] },
+      }),
+    ).toEqual(limitError("concerns"))
+    await runtime.webhooks.idle()
+    expect(deliveries).toHaveLength(0)
+    expect(await storedOther(admin)).toEqual([])
+  })
+
+  test("an unmatched multiple-choice entry of 250 characters or fewer is accepted", async () => {
+    const { admin, post } = harness()
+    expect((await admin("PUT", "/surveys", [otherSurvey])).status).toBe(200)
+    const atLimit = repeated(250)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          data: { concerns: ["Sleep", atLimit] },
+        })
+      ).status,
+    ).toBe(200)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          data: { concerns: atLimit },
+        })
+      ).status,
+    ).toBe(200)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          language: "de",
+          data: { one: atLimit },
+        })
+      ).status,
+    ).toBe(200)
+    expect((await storedOther(admin)).map((response) => response.data)).toEqual([
+      { concerns: ["Sleep", atLimit] },
+      { concerns: atLimit },
+      { one: atLimit },
+    ])
+  })
+
+  test("a multiple-choice entry that matches a choice label exactly is not length-checked", async () => {
+    const { admin, post } = harness()
+    expect((await admin("PUT", "/surveys", [otherSurvey])).status).toBe(200)
+    const defaultLabel = repeated(251, "D")
+    const germanLabel = repeated(251, "G")
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          data: { concerns: ["Sleep", defaultLabel] },
+        })
+      ).status,
+    ).toBe(200)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          language: "de",
+          data: { concerns: germanLabel },
+        })
+      ).status,
+    ).toBe(200)
+    expect((await storedOther(admin)).map((response) => response.data)).toEqual([
+      { concerns: ["Sleep", defaultLabel] },
+      { concerns: germanLabel },
+    ])
   })
 
   test("429 is retried three times by the client", async () => {

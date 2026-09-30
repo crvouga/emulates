@@ -20,6 +20,8 @@ import { pgError } from "../errors/error.ts";
 import type { EvalScope } from "../expressions/eval.ts";
 import { checkBoolExprType, evalAsPredicate, evalExpr } from "../expressions/eval.ts";
 import { createAggregate, isAggregateName, isOrderedSetAggregate, unifyAggType } from "../functions/aggregates.ts";
+import { evalPgcryptoFunction } from "../functions/pgcrypto.ts";
+import { evalPgTrgmFunction } from "../functions/pgtrgm.ts";
 import { getSrfFunctions, isSrfName } from "../functions/srf.ts";
 import { conjunctions, joinKeyFromRow, rowsMatchEqKeys, tryIndexedFromItem } from "../planner/access.ts";
 import { catalogRelation } from "../schema/catalog.ts";
@@ -222,7 +224,13 @@ function functionEnv(env: ExecEnv, fn: FunctionData, args: TypedValue[]): ExecEn
       bound.push(castTo(env.ctx, evalScalar(env, null, dflt), fn.argTypes[i]!, {}));
     }
   }
-  const fnEnv: ExecEnv = { ctx: env.ctx, params: bound, ctes: new Map(), outer: null };
+  const fnEnv: ExecEnv = {
+    ctx: env.ctx,
+    params: bound,
+    ctes: new Map(),
+    outer: null,
+    allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+  };
   // named args resolve like columns of a phantom row
   const namedCols = fn.argNames.map((n, i) => ({ n, i })).filter((x): x is { n: string; i: number } => x.n !== null);
   if (namedCols.length > 0) {
@@ -250,6 +258,10 @@ export function callSqlFunctionScalar(env: ExecEnv, fn: FunctionData, args: Type
   const retT = fn.returns ?? "text";
   if (fn.language === "plpgsql") {
     return callPlpgsqlScalar(env, fn, args);
+  }
+  if (fn.language === "internal") {
+    if (fn.rawBody === "pg_trgm") return evalPgTrgmFunction(env.ctx, fn, args);
+    return evalPgcryptoFunction(env.ctx, fn, args);
   }
   if (fn.language === "js") {
     if (!fn.jsImpl) {
@@ -335,7 +347,13 @@ export function applyWith(env: ExecEnv, w: WithClause | null): ExecEnv {
   if (!w) return env;
   const ctes = new Map(env.ctes);
   for (const cte of w.ctes) {
-    const scopedEnv: ExecEnv = { ctx: env.ctx, params: env.params, ctes, outer: env.outer };
+    const scopedEnv: ExecEnv = {
+      ctx: env.ctx,
+      params: env.params,
+      ctes,
+      outer: env.outer,
+      allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+    };
     let rel: Relation;
     if (
       w.recursive &&
@@ -357,7 +375,13 @@ export function applyWith(env: ExecEnv, w: WithClause | null): ExecEnv {
     }
     ctes.set(cte.name, applyCteColumnNames(rel, cte));
   }
-  return { ctx: env.ctx, params: env.params, ctes, outer: env.outer };
+  return {
+    ctx: env.ctx,
+    params: env.params,
+    ctes,
+    outer: env.outer,
+    allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+  };
 }
 
 const MAX_RECURSION_ITERATIONS = 200_000;
@@ -394,7 +418,13 @@ function executeRecursiveCte(env: ExecEnv, cte: CommonTableExpr, query: SelectSt
     }
     const iterCtes = new Map(env.ctes);
     iterCtes.set(cte.name, { columns, rows: working });
-    const iterEnv: ExecEnv = { ctx: env.ctx, params: env.params, ctes: iterCtes, outer: env.outer };
+    const iterEnv: ExecEnv = {
+      ctx: env.ctx,
+      params: env.params,
+      ctes: iterCtes,
+      outer: env.outer,
+      allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+    };
     const step = executeBody(iterEnv, body.right);
     if (step.columns.length !== columns.length) {
       throw pgError("syntax", "each UNION query must have the same number of columns", "42601");
@@ -480,7 +510,9 @@ function materializeItem(env: ExecEnv, item: FromItem, scope: RowScope | null): 
       if (view) {
         let rel: Relation;
         if (view.materialized) {
-          if (view.matRows === null || view.matColumns === null) {
+          // WITH NO DATA only needs the shape. PostgreSQL does not require a
+          // referenced matview to be populated until the view is scanned.
+          if (view.matColumns === null || (view.matRows === null && !env.allowUnpopulatedMatviews)) {
             throw pgError(
               "object_not_in_prerequisite_state",
               `materialized view "${view.name}" has not been populated`,
@@ -489,10 +521,16 @@ function materializeItem(env: ExecEnv, item: FromItem, scope: RowScope | null): 
           }
           rel = {
             columns: view.matColumns.map((c) => ({ name: c.name, type: c.type, table: label })),
-            rows: view.matRows,
+            rows: view.matRows ?? [],
           };
         } else {
-          const viewEnv: ExecEnv = { ctx: env.ctx, params: null, ctes: new Map(), outer: null };
+          const viewEnv: ExecEnv = {
+            ctx: env.ctx,
+            params: null,
+            ctes: new Map(),
+            outer: null,
+            allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+          };
           rel = executeSelectStmt(viewEnv, view.query);
           rel = {
             columns: rel.columns.map((c, i) => ({

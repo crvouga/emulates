@@ -127,6 +127,8 @@ export type ServeTarget = {
   ): Promise<ServiceRuntime<ServiceInstance>> | ServiceRuntime<ServiceInstance>
   /** Startup lines after the listen address, e.g. the loaded corpus version. */
   banner?(runtime: ServiceRuntime<ServiceInstance>): string[]
+  /** After the HTTP server is bound. A service that speaks more than HTTP attaches it here. */
+  listening?(server: Listening): void
 }
 
 const COMMON_SERVE_OPTIONS: Record<string, CliOption> = {
@@ -227,6 +229,7 @@ const start = async (
     onLog: formatLog(config.log),
   })
   const listening = await listen(runtime, { port: config.port, host: config.host })
+  target.listening?.(listening)
   console.log(`${target.name} mock listening on ${listening.url}`)
   console.log(`${target.name} health: GET ${listening.url}/health`)
   console.log(

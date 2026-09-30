@@ -73,7 +73,7 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "CDP: POST /v1/identify|track|batch with Basic <write key>: (the SDK's host)",
-    "App API: POST /v1/send/email|sms|inbox_message, GET /v1/transactional with Bearer <app key>",
+    "App API: POST /v1/send/email|sms|inbox_message, GET /v1/transactional, /v1/customers/{id}/attributes, /v1/messages/{id}",
     "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
   ],
 }

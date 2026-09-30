@@ -182,7 +182,12 @@ describe("the service contract", () => {
     expect(Object.keys(TWILIO_PRESETS).sort()).toEqual(
       [
         "lookup_5xx",
+        "sms_429",
         "sms_4xx",
+        "sms_5xx",
+        "sms_accepted_then_socket_drop",
+        "sms_drop_before_accept",
+        "sms_missing_sid",
         "sms_socket_drop",
         "verify_5xx",
         "webhook_drop",

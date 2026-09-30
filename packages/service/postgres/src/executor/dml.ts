@@ -418,7 +418,13 @@ function applyUpdateSets(env: ExecEnv, table: TableData, sets: UpdateSet[], scop
 
     if (typeof set.value === "object" && "kind" in set.value && set.value.kind === "row_subquery") {
       const rel = executeSelectStmt(
-        { ctx: env.ctx, params: env.params, ctes: env.ctes, outer: scope },
+        {
+          ctx: env.ctx,
+          params: env.params,
+          ctes: env.ctes,
+          outer: scope,
+          allowUnpopulatedMatviews: env.allowUnpopulatedMatviews,
+        },
         set.value.query,
       );
       if (rel.rows.length > 1) {

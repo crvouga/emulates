@@ -22,14 +22,15 @@ import {
   type Survey,
   workspaceSettings,
 } from "./state.js"
-import { surveyElements, validateResponseData } from "./validation.js"
+import { otherOptionOverLimit, surveyElements, validateResponseData } from "./validation.js"
 
 export type { FetchAPI } from "@crvouga/mockingbird-core"
 export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
-export type { Contact, ResponseRecord, Settings, Survey } from "./state.js"
+export type { Contact, ResponseRecord, ResponseValidation, Settings, Survey } from "./state.js"
 export { CORPUS_SURVEYS, DEFAULT_SETTINGS, ENVIRONMENT_ID, WORKSPACE_ID } from "./state.js"
+export type { ValidateResponseDataOptions } from "./validation.js"
 export { validateResponseData } from "./validation.js"
 
 export const FORMBRICKS_NAMESPACE = "formbricks"
@@ -535,11 +536,19 @@ export class FormbricksAPI implements FetchAPI {
         surveyId: survey.id,
       })
     }
-    const errors = validateResponseData(
-      survey,
-      data,
-      typeof body.language === "string" ? body.language : "en",
-    )
+    const finished = body.finished as boolean
+    const responseLanguage = typeof body.language === "string" ? body.language : undefined
+    // Before element validation (`apps/web/app/api/v2/client/[workspaceId]/responses/route.ts`).
+    const tooLong = otherOptionOverLimit(survey, data, responseLanguage)
+    if (tooLong) {
+      return formbricksError(400, "bad_request", "Response exceeds character limit", {
+        questionId: tooLong,
+      })
+    }
+    const errors = validateResponseData(survey, data, responseLanguage ?? "en", {
+      validation: this.state.current().validation ?? "present-only",
+      finished,
+    })
     if (errors) {
       const details: Record<string, string> = {}
       for (const [elementId, messages] of Object.entries(errors)) {
@@ -548,7 +557,6 @@ export class FormbricksAPI implements FetchAPI {
       return formbricksError(400, "bad_request", "Validation failed", details)
     }
     const now = this.iso()
-    const finished = body.finished as boolean
     const input = (body.meta ?? {}) as Record<string, unknown>
     const contact = contactId ? this.state.contactOf(contactId, workspaceId) : undefined
     const ttcIn = (body.ttc ?? {}) as Record<string, number>

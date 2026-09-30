@@ -76,17 +76,20 @@ await mock.close()
 | Route | Behaviour |
 | --- | --- |
 | `POST /emails` | `{from, to, subject, html?, text?, cc?, bcc?, reply_to?, headers?, tags?, attachments?, scheduled_at?}` → `{id}` (a UUID). The SDK renders `react` to HTML before sending, so the mock sees HTML. Violations answer Resend's body `{statusCode, name, message}`: 422 `missing_required_field` (`Missing \`to\` field.`, or no `html`/`text`), 422 `validation_error` for a malformed address (`Invalid \`from\` field. The email address needs to follow …`), a tag outside `[A-Za-z0-9_-]`, or any other contract violation. `Idempotency-Key`: the same key and payload replay the first 200 byte for byte (`idempotent-replayed: true`); another payload is 409 `invalid_idempotent_request`; a key still in flight is 409 `concurrent_idempotent_requests`; a key outside 1–256 characters is 400 `invalid_idempotency_key`. Only 200s are remembered. |
-| `GET /emails/{id}` | `emails.get`: `{object: "email", id, to, from, created_at, subject, html, text, cc, bcc, reply_to, last_event: "delivered" \| "scheduled", scheduled_at, tags}`. |
+| `GET /emails/{id}` | `emails.get`: `{object: "email", id, to, from, created_at, subject, html, text, cc, bcc, reply_to, last_event: "delivered" \| "scheduled", scheduled_at, headers, tags}`. `headers` keeps the names and values from the send; `to` keeps the original address form and order. |
 | `GET /emails/receiving/{id}` | A received email: `{object: "email", id, to, from, cc, bcc, reply_to, created_at, subject, html, text, headers, message_id, attachments[{id, filename, content_type, content_disposition, content_id}]}`. |
 | `GET /emails/receiving/{id}/attachments` | `{object: "list", has_more: false, data: [{id, filename, content_type, content_disposition, content_id, size, download_url, expires_at}]}`. |
 | `GET /downloads/inbound/{attachment_id}` | The `download_url`: unauthenticated, the bytes with `content-type` and `content-length`. In a non-default namespace the URL carries `/ns/<name>`. |
 
 Auth is `Authorization: Bearer <key>`; any key works; none is 401 `missing_api_key`.
 
-**SDK error mapping** (`resend@4.8.0` never throws): a non-2xx JSON body comes back verbatim as
+**SDK error mapping.** `resend@4.8.0` never throws: a non-2xx JSON body comes back verbatim as
 `{data: null, error: {statusCode, name, message}}`; a non-JSON body becomes
 `{name: "application_error", message: "Internal server error. …"}`; a dropped connection
 becomes `{name: "application_error", message: "Unable to fetch data. The request could not be resolved."}`.
+`resend@2.1.0` also reads `RESEND_BASE_URL` at import and returns that JSON error object, but its
+client does not catch a non-JSON body or a dropped socket (those reject). It also has no
+`idempotencyKey` option; send the `Idempotency-Key` header yourself, as `resend@4.8.0` does.
 
 ### Webhooks
 
@@ -110,6 +113,7 @@ official `svix` `Webhook.verify` accepts them. Non-2xx answers are retried (imme
 
 | Route | Effect |
 | --- | --- |
+| `GET /__admin/outcomes` | `{accepted, lost, replayed}` for sends whose response was dropped after acceptance, those lost responses, and idempotent replays. |
 | `GET /__admin/outbox?to=&tag=<name>:<value>&since=&limit=` | Sent emails, oldest first: `{id, from, to (bare, lower-cased), toHeader, cc, bcc, replyTo, subject, html, text, tags, headers, attachments (filename, contentType, size), idempotencyKey, scheduledAt, createdAt}`. `tag=category` matches any value. `GET /__admin/outbox/:id` returns one. |
 | `GET /__admin/outbox/:id/links` | `{id, links}`: every `href` in the HTML, entity-decoded (every URL in the text when there is no HTML). |
 | `POST /__admin/inbound` | `{from, to, cc?, bcc?, replyTo?, subject?, text?, html?, headers?, messageId?, attachments?: [{filename, content (base64), contentType?, contentId?, contentDisposition?}], inline?}` → 201 `{id, webhook, event}`. |
@@ -125,7 +129,8 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 `send_422` (`{statusCode: 422, name: "validation_error", message}`), `send_429`
 (`rate_limit_exceeded` with `retry-after` and `ratelimit-*` headers), `send_500`
 (`internal_server_error`), `non_json_500` (an HTML 500 page), `network_drop` (the connection
-dies before an answer), `receiving_500` (the received-email routes answer 500),
+dies before acceptance, so nothing is stored), `accepted_then_network_drop` (the send is stored,
+then the connection dies before any response bytes; the same key replays), `receiving_500` (the received-email routes answer 500),
 `webhook_duplicate`, `webhook_reorder`, `webhook_drop`.
 
 ### Namespaces
@@ -148,7 +153,7 @@ dies before an answer), `receiving_500` (the received-email routes answer 500),
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `ResendAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `sent()`, `inbound()`, `receive(input, origin)`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `onSent`. |
+| `ResendAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `sent()`, `sendOutcomes()`, `inbound()`, `receive(input, origin)`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `onSent`, `onOutcome`. |
 | `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, Svix webhooks, outbox). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `forwardToInbox: {url, adminKey?, timeoutMs?, fetch?}`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `forwardToInbox` | function | Copy one sent email into a Mailosaur mock's ingest route. |
 | `RESEND_PRESETS` | object | Every named fault preset. |

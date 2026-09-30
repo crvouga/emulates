@@ -511,7 +511,8 @@ export interface CreateIndexStmt {
     expr: Expr;
     dir: "asc" | "desc" | null;
     nulls: "first" | "last" | null;
-    opclass: string | null;
+    /** Operator class name, possibly schema-qualified (`public.gin_trgm_ops`). */
+    opclass: string[] | null;
   }>;
   readonly include: string[];
   readonly where: Expr | null;
@@ -561,6 +562,15 @@ export interface CreateSchemaStmt {
   readonly type: "create_schema";
   readonly name: string;
   readonly ifNotExists: boolean;
+}
+
+export interface CreateExtensionStmt {
+  readonly type: "create_extension";
+  readonly name: string;
+  readonly ifNotExists: boolean;
+  readonly schema: string | null;
+  readonly version: string | null;
+  readonly cascade: boolean;
 }
 
 export interface CreateEnumStmt {
@@ -803,6 +813,7 @@ export type Statement =
   | CreateSequenceStmt
   | AlterSequenceStmt
   | CreateSchemaStmt
+  | CreateExtensionStmt
   | CreateEnumStmt
   | AlterEnumStmt
   | CreateDomainStmt

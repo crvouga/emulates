@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **20**
-- supported by the mock: **20**
-- parity enabled: **20**
+- operations in spec: **21**
+- supported by the mock: **21**
+- parity enabled: **21**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -28,3 +28,4 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `FilesInfoGet` | `GET /api/files.info` | ✅ supported | ✅ |  |
 | `FilesInfo` | `POST /api/files.info` | ✅ supported | ✅ |  |
 | `ViewsOpen` | `POST /api/views.open` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `AppsConnectionsOpen` | `POST /api/apps.connections.open` | ✅ supported | ⚠️ unsafe (opt-in) |  |
