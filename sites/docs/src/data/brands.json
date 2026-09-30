@@ -513,6 +513,21 @@
     "logo": "/brands/prism.png",
     "logoSource": "site"
   },
+  "redis": {
+    "vendor": "Redis",
+    "website": "https://redis.io",
+    "docs": "https://redis.io/docs/latest/commands/",
+    "description": "Developers love Redis. Unlock the full potential of the Redis database with Redis Enterprise and start building blazing fast apps.",
+    "input": {
+      "website": "https://redis.io",
+      "docs": "https://redis.io/docs/latest/commands/",
+      "icon": "redis",
+      "color": "#FF4438"
+    },
+    "color": "#FF4438",
+    "logo": "/brands/redis.svg",
+    "logoSource": "simple-icons"
+  },
   "resend": {
     "vendor": "Resend",
     "website": "https://resend.com",
