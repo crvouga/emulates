@@ -22,6 +22,7 @@ export type Subscription = Record<string, unknown> & {
   bundleId: string
   externalKey: string
   planName: string
+  phaseType: string
   state: "PENDING" | "ACTIVE" | "CANCELLED"
   startDate: string
   chargedThroughDate?: string

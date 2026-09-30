@@ -629,7 +629,8 @@ export class KillBillAPI {
     }
     if (parts[0] === "subscriptions" && parts.length === 1 && request.method === "POST") {
       const inputs = Array.isArray(body) ? (body as unknown as Input[]) : [body]
-      let bundleId = ""
+      // 0.24 createSubscription locates the subscription, not the bundle.
+      let createdSubscriptionId = ""
       for (const input of inputs) {
         if (
           typeof input.accountId !== "string" ||
@@ -652,7 +653,7 @@ export class KillBillAPI {
             "SUBSCRIPTION_ALREADY_EXISTS",
             "Subscription external key already exists",
           )
-        bundleId =
+        const bundleId =
           typeof input.bundleId === "string" ? input.bundleId : this.state.ids.next("bundle-", 32)
         if (!this.state.bundles.has(bundleId))
           this.state.bundles.insert(bundleId, {
@@ -662,6 +663,7 @@ export class KillBillAPI {
             subscriptions: [],
           })
         const subscriptionId = this.state.ids.next("sub-", 32)
+        if (!createdSubscriptionId) createdSubscriptionId = subscriptionId
         const date = url.searchParams.get("entitlementDate") ?? isoDate(this.now())
         const subscription: Subscription = {
           ...input,
@@ -670,6 +672,7 @@ export class KillBillAPI {
           bundleId,
           externalKey,
           planName: input.planName,
+          phaseType: typeof input.phaseType === "string" ? input.phaseType : "EVERGREEN",
           state: date > isoDate(this.now()) ? "PENDING" : "ACTIVE",
           startDate: date,
           chargedThroughDate: date,
@@ -685,7 +688,9 @@ export class KillBillAPI {
         this.emit("SUBSCRIPTION_CREATION", "SUBSCRIPTION", subscriptionId, input.accountId)
       }
       this.billDue()
-      return this.empty(201, { location: this.location(request, `/1.0/kb/bundles/${bundleId}`) })
+      return this.empty(201, {
+        location: this.location(request, `/1.0/kb/subscriptions/${createdSubscriptionId}`),
+      })
     }
     if (parts[0] === "subscriptions" && parts[1]) {
       const subscription = this.state.subscriptions.get(parts[1])

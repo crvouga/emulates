@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { createClock } from "@crvouga/mockingbird-service"
-import { createRuntime } from "./src/index.js"
+import { createRuntime, KillBillAPI } from "./src/index.js"
 import { createServer } from "./src/server.js"
 
 const headers = {
@@ -87,12 +87,12 @@ describe("Kill Bill REST adapter", () => {
         externalKey: "sub-ext",
         planName: "standard-monthly",
       })
-      const bundleId = subscription.headers.get("location")?.split("/").at(-1) as string
+      const subscriptionId = subscription.headers.get("location")?.split("/").at(-1) as string
+      expect(subscription.headers.get("location")).toEndWith(`/subscriptions/${subscriptionId}`)
       const bundles = await json<
         Array<{ bundleId: string; subscriptions: Array<{ subscriptionId: string }> }>
       >(`/accounts/${accountId}/bundles`)
-      expect(bundles[0]?.bundleId).toBe(bundleId)
-      const subscriptionId = bundles[0]?.subscriptions[0]?.subscriptionId as string
+      expect(bundles[0]?.subscriptions[0]?.subscriptionId).toBe(subscriptionId)
       expect(
         (await json<Array<{ balance: number }>>(`/accounts/${accountId}/invoices`))[0]?.balance,
       ).toBe(0)
@@ -405,5 +405,79 @@ describe("Kill Bill REST adapter", () => {
     } finally {
       await server.close()
     }
+  })
+
+  test("create subscription Location is the subscription and the document includes phaseType", async () => {
+    const api = new KillBillAPI({
+      plans: [{ name: "example-monthly", amount: 10, currency: "USD" }],
+    })
+    const call = (path: string, init: RequestInit = {}) =>
+      api.fetch(
+        new Request(`http://mock/1.0/kb${path}`, {
+          ...init,
+          headers: { ...headers, ...init.headers },
+        }),
+      )
+    const account = await call("/accounts", {
+      method: "POST",
+      body: JSON.stringify({ externalKey: "member-1", currency: "USD" }),
+    })
+    const accountId = account.headers.get("location")?.split("/").pop()
+    const created = await call("/subscriptions", {
+      method: "POST",
+      body: JSON.stringify({ accountId, planName: "example-monthly" }),
+    })
+    const location = created.headers.get("location") ?? ""
+    const subscriptionId = location.split("/").pop()
+    const follow = await api.fetch(new Request(location, { headers }))
+    const document = (await follow.json()) as {
+      subscriptionId: string
+      bundleId: string
+      accountId: string
+      planName: string
+      phaseType: string
+      state: string
+      startDate: string
+      chargedThroughDate: string
+    }
+    const addon = await call("/subscriptions?requestedDate=2024-01-15", {
+      method: "POST",
+      body: JSON.stringify({
+        accountId,
+        bundleId: document.bundleId,
+        planName: "example-monthly",
+      }),
+    })
+    const addonLocation = addon.headers.get("location") ?? ""
+    const addonId = addonLocation.split("/").pop()
+    const addonFollow = await api.fetch(new Request(addonLocation, { headers }))
+
+    expect(created.status).toBe(201)
+    expect(await created.text()).toBe("")
+    expect(location).toEndWith(`/1.0/kb/subscriptions/${subscriptionId}`)
+    expect(follow.status).toBe(200)
+    expect(document).toMatchObject({
+      subscriptionId,
+      accountId,
+      planName: "example-monthly",
+      phaseType: "EVERGREEN",
+      state: "ACTIVE",
+    })
+    expect(typeof document.bundleId).toBe("string")
+    expect(document.bundleId).not.toBe(subscriptionId)
+    expect(document.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(document.chargedThroughDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(addon.status).toBe(201)
+    expect(addonLocation).toEndWith(`/1.0/kb/subscriptions/${addonId}`)
+    expect(addonId).not.toBe(document.bundleId)
+    expect(addonId).not.toBe(subscriptionId)
+    expect(await addonFollow.json()).toMatchObject({
+      subscriptionId: addonId,
+      bundleId: document.bundleId,
+      accountId,
+      planName: "example-monthly",
+      phaseType: "EVERGREEN",
+      state: "ACTIVE",
+    })
   })
 })
