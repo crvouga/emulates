@@ -91,6 +91,7 @@
     "@crvouga/mockingbird-http-codec": "workspace:*",
     "@crvouga/mockingbird-adapter-node": "workspace:*",
     "resend": "4.8.0",
+    "resend-v2": "npm:resend@2.1.0",
     "svix": "1.41.0",
     "@crvouga/mockingbird-service-mailosaur": "workspace:*",
     "mailosaur": "11.1.0"

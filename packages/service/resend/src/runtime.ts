@@ -15,7 +15,7 @@ import {
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
-import { type InboundInput, RESEND_NAMESPACE, ResendAPI } from "./index.js"
+import { type InboundInput, RESEND_NAMESPACE, ResendAPI, type SendOutcomeEvent } from "./index.js"
 import type { SentEmail } from "./state.js"
 
 /**
@@ -88,8 +88,13 @@ export const RESEND_PRESETS: Record<string, FaultPreset> = {
   },
   network_drop: {
     description:
-      "Send drops the connection before answering (the SDK reports 'Unable to fetch data')",
+      "Send drops the connection before acceptance (no email, no idempotency record). resend@4.8.0 reports 'Unable to fetch data'; resend@2.1.0 rejects.",
     rules: [{ operationId: "SendEmail", drop: true }],
+  },
+  accepted_then_network_drop: {
+    description:
+      "The next valid send is validated and stored (email, idempotency record, outbox), then the connection closes before any response bytes. A retry of the same key replays the original id. resend@4.8.0 reports 'Unable to fetch data'; resend@2.1.0 rejects.",
+    rules: [{ operationId: "SendEmail", effect: "accepted_then_network_drop" }],
   },
   receiving_500: {
     description:
@@ -247,6 +252,7 @@ const adminRoutes =
           )
       },
     ),
+    "GET /outcomes": ({ namespace }) => json(200, runtime.instance(namespace).sendOutcomes()),
     "GET /outbox/:id/links": ({ params, namespace }) => {
       const email = runtime.instance(namespace).state.outbox.get(params.id as string)
       if (!email) return adminError(404, `no email ${params.id}`)
@@ -286,6 +292,7 @@ export const createRuntime = (options: ResendRuntimeOptions = {}): ResendRuntime
   })
   const stats: ForwardStats = { forwarded: 0, failed: 0, lastError: null }
   const target = options.forwardToInbox
+  let recordOutcome: (event: SendOutcomeEvent) => void = () => {}
   const runtime = createServiceRuntime<ResendAPI>({
     name: RESEND_NAMESPACE,
     document,
@@ -303,6 +310,7 @@ export const createRuntime = (options: ResendRuntimeOptions = {}): ResendRuntime
         namespace,
         publicNamespace,
         now: clock.now,
+        onOutcome: (event) => recordOutcome(event),
         ...(target
           ? {
               onSent: async (email: SentEmail) => {
@@ -329,5 +337,25 @@ export const createRuntime = (options: ResendRuntimeOptions = {}): ResendRuntime
       "GET /forwarding": () => json(200, { target: target?.url ?? null, ...stats }),
     }),
   })
+  recordOutcome = (event) => {
+    const entry = {
+      service: RESEND_NAMESPACE,
+      namespace: event.namespace,
+      operationId: "SendEmail",
+      method: "POST",
+      path: "/emails",
+      status: event.outcome === "lost" ? 0 : 200,
+      durationMs: 0,
+      unmatched: false,
+      ...(event.outcome === "lost" ? { faultId: "accepted_then_network_drop" } : {}),
+      ...(event.emailId ? { ids: { emailId: event.emailId } } : {}),
+      outcome: event.outcome,
+    }
+    // The runtime never sees the dropped response, so the lost attempt is counted here.
+    // A replay is counted again when the runtime logs the 200 that actually went out.
+    if (event.outcome === "lost") runtime.metrics.record(entry)
+    runtime.journal.record({ ...entry, at: new Date(runtime.clock.now()).toISOString() })
+    options.onLog?.(entry)
+  }
   return Object.assign(runtime, { webhooks: hub, forwarding: () => ({ ...stats }) })
 }

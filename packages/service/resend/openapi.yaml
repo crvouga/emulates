@@ -375,6 +375,11 @@ components:
           enum: [delivered, scheduled]
         scheduled_at:
           type: ["string", "null"]
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: Custom headers from the send, with their original names and values.
         tags:
           type: array
           items:
