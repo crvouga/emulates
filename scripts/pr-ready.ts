@@ -91,7 +91,7 @@ async function run(
     stdout: "pipe",
     stderr: "pipe",
     stdin: opts?.stdin === undefined ? "ignore" : "pipe",
-    env: opts?.env ? { ...process.env, ...opts.env } : undefined,
+    ...(opts?.env ? { env: { ...process.env, ...opts.env } } : {}),
   })
   if (opts?.stdin !== undefined && proc.stdin) {
     proc.stdin.write(opts.stdin)
@@ -931,7 +931,8 @@ async function cmdCommit(): Promise<void> {
   const amend = flag("--amend")
   const paths: string[] = []
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--path" && argv[i + 1] !== undefined) paths.push(argv[i + 1])
+    const next = argv[i + 1]
+    if (argv[i] === "--path" && next !== undefined) paths.push(next)
   }
 
   const text =

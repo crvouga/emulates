@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-medplum
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful, in-process mock of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
 for test suites. It covers:
 
@@ -16,9 +18,8 @@ for test suites. It covers:
 It is built on `@medplum/core` and the server's own FHIR router (`@medplum/fhir-router`, vendored),
 so validation messages, search results and OperationOutcomes match the server's.
 
-**Portable**: it needs no child process, database or native module. State lives in an in-memory
-SQLite engine written in TypeScript, and crypto is WebCrypto. It runs anywhere JavaScript does:
-Node, Bun, workerd (Cloudflare Workers) and browsers. The `./server` entry and the CLI are
+It needs no child process, database or native module. State lives in an in-memory
+SQLite engine written in TypeScript, and crypto is WebCrypto. The `./server` entry and the CLI are
 the only Node-specific parts.
 
 Parity is proven against the real thing. Every scenario in `test/scenarios` (32 scenarios, 481
@@ -36,7 +37,7 @@ npm install -D @crvouga/mockingbird-service-medplum
 ```
 
 ESM only. Requires Node >= 22 or Bun >= 1.2 (any runtime with WebCrypto and
-`DecompressionStream` for the portable entry). `@medplum/core` is a dependency; bring your own
+`DecompressionStream`). `@medplum/core` is a dependency; bring your own
 `@medplum/core` `MedplumClient` if you use the SDK.
 
 ## Usage

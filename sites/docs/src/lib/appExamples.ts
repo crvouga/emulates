@@ -19,9 +19,9 @@ export type AppExample = {
 export const APP_EXAMPLES: readonly AppExample[] = [
   {
     slug: "medical-testing",
-    title: "Cove — Medical Testing",
+    title: "Lab orders",
     description:
-      "A branded consumer health app: a patient signs in with a Google or Apple OAuth mock, shops lab tests, pays with a mock Stripe Checkout, and the paid order is fulfilled as a mock Junction lab order — persisted to an in-process PostgreSQL engine, all in one process.",
+      "A plain example app. Sign in with a Google or Apple OAuth mock, shop lab tests, pay with a mock Stripe Checkout, and the paid order is fulfilled as a mock Junction lab order. State is an in-process PostgreSQL engine, all in one process.",
     servicesUsed: ["oauth", "junction", "stripe", "postgres"],
     packagePath: "packages/examples/medical-testing",
     runCommand: "bunx turbo run dev --filter=@crvouga/mockingbird-example-medical-testing",

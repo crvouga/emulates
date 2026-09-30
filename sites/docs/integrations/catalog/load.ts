@@ -5,15 +5,7 @@ import { CATEGORIES, isCategory } from "../../src/lib/categories.ts"
 import { QUICK_START } from "../../src/lib/content.ts"
 import { guideInfo, sortGuides } from "../../src/lib/guides.ts"
 import { EXPECTED_ERROR_SNIPPETS, SQL_SNIPPETS, splitStatements } from "../../src/lib/sql.ts"
-import { isTier, TIER_ORDER } from "../../src/lib/tiers.ts"
-import type {
-  Brand,
-  Catalog,
-  Operation,
-  Service,
-  ServiceKind,
-  ServiceStatus,
-} from "../../src/lib/types.ts"
+import type { Brand, Catalog, Operation, Service, ServiceKind } from "../../src/lib/types.ts"
 import { exampleSource, readExamples } from "./examples.ts"
 import { highlight, renderMarkdown } from "./markdown.ts"
 import { authHint, extractOperations, serverOrigin } from "./openapi.ts"
@@ -82,13 +74,13 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
         )
         return null
       }
-      if (!isTier(meta.status)) {
+      if (typeof meta.parity !== "string" || meta.parity.trim() === "" || meta.parity.length > 80) {
         problems.push(
-          `${where}: "mockingbird.status" is required: ${TIER_ORDER.map((t) => JSON.stringify(t)).join(" or ")} (got ${JSON.stringify(meta.status)})`,
+          `${where}: "mockingbird.parity" is required: a short statement of the vendor surface this mock keeps in step (got ${JSON.stringify(meta.parity)})`,
         )
         return null
       }
-      const status: ServiceStatus = meta.status
+      const parity: string = meta.parity
       const brand = brands[name]
       if (!brand) {
         problems.push(`${where}: no vendor branding; run \`bun run brands:sync\``)
@@ -111,7 +103,11 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
       const mod: Json = await nativeImport(
         `${pathToFileURL(entry).href}?v=${statSync(entry).mtimeMs}`,
       )
-      const runtime: Service["runtime"] = meta.runtime ?? "portable"
+      if ((meta.runtime ?? "portable") !== "portable") {
+        problems.push(
+          `${where}: every service mock runs in Node, Bun, browsers, and Workers, so "mockingbird.runtime" must be "portable" (got ${JSON.stringify(meta.runtime)})`,
+        )
+      }
       const kind: ServiceKind =
         typeof mod.createRuntime === "function" && mod.document
           ? "http"
@@ -185,12 +181,10 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
           (k: string) => k !== "mockingbird" && k !== "service",
         ),
         category: meta.category,
-        status,
-        runtime,
+        parity,
         kind,
         surfaces: {
           inProcess: kind === "http",
-          browser: runtime === "portable" && kind !== "node",
           server: Boolean(pkg.exports?.["./server"]),
           cli: bin,
         },
@@ -236,11 +230,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
     )
   }
 
-  services.sort(
-    (a, b) =>
-      TIER_ORDER.indexOf(a.status) - TIER_ORDER.indexOf(b.status) ||
-      a.displayName.localeCompare(b.displayName),
-  )
+  services.sort((a, b) => a.displayName.localeCompare(b.displayName))
   const categories = Object.entries(CATEGORIES)
     .map(([slug, c]) => ({ slug, ...c, count: services.filter((s) => s.category === slug).length }))
     .filter((c) => c.count > 0)
@@ -273,9 +263,6 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
     categories,
     totals: {
       services: services.length,
-      ready: services.filter((s) => s.status === "ready").length,
-      wip: services.filter((s) => s.status === "wip").length,
-      browser: services.filter((s) => s.surfaces.browser).length,
       opsSupported: services.reduce((n, s) => n + s.opsSupported, 0),
       opsTotal: services.reduce((n, s) => n + s.opsTotal, 0),
     },

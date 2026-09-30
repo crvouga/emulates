@@ -55,7 +55,7 @@
       "website": "https://www.gethealthie.com",
       "docs": "https://docs.gethealthie.com"
     },
-    "status": "wip",
+    "parity": "GraphQL users, documents, and billing",
     "parityTier": "cold"
   },
   "scripts": {

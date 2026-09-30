@@ -232,6 +232,7 @@ const start = async (
   console.log(
     `${target.name} admin: ${listening.url}/__admin (${config.adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
   )
+  console.log(`${target.name} admin ui: ${listening.url}/__admin/ui`)
   for (const line of target.banner?.(runtime) ?? []) console.log(`${target.name} ${line}`)
   return listening
 }

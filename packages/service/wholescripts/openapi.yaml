@@ -351,7 +351,10 @@ components:
           maxLength: 60
         MedPaxPills:
           type: ["array", "null"]
-          maxItems: 4
+          description: >-
+            The pills packed into one MedPax box. The vendor places boxes of at least 14 pills;
+            the bound only keeps generated bodies small.
+          maxItems: 30
           items:
             $ref: "#/components/schemas/MedPaxPill"
     OrderSubmitRequest:

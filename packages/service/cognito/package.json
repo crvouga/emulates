@@ -56,7 +56,7 @@
       "website": "https://aws.amazon.com/cognito/",
       "docs": "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/"
     },
-    "status": "wip",
+    "parity": "User pools and browser auth",
     "parityTier": "cold"
   },
   "scripts": {

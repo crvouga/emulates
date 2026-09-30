@@ -38,7 +38,7 @@ export const handlePaymentsWebhook = async (
   const { labOrderId } = await labTesting.createOrder({
     patientUserId: event.metadata.userId ?? order.user_id,
     patient: {
-      firstName: event.metadata.patientFirstName ?? "Cove",
+      firstName: event.metadata.patientFirstName ?? "Patient",
       lastName: event.metadata.patientLastName ?? "Patient",
       email: event.metadata.patientEmail ?? "patient@example.test",
     },

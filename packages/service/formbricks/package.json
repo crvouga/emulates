@@ -56,7 +56,7 @@
       "website": "https://formbricks.com",
       "docs": "https://formbricks.com/docs"
     },
-    "status": "wip",
+    "parity": "Surveys, responses, and webhooks",
     "parityTier": "cold"
   },
   "scripts": {

@@ -1,6 +1,8 @@
 # @crvouga/mockingbird-service-aws-secrets
 
-Stateful, portable mock of AWS Secrets Manager and SSM Parameter Store for the official AWS SDK v3 clients. It models secret versions and stages, binary values, deterministic rotation, SecureString metadata, parameter versions, denials, decryption failures, and redacted controls without contacting AWS.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
+Stateful mock of AWS Secrets Manager and SSM Parameter Store for the official AWS SDK v3 clients. It models secret versions and stages, binary values, deterministic rotation, SecureString metadata, parameter versions, denials, decryption failures, and redacted controls without contacting AWS.
 
 ## Install
 
@@ -41,7 +43,7 @@ KMS cryptography, automatic rotation Lambdas, resource policies, replication, SS
 
 ## API
 
-- `AwsSecretsAPI`, `AwsSecretsAPIOptions`, `SecretSeed`, `ParameterSeed`: portable handler and fixtures.
+- `AwsSecretsAPI`, `AwsSecretsAPIOptions`, `SecretSeed`, `ParameterSeed`: handler and fixtures.
 - `Secret`, `SecretVersion`, `SecretControl`, `Parameter`: durable state types.
 - `createRuntime`, `AwsSecretsRuntime`, `AwsSecretsRuntimeOptions`: full Mockingbird runtime.
 - `AWS_SECRETS_NAMESPACE`, `AWS_SECRETS_PRESETS`, `accessKeyCredential`: constants and controls.

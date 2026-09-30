@@ -1,6 +1,8 @@
 # @crvouga/mockingbird-service-step-functions
 
-Stateful, portable AWS Step Functions mock for the official SFN SDK v3 client. It models Standard execution identity, input/output strings, deterministic terminal transitions, callback tokens, stop requests, ordered history, pagination, and shared-clock scripts without contacting AWS.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
+Stateful AWS Step Functions mock for the official SFN SDK v3 client. It models Standard execution identity, input/output strings, deterministic terminal transitions, callback tokens, stop requests, ordered history, pagination, and shared-clock scripts without contacting AWS.
 
 ## Install
 
@@ -47,7 +49,7 @@ The full Amazon States Language interpreter, real service integrations, Express 
 
 ## API
 
-- `StepFunctionsAPI`, `StepFunctionsAPIOptions`, `StateMachineSeed`: portable handler and fixtures.
+- `StepFunctionsAPI`, `StepFunctionsAPIOptions`, `StateMachineSeed`: handler and fixtures.
 - `Execution`, `ExecutionStatus`, `HistoryEvent`, `StateMachine`: durable workflow state.
 - `createRuntime`, `StepFunctionsRuntime`, `StepFunctionsRuntimeOptions`: full Mockingbird runtime.
 - `STEP_FUNCTIONS_NAMESPACE`, `STEP_FUNCTIONS_PRESETS`, `accessKeyCredential`: constants and controls.

@@ -1,6 +1,8 @@
 # @crvouga/mockingbird-service-oauth
 
-A portable, stateful OAuth 2.0 / OpenID Connect identity sandbox. Google, Apple, Microsoft and GitHub wire profiles share a vendor-neutral account chooser, signup and consent UI. Generic OIDC works with other configurable identity clients. Uses real RS256 signatures, discovery, JWKS, authorization codes, S256 PKCE, refresh tokens and revocation.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
+A stateful OAuth 2.0 / OpenID Connect identity sandbox. Google, Apple, Microsoft and GitHub wire profiles share a vendor-neutral account chooser, signup and consent UI. Generic OIDC works with other configurable identity clients. Uses real RS256 signatures, discovery, JWKS, authorization codes, S256 PKCE, refresh tokens and revocation.
 
 ## Install
 
@@ -254,7 +256,7 @@ The runtime supplies `/health`, `/__admin/reset`, snapshots, mock clock, request
 
 - `createRuntime(options?)`: shared service runtime; `fetch`, `instance`, `reset`, `snapshot`, `restore`, clock, faults and journals.
 - `createMultiRuntime({ mounts })`: exact-path dispatcher for isolated provider runtimes on one origin, with aggregate health and admin controls.
-- `OAuthAPI`: standalone portable handler with `fetch`, `reset`, `seedAccount`, `registerClient`, `accounts`, `clients`, `provider`, `configureBehavior`, `behavior`, `revokeConsent`, `rotateSigningKey`, `grant`, `grants`.
+- `OAuthAPI`: standalone handler with `fetch`, `reset`, `seedAccount`, `registerClient`, `accounts`, `clients`, `provider`, `configureBehavior`, `behavior`, `revokeConsent`, `rotateSigningKey`, `grant`, `grants`.
 - `OAUTH_PRESETS`: named transport fault presets.
 - `OAUTH_SCENARIOS`: named provider-behavior scenarios.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
@@ -323,7 +325,7 @@ standard cookie headers. This mapping is a transport detail, not a browser cooki
 The provider UI is neutral and labelled **OAuth Mock**, with no vendor or product branding.
 Its **System / Light / Dark** controls work on standalone HTML pages; the selection persists
 across pages in that browser session. The in-process example bridges the same controls into
-its sandboxed documents. System mode follows the operating system, independently of the
+the pasted pages. System mode follows the operating system, independently of the
 docs site's selected theme.
 
 The example toolbar configures **Popup / Redirect**, appearance, and **Always choose / Reuse

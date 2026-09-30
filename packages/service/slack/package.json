@@ -55,7 +55,7 @@
       "website": "https://slack.com",
       "docs": "https://docs.slack.dev/reference/methods"
     },
-    "status": "wip",
+    "parity": "Webhooks and Web API",
     "parityTier": "cold"
   },
   "scripts": {

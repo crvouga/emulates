@@ -1,6 +1,7 @@
 import { html } from "htm/preact"
 import { useEffect, useRef, useState } from "preact/hooks"
 import { api, type Order } from "../api.js"
+import { navigate } from "../router.js"
 
 const formatPrice = (cents: number): string => `$${(cents / 100).toFixed(2)}`
 
@@ -62,24 +63,35 @@ export const Orders = () => {
     <div>
       <h1>Your orders</h1>
       ${error && html`<p class="cove-alert cove-alert-error">${error}</p>`}
-      ${orders.length === 0 && html`<div class="cove-empty">No orders yet — head to the shop to order your first test.</div>`}
+      ${
+        orders.length === 0 &&
+        html`<div class="cove-empty">
+          <p>No orders yet.</p>
+          <button class="cove-btn cove-btn-primary" onClick=${() => navigate("shop")}>Shop lab tests</button>
+        </div>`
+      }
       <div class="cove-order-list">
         ${orders.map(
           (order) => html`
             <div class="cove-order-card" key=${order.id}>
               <div class="cove-order-header">
                 <span class="cove-badge cove-badge-${order.status}">${statusLabel(order.status)}</span>
-                <span class="cove-muted" style="font-size:0.82rem">${new Date(order.createdAt).toLocaleString()}</span>
+                <span class="cove-order-when">${new Date(order.createdAt).toLocaleString()}</span>
               </div>
               <ul class="cove-order-items">
-                ${order.items.map((item) => html`<li>${item.testName} — ${formatPrice(item.priceCents)}</li>`)}
+                ${order.items.map(
+                  (item) => html`<li class="cove-order-item" key=${item.testName}>
+                    <span>${item.testName}</span>
+                    <span class="cove-order-item-price">${formatPrice(item.priceCents)}</span>
+                  </li>`,
+                )}
               </ul>
 
               <${Timeline} status=${order.status} />
 
               ${
                 !isSettled(order) &&
-                html`<p class="cove-muted" style="font-size:0.82rem">Typically ready within a few minutes.</p>`
+                html`<p class="cove-order-note">Typically ready within a few minutes.</p>`
               }
 
               ${

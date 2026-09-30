@@ -55,7 +55,7 @@
       "website": "https://plane.so",
       "docs": "https://developers.plane.so/api-reference/introduction"
     },
-    "status": "wip",
+    "parity": "Work items, comments, and states",
     "parityTier": "cold"
   },
   "scripts": {

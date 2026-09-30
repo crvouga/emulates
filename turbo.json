@@ -156,6 +156,12 @@
         "!packages/**/node_modules/**"
       ]
     },
+    "//#check:scripts": {
+      "inputs": ["scripts/**", "tsconfig.base.json", "package.json", "bun.lock"]
+    },
+    "//#check:workflows": {
+      "inputs": [".github/workflows/**", ".github/actions/**", "scripts/check-workflows.ts"]
+    },
     "//#check:format": {
       "inputs": ["biome.json", "scripts/**", "docs/**", "*.json", "*.md", ".github/**"]
     }

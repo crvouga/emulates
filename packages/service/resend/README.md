@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-resend
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Resend** email API for test suites. Every send lands in an **outbox**
 that tests read (`GET /__admin/outbox`, and the links in each email). `Idempotency-Key` replays
 return the first send's id. Inbound emails are stored and announced with a Svix-signed

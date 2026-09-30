@@ -1,7 +1,7 @@
 /**
  * Generates `llms.txt` (https://llmstxt.org): the index coding agents read to find every
- * published mock service's docs, grouped by release tier. Package lists, descriptions and tiers
- * come from each package.json and the summary from the copy the README and docs site share
+ * published mock service's docs. Package lists, descriptions and parity come from each
+ * package.json and the summary from the copy the README and docs site share
  * (sites/docs/src/lib/content.ts), so nothing here is edited by hand.
  *
  *   bun run llms:sync     rewrite llms.txt
@@ -9,33 +9,42 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { PITCH } from "../sites/docs/src/lib/content.ts"
-import { TIER_ORDER, TIERS } from "../sites/docs/src/lib/tiers.ts"
-import type { ServiceStatus } from "../sites/docs/src/lib/types.ts"
+import { IDENTITY, PITCH } from "../sites/docs/src/lib/content.ts"
 import { discoverPackages, REPO, root } from "./release/lib.ts"
 
 const RAW = `https://raw.githubusercontent.com/${REPO}/main`
 const OUT = join(root, "llms.txt")
 
-type Manifest = { description?: string; mockingbird?: { status?: ServiceStatus } }
+type Manifest = {
+  description?: string
+  mockingbird?: { layer?: string; parity?: unknown }
+}
 
-const pkgs = discoverPackages().filter((p) => p.isPublic)
-const grouped = new Map<ServiceStatus, string[]>(TIER_ORDER.map((t) => [t, []]))
+const pkgs = discoverPackages()
+  .filter((p) => p.isPublic)
+  .sort((a, b) => a.name.localeCompare(b.name))
+const serviceLines: string[] = []
 for (const pkg of pkgs) {
   const manifest = JSON.parse(readFileSync(pkg.manifestPath, "utf8")) as Manifest
-  const tier = manifest.mockingbird?.status
-  const lines = tier ? grouped.get(tier) : undefined
-  if (!lines) {
+  const parity = manifest.mockingbird?.parity
+  if (
+    manifest.mockingbird?.layer !== "service" ||
+    typeof parity !== "string" ||
+    parity.trim() === "" ||
+    parity.length > 80
+  ) {
     console.error(
-      `::error::${pkg.relDir}/package.json: mockingbird.status must be one of ${TIER_ORDER.join(", ")}`,
+      `::error::${pkg.relDir}/package.json: a published service needs mockingbird.parity, a short statement of the vendor surface it keeps in step`,
     )
     process.exit(1)
   }
   const description = (manifest.description ?? "").replace(/\s+/g, " ").trim()
-  lines.push(`- [${pkg.name}](${RAW}/${pkg.relDir}/README.md): ${description}`)
+  serviceLines.push(
+    `- [${pkg.name}](${RAW}/${pkg.relDir}/README.md): ${description} Parity: ${parity}.`,
+  )
   for (const extra of ["SUPPORT.md", "COMPATIBILITY.md"]) {
     if (existsSync(join(pkg.dir, extra))) {
-      lines.push(`- [${pkg.name} ${extra}](${RAW}/${pkg.relDir}/${extra}): coverage matrix`)
+      serviceLines.push(`- [${pkg.name} ${extra}](${RAW}/${pkg.relDir}/${extra}): coverage matrix`)
     }
   }
 }
@@ -43,11 +52,13 @@ for (const pkg of pkgs) {
 const body = [
   "# mockingbird",
   "",
-  `> ${PITCH} Every HTTP mock is a Fetch handler (\`createRuntime().fetch(request) → Promise<Response>\`) published to npm as \`@crvouga/mockingbird-service-<name>\`. ESM only; Node >= 22 or Bun >= 1.2.`,
+  `> ${IDENTITY.tagline} ${PITCH} Every HTTP mock is a Fetch handler (\`createRuntime().fetch(request) → Promise<Response>\`) published to npm as \`@crvouga/mockingbird-service-<name>\`. Every mock is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers.`,
   "",
-  "Install mocks as devDependencies; each package is self-contained. Prefer injecting the mock's `fetch` in-process; when a URL is required, run `npx mockingbird-<service> serve` (or `createServer` from `./server`); every HTTP service answers `GET /health`, `/__admin/*` and `x-mockingbird-namespace`. Read the README of each package you use — it is the integration guide for coding agents (also shipped in `node_modules/<package>/README.md`).",
+  "Install mocks as devDependencies; each package is self-contained. Prefer injecting the mock's `fetch` in-process; when a URL is required, run `npx mockingbird-<service> serve` (or `createServer` from `./server`); every HTTP service answers `GET /health`, `/__admin/*` (including `GET /__admin/state` and `GET /__admin/ui`) and `x-mockingbird-namespace`. Read the README of each package you use — it is the integration guide for coding agents (also shipped in `node_modules/<package>/README.md`).",
   "",
-  `Release tiers: ${TIER_ORDER.map((t) => `**${TIERS[t].label}**: ${TIERS[t].blurb}`).join(" ")} Prefer ready services; pin exact versions of work-in-progress ones.`,
+  `The sentence above is the product's identity. The rules for the mark, the colors, and where that sentence has to appear: [Design](${RAW}/docs/DESIGN.md).`,
+  "",
+  "Each service declares its own parity: a short statement of the vendor surface it keeps in step. Read that statement, and the package README, before you depend on a mock.",
   "",
   "## Reporting issues and requesting services",
   "",
@@ -59,10 +70,10 @@ const body = [
   `- [Bug](${RAW}/.github/ISSUE_TEMPLATE/bug.md): title \`[<service>] bug: <what breaks>\`. A mock crashes, leaks state, contradicts its README, or does not build.`,
   `- [New service](${RAW}/.github/ISSUE_TEMPLATE/new-service.md): title \`[new-service] <Vendor>: <API surface>\`. No package mocks a vendor you depend on; describe the surface, auth, state, behaviors, webhooks and test controls you need.`,
   "",
-  ...TIER_ORDER.flatMap((t) => {
-    const lines = grouped.get(t) ?? []
-    return lines.length > 0 ? [`## ${TIERS[t].label}`, "", ...lines, ""] : []
-  }),
+  "## Services",
+  "",
+  ...serviceLines,
+  "",
 ].join("\n")
 
 if (process.argv.includes("--check")) {

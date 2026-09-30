@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-twilio
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Twilio** for test suites: Lookup v2 phone validation, Verify v2 phone OTP
 (with the real state machine: wrong codes, attempt limits, 10-minute expiry on the mock clock),
 Programmable Messaging with an outbox, and call Recordings. It also signs and posts Twilio's

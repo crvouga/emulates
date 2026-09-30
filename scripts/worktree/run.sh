@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build the docs site's workspace dependencies, then serve it on this
-# worktree's reserved port. Each host's Run action executes this script.
+# Install dependencies, then serve the docs site on this worktree's reserved
+# port. Each host's Run action executes this script.
 set -euo pipefail
 
 # shellcheck source=/dev/null
@@ -25,9 +25,11 @@ if [ -z "${NODE_OPTIONS:-}" ]; then
   export NODE_OPTIONS="--max-old-space-size=4096"
 fi
 
-# Always sync: a checkout set up before a workspace dependency was added has a
-# node_modules that is present but stale. A no-op install takes well under a second.
-bun install --frozen-lockfile
+# Always install, and let bun rewrite bun.lock in this worktree when it must.
+# A frozen install exits when the lockfile would change (a newer bun than the
+# one that wrote it, or a dependency the checkout was created before), which
+# stops the docs server from ever starting. A no-op install is fast.
+bun install
 
 echo "Docs dev server: http://127.0.0.1:$port"
 exec bun docs

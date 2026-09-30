@@ -59,7 +59,7 @@
       "website": "https://aws.amazon.com/polly/",
       "docs": "https://docs.aws.amazon.com/polly/latest/dg/API_Reference.html"
     },
-    "status": "wip",
+    "parity": "Polly and Transcribe",
     "parityTier": "cold"
   },
   "scripts": {

@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-kill-bill
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful Kill Bill REST mock for billing integration tests. It models tenant-scoped accounts, payment methods, subscriptions, bundles, invoices, payments, credits, refunds, retries, catalogs, audit metadata, a test clock, and secret-protected lifecycle webhooks.
 
 ## Install
@@ -26,13 +28,13 @@ The default credentials are Basic auth `admin:password` plus tenant headers `X-K
 - `POST /__admin/payments/decline-next` and `/pending-next` select the next payment outcome.
 - `POST /__admin/payments/:id/retry` succeeds the latest failed or pending transaction.
 - `POST /__admin/catalog/plans` seeds a plan.
-- `GET /__admin/state` inspects billing state and audit entries.
+- `GET /__admin/billing` inspects billing state and audit entries. `GET /__admin/state` is the shared collection view.
 - `PUT /1.0/kb/test/clock?requestedDate=...` advances recurring billing.
 - Fault presets cover plugin failure, rate limiting, network loss, and webhook duplicate/reorder/drop delivery.
 
 ## API
 
-- `KillBillAPI`, `KillBillAPIOptions`, `KillBillEvent`: portable REST handler and event contract.
+- `KillBillAPI`, `KillBillAPIOptions`, `KillBillEvent`: REST handler and event contract.
 - Account, subscription, bundle, invoice, payment, transaction, and catalog state types.
 - `createRuntime`, `KillBillRuntime`, `KillBillRuntimeOptions`: full runtime and webhook hub.
 - `KILL_BILL_NAMESPACE`, `KILL_BILL_PRESETS`: namespace and fault controls.

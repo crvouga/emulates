@@ -7,5 +7,5 @@ export const runStandaloneServer = async (): Promise<void> => {
   const assets = await buildClientAssets()
   const app = await buildApp(assets)
   Bun.serve({ port: PORT, fetch: app.fetch })
-  console.log(`Cove is running at http://localhost:${PORT}`)
+  console.log(`Example app is running at http://localhost:${PORT}`)
 }

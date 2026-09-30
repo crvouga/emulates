@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-prism
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Prism Labs** body-scan API for test suites: subject upsert, scan
 creation, the presigned capture upload the capture page PUTs its video to, per-stage
 processing states, and the READY-scan results our backend persists (body composition,

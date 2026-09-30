@@ -34,8 +34,9 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
     <section class="live-app">
       <p class="live-note">
         Everything in the app — the Google/Apple OAuth sign-in, the shop, the Stripe checkout, the Junction
-        fulfillment, and the Postgres-backed order history — runs entirely in this browser tab, as a fully branded
-        Cove product UI. No server to start, no real network call to Google, Apple, Stripe, or Junction.
+        fulfillment, and the Postgres-backed order history — runs entirely in this browser tab. The window opens
+        on the example app, and the other tabs are the live admin UI for each mock the app is talking to. No server to start,
+        and no real network call to Google, Apple, Stripe, or Junction.
       </p>
       <ExampleLauncher element="app-example" example={example.slug} title={example.title} launchLabel="Launch the app" fit="app" />
     </section>
@@ -78,7 +79,7 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
     height: 26px;
     padding: 0 10px;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     background: var(--bg-subtle);
     color: var(--fg-muted);
     font-size: 12.5px;

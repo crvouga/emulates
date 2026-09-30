@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-klaviyo
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Klaviyo** events API for test suites: the JSON:API create-event endpoint
 our backend posts `Ordered Product` and `Placed Order` to after checkout, the event reads, and an
 outbox a suite asserts on. Errors come back in Klaviyo's JSON:API `errors[]` shape, so the text

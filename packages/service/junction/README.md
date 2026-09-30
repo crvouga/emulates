@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-junction
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the [Junction (formerly Vital) API](https://docs.junction.com/): users
 (`/v2/user`), the lab-testing catalog, lab orders (create, cancel, simulate, results,
 requisitions), at-home phlebotomy and patient-service-center (PSC) scheduling, and the

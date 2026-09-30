@@ -58,7 +58,7 @@
       "website": "https://stripe.com",
       "docs": "https://docs.stripe.com/api"
     },
-    "status": "ready",
+    "parity": "Payments, billing, and webhooks",
     "parityTier": "cold",
     "playground": {
       "operation": "PostCustomers",
@@ -104,6 +104,7 @@
     "@crvouga/mockingbird-sqlite": "workspace:*",
     "@crvouga/mockingbird-openapi": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@crvouga/mockingbird-http-codec": "workspace:*",
     "@crvouga/mockingbird-commands": "workspace:*",
     "@crvouga/mockingbird-adapter-node": "workspace:*",

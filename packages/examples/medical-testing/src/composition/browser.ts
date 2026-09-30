@@ -4,7 +4,8 @@ import type { AppEnv } from "../app/http/appEnv.js"
 import { type Fetcher, setFetcher } from "../client/api.js"
 import { mountApp } from "../client/main.js"
 import { STYLES } from "../client/theme.js"
-import { buildApp } from "./build.js"
+import { buildDemo } from "./build.js"
+import { mountDemoShell } from "./demoShell.js"
 
 const NO_CLIENT_ASSETS = { html: "", js: "" }
 
@@ -36,8 +37,8 @@ export const createInProcessFetcher = (app: Hono<AppEnv>): Fetcher => {
  * instance of this app on a page at a time.
  */
 export const mount = async (host: HTMLElement): Promise<() => void> => {
-  const app = await buildApp(NO_CLIENT_ASSETS)
-  setFetcher(createInProcessFetcher(app))
+  const demo = await buildDemo(NO_CLIENT_ASSETS)
+  setFetcher(createInProcessFetcher(demo.app))
 
   const styleId = "cove-app-styles"
   if (!document.getElementById(styleId)) {
@@ -47,11 +48,9 @@ export const mount = async (host: HTMLElement): Promise<() => void> => {
     document.head.appendChild(style)
   }
 
-  const container = document.createElement("div")
-  host.appendChild(container)
-  mountApp(container)
-
-  return () => {
-    container.remove()
-  }
+  return mountDemoShell(host, {
+    admins: demo.admins,
+    db: demo.db,
+    mountApp: (panel) => mountApp(panel),
+  })
 }

@@ -32,9 +32,7 @@ function setup(behavior: BehaviorInput = {}, provider: ExampleProvider = "google
 
 test("portable example completes Hono → Google HTML login → verified app session with no network", async () => {
   const demo = setup()
-  expect(await (await demo.browser.navigate(APP)).response.text()).toContain(
-    "Continue with OAuth Mock",
-  )
+  expect(await (await demo.browser.navigate(APP)).response.text()).toContain("Sign in")
   const transaction = await demo.start()
   expect(
     await (await demo.post({ transaction, action: "select", account: "ada" })).response.text(),
@@ -57,7 +55,7 @@ test("portable example completes Hono → Google HTML login → verified app ses
     method: "POST",
     origin: APP,
   })
-  expect(await signedOut.response.text()).toContain("Continue with OAuth Mock")
+  expect(await signedOut.response.text()).toContain("Sign in")
   expect(await (await demo.browser.navigate(`${APP}/api/session`)).response.json()).toEqual({
     user: null,
   })

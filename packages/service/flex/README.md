@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-flex
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Flex** (withflex.com) HSA/FSA payments API for test suites: products
 (answered from a recorded catalog corpus), checkout sessions in `payment` (one-time),
 `subscription`, `off_session` and `setup` modes, subscriptions, customers, setup intents,

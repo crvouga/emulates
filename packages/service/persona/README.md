@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-persona
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Persona**'s identity-verification API for test suites: create an inquiry,
 the "reusable inquiry" list lookup, fetch one inquiry, the hosted flow page members are sent
 to, and the `Persona-Signature`-signed events Persona posts back. Inquiries move only when a

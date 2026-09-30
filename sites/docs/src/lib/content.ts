@@ -4,7 +4,40 @@
  * markdown only: backticks, **bold** and [links](url).
  */
 
-export const MASCOT = "🐦‍⬛"
+/** Identity art lives in the repo, under the docs site's public directory. */
+const DOCS_PUBLIC = "sites/docs/public/"
+const HOME = "https://github.com/crvouga/mockingbird"
+
+export const MARK_REPO_PATH = `${DOCS_PUBLIC}identity/mockingbird.png`
+export const PLATE_REPO_PATH = `${DOCS_PUBLIC}identity/mockingbird-field.webp`
+
+function docsPublicHref(repoFile: string): string {
+  if (!repoFile.startsWith(DOCS_PUBLIC)) {
+    throw new Error(`identity art must live under ${DOCS_PUBLIC}`)
+  }
+  return `/${repoFile.slice(DOCS_PUBLIC.length)}`
+}
+
+/** Path the docs site serves for `MARK_REPO_PATH`. */
+export const MARK_HREF = docsPublicHref(MARK_REPO_PATH)
+/** Path the docs site serves for `PLATE_REPO_PATH`. */
+export const PLATE_HREF = docsPublicHref(PLATE_REPO_PATH)
+
+/** Shared identity for the site, GitHub and the READMEs published to npm. */
+export const IDENTITY = {
+  name: "Mockingbird",
+  tagline: "Familiar calls. Faithful echoes.",
+  note: "Like its namesake, Mockingbird learns a familiar call and answers in kind. Real API shapes, stateful behavior, right inside your tests.",
+  /** The mark on `main`. The README image uses this address; `check:readme` requires the file in this repo. */
+  mark: `${HOME.replace("https://github.com/", "https://raw.githubusercontent.com/")}/main/${MARK_REPO_PATH}`,
+  guide: `${HOME}/blob/main/docs/DESIGN.md`,
+  home: HOME,
+  /** Public docs site, including the service catalog at `/services`. */
+  docs: "https://mockingbird.chrisvouga.dev",
+}
+
+/** Opening line of every published package README. `pack:check` requires it verbatim. */
+export const EPIGRAPH = `> ${IDENTITY.tagline} Part of [${IDENTITY.name}](${IDENTITY.home}).`
 
 /**
  * Single toggle for the "use at your own risk" banner shown at the top of the README and every
@@ -16,8 +49,8 @@ export const RISK_DISCLAIMER = {
 }
 
 export const HEADLINE = {
-  lead: "Mock the APIs you depend on,",
-  accent: "with the behavior they really have.",
+  lead: "Familiar calls.",
+  accent: "Faithful echoes.",
 }
 
 export const PITCH =
@@ -47,12 +80,12 @@ export const FEATURES = [
   {
     icon: "globe",
     title: "Runs anywhere JavaScript runs",
-    body: "Most mocks are portable: Node, Bun, browsers and Workers. The docs site's playgrounds run the published packages in your browser tab.",
+    body: "Every mock is isomorphic: the same package runs in Node, Bun, browsers, and Workers. The playgrounds on this site run that package in your browser tab.",
   },
   {
     icon: "terminal",
     title: "One contract for every service",
-    body: "Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals and per-namespace isolation.",
+    body: "Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
   },
 ] as const
 
@@ -103,6 +136,14 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
       "Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes",
     ],
     [
+      "`GET /__admin/state`",
+      "The collections in the selected namespace: declared shape, live `Collection` fields, and stored rows. Create, replace, merge, and delete records through the same paths on every mock",
+    ],
+    [
+      "`GET /__admin/ui`",
+      "The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API. Its header fetches that service's logo, website, and docs from the docs site when the page opens",
+    ],
+    [
       "`x-mockingbird-namespace`",
       "Per-request isolation: parallel workers share one process without sharing data",
     ],
@@ -126,7 +167,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 }
 
 export const AGENTS =
-  "Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them by tier, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
+  "Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them with the parity each service declares, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
 
 /** Guides in `docs/`, in the order the README and the site list them. Others follow by name. */
 export const GUIDE_ORDER = [
@@ -134,6 +175,7 @@ export const GUIDE_ORDER = [
   "TESTING",
   "AUTHORING_A_SERVICE",
   "DEVELOPMENT",
+  "DESIGN",
   "REPORTING_ISSUES",
   "RELEASING",
   "SECRETS",

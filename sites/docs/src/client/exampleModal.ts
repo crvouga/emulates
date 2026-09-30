@@ -6,7 +6,7 @@
  * `.example-modal-body` in global.css).
  *
  * That containment is what makes modal stacking work without any coordination
- * with the example: an example's own `position: fixed` overlays (Cove's OAuth
+ * with the example: an example's own `position: fixed` overlays (the example app's OAuth
  * and checkout modals, the OAuth example's provider window) resolve against
  * that window instead of the viewport, so they stack inside the example window
  * and never escape over the docs chrome, whatever z-index they pick. An

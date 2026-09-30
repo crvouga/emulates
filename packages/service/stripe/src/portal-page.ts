@@ -1,3 +1,4 @@
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import { subscriptionItems } from "./billing.js"
 import {
   CANCELLATION_REASONS,
@@ -53,24 +54,24 @@ const REASON_LABELS: Record<string, string> = {
 }
 
 const STYLES = `
-*,*::before,*::after{box-sizing:border-box}
+${CSS_RESET}
 :root{--text:#1a1f36;--muted:#697386;--faint:#a3acb9;--line:#e3e8ee;--accent:#635bff;--accent-hover:#5851e5;
 --danger:#df1b41;--ok:#1ea672;--warn:#c44c00;--test-bg:#ffde92;--test-fg:#983705;
 --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif}
-html,body{margin:0;color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit;color:inherit}
-.app{min-height:100vh;display:flex;flex-direction:column}
-.side{background:#f6f9fc;padding:24px 20px}
-.main{padding:24px 20px 48px;flex:1}
-@media (min-width:900px){.app{flex-direction:row}.side{width:40%;display:flex;justify-content:flex-end;padding:64px 48px}
-.side .inner{width:320px}.main{padding:64px 48px}.main .inner{max-width:560px}}
+html,body{margin:0;color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;container-type:inline-size}
+.app{min-height:100vh;min-width:0;max-width:100%;display:flex;flex-direction:column}
+.side{background:#f6f9fc;padding:24px 20px;min-width:0}
+.main{padding:24px 20px 48px;flex:1;min-width:0}
+.inner{min-width:0;max-width:100%}
+@container (min-width:900px){.app{flex-direction:row}.side{width:40%;display:flex;justify-content:flex-end;padding:48px 32px}
+.side .inner{width:100%;max-width:320px}.main{padding:48px 32px}.main .inner{max-width:min(560px,100%)}}
 .merchant{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
 .avatar{width:28px;height:28px;border-radius:50%;background:#e3e8ee;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted)}
 .badge{display:inline-block;padding:1px 6px;border-radius:4px;background:var(--test-bg);color:var(--test-fg);font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
 .back{display:inline-flex;align-items:center;gap:6px;margin-top:24px;color:var(--muted);text-decoration:none;font-weight:500}
 .back:hover{color:var(--text)}
 .tagline{color:var(--muted);margin:16px 0 0}
-.legal{margin-top:32px;color:var(--faint);font-size:12px;display:flex;gap:12px}
+.legal{margin-top:32px;color:var(--faint);font-size:12px;display:flex;flex-wrap:wrap;gap:12px}
 .legal a{color:inherit}
 h1{font-size:20px;font-weight:600;margin:0 0 20px}
 h2{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
@@ -90,16 +91,16 @@ font-weight:600;text-decoration:none;background:#fff;color:var(--text);box-shado
 .btn.primary{background:var(--accent);color:#fff;box-shadow:none}.btn.primary:hover{background:var(--accent-hover)}
 .btn.danger{background:var(--danger);color:#fff;box-shadow:none}
 .link{border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none}
-.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0}
+.row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:10px 0;min-width:0}
 .row+.row{border-top:1px solid var(--line)}
 .notice{padding:10px 12px;border-radius:6px;background:#eef8f2;color:#05690d;margin:0 0 20px}
 .error{padding:10px 12px;border-radius:6px;background:#ffe7f2;color:#b3093c;margin:0 0 20px}
 label.field{display:block;margin:0 0 14px}
 label.field span{display:block;color:var(--muted);font-weight:500;margin-bottom:6px}
-input[type=text],input[type=email],input[type=number],textarea,select{width:100%;padding:8px 10px;border-radius:6px;border:0;
+input[type=text],input[type=email],input[type=number],textarea,select{width:100%;min-width:0;max-width:100%;padding:8px 10px;border-radius:6px;border:0;
 box-shadow:0 0 0 1px rgba(60,66,87,.16),0 2px 5px rgba(60,66,87,.08);background:#fff}
 textarea{min-height:72px;resize:vertical}
-.split{display:flex;gap:10px}.split>*{flex:1}
+.split{display:flex;flex-wrap:wrap;gap:10px;min-width:0}.split>*{flex:1;min-width:min(100%,8rem)}
 .option{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:8px;box-shadow:0 0 0 1px var(--line);margin:0 0 8px;cursor:pointer}
 .option:has(input:checked){box-shadow:0 0 0 2px var(--accent)}
 .option input{margin-top:3px}

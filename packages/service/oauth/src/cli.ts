@@ -6,7 +6,7 @@ import { serveTarget } from "./server.js"
 const code = await runCli(
   {
     bin: "mockingbird-oauth",
-    description: "Portable social login sandbox",
+    description: "Social login sandbox",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),
