@@ -287,6 +287,17 @@ describe("Address Validation (POST /v1:validateAddress) with USPS CASS", () => {
     }
   })
 
+  test("B9b: a long bare second line is not joined into an address line over 80 characters", async () => {
+    const { post } = harness()
+    const { status, body } = await post({
+      address: { locality: "!", addressLines: ["a", "a".repeat(80)] },
+    })
+    expect(status).toBe(200)
+    const lines = body.result.address.postalAddress.addressLines as string[]
+    expect(lines.length).toBeGreaterThan(0)
+    expect(lines.every((line) => line.length <= 80)).toBe(true)
+  })
+
   test("B10: a missing key is 403 PERMISSION_DENIED; a key outside settings.keys is refused", async () => {
     const { post, admin, send } = harness()
     const body = validationRequestBody(PHOENIX)

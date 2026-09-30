@@ -109,6 +109,21 @@ const MAX_INPUT_LENGTH = 280
 /** Vendored PostalAddress limits: `addressLines` has `maxItems: 3`, items `maxLength: 80`. */
 const MAX_ADDRESS_LINES = 3
 const MAX_ADDRESS_LINE_LENGTH = 80
+/**
+ * A second line with no designator is a unit number only when it is short (`4`, `12B`).
+ * A longer bare line is address text; prefixing `#` and joining it onto the street
+ * would exceed `addressLines` maxLength.
+ */
+const MAX_BARE_UNIT_LENGTH = 8
+
+/** One postal line when it fits, otherwise each part on its own line within the cap. */
+const postalLines = (parts: readonly string[]): string[] => {
+  const pieces = parts.map((part) => part.trim()).filter(Boolean)
+  if (pieces.length === 0) return []
+  const joined = pieces.join(" ")
+  if (joined.length <= MAX_ADDRESS_LINE_LENGTH) return [joined]
+  return pieces.map((part) => part.slice(0, MAX_ADDRESS_LINE_LENGTH)).slice(0, MAX_ADDRESS_LINES)
+}
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
@@ -359,7 +374,10 @@ const resolve = (
     const second = rest.join(" ").trim()
     if (second) {
       const only = UNIT_ONLY.exec(second)
-      if (only) unit = parseUnit(only[1], only[2] as string)
+      const value = only?.[2]
+      if (only && value && (only[1] !== undefined || value.length <= MAX_BARE_UNIT_LENGTH)) {
+        unit = parseUnit(only[1], value)
+      }
     }
   } else {
     // Everything in addressLines: "<street>, <city>, <ST> <zip>".
@@ -584,13 +602,14 @@ export const validateAddress = (
       .filter((c) => c.confirmationLevel !== "CONFIRMED")
       .map((c) => c.componentType)
     const line = [streetText, unit ? unitText(unit) : ""].filter(Boolean).join(" ")
+    const lines = postalLines([streetText, unit ? unitText(unit) : ""])
     postalAddress = compact({
       regionCode: region,
       languageCode: "en",
       postalCode: input.postalCode,
       administrativeArea: state,
       locality: input.locality,
-      addressLines: line ? [line] : undefined,
+      addressLines: lines.length > 0 ? lines : undefined,
     })
     formattedAddress = [
       line,
@@ -687,7 +706,7 @@ export const validateAddress = (
       postalCode: zip,
       administrativeArea: row.state,
       locality: row.city,
-      addressLines: [line],
+      addressLines: postalLines([street, r.unit ? unitText(r.unit) : ""]),
     }
     formattedAddress = `${line}, ${row.city}, ${row.state} ${zip}, USA`
     const place = r.inCorpus
