@@ -52,8 +52,7 @@ HTTP methods) stay semantic and are not part of the identity.
 The header theme control offers system, light, and dark. System is the default and follows
 the operating system. An explicit choice is stored as `mb:theme`.
 
-The README shields use oak (`243f34`) for the license and clay (`8d4a32`) for work in
-progress. Ready stays green, because that shield is a status.
+The README license shield uses oak (`243f34`).
 
 ## Type
 

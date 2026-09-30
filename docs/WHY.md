@@ -54,8 +54,8 @@ property-based tests driven by each contract (details in [TESTING.md](TESTING.md
 ## Release tiers
 
 Every service declares a release tier, **Ready** or **Work in progress**, in its `package.json`.
-The README, the docs site, `llms.txt` and `catalog.json` all show it, generated from that one
-field; the tier definitions and the current list are in the [README](../README.md#services).
+The docs site, `llms.txt` and `catalog.json` show that tier, generated from that one field.
+Definitions and the current list are the [services catalog](https://mockingbird.chrisvouga.dev/services).
 
 ## Docs that cannot drift
 
@@ -63,10 +63,11 @@ Nothing about a service is written down twice. Names, categories, tiers, surface
 come from each package's `package.json`. Operations and coverage come from the built module's
 contract. A service's documentation is its package README, the same file npm ships.
 
-The repo README is generated from those same sources (`bun run readme:sync`), and CI fails when it
-is stale. The name, the sentence, and the mark live in `sites/docs/src/lib/content.ts`. The README
-header, `llms.txt`, and the opening line of every published package README are generated or checked
-from that file. The rules are in [docs/DESIGN.md](DESIGN.md). The docs site renders the package
+The repo README is the short overview (`bun run readme:sync`), and CI fails when it is stale. The
+name, the sentence, and the mark live in `sites/docs/src/lib/content.ts`. The README header,
+`llms.txt`, and the opening line of every published package README are generated or checked from
+that file. The catalog of mocks is the docs site, `llms.txt`, and `catalog.json`. The rules are in
+[docs/DESIGN.md](DESIGN.md). The docs site renders the package
 READMEs, these guides and the same shared copy at build time. It sends every playground sample request to a fresh mock and runs the quick start and
 every SQL snippet against the real packages, so an example that stops working fails the build.
 
