@@ -3,12 +3,14 @@ import { request as httpRequest } from "node:http"
 import { synthesizeWav } from "./src/index.js"
 import { createServer, type TwilioServer } from "./src/server.js"
 import {
+  isDefiniteDeliveryFailure,
   MockRequestClient,
   memoryDelivery,
   SMS_DELIVERY_UNKNOWN_OUTCOME_MESSAGE,
   SmsChannel,
   TwilioRecordingHttpAdapter,
   TwilioWebhookReceiver,
+  UnrecoverableError,
 } from "./test/consumer.js"
 import { Twilio, validateRequest } from "./test/twilio-sdk.js"
 
@@ -241,4 +243,110 @@ describe("twilio-node 5.10.0 against the served mock", () => {
     expect(response.status).toBe(200)
     expect(JSON.parse(response.body)).toMatchObject({ phone_number: PHONE, valid: true })
   })
+})
+
+describe("twilio-node 5.10.0 served: SMS faults never reach api.twilio.com", () => {
+  const body = "Served order\n\nManage: https://app.example.test/orders"
+  let served: TwilioServer
+  const client = () => new Twilio(ACCOUNT, TOKEN, { httpClient: new MockRequestClient(served.url) })
+  const faults = (preset: string, extra: Record<string, unknown> = {}) =>
+    fetch(`${served.url}/__admin/faults`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ preset, count: 1, ...extra }),
+    })
+
+  beforeAll(async () => {
+    served = await createServer({ accounts: { [ACCOUNT]: TOKEN } })
+  })
+  afterAll(async () => {
+    await served.close()
+  })
+
+  test("create, faults and the missing sid all settle against the mock", async () => {
+    const sdk = client()
+    const created = await sdk.messages.create({
+      to: PHONE,
+      body,
+      messagingServiceSid: "MG0123456789abcdef0123456789abcdef",
+    })
+    expect(created.sid).toMatch(/^SM[0-9a-f]{32}$/)
+    expect(created.status).toBe("accepted")
+    expect(created.numSegments).toBe("0")
+    expect(created.body).toBe(body)
+    const queued = await sdk.messages.create({ to: PHONE, from: CALLER_ID, body: "From only" })
+    expect(queued.status).toBe("queued")
+    expect(queued.from).toBe(CALLER_ID)
+
+    await faults("sms_drop_before_accept")
+    const before = await sdk.messages
+      .create({ to: PHONE, from: CALLER_ID, body: "before" })
+      .catch((error: unknown) => error)
+    expect(before).toBeInstanceOf(Error)
+    expect(isDefiniteDeliveryFailure(before)).toBe(false)
+
+    await faults("sms_accepted_then_socket_drop")
+    const after = await sdk.messages
+      .create({
+        to: PHONE,
+        messagingServiceSid: "MG0123456789abcdef0123456789abcdef",
+        body: "after",
+      })
+      .catch((error: unknown) => error)
+    expect(after).toBeInstanceOf(Error)
+    expect(isDefiniteDeliveryFailure(after)).toBe(false)
+
+    await faults("sms_4xx")
+    const rejected = await sdk.messages
+      .create({ to: PHONE, from: CALLER_ID, body: "nope" })
+      .catch((error: unknown) => error)
+    expect(rejected).toMatchObject({ status: 400, code: 21211 })
+
+    await faults("sms_429")
+    const limited = await sdk.messages
+      .create({ to: PHONE, from: CALLER_ID, body: "slow" })
+      .catch((error: unknown) => error)
+    expect(limited).toMatchObject({ status: 429, code: 20429 })
+    expect(isDefiniteDeliveryFailure(limited)).toBe(true)
+
+    await faults("sms_5xx")
+    const broken = await sdk.messages
+      .create({ to: PHONE, from: CALLER_ID, body: "broken" })
+      .catch((error: unknown) => error)
+    expect(broken).toMatchObject({ status: 500, code: 20500 })
+
+    await faults("sms_missing_sid")
+    const missing = await sdk.messages.create({ to: PHONE, from: CALLER_ID, body: "missing" })
+    expect(missing.sid).toBeFalsy()
+    await faults("sms_missing_sid")
+    const channel = new SmsChannel(sdk, { from: CALLER_ID })
+    const delivery = memoryDelivery()
+    const guarded = await channel
+      .send({ to: PHONE, body: "guard", templateId: "appointment.reminder_24h" }, delivery)
+      .catch((error: unknown) => error)
+    expect(guarded).toBeInstanceOf(UnrecoverableError)
+    expect(delivery.state?.status).toBe("pending")
+
+    const outbox = (await (
+      await fetch(`${served.url}/__admin/outbox?to=${encodeURIComponent(PHONE)}&kind=sms`)
+    ).json()) as { messages: { body: string; sid: string }[] }
+    expect(outbox.messages.map((item) => item.body)).toEqual(
+      expect.arrayContaining([body, "after", "missing"]),
+    )
+    expect(outbox.messages.map((item) => item.body)).not.toContain("before")
+    const accepted = outbox.messages.find((item) => item.body === "after")
+    const fetched = await sdk.messages(accepted?.sid as string).fetch()
+    expect(fetched.body).toBe("after")
+
+    const journal = JSON.stringify(
+      await (await fetch(`${served.url}/__admin/requests?operationId=CreateMessage`)).json(),
+    )
+    expect(journal).toContain("CreateMessage")
+    expect(journal).toContain(created.sid)
+    expect(journal).not.toContain("api.twilio.com")
+    expect(journal).not.toContain("Served order")
+    expect(journal).not.toContain("app.example.test")
+    expect(journal).not.toContain(PHONE)
+    expect(journal).not.toContain(TOKEN)
+  }, 20_000)
 })
