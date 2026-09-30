@@ -22,7 +22,7 @@ import {
   type Survey,
   workspaceSettings,
 } from "./state.js"
-import { surveyElements, validateResponseData } from "./validation.js"
+import { otherOptionOverLimit, surveyElements, validateResponseData } from "./validation.js"
 
 export type { FetchAPI } from "@crvouga/mockingbird-core"
 export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
@@ -537,12 +537,18 @@ export class FormbricksAPI implements FetchAPI {
       })
     }
     const finished = body.finished as boolean
-    const errors = validateResponseData(
-      survey,
-      data,
-      typeof body.language === "string" ? body.language : "en",
-      { validation: this.state.current().validation ?? "present-only", finished },
-    )
+    const responseLanguage = typeof body.language === "string" ? body.language : undefined
+    // Before element validation (`apps/web/app/api/v2/client/[workspaceId]/responses/route.ts`).
+    const tooLong = otherOptionOverLimit(survey, data, responseLanguage)
+    if (tooLong) {
+      return formbricksError(400, "bad_request", "Response exceeds character limit", {
+        questionId: tooLong,
+      })
+    }
+    const errors = validateResponseData(survey, data, responseLanguage ?? "en", {
+      validation: this.state.current().validation ?? "present-only",
+      finished,
+    })
     if (errors) {
       const details: Record<string, string> = {}
       for (const [elementId, messages] of Object.entries(errors)) {

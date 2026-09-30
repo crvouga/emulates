@@ -309,6 +309,183 @@ describe("Formbricks acceptance: a consumer app's integration against the mock",
     expect(await storedFor(admin)).toHaveLength(1)
   })
 
+  const OTHER_SURVEY = "cm0otherlength0000000001"
+  const repeated = (length: number, character = "x") => character.repeat(length)
+  const choice = (id: string, label: Record<string, string>) => ({ id, label })
+  const otherSurvey = {
+    id: OTHER_SURVEY,
+    name: "Other repro",
+    type: "app",
+    status: "inProgress",
+    blocks: [
+      {
+        id: "b1",
+        name: "Block 1",
+        elements: [
+          {
+            id: "concerns",
+            type: "multipleChoiceMulti",
+            required: false,
+            headline: { default: "Concerns?" },
+            choices: [
+              choice("c1", { default: "Sleep", de: "Schlaf" }),
+              choice("other", { default: "Other", de: "Andere" }),
+              choice("long", { default: repeated(251, "D"), de: repeated(251, "G") }),
+            ],
+          },
+          {
+            id: "one",
+            type: "multipleChoiceSingle",
+            required: false,
+            headline: { default: "One?" },
+            choices: [
+              choice("c1", { default: "Sleep", de: "Schlaf" }),
+              choice("other", { default: "Other" }),
+              choice(repeated(251, "i"), { default: "Id" }),
+            ],
+          },
+        ],
+      },
+    ],
+  }
+  const limitError = (questionId: string) => ({
+    status: 400,
+    body: {
+      code: "bad_request",
+      message: "Response exceeds character limit",
+      details: { questionId },
+    },
+  })
+  const storedOther = async (admin: ReturnType<typeof harness>["admin"]) => {
+    const listed = await admin("GET", `/responses?surveyId=${OTHER_SURVEY}`)
+    const body = (await listed.json()) as { responses: { data: Record<string, unknown> }[] }
+    return body.responses
+  }
+
+  test("an unmatched multiple-choice entry longer than 250 characters is 400 and is not stored", async () => {
+    const { admin, post, runtime, deliveries } = harness()
+    expect((await admin("PUT", "/surveys", [otherSurvey])).status).toBe(200)
+    const over = repeated(251)
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { concerns: [over] },
+      }),
+    ).toEqual(limitError("concerns"))
+    // A comma-joined multi-select is one unmatched string, not an array of labels.
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { concerns: ["Sleep", "Stress", over].join(",") },
+      }),
+    ).toEqual(limitError("concerns"))
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { concerns: ["Sleep", over] },
+      }),
+    ).toEqual(limitError("concerns"))
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { one: over },
+      }),
+    ).toEqual(limitError("one"))
+    // Choice ids are not labels, so a long id is still an "other" entry.
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        data: { one: repeated(251, "i") },
+      }),
+    ).toEqual(limitError("one"))
+    // `de` does not fall back to the default label.
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: OTHER_SURVEY,
+        finished: true,
+        language: "de",
+        data: { concerns: [repeated(251, "D")] },
+      }),
+    ).toEqual(limitError("concerns"))
+    await runtime.webhooks.idle()
+    expect(deliveries).toHaveLength(0)
+    expect(await storedOther(admin)).toEqual([])
+  })
+
+  test("an unmatched multiple-choice entry of 250 characters or fewer is accepted", async () => {
+    const { admin, post } = harness()
+    expect((await admin("PUT", "/surveys", [otherSurvey])).status).toBe(200)
+    const atLimit = repeated(250)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          data: { concerns: ["Sleep", atLimit] },
+        })
+      ).status,
+    ).toBe(200)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          data: { concerns: atLimit },
+        })
+      ).status,
+    ).toBe(200)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          language: "de",
+          data: { one: atLimit },
+        })
+      ).status,
+    ).toBe(200)
+    expect((await storedOther(admin)).map((response) => response.data)).toEqual([
+      { concerns: ["Sleep", atLimit] },
+      { concerns: atLimit },
+      { one: atLimit },
+    ])
+  })
+
+  test("a multiple-choice entry that matches a choice label exactly is not length-checked", async () => {
+    const { admin, post } = harness()
+    expect((await admin("PUT", "/surveys", [otherSurvey])).status).toBe(200)
+    const defaultLabel = repeated(251, "D")
+    const germanLabel = repeated(251, "G")
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          data: { concerns: ["Sleep", defaultLabel] },
+        })
+      ).status,
+    ).toBe(200)
+    expect(
+      (
+        await post(WORKSPACE_ID, {
+          surveyId: OTHER_SURVEY,
+          finished: true,
+          language: "de",
+          data: { concerns: germanLabel },
+        })
+      ).status,
+    ).toBe(200)
+    expect((await storedOther(admin)).map((response) => response.data)).toEqual([
+      { concerns: ["Sleep", defaultLabel] },
+      { concerns: germanLabel },
+    ])
+  })
+
   test("429 is retried three times by the client", async () => {
     const recovers = harness()
     recovers.runtime.applyPreset("rate_limited", "default", { count: 2 })
