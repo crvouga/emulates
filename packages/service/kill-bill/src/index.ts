@@ -313,7 +313,10 @@ export class KillBillAPI {
     this.state.methods.insert(paymentMethodId, method)
     return method
   }
-  private invoicePayment(payment: Payment, targetInvoiceId: string | null = payment.invoiceId ?? null) {
+  private invoicePayment(
+    payment: Payment,
+    targetInvoiceId: string | null = payment.invoiceId ?? null,
+  ) {
     const { invoiceId: _invoiceId, ...fields } = payment
     return { ...fields, targetInvoiceId }
   }

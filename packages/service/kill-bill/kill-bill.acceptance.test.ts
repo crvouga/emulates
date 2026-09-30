@@ -225,8 +225,32 @@ describe("Kill Bill REST adapter", () => {
     )
     expect(response.status).toBe(200)
     const versions = (await response.json()) as Array<{
+      name: string
+      effectiveDate: string
+      currencies: string[]
+      units: unknown[]
       plans?: Array<{ name: string }>
-      products: Array<{ plans: Array<{ name: string; phases: Array<{ prices: unknown }> }> }>
+      products: Array<{
+        type: string
+        name: string
+        prettyName: string
+        plans: Array<{
+          name: string
+          prettyName: string
+          recurringBillingMode: string
+          billingPeriod: string
+          phases: Array<{
+            type: string
+            prices: Array<{ currency: string; value: number }>
+            fixedPrices: unknown[]
+            duration: { unit: string; number: number }
+            usages: unknown[]
+          }>
+        }>
+        included: unknown[]
+        available: unknown[]
+      }>
+      priceLists: Array<{ name: string; plans: string[] }>
     }>
     expect(Array.isArray(versions)).toBe(true)
     const latest = versions.at(-1)
@@ -1384,7 +1408,11 @@ describe("GET /1.0/kb/test/queues", () => {
       const accountId = created.headers.get("location")?.split("/").at(-1) as string
       const overdue = (await (await request(`/accounts/${accountId}/overdue`)).json()) as {
         name: string
+        externalMessage: string
+        isDisableEntitlementAndChangesBlocked: boolean
+        isBlockChanges: boolean
         isClearState: boolean
+        reevaluationIntervalDays: number | null
       }
       expect(overdue).toEqual({
         name: "__KILLBILL__CLEAR__OVERDUE_STATE__",
@@ -1436,7 +1464,14 @@ describe("GET /1.0/kb/test/queues", () => {
         ).status,
       ).toBe(200)
       expect(
-        await json<{ name: string; isClearState: boolean }>(`/accounts/${accountId}/overdue`),
+        await json<{
+          name: string
+          externalMessage: string
+          isDisableEntitlementAndChangesBlocked: boolean
+          isBlockChanges: boolean
+          isClearState: boolean
+          reevaluationIntervalDays: number | null
+        }>(`/accounts/${accountId}/overdue`),
       ).toEqual({
         name: "OD1",
         externalMessage: "",

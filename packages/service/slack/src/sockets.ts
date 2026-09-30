@@ -73,7 +73,7 @@ export const issueSocketTicket = (input: IssueSocketInput): SocketRecord => {
  */
 export const claimSocketTicket = (ticket: string): SocketRecord | undefined => {
   const record = records.get(ticket)
-  if (!record || record.state !== "pending") return undefined
+  if (record?.state !== "pending") return undefined
   record.state = "open"
   record.connectedAt = new Date().toISOString()
   return publicRecord(record)
