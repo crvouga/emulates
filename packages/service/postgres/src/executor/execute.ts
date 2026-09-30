@@ -15,6 +15,7 @@ import {
   executeAlterView,
   executeCreateDomain,
   executeCreateEnum,
+  executeCreateExtension,
   executeCreateFunction,
   executeCreateIndex,
   executeCreateSchema,
@@ -67,6 +68,8 @@ export function executeStatement(env: ExecEnv, stmt: Statement): ExecResult {
       return executeAlterSequence(env, stmt);
     case "create_schema":
       return executeCreateSchema(env, stmt);
+    case "create_extension":
+      return executeCreateExtension(env, stmt);
     case "create_enum":
       return executeCreateEnum(env, stmt);
     case "alter_enum":

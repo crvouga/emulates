@@ -20,6 +20,7 @@ import { pgError } from "../errors/error.ts";
 import type { EvalScope } from "../expressions/eval.ts";
 import { checkBoolExprType, evalAsPredicate, evalExpr } from "../expressions/eval.ts";
 import { createAggregate, isAggregateName, isOrderedSetAggregate, unifyAggType } from "../functions/aggregates.ts";
+import { evalPgcryptoFunction } from "../functions/pgcrypto.ts";
 import { getSrfFunctions, isSrfName } from "../functions/srf.ts";
 import { conjunctions, joinKeyFromRow, rowsMatchEqKeys, tryIndexedFromItem } from "../planner/access.ts";
 import { catalogRelation } from "../schema/catalog.ts";
@@ -250,6 +251,9 @@ export function callSqlFunctionScalar(env: ExecEnv, fn: FunctionData, args: Type
   const retT = fn.returns ?? "text";
   if (fn.language === "plpgsql") {
     return callPlpgsqlScalar(env, fn, args);
+  }
+  if (fn.language === "internal") {
+    return evalPgcryptoFunction(env.ctx, fn, args);
   }
   if (fn.language === "js") {
     if (!fn.jsImpl) {

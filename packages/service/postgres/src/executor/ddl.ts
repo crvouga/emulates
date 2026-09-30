@@ -8,6 +8,7 @@ import type {
   ColumnDef,
   CreateDomainStmt,
   CreateEnumStmt,
+  CreateExtensionStmt,
   CreateFunctionStmt,
   CreateIndexStmt,
   CreateSchemaStmt,
@@ -27,6 +28,7 @@ import type {
 import { checkChecks, checkForeignKeys, checkUnique, referencingConstraints } from "../constraints/enforce.ts";
 import { pgError, unsupported } from "../errors/error.ts";
 import { sequenceNextval } from "../functions/misc-fns.ts";
+import { installPgcrypto, pgcryptoInstalled, uninstallPgcrypto } from "../functions/pgcrypto.ts";
 import { parse } from "../parser/index.ts";
 import {
   type ColumnMeta,
@@ -612,6 +614,20 @@ export function executeCreateSchema(env: ExecEnv, stmt: CreateSchemaStmt): ExecR
   }
   state.schemas.set(stmt.name, new SchemaData(stmt.name, state.nextOid()));
   return commandResult("CREATE SCHEMA", 0);
+}
+
+export function executeCreateExtension(env: ExecEnv, stmt: CreateExtensionStmt): ExecResult {
+  const state = env.ctx.state;
+  if (stmt.name !== "pgcrypto") {
+    throw pgError("feature_not_supported", `extension "${stmt.name}" is not available`, "0A000");
+  }
+  if (pgcryptoInstalled(state)) {
+    if (stmt.ifNotExists) return commandResult("CREATE EXTENSION", 0);
+    throw pgError("duplicate_object", `extension "${stmt.name}" already exists`, "42710");
+  }
+  const schemaName = stmt.schema ?? state.currentSchema();
+  installPgcrypto(state, state.getSchema(schemaName).name);
+  return commandResult("CREATE EXTENSION", 0);
 }
 
 export function executeCreateEnum(env: ExecEnv, stmt: CreateEnumStmt): ExecResult {
@@ -1446,8 +1462,15 @@ export function executeDrop(env: ExecEnv, stmt: DropStmt): ExecResult {
         table.triggers.splice(idx, 1);
         break;
       }
-      case "extension":
-        break; // accepted no-op
+      case "extension": {
+        const ext = parts[parts.length - 1]!;
+        if (ext === "pgcrypto" && pgcryptoInstalled(state)) {
+          uninstallPgcrypto(state);
+          break;
+        }
+        if (stmt.ifExists) break;
+        throw pgError("undefined_object", `extension "${ext}" does not exist`, "42704");
+      }
     }
   }
   const label = stmt.kind === "materialized_view" ? "MATERIALIZED VIEW" : stmt.kind.toUpperCase();

@@ -563,6 +563,15 @@ export interface CreateSchemaStmt {
   readonly ifNotExists: boolean;
 }
 
+export interface CreateExtensionStmt {
+  readonly type: "create_extension";
+  readonly name: string;
+  readonly ifNotExists: boolean;
+  readonly schema: string | null;
+  readonly version: string | null;
+  readonly cascade: boolean;
+}
+
 export interface CreateEnumStmt {
   readonly type: "create_enum";
   readonly name: string[];
@@ -803,6 +812,7 @@ export type Statement =
   | CreateSequenceStmt
   | AlterSequenceStmt
   | CreateSchemaStmt
+  | CreateExtensionStmt
   | CreateEnumStmt
   | AlterEnumStmt
   | CreateDomainStmt

@@ -1525,10 +1525,32 @@ export class Parser {
     }
     if (this.atKw("extension")) {
       this.pos++;
-      this.parseIfNotExists();
+      const ifNotExists = this.parseIfNotExists();
       const name = this.ident(true);
-      while (!this.atPunct(";") && this.peek().type !== "eof") this.pos++;
-      throw unsupported(`extension "${name}"`);
+      let schema: string | null = null;
+      let version: string | null = null;
+      let cascade = false;
+      this.eatKw("with");
+      while (!this.atPunct(";") && this.peek().type !== "eof") {
+        if (this.eatKw("schema")) {
+          schema = this.ident(true);
+          continue;
+        }
+        if (this.eatKw("version")) {
+          const token = this.next();
+          if (token.type !== "string" && token.type !== "ident" && token.type !== "quoted_ident") {
+            this.errorAt(token, "expected extension version");
+          }
+          version = token.value;
+          continue;
+        }
+        if (this.eatKw("cascade")) {
+          cascade = true;
+          continue;
+        }
+        throw unsupported("CREATE EXTENSION option");
+      }
+      return { type: "create_extension", name, ifNotExists, schema, version, cascade };
     }
     if (this.atKw("database")) throw unsupported("CREATE DATABASE");
     if (this.atKw("role") || this.atKw("user") || this.atKw("group")) throw unsupported("roles");

@@ -1,4 +1,5 @@
 import { PGlite } from "@electric-sql/pglite";
+import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 import { categoryFromSqlstate } from "../harness/classify.ts";
 import { normalizeErrorMessage } from "../harness/normalize.ts";
 import { applyTxnSql, failResult, okResult } from "../harness/session.ts";
@@ -18,7 +19,8 @@ let shared: Promise<{ db: PGlite; parsers: Record<number, (x: string) => string>
 async function getShared(): Promise<{ db: PGlite; parsers: Record<number, (x: string) => string> }> {
   if (!shared) {
     shared = (async () => {
-      const db = new PGlite();
+      // pgcrypto is available but not installed; tests that need digest() run CREATE EXTENSION.
+      const db = new PGlite({ extensions: { pgcrypto } });
       await db.waitReady;
       // PGlite's WASM boot leaks process.exitCode = 99 (electric-sql/pglite#975);
       // clear it so a green `bun test` run exits 0. Bun ignores `= undefined`.
