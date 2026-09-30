@@ -6,6 +6,7 @@ export const CAT_SECTION: CatalogSection = section("CAT", "pg_catalog and inform
   ["class-01", "user table appears in pg_class with relkind r"],
   ["class-02", "view appears in pg_class with relkind v"],
   ["class-03", "sequence appears in pg_class with relkind S"],
+  ["class-06", "materialized view appears in pg_class with relkind m"],
   ["class-04", "pg_class joined to pg_namespace resolves the schema"],
   ["class-05", "pg_class row disappears after DROP TABLE"],
   ["attr-01", "pg_attribute lists user columns in order"],

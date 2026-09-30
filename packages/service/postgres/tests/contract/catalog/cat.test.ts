@@ -22,6 +22,12 @@ runCatalog(CAT_SECTION, [
     sql: "SELECT relname, relkind FROM pg_class WHERE relname = 'seq_cat'",
   },
   {
+    id: "CAT-class-06",
+    kind: "parity",
+    setup: ["CREATE MATERIALIZED VIEW example AS SELECT 1 AS n WITH NO DATA"],
+    sql: "SELECT c.relkind = 'm' AS is_m, c.relispopulated FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname = 'example'",
+  },
+  {
     id: "CAT-class-04",
     kind: "parity",
     setup: ["CREATE SCHEMA app", "CREATE TABLE app.t (id int)"],

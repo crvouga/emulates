@@ -48,6 +48,11 @@ import { evalScalar, executeSelectStmt } from "./select.ts";
 // helpers
 // ---------------------------------------------------------------------------
 
+/** WITH NO DATA reads column shape even when a referenced matview is unpopulated. */
+function matviewQueryEnv(env: ExecEnv, allowUnpopulatedMatviews: boolean): ExecEnv {
+  return { ctx: env.ctx, params: null, ctes: new Map(), outer: null, allowUnpopulatedMatviews };
+}
+
 function targetSchema(env: ExecEnv, parts: string[]): { schema: SchemaData; name: string } {
   const state = env.ctx.state;
   if (parts.length >= 2) {
@@ -572,7 +577,7 @@ export function executeCreateView(env: ExecEnv, stmt: CreateViewStmt): ExecResul
   let matRows: Datum[][] | null = null;
   let matColumns: Array<{ name: string; type: TypeId }> | null = null;
   if (stmt.materialized) {
-    const rel = executeSelectStmt({ ctx: env.ctx, params: null, ctes: new Map(), outer: null }, stmt.query);
+    const rel = executeSelectStmt(matviewQueryEnv(env, !stmt.withData), stmt.query);
     matColumns = rel.columns.map((c, i) => ({
       name: stmt.columns?.[i] ?? c.name,
       type: c.type === UNKNOWN ? "text" : c.type,
@@ -599,7 +604,7 @@ export function executeRefreshMatView(env: ExecEnv, stmt: RefreshMaterializedVie
     throw pgError("undefined_table", `materialized view "${stmt.name.join(".")}" does not exist`, "42P01");
   }
   const view = env.ctx.state.ensureWritableView(found);
-  const rel = executeSelectStmt({ ctx: env.ctx, params: null, ctes: new Map(), outer: null }, view.query);
+  const rel = executeSelectStmt(matviewQueryEnv(env, !stmt.withData), view.query);
   view.matColumns = rel.columns.map((c, i) => ({
     name: view.columns?.[i] ?? c.name,
     type: c.type === UNKNOWN ? "text" : c.type,
