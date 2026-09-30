@@ -2,11 +2,13 @@
  * Formbricks' response validation (`validateResponseData` in `apps/web/modules/api/lib/validation.ts`
  * → `validateBlockResponses` in `packages/surveys/src/lib/validation/evaluator.ts`), trimmed to the
  * structural checks: required elements, choice membership for choice elements without an "other"
- * option, and the implicit email / url / phone rules of openText elements. Only the elements
- * present in `data` are checked, finished or not (upstream never checks absent elements).
+ * option, and the implicit email / url / phone rules of openText elements.
+ * `present-only` (default, Formbricks after #7292) checks only elements present in `data`.
+ * `finished-validates-all` (Formbricks before #7292, commit 7c8a760) checks every element when
+ * `finished` is true, and only the present ones when it is false.
  * Custom `validation.rules` are not evaluated.
  */
-import type { Survey } from "./state.js"
+import type { ResponseValidation, Survey } from "./state.js"
 
 type Element = {
   id: string
@@ -82,15 +84,28 @@ const invalidOption = (element: Element, value: unknown, language: string): bool
   return submitted.some((v) => v !== "" && (typeof v !== "string" || !known.has(v)))
 }
 
+export type ValidateResponseDataOptions = {
+  /** Defaults to post-#7292 `present-only`. */
+  validation?: ResponseValidation
+  /** Read only when `validation` is `finished-validates-all`. */
+  finished?: boolean
+}
+
 /** `{<elementId>: [messages]}`, or `null` when the response passes. */
 export const validateResponseData = (
   survey: Survey,
   data: Record<string, unknown>,
   language = "en",
+  options: ValidateResponseDataOptions = {},
 ): Record<string, string[]> | null => {
-  const present = surveyElements(survey).filter((e) => Object.keys(data).includes(e.id))
+  const elements = surveyElements(survey)
+  const presentIds = new Set(Object.keys(data))
+  const selected =
+    options.validation === "finished-validates-all" && options.finished === true
+      ? elements
+      : elements.filter((element) => presentIds.has(element.id))
   const errors: Record<string, string[]> = {}
-  for (const element of present) {
+  for (const element of selected) {
     const value = data[element.id]
     const messages: string[] = []
     if (requiredError(element, value)) messages.push(REQUIRED)

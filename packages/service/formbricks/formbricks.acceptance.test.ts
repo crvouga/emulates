@@ -4,6 +4,7 @@ import {
   createRuntime,
   ENVIRONMENT_ID,
   FORMBRICKS_PRESETS,
+  type Settings,
   WEBHOOK_PATH,
   WORKSPACE_ID,
 } from "./src/index.js"
@@ -40,9 +41,10 @@ const onboardingAnswers = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 })
 
-const harness = () => {
+const harness = (settings?: Pick<Settings, "validation">) => {
   const deliveries: Request[] = []
   const runtime = createRuntime({
+    ...(settings ? { settings } : {}),
     webhooks: {
       url: `http://backend.local${WEBHOOK_PATH}?token=${TOKEN}`,
       secret: SIGNING,
@@ -194,6 +196,117 @@ describe("Formbricks acceptance: a consumer app's integration against the mock",
         })
       ).status,
     ).toBe(200)
+  })
+
+  const REQUIRED_SURVEY = "cm0reqsurvey00000000001x"
+  const requiredSurvey = {
+    id: REQUIRED_SURVEY,
+    name: "Required repro",
+    type: "app",
+    status: "inProgress",
+    blocks: [
+      {
+        id: "b1",
+        name: "Block 1",
+        elements: [
+          {
+            id: "symptoms",
+            type: "multipleChoiceMulti",
+            required: true,
+            headline: { default: "Which symptoms?" },
+            choices: [
+              { id: "c1", label: { default: "Fatigue" } },
+              { id: "c2", label: { default: "None of the above" } },
+            ],
+          },
+          {
+            id: "goals",
+            type: "openText",
+            required: true,
+            headline: { default: "Goals?" },
+          },
+        ],
+      },
+    ],
+  }
+
+  const seedRequiredSurvey = async (
+    admin: ReturnType<typeof harness>["admin"],
+    validation?: "finished-validates-all",
+  ) => {
+    expect((await admin("PUT", "/surveys", [requiredSurvey])).status).toBe(200)
+    if (validation) {
+      const updated = await admin("PUT", "/settings", { validation })
+      expect(updated.status).toBe(200)
+      expect(await updated.json()).toMatchObject({ validation })
+    }
+  }
+
+  const storedFor = async (admin: ReturnType<typeof harness>["admin"]) => {
+    const listed = await admin("GET", `/responses?surveyId=${REQUIRED_SURVEY}`)
+    const body = (await listed.json()) as { responses: { surveyId: string }[] }
+    return body.responses.filter((response) => response.surveyId === REQUIRED_SURVEY)
+  }
+
+  test("finished-validates-all: a finished response missing a required element is 400 and is not stored", async () => {
+    const { admin, post } = harness()
+    await seedRequiredSurvey(admin, "finished-validates-all")
+    expect(
+      await post(WORKSPACE_ID, {
+        surveyId: REQUIRED_SURVEY,
+        finished: true,
+        data: { goals: "x" },
+      }),
+    ).toEqual({
+      status: 400,
+      body: {
+        code: "bad_request",
+        message: "Validation failed",
+        details: { "response.data.symptoms": "Please fill out this field" },
+      },
+    })
+    expect(await storedFor(admin)).toEqual([])
+  })
+
+  test("finished-validates-all: an unfinished response may omit a required element", async () => {
+    const { admin, post } = harness()
+    await seedRequiredSurvey(admin, "finished-validates-all")
+    const created = await post(WORKSPACE_ID, {
+      surveyId: REQUIRED_SURVEY,
+      finished: false,
+      data: { goals: "x" },
+    })
+    expect(created.status).toBe(200)
+    expect(created.body).toMatchObject({ data: { quotaFull: false } })
+    expect(await storedFor(admin)).toHaveLength(1)
+  })
+
+  test("finished-validates-all: a finished response that answers every required element is stored", async () => {
+    const { admin, post } = harness({ validation: "finished-validates-all" })
+    await seedRequiredSurvey(admin)
+    const created = await post(WORKSPACE_ID, {
+      surveyId: REQUIRED_SURVEY,
+      finished: true,
+      data: { symptoms: ["None of the above"], goals: "x" },
+    })
+    expect(created.status).toBe(200)
+    expect(created.body).toMatchObject({ data: { quotaFull: false } })
+    expect(await storedFor(admin)).toHaveLength(1)
+  })
+
+  test("present-only (the default) still accepts a finished response that omits a required element", async () => {
+    const { admin, post } = harness()
+    await seedRequiredSurvey(admin)
+    const settings = await admin("GET", "/settings")
+    expect(settings.status).toBe(200)
+    expect(await settings.json()).toMatchObject({ validation: "present-only" })
+    const created = await post(WORKSPACE_ID, {
+      surveyId: REQUIRED_SURVEY,
+      finished: true,
+      data: { goals: "x" },
+    })
+    expect(created.status).toBe(200)
+    expect(await storedFor(admin)).toHaveLength(1)
   })
 
   test("429 is retried three times by the client", async () => {

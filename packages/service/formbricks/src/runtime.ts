@@ -204,6 +204,12 @@ const adminRoutes = (runtime: ServiceRuntime<FormbricksAPI>): AdminRoutes => ({
     if (Array.isArray(body.apiKeys)) patch.apiKeys = body.apiKeys.map(String)
     if (typeof body.webhookId === "string") patch.webhookId = body.webhookId
     if (typeof body.contactsEnabled === "boolean") patch.contactsEnabled = body.contactsEnabled
+    const validation = body.validation
+    if (validation === "present-only" || validation === "finished-validates-all") {
+      patch.validation = validation
+    } else if (validation !== undefined) {
+      return adminError(400, 'validation must be "present-only" or "finished-validates-all"')
+    }
     return json(200, runtime.instance(namespace).state.update(patch))
   },
 })
