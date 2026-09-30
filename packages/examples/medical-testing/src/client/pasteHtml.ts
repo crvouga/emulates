@@ -3,6 +3,10 @@
  * Example apps fetch a provider's real HTML and paste it into the page.
  * `:root` / `html` / `body` are rewritten onto an inner `.page` so the
  * document's own sheet does not restyle the host page.
+ *
+ * Width breakpoints are rewritten onto that `.page` as container queries.
+ * A viewport query would still see the browser window, so a desktop-width
+ * window would keep a two-column layout inside a narrow popup.
  */
 
 export type HostedSubmit = (action: string, method: string, body: string) => void
@@ -53,13 +57,28 @@ export const scopeEmbeddedCss = (css: string): string => {
       continue
     }
     if (trimmed.startsWith("@")) {
-      out += css.slice(cursor, brace + 1)
+      out += `${rewriteWidthMedia(css.slice(cursor, brace))}{`
       cursor = brace + 1
       continue
     }
     const close = prelude.lastIndexOf("}")
     const head = close === -1 ? "" : prelude.slice(0, close + 1)
     const selector = close === -1 ? prelude : prelude.slice(close + 1)
+    const selectorTrimmed = selector.trimStart()
+    if (
+      close !== -1 &&
+      (selectorTrimmed.startsWith("@keyframes") || selectorTrimmed.startsWith("@font-face"))
+    ) {
+      const end = skipBlock(css, brace)
+      out += head + css.slice(cursor + close + 1, end)
+      cursor = end
+      continue
+    }
+    if (close !== -1 && selectorTrimmed.startsWith("@")) {
+      out += `${head}${rewriteWidthMedia(selector)}{`
+      cursor = brace + 1
+      continue
+    }
     const rewritten = rewriteSelectorList(selector)
     out += `${head}${rewritten}{`
     if (isDocumentBox(rewritten)) {
@@ -71,7 +90,37 @@ export const scopeEmbeddedCss = (css: string): string => {
     cursor = brace + 1
   }
   const sized = out.replaceAll("100svh", "100%").replaceAll("100vh", "100%")
-  return `:host{display:block;box-sizing:border-box}.page{box-sizing:border-box;min-height:100%}${sized}`
+  // `.page` is the query container. Its inline size is the host's width, not
+  // the min-content of a wide layout, so the rewritten queries stack inside a popup.
+  return `:host{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0}.page{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:100%;container-type:inline-size}${sized}`
+}
+
+/**
+ * `@media (min-width: …)` measures the browser. Inside a pasted popup the
+ * browser is often wide while the host is not, so a width-only query becomes
+ * a container query. Preference queries stay media queries.
+ */
+const rewriteWidthMedia = (prelude: string): string => {
+  const at = prelude.search(/@media\b/i)
+  if (at === -1) return prelude
+  const condition = prelude.slice(at + "@media".length)
+  if (!isWidthOnlyMedia(condition)) return prelude
+  // Container queries have no media type. Drop a leading `screen and`.
+  const query = condition.replace(/^\s*(?:only\s+)?(?:all|screen|print|speech)\s+and\s+/i, " ")
+  return `${prelude.slice(0, at)}@container${query}`
+}
+
+const isWidthOnlyMedia = (condition: string): boolean => {
+  const body = condition.replace(/\/\*[\s\S]*?\*\//g, " ")
+  if (/\bnot\b/i.test(body)) return false
+  if (!/(?:min-|max-)?width/i.test(body)) return false
+  const stripped = body
+    .replace(/\bonly\b/gi, " ")
+    .replace(/\b(?:all|screen|print|speech)\b/gi, " ")
+    .replace(/\b(?:and|or)\b/gi, " ")
+    .replace(/\(\s*(?:min-|max-)?width\s*:\s*[^)]+\)/gi, " ")
+    .replace(/\(\s*[^)]*?\bwidth\b[^)]*\)/gi, " ")
+  return !/[a-z]/i.test(stripped)
 }
 
 /**

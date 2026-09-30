@@ -204,7 +204,7 @@ export const renderAdminDocument = (service: string): string => {
   main { padding: 20px; max-width: 1100px; width: 100%; min-width: 0; }
   .view h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.02em; }
   .lede { margin: 0 0 16px; color: var(--muted); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; }
   .card {
     background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 14px 16px; box-shadow: var(--shadow);
@@ -244,7 +244,7 @@ export const renderAdminDocument = (service: string): string => {
   .empty { color: var(--muted); padding: 24px 8px; }
   dialog {
     border: 1px solid var(--line); border-radius: var(--radius); padding: 0; background: var(--bg-elev);
-    color: var(--ink); width: min(640px, calc(100vw - 24px)); box-shadow: none;
+    color: var(--ink); width: min(640px, calc(100% - 24px)); max-width: calc(100vw - 24px); box-shadow: none;
   }
   dialog::backdrop { background: rgb(20 19 17 / 0.45); }
   dialog form, .dialog-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }

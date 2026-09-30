@@ -42,13 +42,28 @@ const scopeEmbeddedCss = (css: string): string => {
       continue
     }
     if (trimmed.startsWith("@")) {
-      out += css.slice(cursor, brace + 1)
+      out += `${rewriteWidthMedia(css.slice(cursor, brace))}{`
       cursor = brace + 1
       continue
     }
     const close = prelude.lastIndexOf("}")
     const head = close === -1 ? "" : prelude.slice(0, close + 1)
     const selector = close === -1 ? prelude : prelude.slice(close + 1)
+    const selectorTrimmed = selector.trimStart()
+    if (
+      close !== -1 &&
+      (selectorTrimmed.startsWith("@keyframes") || selectorTrimmed.startsWith("@font-face"))
+    ) {
+      const end = skipBlock(css, brace)
+      out += head + css.slice(cursor + close + 1, end)
+      cursor = end
+      continue
+    }
+    if (close !== -1 && selectorTrimmed.startsWith("@")) {
+      out += `${head}${rewriteWidthMedia(selector)}{`
+      cursor = brace + 1
+      continue
+    }
     const rewritten = rewriteSelectorList(selector)
     out += `${head}${rewritten}{`
     if (isDocumentBox(rewritten)) {
@@ -60,7 +75,30 @@ const scopeEmbeddedCss = (css: string): string => {
     cursor = brace + 1
   }
   const sized = out.replaceAll("100svh", "100%").replaceAll("100vh", "100%")
-  return `:host{display:block;box-sizing:border-box}.page{box-sizing:border-box;min-height:100%}${sized}`
+  return `:host{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0}.page{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:100%;container-type:inline-size}${sized}`
+}
+
+/** Width queries follow the pasted box. Preference queries stay on the viewport. */
+const rewriteWidthMedia = (prelude: string): string => {
+  const at = prelude.search(/@media\b/i)
+  if (at === -1) return prelude
+  const condition = prelude.slice(at + "@media".length)
+  if (!isWidthOnlyMedia(condition)) return prelude
+  const query = condition.replace(/^\s*(?:only\s+)?(?:all|screen|print|speech)\s+and\s+/i, " ")
+  return `${prelude.slice(0, at)}@container${query}`
+}
+
+const isWidthOnlyMedia = (condition: string): boolean => {
+  const body = condition.replace(/\/\*[\s\S]*?\*\//g, " ")
+  if (/\bnot\b/i.test(body)) return false
+  if (!/(?:min-|max-)?width/i.test(body)) return false
+  const stripped = body
+    .replace(/\bonly\b/gi, " ")
+    .replace(/\b(?:all|screen|print|speech)\b/gi, " ")
+    .replace(/\b(?:and|or)\b/gi, " ")
+    .replace(/\(\s*(?:min-|max-)?width\s*:\s*[^)]+\)/gi, " ")
+    .replace(/\(\s*[^)]*?\bwidth\b[^)]*\)/gi, " ")
+  return !/[a-z]/i.test(stripped)
 }
 
 /** Comments are not selectors. A comma inside one must not split the list. */
