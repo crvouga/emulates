@@ -12,6 +12,7 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { SLACK_NAMESPACE, SlackAPI, slackCredential } from "./index.js"
+import { disconnectSockets, listSocketConnections } from "./sockets.js"
 import type { Settings, SlackChannel, SlackFile, SlackUser } from "./state.js"
 
 /**
@@ -45,6 +46,53 @@ export const SLACK_PRESETS: Record<string, FaultPreset> = {
   invalid_auth: {
     description: "Web API calls answer {ok:false, error:invalid_auth} (the bot token was revoked)",
     rules: [{ pathPrefix: "/api/", effect: "invalid_auth" }],
+  },
+  connections_open_invalid_auth: {
+    description:
+      "apps.connections.open answers {ok:false, error:invalid_auth} and does not mint a ticket",
+    rules: [{ operationId: "AppsConnectionsOpen", effect: "connections_open_invalid_auth" }],
+  },
+  connections_open_429: {
+    description:
+      "apps.connections.open answers 429 {ok:false, error:ratelimited} with retry-after (params.retryAfter seconds, default 1)",
+    rules: [
+      {
+        operationId: "AppsConnectionsOpen",
+        effect: "connections_open_429",
+        params: { retryAfter: 1 },
+      },
+    ],
+  },
+  connections_open_5xx: {
+    description:
+      "apps.connections.open answers 500 internal_error (params.status 503 gives service_unavailable)",
+    rules: [
+      {
+        operationId: "AppsConnectionsOpen",
+        effect: "connections_open_5xx",
+        params: { status: 500 },
+      },
+    ],
+  },
+  socket_close_after_hello: {
+    description: "The next Socket Mode WebSocket sends hello, then a normal close frame",
+    rules: [{ operationId: "AppsConnectionsOpen", effect: "socket_close_after_hello" }],
+  },
+  socket_abnormal_close: {
+    description:
+      "The next Socket Mode WebSocket sends hello, then drops the TCP connection (close code 1006)",
+    rules: [{ operationId: "AppsConnectionsOpen", effect: "socket_abnormal_close" }],
+  },
+  socket_hello_latency: {
+    description:
+      "Delay the Socket Mode hello frame by params.latencyMs (default 0). The HTTP response is not delayed",
+    rules: [
+      {
+        operationId: "AppsConnectionsOpen",
+        effect: "socket_hello_latency",
+        params: { latencyMs: 0 },
+      },
+    ],
   },
 }
 
@@ -257,7 +305,43 @@ const adminRoutes = (runtime: ServiceRuntime<SlackAPI>): AdminRoutes => ({
         return adminError(400, "strictChannels: boolean")
       patch.strictChannels = body.strictChannels
     }
+    for (const key of ["appTokens", "revokedAppTokens"] as const) {
+      if (body[key] === undefined) continue
+      const entries = body[key]
+      if (!Array.isArray(entries) || entries.some((entry) => typeof entry !== "string")) {
+        return adminError(400, `${key}: string[]`)
+      }
+      patch[key] = entries.map(String)
+    }
+    if (body.socketLifetimeMs !== undefined) {
+      if (
+        body.socketLifetimeMs !== null &&
+        (typeof body.socketLifetimeMs !== "number" || body.socketLifetimeMs < 0)
+      ) {
+        return adminError(400, "socketLifetimeMs: number | null")
+      }
+      patch.socketLifetimeMs = body.socketLifetimeMs
+    }
     return json(200, runtime.instance(namespace).state.update(patch))
+  },
+  "GET /socket/connections": ({ namespace }) =>
+    json(200, {
+      connections: listSocketConnections(namespace).map((row) => ({
+        namespace: row.namespace,
+        appId: row.appId,
+        ticket: row.ticket,
+        connectedAt: row.connectedAt,
+        state: row.state,
+        reconnectCount: row.reconnectCount,
+      })),
+    }),
+  "POST /socket/disconnect": ({ body, namespace }) => {
+    const reason = isRecord(body) && typeof body.reason === "string" ? body.reason : "warning"
+    if (reason !== "warning" && reason !== "refresh_requested" && reason !== "link_disabled") {
+      return adminError(400, "reason must be warning, refresh_requested, or link_disabled")
+    }
+    const code = isRecord(body) && typeof body.code === "number" ? body.code : 1000
+    return json(200, { closed: disconnectSockets(namespace, reason, code) })
   },
 })
 
@@ -277,10 +361,11 @@ export const createRuntime = (options: SlackRuntimeOptions = {}): SlackRuntime =
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: slackCredential,
     presets: SLACK_PRESETS,
-    create: ({ sqlite, namespace, clock }) =>
+    create: ({ sqlite, namespace, publicNamespace, clock }) =>
       new SlackAPI({
         sqlite,
         namespace,
+        publicNamespace,
         now: clock.now,
         ...(options.settings ? { settings: options.settings } : {}),
       }),
