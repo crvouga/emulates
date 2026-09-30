@@ -49,3 +49,12 @@ paths:
     get: { operationId: GetResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }, responses: { "200": { description: Resource response } } }
     put: { operationId: UpdateResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }, requestBody: { content: { application/json: { schema: { type: object, additionalProperties: true } } } }, responses: { "204": { description: Updated } } }
     delete: { operationId: DeleteResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }, responses: { "204": { description: Deleted } } }
+  /1.0/kb/subscriptions/{subscriptionId}/undoChangePlan:
+    parameters: [{ name: subscriptionId, in: path, required: true, schema: { type: string } }]
+    put:
+      operationId: UndoChangeSubscriptionPlan
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      responses:
+        "204": { description: Pending plan change undone }
+        "400": { description: Subscription has no pending plan change }
+        "404": { description: Subscription not found }

@@ -856,4 +856,103 @@ describe("Kill Bill tenants and notification callbacks", () => {
       await server.close()
     }
   })
+
+  test("undoChangePlan restores the plan that was current before a pending change", async () => {
+    const server = await createServer({
+      plans: [
+        { name: "example-monthly", amount: 10, currency: "USD" },
+        { name: "example-annual", amount: 100, currency: "USD" },
+      ],
+    })
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "undo-acct", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const createdSubscription = await request("/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ accountId, planName: "example-monthly" }),
+      })
+      const bundles = (await (await request(`/accounts/${accountId}/bundles`)).json()) as Array<{
+        bundleId: string
+        subscriptions: Array<{ subscriptionId: string }>
+      }>
+      expect(createdSubscription.headers.get("location")).toEndWith(
+        `/bundles/${bundles[0]?.bundleId}`,
+      )
+      const subscriptionId = bundles[0]?.subscriptions[0]?.subscriptionId as string
+      expect(
+        (
+          await request(`/subscriptions/${subscriptionId}?billingPolicy=END_OF_TERM`, {
+            method: "PUT",
+            body: JSON.stringify({ planName: "example-annual" }),
+          })
+        ).status,
+      ).toBe(204)
+      const undone = await request(`/subscriptions/${subscriptionId}/undoChangePlan`, {
+        method: "PUT",
+      })
+      expect(undone.status).toBe(204)
+      expect(await undone.text()).toBe("")
+      expect(await (await request(`/subscriptions/${subscriptionId}`)).json()).toMatchObject({
+        planName: "example-monthly",
+      })
+      const current = (await (await request(`/subscriptions/${subscriptionId}`)).json()) as {
+        pendingChangePlan?: string
+      }
+      expect(current.pendingChangePlan).toBeUndefined()
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("undoChangePlan with no pending change returns Kill Bill error 1071", async () => {
+    const server = await createServer({
+      plans: [{ name: "example-monthly", amount: 10, currency: "USD" }],
+    })
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "undo-none", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const createdSubscription = await request("/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ accountId, planName: "example-monthly" }),
+      })
+      const bundles = (await (await request(`/accounts/${accountId}/bundles`)).json()) as Array<{
+        bundleId: string
+        subscriptions: Array<{ subscriptionId: string }>
+      }>
+      expect(createdSubscription.headers.get("location")).toEndWith(
+        `/bundles/${bundles[0]?.bundleId}`,
+      )
+      const subscriptionId = bundles[0]?.subscriptions[0]?.subscriptionId as string
+      const undone = await request(`/subscriptions/${subscriptionId}/undoChangePlan`, {
+        method: "PUT",
+      })
+      expect(undone.status).toBe(400)
+      expect(await undone.json()).toMatchObject({
+        className: "org.killbill.billing.subscription.api.user.SubscriptionBaseApiException",
+        code: 1071,
+        message:
+          `Subscription (billing) ${subscriptionId} does not have a pending change plan: ` +
+          "Failed to undo change plan",
+      })
+      const current = (await (await request(`/subscriptions/${subscriptionId}`)).json()) as {
+        planName: string
+        state: string
+        pendingChangePlan?: string
+      }
+      expect(current).toMatchObject({ planName: "example-monthly", state: "ACTIVE" })
+      expect(current.pendingChangePlan).toBeUndefined()
+    } finally {
+      await server.close()
+    }
+  })
 })

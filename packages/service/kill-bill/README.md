@@ -32,6 +32,7 @@ The default credentials are Basic auth `admin:password` plus tenant headers `X-K
 - `POST /__admin/catalog/plans` seeds a plan.
 - `GET /__admin/billing` inspects billing state and audit entries. `GET /__admin/state` is the shared collection view.
 - `GET /1.0/kb/test/clock` returns Kill Bill's clock JSON (`currentUtcTime`, `localDate`, `timeZone`). `PUT /1.0/kb/test/clock?requestedDate=...` advances recurring billing.
+- `PUT /1.0/kb/subscriptions/:id/undoChangePlan` cancels a pending plan change. With no pending change it returns 400 and Kill Bill error code 1071.
 - Fault presets cover plugin failure, rate limiting, network loss, and webhook duplicate/reorder/drop delivery.
 
 ## API

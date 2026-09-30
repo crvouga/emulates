@@ -945,6 +945,27 @@ export class KillBillAPI {
         )
         return this.empty()
       }
+      if (parts[2] === "undoChangePlan" && request.method === "PUT") {
+        if (!subscription.pendingChangePlan)
+          return this.json(
+            {
+              className: "org.killbill.billing.subscription.api.user.SubscriptionBaseApiException",
+              code: 1071,
+              message:
+                "Subscription (billing) " +
+                `${subscription.subscriptionId} does not have a pending change plan: ` +
+                "Failed to undo change plan",
+              causeClassName: null,
+              causeMessage: null,
+              stackTrace: [],
+            },
+            400,
+          )
+        const next = { ...subscription }
+        delete next.pendingChangePlan
+        this.state.subscriptions.insert(subscription.subscriptionId, next)
+        return this.empty()
+      }
       if (parts[2] === "changePlan" && request.method === "DELETE") {
         const next = { ...subscription }
         delete next.pendingChangePlan
