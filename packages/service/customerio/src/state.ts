@@ -18,6 +18,37 @@ export type TransactionalMessage = {
 
 export type Channel = "email" | "sms" | "inbox"
 
+/** Lifecycle states a delivery can be moved through. `pending` is the initial accepted state. */
+export const DELIVERY_STATES = [
+  "pending",
+  "sent",
+  "delivered",
+  "bounced",
+  "dropped",
+  "failed",
+  "spammed",
+  "undeliverable",
+  "suppressed",
+] as const
+
+export type DeliveryState = (typeof DELIVERY_STATES)[number]
+
+/** Terminal failure states. `delivered` is success; anything else (including `sent`) stays open. */
+export const FAILURE_STATES = new Set<DeliveryState>([
+  "bounced",
+  "dropped",
+  "failed",
+  "spammed",
+  "undeliverable",
+  "suppressed",
+])
+
+/** One level of Customer.io subscription preferences. Explicit `false` is kept. */
+export type SubscriptionPreferences = {
+  channels: Record<string, boolean>
+  topics: Record<string, boolean>
+}
+
 /**
  * One transactional send, which is also the outbox entry a suite asserts on. `messageData` is
  * dropped when the request set `disable_message_retention` (Customer.io keeps no body then).
@@ -31,15 +62,24 @@ export type Delivery = OutboxItem & {
   from: string | null
   subject: string | null
   messageData: Record<string, unknown> | null
-  /** URLs found in `message_data` (tracked links are rewritten to `/click/<linkId>`). */
+  /** URLs stored for the recipient (tracked links are rewritten to `/click/<linkId>`). */
   links: string[]
+  /** The same URLs before tracking rewrote them. */
+  originalLinks: string[]
   tracked: boolean
   sendToUnsubscribed: boolean
   disableMessageRetention: boolean
   headers: Record<string, string>
   attachments: string[]
-  /** `suppressed` when the profile is unsubscribed and `send_to_unsubscribed` is false. */
-  state: "sent" | "suppressed"
+  /** `pending` until an admin transition. `suppressed` when the profile cannot be sent. */
+  state: DeliveryState
+  /** Why a send was suppressed: `unsubscribed` or `channel_off`. */
+  reason: string | null
+  failureMessage: string | null
+  /** Unix seconds keyed by the state that was entered (`delivered`, `bounced`, …). */
+  metrics: Record<string, number>
+  /** `GET /v1/messages/{id}` stays 404 until the mock clock reaches this instant. */
+  visibleAt: number
   queuedAt: number
   clicks: number
 }
@@ -62,11 +102,14 @@ export type CdpEvent = {
 /** A person as identify calls and reporting events have shaped them. */
 export type Profile = {
   id: string
+  /** Customer.io's `cio_id`, assigned when the profile is first written. */
+  cioId: string
   email: string | null
   traits: Record<string, unknown>
   unsubscribed: boolean
   /** Channels switched off through subscription preferences. */
   channelsOff: ("email" | "sms")[]
+  preferences: SubscriptionPreferences
   updatedAt: string
 }
 
@@ -84,12 +127,33 @@ export type Settings = {
   trackingBase: string
   /** Write keys / App API keys accepted as-is; empty means any non-empty key works. */
   keys: string[]
+  /**
+   * `GET /v1/messages/{id}` returns 404 until this many milliseconds after the send.
+   * Advance the namespace clock (`POST /__admin/namespace-clock`) to reveal it.
+   */
+  statusVisibleAfterMs: number
+  /** Added to the shared mock clock so each namespace can move time on its own. */
+  clockOffsetMs: number
+  /**
+   * Keep `messageData` in the admin outbox even when the send set `disable_message_retention`.
+   * The public message read still omits `message_data`.
+   */
+  retainMessageDataForTests: boolean
+  /**
+   * Object key `GET /v1/transactional` uses. `messages` matches the contract; `transactional`
+   * is the alternate key the trigger-name validator also accepts.
+   */
+  transactionalListKey: "messages" | "transactional"
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   strictMessages: false,
   trackingBase: "https://links.customer.io",
   keys: [],
+  statusVisibleAfterMs: 0,
+  clockOffsetMs: 0,
+  retainMessageDataForTests: false,
+  transactionalListKey: "messages",
 }
 
 /** Our backend's legacy transactional email keys (`customer-io.transactional-email-port.ts`). */
@@ -203,13 +267,20 @@ export class CustomerIoState {
     return this.profiles.get(id)
   }
 
-  /** The profile an App API `identifiers` object names (by id, else by email). */
-  profileFor(identifiers: { id?: string; email?: string }): Profile | undefined {
+  profileByEmail(email: string): Profile | undefined {
+    const lower = email.toLowerCase()
+    return this.profiles.list({ where: (p) => p.email?.toLowerCase() === lower }).at(0)?.value
+  }
+
+  profileByCioId(cioId: string): Profile | undefined {
+    return this.profiles.list({ where: (p) => p.cioId === cioId }).at(0)?.value
+  }
+
+  /** The profile an App API `identifiers` object names (id, else cio_id, else email). */
+  profileFor(identifiers: { id?: string; email?: string; cio_id?: string }): Profile | undefined {
     if (identifiers.id) return this.profile(identifiers.id)
-    if (identifiers.email) {
-      const email = identifiers.email.toLowerCase()
-      return this.profiles.list({ where: (p) => p.email?.toLowerCase() === email }).at(0)?.value
-    }
+    if (identifiers.cio_id) return this.profileByCioId(identifiers.cio_id)
+    if (identifiers.email) return this.profileByEmail(identifiers.email)
     return undefined
   }
 
@@ -217,10 +288,12 @@ export class CustomerIoState {
     const existing = this.profile(id)
     const next: Profile = {
       id,
+      cioId: existing?.cioId ?? this.ids.next("cio", 8),
       email: existing?.email ?? null,
       traits: existing?.traits ?? {},
       unsubscribed: existing?.unsubscribed ?? false,
       channelsOff: existing?.channelsOff ?? [],
+      preferences: existing?.preferences ?? { channels: {}, topics: {} },
       ...patch,
       updatedAt: at,
     }

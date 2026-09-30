@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **10**
-- supported by the mock: **10**
-- parity enabled: **10**
+- operations in spec: **12**
+- supported by the mock: **12**
+- parity enabled: **12**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -16,5 +16,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `SendInboxMessage` | `POST /v1/send/inbox_message` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ListTransactionalMessages` | `GET /v1/transactional` | ✅ supported | ✅ |  |
 | `GetTransactionalMessage` | `GET /v1/transactional/{transactional_id}` | ✅ supported | ✅ |  |
+| `GetCustomerAttributes` | `GET /v1/customers/{customer_id}/attributes` | ✅ supported | ✅ |  |
+| `GetMessage` | `GET /v1/messages/{message_id}` | ✅ supported | ✅ |  |
 | `FollowClick` | `GET /click/{linkId}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ReportClick` | `POST /click/{linkId}` | ✅ supported | ⚠️ unsafe (opt-in) |  |

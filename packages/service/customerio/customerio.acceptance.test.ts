@@ -108,7 +108,7 @@ describe("S19 Customer.io acceptance: our consumers' logic against the mock", ()
       tracked: false,
       sendToUnsubscribed: true,
       attachments: ["welcome.pdf"],
-      state: "sent",
+      state: "pending",
     })
   })
 
@@ -194,7 +194,7 @@ describe("S19 Customer.io acceptance: our consumers' logic against the mock", ()
   test("disable_message_retention keeps no body; unsubscribed profiles are suppressed unless send_to_unsubscribed", async () => {
     const { processor, outbox, admin } = harness()
     await processor({ disableMessageRetention: true })
-    expect((await outbox())[0]).toMatchObject({ messageData: null, links: [], state: "sent" })
+    expect((await outbox())[0]).toMatchObject({ messageData: null, links: [], state: "pending" })
     await admin("/reporting-events", {
       metric: "unsubscribed",
       userId: "42",
@@ -202,7 +202,7 @@ describe("S19 Customer.io acceptance: our consumers' logic against the mock", ()
     })
     await processor({ sendToUnsubscribed: false })
     await processor({ sendToUnsubscribed: true })
-    expect((await outbox()).map((d) => d.state)).toEqual(["sent", "suppressed", "sent"])
+    expect((await outbox()).map((d) => d.state)).toEqual(["pending", "suppressed", "pending"])
   })
 
   test("trigger-name validator: list, detail fallback, and a failing list", async () => {
@@ -408,6 +408,9 @@ describe("S19 Customer.io acceptance: our consumers' logic against the mock", ()
         "cdp_unavailable",
         "cdp_bad_request",
         "webhook_duplicate",
+        "send_drop_before_accept",
+        "send_drop_after_accept",
+        "webhook_reorder",
       ]),
     )
   })
