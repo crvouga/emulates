@@ -955,4 +955,168 @@ describe("Kill Bill tenants and notification callbacks", () => {
       await server.close()
     }
   })
+
+  const purchase = async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const json = async <T>(path: string, init?: RequestInit) =>
+      (await (await request(path, init)).json()) as T
+    const post = (path: string, body: unknown) =>
+      request(path, { method: "POST", body: JSON.stringify(body) })
+    const created = await post("/accounts", { externalKey: "invoice-pay", currency: "USD" })
+    const accountId = created.headers.get("location")?.split("/").at(-1) as string
+    const method = await post(`/accounts/${accountId}/paymentMethods?isDefault=true`, {
+      externalKey: "pm-invoice",
+      pluginName: "__EXTERNAL_PAYMENT__",
+    })
+    const paymentMethodId = method.headers.get("location")?.split("/").at(-1) as string
+    const charge = await post(`/invoices/charges/${accountId}`, [{ amount: 10, currency: "USD" }])
+    const invoiceId = charge.headers.get("location")?.split("/").at(-1) as string
+    const paid = await post(`/invoices/${invoiceId}/payments`, {
+      amount: 10,
+      currency: "USD",
+      paymentMethodId,
+      paymentExternalKey: "purchase-ext",
+      transactionExternalKey: "purchase-1",
+    })
+    const paymentId = paid.headers.get("location")?.split("/").at(-1) as string
+    return { server, request, json, post, invoiceId, paymentId, paymentMethodId }
+  }
+
+  test("reads an external purchase from GET /invoicePayments/{paymentId}", async () => {
+    const { server, json, paymentId, invoiceId } = await purchase()
+    try {
+      const payment = await json<{
+        paymentId: string
+        targetInvoiceId: string
+        purchasedAmount: number
+        refundedAmount: number
+      }>(`/invoicePayments/${paymentId}`)
+      expect(payment).toMatchObject({
+        paymentId,
+        targetInvoiceId: invoiceId,
+        purchasedAmount: 10,
+        refundedAmount: 0,
+      })
+      expect(
+        (await fetch(`${server.url}/1.0/kb/invoicePayments/missing`, { headers })).status,
+      ).toBe(404)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("refunds an invoice payment and marks the refund transaction successful", async () => {
+    const { server, json, post, paymentId } = await purchase()
+    try {
+      const refund = await post(`/invoicePayments/${paymentId}/refunds`, {
+        amount: 10,
+        currency: "USD",
+        transactionExternalKey: "refund-1",
+      })
+      expect(refund.status).toBe(201)
+      const payment = await json<{
+        refundedAmount: number
+        transactions: Array<{
+          transactionExternalKey: string
+          transactionType: string
+          status: string
+          amount: number
+        }>
+      }>(`/invoicePayments/${paymentId}`)
+      expect(payment.refundedAmount).toBe(10)
+      expect(
+        payment.transactions.find((row) => row.transactionExternalKey === "refund-1"),
+      ).toMatchObject({ transactionType: "REFUND", status: "SUCCESS", amount: 10 })
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("does not refund an invoice payment twice for the same transaction external key", async () => {
+    const { server, json, post, paymentId } = await purchase()
+    try {
+      await post(`/invoicePayments/${paymentId}/refunds`, {
+        amount: 10,
+        currency: "USD",
+        transactionExternalKey: "refund-1",
+      })
+      const again = await post(`/invoicePayments/${paymentId}/refunds`, {
+        amount: 10,
+        currency: "USD",
+        transactionExternalKey: "refund-1",
+      })
+      expect(again.status).toBe(400)
+      const payment = await json<{
+        refundedAmount: number
+        transactions: Array<{ transactionExternalKey: string; transactionType: string }>
+      }>(`/invoicePayments/${paymentId}`)
+      expect(payment.refundedAmount).toBe(10)
+      expect(
+        payment.transactions.filter((row) => row.transactionExternalKey === "refund-1"),
+      ).toHaveLength(1)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("rejects an invoice payment refund above the remaining purchased amount", async () => {
+    const { server, json, post, paymentId } = await purchase()
+    try {
+      const refund = await post(`/invoicePayments/${paymentId}/refunds`, {
+        amount: 10.01,
+        currency: "USD",
+        transactionExternalKey: "refund-too-much",
+      })
+      expect(refund.status).toBe(400)
+      expect(await json<{ refundedAmount: number }>(`/invoicePayments/${paymentId}`)).toMatchObject(
+        {
+          refundedAmount: 0,
+        },
+      )
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("records externalPayment=true as a credit on a new payment", async () => {
+    const { server, json, post, paymentId, paymentMethodId } = await purchase()
+    try {
+      const refund = await post(
+        `/invoicePayments/${paymentId}/refunds?externalPayment=true&paymentMethodId=${paymentMethodId}`,
+        { amount: 10, currency: "USD", transactionExternalKey: "refund-1" },
+      )
+      expect(refund.status).toBe(201)
+      const creditId = refund.headers.get("location")?.split("/").at(-1)
+      expect(creditId).toBeTruthy()
+      expect(creditId).not.toBe(paymentId)
+      expect(await json<{ refundedAmount: number }>(`/invoicePayments/${paymentId}`)).toMatchObject(
+        {
+          refundedAmount: 0,
+        },
+      )
+      const credit = await json<{
+        creditedAmount: number
+        transactions: Array<{
+          transactionExternalKey: string
+          transactionType: string
+          status: string
+        }>
+      }>(`/invoicePayments/${creditId}`)
+      expect(credit.creditedAmount).toBe(10)
+      expect(credit.transactions[0]).toMatchObject({
+        transactionExternalKey: "refund-1",
+        transactionType: "CREDIT",
+        status: "SUCCESS",
+      })
+      const again = await post(
+        `/invoicePayments/${paymentId}/refunds?externalPayment=true&paymentMethodId=${paymentMethodId}`,
+        { amount: 10, currency: "USD", transactionExternalKey: "refund-1" },
+      )
+      expect(again.status).toBe(400)
+    } finally {
+      await server.close()
+    }
+  })
 })

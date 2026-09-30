@@ -96,6 +96,8 @@ export type Payment = {
   creditedAmount: number
   currency: string
   paymentMethodId?: string
+  /** Credit created by an external invoice-payment refund, linked to the purchase. */
+  linkedPaymentId?: string
   transactions: Transaction[]
   paymentAttempts: Record<string, unknown>[]
 }

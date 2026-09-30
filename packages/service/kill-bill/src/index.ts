@@ -306,7 +306,7 @@ export class KillBillAPI {
     this.state.methods.insert(paymentMethodId, method)
     return method
   }
-  private invoicePayment(payment: Payment, targetInvoiceId: string) {
+  private invoicePayment(payment: Payment, targetInvoiceId: string | null = payment.invoiceId ?? null) {
     const { invoiceId: _invoiceId, ...fields } = payment
     return { ...fields, targetInvoiceId }
   }
@@ -557,6 +557,130 @@ export class KillBillAPI {
       tenantId,
     )
     return payment
+  }
+  private successfulTransaction(externalKey: string) {
+    for (const { value } of this.state.payments.list()) {
+      const transaction = value.transactions.find(
+        (row) => row.transactionExternalKey === externalKey && row.status === "SUCCESS",
+      )
+      if (transaction) return transaction
+    }
+    return undefined
+  }
+  private creditedAgainst(paymentId: string) {
+    return money(
+      this.state.payments
+        .list({ where: (payment) => payment.linkedPaymentId === paymentId })
+        .reduce((sum, row) => sum + row.value.creditedAmount, 0),
+    )
+  }
+  private refundableRemaining(payment: Payment) {
+    return money(
+      payment.purchasedAmount - payment.refundedAmount - this.creditedAgainst(payment.paymentId),
+    )
+  }
+  private reopenInvoice(payment: Payment, amount: number, adjust: boolean) {
+    if (!payment.invoiceId) return
+    const invoice = this.state.invoices.get(payment.invoiceId)
+    if (!invoice) return
+    const original = invoice.items[0]
+    const item: InvoiceItem | undefined = adjust
+      ? {
+          invoiceItemId: this.state.ids.next("item-", 32),
+          invoiceId: invoice.invoiceId,
+          accountId: invoice.accountId,
+          itemType: "ITEM_ADJ",
+          amount: -amount,
+          currency: invoice.currency,
+          description: "Refund adjustment",
+          startDate: isoDate(this.now()),
+          ...(original ? { linkedInvoiceItemId: original.invoiceItemId } : {}),
+        }
+      : undefined
+    this.state.invoices.insert(invoice.invoiceId, {
+      ...invoice,
+      balance: money(invoice.balance + amount),
+      refundAdj: money(invoice.refundAdj + (adjust ? amount : 0)),
+      items: item ? [...invoice.items, item] : invoice.items,
+    })
+  }
+  /** Kill Bill 0.24.10 `InvoicePaymentResource.createRefundWithAdjustments`. */
+  private async refundInvoicePayment(
+    request: Request,
+    url: URL,
+    payment: Payment,
+    body: Input,
+    tenantId: string,
+  ) {
+    const externalKey =
+      typeof body.transactionExternalKey === "string" ? body.transactionExternalKey : undefined
+    if (externalKey && this.successfulTransaction(externalKey))
+      return this.problem(
+        400,
+        "PAYMENT_ACTIVE_TRANSACTION_KEY_EXISTS",
+        `Successful transaction with external key ${externalKey} already exists`,
+      )
+    const amount =
+      body.amount === undefined || body.amount === null
+        ? this.refundableRemaining(payment)
+        : money(body.amount)
+    if (!Number.isFinite(amount) || amount <= 0 || amount > this.refundableRemaining(payment))
+      return this.problem(400, "REFUND_AMOUNT_TOO_HIGH", "Refund amount exceeds purchased amount")
+    const adjust = body.isAdjusted === true
+    // externalPayment records a credit on a new payment. It does not add a REFUND to this one.
+    if (url.searchParams.get("externalPayment") === "true") {
+      const requestedMethod = url.searchParams.get("paymentMethodId") ?? undefined
+      if (requestedMethod) {
+        const method = this.state.methods.get(requestedMethod)
+        if (!method)
+          return this.problem(404, "PAYMENT_NO_SUCH_PAYMENT_METHOD", "Payment method not found")
+        if (method.accountId !== payment.accountId)
+          return this.problem(
+            400,
+            "PAYMENT_METHOD_DIFFERENT_ACCOUNT_ID",
+            "Payment method belongs to another account",
+          )
+      }
+      const paymentMethodId = requestedMethod ?? payment.paymentMethodId
+      const paymentId = this.state.ids.next("pay-", 32)
+      const credit: Payment = {
+        paymentId,
+        accountId: payment.accountId,
+        paymentNumber: String(this.state.payments.list().length + 1),
+        paymentExternalKey:
+          typeof body.paymentExternalKey === "string"
+            ? body.paymentExternalKey
+            : this.state.ids.next("payment-key-", 24),
+        authAmount: 0,
+        capturedAmount: 0,
+        purchasedAmount: 0,
+        refundedAmount: 0,
+        creditedAmount: amount,
+        currency: typeof body.currency === "string" ? body.currency : payment.currency,
+        ...(paymentMethodId ? { paymentMethodId } : {}),
+        linkedPaymentId: payment.paymentId,
+        transactions: [],
+        paymentAttempts: [],
+      }
+      credit.transactions = [this.transaction(credit, "CREDIT", amount, "SUCCESS", externalKey)]
+      this.state.payments.insert(paymentId, credit)
+      this.reopenInvoice(payment, amount, adjust)
+      await this.emit("PAYMENT_SUCCESS", "PAYMENT", paymentId, payment.accountId, tenantId)
+      return this.empty(201, {
+        location: this.location(request, `/1.0/kb/invoicePayments/${paymentId}`),
+      })
+    }
+    const transaction = this.transaction(payment, "REFUND", amount, "SUCCESS", externalKey)
+    this.state.payments.insert(payment.paymentId, {
+      ...payment,
+      refundedAmount: money(payment.refundedAmount + amount),
+      transactions: [...payment.transactions, transaction],
+    })
+    this.reopenInvoice(payment, amount, adjust)
+    await this.emit("PAYMENT_REFUND", "PAYMENT", payment.paymentId, payment.accountId, tenantId)
+    return this.empty(201, {
+      location: this.location(request, `/1.0/kb/invoicePayments/${payment.paymentId}`),
+    })
   }
   private async billDue(tenantId: string) {
     const today = isoDate(this.now())
@@ -1149,6 +1273,13 @@ export class KillBillAPI {
             location: this.location(request, `/1.0/kb/payments/${payment.paymentId}`),
           })
         : this.problem(400, "PAYMENT_FAILED", "Payment failed")
+    }
+    if (parts[0] === "invoicePayments" && parts[1]) {
+      const payment = this.state.payments.get(parts[1])
+      if (!payment) return this.problem(404, "PAYMENT_DOES_NOT_EXIST", "Payment not found")
+      if (parts[2] === "refunds" && request.method === "POST")
+        return this.refundInvoicePayment(request, url, payment, body, tenantId)
+      if (request.method === "GET" && !parts[2]) return this.json(this.invoicePayment(payment))
     }
     if (parts[0] === "payments" && parts[1]) {
       const payment = this.state.payments.get(parts[1])
