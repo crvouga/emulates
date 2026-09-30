@@ -192,6 +192,7 @@ export const renderAdminDocument = (service: string): string => {
   dialog .field > input,
   dialog .field > select,
   dialog .field > textarea { width: 100%; }
+  .icon-btn, .btn, .btn-primary, .btn-quiet, .btn-danger, nav.side button { cursor: pointer; }
   .icon-btn, .btn, .btn-primary, .btn-quiet, .btn-danger {
     border-radius: 9px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line);
     background: var(--bg-elev);
@@ -199,6 +200,14 @@ export const renderAdminDocument = (service: string): string => {
   .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
   .btn-quiet { background: transparent; }
   .btn-danger { color: var(--err); }
+  /* Held after mouseup. Clearing an empty journal changes nothing on screen,
+     so the press itself has to stay visible. */
+  .icon-btn:active, .btn:active, .btn-quiet:active, .btn-danger:active, nav.side button:active,
+  .icon-btn.pressed, .btn.pressed, .btn-quiet.pressed, .btn-danger.pressed, nav.side button.pressed {
+    background: var(--bg-inset); border-color: var(--line-strong); color: var(--ink);
+  }
+  .btn-danger:active, .btn-danger.pressed { background: var(--err-soft); color: var(--err); }
+  .btn-primary:active, .btn-primary.pressed { filter: brightness(0.88); color: var(--accent-ink); }
   /* minmax(0, 1fr): a 1fr column will not shrink below its content, so a long
      record or the full nav row would widen the page past the viewport. */
   .layout {

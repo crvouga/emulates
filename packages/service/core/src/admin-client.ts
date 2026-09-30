@@ -728,6 +728,57 @@ export function bootAdmin(config: AdminBootConfig): void {
     if (render) await render()
   }
 
+  const delay = (ms: number): Promise<void> =>
+    new Promise((resolve) => {
+      window.setTimeout(resolve, ms)
+    })
+  /**
+   * Keep the button pressed through the request, then show `done` before the
+   * label returns. An action that leaves the screen unchanged still reads as finished.
+   */
+  const confirmAction = async (
+    button: HTMLButtonElement,
+    pending: string,
+    done: string,
+    work: () => Promise<unknown>,
+  ): Promise<void> => {
+    if (button.dataset.pending === "1") return
+    const label = button.textContent ?? ""
+    const width = button.offsetWidth
+    button.dataset.pending = "1"
+    button.classList.add("pressed")
+    button.setAttribute("aria-busy", "true")
+    button.style.minWidth = `${width}px`
+    button.textContent = pending
+    try {
+      await work()
+      button.textContent = done
+      await delay(1000)
+    } catch (error) {
+      showError(error)
+    } finally {
+      button.textContent = label
+      button.style.minWidth = ""
+      button.classList.remove("pressed")
+      button.removeAttribute("aria-busy")
+      delete button.dataset.pending
+    }
+  }
+  document.addEventListener("click", (event) => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const button = target.closest("button")
+    if (!(button instanceof HTMLButtonElement) || button.dataset.pending === "1") return
+    button.classList.add("pressed")
+    const token = String(Date.now())
+    button.dataset.press = token
+    window.setTimeout(() => {
+      if (button.dataset.press !== token || button.dataset.pending === "1") return
+      button.classList.remove("pressed")
+      delete button.dataset.press
+    }, 450)
+  })
+
   el("namespace", HTMLSelectElement).addEventListener("change", () => {
     state.namespace = el("namespace", HTMLSelectElement).value
     refresh().catch(showError)
@@ -738,7 +789,9 @@ export function bootAdmin(config: AdminBootConfig): void {
     refresh().catch(showError)
   })
   el("refresh", HTMLButtonElement).addEventListener("click", () => {
-    refresh().catch(showError)
+    confirmAction(el("refresh", HTMLButtonElement), "Refreshing...", "Updated", () =>
+      refresh(),
+    ).catch(showError)
   })
 
   el("collections", HTMLElement).addEventListener("click", (event) => {
@@ -875,14 +928,14 @@ export function bootAdmin(config: AdminBootConfig): void {
       .catch(showError)
   })
   el("fault-clear", HTMLButtonElement).addEventListener("click", () => {
-    api("DELETE", "/faults")
-      .then(() => renderFaults())
-      .catch(showError)
+    confirmAction(el("fault-clear", HTMLButtonElement), "Clearing...", "Cleared", () =>
+      api("DELETE", "/faults").then(() => renderFaults()),
+    ).catch(showError)
   })
   el("journal-clear", HTMLButtonElement).addEventListener("click", () => {
-    api("DELETE", "/requests")
-      .then(() => renderJournal())
-      .catch(showError)
+    confirmAction(el("journal-clear", HTMLButtonElement), "Clearing...", "Cleared", () =>
+      api("DELETE", "/requests").then(() => renderJournal()),
+    ).catch(showError)
   })
 
   el("route-list", HTMLElement).addEventListener("click", (event) => {

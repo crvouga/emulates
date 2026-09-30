@@ -258,6 +258,13 @@ describe("admin ui", () => {
     expect(adminClientSource.toString()).toContain("bootAdmin.name")
   })
 
+  test("clearing an empty journal tells you the click finished", () => {
+    const html = renderAdminDocument("notes")
+    expect(html).toContain("Clearing...")
+    expect(html).toContain("Cleared")
+    expect(html).toContain('classList.add("pressed")')
+  })
+
   test("the header chip is painted from a remote record, never from the bundle", async () => {
     const html = renderAdminDocument("stripe")
     expect(html).toContain(mountAdminBrand.toString())
