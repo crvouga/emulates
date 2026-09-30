@@ -753,6 +753,25 @@ export class KillBillAPI {
       location: this.location(request, `/1.0/kb/invoicePayments/${payment.paymentId}`),
     })
   }
+  /**
+   * Recurring price for this mock's single evergreen phase.
+   * Kill Bill 0.24 applies a priceOverrides entry only to the phase it names
+   * (`{planName}-evergreen`, or phaseType EVERGREEN when the name is omitted).
+   */
+  private recurringAmount(subscription: Subscription, plan: CatalogPlan) {
+    const evergreen = `${plan.name}-evergreen`
+    for (const raw of subscription.priceOverrides ?? []) {
+      if (!raw || typeof raw !== "object") continue
+      const phaseName = typeof raw.phaseName === "string" ? raw.phaseName : undefined
+      const phaseType = typeof raw.phaseType === "string" ? raw.phaseType.toUpperCase() : undefined
+      const matches =
+        phaseName === evergreen || (phaseName === undefined && phaseType === "EVERGREEN")
+      if (!matches || raw.recurringPrice === undefined || raw.recurringPrice === null) continue
+      const price = money(raw.recurringPrice)
+      if (Number.isFinite(price)) return price
+    }
+    return plan.amount
+  }
   private async billDue(tenantId: string) {
     const today = isoDate(this.now())
     for (const { value: subscription } of this.state.subscriptions.list({
@@ -772,7 +791,7 @@ export class KillBillAPI {
         [
           {
             itemType: "RECURRING",
-            amount: plan.amount,
+            amount: this.recurringAmount(subscription, plan),
             currency: plan.currency ?? "USD",
             description: subscription.planName,
             startDate: today,
