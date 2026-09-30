@@ -1,6 +1,9 @@
 import { createServer, type Server, type Socket } from "node:net"
-import { type Redis, RedisConnectionError } from "./engine.ts"
+import { createRedis, type Redis, RedisConnectionError } from "./engine.ts"
 import { asCommand, encodeReply, type Reply, RespParser } from "./protocol.ts"
+
+/** HTTP port for `serve --config`. The RESP socket binds an ephemeral port. */
+export const DEFAULT_PORT = 8827
 
 export interface ServeOptions {
   port?: number
@@ -103,4 +106,58 @@ function shutdown(server: Server, sockets: Set<Socket>, redis: Redis): Promise<v
   return new Promise((resolve) => {
     server.close(() => resolve())
   })
+}
+
+type FleetRuntime = {
+  fetch(request: Request): Promise<Response>
+  respPort: number
+  close(): Promise<void>
+}
+
+type HttpListening = {
+  close(): Promise<void>
+}
+
+let attachClose: ((http: HttpListening) => void) | undefined
+
+const isHealth = (pathname: string): boolean => {
+  const path = pathname.replace(/\/+$/, "") || "/"
+  return path === "/health" || /^\/ns\/[^/]+\/health$/.test(path)
+}
+
+/**
+ * Fleet entry for `serve --config`. HTTP `GET /health` reports `service: redis`.
+ * RESP listens on an ephemeral port named in the startup banner.
+ */
+export const serveTarget = {
+  name: "redis",
+  defaultPort: DEFAULT_PORT,
+  async create(): Promise<FleetRuntime> {
+    const redis = createRedis()
+    const tcp = await serve(redis, { host: "127.0.0.1", port: 0 })
+    const runtime: FleetRuntime = {
+      respPort: tcp.port,
+      close: () => tcp.close(),
+      fetch: async (request: Request) => {
+        if (isHealth(new URL(request.url).pathname)) {
+          return Response.json({ status: "ok", service: "redis" })
+        }
+        return new Response("not found", { status: 404 })
+      },
+    }
+    attachClose = (http) => {
+      const closeHttp = http.close.bind(http)
+      http.close = async () => {
+        await runtime.close()
+        await closeHttp()
+      }
+    }
+    return runtime
+  },
+  listening(http: HttpListening) {
+    attachClose?.(http)
+  },
+  banner(runtime: FleetRuntime) {
+    return [`resp: redis://127.0.0.1:${runtime.respPort}`]
+  },
 }

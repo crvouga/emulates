@@ -1,13 +1,32 @@
 import { afterEach, expect, test } from "bun:test"
 import { Redis } from "ioredis"
 import { createRedis } from "../src/index.ts"
-import { serve } from "../src/server.ts"
+import { serve, serveTarget } from "../src/server.ts"
 
 let closeServer: (() => Promise<void>) | undefined
 
 afterEach(async () => {
   await closeServer?.()
   closeServer = undefined
+})
+
+test("serveTarget answers /health and speaks RESP on the banner port", async () => {
+  const runtime = await serveTarget.create()
+  closeServer = () => runtime.close()
+  const health = await runtime.fetch(new Request("http://127.0.0.1/health"))
+  expect(health.status).toBe(200)
+  expect(await health.json()).toEqual({ status: "ok", service: "redis" })
+  const client = new Redis({
+    host: "127.0.0.1",
+    port: runtime.respPort,
+    lazyConnect: true,
+    retryStrategy: () => null,
+    maxRetriesPerRequest: 1,
+    connectTimeout: 2_000,
+  })
+  await client.connect()
+  expect(await client.ping()).toBe("PONG")
+  client.disconnect()
 })
 
 test("ioredis 5.11.1 speaks to the TCP server", async () => {
