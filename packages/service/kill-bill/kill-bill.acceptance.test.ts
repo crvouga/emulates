@@ -197,7 +197,6 @@ describe("Kill Bill REST adapter", () => {
       await server.close()
     }
   })
-
   test("GET /1.0/kb/catalog returns a catalog-version array", async () => {
     const clock = createClock(() => Date.parse("2020-01-02T03:04:05.000Z"))
     const mock = createRuntime({
@@ -258,5 +257,143 @@ describe("Kill Bill REST adapter", () => {
       ],
       priceLists: [{ name: "DEFAULT", plans: ["example-monthly"] }],
     })
+  })
+
+  test("stores plans from a Kill Bill catalog XML document", async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const plans = async () => {
+      const versions = (await (await request("/catalog")).json()) as Array<{
+        products: Array<{
+          plans: Array<{
+            name: string
+            billingPeriod: string
+            phases: Array<{ prices: Array<{ currency?: string; value: number }> }>
+          }>
+        }>
+      }>
+      return (versions.at(-1)?.products ?? []).flatMap((product) =>
+        product.plans.map((plan) => ({
+          name: plan.name,
+          amount: plan.phases[0]?.prices[0]?.value,
+          currency: plan.phases[0]?.prices[0]?.currency,
+          billingPeriod: plan.billingPeriod,
+        })),
+      )
+    }
+    const catalogXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalog>
+  <effectiveDate>2026-01-01T00:00:00Z</effectiveDate>
+  <products>
+    <product name="Example">
+      <plans>
+        <plan name="example-monthly">
+          <finalPhase type="EVERGREEN">
+            <duration><unit>UNLIMITED</unit></duration>
+            <recurring>
+              <billingPeriod>MONTHLY</billingPeriod>
+              <recurringPrice>
+                <price><currency>USD</currency><value>10.00</value></price>
+              </recurringPrice>
+            </recurring>
+          </finalPhase>
+        </plan>
+      </plans>
+    </product>
+  </products>
+</catalog>`
+    const versionedXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalog>
+  <effectiveDate>2026-02-01T00:00:00+00:00</effectiveDate>
+  <catalogName>Example</catalogName>
+  <currencies><currency>USD</currency><currency>GBP</currency></currencies>
+  <products>
+    <product name="Example"><category>BASE</category></product>
+  </products>
+  <rules></rules>
+  <plans>
+    <plan name="sibling-monthly">
+      <product>Example</product>
+      <initialPhases>
+        <phase type="TRIAL">
+          <duration><unit>DAYS</unit><number>14</number></duration>
+          <recurring>
+            <billingPeriod>DAILY</billingPeriod>
+            <recurringPrice>
+              <price><currency>USD</currency><value>0.00</value></price>
+            </recurringPrice>
+          </recurring>
+        </phase>
+      </initialPhases>
+      <finalPhase type="EVERGREEN">
+        <duration><unit>UNLIMITED</unit></duration>
+        <recurring>
+          <billingPeriod>ANNUAL</billingPeriod>
+          <recurringPrice>
+            <price><currency>GBP</currency><value>5.00</value></price>
+            <price><currency>USD</currency><value>12.50</value></price>
+          </recurringPrice>
+        </recurring>
+      </finalPhase>
+    </plan>
+  </plans>
+  <priceLists>
+    <defaultPriceList name="DEFAULT">
+      <plans><plan>sibling-monthly</plan></plans>
+    </defaultPriceList>
+  </priceLists>
+</catalog>`
+    try {
+      const posted = await request("/catalog/xml", {
+        method: "POST",
+        headers: { "content-type": "text/xml" },
+        body: catalogXml,
+      })
+      expect(posted.status).toBe(201)
+      expect(await plans()).toContainEqual({
+        name: "example-monthly",
+        amount: 10,
+        currency: "USD",
+        billingPeriod: "MONTHLY",
+      })
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "catalog-acct", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      expect(
+        (
+          await request("/subscriptions", {
+            method: "POST",
+            body: JSON.stringify({ accountId, planName: "example-monthly" }),
+          })
+        ).status,
+      ).toBe(201)
+      expect(
+        (
+          await request("/catalog/xml", {
+            method: "POST",
+            headers: { "content-type": "text/xml" },
+            body: versionedXml,
+          })
+        ).status,
+      ).toBe(201)
+      const stored = await plans()
+      expect(stored).toContainEqual({
+        name: "sibling-monthly",
+        amount: 12.5,
+        currency: "USD",
+        billingPeriod: "ANNUAL",
+      })
+      expect(stored.some((plan) => plan.name === "sibling-monthly" && plan.amount === 0)).toBe(
+        false,
+      )
+      expect(
+        stored.some((plan) => plan.name === "sibling-monthly" && plan.billingPeriod === "DAILY"),
+      ).toBe(false)
+    } finally {
+      await server.close()
+    }
   })
 })

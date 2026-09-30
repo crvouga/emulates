@@ -56,6 +56,63 @@ const billingPeriod = (intervalDays?: number) => {
   if (intervalDays !== undefined && intervalDays >= 365) return "ANNUAL"
   return "MONTHLY"
 }
+// Mock billing advances by intervalDays, so month-based periods use a 30-day month.
+const billingPeriodDays: Record<string, number> = {
+  DAILY: 1,
+  WEEKLY: 7,
+  BIWEEKLY: 14,
+  THIRTY_DAYS: 30,
+  THIRTY_ONE_DAYS: 31,
+  SIXTY_DAYS: 60,
+  NINETY_DAYS: 90,
+  MONTHLY: 30,
+  BIMESTRIAL: 60,
+  QUARTERLY: 90,
+  TRIANNUAL: 120,
+  BIANNUAL: 180,
+  ANNUAL: 365,
+  SESQUIENNIAL: 540,
+  BIENNIAL: 730,
+  TRIENNIAL: 1095,
+}
+const recurringPrice = (phase: string): { amount: number; currency?: string } => {
+  const blocks = [...phase.matchAll(/<recurringPrice>\s*([\s\S]*?)\s*<\/recurringPrice>/gi)]
+  const block = blocks.at(-1)?.[1] ?? ""
+  const prices = [...block.matchAll(/<price>\s*([\s\S]*?)\s*<\/price>/gi)].flatMap((match) => {
+    const inner = match[1] ?? ""
+    const value = /<value>\s*([\d.]+)\s*<\/value>/i.exec(inner)?.[1]
+    if (value === undefined) return []
+    const currency = /<currency>\s*([A-Za-z]+)\s*<\/currency>/i.exec(inner)?.[1]?.toUpperCase()
+    return [{ amount: money(value), ...(currency ? { currency } : {}) }]
+  })
+  // CatalogPlan stores one price. Prefer USD, then the first price in the final phase.
+  return prices.find((price) => price.currency === "USD") ?? prices[0] ?? { amount: 0 }
+}
+const catalogPlans = (xml: string): CatalogPlan[] => {
+  const plans: CatalogPlan[] = []
+  for (const match of xml.matchAll(/<plan\b([^>]*)>/gi)) {
+    const attrs = match[1] ?? ""
+    const name = /\bname=["']([^"']+)["']/.exec(attrs)?.[1]
+    if (!name) continue
+    const selfClosing = /\/\s*$/.test(attrs)
+    const start = (match.index ?? 0) + match[0].length
+    const end = selfClosing ? start : xml.indexOf("</plan>", start)
+    const body = selfClosing || end === -1 ? "" : xml.slice(start, end)
+    const phase = /<finalPhase\b[^>]*>([\s\S]*?)<\/finalPhase>/i.exec(body)?.[1] ?? body
+    const amountAttr = /\bamount=["']([\d.]+)["']/.exec(attrs)?.[1]
+    const priced: { amount: number; currency?: string } =
+      amountAttr === undefined ? recurringPrice(phase) : { amount: money(amountAttr) }
+    const period = /<billingPeriod>\s*([A-Za-z0-9_]+)\s*<\/billingPeriod>/i.exec(phase)?.[1]
+    const intervalDays = period ? billingPeriodDays[period.toUpperCase()] : undefined
+    plans.push({
+      name,
+      amount: priced.amount,
+      ...(priced.currency ? { currency: priced.currency } : {}),
+      ...(intervalDays !== undefined ? { intervalDays } : {}),
+    })
+  }
+  return plans
+}
 
 export class KillBillAPI {
   readonly state: KillBillState
@@ -467,13 +524,7 @@ export class KillBillAPI {
           })
       }
       if (typeof body.raw === "string")
-        for (const match of body.raw.matchAll(
-          /<plan[^>]+name=["']([^"']+)["'][^>]+amount=["']([\d.]+)["']/g,
-        ))
-          this.state.plans.insert(match[1] as string, {
-            name: match[1] as string,
-            amount: money(match[2]),
-          })
+        for (const plan of catalogPlans(body.raw)) this.state.plans.insert(plan.name, plan)
       return this.empty(201)
     }
     if (parts[0] === "accounts" && parts.length === 1) {
