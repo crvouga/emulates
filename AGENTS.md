@@ -34,6 +34,7 @@ that queue, by hand or unattended on GitHub as you (`bun github:resolve-issues`,
 issue to a green PR). Only public third-party vendor APIs get a mock: decline requests to mock a company's
 own internal services, and keep fixtures and test data free of any real customer's name.
 
-`README.md` and `llms.txt` are generated: edit their sources (`sites/docs/src/lib/content.ts`, each
-service's `package.json`, `docs/*.md`), then run `bun run readme:sync` and `bun run llms:sync`.
-`bun run check` fails when either is stale.
+`README.md` is the overview, generated from `sites/docs/src/lib/content.ts` and `docs/*.md`
+(`bun run readme:sync`). The catalog of mocks stays on the docs site; `llms.txt` indexes it
+from each service's `package.json` (`bun run llms:sync`). `bun run check` fails when either
+file is stale.

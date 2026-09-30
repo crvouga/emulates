@@ -32,6 +32,8 @@ export const IDENTITY = {
   mark: `${HOME.replace("https://github.com/", "https://raw.githubusercontent.com/")}/main/${MARK_REPO_PATH}`,
   guide: `${HOME}/blob/main/docs/DESIGN.md`,
   home: HOME,
+  /** Public docs site, including the service catalog at `/services`. */
+  docs: "https://mockingbird.chrisvouga.dev",
 }
 
 /** Opening line of every published package README. `pack:check` requires it verbatim. */
