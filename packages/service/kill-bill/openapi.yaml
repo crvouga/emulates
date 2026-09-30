@@ -76,3 +76,24 @@ paths:
         "204": { description: Invoice voided }
         "400": { description: Invoice is paid or already void }
         "404": { description: Invoice not found }
+  /1.0/kb/accounts/{accountId}/overdue:
+    parameters: [{ name: accountId, in: path, required: true, schema: { type: string } }]
+    get:
+      operationId: GetAccountOverdue
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
+      responses:
+        "200":
+          description: Account overdue state (Kill Bill 0.24.10 OverdueStateJson)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, isClearState]
+                properties:
+                  name: { type: string }
+                  externalMessage: { type: string }
+                  isDisableEntitlementAndChangesBlocked: { type: boolean }
+                  isBlockChanges: { type: boolean }
+                  isClearState: { type: boolean }
+                  reevaluationIntervalDays: { type: ["integer", "null"] }
+        "404": { description: Account not found }

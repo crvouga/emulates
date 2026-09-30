@@ -154,6 +154,11 @@ const clockJson = (ms: number, timeZone: string) => ({
   localDate: localDateInZone(ms, timeZone),
 })
 
+/** Kill Bill 0.24.10 `OverdueWrapper.CLEAR_STATE_NAME`. Not a name from overdue.xml. */
+const CLEAR_OVERDUE_STATE = "__KILLBILL__CLEAR__OVERDUE_STATE__"
+/** Default `timeSinceEarliestUnpaidInvoiceEqualsOrExceeds` for the single non-clear state. */
+const OVERDUE_UNPAID_INVOICE_DAYS = 1
+
 export class KillBillAPI {
   readonly state: KillBillState
   private readonly sqlite
@@ -598,6 +603,32 @@ export class KillBillAPI {
     )
     return payment
   }
+  private overdueState(accountId: string) {
+    const earliest = this.state.invoices
+      .list({
+        where: (invoice) =>
+          invoice.accountId === accountId && invoice.status !== "VOID" && invoice.balance > 0,
+      })
+      .map(({ value }) => value.invoiceDate)
+      .sort()[0]
+    const ageDays =
+      earliest === undefined
+        ? undefined
+        : Math.round(
+            (Date.parse(`${isoDate(this.now())}T00:00:00.000Z`) -
+              Date.parse(`${earliest}T00:00:00.000Z`)) /
+              86_400_000,
+          )
+    const matched = ageDays !== undefined && ageDays >= OVERDUE_UNPAID_INVOICE_DAYS
+    return {
+      name: matched ? "OD1" : CLEAR_OVERDUE_STATE,
+      externalMessage: "",
+      isDisableEntitlementAndChangesBlocked: false,
+      isBlockChanges: false,
+      isClearState: !matched,
+      reevaluationIntervalDays: null,
+    }
+  }
   private successfulTransaction(externalKey: string) {
     for (const { value } of this.state.payments.list()) {
       const transaction = value.transactions.find(
@@ -1019,6 +1050,11 @@ export class KillBillAPI {
         : this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
     }
     const accountId = parts[0] === "accounts" ? (parts[1] as string) : undefined
+    if (accountId && parts[2] === "overdue" && parts.length === 3 && request.method === "GET") {
+      if (!this.account(accountId, tenantId))
+        return this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
+      return this.json(this.overdueState(accountId))
+    }
     if (accountId && parts[2] && !this.account(accountId, tenantId))
       return this.problem(404, "ACCOUNT_DOES_NOT_EXIST", "Account not found")
     if (accountId && parts[2] === "paymentMethods") {

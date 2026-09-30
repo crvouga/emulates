@@ -1381,4 +1381,94 @@ describe("GET /1.0/kb/test/queues", () => {
       await server.close()
     }
   }, 10_000)
+
+  test("returns the clear overdue state when an account has no unpaid invoice", async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "overdue-clear", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const overdue = (await (await request(`/accounts/${accountId}/overdue`)).json()) as {
+        name: string
+        isClearState: boolean
+      }
+      expect(overdue).toEqual({
+        name: "__KILLBILL__CLEAR__OVERDUE_STATE__",
+        externalMessage: "",
+        isDisableEntitlementAndChangesBlocked: false,
+        isBlockChanges: false,
+        isClearState: true,
+        reevaluationIntervalDays: null,
+      })
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("returns OD1 once an unpaid invoice is past the one-day overdue condition", async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const json = async <T>(path: string, init?: RequestInit) =>
+      (await (await request(path, init)).json()) as T
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "overdue-od1", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const charge = await request(`/invoices/charges/${accountId}`, {
+        method: "POST",
+        body: JSON.stringify([{ amount: 12, currency: "USD", description: "Unpaid" }]),
+      })
+      const invoiceId = charge.headers.get("location")?.split("/").at(-1) as string
+      const invoice = await json<{ invoiceDate: string; balance: number }>(`/invoices/${invoiceId}`)
+      expect(invoice.balance).toBe(12)
+      expect(
+        await json<{ name: string; isClearState: boolean }>(`/accounts/${accountId}/overdue`),
+      ).toMatchObject({
+        name: "__KILLBILL__CLEAR__OVERDUE_STATE__",
+        isClearState: true,
+      })
+      const due = new Date(
+        Date.parse(`${invoice.invoiceDate}T00:00:00.000Z`) + 86_400_000,
+      ).toISOString()
+      expect(
+        (
+          await request(`/test/clock?requestedDate=${encodeURIComponent(due)}`, {
+            method: "PUT",
+            body: "{}",
+          })
+        ).status,
+      ).toBe(200)
+      expect(
+        await json<{ name: string; isClearState: boolean }>(`/accounts/${accountId}/overdue`),
+      ).toEqual({
+        name: "OD1",
+        externalMessage: "",
+        isDisableEntitlementAndChangesBlocked: false,
+        isBlockChanges: false,
+        isClearState: false,
+        reevaluationIntervalDays: null,
+      })
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("returns 404 when the overdue account id is unknown", async () => {
+    const server = await createServer()
+    try {
+      const response = await fetch(`${server.url}/1.0/kb/accounts/missing-account/overdue`, {
+        headers,
+      })
+      expect(response.status).toBe(404)
+    } finally {
+      await server.close()
+    }
+  })
 })
