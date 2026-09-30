@@ -73,7 +73,9 @@ const body = [
   "",
   '<div align="center">',
   "",
-  `<img src="${IDENTITY.mark}" width="88" height="88" alt="">`,
+  // Width only. An <img> with both width and height gets GitHub's muted rounded
+  // square (js-gh-image-fallback), which shows through the mark's transparent corners.
+  `<img src="${IDENTITY.mark}" width="88" alt="">`,
   "",
   `<h1>${IDENTITY.name}</h1>`,
   "",
