@@ -1221,3 +1221,164 @@ describe("Kill Bill tenants and notification callbacks", () => {
     }
   })
 })
+
+describe("GET /1.0/kb/test/queues", () => {
+  const open = async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const seed = (collection: string, id: string, value: Record<string, unknown>) =>
+      fetch(`${server.url}/__admin/state/${collection}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id, value }),
+      })
+    return { server, request, seed }
+  }
+
+  test("returns 200 when the tenant has no due notification or bus event", async () => {
+    const { server, request } = await open()
+    try {
+      const started = performance.now()
+      const idle = await request("/test/queues?timeoutSec=1")
+      expect(performance.now() - started).toBeLessThan(500)
+      expect(idle.status).toBe(200)
+      expect(await idle.text()).toBe("")
+
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "queues-acct", currency: "USD" }),
+      })
+      expect(created.status).toBe(201)
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      expect(
+        (
+          await request("/subscriptions", {
+            method: "POST",
+            body: JSON.stringify({
+              accountId,
+              externalKey: "queues-sub",
+              planName: "standard-monthly",
+            }),
+          })
+        ).status,
+      ).toBe(201)
+      const afterWrite = performance.now()
+      const caughtUp = await request("/test/queues")
+      expect(performance.now() - afterWrite).toBeLessThan(500)
+      expect(caughtUp.status).toBe(200)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("returns 412 after timeoutSec when a notification stays queued", async () => {
+    const { server, request, seed } = await open()
+    try {
+      expect(
+        (
+          await seed("kb_notifications", "stuck-notification", {
+            id: "stuck-notification",
+            effectiveDate: "2000-01-01T00:00:00.000Z",
+            kind: "TEST",
+          })
+        ).status,
+      ).toBe(201)
+      const started = performance.now()
+      const waiting = await request("/test/queues?timeoutSec=1")
+      const elapsed = performance.now() - started
+      expect(waiting.status).toBe(412)
+      expect(await waiting.text()).toBe("")
+      expect(elapsed).toBeGreaterThanOrEqual(900)
+      expect(elapsed).toBeLessThan(2500)
+    } finally {
+      await server.close()
+    }
+  }, 10_000)
+
+  test("a future end-of-term plan change does not keep queues at 412", async () => {
+    const { server, request } = await open()
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "eot-acct", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      expect(
+        (
+          await request("/subscriptions", {
+            method: "POST",
+            body: JSON.stringify({
+              accountId,
+              externalKey: "eot-sub",
+              planName: "standard-monthly",
+            }),
+          })
+        ).status,
+      ).toBe(201)
+      const bundles = (await (await request(`/accounts/${accountId}/bundles`)).json()) as Array<{
+        subscriptions: Array<{ subscriptionId: string }>
+      }>
+      const subscriptionId = bundles[0]?.subscriptions[0]?.subscriptionId as string
+      expect(
+        (
+          await request("/catalog", {
+            method: "POST",
+            body: JSON.stringify({
+              plans: [{ name: "plus-monthly", amount: 125, currency: "USD", intervalDays: 30 }],
+            }),
+          })
+        ).status,
+      ).toBe(201)
+      expect(
+        (
+          await request(`/subscriptions/${subscriptionId}?billingPolicy=END_OF_TERM`, {
+            method: "PUT",
+            body: JSON.stringify({ planName: "plus-monthly" }),
+          })
+        ).status,
+      ).toBe(204)
+      expect(
+        (await (await request(`/subscriptions/${subscriptionId}`)).json()) as {
+          pendingChangePlan?: string
+        },
+      ).toMatchObject({ pendingChangePlan: "plus-monthly" })
+      const queued = (await (
+        await fetch(`${server.url}/__admin/state/kb_notifications`)
+      ).json()) as { records: Array<{ value: { effectiveDate: string } }> }
+      const clock = (await (await request("/test/clock")).json()) as { utc: string }
+      expect(queued.records).toHaveLength(1)
+      expect(Date.parse(queued.records[0]?.value.effectiveDate ?? "")).toBeGreaterThan(
+        Date.parse(clock.utc),
+      )
+      const started = performance.now()
+      const response = await request("/test/queues?timeoutSec=1")
+      expect(performance.now() - started).toBeLessThan(500)
+      expect(response.status).toBe(200)
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("returns 412 after timeoutSec when a bus event stays queued", async () => {
+    const { server, request, seed } = await open()
+    try {
+      expect(
+        (
+          await seed("kb_bus_events", "stuck-bus", {
+            id: "stuck-bus",
+            eventType: "INVOICE_CREATION",
+          })
+        ).status,
+      ).toBe(201)
+      const started = performance.now()
+      const waiting = await request("/test/queues?timeoutSec=1")
+      const elapsed = performance.now() - started
+      expect(waiting.status).toBe(412)
+      expect(elapsed).toBeGreaterThanOrEqual(900)
+      expect(elapsed).toBeLessThan(2500)
+    } finally {
+      await server.close()
+    }
+  }, 10_000)
+})

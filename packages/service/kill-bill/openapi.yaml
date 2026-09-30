@@ -40,6 +40,15 @@ paths:
       operationId: DeleteNotificationCallbacks
       x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       responses: { "204": { description: Callbacks deleted } }
+  /1.0/kb/test/queues:
+    get:
+      operationId: WaitForQueues
+      parameters:
+        - { name: timeoutSec, in: query, required: false, schema: { type: integer, default: 5 } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
+      responses:
+        "200": { description: Tenant bus and due notifications are caught up }
+        "412": { description: Timeout elapsed while notifications or bus events are still queued }
   /1.0/kb/{resource}:
     parameters: [{ name: resource, in: path, required: true, schema: { type: string } }]
     get: { operationId: ReadResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }, responses: { "200": { description: Resource response } } }

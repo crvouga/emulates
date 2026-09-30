@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **12**
-- supported by the mock: **12**
-- parity enabled: **12**
+- operations in spec: **13**
+- supported by the mock: **13**
+- parity enabled: **13**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -13,6 +13,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `GetNotificationCallbacks` | `GET /1.0/kb/tenants/registerNotificationCallback` | ✅ supported | ✅ |  |
 | `RegisterNotificationCallback` | `POST /1.0/kb/tenants/registerNotificationCallback` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `DeleteNotificationCallbacks` | `DELETE /1.0/kb/tenants/registerNotificationCallback` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `WaitForQueues` | `GET /1.0/kb/test/queues` | ✅ supported | ✅ |  |
 | `ReadResource` | `GET /1.0/kb/{resource}` | ✅ supported | ✅ |  |
 | `CreateResource` | `POST /1.0/kb/{resource}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetResource` | `GET /1.0/kb/{resource}/{id}` | ✅ supported | ✅ |  |

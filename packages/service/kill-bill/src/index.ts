@@ -25,6 +25,8 @@ export type {
   InvoiceItem,
   Payment,
   PaymentMethod,
+  QueuedBusEvent,
+  QueuedNotification,
   Subscription,
   Tenant,
   Transaction,
@@ -750,6 +752,7 @@ export class KillBillAPI {
         "Recurring charge",
       )
       const nextDate = isoDate(this.now() + (plan.intervalDays ?? 30) * 86_400_000)
+      this.clearEntitlement(subscription.subscriptionId)
       this.state.subscriptions.insert(subscription.subscriptionId, {
         ...subscription,
         chargedThroughDate: nextDate,
@@ -766,6 +769,45 @@ export class KillBillAPI {
           method.paymentMethodId,
         )
     }
+  }
+  private entitlementNotificationId(subscriptionId: string) {
+    return `entitlement:${subscriptionId}`
+  }
+  private scheduleEntitlement(subscription: Subscription) {
+    const day = subscription.chargedThroughDate ?? subscription.startDate
+    const id = this.entitlementNotificationId(subscription.subscriptionId)
+    this.state.notifications.insert(id, {
+      id,
+      effectiveDate: `${day}T00:00:00.000Z`,
+      kind: "ENTITLEMENT_CHANGE",
+    })
+  }
+  private clearEntitlement(subscriptionId: string) {
+    this.state.notifications.delete(this.entitlementNotificationId(subscriptionId))
+  }
+  // Kill Bill 0.24.10 TestResource counts a notification only when its effective
+  // date is not after the clock. Bus events have no date filter.
+  private queuesIdle() {
+    const now = this.now()
+    const due = this.state.notifications.list({
+      where: (notification) => {
+        const effective = Date.parse(notification.effectiveDate)
+        return Number.isFinite(effective) && effective <= now
+      },
+    })
+    return due.length === 0 && this.state.busEvents.count() === 0
+  }
+  private async waitForQueues(timeoutSec: number) {
+    let triesLeft = timeoutSec
+    let idle = false
+    while (!idle && triesLeft > 0) {
+      idle = this.queuesIdle()
+      if (!idle) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        triesLeft -= 1
+      }
+    }
+    return idle
   }
   private async body(request: Request) {
     const text = await request.text()
@@ -881,6 +923,23 @@ export class KillBillAPI {
       this.state.settings.insert("settings", { ...settings, clockMs: parsed })
       await this.billDue(tenantId)
       return this.json(clockJson(parsed, zone))
+    }
+    if (parts[0] === "test" && parts[1] === "queues" && parts.length === 2) {
+      if (request.method !== "GET")
+        return this.problem(
+          404,
+          "NOT_FOUND",
+          `No Kill Bill route for ${request.method} ${url.pathname}`,
+        )
+      const raw = url.searchParams.get("timeoutSec")
+      if (raw !== null && !/^-?\d+$/.test(raw))
+        return this.problem(
+          400,
+          "INVALID_TIMEOUT",
+          "timeoutSec must be an integer number of seconds",
+        )
+      const timeoutSec = raw === null ? 5 : Number(raw)
+      return this.empty((await this.waitForQueues(timeoutSec)) ? 200 : 412)
     }
     if (parts[0] === "catalog") {
       if (request.method === "GET")
@@ -1132,6 +1191,7 @@ export class KillBillAPI {
         const next = { ...subscription }
         delete next.pendingChangePlan
         this.state.subscriptions.insert(subscription.subscriptionId, next)
+        this.clearEntitlement(subscription.subscriptionId)
         return this.empty()
       }
       if (request.method === "GET") return this.json(subscription)
@@ -1156,12 +1216,12 @@ export class KillBillAPI {
         const planName = typeof body.planName === "string" ? body.planName : ""
         if (!this.plan(planName)) return this.problem(400, "INVALID_PLAN", "Unknown plan")
         const immediate = (url.searchParams.get("billingPolicy") ?? "IMMEDIATE") === "IMMEDIATE"
-        this.state.subscriptions.insert(
-          subscription.subscriptionId,
-          immediate
-            ? { ...subscription, planName }
-            : { ...subscription, pendingChangePlan: planName },
-        )
+        const next = immediate
+          ? { ...subscription, planName }
+          : { ...subscription, pendingChangePlan: planName }
+        this.state.subscriptions.insert(subscription.subscriptionId, next)
+        if (immediate) this.clearEntitlement(subscription.subscriptionId)
+        else this.scheduleEntitlement(next)
         await this.emit(
           "SUBSCRIPTION_CHANGE",
           "SUBSCRIPTION",

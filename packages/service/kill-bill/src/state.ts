@@ -102,6 +102,15 @@ export type Payment = {
   paymentAttempts: Record<string, unknown>[]
 }
 export type CatalogPlan = { name: string; amount: number; currency?: string; intervalDays?: number }
+export type QueuedNotification = {
+  id: string
+  effectiveDate: string
+  kind: string
+}
+export type QueuedBusEvent = {
+  id: string
+  eventType: string
+}
 export type Audit = {
   id: string
   objectType: string
@@ -121,6 +130,8 @@ export class KillBillState {
   readonly tags: Collection<{ objectId: string; tagDefinitionId: string }>
   readonly plans: Collection<CatalogPlan>
   readonly audits: Collection<Audit>
+  readonly notifications: Collection<QueuedNotification>
+  readonly busEvents: Collection<QueuedBusEvent>
   readonly settings: Collection<{ clockMs?: number; declineNext: boolean; pendingNext: boolean }>
   readonly tenants: Collection<Tenant>
   readonly ids: IdSequence
@@ -134,6 +145,8 @@ export class KillBillState {
     this.tags = new Collection(sqlite, namespace, "kb_tags")
     this.plans = new Collection(sqlite, namespace, "kb_plans")
     this.audits = new Collection(sqlite, namespace, "kb_audits")
+    this.notifications = new Collection(sqlite, namespace, "kb_notifications")
+    this.busEvents = new Collection(sqlite, namespace, "kb_bus_events")
     this.settings = new Collection(sqlite, namespace, "kb_settings")
     this.tenants = new Collection(sqlite, namespace, "kb_tenants")
     this.ids = new IdSequence(sqlite, namespace, "killbill")
