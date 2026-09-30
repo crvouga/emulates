@@ -511,7 +511,8 @@ export interface CreateIndexStmt {
     expr: Expr;
     dir: "asc" | "desc" | null;
     nulls: "first" | "last" | null;
-    opclass: string | null;
+    /** Operator class name, possibly schema-qualified (`public.gin_trgm_ops`). */
+    opclass: string[] | null;
   }>;
   readonly include: string[];
   readonly where: Expr | null;

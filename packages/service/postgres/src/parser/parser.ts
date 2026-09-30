@@ -2042,14 +2042,18 @@ export class Parser {
     const columns: CreateIndexStmt["columns"][number][] = [];
     do {
       const expr = this.parseExpr();
-      let opclass: string | null = null;
+      let opclass: string[] | null = null;
       const t = this.peek();
       if (
         t.type === "ident" &&
         !RESERVED.has(t.value) &&
         !["asc", "desc", "nulls", "with", "where", "include"].includes(t.value)
       ) {
-        opclass = this.ident();
+        opclass = [this.ident()];
+        while (this.atPunct(".")) {
+          this.pos++;
+          opclass.push(this.ident(true));
+        }
       }
       let dir: "asc" | "desc" | null = null;
       if (this.eatKw("asc")) dir = "asc";

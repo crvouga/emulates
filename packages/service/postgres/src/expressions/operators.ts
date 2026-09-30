@@ -1,4 +1,5 @@
 import { pgError } from "../errors/error.ts";
+import { evalTrgmWordSimilar } from "../functions/pgtrgm.ts";
 import { tsqueryCombine, tsqueryNegate, tsvectorConcat, tsvectorMatches } from "../tsearch/tsearch.ts";
 import { castTo, isTextType, unifyTypes } from "../types/cast.ts";
 import { datumCompare, datumEquals } from "../types/compare.ts";
@@ -236,6 +237,8 @@ export function evalBinary(ctx: EngineCtx, op: string, l0: TypedValue, r0: Typed
       return evalJsonbDeletePath(ctx, l, r);
     case "@@":
       return evalTextSearchMatch(ctx, l, r);
+    case "<%":
+      return evalTrgmWordSimilar(ctx, l, r);
     default:
       opNotExist(op, l.t, r.t);
   }

@@ -21,6 +21,7 @@ import type { EvalScope } from "../expressions/eval.ts";
 import { checkBoolExprType, evalAsPredicate, evalExpr } from "../expressions/eval.ts";
 import { createAggregate, isAggregateName, isOrderedSetAggregate, unifyAggType } from "../functions/aggregates.ts";
 import { evalPgcryptoFunction } from "../functions/pgcrypto.ts";
+import { evalPgTrgmFunction } from "../functions/pgtrgm.ts";
 import { getSrfFunctions, isSrfName } from "../functions/srf.ts";
 import { conjunctions, joinKeyFromRow, rowsMatchEqKeys, tryIndexedFromItem } from "../planner/access.ts";
 import { catalogRelation } from "../schema/catalog.ts";
@@ -253,6 +254,7 @@ export function callSqlFunctionScalar(env: ExecEnv, fn: FunctionData, args: Type
     return callPlpgsqlScalar(env, fn, args);
   }
   if (fn.language === "internal") {
+    if (fn.rawBody === "pg_trgm") return evalPgTrgmFunction(env.ctx, fn, args);
     return evalPgcryptoFunction(env.ctx, fn, args);
   }
   if (fn.language === "js") {
