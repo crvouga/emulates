@@ -76,6 +76,19 @@ export type FaultPreset = {
   webhook?: { mode: "duplicate" | "reorder" | "drop"; count?: number }
 }
 
+/**
+ * Body of `GET /__admin/faults/presets`.
+ * `presets` is a list of named presets. A record keyed by name is not this type:
+ * the admin page maps the list.
+ */
+export type FaultPresetList = {
+  presets: readonly { name: string }[]
+}
+
+type _AssertFaultPresetList<T extends FaultPresetList> = T
+// @ts-expect-error presets is a list of { name }, not a record keyed by name
+type _RecordIsNotAPresetList = _AssertFaultPresetList<{ presets: Record<string, { name: string }> }>
+
 /** What a request looks like to the fault matcher. */
 export type FaultCandidate = {
   operationId: string | undefined

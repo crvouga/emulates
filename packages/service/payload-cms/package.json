@@ -55,7 +55,7 @@
       "website": "https://payloadcms.com",
       "docs": "https://payloadcms.com/docs/rest-api/overview"
     },
-    "status": "wip",
+    "parity": "Collection REST",
     "parityTier": "cold"
   },
   "scripts": {

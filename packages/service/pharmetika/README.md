@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-pharmetika
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Pharmetika** compounding-pharmacy provider portal for test suites:
 clinic and patient lookup, patient create, medication-order validate / EPCS prepare / submit /
 lookup, the v7 cancel, the medication-template catalog, and the status webhooks the pharmacy

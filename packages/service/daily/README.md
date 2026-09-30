@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-daily
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Daily.co** REST API for test suites: rooms (create, get, update,
 delete, presence, eject), meeting tokens (mint and validate), verification of the HS256 meeting
 tokens our backend signs itself, and the end-of-call webhooks (`transcription.stopped`,

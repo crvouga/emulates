@@ -5,6 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
+  type StateDeclaration,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
@@ -97,6 +98,67 @@ export type PlaneRuntimeOptions = {
 
 export type PlaneRuntime = ServiceRuntime<PlaneAPI>
 
+/** Shown in the admin UI even when a collection has no rows yet. */
+const PLANE_STATE: readonly StateDeclaration[] = [
+  {
+    name: "projects",
+    label: "Projects",
+    description: "Projects pinned in settings or created through the API.",
+  },
+  {
+    name: "states",
+    label: "States",
+    description: "Workflow states, grouped the way Plane groups them.",
+  },
+  { name: "labels", label: "Labels" },
+  {
+    name: "work_items",
+    label: "Work items",
+    description: "Issues. The Move panel changes a state by id or by name.",
+  },
+  { name: "comments", label: "Comments" },
+  { name: "links", label: "Links" },
+  {
+    name: "settings",
+    label: "Settings",
+    description: "API keys, the rate limit, and pinned projects.",
+  },
+  { name: "rate_limits", label: "Rate limits" },
+]
+
+const MOVE_PANEL_HTML = `<form class="stack">
+  <label class="field">Work item id
+    <input name="id" required autocomplete="off" spellcheck="false">
+  </label>
+  <label class="field">State name or id
+    <input name="state" required placeholder="Done" autocomplete="off">
+  </label>
+  <div class="row-actions">
+    <button class="btn-primary" type="submit">Move</button>
+  </div>
+  <pre data-result hidden></pre>
+</form>`
+
+const MOVE_PANEL_SCRIPT = `
+const form = root.querySelector("form")
+const out = root.querySelector("[data-result]")
+form.addEventListener("submit", (event) => {
+  event.preventDefault()
+  const data = new FormData(form)
+  const id = String(data.get("id") || "").trim()
+  const stateName = String(data.get("state") || "").trim()
+  api.send("POST", "/work-items/" + encodeURIComponent(id) + "/state", { state: stateName })
+    .then((item) => {
+      out.hidden = false
+      out.textContent = JSON.stringify(item, null, 2)
+    })
+    .catch((error) => {
+      out.hidden = false
+      out.textContent = error instanceof Error ? error.message : String(error)
+    })
+})
+`.trim()
+
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
@@ -165,6 +227,18 @@ export const createRuntime = (options: PlaneRuntimeOptions = {}): PlaneRuntime =
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: apiKeyCredential,
     presets: PLANE_PRESETS,
+    state: PLANE_STATE,
+    adminUi: {
+      panels: [
+        {
+          id: "move-work-item",
+          title: "Move a work item",
+          description: "Uses Plane's admin route, which resolves a state by id or by name.",
+          html: MOVE_PANEL_HTML,
+          script: MOVE_PANEL_SCRIPT,
+        },
+      ],
+    },
     create: ({ sqlite, namespace, clock }) =>
       new PlaneAPI({
         sqlite,

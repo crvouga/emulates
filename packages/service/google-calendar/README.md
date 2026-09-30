@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-google-calendar
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Google Calendar v3** and **Google OAuth 2.0** for test suites, covering what
 our EMR backend calls: `calendarList.list`, `calendars.insert`, `events.list` (time windows,
 `q`, `orderBy`, paging, incremental sync with 410 `fullSyncRequired`), `events.get/insert/

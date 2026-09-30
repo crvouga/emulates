@@ -56,7 +56,7 @@
       "website": "https://fullscript.com",
       "docs": "https://fullscript.dev"
     },
-    "status": "wip",
+    "parity": "Lab orders and result files",
     "parityTier": "cold"
   },
   "scripts": {

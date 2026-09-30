@@ -11,6 +11,7 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { $ } from "bun"
+import { EPIGRAPH } from "../sites/docs/src/lib/content.ts"
 
 const pkgDir = process.cwd()
 const errors: string[] = []
@@ -77,7 +78,7 @@ if (!exportEntry) {
 }
 
 if (exportEntry && (exportEntry.default || exportEntry.import)) {
-  const mainRel = (exportEntry.default || exportEntry.import).replace(/^\.\//, "")
+  const mainRel = (exportEntry.default || exportEntry.import || "").replace(/^\.\//, "")
   if (!existsSync(join(pkgDir, mainRel))) {
     fail(
       `${name}: exports["."].${exportEntry.default ? "default" : "import"} points at ${mainRel} which does not exist`,
@@ -121,6 +122,11 @@ if (isPublic) {
     const readme = await Bun.file(readmePath).text()
     if (!readme.startsWith(`# ${name}\n`)) {
       fail(`${name}: README.md must start with "# ${name}"`)
+    }
+    if (readme.split("\n")[2] !== EPIGRAPH) {
+      fail(
+        `${name}: README.md line 3 must be the shared epigraph from sites/docs/src/lib/content.ts (${EPIGRAPH})`,
+      )
     }
     const section = (heading: string): string | null => {
       const match = readme.match(

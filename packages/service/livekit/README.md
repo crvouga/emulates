@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-livekit
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful LiveKit mock for `livekit-server-sdk`. It serves Twirp JSON room APIs, validates genuine HS256 LiveKit grants, models participant/track/data state, exposes deterministic SIP and egress controls, and emits correctly signed lifecycle webhooks.
 
 ## Install
@@ -36,7 +38,7 @@ Webhooks cover room, participant, track, egress, and SIP transitions. Each raw b
 
 ## API
 
-- `LiveKitAPI`, `LiveKitAPIOptions`, `LiveKitEvent`: portable handler and event contract.
+- `LiveKitAPI`, `LiveKitAPIOptions`, `LiveKitEvent`: handler and event contract.
 - `LiveKitRoom`, `LiveKitParticipant`, `LiveKitTrack`, `DataMessage`, `AsyncResource`: durable state.
 - `createRuntime`, `LiveKitRuntime`, `LiveKitRuntimeOptions`: full runtime and webhook hub.
 - `LIVEKIT_NAMESPACE`, `LIVEKIT_PRESETS`: constants and fault controls.

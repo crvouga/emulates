@@ -57,7 +57,7 @@
       "website": "https://mailosaur.com",
       "docs": "https://mailosaur.com/docs/api"
     },
-    "status": "wip",
+    "parity": "Messages and ingest",
     "parityTier": "cold"
   },
   "scripts": {

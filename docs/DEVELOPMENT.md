@@ -23,7 +23,7 @@ That is the whole onboarding: no secrets, no accounts, nothing self-hosted. `bun
 
 | Layer | Packages | Published |
 | --- | --- | --- |
-| Services | `service-stripe`, `service-junction`, `service-genebygene`, `service-medplum`, `service-postgres`, `service-sqlite`, and every vendor mock in the [catalog](../README.md#services) | yes |
+| Services | `service-stripe`, `service-junction`, `service-genebygene`, `service-medplum`, `service-postgres`, `service-sqlite`, and every vendor mock in the [catalog](https://mockingbird.chrisvouga.dev/services) | yes |
 | Core | `core` (`FetchAPI`), `service` (Hono dispatch keyed by `operationId`) | bundled |
 | Storage | `sqlite` (`SqliteClient` port, migrate runner, default `@crvouga/mockingbird-service-sqlite`) | bundled |
 | Contract | `openapi`, `openapi-metadata`, `openapi-arbitrary`, `openapi-codegen` | bundled / build tool |
@@ -51,21 +51,23 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | --- | --- | --- |
 | Format | `bun run check:format` | [Biome](https://biomejs.dev) formatting |
 | Lint | `bun run lint` | Biome lint (types, style, complexity) |
-| Typecheck | `bun run typecheck` | `tsc` for every package |
+| Typecheck | `bun run typecheck` | `tsc` for every package. `@crvouga/mockingbird-service-conformance` proves each HTTP mock's `createRuntime` accepts `{ sqlite?, clock?, seed?, adminKey? }` and returns the shared `MockSurface` |
 | Boundaries | `bun run check:boundaries` | Intra-workspace dep graph plus the state architecture: internal deps resolve, no cycles or self-deps, imports are declared, published dependency rules hold, and providers cannot bypass or reimplement the shared Timeline history coordinator |
 | Package integrity | `bun run pack:check` | `dist` + `exports` + `files`, tarball contents, [publint](https://publint.dev), [arethetypeswrong](https://arethetypeswrong.github.io) (ESM-only consumer resolution) |
-| Portability | `bun run portability` | Built `dist` matches the package's `mockingbird.runtime` (portable / node / bun) — no Node/Bun-only API usage where it isn't allowed |
+| Portability | `bun run portability` | Every service mock's published entry runs in Node, Bun, browsers, and Workers. The check fails when that entry uses a Node- or Bun-only API. A `./server` or CLI entry may use Node |
 | Generate & OpenAPI | `bun run generate` / `bun run openapi:check` | Regenerate and verify provider contracts |
 | Test | `bun run test` | Contract, integration, unit, fuzz, and property suites (`FC_NUM_RUNS=40` in CI) |
-| Consumer docs | `bun run pack:check` | Every public package ships a README with `## Install`, `## Usage` (a TypeScript example) and `## API` listing every runtime export |
+| Consumer docs | `bun run pack:check` | Every public package ships a README that opens with the shared epigraph from `sites/docs/src/lib/content.ts`, then `## Install`, `## Usage` (a TypeScript example) and `## API` listing every runtime export |
 | Consumer smoke | `bun run release:smoke` | Packs every public package like the release, `npm install`s the tarballs into a clean project, imports every entry point under Node, and typechecks them plus every README TypeScript example |
-| llms.txt | `bun run check:llms` | [`llms.txt`](../llms.txt) lists every published mock service by release tier (`bun run llms:sync` regenerates) |
-| README | `bun run check:readme` | [`README.md`](../README.md) is generated from `sites/docs/src/lib/content.ts`, every service's `package.json` and these guides (`bun run readme:sync` regenerates); never edit it by hand |
-| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `mockingbird.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links) |
+| llms.txt | `bun run check:llms` | [`llms.txt`](../llms.txt) lists every published mock with the parity it declares (`bun run llms:sync` regenerates) |
+| README | `bun run check:readme` | [`README.md`](../README.md) is the overview, generated from `sites/docs/src/lib/content.ts` and these guides (`bun run readme:sync` regenerates). The catalog of mocks stays on the docs site. Never edit the README by hand |
+| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `mockingbird.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links). The site serves the same record at `/brands.json`; admin shells fetch `https://mockingbird.chrisvouga.dev/brands.json` instead of embedding it |
 | Docs site | `bun run docs:build` (part of `build`) | [`sites/docs`](../sites/docs) renders the same sources, sends every playground sample to a fresh mock, runs the quick start and SQL snippets, and fails on missing or stale service metadata |
 | Agent commands | `bun run check:agents` | Every `.agents/commands/*.md` is symlinked into each agent harness (`bun run agents:sync` repairs) |
 | Parity tiers | `bun run check:parity-tiers` | Every service's `mockingbird.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
 | Worktree lifecycle | `bun run check:worktree` | Every orchestrator's config (`.superset/`, `.super.engineering/`) runs the same [`scripts/worktree`](../scripts/worktree/README.md) setup, run and teardown (`bun run worktree:sync` regenerates) |
+| Scripts | `bun run check:scripts` | Every `scripts/**/*.ts` typechecks under the base tsconfig (`scripts/tsconfig.json`), and `bun test ./scripts` passes |
+| Workflows | `bun run check:workflows` | Every `.github/workflows/*.yml` passes a pinned, checksum-verified [actionlint](https://github.com/rhysd/actionlint) (its `run:` scripts through shellcheck when that is installed, as on GitHub's runners) |
 
 ### Git hooks (Husky)
 
@@ -124,6 +126,13 @@ reported behavior against the oracle, add a regression test, fix the mock, and s
 `/pr-ready` with `Fixes #<n>`. `feature` requests become acceptance tests plus contract changes;
 `new-service` requests become new packages built through
 [AUTHORING_A_SERVICE.md](AUTHORING_A_SERVICE.md).
+`bun github:resolve-issues [<issue…>]` runs that command on GitHub, unattended, as you. It starts
+the [Resolve issues](../.github/workflows/resolve-issues.yml) workflow with a GitHub token minted for
+the run, which expires within 8 hours and reaches only this repository, plus your Claude
+subscription token. No repo secret is involved. For each issue, an agent opens a draft PR and
+carries it to ready-to-merge. With no issue named, it takes the queue in the command's order. The
+repo owner runs `bun github:resolve-issues setup` once first.
+[SECRETS.md](SECRETS.md#resolving-issues-on-github) lists the safeguards.
 
 ### Package publishing
 

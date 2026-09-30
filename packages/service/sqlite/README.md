@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-sqlite
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Pure TypeScript, completely in-memory SQLite engine aiming for **full SQLite3 SQL dialect parity**
 (same statements, same results). Use it in tests (or the browser) wherever you want real SQLite SQL
 semantics without native bindings: schema + migrations, constraints, transactions, JSON functions,
@@ -296,14 +298,14 @@ Stable runtime exports of the main entry:
 Signatures (types are exported too: `DatabaseOptions`, `RunResult`, `ResultSet`, `ErrorCategory`,
 `BindValue`, `QueryRow`, `QueryValue`):
 
-```text
+```ts
 interface DatabaseOptions {
   seed?: number | bigint                 // default 1; ignored when random is "os"
   random?: "deterministic" | "os"        // default "deterministic"; "os" is CSPRNG like SQLite
   now?: Date | (() => Date) | "system"   // default 2000-01-01T00:00:00.000Z; "system" is wall clock
 }
 
-class Database {
+declare class Database {
   constructor(options?: DatabaseOptions)
   exec(sql: string): void
   query<T = QueryRow>(sql: string, params?: readonly BindValue[], options?: { at?: Snapshot }): T[]
@@ -320,13 +322,17 @@ class Database {
   readonly randomMode: "deterministic" | "os"
 }
 
-class Statement {
+declare class Statement {
   run(...params: BindValue[]): RunResult
   all<T = QueryRow>(...params: BindValue[]): T[]
   get<T = QueryRow>(...params: BindValue[]): T | undefined
   result(...params: BindValue[]): ResultSet   // includes columns + values when zero rows
 }
 
+type ErrorCategory = string // "syntax" | "no_such_table" | "constraint_unique" | "misuse" | ...
+type QueryValue = null | number | bigint | string | Uint8Array
+type QueryRow = Record<string, QueryValue>
+type BindValue = QueryValue | boolean | ArrayBuffer
 interface RunResult { changes: number; lastInsertRowid: number | bigint }
 interface ResultSet {
   columns: string[]
@@ -336,13 +342,13 @@ interface ResultSet {
   lastInsertRowid: number | bigint
 }
 
-class Snapshot {
+declare class Snapshot {
   open(options?: DatabaseOptions): Database
   encode(): Uint8Array
   static decode(bytes: Uint8Array): Snapshot
 }
 
-class SqliteError extends Error {
+declare class SqliteError extends Error {
   readonly category: ErrorCategory   // "syntax", "no_such_table", "constraint_unique", "misuse", ...
   readonly sqliteCode: string        // always set; default "SQLITE_ERROR"
   readonly code: string              // === sqliteCode (Node err.code convention)

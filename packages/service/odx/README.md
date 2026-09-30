@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-odx
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Optimal DX (ODX)** partner API for test suites: partner labs and their
 biomarker elements, practice patients (create, update, delete, partner link, search), lab
 imports (HL7 v2 ORU and structured results), the Functional Health Report (JSON or PDF),

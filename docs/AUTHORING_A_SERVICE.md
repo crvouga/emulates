@@ -34,6 +34,8 @@ packages/service/<name>/
 | Contract item | How |
 | --- | --- |
 | `GET /health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-mockingbird` response header | automatic |
+| State introspection | automatic. `GET /__admin/state` lists every collection: ones you declare with `state:`, every `Collection` hanging off the instance, and every name already stored. `POST /__admin/state/:collection` with `{ id?, value }` creates a row; `PUT` replaces, `PATCH` shallow-merges an object, `DELETE` removes it. A successful write checkpoints `main`. The same view is `runtime.state(namespace?)`. |
+| Admin UI | automatic at `GET /__admin/ui` (the HTML shell is not behind the admin key; `/__admin/ui/manifest` and the data routes are). Pass `adminUi.panels` to add a view (`id`, `title`, `html`, optional `script` called as `(root, api) => void`). Pass `adminUi.render({ service, defaultHtml })` to replace the document; call `defaultHtml()` to keep the shared shell. [`packages/service/plane`](../packages/service/plane) is the bespoke-panel example. |
 | Namespaces by header | automatic (`x-mockingbird-namespace`) |
 | Namespaces by path prefix | automatic: `/ns/<name>/…` is stripped and selects `<name>` |
 | Namespaces by credential | pass `credential: (request) => string \| undefined` (`bearerToken`, `basicAuth(r)?.username`, `sigV4AccessKeyId`, or your own); suites map credentials with `PUT /__admin/credentials {"credentials": {"<cred>": "<ns>"}}` |
@@ -49,6 +51,14 @@ packages/service/<name>/
 | Write an object into the stack's S3 (s3rver) | `putObject({endpoint, bucket}, key, body, contentType)` (SigV4) |
 
 Handlers are keyed by `operationId` (`defineOperations<SupportedOperationId>({...})`). Use
+`createRuntime` returns a `MockSurface`. Extra methods (`tick`, a typed webhook hub, account
+directories) stay on the value; removing a shared member fails the typecheck.
+`packages/service/conformance` imports every HTTP mock's `createRuntime` and checks it is
+`(options?: MockCreateOptions) => MockSurface`, then probes `/health`, `/__admin`, `/__admin/ui`,
+and `/__admin/state`. A new mock has to be added there. `defineMock` is the same check for a
+runtime you build by hand. Service admin routes add keys beside the standard ones; a standard key
+keeps the shared handler.
+
 `Collection` for all durable or externally observable records (so reset and Timeline history cover
 them), `IdSequence` for deterministic ids, the injected `now` for every timestamp (the mock clock),
 and `annotateResponse(res, {ids})` to put touched resource ids in the journal. `Timeline` is the
@@ -114,10 +124,12 @@ file under ~60 s.
 
 ## Docs
 
-`README.md` must start `# @crvouga/mockingbird-service-<name>` and contain `## Install`,
-`## Usage` (with a ```ts example), and `## API` listing **every runtime export** of every entry
-point (pack-check enforces this). Also document: how to point the app at it (env vars), routes,
-webhooks, admin routes, presets, namespace carriers, and a **Deliberately not modelled** section.
+`README.md` must start `# @crvouga/mockingbird-service-<name>`, then a blank line, then the
+shared epigraph `EPIGRAPH` from `sites/docs/src/lib/content.ts` (pack-check prints the exact
+line). It must also contain `## Install`, `## Usage` (with a ```ts example), and `## API`
+listing **every runtime export** of every entry point. Also document: how to point the app at
+it (env vars), routes, webhooks, admin routes, presets, namespace carriers, and a **Deliberately
+not modelled** section.
 
 The docs site (`sites/docs`, `bun docs`) is built from the package itself: the README is the
 service page, the contract gives the operations list and coverage, and the built module runs in
@@ -133,7 +145,7 @@ its build fails when they are missing or stale:
 | `vendor.name` | no | The vendor's name when it differs from `displayName` (LlamaCloud is made by LlamaIndex) |
 | `vendor.description` | no | One line about the vendor; overrides the description fetched from its homepage |
 | `vendor.icon` / `vendor.logo` / `vendor.color` | no | Force a [Simple Icons](https://simpleicons.org) slug (`false` skips it), a logo URL, or a brand color, when the fetched ones are wrong |
-| `status` | yes | Release tier: `"wip"` until the mock is complete and verified, then `"ready"`. The site badges, filters and counts services by it |
+| `parity` | yes | A short statement, at most 80 characters, of the vendor surface this mock keeps in step, e.g. `"Payments, billing, and webhooks"`. The site, the README, `llms.txt` and `catalog.json` show it verbatim |
 | `playground.headers` | no | Credentials in the format the mock accepts (e.g. `sk_test_…`), sent with every playground request. The build sends every sample request to a fresh mock and fails if none succeed with them |
 | `playground.basicAuth` | no | `"user:pass"` for mocks that take HTTP Basic auth; the build sends it as `authorization: Basic <base64>`. Use it instead of a literal `Basic …` header, which secret scanners flag |
 | `playground.operation` | no | The operation the playground opens on; it must succeed with its sample request |
@@ -142,6 +154,10 @@ After adding or editing `vendor`, run `bun run brands:sync`. It fetches the vend
 color and description into `sites/docs/src/data/brands.json` and `sites/docs/public/brands/`, which
 the site reads; `bun run check:brands` fails while they are stale. `bun run brands:sync -- --all
 --links` refreshes every vendor and checks that each website and docs link still answers.
+
+The docs site publishes that record at `/brands.json`. Every admin shell fetches it when the page
+opens (logo, website, vendor API reference, and the service's page on this site). The mock bundles
+do not contain it, so a docs deploy updates the chip in admins that are already published.
 
 Also add the package to `sites/docs/package.json` `devDependencies` (`"workspace:*"`) so turbo
 builds it before the site.
@@ -190,7 +206,7 @@ example owns its mock instances, so repeated launches and different examples sta
 
 The OAuth example is a complete reference: `app.ts` runs Hono plus `oauth4webapi` and the
 actual OAuth mock through a local Fetch dispatcher; `transport.ts` handles virtual cookies
-and redirects; `index.ts` keeps the app in its own sandboxed frame and opens a separate provider popup
+and redirects; `index.ts` pastes the app and provider HTML into the page and opens a separate provider window
 (with a dialog fallback when popups are blocked). Provider HTML forms use the same transport;
 the callback closes the provider surface and updates the app. Its application and transport modules run unchanged in
 Bun or a browser. No network listeners, fetch monkey patches, service workers, or real

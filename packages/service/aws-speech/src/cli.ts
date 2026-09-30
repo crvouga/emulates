@@ -58,6 +58,7 @@ const serve: CliCommand = {
       console.log(
         `aws-speech admin: ${listening.url}/__admin (${adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
       )
+      console.log(`aws-speech admin ui: ${listening.url}/__admin/ui`)
       for (const line of serveTarget.banner?.(runtime) ?? []) console.log(`aws-speech ${line}`)
       return await new Promise<number>((resolve) => {
         const stop = async () => {

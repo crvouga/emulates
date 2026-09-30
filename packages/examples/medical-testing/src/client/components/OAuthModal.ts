@@ -1,7 +1,7 @@
 import { html } from "htm/preact"
 import { useCallback, useEffect, useRef, useState } from "preact/hooks"
 import { api, type OAuthProvider, type OAuthStepResponse, type User } from "../api.js"
-import { attachFormInterceptor } from "./hostedFrame.js"
+import { pasteHtml } from "../pasteHtml.js"
 import { useEscapeKey } from "./useEscapeKey.js"
 
 type Props = {
@@ -14,17 +14,18 @@ const PROVIDER_LABEL: Record<OAuthProvider, string> = { google: "Google", apple:
 
 /**
  * Renders the identity provider's real hosted sign-in screen (account
- * chooser → consent) inline, in a sandboxed iframe, and drives the flow by
- * intercepting its form submits/link clicks — dispatching each one through
- * our own server, in-process. Nothing here ever performs a real navigation
- * or network request.
+ * chooser → consent) inline. The HTML is fetched and pasted into the modal,
+ * and the flow is driven by intercepting its form submits and link clicks —
+ * each one dispatched through our own server, in-process. Nothing here
+ * performs a real navigation or network request.
  */
 export const OAuthModal = ({ provider, onDone, onClose }: Props) => {
   const [flowId, setFlowId] = useState<string | null>(null)
-  const [srcdoc, setSrcdoc] = useState<string | null>(null)
+  const [pageHtml, setPageHtml] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(true)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const pageRef = useRef<HTMLDivElement>(null)
+  const stepRef = useRef<(action: string, method: string, body: string) => void>(() => {})
   useEscapeKey(onClose)
 
   const applyResult = useCallback(
@@ -35,7 +36,7 @@ export const OAuthModal = ({ provider, onDone, onClose }: Props) => {
         return
       }
       setFlowId(result.flowId)
-      setSrcdoc(result.html)
+      setPageHtml(result.html)
     },
     [onDone],
   )
@@ -76,27 +77,15 @@ export const OAuthModal = ({ provider, onDone, onClose }: Props) => {
     [flowId, provider, applyResult, fail],
   )
 
+  stepRef.current = (action, method, body) => void step(action, method, body)
+
   useEffect(() => {
-    const iframe = iframeRef.current
-    if (!iframe || srcdoc === null) return
-
-    let detach: (() => void) | undefined
-    const attach = () => {
-      const doc = iframe.contentDocument
-      if (!doc) return
-      detach?.()
-      detach = attachFormInterceptor(doc, (action, method, body) => void step(action, method, body))
-    }
-
-    iframe.addEventListener("load", attach)
-    // The initial srcdoc load may have already fired before this listener
-    // attached (fast in-process response) — attach eagerly too.
-    attach()
-    return () => {
-      iframe.removeEventListener("load", attach)
-      detach?.()
-    }
-  }, [srcdoc, step])
+    const page = pageRef.current
+    if (!page || pageHtml === null) return
+    return pasteHtml(page, pageHtml, {
+      onSubmit: (action, method, body) => stepRef.current(action, method, body),
+    })
+  }, [pageHtml, error])
 
   return html`
     <div class="cove-modal-backdrop" onClick=${(e: Event) => e.target === e.currentTarget && onClose()}>
@@ -116,8 +105,8 @@ export const OAuthModal = ({ provider, onDone, onClose }: Props) => {
           }
           ${
             !error &&
-            srcdoc !== null &&
-            html`<iframe ref=${iframeRef} srcdoc=${srcdoc} title="${PROVIDER_LABEL[provider]} sign-in" />`
+            pageHtml !== null &&
+            html`<div class="hosted-page" ref=${pageRef} role="region" aria-label="${PROVIDER_LABEL[provider]} sign-in"></div>`
           }
         </div>
       </div>

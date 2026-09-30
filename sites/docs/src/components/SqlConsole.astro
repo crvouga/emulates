@@ -24,7 +24,10 @@ const snippets = SQL_SNIPPETS[engine]
     {snippets.map((sn, i) => <button type="button" class="chip-sm" data-snippet={i}>{i + 1}. {sn.label}</button>)}
   </div>
   <div class="sql-editor">
-    <textarea class="pg-text" data-sql-input spellcheck="false" aria-label="SQL">{snippets[0]?.sql}</textarea>
+    <div class="sql-field">
+      <pre class="sql-highlight" data-sql-highlight aria-hidden="true"></pre>
+      <textarea class="pg-text" data-sql-input spellcheck="false" aria-label="SQL">{snippets[0]?.sql}</textarea>
+    </div>
     <div class="sql-actions">
       <span class="pg-meta">Statements run in order against one in-memory database. These snippets also run during the build.</span>
       <button type="button" class="btn btn-accent btn-sm" data-sql-run><Icon name="play" /> Run <kbd data-mod-enter>⌘↵</kbd></button>

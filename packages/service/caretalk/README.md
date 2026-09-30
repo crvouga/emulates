@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-caretalk
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **CareTalk**'s external API (`/externalapi`) for test suites: client login,
 form definitions (`GetForm`) and saved form rounds (`SavePatientForm`, the form-submission
 queue's call), patient search and insert (the account backfill), states, free slots and

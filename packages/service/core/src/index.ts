@@ -33,6 +33,7 @@ export type {
   FaultCandidate,
   FaultHit,
   FaultPreset,
+  FaultPresetList,
   FaultRegistry,
   FaultRule,
 } from "./faults.js"
@@ -115,6 +116,27 @@ export {
 } from "./signing.js"
 export type { NamespaceSnapshot } from "./snapshot.js"
 export { restoreNamespace, snapshotNamespace, withNamespaceRollback } from "./snapshot.js"
+export type {
+  StateCollectionView,
+  StateDeclaration,
+  StateField,
+  StateFieldKind,
+  StateMeta,
+  StatePage,
+  StateRecord,
+  StateView,
+} from "./state-view.js"
+export { inspectState, STATE_FIELD_KINDS } from "./state-view.js"
+export type {
+  AdminPanel,
+  AdminUi,
+  MockCheckpoint,
+  MockCreateOptions,
+  MockInstanceSurface,
+  MockSurface,
+  StandardAdminRoute,
+} from "./surface.js"
+export { assertAdminUi, defineMock, STANDARD_ADMIN_ROUTES } from "./surface.js"
 export type { BodyIssue, UnsupportedMediaType } from "./validation.js"
 export { bodyIssues, issuesByField, recordedIssues, unsupportedMediaType } from "./validation.js"
 export { PACKAGE_VERSION, UNRELEASED_VERSION } from "./version.js"

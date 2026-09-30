@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-fullscript
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **Fullscript** lab-ordering API for test suites: per-practitioner OAuth
 (consent redirect, `authorization_code` and rotating `refresh_token` grants, revoke), the
 clinic, embeddable session grants, lab orders with tests and results, lab-order events, expiring

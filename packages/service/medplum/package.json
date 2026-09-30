@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-medplum",
   "version": "0.0.0-development",
-  "description": "Stateful, portable mock of the self-hosted Medplum server (FHIR R4 REST, OAuth2 and admin API) that runs anywhere JavaScript runs, proven at parity with a real self-hosted Medplum used as the oracle.",
+  "description": "Stateful mock of the self-hosted Medplum server (FHIR R4 REST, OAuth2 and admin API), proven at parity with a real self-hosted Medplum used as the oracle.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -59,7 +59,7 @@
       "docs": "https://www.medplum.com/docs",
       "description": "Medplum is an open-source, FHIR-native healthcare developer platform: a headless EHR backend, auth and SDKs."
     },
-    "status": "ready",
+    "parity": "FHIR R4, OAuth, and admin",
     "parityTier": "cold"
   },
   "scripts": {

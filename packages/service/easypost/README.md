@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-easypost
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of the **EasyPost** trackers API for test suites: `POST /v2/trackers` (create or
 re-use a tracker for a tracking code), `GET /v2/trackers/{id}` and `GET /v2/trackers`. EasyPost's
 documented test tracking codes answer their fixed statuses, and any other code moves through

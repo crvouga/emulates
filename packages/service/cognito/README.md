@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-cognito
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful local mock of Amazon Cognito User Pools for the AWS SDK and `amazon-cognito-identity-js`. It implements the authentication, user administration, group, federation, recovery, JWT, discovery, and JWKS surface the consumer app uses without contacting AWS.
 
 ## Install
@@ -55,7 +57,7 @@ Operations outside the documented subset, production quotas, email/SMS delivery,
 
 ## API
 
-- `CognitoAPI`, `CognitoAPIOptions`: portable AWS JSON handler and options.
+- `CognitoAPI`, `CognitoAPIOptions`: AWS JSON handler and options.
 - `createRuntime`, `CognitoRuntime`, `CognitoRuntimeOptions`: full Mockingbird service runtime.
 - `COGNITO_NAMESPACE`, `COGNITO_PRESETS`, `accessKeyCredential`: service constants and controls.
 - `CognitoAttribute`, `CognitoSeedUser`, `CognitoUser`: state and fixture types.

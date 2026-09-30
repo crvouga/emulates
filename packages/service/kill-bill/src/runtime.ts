@@ -74,7 +74,7 @@ export type KillBillRuntime = ServiceRuntime<KillBillAPI> & { readonly webhooks:
 const problem = (status: number, message: string) =>
   Response.json({ error: { type: "mockingbird_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<KillBillAPI>): AdminRoutes => ({
-  "GET /state": ({ namespace }) => {
+  "GET /billing": ({ namespace }) => {
     const state = runtime.instance(namespace).state
     return Response.json({
       accounts: state.accounts.list().map(({ value }) => value),

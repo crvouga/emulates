@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-sqs
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful Amazon SQS mock for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
 
 ## Install
@@ -40,7 +42,7 @@ Operations outside the surface listed above, IAM policy evaluation, server-side 
 
 ## API
 
-- `SqsAPI`, `SqsAPIOptions`, `SqsSeedQueue`: portable AWS JSON handler and fixtures.
+- `SqsAPI`, `SqsAPIOptions`, `SqsSeedQueue`: AWS JSON handler and fixtures.
 - `SqsMessage`, `SqsMessageAttribute`, `SqsQueue`: state types.
 - `createRuntime`, `SqsRuntime`, `SqsRuntimeOptions`: full Mockingbird runtime.
 - `SQS_NAMESPACE`, `SQS_PRESETS`, `accessKeyCredential`: constants and controls.

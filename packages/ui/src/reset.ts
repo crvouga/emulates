@@ -1,0 +1,472 @@
+/**
+ * Cross-browser baseline for every HTML surface this repo serves.
+ *
+ * `CSS_RESET` is the document sheet. `scopeReset(root)` is the same sheet
+ * limited to a widget (`:where` so later component rules still win) and with
+ * viewport heights rewritten to the widget's own box.
+ *
+ * `reset.css` is this string as a stylesheet. The package test fails when the
+ * two drift.
+ */
+export const CSS_RESET = `*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, CanvasText 35%, Canvas) Canvas;
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: Canvas;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, CanvasText 35%, Canvas);
+  border: 3px solid Canvas;
+  border-radius: 999px;
+}
+
+html {
+  hanging-punctuation: first allow-end last;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  tab-size: 4;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  background: Canvas;
+  color: CanvasText;
+}
+
+body {
+  min-height: 100svh;
+  line-height: 1.5;
+  background: Canvas;
+  color: CanvasText;
+}
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.17em;
+}
+
+h4 {
+  font-size: 1em;
+}
+
+h5 {
+  font-size: 0.83em;
+}
+
+h6 {
+  font-size: 0.67em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+p,
+li,
+figcaption,
+dd,
+dt,
+blockquote {
+  overflow-wrap: break-word;
+}
+
+p,
+li,
+figcaption,
+blockquote {
+  text-wrap: pretty;
+}
+
+ul,
+ol,
+menu {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+  text-decoration-skip-ink: auto;
+}
+
+b,
+strong {
+  font-weight: 700;
+}
+
+small {
+  font-size: 0.875em;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1em;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+abbr[title] {
+  text-decoration: underline dotted;
+  text-underline-offset: 0.15em;
+}
+
+mark {
+  background: Mark;
+  color: MarkText;
+}
+
+hr {
+  height: 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+  color: inherit;
+}
+
+img,
+picture,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+svg {
+  overflow: hidden;
+}
+
+iframe {
+  border: 0;
+  max-width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+fieldset {
+  border: 0;
+  min-inline-size: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+button,
+input,
+select,
+textarea,
+optgroup {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  margin: 0;
+  vertical-align: middle;
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+input,
+textarea,
+select {
+  background-color: Canvas;
+  border: 1px solid color-mix(in srgb, CanvasText 28%, transparent);
+  border-radius: 0;
+  padding: 0.5em 0.65em;
+}
+
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+input[type="file"],
+input[type="color"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="image"],
+input[type="hidden"] {
+  background: none;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: CanvasText;
+}
+
+input[type="search"] {
+  appearance: none;
+  background-color: Canvas;
+  border: 1px solid color-mix(in srgb, CanvasText 28%, transparent);
+}
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  display: none;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  background-color: Canvas;
+  border: 1px solid color-mix(in srgb, CanvasText 28%, transparent);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+::placeholder {
+  opacity: 1;
+  color: color-mix(in srgb, CanvasText 45%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid CanvasText;
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:disabled,
+[disabled] {
+  cursor: default;
+  opacity: 0.6;
+}
+
+label,
+summary,
+select,
+[role="button"] {
+  cursor: pointer;
+}
+
+summary {
+  display: list-item;
+}
+
+details {
+  display: block;
+}
+
+dialog {
+  margin: auto;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100svh - 2rem);
+}
+
+dialog:not([open]) {
+  display: none;
+}
+
+::backdrop {
+  background: color-mix(in srgb, CanvasText 40%, transparent);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: Highlight;
+  color: HighlightText;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}`
+
+/** Scope the reset to `root` without raising specificity above a single element. */
+export function scopeReset(root: string): string {
+  return scopeStylesheet(CSS_RESET, root)
+    .replaceAll("100dvh", "100%")
+    .replaceAll("100svh", "100%")
+    .replaceAll("100vh", "100%")
+}
+
+function scopeStylesheet(css: string, root: string): string {
+  let out = ""
+  let cursor = 0
+  while (cursor < css.length) {
+    const brace = css.indexOf("{", cursor)
+    if (brace === -1) {
+      out += css.slice(cursor)
+      break
+    }
+    const prelude = css.slice(cursor, brace)
+    const trimmed = prelude.trimStart()
+    if (trimmed.startsWith("@media") || trimmed.startsWith("@supports")) {
+      const end = skipBlock(css, brace)
+      const body = css.slice(brace + 1, end - 1)
+      out += `${css.slice(cursor, brace + 1)}${scopeStylesheet(body, root)}}`
+      cursor = end
+      continue
+    }
+    if (trimmed.startsWith("@")) {
+      const end = skipBlock(css, brace)
+      out += css.slice(cursor, end)
+      cursor = end
+      continue
+    }
+    const close = prelude.lastIndexOf("}")
+    const head = close === -1 ? "" : prelude.slice(0, close + 1)
+    const selector = close === -1 ? prelude : prelude.slice(close + 1)
+    out += `${head}${scopeSelectorList(selector, root)}{`
+    cursor = brace + 1
+  }
+  return out
+}
+
+function scopeSelectorList(selector: string, root: string): string {
+  const where = `:where(${root})`
+  return splitSelectors(selector)
+    .map((part) => scopeOne(part.trim(), where))
+    .filter((part) => part !== "")
+    .join(",\n")
+}
+
+function scopeOne(selector: string, where: string): string {
+  if (selector === "html" || selector === "body" || selector === ":root") return where
+  if (selector.startsWith("*")) {
+    const rest = selector.slice(1)
+    return `${where}${rest},\n${where} ${selector}`
+  }
+  if (selector.startsWith(":")) return `${where}${selector},\n${where} ${selector}`
+  return `${where} ${selector}`
+}
+
+/** Split a selector list on commas that are not inside parentheses. */
+function splitSelectors(selector: string): string[] {
+  const parts: string[] = []
+  let current = ""
+  let depth = 0
+  for (const char of selector) {
+    if (char === "(") depth++
+    else if (char === ")") depth = Math.max(0, depth - 1)
+    if (char === "," && depth === 0) {
+      parts.push(current)
+      current = ""
+      continue
+    }
+    current += char
+  }
+  parts.push(current)
+  return parts
+}
+
+function skipBlock(css: string, openBrace: number): number {
+  let depth = 0
+  for (let index = openBrace; index < css.length; index++) {
+    const char = css[index]
+    if (char === "{") depth++
+    else if (char === "}") {
+      depth--
+      if (depth === 0) return index + 1
+    }
+  }
+  return css.length
+}

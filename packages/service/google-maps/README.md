@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-google-maps
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Mock of the **Google Maps Platform** surface our member app uses for addresses: Places
 Autocomplete, Place Details and Find Place From Text (the JSON web services), the Geocoding API,
 a **Maps JavaScript API shim** (`/maps/api/js?libraries=places`) exposing

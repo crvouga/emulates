@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-aws-speech
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful mock of **Amazon Polly** and **Amazon Transcribe** for test suites: Polly
 `SynthesizeSpeech` and `StartSpeechSynthesisStream` (HTTP/2 duplex event stream), Transcribe
 Streaming `StartStreamTranscription` (HTTP/2 duplex) and Transcribe batch

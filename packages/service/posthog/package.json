@@ -57,7 +57,7 @@
       "docs": "https://posthog.com/docs/api",
       "description": "PostHog is an open-source product analytics platform with feature flags, session replay, experiments and surveys."
     },
-    "status": "wip",
+    "parity": "Flags, capture, and HogQL",
     "parityTier": "cold"
   },
   "scripts": {

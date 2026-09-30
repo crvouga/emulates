@@ -56,7 +56,7 @@
       "website": "https://www.optimaldx.com",
       "name": "OptimalDX"
     },
-    "status": "wip",
+    "parity": "Patients, reports, and webhooks",
     "parityTier": "cold"
   },
   "scripts": {

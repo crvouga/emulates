@@ -56,7 +56,7 @@
       "website": "https://aws.amazon.com/textract/",
       "docs": "https://docs.aws.amazon.com/textract/latest/dg/API_Reference.html"
     },
-    "status": "wip",
+    "parity": "Document analysis jobs",
     "parityTier": "cold"
   },
   "scripts": {

@@ -98,6 +98,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.8",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@electric-sql/pglite": "^0.5.5",
     "@types/bun": "latest",
     "@types/pg": "^8.23.1",
@@ -130,7 +131,7 @@
       "website": "https://www.postgresql.org",
       "docs": "https://www.postgresql.org/docs/current/"
     },
-    "status": "ready",
+    "parity": "In-memory SQL engine",
     "entries": {
       "wire/index": "node",
       "wire/cli": "node"

@@ -1,6 +1,6 @@
 import { loaders } from "virtual:mockingbird/runtimes"
 import { type Snippet, splitStatements } from "../lib/sql.ts"
-import { escapeHtml } from "./render.ts"
+import { escapeHtml, highlightSql } from "./render.ts"
 
 interface Database {
   query(sql: string): Record<string, unknown>[]
@@ -15,6 +15,12 @@ if (root) {
   const service = root.dataset.service ?? ""
   const snippets = JSON.parse($("[data-sql-snippets]").textContent ?? "[]") as Snippet[]
   const input = $<HTMLTextAreaElement>("[data-sql-input]")
+  const highlight = $<HTMLElement>("[data-sql-highlight]")
+  const paint = () => {
+    highlight.innerHTML = `${highlightSql(input.value)}\n`
+    highlight.scrollTop = input.scrollTop
+    highlight.scrollLeft = input.scrollLeft
+  }
   const out = $<HTMLElement>("[data-sql-out]")
   const status = $<HTMLElement>("[data-sql-status]")
   const statusText = $<HTMLElement>("[data-sql-status-text]")
@@ -70,7 +76,8 @@ if (root) {
     }
     const blocks: string[] = []
     for (const sql of statements) {
-      const head = `<code class="sql-stmt">${escapeHtml(sql.length > 120 ? `${sql.slice(0, 117)}…` : sql)}</code>`
+      const shown = sql.length > 120 ? `${sql.slice(0, 117)}…` : sql
+      const head = `<code class="sql-stmt">${highlightSql(shown)}</code>`
       const t0 = performance.now()
       try {
         const rows = d.query(sql)
@@ -92,6 +99,9 @@ if (root) {
   }
 
   $<HTMLButtonElement>("[data-sql-run]").addEventListener("click", () => void run())
+  input.addEventListener("input", paint)
+  input.addEventListener("scroll", paint)
+  paint()
   input.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault()
@@ -103,6 +113,7 @@ if (root) {
     const snippet = b ? snippets[Number(b.dataset.snippet)] : undefined
     if (!snippet) return
     input.value = snippet.sql
+    paint()
     input.focus()
   })
   reset.addEventListener("click", () => {

@@ -1,6 +1,8 @@
 # @crvouga/mockingbird-service-dynamodb
 
-Stateful, portable Amazon DynamoDB mock for the AWS SDK v3 low-level client and `DynamoDBDocumentClient`. It preserves DynamoDB attribute types while modelling CRUD, expressions, indexes, pagination, batches, transactions, TTL, streams, and conditional writes without contacting AWS.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
+Stateful Amazon DynamoDB mock for the AWS SDK v3 low-level client and `DynamoDBDocumentClient`. It preserves DynamoDB attribute types while modelling CRUD, expressions, indexes, pagination, batches, transactions, TTL, streams, and conditional writes without contacting AWS.
 
 ## Install
 
@@ -46,7 +48,7 @@ PartiQL, control-plane operations outside Create/Describe, local/global table re
 
 ## API
 
-- `DynamoAPI`, `DynamoAPIOptions`, `DynamoSeedTable`: portable AWS JSON handler and fixtures.
+- `DynamoAPI`, `DynamoAPIOptions`, `DynamoSeedTable`: AWS JSON handler and fixtures.
 - `AttributeValue`, `Item`, `KeySchemaElement`, `DynamoIndex`, `DynamoItem`, `DynamoTable`, `StreamRecord`: typed state.
 - `createRuntime`, `DynamoRuntime`, `DynamoRuntimeOptions`: full Mockingbird runtime.
 - `DYNAMODB_NAMESPACE`, `DYNAMODB_PRESETS`, `accessKeyCredential`: constants and controls.

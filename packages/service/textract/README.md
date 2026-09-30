@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-textract
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful Amazon Textract mock for the official SDK v3 client. It models synchronous and asynchronous document analysis, connected block graphs, stable pagination, idempotency, and completion notifications.
 
 ## Install
@@ -35,7 +37,7 @@ Terminal jobs with a NotificationChannel publish an SNS-compatible Textract stat
 
 ## API
 
-- `TextractAPI`, `TextractAPIOptions`, `TextractNotification`: portable handler and notification contract.
+- `TextractAPI`, `TextractAPIOptions`, `TextractNotification`: handler and notification contract.
 - `TextractBlock`, `TextractCorpus`, `TextractJob`, `TextractJobStatus`: fixtures and durable state.
 - `createRuntime`, `TextractRuntime`, `TextractRuntimeOptions`: full Mockingbird runtime and webhook hub.
 - `TEXTRACT_NAMESPACE`, `TEXTRACT_PRESETS`, `accessKeyCredential`: constants and fault controls.
