@@ -55,7 +55,7 @@
       "website": "https://www.easypost.com",
       "docs": "https://docs.easypost.com/docs/trackers"
     },
-    "status": "wip",
+    "parity": "Trackers",
     "parityTier": "cold"
   },
   "scripts": {

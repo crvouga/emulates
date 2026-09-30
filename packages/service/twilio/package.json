@@ -58,7 +58,7 @@
       "website": "https://www.twilio.com",
       "docs": "https://www.twilio.com/docs"
     },
-    "status": "wip",
+    "parity": "Verify, Lookup, Messaging, and voice",
     "parityTier": "cold",
     "playground": {
       "headers": {

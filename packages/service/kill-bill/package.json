@@ -57,7 +57,7 @@
       "website": "https://killbill.io",
       "docs": "https://killbill.github.io/slate/"
     },
-    "status": "wip",
+    "parity": "Accounts, subscriptions, and invoices",
     "parityTier": "cold"
   },
   "scripts": {

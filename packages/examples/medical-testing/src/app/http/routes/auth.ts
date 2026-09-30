@@ -15,7 +15,7 @@ export const authRoutes = new Hono<AppEnv>()
 const isProvider = (value: string): value is IdentityProviderKey =>
   value === "google" || value === "apple"
 
-/** Kicks off a branded sign-in and returns its first hosted screen (account chooser). */
+/** Kicks off sign-in and returns its first hosted screen (account chooser). */
 authRoutes.post("/:provider/start", async (c) => {
   const provider = c.req.param("provider")
   if (!isProvider(provider)) return c.json({ error: "Unknown provider" }, 400)

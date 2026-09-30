@@ -33,6 +33,7 @@ export type {
   FaultCandidate,
   FaultHit,
   FaultPreset,
+  FaultPresetList,
   FaultRegistry,
   FaultRule,
 } from "./faults.js"

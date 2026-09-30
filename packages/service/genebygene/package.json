@@ -57,7 +57,7 @@
     "vendor": {
       "website": "https://www.genebygene.com"
     },
-    "status": "ready",
+    "parity": "Orders, kits, results, and webhooks",
     "parityTier": "cold"
   },
   "scripts": {

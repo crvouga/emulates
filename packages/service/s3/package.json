@@ -56,7 +56,7 @@
       "website": "https://aws.amazon.com/s3/",
       "docs": "https://docs.aws.amazon.com/AmazonS3/latest/API/"
     },
-    "status": "wip",
+    "parity": "Objects, multipart, and presigned URLs",
     "parityTier": "cold"
   },
   "scripts": {

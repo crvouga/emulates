@@ -1,4 +1,5 @@
 import type { OperationContext, OperationHandler } from "@crvouga/mockingbird-service"
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import { afterIntentSucceeded } from "./billing.js"
 import { portalChange, runPortalAction } from "./billing-portal.js"
 import {
@@ -26,7 +27,13 @@ const html = (status: number, body: string) =>
     headers: { "content-type": "text/html; charset=utf-8" },
   })
 
-const notFound = () => html(404, "<title>Not found</title><p>Unknown Checkout Session.</p>")
+const missing = (message: string) =>
+  html(
+    404,
+    `<head><meta charset="utf-8"><title>Not found</title><style>${CSS_RESET}body{padding:24px}</style></head><body><p>${message}</p></body>`,
+  )
+
+const notFound = () => missing("Unknown Checkout Session.")
 
 /** Everything the hosted page shows besides the session: merchant, customer, catalog details. */
 const viewFor = (
@@ -119,8 +126,7 @@ const portalScope = (services: Services, context: OperationContext) => {
   return portal === undefined ? undefined : { scope, portal }
 }
 
-const portalNotFound = () =>
-  html(404, "<title>Not found</title><p>This portal session is invalid or has expired.</p>")
+const portalNotFound = () => missing("This portal session is invalid or has expired.")
 
 /** The page a portal session opens on: its deep-linked flow until that completes, else home. */
 const openingView = (

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { buildDemo } from "./src/composition/build.js"
 
 describe("live demo admins", () => {
-  test("every HTTP mock serves the shared admin UI, and Postgres lists Cove's tables", async () => {
+  test("every HTTP mock serves the shared admin UI, and Postgres lists the example's tables", async () => {
     const demo = await buildDemo({ html: "", js: "" })
     expect(demo.admins.map((admin) => admin.label)).toEqual([
       "Google",

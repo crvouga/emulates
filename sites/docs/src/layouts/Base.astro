@@ -16,7 +16,7 @@ interface Props {
 
 const {
   title,
-  description = `Stateful mocks for ${catalog.totals.services} third-party APIs and SQL databases. Real vendor surfaces, real state, in-process in Node, Bun, browsers and Workers.`,
+  description = `Stateful mocks for ${catalog.totals.services} third-party APIs and SQL databases. Every mock runs in Node, Bun, browsers, and Workers.`,
   markdown,
 } = Astro.props
 const fullTitle = title
@@ -291,8 +291,13 @@ const nav = [
   }
 
   .palette-results .kind {
+    flex: none;
+    max-width: 14rem;
     color: var(--fg-faint);
     font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .palette-results .empty {

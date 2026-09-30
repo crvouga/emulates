@@ -12,7 +12,7 @@ const RUNTIMES_ID = "virtual:mockingbird/runtimes"
  * exposes them as virtual modules. Nothing the site shows is copied or hand-maintained.
  *
  * - `virtual:mockingbird/catalog`: the whole catalog, for pages (server side only).
- * - `virtual:mockingbird/runtimes`: a lazy `import()` per browser-runnable service, so each
+ * - `virtual:mockingbird/runtimes`: a lazy `import()` per service, so each
  *   mock becomes its own chunk that loads only when a playground starts it.
  */
 export function catalog(paths: CatalogPaths): AstroIntegration {
@@ -35,7 +35,7 @@ export function catalog(paths: CatalogPaths): AstroIntegration {
       if (id === `\0${RUNTIMES_ID}`) {
         const data = await get()
         const entries = data.services
-          .filter((s) => s.surfaces.browser)
+          .filter((s) => s.kind === "http" || s.kind === "sql")
           .map(
             (s) => `  ${JSON.stringify(s.name)}: () => import(${JSON.stringify(s.packageName)}),`,
           )

@@ -1,17 +1,16 @@
-# Cove — a full-stack Mockingbird example
+# Lab orders — a full-stack example
 
-**Cove** is a branded, consumer-facing lab-testing app: a patient signs in with Google or Apple,
-shops lab tests, pays through a hosted checkout page, and the paid order is fulfilled as a real
-lab order — all persisted to a real (Postgres-dialect) database, in one process, with **zero real
-network calls**.
+A plain lab-testing app: a patient signs in with Google or Apple, shops lab tests, pays through a
+hosted checkout page, and the paid order is fulfilled as a lab order — all persisted to a
+Postgres-dialect database, in one process, with no real network calls.
 
-It also runs as a **self-contained, in-browser component** — see `/examples/medical-testing` on
-the docs site, where the entire app (client, server, and database) is mounted and runs inside a
+It also runs as a self-contained, in-browser component — see `/examples/medical-testing` on the
+docs site, where the entire app (client, server, and database) is mounted and runs inside a
 single `<app-example>` on the page, no server to start.
 
 ## Ports and adapters
 
-Cove's own code — everything under `src/app/` and `src/client/` — never imports Mockingbird, has
+The app's own code — everything under `src/app/` and `src/client/` — never imports Mockingbird, has
 no concept of "mocking" or "testing," and doesn't know it's running against mocks at all. It's
 written the way a real production app would be:
 
@@ -24,7 +23,7 @@ src/app/
   catalog/      the shop's seed data
   checkout/     domain logic: create a checkout, handle a payments webhook, handle a
                 lab-testing webhook
-  orders/       the order read model (reads Cove's own persisted state — every status
+  orders/       the order read model (reads the app's own persisted state — every status
                 change already arrived via a webhook, nothing is fetched live)
   http/         the Hono app + routes, constructed from nothing but the ports above
 
@@ -46,8 +45,8 @@ would need to change.
   exchange, JWKS signature verification, and userinfo — using
   [`oauth4webapi`](https://github.com/panva/oauth4webapi) exactly as you would against real
   Google/Apple, with every request dispatched straight into `OAuthAPI.fetch()` in-process. The
-  client's `OAuthModal` component renders the provider's real, server-rendered HTML (account
-  chooser → consent) inline in an iframe and drives the flow by intercepting form submits —
+  client's `OAuthModal` component fetches the provider's real, server-rendered HTML (account
+  chooser → consent), pastes it into the modal, and drives the flow by intercepting form submits —
   nothing is faked or admin-shortcut; it's the actual protocol.
 - **A real hosted checkout, no admin bypass.** `src/adapters/payments/stripeMockPayments.ts`
   creates a real Checkout Session and opens its real hosted payment page
@@ -74,9 +73,9 @@ would need to change.
 ## Run it
 
 **In the browser, no server:** visit `/examples/medical-testing` on the docs site and click
-"Launch the app". The window has a tab for Cove and a tab for each mock it is using: Google, Apple,
-Stripe, and Junction open that mock's admin UI against the same in-process state, and Postgres lists
-the tables Cove writes.
+"Launch the app". The window has a tab for the example and a tab for each mock it is using: Google,
+Apple, Stripe, and Junction open that mock's admin UI against the same in-process state, and Postgres
+lists the tables the example writes.
 
 **As a standalone dev server:**
 

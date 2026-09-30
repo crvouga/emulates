@@ -2,7 +2,7 @@
 
 > Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful, portable Amazon S3 mock for AWS SDK v3. It preserves binary objects and the metadata applications read, supports path-style endpoints, multipart uploads, copies, ranges, pagination, presigned URLs, XML errors, namespace isolation, faults, and object notifications without contacting AWS.
+Stateful Amazon S3 mock for AWS SDK v3. It preserves binary objects and the metadata applications read, supports path-style endpoints, multipart uploads, copies, ranges, pagination, presigned URLs, XML errors, namespace isolation, faults, and object notifications without contacting AWS.
 
 ## Install
 
@@ -45,7 +45,7 @@ Operations outside the surface listed above, object versioning, ACL/IAM policy e
 
 ## API
 
-- `S3API`, `S3APIOptions`: portable Fetch handler and configuration.
+- `S3API`, `S3APIOptions`: Fetch handler and configuration.
 - `S3Notification`, `S3Object`, `S3SeedObject`: notification, state, and fixture types.
 - `createRuntime`, `S3Runtime`, `S3RuntimeOptions`: full Mockingbird runtime and webhook hub.
 - `S3_NAMESPACE`, `S3_PRESETS`, `accessKeyCredential`: constants and fault controls.

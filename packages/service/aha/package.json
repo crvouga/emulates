@@ -64,7 +64,7 @@
       "name": "mobileAHA",
       "description": "mobileAHA provides mobile phlebotomy: at-home and workplace blood draws for lab orders."
     },
-    "status": "wip",
+    "parity": "Phlebotomy orders and result files",
     "parityTier": "cold"
   },
   "scripts": {

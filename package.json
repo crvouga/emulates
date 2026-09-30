@@ -10,6 +10,7 @@
   "workspaces": [
     "packages/core",
     "packages/testing",
+    "packages/ui",
     "packages/sqlite",
     "packages/webhook-collector",
     "packages/http/*",

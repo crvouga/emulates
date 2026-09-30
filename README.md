@@ -18,7 +18,7 @@ Like its namesake, Mockingbird learns a familiar call and answers in kind. Real 
 
 Mockingbird is a catalog of stateful test doubles for third-party HTTP APIs and SQL databases. Each one speaks the vendor's real surface, keeps state, and runs in-process.
 
-Each mock is its own npm package. The catalog — names, release tiers, and what each one covers — is on the [docs site](https://mockingbird.chrisvouga.dev/services).
+Each mock is its own npm package. The catalog — names, parity, and what each one covers — is on the [docs site](https://mockingbird.chrisvouga.dev/services).
 
 ## Quick start
 
@@ -54,7 +54,7 @@ const list = await stripe.fetch(
 console.log((await list.json()).data[0].id === customer.id) // true
 ```
 
-Every package is self-contained ESM with TypeScript types, for Node >= 22 or Bun >= 1.2. Browse every mock, with a live playground, on the [docs site](https://mockingbird.chrisvouga.dev/services).
+Every package is self-contained ESM with TypeScript types. Every mock is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers. Browse every mock, with a live playground, on the [docs site](https://mockingbird.chrisvouga.dev/services).
 
 ## Why Mockingbird
 
@@ -62,7 +62,7 @@ Every package is self-contained ESM with TypeScript types, for Node >= 22 or Bun
 - **State that behaves.** Records persist in an in-memory SQL engine. Created customers can be listed, orders move through their lifecycle, webhooks fire, and reset or snapshot takes one call.
 - **Checked against the real thing.** Random walks generated from each vendored OpenAPI contract run against two mock instances in CI, and against the live sandbox when credentials exist.
 - **No network, no waiting.** Everything runs in your test process. No sandbox keys, rate limits, shared test accounts or flaky round trips.
-- **Runs anywhere JavaScript runs.** Most mocks are portable: Node, Bun, browsers and Workers. The docs site's playgrounds run the published packages in your browser tab.
+- **Runs anywhere JavaScript runs.** Every mock is isomorphic: the same package runs in Node, Bun, browsers, and Workers. The playgrounds on this site run that package in your browser tab.
 - **One contract for every service.** Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.
 
 The full rationale, and when not to use it: [docs/WHY.md](docs/WHY.md).
@@ -82,7 +82,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 | `GET /health` | Unauthenticated readiness probe, outside the vendor's auth gate |
 | `/__admin/*` (`x-mockingbird-admin-key` optional) | Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes |
 | `GET /__admin/state` | The collections in the selected namespace: declared shape, live `Collection` fields, and stored rows. Create, replace, merge, and delete records through the same paths on every mock |
-| `GET /__admin/ui` | The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API |
+| `GET /__admin/ui` | The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API. Its header fetches that service's logo, website, and docs from the docs site when the page opens |
 | `x-mockingbird-namespace` | Per-request isolation: parallel workers share one process without sharing data |
 | `--seed`, clock control | Seeded randomness and an injectable clock, so a run replays exactly |
 | `--log json` | One structured line per request: operation id, status, duration, namespace, fault |
@@ -100,7 +100,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 
 ## For coding agents
 
-Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them by tier, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests.
+Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them with the parity each service declares, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests.
 
 ## Contributing
 

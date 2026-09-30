@@ -57,7 +57,7 @@ Operations outside the documented subset, production quotas, email/SMS delivery,
 
 ## API
 
-- `CognitoAPI`, `CognitoAPIOptions`: portable AWS JSON handler and options.
+- `CognitoAPI`, `CognitoAPIOptions`: AWS JSON handler and options.
 - `createRuntime`, `CognitoRuntime`, `CognitoRuntimeOptions`: full Mockingbird service runtime.
 - `COGNITO_NAMESPACE`, `COGNITO_PRESETS`, `accessKeyCredential`: service constants and controls.
 - `CognitoAttribute`, `CognitoSeedUser`, `CognitoUser`: state and fixture types.

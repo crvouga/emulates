@@ -55,7 +55,7 @@
       "website": "https://firstpromoter.com",
       "docs": "https://docs.firstpromoter.com"
     },
-    "status": "wip",
+    "parity": "Promoters, referrals, and webhooks",
     "parityTier": "cold",
     "playground": {
       "headers": {

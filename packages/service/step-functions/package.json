@@ -56,7 +56,7 @@
       "website": "https://aws.amazon.com/step-functions/",
       "docs": "https://docs.aws.amazon.com/step-functions/latest/apireference/"
     },
-    "status": "wip",
+    "parity": "Executions and history",
     "parityTier": "cold"
   },
   "scripts": {

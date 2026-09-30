@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-oauth",
   "version": "0.0.0-development",
-  "description": "Portable social-login mock with Google, Apple, Microsoft, GitHub and generic OIDC profiles, private relay identities, reproducible edge cases, signed tokens and an accessible UI.",
+  "description": "Social-login mock with Google, Apple, Microsoft, GitHub and generic OIDC profiles, private relay identities, reproducible edge cases, signed tokens and an accessible UI.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -62,7 +62,7 @@
       "name": "OpenID Foundation",
       "description": "The OpenID Foundation maintains OpenID Connect, the identity layer on OAuth 2.0 used by Google, Apple, Microsoft and other sign-in providers."
     },
-    "status": "ready",
+    "parity": "OIDC and social login",
     "parityTier": "cold",
     "examples": [
       {
@@ -73,6 +73,7 @@
         "sources": [
           "examples/google-login/app.ts",
           "examples/google-login/transport.ts",
+          "examples/google-login/paste.ts",
           "examples/google-login/index.ts"
         ]
       }
@@ -99,6 +100,7 @@
     "@crvouga/mockingbird-openapi": "workspace:*",
     "@crvouga/mockingbird-openapi-codegen": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@crvouga/mockingbird-sqlite": "workspace:*",
     "@crvouga/mockingbird-testing": "workspace:*",
     "fast-check": "4.5.3",

@@ -25,7 +25,9 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
       {
         APP_EXAMPLES.map((example) => (
           <article class="example-card">
-            <h2>{example.title}</h2>
+            <h2>
+              <a href={`/examples/${example.slug}`}>{example.title}</a>
+            </h2>
             <p class="example-desc">{example.description}</p>
             <div class="example-services">
               {example.servicesUsed.map((name) => {
@@ -39,7 +41,6 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
                 )
               })}
             </div>
-            <pre class="example-run"><code>{example.runCommand}</code></pre>
             <div class="example-links">
               <a class="btn btn-accent btn-sm" href={`/examples/${example.slug}`}>
                 <Icon name="play" /> Live demo
@@ -64,6 +65,7 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
   }
 
   .example-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -71,11 +73,30 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: var(--bg);
+    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  }
+
+  .example-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
   }
 
   .example-card h2 {
     font-size: 17px;
     letter-spacing: -0.01em;
+  }
+
+  /* The title is the card's link. Its box covers the article so the surface
+     navigates too; chips and the action buttons sit above it. */
+  .example-card h2 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .example-card h2 a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .example-desc {
@@ -85,6 +106,8 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
   }
 
   .example-services {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -108,18 +131,9 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
     color: var(--fg);
   }
 
-  .example-run {
-    margin: 0;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-subtle);
-    color: var(--fg-muted);
-    font-size: 12.5px;
-    overflow-x: auto;
-  }
-
   .example-links {
+    position: relative;
+    z-index: 1;
     display: flex;
     gap: 8px;
     margin-top: auto;

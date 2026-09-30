@@ -37,7 +37,7 @@ The shared runtime provides reset, clock, journal, metrics, faults, and namespac
 
 ## API
 
-- `MediaConvertAPI`, `MediaConvertAPIOptions`, `MediaConvertEvent`, `TransitionOptions`: portable handler, events, and deterministic controls.
+- `MediaConvertAPI`, `MediaConvertAPIOptions`, `MediaConvertEvent`, `TransitionOptions`: handler, events, and deterministic controls.
 - `MediaConvertJob`, `MediaConvertJobStatus`, `OutputGroupDetail`: durable job state.
 - `createRuntime`, `MediaConvertRuntime`, `MediaConvertRuntimeOptions`: full Mockingbird runtime and webhook hub.
 - `MEDIACONVERT_NAMESPACE`, `MEDIACONVERT_PRESETS`, `accessKeyCredential`: constants and fault controls.

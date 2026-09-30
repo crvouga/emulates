@@ -1,3 +1,4 @@
+import { CSS_RESET } from "@crvouga/mockingbird-ui";
 import { formatBytes, formatMs } from "./report.ts";
 import type { BenchReport, BenchResult } from "./types.ts";
 
@@ -101,6 +102,7 @@ function formatWhen(iso: string): string {
 
 function css(): string {
   return `
+${CSS_RESET}
 :root {
   --bg: #f7f6f3;
   --surface: #ffffff;
@@ -138,7 +140,6 @@ function css(): string {
     --heat-warm-ink: #f0b896;
   }
 }
-* { box-sizing: border-box; }
 html { font-size: 15px; }
 body {
   margin: 0;

@@ -1,8 +1,8 @@
 /**
- * Generates the repo README.md: the overview of Mockingbird. The catalog of mocks lives on the
- * docs site and in llms.txt. Every word comes from the shared copy
- * (sites/docs/src/lib/content.ts), the published packages' license, and the guides in docs/.
- * Edit those, never README.md.
+ * Generates the repo README.md: the overview of Mockingbird. The catalog of mocks, including
+ * each service's parity, lives on the docs site and in llms.txt. Every word comes from the
+ * shared copy (sites/docs/src/lib/content.ts), the published packages' license, and the guides
+ * in docs/. Edit those, never README.md.
  *
  *   bun run readme:sync     rewrite README.md
  *   bun run check:readme    fail if README.md is stale (CI)
@@ -93,7 +93,7 @@ const body = [
   ...(RISK_DISCLAIMER.enabled ? [`> ⚠️ ${RISK_DISCLAIMER.text}`, ""] : []),
   PITCH,
   "",
-  `Each mock is its own npm package. The catalog — names, release tiers, and what each one covers — is on the [docs site](${catalog}).`,
+  `Each mock is its own npm package. The catalog — names, parity, and what each one covers — is on the [docs site](${catalog}).`,
   "",
   "## Quick start",
   "",
@@ -105,7 +105,7 @@ const body = [
   QUICK_START.code,
   "```",
   "",
-  `Every package is self-contained ESM with TypeScript types, for Node >= 22 or Bun >= 1.2. Browse every mock, with a live playground, on the [docs site](${catalog}).`,
+  `Every package is self-contained ESM with TypeScript types. Every mock is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers. Browse every mock, with a live playground, on the [docs site](${catalog}).`,
   "",
   "## Why Mockingbird",
   "",

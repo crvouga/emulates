@@ -1,3 +1,4 @@
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import { subscriptionItems } from "./billing.js"
 import {
   CANCELLATION_REASONS,
@@ -53,12 +54,11 @@ const REASON_LABELS: Record<string, string> = {
 }
 
 const STYLES = `
-*,*::before,*::after{box-sizing:border-box}
+${CSS_RESET}
 :root{--text:#1a1f36;--muted:#697386;--faint:#a3acb9;--line:#e3e8ee;--accent:#635bff;--accent-hover:#5851e5;
 --danger:#df1b41;--ok:#1ea672;--warn:#c44c00;--test-bg:#ffde92;--test-fg:#983705;
 --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif}
 html,body{margin:0;color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit;color:inherit}
 .app{min-height:100vh;display:flex;flex-direction:column}
 .side{background:#f6f9fc;padding:24px 20px}
 .main{padding:24px 20px 48px;flex:1}

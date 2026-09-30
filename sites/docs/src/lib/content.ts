@@ -80,7 +80,7 @@ export const FEATURES = [
   {
     icon: "globe",
     title: "Runs anywhere JavaScript runs",
-    body: "Most mocks are portable: Node, Bun, browsers and Workers. The docs site's playgrounds run the published packages in your browser tab.",
+    body: "Every mock is isomorphic: the same package runs in Node, Bun, browsers, and Workers. The playgrounds on this site run that package in your browser tab.",
   },
   {
     icon: "terminal",
@@ -141,7 +141,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
     ],
     [
       "`GET /__admin/ui`",
-      "The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API",
+      "The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API. Its header fetches that service's logo, website, and docs from the docs site when the page opens",
     ],
     [
       "`x-mockingbird-namespace`",
@@ -167,7 +167,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 }
 
 export const AGENTS =
-  "Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them by tier, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
+  "Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them with the parity each service declares, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
 
 /** Guides in `docs/`, in the order the README and the site list them. Others follow by name. */
 export const GUIDE_ORDER = [

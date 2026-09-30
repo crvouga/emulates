@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import type { ClientAssets } from "../app/http/app.js"
 import { STYLES } from "../client/theme.js"
 
@@ -11,10 +12,11 @@ const HTML = `<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cove — lab testing, made calm</title>
+    <title>Example app</title>
     <style>
-      :root { color-scheme: light; }
-      html, body { margin: 0; padding: 0; height: 100%; background: #faf7f0; }
+      ${CSS_RESET}
+      :root { color-scheme: light dark; }
+      html, body { margin: 0; padding: 0; height: 100%; background: light-dark(#fafafa, #111113); }
       ${STYLES}
     </style>
   </head>

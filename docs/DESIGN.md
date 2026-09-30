@@ -46,8 +46,8 @@ Drawn from the bird and the plate.
 | `--eye` | `#c6a15a` | The eye-ring. One highlight, never a fill |
 
 Dark theme inverts paper and ink. Oak becomes the pale wing-bar flash (`#d5e0cc`) so a filled
-button still reads. Clay lightens to `#e2b094`. Status colors (ready, in progress, errors,
-HTTP methods) stay semantic and are not part of the identity.
+button still reads. Clay lightens to `#e2b094`. Error and HTTP-method colors stay semantic
+and are not part of the identity.
 
 The header theme control offers system, light, and dark. System is the default and follows
 the operating system. An explicit choice is stored as `mb:theme`.
@@ -59,6 +59,12 @@ The README license shield uses oak (`243f34`).
 Headings are a serif: Iowan Old Style, then Palatino, then Georgia. Interface text is Avenir
 Next, then the system sans. Code is the system mono. No webfont is loaded. The second phrase
 of the title is italic and clay. Species names are italic.
+
+## Baseline
+
+Every HTML surface starts from `packages/ui`. A full document includes `CSS_RESET`. A widget
+mounted inside another page uses `scopeReset(root)`, which keeps the same baseline inside
+that root. The surface's own type, color, and spacing come after the reset.
 
 ## Motifs
 

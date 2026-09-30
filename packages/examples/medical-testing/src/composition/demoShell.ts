@@ -1,40 +1,29 @@
+import { scopeReset } from "@crvouga/mockingbird-ui"
 import type { MockAdmin } from "../adapters/identity/oauthMockIdentity.js"
 import type { Db } from "../app/ports/db.js"
+import { type PastedLocation, type PasteFetch, pasteHtml } from "../client/pasteHtml.js"
 
-type AdminCall = (
-  id: string,
-  path: string,
-  method: string,
-  headers: [string, string][],
-  body: string | null,
-) => Promise<Response>
+const ADMIN_ORIGIN = "https://mock.local"
+const ADMIN_LOCATION: PastedLocation = {
+  href: `${ADMIN_ORIGIN}/__admin/ui`,
+  origin: ADMIN_ORIGIN,
+  pathname: "/__admin/ui",
+  search: "",
+  hash: "",
+}
 
-const fetches = new Map<string, MockAdmin["fetch"]>()
-
-const installBridge = (): void => {
-  const host = window as Window & { __coveAdminFetch?: AdminCall }
-  if (host.__coveAdminFetch) return
-  host.__coveAdminFetch = (id, path, method, headers, body) => {
-    const fetchImpl = fetches.get(id)
-    if (!fetchImpl) return Promise.resolve(new Response("Unknown admin", { status: 404 }))
-    const hasBody = body !== null && method !== "GET" && method !== "HEAD"
-    return fetchImpl(
-      new Request(`https://mock.local${path}`, {
-        method,
-        headers,
-        ...(hasBody ? { body } : {}),
-      }),
-    )
+/** Relative admin calls stay in-process. Absolute catalog URLs use the network. */
+const adminFetch = (fetchImpl: MockAdmin["fetch"]): PasteFetch => {
+  return (input, init) => {
+    const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url
+    const url = new URL(raw, `${ADMIN_ORIGIN}/`)
+    if (url.origin !== ADMIN_ORIGIN) return fetch(input, init)
+    return fetchImpl(new Request(url, init))
   }
 }
 
-/** The admin document fetches relative URLs. Point those at this demo's in-process mock. */
-const adminSrcdoc = (html: string, id: string): string => {
-  const script = `<script>(function(id){var call=parent.__coveAdminFetch;window.fetch=function(input,init){var request=new Request(input,init);var url=new URL(request.url,parent.location.href);var method=request.method;var headers=[];request.headers.forEach(function(value,key){headers.push([key,value])});var read=method==="GET"||method==="HEAD"?Promise.resolve(null):request.text();return read.then(function(body){return call(id,url.pathname+url.search,method,headers,body)})}})(${JSON.stringify(id)})</script>`
-  return html.includes("<head>") ? html.replace("<head>", `<head>${script}`) : script + html
-}
-
 const STYLES = `
+${scopeReset(".demo-shell")}
 .demo-shell {
   position: absolute;
   inset: 0;
@@ -78,7 +67,7 @@ const STYLES = `
 .demo-panel { position: absolute; inset: 0; display: flex; flex-direction: column; min-width: 0; }
 .demo-panel[hidden] { display: none !important; }
 .demo-panel > .cove-app { height: 100%; }
-.demo-frame { flex: 1; width: 100%; border: 0; background: var(--bg, #fff); }
+.demo-frame { flex: 1; width: 100%; height: 100%; min-height: 0; overflow: auto; background: var(--bg, #fff); }
 .demo-status { margin: 24px; color: var(--fg-muted, #5c5c66); font-size: 13.5px; }
 .demo-db {
   height: 100%;
@@ -161,8 +150,8 @@ const installStyles = (): void => {
 
 /**
  * Tabs over the product and each mock it is running. HTTP mocks get their own
- * `/__admin/ui`, loaded against the same in-process fetch the app is using.
- * Postgres has no HTTP control plane, so its tab queries the tables directly.
+ * `/__admin/ui`, fetched and pasted against the same in-process fetch the app
+ * is using. Postgres has no HTTP control plane, so its tab queries the tables directly.
  */
 export const mountDemoShell = (
   host: HTMLElement,
@@ -173,7 +162,6 @@ export const mountDemoShell = (
   },
 ): (() => void) => {
   installStyles()
-  installBridge()
   host.style.position = "relative"
   host.style.overflow = "hidden"
 
@@ -182,7 +170,7 @@ export const mountDemoShell = (
   const tabs = document.createElement("div")
   tabs.className = "demo-tabs"
   tabs.setAttribute("role", "tablist")
-  tabs.setAttribute("aria-label", "Cove and the services it is using")
+  tabs.setAttribute("aria-label", "Example app and the services it is using")
   const stage = document.createElement("div")
   stage.className = "demo-stage"
   shell.append(tabs, stage)
@@ -193,6 +181,7 @@ export const mountDemoShell = (
   let selected = "app"
   let adminTicket = 0
   let dbTable = ""
+  let unpaste: (() => void) | undefined
 
   const addTab = (id: string, label: string): HTMLElement => {
     const button = document.createElement("button")
@@ -214,14 +203,11 @@ export const mountDemoShell = (
     return panel
   }
 
-  const appPanel = addTab("app", "Cove")
+  const appPanel = addTab("app", "Example")
   const appRoot = document.createElement("div")
   appPanel.append(appRoot)
   options.mountApp(appRoot)
-  for (const admin of options.admins) {
-    fetches.set(admin.id, admin.fetch)
-    addTab(admin.id, admin.label)
-  }
+  for (const admin of options.admins) addTab(admin.id, admin.label)
   const dbPanel = addTab("postgres", "Postgres")
 
   const showStatus = (panel: HTMLElement, text: string, isError = false): void => {
@@ -236,20 +222,26 @@ export const mountDemoShell = (
     const panel = panels.get(admin.id)
     if (!panel) return
     const ticket = ++adminTicket
+    unpaste?.()
+    unpaste = undefined
     showStatus(panel, `Loading ${admin.label} admin…`)
     try {
-      const response = await admin.fetch(new Request("https://mock.local/__admin/ui"))
+      const response = await admin.fetch(new Request(`${ADMIN_ORIGIN}/__admin/ui`))
       const html = await response.text()
       if (ticket !== adminTicket || selected !== admin.id) return
       if (!response.ok) {
         showStatus(panel, html || `${response.status} from ${admin.label}`, true)
         return
       }
-      const frame = document.createElement("iframe")
+      const frame = document.createElement("div")
       frame.className = "demo-frame"
-      frame.title = `${admin.label} admin`
-      frame.srcdoc = adminSrcdoc(html, admin.id)
+      frame.setAttribute("role", "region")
+      frame.setAttribute("aria-label", `${admin.label} admin`)
       panel.replaceChildren(frame)
+      unpaste = pasteHtml(frame, html, {
+        fetch: adminFetch(admin.fetch),
+        location: ADMIN_LOCATION,
+      })
     } catch (error) {
       if (ticket !== adminTicket || selected !== admin.id) return
       showStatus(panel, error instanceof Error ? error.message : String(error), true)
@@ -279,7 +271,7 @@ export const mountDemoShell = (
       heading.textContent = "Postgres"
       const lede = document.createElement("p")
       lede.textContent =
-        "Tables Cove writes. This engine has no HTTP admin, so the rows come straight from the database the app is using."
+        "Tables this example writes. This engine has no HTTP admin, so the rows come straight from the database the app is using."
       const bar = document.createElement("div")
       bar.className = "demo-db-bar"
       for (const name of names) {
@@ -368,7 +360,7 @@ export const mountDemoShell = (
 
   return () => {
     adminTicket++
-    for (const admin of options.admins) fetches.delete(admin.id)
+    unpaste?.()
     shell.remove()
   }
 }

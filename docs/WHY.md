@@ -34,8 +34,8 @@ or call it directly.
 - **Controllable.** The same admin surface everywhere: reset, snapshot and restore, a controllable
   clock, named fault presets, a request journal, and isolation by namespace so parallel workers
   share one process safely.
-- **Portable.** Most packages are plain portable JavaScript that runs in Node, Bun, browsers and
-  Workers. The playgrounds on the docs site run the published code in your browser tab.
+- **Isomorphic.** Every mock is the same package in Node, Bun, browsers, and Workers. The
+  playgrounds on the docs site run that package in your browser tab.
 
 ## How the mocks stay honest
 
@@ -51,15 +51,16 @@ property-based tests driven by each contract (details in [TESTING.md](TESTING.md
 3. **Consumer acceptance.** Each package drives a port of the consuming app's own client and
    webhook code, and where the app uses the vendor SDK, the SDK is pointed at the mock.
 
-## Release tiers
+## Parity
 
-Every service declares a release tier, **Ready** or **Work in progress**, in its `package.json`.
-The docs site, `llms.txt` and `catalog.json` show that tier, generated from that one field.
-Definitions and the current list are the [services catalog](https://mockingbird.chrisvouga.dev/services).
+Every service declares its own parity in `package.json` as `mockingbird.parity`: a short
+statement of the vendor surface it keeps in step. The docs site, `llms.txt` and `catalog.json`
+show that statement, generated from that one field. The current list is the
+[services catalog](https://mockingbird.chrisvouga.dev/services).
 
 ## Docs that cannot drift
 
-Nothing about a service is written down twice. Names, categories, tiers, surfaces and runtimes
+Nothing about a service is written down twice. Names, categories, parity, and surfaces
 come from each package's `package.json`. Operations and coverage come from the built module's
 contract. A service's documentation is its package README, the same file npm ships.
 
@@ -74,7 +75,7 @@ every SQL snippet against the real packages, so an example that stops working fa
 ## For coding agents
 
 Agents integrate a mock the same way people do, so the same sources are published in forms they
-read well: [`llms.txt`](../llms.txt) indexes every service by tier, each package README is the
+read well: [`llms.txt`](../llms.txt) indexes every service with the parity it declares, each package README is the
 integration guide (also at `node_modules/<package>/README.md`), and the docs site serves every
 README as markdown at `/services/<name>.md`, all of them in `/llms-full.txt`, and a machine-readable
 `/catalog.json`.

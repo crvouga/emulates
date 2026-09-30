@@ -56,7 +56,7 @@
       "website": "https://www.edamam.com",
       "docs": "https://developer.edamam.com"
     },
-    "status": "wip",
+    "parity": "Food, nutrition, and recipes",
     "parityTier": "cold"
   },
   "scripts": {
