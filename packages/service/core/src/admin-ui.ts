@@ -175,9 +175,23 @@ export const renderAdminDocument = (service: string): string => {
   .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   label.field { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--faint); }
   label.field input, label.field select, .controls input[type="password"] {
-    background: var(--bg-inset); border: 1px solid var(--line); border-radius: 8px;
-    padding: 7px 8px; min-height: 36px;
+    background-color: var(--bg-inset); border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 8px; min-height: 36px; line-height: 1.2;
   }
+  /* A native menu ignores min-height, so Preset rendered about half as tall as
+     the text fields in the same form. Paint it like those fields. */
+  label.field select {
+    -webkit-appearance: none; appearance: none;
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%2371717a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 12px 12px;
+  }
+  .stack > .field > input,
+  .stack > .field > select,
+  .stack > .field > textarea,
+  dialog .field > input,
+  dialog .field > select,
+  dialog .field > textarea { width: 100%; }
   .icon-btn, .btn, .btn-primary, .btn-quiet, .btn-danger {
     border-radius: 9px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line);
     background: var(--bg-elev);
