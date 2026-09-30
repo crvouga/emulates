@@ -54,9 +54,9 @@ property-based tests driven by each contract (details in [TESTING.md](TESTING.md
 ## Parity
 
 Every service declares its own parity in `package.json` as `mockingbird.parity`: a short
-statement of the vendor surface it keeps in step. The README, the docs site, `llms.txt` and
-`catalog.json` show that statement, generated from that one field. The current list is in the
-[README](../README.md#services).
+statement of the vendor surface it keeps in step. The docs site, `llms.txt` and `catalog.json`
+show that statement, generated from that one field. The current list is the
+[services catalog](https://mockingbird.chrisvouga.dev/services).
 
 ## Docs that cannot drift
 
@@ -64,10 +64,11 @@ Nothing about a service is written down twice. Names, categories, parity, and su
 come from each package's `package.json`. Operations and coverage come from the built module's
 contract. A service's documentation is its package README, the same file npm ships.
 
-The repo README is generated from those same sources (`bun run readme:sync`), and CI fails when it
-is stale. The name, the sentence, and the mark live in `sites/docs/src/lib/content.ts`. The README
-header, `llms.txt`, and the opening line of every published package README are generated or checked
-from that file. The rules are in [docs/DESIGN.md](DESIGN.md). The docs site renders the package
+The repo README is the short overview (`bun run readme:sync`), and CI fails when it is stale. The
+name, the sentence, and the mark live in `sites/docs/src/lib/content.ts`. The README header,
+`llms.txt`, and the opening line of every published package README are generated or checked from
+that file. The catalog of mocks is the docs site, `llms.txt`, and `catalog.json`. The rules are in
+[docs/DESIGN.md](DESIGN.md). The docs site renders the package
 READMEs, these guides and the same shared copy at build time. It sends every playground sample request to a fresh mock and runs the quick start and
 every SQL snippet against the real packages, so an example that stops working fails the build.
 
