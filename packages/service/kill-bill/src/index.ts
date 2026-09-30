@@ -50,6 +50,12 @@ const money = (value: unknown) => Math.round((Number(value) + Number.EPSILON) * 
 const object = (value: unknown): Input =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Input) : {}
 const isoDate = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+const billingPeriod = (intervalDays?: number) => {
+  if (intervalDays === 1) return "DAILY"
+  if (intervalDays === 7) return "WEEKLY"
+  if (intervalDays !== undefined && intervalDays >= 365) return "ANNUAL"
+  return "MONTHLY"
+}
 
 export class KillBillAPI {
   readonly state: KillBillState
@@ -165,6 +171,47 @@ export class KillBillAPI {
   }
   private plan(name: string) {
     return this.state.plans.get(name)
+  }
+  // Kill Bill 0.24 CatalogJson is a list of versions. Plans are nested on products.
+  private catalogJson() {
+    const plans = this.state.plans.list().map(({ value }) => value)
+    const currencies = [...new Set(plans.map((plan) => plan.currency ?? "USD"))]
+    return [
+      {
+        name: "default",
+        effectiveDate: new Date(this.now()).toISOString(),
+        currencies: currencies.length > 0 ? currencies : ["USD"],
+        units: [],
+        products: plans.map((plan) => {
+          const currency = plan.currency ?? "USD"
+          return {
+            type: "BASE",
+            name: plan.name,
+            prettyName: plan.name,
+            plans: [
+              {
+                name: plan.name,
+                prettyName: plan.name,
+                recurringBillingMode: "IN_ADVANCE",
+                billingPeriod: billingPeriod(plan.intervalDays),
+                phases: [
+                  {
+                    type: "EVERGREEN",
+                    prices: [{ currency, value: plan.amount }],
+                    fixedPrices: [],
+                    duration: { unit: "UNLIMITED", number: -1 },
+                    usages: [],
+                  },
+                ],
+              },
+            ],
+            included: [],
+            available: [],
+          }
+        }),
+        priceLists: [{ name: "DEFAULT", plans: plans.map((plan) => plan.name) }],
+      },
+    ]
   }
   private location(request: Request, path: string) {
     return new URL(path, request.url).toString()
@@ -407,7 +454,7 @@ export class KillBillAPI {
                 .join(""),
               { headers: { "content-type": "application/xml" } },
             )
-          : this.json({ plans: this.state.plans.list().map(({ value }) => value) })
+          : this.json(this.catalogJson())
       const plans = Array.isArray(body.plans) ? body.plans : []
       for (const raw of plans) {
         const plan = object(raw)

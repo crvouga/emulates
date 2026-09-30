@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test"
+import { createClock } from "@crvouga/mockingbird-service"
+import { createRuntime } from "./src/index.js"
 import { createServer } from "./src/server.js"
 
 const headers = {
@@ -180,10 +182,13 @@ describe("Kill Bill REST adapter", () => {
           })
         ).status,
       ).toBe(201)
+      const catalog =
+        await json<Array<{ products: Array<{ plans: Array<{ name: string }> }> }>>("/catalog")
+      expect(Array.isArray(catalog)).toBe(true)
       expect(
-        (await json<{ plans: Array<{ name: string }> }>("/catalog")).plans.some(
-          (plan) => plan.name === "xml-plan",
-        ),
+        catalog
+          .at(-1)
+          ?.products.some((product) => product.plans.some((plan) => plan.name === "xml-plan")),
       ).toBe(true)
       await server.runtime.webhooks.idle()
       expect(deliveries.length).toBeGreaterThan(5)
@@ -191,5 +196,67 @@ describe("Kill Bill REST adapter", () => {
     } finally {
       await server.close()
     }
+  })
+
+  test("GET /1.0/kb/catalog returns a catalog-version array", async () => {
+    const clock = createClock(() => Date.parse("2020-01-02T03:04:05.000Z"))
+    const mock = createRuntime({
+      clock,
+      plans: [{ name: "example-monthly", amount: 10, currency: "USD" }],
+    })
+    const response = await mock.fetch(
+      new Request("http://mock/1.0/kb/catalog", {
+        headers: {
+          authorization: `Basic ${btoa("admin:password")}`,
+          accept: "application/json",
+          "x-killbill-apikey": "bob",
+          "x-killbill-apisecret": "lazar",
+        },
+      }),
+    )
+    expect(response.status).toBe(200)
+    const versions = (await response.json()) as Array<{
+      plans?: Array<{ name: string }>
+      products: Array<{ plans: Array<{ name: string; phases: Array<{ prices: unknown }> }> }>
+    }>
+    expect(Array.isArray(versions)).toBe(true)
+    const latest = versions.at(-1)
+    expect(latest?.plans).toBeUndefined()
+    expect(
+      (latest?.products ?? []).flatMap((product) => product.plans.map((plan) => plan.name)),
+    ).toEqual(["example-monthly"])
+    expect(latest).toEqual({
+      name: "default",
+      effectiveDate: "2020-01-02T03:04:05.000Z",
+      currencies: ["USD"],
+      units: [],
+      products: [
+        {
+          type: "BASE",
+          name: "example-monthly",
+          prettyName: "example-monthly",
+          plans: [
+            {
+              name: "example-monthly",
+              prettyName: "example-monthly",
+              recurringBillingMode: "IN_ADVANCE",
+              billingPeriod: "MONTHLY",
+              phases: [
+                {
+                  type: "EVERGREEN",
+                  prices: [{ currency: "USD", value: 10 }],
+                  fixedPrices: [],
+                  duration: { unit: "UNLIMITED", number: -1 },
+                  usages: [],
+                },
+              ],
+            },
+          ],
+          included: [],
+          available: [],
+        },
+      ],
+      priceLists: [{ name: "DEFAULT", plans: ["example-monthly"] }],
+    })
   })
 })
