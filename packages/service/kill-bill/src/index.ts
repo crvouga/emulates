@@ -432,6 +432,44 @@ export class KillBillAPI {
     await this.emit("INVOICE_CREATION", "INVOICE", invoiceId, accountId, tenantId)
     return invoice
   }
+
+  /** Net successful purchase minus refund. Kill Bill 0.24.10 voids only when this is zero. */
+  private netCollected(invoiceId: string) {
+    return money(
+      this.state.payments.list({ where: (payment) => payment.invoiceId === invoiceId }).reduce(
+        (sum, { value }) =>
+          sum +
+          value.transactions.reduce((inner, transaction) => {
+            if (transaction.status !== "SUCCESS") return inner
+            if (transaction.transactionType === "PURCHASE") return inner + transaction.amount
+            if (transaction.transactionType === "REFUND") return inner - transaction.amount
+            return inner
+          }, 0),
+        0,
+      ),
+    )
+  }
+  /**
+   * PUT /1.0/kb/invoices/{invoiceId}/voidInvoice (Kill Bill 0.24.10).
+   * A paid invoice and a second void are both 400 via InvoiceApiExceptionMapper.fallback.
+   */
+  private async voidInvoice(invoice: Invoice, tenantId: string) {
+    if (this.netCollected(invoice.invoiceId) !== 0)
+      return this.problem(
+        400,
+        "CAN_NOT_VOID_INVOICE_THAT_IS_PAID",
+        "Invoice can not be voided. Invoice is paid or partially paid.",
+      )
+    if (invoice.status === "VOID")
+      return this.problem(
+        400,
+        "INVOICE_INVALID_STATUS",
+        "The invoice status VOID is invalid. Current status is VOID",
+      )
+    this.state.invoices.insert(invoice.invoiceId, { ...invoice, status: "VOID", balance: 0 })
+    await this.emit("INVOICE_VOID", "INVOICE", invoice.invoiceId, invoice.accountId, tenantId)
+    return this.empty()
+  }
   private transaction(
     payment: Payment,
     type: Transaction["transactionType"],
@@ -1207,6 +1245,8 @@ export class KillBillAPI {
       const invoice = this.state.invoices.get(parts[1])
       if (!invoice || !this.account(invoice.accountId, tenantId))
         return this.problem(404, "INVOICE_DOES_NOT_EXIST", "Invoice not found")
+      if (parts[2] === "voidInvoice" && request.method === "PUT")
+        return this.voidInvoice(invoice, tenantId)
       if (parts[2] === "payments") {
         if (request.method === "GET")
           return this.json(

@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **11**
-- supported by the mock: **11**
-- parity enabled: **11**
+- operations in spec: **12**
+- supported by the mock: **12**
+- parity enabled: **12**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -19,3 +19,4 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `UpdateResource` | `PUT /1.0/kb/{resource}/{id}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `DeleteResource` | `DELETE /1.0/kb/{resource}/{id}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `UndoChangeSubscriptionPlan` | `PUT /1.0/kb/subscriptions/{subscriptionId}/undoChangePlan` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `VoidInvoice` | `PUT /1.0/kb/invoices/{invoiceId}/voidInvoice` | ✅ supported | ⚠️ unsafe (opt-in) |  |

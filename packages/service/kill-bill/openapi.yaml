@@ -58,3 +58,12 @@ paths:
         "204": { description: Pending plan change undone }
         "400": { description: Subscription has no pending plan change }
         "404": { description: Subscription not found }
+  /1.0/kb/invoices/{invoiceId}/voidInvoice:
+    parameters: [{ name: invoiceId, in: path, required: true, schema: { type: string } }]
+    put:
+      operationId: VoidInvoice
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      responses:
+        "204": { description: Invoice voided }
+        "400": { description: Invoice is paid or already void }
+        "404": { description: Invoice not found }

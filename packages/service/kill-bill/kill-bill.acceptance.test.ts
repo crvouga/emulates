@@ -1119,4 +1119,105 @@ describe("Kill Bill tenants and notification callbacks", () => {
       await server.close()
     }
   })
+
+  test("PUT voidInvoice marks an unpaid committed invoice VOID", async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const json = async <T>(path: string, init?: RequestInit) =>
+      (await (await request(path, init)).json()) as T
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "void-unpaid", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const charge = await request(`/invoices/charges/${accountId}`, {
+        method: "POST",
+        body: JSON.stringify([{ amount: 4.25 }]),
+      })
+      const invoiceId = charge.headers.get("location")?.split("/").at(-1) as string
+      expect(
+        await json<{ status: string; balance: number; amount: number }>(`/invoices/${invoiceId}`),
+      ).toMatchObject({
+        status: "COMMITTED",
+        balance: 4.25,
+        amount: 4.25,
+      })
+      expect((await request(`/invoices/${invoiceId}/voidInvoice`, { method: "PUT" })).status).toBe(
+        204,
+      )
+      expect(
+        await json<{ status: string; balance: number }>(`/invoices/${invoiceId}`),
+      ).toMatchObject({
+        status: "VOID",
+        balance: 0,
+      })
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("a second PUT voidInvoice leaves an already void invoice VOID", async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const json = async <T>(path: string, init?: RequestInit) =>
+      (await (await request(path, init)).json()) as T
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "void-twice", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const charge = await request(`/invoices/charges/${accountId}`, {
+        method: "POST",
+        body: JSON.stringify([{ amount: 2 }]),
+      })
+      const invoiceId = charge.headers.get("location")?.split("/").at(-1) as string
+      expect((await request(`/invoices/${invoiceId}/voidInvoice`, { method: "PUT" })).status).toBe(
+        204,
+      )
+      const again = await request(`/invoices/${invoiceId}/voidInvoice`, { method: "PUT" })
+      expect(again.status).toBe(400)
+      expect(await again.json()).toMatchObject({ code: "INVOICE_INVALID_STATUS" })
+      expect((await json<{ status: string }>(`/invoices/${invoiceId}`)).status).toBe("VOID")
+    } finally {
+      await server.close()
+    }
+  })
+
+  test("PUT voidInvoice rejects a purchase that has not been fully refunded", async () => {
+    const server = await createServer()
+    const request = (path: string, init: RequestInit = {}) =>
+      fetch(`${server.url}/1.0/kb${path}`, { ...init, headers: { ...headers, ...init.headers } })
+    const json = async <T>(path: string, init?: RequestInit) =>
+      (await (await request(path, init)).json()) as T
+    try {
+      const created = await request("/accounts", {
+        method: "POST",
+        body: JSON.stringify({ externalKey: "void-paid", currency: "USD" }),
+      })
+      const accountId = created.headers.get("location")?.split("/").at(-1) as string
+      const charge = await request(`/invoices/charges/${accountId}`, {
+        method: "POST",
+        body: JSON.stringify([{ amount: 10.01 }]),
+      })
+      const invoiceId = charge.headers.get("location")?.split("/").at(-1) as string
+      expect(
+        (
+          await request(`/invoices/${invoiceId}/payments`, {
+            method: "POST",
+            body: JSON.stringify({ amount: 10.01 }),
+          })
+        ).status,
+      ).toBe(201)
+      const rejected = await request(`/invoices/${invoiceId}/voidInvoice`, { method: "PUT" })
+      expect(rejected.status).toBe(400)
+      expect(await rejected.json()).toMatchObject({ code: "CAN_NOT_VOID_INVOICE_THAT_IS_PAID" })
+      expect((await json<{ status: string }>(`/invoices/${invoiceId}`)).status).toBe("COMMITTED")
+    } finally {
+      await server.close()
+    }
+  })
 })
