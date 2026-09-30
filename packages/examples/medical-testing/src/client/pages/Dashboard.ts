@@ -27,7 +27,7 @@ export const Dashboard = ({ user }: { user: User }) => {
         </span>
         <div>
           <h1>Welcome back${user.name ? `, ${user.name.split(" ")[0]}` : ""}.</h1>
-          <p class="cove-muted">Here's what's happening with your testing.</p>
+          <p class="cove-lede">Orders and results for this account.</p>
         </div>
       </div>
 
@@ -51,10 +51,10 @@ export const Dashboard = ({ user }: { user: User }) => {
 
       ${
         mostRecent &&
-        html`<div class="cove-card" style="margin-bottom:1.5rem">
+        html`<div class="cove-card cove-card-gap">
         <span class="cove-eyebrow">Most recent order</span>
         <h2>${mostRecent.items.map((i) => i.testName).join(", ")}</h2>
-        <p class="cove-muted">Status: ${mostRecent.status.replace(/_/g, " ")}</p>
+        <p><span class="cove-badge cove-badge-${mostRecent.status}">${mostRecent.status.replaceAll("_", " ")}</span></p>
         <button class="cove-btn cove-btn-ghost" onClick=${() => navigate("orders")}>View orders</button>
       </div>`
       }

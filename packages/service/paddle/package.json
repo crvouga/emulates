@@ -58,7 +58,7 @@
       "website": "https://www.paddle.com/billing",
       "docs": "https://developer.paddle.com/api-reference/overview"
     },
-    "status": "ready",
+    "parity": "Billing, subscriptions, and webhooks",
     "parityTier": "cold",
     "playground": {
       "operation": "CreateCustomer",

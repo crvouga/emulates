@@ -12,8 +12,7 @@ if (!guide) throw new Error("docs/WHY.md is missing: the /why page renders it")
   <div class="container">
     <GuideArticle guide={guide} repo={catalog.repo}>
       <div class="why-cta">
-        <a class="btn btn-primary" href="/services?tier=ready">Start with the {catalog.totals.ready} ready services <Icon name="arrow-right" /></a>
-        <a class="btn btn-secondary" href="/services">Browse all {catalog.totals.services}</a>
+        <a class="btn btn-primary" href="/services">Browse the {catalog.totals.services} mocks <Icon name="arrow-right" /></a>
       </div>
     </GuideArticle>
   </div>

@@ -55,7 +55,7 @@
       "website": "https://aws.amazon.com/dynamodb/",
       "docs": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/"
     },
-    "status": "wip",
+    "parity": "Items, indexes, and transactions",
     "parityTier": "cold"
   },
   "scripts": {

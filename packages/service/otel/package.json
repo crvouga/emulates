@@ -57,7 +57,7 @@
       "website": "https://opentelemetry.io",
       "docs": "https://opentelemetry.io/docs/specs/otlp/"
     },
-    "status": "wip",
+    "parity": "OTLP traces and logs",
     "parityTier": "cold"
   },
   "scripts": {

@@ -57,7 +57,7 @@
       "website": "https://livekit.io",
       "docs": "https://docs.livekit.io"
     },
-    "status": "wip",
+    "parity": "Rooms, grants, and webhooks",
     "parityTier": "cold"
   },
   "scripts": {

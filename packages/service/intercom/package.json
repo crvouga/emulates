@@ -55,7 +55,7 @@
       "website": "https://www.intercom.com",
       "docs": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io"
     },
-    "status": "ready",
+    "parity": "Contacts, conversations, and webhooks",
     "parityTier": "cold"
   },
   "scripts": {

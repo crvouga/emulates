@@ -1,7 +1,7 @@
 import { html } from "htm/preact"
 
 /**
- * A small, consistent icon set for Cove — single-weight rounded strokes,
+ * A small icon set: single-weight strokes,
  * `currentColor` so each usage site controls its own tint. Kept as inline
  * SVG (no icon font/image requests) to stay true to this app's "no network
  * call, ever" principle.

@@ -20,6 +20,7 @@
  */
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { CSS_RESET } from "../packages/ui/src/reset.ts"
 
 export const APP_CONFIG_PATH = ".github/resolve-issues-app.json"
 
@@ -234,6 +235,7 @@ export async function createApp(
         const action = `https://github.com/settings/apps/new?state=${state}`
         return new Response(
           `<!doctype html><title>Create the agents' GitHub App</title>
+<style>${CSS_RESET}body{padding:24px}button{padding:.6rem 1rem;background:CanvasText;color:Canvas;border-radius:6px}</style>
 <form id="f" method="post" action="${escapeHtml(action)}">
 <input type="hidden" name="manifest" value="${escapeHtml(JSON.stringify(manifest))}">
 <button>Create the GitHub App on GitHub</button></form>

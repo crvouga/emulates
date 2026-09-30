@@ -56,7 +56,7 @@
       "website": "https://aws.amazon.com/secrets-manager/",
       "docs": "https://docs.aws.amazon.com/secretsmanager/latest/apireference/"
     },
-    "status": "wip",
+    "parity": "Secrets Manager and Parameter Store",
     "parityTier": "cold"
   },
   "scripts": {

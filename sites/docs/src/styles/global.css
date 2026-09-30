@@ -2,6 +2,8 @@
    The palette is the northern mockingbird and its plate: paper, ink, live oak, clay, sage.
    Rules live in docs/DESIGN.md. Specimens live at /identity. */
 
+@import "@crvouga/mockingbird-ui/reset.css";
+
 :root {
   color-scheme: light;
   --bg: #f3eee4;
@@ -103,15 +105,7 @@
 
 /* ---------- base ---------- */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
 html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 16px);
   background: var(--bg);
   /* Always reserve the page scrollbar so short and long pages share one width. */
@@ -193,18 +187,6 @@ samp {
   font-size: 0.9em;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
 ::selection {
   background: var(--accent-soft);
   color: var(--fg);
@@ -214,10 +196,6 @@ button {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
-}
-
-[hidden] {
-  display: none !important;
 }
 
 .sr-only {
@@ -712,18 +690,6 @@ kbd {
   color: var(--ok);
 }
 
-.tier.tier-ready {
-  border-color: transparent;
-  background: var(--ok-soft);
-  color: var(--ok);
-}
-
-.tier.tier-wip {
-  border-color: transparent;
-  background: var(--warn-soft);
-  color: var(--warn);
-}
-
 .badge-warn {
   border-color: transparent;
   background: var(--warn-soft);
@@ -1069,6 +1035,14 @@ kbd {
 .prose ul,
 .prose ol {
   padding-left: 1.4em;
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
 }
 
 .prose li + li {

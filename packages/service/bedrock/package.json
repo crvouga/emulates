@@ -60,7 +60,7 @@
       "website": "https://aws.amazon.com/bedrock/",
       "docs": "https://docs.aws.amazon.com/bedrock/latest/APIReference/"
     },
-    "status": "wip",
+    "parity": "Bedrock Runtime and AgentCore",
     "parityTier": "cold"
   },
   "scripts": {

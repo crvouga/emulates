@@ -1,3 +1,5 @@
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
+import { adminClientSource } from "./admin-client.js"
 import type { AdminRoutes } from "./control.js"
 import { ADMIN_KEY_HEADER, ADMIN_PREFIX } from "./control.js"
 import type { AdminUi } from "./surface.js"
@@ -20,97 +22,117 @@ const escapeHtml = (value: string): string =>
   })
 
 /**
+ * Docs-site record of each service's logo, website, vendor API reference, and guide.
+ * This address is the only brand data in the bundle. The payload is fetched when the
+ * page opens, so a docs deploy updates every already-published admin.
+ * `?brands=` may name a localhost or same-origin copy of that JSON.
+ */
+export const ADMIN_BRANDS_URL = "https://mockingbird.chrisvouga.dev/brands.json"
+
+/**
  * The default admin document. It talks only to `/__admin/*`, so every mock can serve it.
  * Bespoke panels arrive later from `GET /ui/manifest`, which stays behind the admin key.
+ * The header chip is filled from {@link ADMIN_BRANDS_URL}; nothing about a vendor is inlined.
  */
 export const renderAdminDocument = (service: string): string => {
   const name = escapeHtml(service)
-  const standard = JSON.stringify(STANDARD_ADMIN_ROUTES)
+  const script = adminClientSource({
+    standardRoutes: STANDARD_ADMIN_ROUTES,
+    adminPrefix: ADMIN_PREFIX,
+    adminKeyHeader: ADMIN_KEY_HEADER,
+    brandsUrl: ADMIN_BRANDS_URL,
+    service,
+  })
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233d4f3a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='2' fill='%2327272a'/%3E%3C/svg%3E">
 <title>${name} admin</title>
 <style>
+  ${CSS_RESET}
   :root {
     color-scheme: light;
-    --bg: #f6f5f2;
+    --bg: #fafafa;
     --bg-elev: #ffffff;
-    --bg-muted: #eeece6;
-    --bg-inset: #f3f1eb;
-    --line: #e2dfd6;
-    --line-strong: #d0ccc1;
-    --ink: #1c1915;
-    --muted: #5e584f;
-    --faint: #8a8378;
-    --accent: #3d4f3a;
-    --accent-ink: #f7f6f2;
-    --accent-soft: #e5ece2;
-    --ok: #1f7a45;
-    --ok-soft: #e5f4eb;
-    --warn: #9a6700;
-    --warn-soft: #fbf3df;
-    --err: #a33b32;
-    --err-soft: #fdecea;
-    --shadow: 0 1px 2px rgb(28 25 21 / 0.05), 0 12px 32px rgb(28 25 21 / 0.06);
-    --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --bg-muted: #f4f4f5;
+    --bg-inset: #f4f4f5;
+    --line: #dedee3;
+    --line-strong: #c4c4cc;
+    --ink: #18181b;
+    --muted: #62626b;
+    --faint: #71717a;
+    --accent: #27272a;
+    --accent-ink: #ffffff;
+    --accent-soft: #f4f4f5;
+    --ok: #166534;
+    --ok-soft: #f0fdf4;
+    --warn: #a16207;
+    --warn-soft: #fefce8;
+    --err: #a82d32;
+    --err-soft: #fef2f2;
+    --shadow: none;
+    --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-    --radius: 14px;
-    --header: 60px;
-    --nav: 220px;
+    --radius: 10px;
+    --header: 56px;
+    --nav: 200px;
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #141311;
-    --bg-elev: #1e1c19;
-    --bg-muted: #26231f;
-    --bg-inset: #181715;
-    --line: #34302b;
-    --line-strong: #4a453d;
-    --ink: #f4f1ea;
-    --muted: #c4bdb1;
-    --faint: #8f877c;
-    --accent: #c5d5b8;
-    --accent-ink: #1a2118;
-    --accent-soft: #2a3328;
-    --ok: #8fd6a8;
-    --ok-soft: #1a2e22;
-    --warn: #f0cc78;
-    --warn-soft: #332911;
-    --err: #f0a8a2;
-    --err-soft: #3a201e;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px rgb(0 0 0 / 0.28);
+    --bg: #111113;
+    --bg-elev: #19191c;
+    --bg-muted: #242428;
+    --bg-inset: #111113;
+    --line: #36363c;
+    --line-strong: #52525b;
+    --ink: #f4f4f5;
+    --muted: #a9a9b2;
+    --faint: #71717a;
+    --accent: #e4e4e7;
+    --accent-ink: #18181b;
+    --accent-soft: #242428;
+    --ok: #86efac;
+    --ok-soft: #14241b;
+    --warn: #fde68a;
+    --warn-soft: #2a2410;
+    --err: #ffaaaa;
+    --err-soft: #2c1516;
+    --shadow: none;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #141311;
-      --bg-elev: #1e1c19;
-      --bg-muted: #26231f;
-      --bg-inset: #181715;
-      --line: #34302b;
-      --line-strong: #4a453d;
-      --ink: #f4f1ea;
-      --muted: #c4bdb1;
-      --faint: #8f877c;
-      --accent: #c5d5b8;
-      --accent-ink: #1a2118;
-      --accent-soft: #2a3328;
-      --ok: #8fd6a8;
-      --ok-soft: #1a2e22;
-      --warn: #f0cc78;
-      --warn-soft: #332911;
-      --err: #f0a8a2;
-      --err-soft: #3a201e;
-      --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px rgb(0 0 0 / 0.28);
+      --bg: #111113;
+      --bg-elev: #19191c;
+      --bg-muted: #242428;
+      --bg-inset: #111113;
+      --line: #36363c;
+      --line-strong: #52525b;
+      --ink: #f4f4f5;
+      --muted: #a9a9b2;
+      --faint: #71717a;
+      --accent: #e4e4e7;
+      --accent-ink: #18181b;
+      --accent-soft: #242428;
+      --ok: #86efac;
+      --ok-soft: #14241b;
+      --warn: #fde68a;
+      --warn-soft: #2a2410;
+      --err: #ffaaaa;
+      --err-soft: #2c1516;
+      --shadow: none;
     }
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
+  /* Fill the viewport, then grow with the content so the background covers the scroll. */
+  html { height: 100%; }
   body {
+    margin: 0;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
     font-family: var(--sans);
     background: var(--bg);
     color: var(--ink);
@@ -119,24 +141,37 @@ export const renderAdminDocument = (service: string): string => {
     padding-right: env(safe-area-inset-right);
     -webkit-text-size-adjust: 100%;
   }
-  button, input, select, textarea { font: inherit; color: inherit; }
-  button { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  @media (prefers-reduced-motion: reduce) {
-    * { scroll-behavior: auto !important; transition: none !important; }
-  }
-  .app { min-height: 100%; display: flex; flex-direction: column; }
+  .app { flex: 1 0 auto; display: flex; flex-direction: column; min-width: 0; width: 100%; }
   header.top {
     position: sticky; top: 0; z-index: 5;
     display: flex; align-items: center; gap: 12px;
     min-height: var(--header); padding: 10px 16px;
-    background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+    background: var(--bg-elev);
     border-bottom: 1px solid var(--line);
-    backdrop-filter: blur(10px);
+    min-width: 0; max-width: 100%;
   }
-  .brand { display: flex; flex-direction: column; min-width: 0; margin-right: auto; }
-  .brand strong { font-size: 15px; letter-spacing: -0.01em; }
-  .brand span { color: var(--faint); font-size: 12px; }
+  .brand {
+    display: flex; flex-flow: row wrap; align-items: center; gap: 14px;
+    min-width: 0; max-width: 100%; margin-right: auto;
+  }
+  .brand-id { display: flex; flex-direction: column; min-width: 0; flex: none; }
+  .brand-id strong { font-size: 15px; letter-spacing: -0.01em; }
+  .brand-id span { color: var(--faint); font-size: 12px; }
+  .vendor {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    min-width: 0; max-width: 100%; font-size: 12px; color: var(--muted);
+  }
+  .vendor[hidden] { display: none; }
+  /* Logos are drawn for a light tile, same as the docs site, so the plate stays white. */
+  .vendor img {
+    width: 16px; height: 16px; padding: 2px; box-sizing: content-box;
+    border-radius: 4px; border: 1px solid var(--line); background: #fff; object-fit: contain;
+  }
+  .vendor-name { color: var(--ink); font-weight: 600; }
+  .vendor-sep { color: var(--faint); }
+  .vendor-link { color: inherit; text-decoration: none; }
+  .vendor-link:hover { color: var(--ink); text-decoration: underline; }
   .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   label.field { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--faint); }
   label.field input, label.field select, .controls input[type="password"] {
@@ -154,7 +189,7 @@ export const renderAdminDocument = (service: string): string => {
      record or the full nav row would widen the page past the viewport. */
   .layout {
     display: grid; grid-template-columns: var(--nav) minmax(0, 1fr);
-    flex: 1; min-height: 0; min-width: 0;
+    flex: 1 0 auto; min-width: 0;
   }
   nav.side {
     border-right: 1px solid var(--line); padding: 12px;
@@ -208,8 +243,8 @@ export const renderAdminDocument = (service: string): string => {
   .banner.show { display: block; }
   .empty { color: var(--muted); padding: 24px 8px; }
   dialog {
-    border: 1px solid var(--line); border-radius: 16px; padding: 0; background: var(--bg-elev);
-    color: var(--ink); width: min(640px, calc(100vw - 24px)); box-shadow: var(--shadow);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 0; background: var(--bg-elev);
+    color: var(--ink); width: min(640px, calc(100vw - 24px)); box-shadow: none;
   }
   dialog::backdrop { background: rgb(20 19 17 / 0.45); }
   dialog form, .dialog-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -236,7 +271,7 @@ export const renderAdminDocument = (service: string): string => {
       padding-top: max(10px, env(safe-area-inset-top));
     }
     input, select, textarea { font-size: 16px; }
-    .controls { width: 100%; }
+    .brand, .vendor, .controls { width: 100%; }
     label.field, label.field select, label.field input { flex: 1; min-width: 0; }
     .layout { grid-template-columns: minmax(0, 1fr); }
     nav.side {
@@ -267,8 +302,11 @@ export const renderAdminDocument = (service: string): string => {
 <div class="app" data-service="${name}" data-mockingbird-admin>
   <header class="top">
     <div class="brand">
-      <strong>${name}</strong>
-      <span>Mockingbird admin</span>
+      <div class="brand-id">
+        <strong>${name}</strong>
+        <span>Admin</span>
+      </div>
+      <div class="vendor" id="vendor" hidden></div>
     </div>
     <div class="controls">
       <label class="field">Namespace
@@ -398,460 +436,7 @@ export const renderAdminDocument = (service: string): string => {
     </div>
   </form>
 </dialog>
-<script>
-(() => {
-  const STANDARD = new Set(${standard})
-  const state = {
-    namespace: "default",
-    key: sessionStorage.getItem("mockingbird-admin-key") || "",
-    view: "overview",
-    collection: "",
-    shape: null,
-    route: null,
-    editing: null
-  }
-  const $ = (id) => document.getElementById(id)
-  const banner = $("banner")
-  const keyInput = $("admin-key")
-  keyInput.value = state.key
-  const params = new URLSearchParams(location.search)
-  if (params.get("key")) {
-    state.key = params.get("key")
-    keyInput.value = state.key
-    sessionStorage.setItem("mockingbird-admin-key", state.key)
-    params.delete("key")
-    const next = params.toString()
-    history.replaceState(null, "", location.pathname + (next ? "?" + next : ""))
-  }
-  if (params.get("namespace")) state.namespace = params.get("namespace")
-
-  const showError = (error) => {
-    banner.textContent = error instanceof Error ? error.message : String(error)
-    banner.classList.add("show")
-  }
-  const clearError = () => banner.classList.remove("show")
-
-  async function originGet(path) {
-    const response = await fetch(path, { headers: { accept: "application/json" } })
-    if (!response.ok) throw new Error(response.status + " " + path)
-    return response.json()
-  }
-  async function api(method, path, body) {
-    const headers = { accept: "application/json" }
-    if (state.key) headers["${ADMIN_KEY_HEADER}"] = state.key
-    if (state.namespace) headers["x-mockingbird-namespace"] = state.namespace
-    if (body !== undefined) headers["content-type"] = "application/json"
-    const response = await fetch("${ADMIN_PREFIX}" + path, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body)
-    })
-    const text = await response.text()
-    let data = null
-    if (text) {
-      try { data = JSON.parse(text) } catch { data = { raw: text } }
-    }
-    if (response.status === 401) {
-      keyInput.focus()
-      throw new Error((data && data.error && data.error.message) || "Admin key required")
-    }
-    if (!response.ok) {
-      throw new Error((data && data.error && data.error.message) || (response.status + " " + method + " " + path))
-    }
-    return data
-  }
-  const panelApi = {
-    get: (path) => api("GET", path),
-    send: (method, path, body) => api(method, path, body),
-    namespace: () => state.namespace
-  }
-
-  function setTheme(theme) {
-    if (theme) document.documentElement.dataset.theme = theme
-    else delete document.documentElement.dataset.theme
-  }
-  const storedTheme = localStorage.getItem("mockingbird-admin-theme")
-  if (storedTheme) setTheme(storedTheme)
-  $("theme").addEventListener("click", () => {
-    const current = document.documentElement.dataset.theme
-    const dark = current ? current === "dark" : matchMedia("(prefers-color-scheme: dark)").matches
-    const next = dark ? "light" : "dark"
-    localStorage.setItem("mockingbird-admin-theme", next)
-    setTheme(next)
-  })
-
-  function show(view) {
-    state.view = view
-    for (const button of document.querySelectorAll("#nav button")) {
-      button.setAttribute("aria-current", button.dataset.view === view ? "true" : "false")
-    }
-    for (const section of document.querySelectorAll("main .view")) {
-      section.hidden = section.id !== "view-" + view
-    }
-  }
-  document.getElementById("nav").addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-view]")
-    if (!button) return
-    show(button.dataset.view)
-    refresh().catch(showError)
-  })
-
-  function cards(items) {
-    return '<div class="grid">' + items.map((item) =>
-      '<article class="card"><div class="k">' + item.k + '</div><div class="v">' + item.v + '</div></article>'
-    ).join("") + "</div>"
-  }
-  function table(columns, rows) {
-    if (rows.length === 0) return '<p class="empty">Nothing here yet.</p>'
-    const head = "<tr>" + columns.map((column) => "<th>" + column.label + "</th>").join("") + "</tr>"
-    const body = rows.map((row) => "<tr" + (row.attrs || "") + ">" + columns.map((column) =>
-      '<td data-label="' + column.label + '">' + column.cell(row) + "</td>"
-    ).join("") + "</tr>").join("")
-    return "<table><thead>" + head + "</thead><tbody>" + body + "</tbody></table>"
-  }
-  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[char]))
-  const preview = (value) => {
-    const text = JSON.stringify(value)
-    return esc(text.length > 180 ? text.slice(0, 180) + "…" : text)
-  }
-  const when = (epoch) => {
-    const date = new Date(epoch)
-    return Number.isNaN(date.getTime()) ? String(epoch) : date.toISOString()
-  }
-  const clockCard = (epoch) => {
-    const date = new Date(epoch)
-    if (Number.isNaN(date.getTime())) return esc(String(epoch))
-    const iso = date.toISOString()
-    return esc(iso.slice(0, 10)) + '<span class="clock-time">' + esc(iso.slice(11, 19)) + " UTC</span>"
-  }
-
-  async function loadNamespaces() {
-    const data = await api("GET", "/namespaces")
-    const select = $("namespace")
-    const names = data.namespaces && data.namespaces.length ? data.namespaces : [data.default || "default"]
-    if (!names.includes(state.namespace)) names.unshift(state.namespace)
-    select.innerHTML = names.map((name) =>
-      '<option value="' + esc(name) + '">' + esc(name) + "</option>"
-    ).join("")
-    select.value = state.namespace
-  }
-
-  async function renderOverview() {
-    const [health, shape, clock, journal] = await Promise.all([
-      originGet("/health"),
-      api("GET", "/state"),
-      api("GET", "/clock"),
-      api("GET", "/requests?limit=8")
-    ])
-    state.shape = shape
-    $("overview-cards").innerHTML = cards([
-      { k: "Service", v: esc(health.service || "${name}") },
-      { k: "Status", v: esc(health.status || "ok") },
-      { k: "Namespace", v: esc(state.namespace) },
-      { k: "Collections", v: String(shape.collections.length) },
-      { k: "Records", v: String(shape.collections.reduce((sum, item) => sum + item.count, 0)) },
-      { k: "Clock", v: clockCard(clock.now) }
-    ])
-    const requests = (journal && journal.requests) || []
-    $("overview-requests").innerHTML = table(
-      [
-        { label: "Method", cell: (row) => esc(row.method) },
-        { label: "Path", cell: (row) => esc(row.path) },
-        { label: "Status", cell: (row) => '<span class="status-' + String(row.status).charAt(0) + '">' + esc(row.status) + "</span>" },
-        { label: "Operation", cell: (row) => esc(row.operationId || "") }
-      ],
-      requests
-    )
-  }
-
-  function schemaChips(collection) {
-    if (!collection || collection.fields.length === 0) {
-      return '<p class="empty">No fields yet. Add a record or declare the collection on the service.</p>'
-    }
-    return '<div class="chips">' + collection.fields.map((field) =>
-      '<span class="chip">' + esc(field.name) + ' <i>' + esc(field.kind) + (field.optional ? "?" : "") + "</i></span>"
-    ).join("") + "</div>"
-  }
-
-  async function renderState() {
-    const shape = await api("GET", "/state")
-    state.shape = shape
-    const host = $("collections")
-    if (shape.collections.length === 0) {
-      host.innerHTML = '<p class="empty">This namespace has no collections yet.</p>'
-      $("schema").innerHTML = ""
-      $("records").innerHTML = ""
-      return
-    }
-    if (!shape.collections.some((item) => item.name === state.collection)) {
-      state.collection = shape.collections[0].name
-    }
-    host.innerHTML = shape.collections.map((item) =>
-      '<button type="button" class="collection" data-collection="' + esc(item.name) + '" aria-current="' +
-      (item.name === state.collection ? "true" : "false") + '"><strong>' + esc(item.label) +
-      '</strong><small>' + esc(item.count) + " · " + esc(item.source) + "</small></button>"
-    ).join("")
-    const selected = shape.collections.find((item) => item.name === state.collection)
-    $("schema").innerHTML = "<h3>" + esc(selected.label) + "</h3>" +
-      (selected.description ? "<p class=" + '"lede">' + esc(selected.description) + "</p>" : "") +
-      schemaChips(selected)
-    const page = await api("GET", "/state/" + encodeURIComponent(state.collection) + "?limit=50")
-    const rows = page.records.map((record) => ({
-      ...record,
-      attrs: ' class="clickable" data-id="' + esc(record.id) + '"'
-    }))
-    $("records").innerHTML = table(
-      [
-        { label: "Id", cell: (row) => "<code>" + esc(row.id) + "</code>" },
-        { label: "Seq", cell: (row) => esc(row.seq) },
-        { label: "Value", cell: (row) => preview(row.value) }
-      ],
-      rows
-    )
-  }
-
-  async function renderClock() {
-    const clock = await api("GET", "/clock")
-    $("clock-readout").innerHTML = "<div class='k'>Now</div><div class='v'>" + esc(when(clock.now)) +
-      "</div><p>" + esc(clock.now) + " ms · offset " + esc(clock.offsetMs) + " ms " +
-      (clock.frozen ? "<span class='badge warn'>frozen</span>" : "<span class='badge ok'>live</span>") + "</p>"
-    $("freeze").textContent = clock.frozen ? "Unfreeze" : "Freeze"
-    $("freeze").dataset.frozen = clock.frozen ? "1" : "0"
-  }
-
-  async function renderFaults() {
-    const [faults, presets] = await Promise.all([
-      api("GET", "/faults"),
-      api("GET", "/faults/presets").catch(() => ({ presets: [] }))
-    ])
-    const select = $("fault-preset")
-    const current = select.value
-    const list = presets.presets || []
-    select.innerHTML = '<option value="">Custom rule</option>' + list.map((preset) =>
-      '<option value="' + esc(preset.name) + '">' + esc(preset.name) + "</option>"
-    ).join("")
-    select.value = current
-    const rules = faults.faults || []
-    $("fault-list").innerHTML = table(
-      [
-        { label: "Id", cell: (row) => esc(row.id) },
-        { label: "Match", cell: (row) => esc([row.method, row.pathPrefix, row.operationId].filter(Boolean).join(" ") || "all") },
-        { label: "Effect", cell: (row) => esc(row.status ?? row.effect ?? (row.drop ? "drop" : row.latencyMs || "")) }
-      ],
-      rules
-    )
-  }
-
-  async function renderJournal() {
-    const journal = await api("GET", "/requests?limit=100")
-    $("journal").innerHTML = table(
-      [
-        { label: "When", cell: (row) => esc(row.at || "") },
-        { label: "Method", cell: (row) => esc(row.method) },
-        { label: "Path", cell: (row) => esc(row.path) },
-        { label: "Status", cell: (row) => esc(row.status) },
-        { label: "ms", cell: (row) => esc(row.durationMs) }
-      ],
-      journal.requests || []
-    )
-  }
-
-  async function renderRoutes() {
-    const data = await api("GET", "/")
-    const routes = data.routes || []
-    $("route-list").innerHTML = routes.map((route) => {
-      const extra = STANDARD.has(route) ? "" : " <span class='badge'>extension</span>"
-      return '<div class="route"><span class="method">' + esc(route.split(" ")[0]) +
-        '</span><span>' + esc(route.split(" ").slice(1).join(" ")) + extra +
-        '</span><button class="btn" type="button" data-route="' + esc(route) + '">Use</button></div>'
-    }).join("")
-  }
-
-  const renderers = {
-    overview: renderOverview,
-    state: renderState,
-    clock: renderClock,
-    faults: renderFaults,
-    journal: renderJournal,
-    routes: renderRoutes
-  }
-
-  async function refresh() {
-    clearError()
-    if (state.view in renderers) await renderers[state.view]()
-  }
-
-  $("namespace").addEventListener("change", () => {
-    state.namespace = $("namespace").value
-    refresh().catch(showError)
-  })
-  keyInput.addEventListener("change", () => {
-    state.key = keyInput.value.trim()
-    sessionStorage.setItem("mockingbird-admin-key", state.key)
-    refresh().catch(showError)
-  })
-  $("refresh").addEventListener("click", () => refresh().catch(showError))
-
-  $("collections").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-collection]")
-    if (!button) return
-    state.collection = button.dataset.collection
-    renderState().catch(showError)
-  })
-  $("records").addEventListener("click", (event) => {
-    const row = event.target.closest("[data-id]")
-    if (!row) return
-    openEditor(row.dataset.id).catch(showError)
-  })
-
-  const editor = $("editor")
-  async function openEditor(id) {
-    state.editing = id || null
-    $("editor-title").textContent = id ? "Edit record" : "New record"
-    $("editor-id").value = id || ""
-    $("editor-id").readOnly = Boolean(id)
-    $("editor-delete").hidden = !id
-    if (id) {
-      const record = await api("GET", "/state/" + encodeURIComponent(state.collection) + "/" + encodeURIComponent(id))
-      $("editor-value").value = JSON.stringify(record.value, null, 2)
-    } else {
-      $("editor-value").value = "{\\n  \\n}"
-    }
-    editor.showModal()
-  }
-  $("new-record").addEventListener("click", () => openEditor(null).catch(showError))
-  $("editor-form").addEventListener("submit", (event) => {
-    const submitter = event.submitter
-    if (!submitter || submitter.value !== "save") return
-    event.preventDefault()
-    let value
-    try { value = JSON.parse($("editor-value").value) }
-    catch { showError(new Error("Value is not JSON")); return }
-    const id = $("editor-id").value.trim()
-    const path = "/state/" + encodeURIComponent(state.collection)
-    const request = state.editing
-      ? api("PUT", path + "/" + encodeURIComponent(id), { value })
-      : api("POST", path, { id: id || undefined, value })
-    request.then(() => { editor.close(); return renderState() }).catch(showError)
-  })
-  $("editor-delete").addEventListener("click", () => {
-    const id = state.editing
-    if (!id) return
-    api("DELETE", "/state/" + encodeURIComponent(state.collection) + "/" + encodeURIComponent(id))
-      .then(() => { editor.close(); return renderState() })
-      .catch(showError)
-  })
-
-  document.querySelectorAll("[data-advance]").forEach((button) => {
-    button.addEventListener("click", () => {
-      api("POST", "/clock", { advance: Number(button.dataset.advance) }).then(renderClock).catch(showError)
-    })
-  })
-  $("freeze").addEventListener("click", () => {
-    const frozen = $("freeze").dataset.frozen === "1"
-    api("POST", "/clock", { freeze: !frozen }).then(renderClock).catch(showError)
-  })
-  $("clock-reset").addEventListener("click", () => {
-    api("POST", "/clock", { reset: true }).then(renderClock).catch(showError)
-  })
-  $("clock-set").addEventListener("submit", (event) => {
-    event.preventDefault()
-    const raw = $("clock-instant").value.trim()
-    const set = /^-?\\d+$/.test(raw) ? Number(raw) : raw
-    api("POST", "/clock", { set }).then(renderClock).catch(showError)
-  })
-
-  $("fault-form").addEventListener("submit", (event) => {
-    event.preventDefault()
-    const preset = $("fault-preset").value
-    const body = preset
-      ? { preset }
-      : {
-          status: Number($("fault-status").value),
-          ...($("fault-path").value ? { pathPrefix: $("fault-path").value } : {}),
-          ...($("fault-method").value ? { method: $("fault-method").value } : {})
-        }
-    if (!preset && !Number.isFinite(body.status)) {
-      showError(new Error("Status must be a number, or choose a preset"))
-      return
-    }
-    api("POST", "/faults", body).then(renderFaults).catch(showError)
-  })
-  $("fault-clear").addEventListener("click", () => api("DELETE", "/faults").then(renderFaults).catch(showError))
-  $("journal-clear").addEventListener("click", () => api("DELETE", "/requests").then(renderJournal).catch(showError))
-
-  $("route-list").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-route]")
-    if (!button) return
-    state.route = button.dataset.route
-    $("route-title").textContent = state.route
-    const method = state.route.split(" ")[0]
-    $("route-body").disabled = method === "GET" || method === "DELETE"
-  })
-  $("route-form").addEventListener("submit", async (event) => {
-    event.preventDefault()
-    if (!state.route) return showError(new Error("Choose a route first"))
-    const [method, path] = [state.route.split(" ")[0], state.route.split(" ").slice(1).join(" ")]
-    const concrete = path.replace(/:([A-Za-z0-9_]+)/g, (_, key) => prompt("Value for " + key) || "")
-    let body
-    if (method !== "GET" && method !== "DELETE" && $("route-body").value.trim()) {
-      try { body = JSON.parse($("route-body").value) }
-      catch { return showError(new Error("Body is not JSON")) }
-    }
-    try {
-      const data = await api(method, concrete, body)
-      $("route-result").textContent = JSON.stringify(data, null, 2)
-    } catch (error) {
-      showError(error)
-    }
-  })
-
-  function mountPanels(panels) {
-    const nav = $("nav")
-    const views = $("views")
-    for (const panel of panels) {
-      const button = document.createElement("button")
-      button.type = "button"
-      button.dataset.view = panel.id
-      button.textContent = panel.title
-      nav.append(button)
-      const section = document.createElement("section")
-      section.className = "view"
-      section.id = "view-" + panel.id
-      section.hidden = true
-      const title = document.createElement("h2")
-      title.textContent = panel.title
-      const lede = document.createElement("p")
-      lede.className = "lede"
-      lede.textContent = panel.description || ""
-      const body = document.createElement("div")
-      body.className = "panel-body"
-      body.id = "panel-" + panel.id
-      body.innerHTML = panel.html || ""
-      section.append(title, lede, body)
-      views.append(section)
-      if (panel.script) {
-        try {
-          const run = new Function("root", "api", panel.script)
-          run(body, panelApi)
-        } catch (error) {
-          const note = document.createElement("p")
-          note.className = "banner show"
-          note.textContent = error instanceof Error ? error.message : String(error)
-          body.append(note)
-        }
-      }
-    }
-  }
-
-  loadNamespaces()
-    .then(() => api("GET", "/ui/manifest"))
-    .then((manifest) => { mountPanels((manifest && manifest.panels) || []); return refresh() })
-    .catch(showError)
-})()
-</script>
+${script}
 </body>
 </html>`
 }

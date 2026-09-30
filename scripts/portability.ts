@@ -3,6 +3,9 @@
  *
  * Reads the package's `mockingbird.runtime` claim (portable | node | bun) and
  * verifies the built `dist` bundle does not use APIs outside that runtime.
+ * A service mock (`mockingbird.layer === "service"`) must claim `portable`: the
+ * published entry runs in Node, Bun, browsers, and Workers. A `./server` or CLI
+ * entry may still claim `node`.
  *
  * An entry point can claim a different runtime in `mockingbird.entries`, keyed by its
  * dist name — `{ "server": "node", "cli": "node" }` lets a portable service ship a Node
@@ -35,7 +38,7 @@ const pkg = JSON.parse(await Bun.file(pkgPath).text()) as {
   name?: string
   exports?: Record<string, string | { default?: string; import?: string }>
   bin?: string | Record<string, string>
-  mockingbird?: { runtime?: string; entries?: Record<string, string> }
+  mockingbird?: { runtime?: string; entries?: Record<string, string>; layer?: string }
 }
 
 const name = pkg.name || "(unnamed)"
@@ -44,6 +47,12 @@ const runtime = pkg.mockingbird?.runtime ?? "portable"
 if (!["portable", "node", "bun"].includes(runtime)) {
   fail(
     `${name}: mockingbird.runtime must be one of portable | node | bun (got ${JSON.stringify(runtime)})`,
+  )
+}
+
+if (pkg.mockingbird?.layer === "service" && runtime !== "portable") {
+  fail(
+    `${name}: service mocks are isomorphic, so mockingbird.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
   )
 }
 

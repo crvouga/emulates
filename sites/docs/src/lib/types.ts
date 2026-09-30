@@ -1,7 +1,5 @@
 export type ServiceKind = "http" | "sql" | "node"
 
-export type ServiceStatus = "ready" | "wip"
-
 export interface Operation {
   id: string
   method: string
@@ -60,14 +58,12 @@ export interface Service {
   description: string
   keywords: string[]
   category: string
-  status: ServiceStatus
-  runtime: "portable" | "node" | "bun"
+  /** The vendor surface this mock keeps in step, declared as `mockingbird.parity`. */
+  parity: string
   kind: ServiceKind
   surfaces: {
     /** Exports `createRuntime()`: an in-process `fetch(Request) → Response`. */
     inProcess: boolean
-    /** The docs playground can run the real mock in a browser tab. */
-    browser: boolean
     /** Ships a Node HTTP server entry (`<package>/server`). */
     server: boolean
     /** The CLI binary name, when the package ships one. */
@@ -121,9 +117,6 @@ export interface Catalog {
   categories: CategorySummary[]
   totals: {
     services: number
-    ready: number
-    wip: number
-    browser: number
     opsSupported: number
     opsTotal: number
   }

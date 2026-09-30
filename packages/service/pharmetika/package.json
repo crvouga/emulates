@@ -55,7 +55,7 @@
     "vendor": {
       "website": "https://pharmetika.com"
     },
-    "status": "wip",
+    "parity": "Medication orders and webhooks",
     "parityTier": "cold"
   },
   "scripts": {

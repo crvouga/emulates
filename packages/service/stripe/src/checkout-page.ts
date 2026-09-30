@@ -1,3 +1,4 @@
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import type { CheckoutSessionRecord } from "./state.js"
 import { detailsForNumber, HOSTED_PAGE_TEST_CARDS, type TestCardGroup } from "./test-tokens.js"
 
@@ -88,7 +89,7 @@ const GROUP_LABELS: Record<TestCardGroup, string> = {
 }
 
 const STYLES = `
-*,*::before,*::after{box-sizing:border-box}
+${CSS_RESET}
 :root{--text:#1a1a1a;--muted:rgba(26,26,26,.6);--faint:rgba(26,26,26,.4);--line:#e6e6e6;
 --accent:#0074d4;--accent-hover:#0063b5;--danger:#df1b41;--ring:rgba(5,115,225,.25);
 --test-bg:#ffde92;--test-fg:#983705;
@@ -96,7 +97,6 @@ const STYLES = `
 --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif}
 html,body{margin:0;background:#fff;color:var(--text);font-family:var(--font);font-size:14px;
 line-height:1.4;-webkit-font-smoothing:antialiased}
-button,input,select{font:inherit;color:inherit}
 .app{min-height:100vh;display:flex;flex-direction:column}
 .summary{background:#fff;padding:24px 16px 8px}
 .pane{padding:8px 16px 32px}
@@ -315,8 +315,9 @@ const SCRIPT = `(() => {
       set(zip, "94107");
       button.classList.add("flash");
       setTimeout(() => button.classList.remove("flash"), 400);
-      if (autopay && autopay.checked) form.requestSubmit($("stripe-mock-pay"));
-      else $("stripe-mock-pay").focus();
+      const pay = document.querySelector("[data-testid='stripe-mock-pay']");
+      if (autopay && autopay.checked && pay) form.requestSubmit(pay);
+      else if (pay) pay.focus();
     });
   }
 })();`

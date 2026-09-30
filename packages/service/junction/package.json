@@ -58,7 +58,7 @@
       "website": "https://www.junction.com",
       "docs": "https://docs.junction.com"
     },
-    "status": "ready",
+    "parity": "Users, orders, and lab results",
     "parityTier": "cold",
     "parityInputs": [
       "PARITY_FAILURE_SEED_REGISTRY.json"
