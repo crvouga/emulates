@@ -29,7 +29,7 @@ The default credentials are Basic auth `admin:password` plus tenant headers `X-K
 - `POST /__admin/payments/:id/retry` succeeds the latest failed or pending transaction.
 - `POST /__admin/catalog/plans` seeds a plan.
 - `GET /__admin/billing` inspects billing state and audit entries. `GET /__admin/state` is the shared collection view.
-- `PUT /1.0/kb/test/clock?requestedDate=...` advances recurring billing.
+- `GET /1.0/kb/test/clock` returns Kill Bill's clock JSON (`currentUtcTime`, `localDate`, `timeZone`). `PUT /1.0/kb/test/clock?requestedDate=...` advances recurring billing.
 - Fault presets cover plugin failure, rate limiting, network loss, and webhook duplicate/reorder/drop delivery.
 
 ## API

@@ -480,4 +480,43 @@ describe("Kill Bill REST adapter", () => {
       state: "ACTIVE",
     })
   })
+
+  test("GET /test/clock returns Kill Bill's currentUtcTime, localDate, and timeZone", async () => {
+    const fixed = Date.parse("2026-09-29T02:30:00.000Z")
+    const api = new KillBillAPI({ now: () => fixed })
+    const clock = (path: string, init: RequestInit = {}) =>
+      api.fetch(new Request(`http://mock/1.0/kb${path}`, { ...init, headers }))
+    const body = (await (await clock("/test/clock")).json()) as Record<string, unknown>
+    expect(body).toEqual({
+      currentUtcTime: "2026-09-29T02:30:00.000Z",
+      timeZone: "UTC",
+      localDate: "2026-09-29",
+    })
+    expect(body).not.toHaveProperty("utc")
+
+    expect(await (await clock("/test/clock?timeZone=America/Los_Angeles")).json()).toEqual({
+      currentUtcTime: "2026-09-29T02:30:00.000Z",
+      timeZone: "America/Los_Angeles",
+      localDate: "2026-09-28",
+    })
+    expect(await (await clock("/test/clock?timeZone=-08:00")).json()).toEqual({
+      currentUtcTime: "2026-09-29T02:30:00.000Z",
+      timeZone: "-08:00",
+      localDate: "2026-09-28",
+    })
+    expect((await clock("/test/clock?timeZone=Not/AZone")).status).toBe(400)
+
+    const moved = await clock("/test/clock?requestedDate=2015-12-14T23:02:15.000Z", {
+      method: "PUT",
+    })
+    expect(moved.status).toBe(200)
+    expect(await moved.json()).toEqual({
+      currentUtcTime: "2015-12-14T23:02:15.000Z",
+      timeZone: "UTC",
+      localDate: "2015-12-14",
+    })
+    expect(await (await clock("/test/clock")).json()).toMatchObject({
+      currentUtcTime: "2015-12-14T23:02:15.000Z",
+    })
+  })
 })

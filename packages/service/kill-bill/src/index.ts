@@ -113,6 +113,40 @@ const catalogPlans = (xml: string): CatalogPlan[] => {
   }
   return plans
 }
+const FIXED_OFFSET = /^([+-])(\d{2}):(\d{2})$/
+// Kill Bill 0.24 DateTimeZone.forID: omitted means UTC; otherwise a fixed offset or an IANA id.
+const clockZone = (raw: string | null) => {
+  if (raw == null || raw === "UTC") return "UTC"
+  if (/^[+-](?:0\d|1\d|2[0-3]):[0-5]\d$/.test(raw)) return raw
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: raw }).format(0)
+    return raw
+  } catch {
+    return undefined
+  }
+}
+const localDateInZone = (ms: number, timeZone: string) => {
+  const offset = FIXED_OFFSET.exec(timeZone)
+  if (offset) {
+    const sign = offset[1] === "-" ? -1 : 1
+    const minutes = sign * (Number(offset[2]) * 60 + Number(offset[3]))
+    return new Date(ms + minutes * 60_000).toISOString().slice(0, 10)
+  }
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(ms))
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value
+  return `${value("year")}-${value("month")}-${value("day")}`
+}
+const clockJson = (ms: number, timeZone: string) => ({
+  currentUtcTime: new Date(ms).toISOString(),
+  timeZone,
+  localDate: localDateInZone(ms, timeZone),
+})
 
 export class KillBillAPI {
   readonly state: KillBillState
@@ -486,7 +520,9 @@ export class KillBillAPI {
     const parts = path.split("/").filter(Boolean)
     const body = await this.body(request)
     if (parts[0] === "test" && parts[1] === "clock") {
-      if (request.method === "GET") return this.json({ utc: new Date(this.now()).toISOString() })
+      const zone = clockZone(url.searchParams.get("timeZone"))
+      if (!zone) return this.problem(400, "INVALID_TIMEZONE", "Invalid timezone supplied")
+      if (request.method === "GET") return this.json(clockJson(this.now(), zone))
       const requested =
         url.searchParams.get("requestedDate") ??
         (typeof body.requestedDate === "string" ? body.requestedDate : undefined)
@@ -499,7 +535,7 @@ export class KillBillAPI {
       }
       this.state.settings.insert("settings", { ...settings, clockMs: parsed })
       this.billDue()
-      return this.json({ utc: new Date(parsed).toISOString() })
+      return this.json(clockJson(parsed, zone))
     }
     if (parts[0] === "catalog") {
       if (request.method === "GET")
