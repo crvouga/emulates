@@ -15,8 +15,12 @@ html, body { height: 100%; }
 .pane{height:100%}
 .body{color:blue}
 `)
-    expect(css).toContain(":host{display:block;box-sizing:border-box}")
-    expect(css).toContain(".page{box-sizing:border-box;min-height:100%}")
+    expect(css).toContain(
+      ":host{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0}",
+    )
+    expect(css).toContain(
+      ".page{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:100%;container-type:inline-size}",
+    )
     expect(css).toContain(".page{margin:0;min-height:100%}")
     expect(css).toContain("h1{font-size:24px}")
     expect(css).toContain("@media(prefers-color-scheme:dark){.page{--bg:#111}}")
@@ -33,5 +37,26 @@ html, body { height: 100%; }
     expect(css).not.toContain(":root")
     expect(css).not.toContain("100vh")
     expect(css).not.toContain("100svh")
+  })
+
+  test("width breakpoints follow the pasted box, not the browser window", () => {
+    const css = scopeEmbeddedCss(`
+@media (min-width:992px){.app{flex-direction:row}}
+@media (max-width: 640px){.nav{flex-wrap:wrap}}
+@media screen and (max-width:800px){.layout{display:block}}
+@media (min-width:600px) and (max-width:900px){.split{display:block}}
+@media (prefers-color-scheme:dark){:root{--bg:#111}}
+@media (min-width:700px) and (prefers-reduced-motion:reduce){.card{animation:none}}
+`)
+    expect(css).toContain("@container (min-width:992px){.app{flex-direction:row}}")
+    expect(css).toContain("@container (max-width: 640px){.nav{flex-wrap:wrap}}")
+    expect(css).toContain("@container (max-width:800px){.layout{display:block}}")
+    expect(css).toContain(
+      "@container (min-width:600px) and (max-width:900px){.split{display:block}}",
+    )
+    expect(css).toContain("@media (prefers-color-scheme:dark){.page{--bg:#111}}")
+    expect(css).toContain("@media (min-width:700px) and (prefers-reduced-motion:reduce)")
+    expect(css).not.toContain("@media (min-width:992px)")
+    expect(css).not.toContain("@media (max-width: 640px)")
   })
 })

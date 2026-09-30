@@ -75,10 +75,10 @@ h1{font-size:1.5rem;font-weight:650;margin:0 0 .75rem}
 p{margin:0 0 .75rem}
 ul{list-style:disc;padding-left:1.25rem}
 label{display:block;margin:.75rem 0 .25rem;font-size:.9rem}
-input{width:100%;padding:.5rem;font-size:1rem;border:1px solid #c8c8c8;border-radius:6px;background:#fff}
+input{width:100%;min-width:0;max-width:100%;padding:.5rem;font-size:1rem;border:1px solid #c8c8c8;border-radius:6px;background:#fff}
 button{margin-top:1rem;width:100%;padding:.75rem;font-size:1rem;background:#1a1a1a;color:#fff;border-radius:6px}
 [role=alert]{color:#b00020;margin:1rem 0}
-.row{display:flex;gap:.5rem}.row>div{flex:1}
+.row{display:flex;flex-wrap:wrap;gap:.5rem;min-width:0}.row>div{flex:1;min-width:min(100%,8rem)}
 </style>
 </head>
 <body>

@@ -39,6 +39,9 @@ ${scopeReset(".cove-app")}
   color-scheme: light dark;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  container-type: inline-size;
+  container-name: cove;
   font-family: var(--cove-font);
   color: var(--cove-ink);
   background: var(--cove-bg);
@@ -54,12 +57,13 @@ ${scopeReset(".cove-app")}
 .cove-app :where(button) { font-family: inherit; color: inherit; cursor: pointer; }
 .cove-app :focus-visible { outline: 2px solid var(--cove-primary); outline-offset: 2px; }
 
-.cove-shell { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.cove-shell { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
 
 /* ---- Top nav ---- */
 .cove-nav {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 1.5rem;
   padding: 0.9rem 1.5rem;
   border-bottom: 1px solid var(--cove-border);
@@ -123,7 +127,7 @@ ${scopeReset(".cove-app")}
 .cove-logo-tagline { display: block; font-size: 0.72rem; font-weight: 500; color: var(--cove-muted); margin-top: -2px; }
 
 /* ---- Layout ---- */
-.cove-main { flex: 1; min-height: 0; overflow: auto; padding: 2.5rem 1.5rem 4rem; }
+.cove-main { flex: 1; min-height: 0; min-width: 0; overflow: auto; padding: 2.5rem 1.5rem 4rem; }
 .cove-main.is-shop { overflow: hidden; display: flex; flex-direction: column; padding-bottom: 1.25rem; }
 .cove-container { max-width: 760px; margin: 0 auto; }
 .cove-container.is-shop {
@@ -221,7 +225,7 @@ ${scopeReset(".cove-app")}
 .cove-signin-card { width: min(100%, 380px); text-align: left; }
 .cove-signin-card h1 { font-size: 1.55rem; margin: 0 0 0.35rem; }
 .cove-landing-sub { color: var(--cove-muted); font-size: 0.95rem; margin: 0 0 1.1rem; }
-.cove-value-props { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; width: 100%; max-width: 720px; margin: 1rem 0; text-align: left; }
+.cove-value-props { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 0.75rem; width: 100%; max-width: 720px; margin: 1rem 0; text-align: left; }
 .cove-value-prop { background: var(--cove-surface); border: 1px solid var(--cove-border); border-radius: var(--cove-radius); padding: 0.85rem 1rem; }
 .cove-value-prop-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: var(--cove-panel); color: var(--cove-primary); margin-bottom: 0.6rem; }
 .cove-value-prop h3 { font-size: 0.95rem; margin: 0 0 0.25rem; }
@@ -235,7 +239,7 @@ ${scopeReset(".cove-app")}
 .cove-greeting h1 { margin: 0; }
 .cove-greeting .cove-lede { margin: 0.15rem 0 0; }
 .cove-greeting .cove-avatar { width: 48px; height: 48px; font-size: 1.05rem; }
-.cove-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.cove-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 1rem; margin: 1.5rem 0; }
 .cove-stat { background: var(--cove-panel); border-radius: var(--cove-radius); padding: 1rem 1.1rem; }
 .cove-stat-icon { display: inline-flex; color: var(--cove-primary); opacity: 0.85; margin-bottom: 0.35rem; }
 .cove-stat-value { font-size: 1.6rem; font-weight: 800; color: var(--cove-brand); }
@@ -247,7 +251,7 @@ ${scopeReset(".cove-app")}
 .cove-category { margin-bottom: 1.75rem; }
 .cove-category-icon { display: inline-flex; color: var(--cove-muted); }
 .cove-category h2 { display: flex; align-items: center; gap: 0.45rem; font-size: 1.02rem; margin: 0 0 0.7rem; }
-.cove-test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem; align-items: stretch; }
+.cove-test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 0.75rem; align-items: stretch; }
 .cove-test-card {
   appearance: none;
   width: 100%;
@@ -307,7 +311,7 @@ ${scopeReset(".cove-app")}
 /* ---- Orders / timeline ---- */
 .cove-order-list { display: flex; flex-direction: column; gap: 1rem; }
 .cove-order-card { border: 1px solid var(--cove-border); border-radius: var(--cove-radius); padding: 1.25rem; background: var(--cove-surface); }
-.cove-order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; gap: 1rem; }
+.cove-order-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 0.65rem; gap: 0.4rem 1rem; min-width: 0; }
 .cove-order-when { color: var(--cove-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cove-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.25rem 0.6rem; border-radius: 999px; }
 .cove-badge-pending_payment { background: var(--cove-warn-bg); color: var(--cove-warn); }
@@ -327,7 +331,7 @@ ${scopeReset(".cove-app")}
 .cove-order-item-price { font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
 .cove-order-note { margin: 0.35rem 0 0; font-size: 0.82rem; color: var(--cove-muted); }
 .cove-results-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
-.cove-results-table td, .cove-results-table th { padding: 0.4rem 0.5rem; text-align: left; border-bottom: 1px solid var(--cove-border); }
+.cove-results-table td, .cove-results-table th { padding: 0.4rem 0.5rem; text-align: left; border-bottom: 1px solid var(--cove-border); overflow-wrap: anywhere; }
 .cove-fastforward { border: 1px dashed var(--cove-border); border-radius: var(--cove-radius-sm); padding: 0.75rem; margin-top: 0.75rem; font-size: 0.85rem; }
 .cove-fastforward-label { font-weight: 700; color: var(--cove-muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; display: block; margin-bottom: 0.4rem; }
 
@@ -349,12 +353,12 @@ ${scopeReset(".cove-app")}
    this app inside its own modal window, which is the containing block for
    position: fixed), the backdrop covers only the app, not the whole screen. */
 .cove-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.45); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 100; }
-.cove-modal { background: var(--cove-surface); border: 1px solid var(--cove-border); border-radius: var(--cove-radius); box-shadow: none; width: 100%; max-width: 480px; height: min(760px, 100%); display: flex; flex-direction: column; overflow: hidden; }
+.cove-modal { background: var(--cove-surface); border: 1px solid var(--cove-border); border-radius: var(--cove-radius); box-shadow: none; width: 100%; max-width: min(480px, 100%); min-width: 0; height: min(760px, 100%); display: flex; flex-direction: column; overflow: hidden; }
 .cove-modal-header { display: flex; align-items: center; gap: 0.6rem; padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--cove-border); background: var(--cove-panel); flex-shrink: 0; }
 .cove-modal-header-text { font-size: 0.82rem; font-weight: 700; color: var(--cove-brand); flex: 1; }
 .cove-modal-close { background: none; border: none; cursor: pointer; color: var(--cove-muted); font-size: 1.1rem; line-height: 1; padding: 0.25rem; }
-.cove-modal-body { flex: 1; overflow: hidden; position: relative; min-height: 0; }
-.cove-modal-body .hosted-page { width: 100%; height: 100%; display: block; overflow: auto; }
+.cove-modal-body { flex: 1; overflow: hidden; position: relative; min-height: 0; min-width: 0; }
+.cove-modal-body .hosted-page { width: 100%; height: 100%; min-width: 0; display: block; overflow-x: clip; overflow-y: auto; }
 .cove-modal-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--cove-muted); font-size: 0.9rem; }
 .cove-modal-error { padding: 1.25rem; }
 
@@ -363,7 +367,7 @@ ${scopeReset(".cove-app")}
 .cove-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 0.85rem; color: var(--cove-muted); padding: 0.5rem 0 1rem; }
 .cove-empty p { margin: 0; }
 
-@media (max-width: 640px) {
+@container cove (max-width: 640px) {
   .cove-nav { flex-wrap: wrap; padding: 0.7rem 1rem; gap: 0.35rem 0.75rem; }
   .cove-nav-links { order: 3; flex: 1 0 100%; gap: 0; }
   .cove-spacer { display: none; }
