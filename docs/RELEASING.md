@@ -17,6 +17,7 @@ bun run release:plan                   # what the next push to main would releas
 bun run release:publish -- --dry-run   # plan + pack every tarball, no side effects
 bun run release:seed                   # reconcile npm with origin/main using your npm login
 bun run release:bootstrap              # set the NPM_TOKEN repo secret and run current CI on main
+bun run health                         # access pages whose Trusted Publisher still needs a click
 bun run secrets:doctor                 # npm / Trusted Publishing / NPM_TOKEN status
 ```
 
