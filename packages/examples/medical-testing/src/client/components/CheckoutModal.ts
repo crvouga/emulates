@@ -1,7 +1,7 @@
 import { html } from "htm/preact"
 import { useCallback, useEffect, useRef, useState } from "preact/hooks"
 import { api, type HostedCheckoutStepResponse } from "../api.js"
-import { attachFormInterceptor } from "./hostedFrame.js"
+import { pasteHtml } from "../pasteHtml.js"
 import { useEscapeKey } from "./useEscapeKey.js"
 
 type Props = {
@@ -11,18 +11,18 @@ type Props = {
 }
 
 /**
- * Renders the payments provider's real hosted checkout page inline, in a
- * sandboxed iframe, driven the same way `OAuthModal` drives a sign-in
- * screen — intercepting its form submit and dispatching it through our own
- * server, in-process. When it redirects back to us, we're done; fulfillment
- * itself lands separately and asynchronously, via a webhook.
+ * Renders the payments provider's real hosted checkout page inline, the same
+ * way `OAuthModal` drives a sign-in screen: fetch the page, paste it, and
+ * intercept its form submit through our own server, in-process. When it
+ * redirects back to us, we're done; fulfillment lands separately, via a webhook.
  */
 export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => {
   const [flowId, setFlowId] = useState<string | null>(null)
-  const [srcdoc, setSrcdoc] = useState<string | null>(null)
+  const [pageHtml, setPageHtml] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(true)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const pageRef = useRef<HTMLDivElement>(null)
+  const stepRef = useRef<(action: string, method: string, body: string) => void>(() => {})
   useEscapeKey(onClose)
 
   const applyResult = useCallback(
@@ -33,7 +33,7 @@ export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => 
         return
       }
       setFlowId(result.flowId)
-      setSrcdoc(result.html)
+      setPageHtml(result.html)
     },
     [onDone],
   )
@@ -74,25 +74,15 @@ export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => 
     [flowId, applyResult, fail],
   )
 
+  stepRef.current = (action, method, body) => void step(action, method, body)
+
   useEffect(() => {
-    const iframe = iframeRef.current
-    if (!iframe || srcdoc === null) return
-
-    let detach: (() => void) | undefined
-    const attach = () => {
-      const doc = iframe.contentDocument
-      if (!doc) return
-      detach?.()
-      detach = attachFormInterceptor(doc, (action, method, body) => void step(action, method, body))
-    }
-
-    iframe.addEventListener("load", attach)
-    attach()
-    return () => {
-      iframe.removeEventListener("load", attach)
-      detach?.()
-    }
-  }, [srcdoc, step])
+    const page = pageRef.current
+    if (!page || pageHtml === null) return
+    return pasteHtml(page, pageHtml, {
+      onSubmit: (action, method, body) => stepRef.current(action, method, body),
+    })
+  }, [pageHtml, error])
 
   return html`
     <div class="cove-modal-backdrop" onClick=${(e: Event) => e.target === e.currentTarget && onClose()}>
@@ -112,8 +102,8 @@ export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => 
           }
           ${
             !error &&
-            srcdoc !== null &&
-            html`<iframe ref=${iframeRef} srcdoc=${srcdoc} title="Payment" />`
+            pageHtml !== null &&
+            html`<div class="hosted-page" ref=${pageRef} role="region" aria-label="Payment"></div>`
           }
         </div>
       </div>

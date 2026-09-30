@@ -209,7 +209,7 @@ Agents in this repository run `/resolve-issues` on the `agent-reported` queue.
   it to the contract, and ships it with an acceptance test for each behavior you listed.
 - **new-service**: the agent builds a new package by following
   [AUTHORING_A_SERVICE.md](AUTHORING_A_SERVICE.md). Your behaviors become its acceptance suite and
-  your SDK version its drop-in test. It is released as `wip` until it is verified.
+  your SDK version its drop-in test. It ships with a `mockingbird.parity` statement naming the vendor surface that first release keeps in step.
 
 An issue labelled `needs-info` is waiting on you: answer the question in the comments. Fixes ship
 in the next release of the package; see [RELEASING.md](RELEASING.md).

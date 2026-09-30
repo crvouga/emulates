@@ -11,7 +11,7 @@ export interface PaletteEntry {
   initials: string
   subtitle: string
   category: string
-  tier: string
+  parity: string
   hue: number
   logo: string | null
   text: string
@@ -35,12 +35,13 @@ export const GET: APIRoute = () => {
       initials: initials(s.displayName),
       subtitle: s.description,
       category: CATEGORIES[s.category as CategorySlug].label,
-      tier: s.status,
+      parity: s.parity,
       hue: s.hue,
       logo: s.brand.logo,
       text: [
         s.packageName,
         s.description,
+        s.parity,
         s.brand.vendor,
         CATEGORIES[s.category as CategorySlug].label,
         ...s.keywords,
@@ -55,7 +56,7 @@ export const GET: APIRoute = () => {
       initials: "",
       subtitle: g.summary,
       category: "",
-      tier: "",
+      parity: "",
       hue: 0,
       logo: null,
       text: `${g.summary} ${g.toc.map((t) => t.text).join(" ")}`,
@@ -68,7 +69,7 @@ export const GET: APIRoute = () => {
       initials: "",
       subtitle,
       category: "",
-      tier: "",
+      parity: "",
       hue: 0,
       logo: null,
       text: subtitle,

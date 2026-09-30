@@ -54,7 +54,7 @@
     "vendor": {
       "website": "https://www.prismlabs.tech"
     },
-    "status": "wip",
+    "parity": "Body scans and measurements",
     "parityTier": "cold"
   },
   "scripts": {

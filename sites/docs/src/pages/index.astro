@@ -3,7 +3,6 @@ import catalog from "virtual:mockingbird/catalog"
 import Icon from "../components/Icon.astro"
 import Install from "../components/Install.astro"
 import Monogram from "../components/Monogram.astro"
-import ServiceCard from "../components/ServiceCard.astro"
 import Base from "../layouts/Base.astro"
 import {
   AGENTS,
@@ -18,7 +17,6 @@ import {
 import { inline } from "../lib/inline.ts"
 
 const { totals } = catalog
-const ready = catalog.services.filter((s) => s.status === "ready")
 const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 ---
 
@@ -28,7 +26,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
       <div class="hero-copy">
         <p class="species">
           <em>Mimus polyglottos</em>
-          <a href="/services?tier=ready">{totals.ready} ready to use · {totals.wip} in progress</a>
+          <a href="/services">{totals.services} mocks</a>
         </p>
         <h1>{HEADLINE.lead}<br /><em>{HEADLINE.accent}</em></h1>
         <p class="note">{IDENTITY.note}</p>
@@ -58,8 +56,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 
   <div class="container">
     <section class="stats" aria-label="By the numbers">
-    <a href="/services?tier=ready"><strong class="ok">{totals.ready}</strong><span>ready to use</span></a>
-    <a href="/services?tier=wip"><strong class="warn">{totals.wip}</strong><span>in progress</span></a>
+    <a href="/services"><strong>{totals.services}</strong><span>mocks</span></a>
     <a href="/coverage"><strong>{totals.opsSupported}</strong><span>vendor operations mocked</span></a>
     <div><strong>0</strong><span>network calls</span></div>
   </section>
@@ -79,21 +76,6 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
       </div>
       <Fragment set:html={catalog.quickStart.html} />
     </div>
-  </section>
-
-  <section class="section container ready-section">
-    <div class="section-head">
-      <span class="eyebrow">Ready to use</span>
-      <h2>Start with the {totals.ready} that are ready.</h2>
-      <p>
-        These are complete and kept stable. The other {totals.wip} are marked work in progress: usable in a suite,
-        but their operations and shapes can still change.
-      </p>
-    </div>
-    <div class="ready-grid">
-      {ready.map((s) => <ServiceCard service={s} />)}
-    </div>
-    <a class="more" href="/services?tier=wip">See the {totals.wip} in progress <Icon name="arrow-right" /></a>
   </section>
 
   <section class="section container">
@@ -176,7 +158,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
       <ul class="agent-links">
         <li><a href="/llms.txt"><Icon name="bot" /><span><strong>/llms.txt</strong>An index of every service with links to its markdown</span></a></li>
         <li><a href="/llms-full.txt"><Icon name="file" /><span><strong>/llms-full.txt</strong>Every README in one file</span></a></li>
-        <li><a href="/catalog.json"><Icon name="database" /><span><strong>/catalog.json</strong>Surfaces, runtimes and operation coverage</span></a></li>
+        <li><a href="/catalog.json"><Icon name="database" /><span><strong>/catalog.json</strong>Surfaces and operation coverage</span></a></li>
         <li><a href="/services/stripe.md"><Icon name="file" /><span><strong>/services/&lt;name&gt;.md</strong>Any service's README as raw markdown</span></a></li>
       </ul>
     </div>
@@ -231,46 +213,9 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     color: var(--fg);
   }
 
-  .ready-section {
-    padding-bottom: 0;
-  }
-
-  .ready-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 14px;
-  }
-
-  .more {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 18px;
-    color: var(--fg-muted);
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .more:hover {
-    color: var(--fg);
-  }
-
-  .more :global(.i) {
-    width: 14px;
-    height: 14px;
-  }
-
   .stats a:hover strong {
     text-decoration: underline;
     text-underline-offset: 4px;
-  }
-
-  .stats .ok {
-    color: var(--ok);
-  }
-
-  .stats .warn {
-    color: var(--warn);
   }
 
   .hero h1 {
@@ -428,7 +373,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 
   .stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     margin-top: 28px;
     border-block: 1px solid var(--border);
     background: transparent;
@@ -709,6 +654,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
       grid-template-columns: 1fr 1fr;
     }
     .stats > :nth-child(3) {
+      grid-column: 1 / -1;
       border-left: 0;
     }
     .stats > :nth-child(n + 3) {

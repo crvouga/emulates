@@ -133,6 +133,25 @@ describe("service contract", () => {
 })
 
 describe("A7 error shapes and faults", () => {
+  test("fault presets are a list the faults page can map", async () => {
+    const runtime = createRuntime()
+    const listed = await admin(runtime, "GET", "/faults/presets")
+    expect(listed.status).toBe(200)
+    expect(Array.isArray(listed.body.presets)).toBe(true)
+    if (!Array.isArray(listed.body.presets)) return
+    const names = listed.body.presets.flatMap((preset) => {
+      if (typeof preset !== "object" || preset === null || !("name" in preset)) return []
+      return typeof preset.name === "string" ? [preset.name] : []
+    })
+    expect(names).toEqual([
+      "sandbox_user_quota",
+      "rate_limited",
+      "server_error",
+      "bad_gateway",
+      "unavailable",
+    ])
+  })
+
   test("unknown-user 404 bodies are Junction's exact bytes, per route", async () => {
     const runtime = createRuntime()
     const byId = await call(runtime, "GET", "/v2/user/00000000-0000-4000-8000-000000000000")

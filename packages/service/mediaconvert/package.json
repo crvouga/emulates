@@ -56,7 +56,7 @@
       "website": "https://aws.amazon.com/mediaconvert/",
       "docs": "https://docs.aws.amazon.com/mediaconvert/latest/apireference/"
     },
-    "status": "wip",
+    "parity": "Jobs and EventBridge",
     "parityTier": "cold"
   },
   "scripts": {

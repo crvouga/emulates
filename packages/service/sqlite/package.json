@@ -95,6 +95,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.8",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@types/bun": "latest",
     "alasql": "^4.17.3",
     "esbuild": "^0.28.2",
@@ -126,6 +127,6 @@
       "docs": "https://sqlite.org/docs.html",
       "description": "SQLite is a small, fast, self-contained, public-domain SQL database engine, the most widely deployed database in the world."
     },
-    "status": "ready"
+    "parity": "In-memory SQL engine"
   }
 }

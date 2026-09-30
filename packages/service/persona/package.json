@@ -56,7 +56,7 @@
       "docs": "https://docs.withpersona.com",
       "description": "Persona is an identity verification platform for KYC, document and selfie checks, and fraud prevention."
     },
-    "status": "wip",
+    "parity": "Inquiries and webhooks",
     "parityTier": "cold"
   },
   "scripts": {
@@ -87,6 +87,7 @@
     "@crvouga/mockingbird-sqlite": "workspace:*",
     "@crvouga/mockingbird-openapi": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@crvouga/mockingbird-http-codec": "workspace:*",
     "@crvouga/mockingbird-adapter-node": "workspace:*"
   }

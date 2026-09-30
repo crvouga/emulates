@@ -1,6 +1,7 @@
 import {
   type AdminRequest,
   type AdminRoutes,
+  type FaultPreset,
   type FaultRule,
   jsonRes,
   type ServiceRuntime,
@@ -160,7 +161,7 @@ export const RESULT_FIXTURES: Readonly<Record<string, Record<string, unknown>>> 
  * the shared-sandbox error byte for byte (message as observed from a real sandbox team);
  * the others are shape-plausible, not verified against Junction.
  */
-export const FAULT_PRESETS: Readonly<Record<string, Omit<FaultRule, "id">>> = {
+const FAULT_PRESET_RULES = {
   sandbox_user_quota: {
     operationId: "create_user_v2_user_post",
     status: 400,
@@ -174,6 +175,30 @@ export const FAULT_PRESETS: Readonly<Record<string, Omit<FaultRule, "id">>> = {
   server_error: { status: 500, body: { detail: "Internal Server Error" } },
   bad_gateway: { status: 502, body: { detail: "Bad Gateway" } },
   unavailable: { status: 503, body: { detail: "Service Unavailable" } },
+} satisfies Record<string, Omit<FaultRule, "id">>
+
+/** Named Junction faults a suite can add with `runtime.faults.add`. */
+export const FAULT_PRESETS: Readonly<Record<string, Omit<FaultRule, "id">>> = FAULT_PRESET_RULES
+
+const FAULT_PRESET_DESCRIPTIONS = {
+  sandbox_user_quota: "create_user answers 400 when the sandbox user quota is full",
+  rate_limited: "Every request answers 429 Too Many Requests",
+  server_error: "Every request answers 500 Internal Server Error",
+  bad_gateway: "Every request answers 502 Bad Gateway",
+  unavailable: "Every request answers 503 Service Unavailable",
+} satisfies { [Name in keyof typeof FAULT_PRESET_RULES]: string }
+
+const faultPresetDescriptions: Readonly<Record<string, string>> = FAULT_PRESET_DESCRIPTIONS
+
+/** Shared fault presets. `GET /__admin/faults/presets` lists these by name. */
+export const junctionFaultPresets = (): Record<string, FaultPreset> => {
+  const presets: Record<string, FaultPreset> = {}
+  for (const [name, rule] of Object.entries(FAULT_PRESET_RULES)) {
+    const description = faultPresetDescriptions[name]
+    if (description === undefined) continue
+    presets[name] = { description, rules: [rule] }
+  }
+  return presets
 }
 
 const methodOf = (order: { lab_test: { method?: unknown }; details?: { type?: unknown } }) =>
@@ -486,25 +511,6 @@ export const junctionAdminRoutes =
         if (!options.webhooks) return adminError(409, "webhook delivery is off")
         await options.webhooks.flush()
         return jsonRes(200, { status: "ok" })
-      },
-
-      "GET /faults/presets": () => jsonRes(200, { presets: FAULT_PRESETS }),
-      "POST /faults/presets/:name": (request) => {
-        const preset = FAULT_PRESETS[request.params.name as string]
-        if (!preset) {
-          return adminError(
-            404,
-            `no preset ${request.params.name}; one of ${Object.keys(FAULT_PRESETS).join(", ")}`,
-          )
-        }
-        const overrides = isRecord(request.body) ? request.body : {}
-        const rule = runtime.faults.add({
-          namespace: request.namespace,
-          ...preset,
-          ...overrides,
-          id: typeof overrides.id === "string" ? overrides.id : (request.params.name as string),
-        } as FaultRule)
-        return jsonRes(201, rule)
       },
     }
   }

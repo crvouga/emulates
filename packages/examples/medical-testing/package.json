@@ -2,7 +2,7 @@
   "name": "@crvouga/mockingbird-example-medical-testing",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Cove: a branded, full-stack consumer demo. Patients sign in with a Google/Apple OAuth mock, shop lab tests, pay with a Stripe Checkout mock, and the paid order is fulfilled as a Junction lab order, all persisted to an in-process Postgres engine, in one process.",
+  "description": "A plain full-stack example. Sign in with a Google or Apple OAuth mock, shop lab tests, pay with a Stripe Checkout mock, and the paid order is fulfilled as a Junction lab order, all persisted to an in-process Postgres engine, in one process.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -38,6 +38,7 @@
     "preact": "10.24.3"
   },
   "devDependencies": {
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@types/bun": "1.4.0"
   }
 }

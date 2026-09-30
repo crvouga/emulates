@@ -11,7 +11,7 @@ export type IdentityProfile = {
   picture: string | null
 }
 
-/** A branded "Continue with {Google,Apple}" button talks to exactly this. */
+/** A "Continue with Google" or "Continue with Apple" button talks to exactly this. */
 export interface IdentityProvider {
   startSignIn(provider: IdentityProviderKey): Promise<HostedFlowStep<IdentityProfile>>
   continueSignIn(

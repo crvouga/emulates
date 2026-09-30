@@ -56,7 +56,7 @@
       "website": "https://workspace.google.com/products/calendar/",
       "docs": "https://developers.google.com/calendar/api/v3/reference"
     },
-    "status": "wip",
+    "parity": "Events and OAuth",
     "parityTier": "cold"
   },
   "scripts": {

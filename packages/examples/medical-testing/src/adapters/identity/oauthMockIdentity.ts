@@ -47,7 +47,7 @@ const createProviderRuntimes = (): Record<IdentityProviderKey, OAuthRuntime> => 
     const config = CLIENTS[provider]
     return {
       id: config.clientId,
-      name: "Cove",
+      name: "Example app",
       secret: config.clientSecret,
       redirectUris: [REDIRECT_URI(provider)],
       requirePkce: true,

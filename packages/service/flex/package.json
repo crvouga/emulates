@@ -59,7 +59,7 @@
       "docs": "https://docs.withflex.com",
       "description": "Flex lets merchants accept HSA/FSA funds at checkout for eligible health and wellness products."
     },
-    "status": "ready",
+    "parity": "Checkout, subscriptions, and webhooks",
     "parityTier": "cold",
     "playground": {
       "headers": {
@@ -95,6 +95,7 @@
     "@crvouga/mockingbird-sqlite": "workspace:*",
     "@crvouga/mockingbird-openapi": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@crvouga/mockingbird-http-codec": "workspace:*",
     "@crvouga/mockingbird-adapter-node": "workspace:*",
     "svix": "1.41.0",

@@ -5,7 +5,7 @@ import {
   type ServiceRuntime,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
-import { junctionAdminRoutes } from "./admin.js"
+import { junctionAdminRoutes, junctionFaultPresets } from "./admin.js"
 import type { IdentityMode, JunctionFixtures } from "./fixtures.js"
 import { document } from "./generated/openapi.js"
 import { JUNCTION_NAMESPACE, JunctionAPI } from "./index.js"
@@ -118,6 +118,7 @@ export const createRuntime = (options: JunctionRuntimeOptions = {}): JunctionRun
         webhooks: webhooks ? "on" : "off",
       }
     },
+    presets: junctionFaultPresets(),
     admin: junctionAdminRoutes({ webhooks }),
   })
   return Object.assign(runtime, { webhooks })

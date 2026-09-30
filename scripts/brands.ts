@@ -15,7 +15,8 @@
  *   }
  *
  * Output (committed, read by the docs build): sites/docs/src/data/brands.json and one logo per
- * service in sites/docs/public/brands/. Logos come from Simple Icons (https://simpleicons.org,
+ * service in sites/docs/public/brands/. The site republishes a small absolute-URL record at
+ * `/brands.json` for admin shells. Logos come from Simple Icons (https://simpleicons.org,
  * CC0) when the vendor is listed there, else the site's own icon, else Google's favicon service.
  *
  *   bun run brands:sync                  fetch services that are new or whose vendor block changed

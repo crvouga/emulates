@@ -57,7 +57,7 @@ const Nav = ({
       <span class="cove-avatar">
         ${user.picture ? html`<img src=${user.picture} alt="" />` : initial(user.name)}
       </span>
-      <span class="cove-muted" style="font-size:0.85rem">${user.name ?? user.email ?? "Account"}</span>
+      <span class="cove-nav-name">${user.name ?? user.email ?? "Account"}</span>
     </button>
   </nav>
 `
@@ -77,7 +77,7 @@ const App = () => {
   // error banner.
   useEffect(() => onUnauthorized(() => setUser(null)), [])
 
-  if (user === undefined) return html`<div class="cove-loading">Loading Cove…</div>`
+  if (user === undefined) return html`<div class="cove-loading">Loading…</div>`
 
   if (!user) {
     return html`<div class="cove-main"><div class="cove-container"><${Landing} onSignedIn=${setUser} /></div></div>`
@@ -91,8 +91,8 @@ const App = () => {
   return html`
     <div class="cove-shell">
       <${Nav} route=${route} user=${user} onNavigateAccount=${() => navigate("account")} />
-      <main class="cove-main">
-        <div class="cove-container">
+      <main class="cove-main ${route === "shop" ? "is-shop" : ""}">
+        <div class="cove-container ${route === "shop" ? "is-shop" : ""}">
           ${route === "dashboard" && html`<${Dashboard} user=${user} />`}
           ${route === "shop" && html`<${Shop} onCheckout=${setPendingCheckoutSessionId} />`}
           ${route === "checkout" && html`<${Checkout} checkoutSessionId=${pendingCheckoutSessionId} />`}

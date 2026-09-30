@@ -44,6 +44,7 @@
     "@crvouga/mockingbird-openapi": "workspace:*",
     "@crvouga/mockingbird-openapi-metadata": "workspace:*",
     "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
