@@ -152,6 +152,8 @@ username) or the App API key (Bearer) through `PUT /__admin/credentials {"creden
 | `signReporting` | function | `(secret, timestampSeconds, body)` → the hex `x-cio-signature`. |
 | `customerIoCredential` | function | The write key or App API key a request carries. |
 | `DEFAULT_TRANSACTIONAL_MESSAGES`, `DEFAULT_SETTINGS`, `TRANSACTIONAL_EMAIL_KEYS` | values | The seeded catalog, settings, and our backend's legacy email keys. |
+| `DELIVERY_STATES` | values | Delivery lifecycle states. An accepted send starts at `pending`. |
+| `FAILURE_STATES` | values | Terminal failure states: `bounced`, `dropped`, `failed`, `spammed`, `undeliverable`, `suppressed`. `delivered` is success; `sent` stays open. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8810. |
 
