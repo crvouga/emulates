@@ -10,6 +10,7 @@ import type { createRuntime as createDaily } from "@crvouga/mockingbird-service-
 import type { createRuntime as createDynamodb } from "@crvouga/mockingbird-service-dynamodb"
 import type { createRuntime as createEasypost } from "@crvouga/mockingbird-service-easypost"
 import type { createRuntime as createEdamam } from "@crvouga/mockingbird-service-edamam"
+import type { createRuntime as createFcm } from "@crvouga/mockingbird-service-fcm"
 import type { createRuntime as createFirstpromoter } from "@crvouga/mockingbird-service-firstpromoter"
 import type { createRuntime as createFlex } from "@crvouga/mockingbird-service-flex"
 import type { createRuntime as createFormbricks } from "@crvouga/mockingbird-service-formbricks"
@@ -69,6 +70,7 @@ export type SurfaceProof = [
   Assert<typeof createDynamodb>,
   Assert<typeof createEasypost>,
   Assert<typeof createEdamam>,
+  Assert<typeof createFcm>,
   Assert<typeof createFirstpromoter>,
   Assert<typeof createFlex>,
   Assert<typeof createFormbricks>,

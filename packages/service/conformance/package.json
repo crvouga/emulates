@@ -24,6 +24,7 @@
     "@crvouga/mockingbird-service-dynamodb": "workspace:*",
     "@crvouga/mockingbird-service-easypost": "workspace:*",
     "@crvouga/mockingbird-service-edamam": "workspace:*",
+    "@crvouga/mockingbird-service-fcm": "workspace:*",
     "@crvouga/mockingbird-service-firstpromoter": "workspace:*",
     "@crvouga/mockingbird-service-flex": "workspace:*",
     "@crvouga/mockingbird-service-formbricks": "workspace:*",

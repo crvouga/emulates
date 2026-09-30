@@ -144,6 +144,20 @@
     "logo": "/brands/edamam.png",
     "logoSource": "site"
   },
+  "fcm": {
+    "vendor": "Firebase Cloud Messaging",
+    "website": "https://firebase.google.com",
+    "docs": "https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send",
+    "description": "Discover Firebase, Google’s mobile and web app development platform that helps developers build apps and games that users will love.",
+    "input": {
+      "website": "https://firebase.google.com",
+      "docs": "https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send",
+      "icon": "firebase"
+    },
+    "color": "#DD2C00",
+    "logo": "/brands/fcm.svg",
+    "logoSource": "simple-icons"
+  },
   "firstpromoter": {
     "vendor": "FirstPromoter",
     "website": "https://firstpromoter.com",
