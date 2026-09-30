@@ -175,9 +175,24 @@ export const renderAdminDocument = (service: string): string => {
   .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   label.field { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--faint); }
   label.field input, label.field select, .controls input[type="password"] {
-    background: var(--bg-inset); border: 1px solid var(--line); border-radius: 8px;
-    padding: 7px 8px; min-height: 36px;
+    background-color: var(--bg-inset); border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 8px; min-height: 36px; line-height: 1.2;
   }
+  /* A native menu ignores min-height, so Preset rendered about half as tall as
+     the text fields in the same form. Paint it like those fields. */
+  label.field select {
+    -webkit-appearance: none; appearance: none;
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%2371717a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 12px 12px;
+  }
+  .stack > .field > input,
+  .stack > .field > select,
+  .stack > .field > textarea,
+  dialog .field > input,
+  dialog .field > select,
+  dialog .field > textarea { width: 100%; }
+  .icon-btn, .btn, .btn-primary, .btn-quiet, .btn-danger, nav.side button { cursor: pointer; }
   .icon-btn, .btn, .btn-primary, .btn-quiet, .btn-danger {
     border-radius: 9px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line);
     background: var(--bg-elev);
@@ -185,6 +200,14 @@ export const renderAdminDocument = (service: string): string => {
   .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
   .btn-quiet { background: transparent; }
   .btn-danger { color: var(--err); }
+  /* Held after mouseup. Clearing an empty journal changes nothing on screen,
+     so the press itself has to stay visible. */
+  .icon-btn:active, .btn:active, .btn-quiet:active, .btn-danger:active, nav.side button:active,
+  .icon-btn.pressed, .btn.pressed, .btn-quiet.pressed, .btn-danger.pressed, nav.side button.pressed {
+    background: var(--bg-inset); border-color: var(--line-strong); color: var(--ink);
+  }
+  .btn-danger:active, .btn-danger.pressed { background: var(--err-soft); color: var(--err); }
+  .btn-primary:active, .btn-primary.pressed { filter: brightness(0.88); color: var(--accent-ink); }
   /* minmax(0, 1fr): a 1fr column will not shrink below its content, so a long
      record or the full nav row would widen the page past the viewport. */
   .layout {
@@ -273,8 +296,16 @@ export const renderAdminDocument = (service: string): string => {
     input, select, textarea { font-size: 16px; }
     .brand, .vendor, .controls { width: 100%; }
     label.field, label.field select, label.field input { flex: 1; min-width: 0; }
-    .layout { grid-template-columns: minmax(0, 1fr); }
+    /* The layout fills the screen. A single-column grid stretches every auto
+       row, so the tab bar grew with the leftover height and the buttons floated
+       in the middle of it. The bar stays one row; the page below takes the rest. */
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      align-content: start;
+    }
     nav.side {
+      align-self: start; height: auto;
       flex-direction: row; align-items: center; overflow-x: auto; min-width: 0;
       border-right: 0; border-bottom: 1px solid var(--line);
       padding: 8px;
