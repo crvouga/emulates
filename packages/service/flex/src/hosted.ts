@@ -1,3 +1,4 @@
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import type { NextActionType, SessionRecord } from "./state.js"
 
 /** Test cards the hosted page recognises (spaces are ignored). */
@@ -68,10 +69,14 @@ const layout = (title: string, body: string) => `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(title)}</title>
 <style>
-body{font-family:system-ui,sans-serif;max-width:28rem;margin:2rem auto;padding:0 1rem;color:#1a1a1a}
+${CSS_RESET}
+body{font-family:system-ui,sans-serif;max-width:28rem;margin:2rem auto;padding:0 1rem;color:#1a1a1a;background:#fff}
+h1{font-size:1.5rem;font-weight:650;margin:0 0 .75rem}
+p{margin:0 0 .75rem}
+ul{list-style:disc;padding-left:1.25rem}
 label{display:block;margin:.75rem 0 .25rem;font-size:.9rem}
-input{width:100%;box-sizing:border-box;padding:.5rem;font-size:1rem}
-button{margin-top:1rem;width:100%;padding:.75rem;font-size:1rem}
+input{width:100%;padding:.5rem;font-size:1rem;border:1px solid #c8c8c8;border-radius:6px;background:#fff}
+button{margin-top:1rem;width:100%;padding:.75rem;font-size:1rem;background:#1a1a1a;color:#fff;border-radius:6px}
 [role=alert]{color:#b00020;margin:1rem 0}
 .row{display:flex;gap:.5rem}.row>div{flex:1}
 </style>

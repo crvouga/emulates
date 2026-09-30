@@ -42,7 +42,7 @@ Operations outside the surface listed above, IAM policy evaluation, server-side 
 
 ## API
 
-- `SqsAPI`, `SqsAPIOptions`, `SqsSeedQueue`: portable AWS JSON handler and fixtures.
+- `SqsAPI`, `SqsAPIOptions`, `SqsSeedQueue`: AWS JSON handler and fixtures.
 - `SqsMessage`, `SqsMessageAttribute`, `SqsQueue`: state types.
 - `createRuntime`, `SqsRuntime`, `SqsRuntimeOptions`: full Mockingbird runtime.
 - `SQS_NAMESPACE`, `SQS_PRESETS`, `accessKeyCredential`: constants and controls.

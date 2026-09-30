@@ -38,7 +38,7 @@ Webhooks cover room, participant, track, egress, and SIP transitions. Each raw b
 
 ## API
 
-- `LiveKitAPI`, `LiveKitAPIOptions`, `LiveKitEvent`: portable handler and event contract.
+- `LiveKitAPI`, `LiveKitAPIOptions`, `LiveKitEvent`: handler and event contract.
 - `LiveKitRoom`, `LiveKitParticipant`, `LiveKitTrack`, `DataMessage`, `AsyncResource`: durable state.
 - `createRuntime`, `LiveKitRuntime`, `LiveKitRuntimeOptions`: full runtime and webhook hub.
 - `LIVEKIT_NAMESPACE`, `LIVEKIT_PRESETS`: constants and fault controls.

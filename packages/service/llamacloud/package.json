@@ -58,7 +58,7 @@
       "name": "LlamaIndex",
       "description": "LlamaIndex builds LlamaCloud, a managed platform for document parsing, extraction and retrieval pipelines for LLM apps."
     },
-    "status": "wip",
+    "parity": "Pipelines and retrieval",
     "parityTier": "cold"
   },
   "scripts": {

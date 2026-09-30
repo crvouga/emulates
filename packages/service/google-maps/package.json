@@ -59,7 +59,7 @@
       "website": "https://mapsplatform.google.com",
       "docs": "https://developers.google.com/maps/documentation/places/web-service"
     },
-    "status": "wip",
+    "parity": "Places, geocoding, and address validation",
     "parityTier": "cold"
   },
   "scripts": {

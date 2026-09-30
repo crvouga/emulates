@@ -9,6 +9,7 @@ import {
   createFaultRegistry,
   type FaultHit,
   type FaultPreset,
+  type FaultPresetList,
   type FaultRegistry,
   type FaultRule,
 } from "./faults.js"
@@ -761,11 +762,11 @@ export const createRuntime = <T extends ServiceInstance>(
       : {}),
     routes: {
       ...credentialRoutes(credentials),
-      ...(options.presets ? presetRoutes(options.presets, runtime) : {}),
       ...(options.webhooks ? webhookAdminRoutes(options.webhooks) : {}),
       ...(options.admin?.(runtime) ?? {}),
-      // Standard state and UI routes win a colliding key. A service adds its own keys
-      // beside these; it does not replace `/state` or `/ui`.
+      // Shell routes win a colliding key. Fault presets are one of them: the admin page
+      // maps `presets`, and a service route must not replace that list with a record.
+      ...(options.presets ? presetRoutes(options.presets, runtime) : {}),
       ...stateAdminRoutes({
         open: stateScope,
         afterWrite: (namespace) => {
@@ -856,10 +857,12 @@ const presetRoutes = <T extends ServiceInstance>(
   presets: Record<string, FaultPreset>,
   runtime: ServiceRuntime<T>,
 ): AdminRoutes => ({
-  "GET /faults/presets": () =>
-    adminJson(200, {
+  "GET /faults/presets": () => {
+    const body: FaultPresetList = {
       presets: Object.entries(presets).map(([name, preset]) => ({ name, ...preset })),
-    }),
+    }
+    return adminJson(200, body)
+  },
   "POST /faults/presets/:name": ({ params, body, namespace }) => {
     const name = params.name as string
     if (!presets[name])

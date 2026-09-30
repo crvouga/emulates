@@ -79,6 +79,7 @@
         "preact": "10.24.3",
       },
       "devDependencies": {
+        "@crvouga/mockingbird-ui": "workspace:*",
         "@types/bun": "1.4.0",
       },
     },
@@ -423,6 +424,7 @@
         "@crvouga/mockingbird-openapi": "workspace:*",
         "@crvouga/mockingbird-openapi-metadata": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "hono": "4.11.9",
       },
       "devDependencies": {
@@ -610,6 +612,7 @@
         "@crvouga/mockingbird-service-sqlite": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "fast-check": "4.9.0",
         "svix": "1.41.0",
         "zod": "3.25.76",
@@ -1032,6 +1035,7 @@
         "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "fast-check": "4.5.3",
         "hono": "4.11.9",
         "jose": "6.1.3",
@@ -1176,6 +1180,7 @@
         "@crvouga/mockingbird-service-sqlite": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "fast-check": "4.9.0",
       },
     },
@@ -1234,9 +1239,13 @@
     "packages/service/postgres": {
       "name": "@crvouga/mockingbird-service-postgres",
       "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-postgres": "./dist/wire/cli.js",
+      },
       "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.5",
         "@biomejs/biome": "^2.5.8",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "@electric-sql/pglite": "^0.5.5",
         "@types/bun": "latest",
         "@types/pg": "^8.23.1",
@@ -1417,6 +1426,7 @@
       "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.5",
         "@biomejs/biome": "^2.5.8",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "@types/bun": "latest",
         "alasql": "^4.17.3",
         "esbuild": "^0.28.2",
@@ -1500,6 +1510,7 @@
         "@crvouga/mockingbird-service-sqlite": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "@crvouga/mockingbird-webhook-collector": "workspace:*",
         "fast-check": "4.9.0",
         "stripe": "16.12.0",
@@ -1633,6 +1644,10 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/ui": {
+      "name": "@crvouga/mockingbird-ui",
+      "version": "0.0.0-development",
+    },
     "packages/webhook-collector": {
       "name": "@crvouga/mockingbird-webhook-collector",
       "version": "0.0.0-development",
@@ -1644,6 +1659,7 @@
       "name": "@crvouga/mockingbird-docs",
       "dependencies": {
         "@astrojs/node": "^11.1.6",
+        "@crvouga/mockingbird-ui": "workspace:*",
         "@crvouga/mockingbird-webhook-collector": "workspace:*",
         "astro": "7.3.3",
         "github-slugger": "2.0.0",
@@ -2141,6 +2157,8 @@
     "@crvouga/mockingbird-sqlite": ["@crvouga/mockingbird-sqlite@workspace:packages/sqlite"],
 
     "@crvouga/mockingbird-testing": ["@crvouga/mockingbird-testing@workspace:packages/testing"],
+
+    "@crvouga/mockingbird-ui": ["@crvouga/mockingbird-ui@workspace:packages/ui"],
 
     "@crvouga/mockingbird-webhook-collector": ["@crvouga/mockingbird-webhook-collector@workspace:packages/webhook-collector"],
 

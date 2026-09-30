@@ -145,7 +145,7 @@ its build fails when they are missing or stale:
 | `vendor.name` | no | The vendor's name when it differs from `displayName` (LlamaCloud is made by LlamaIndex) |
 | `vendor.description` | no | One line about the vendor; overrides the description fetched from its homepage |
 | `vendor.icon` / `vendor.logo` / `vendor.color` | no | Force a [Simple Icons](https://simpleicons.org) slug (`false` skips it), a logo URL, or a brand color, when the fetched ones are wrong |
-| `status` | yes | Release tier: `"wip"` until the mock is complete and verified, then `"ready"`. The site badges, filters and counts services by it |
+| `parity` | yes | A short statement, at most 80 characters, of the vendor surface this mock keeps in step, e.g. `"Payments, billing, and webhooks"`. The site, the README, `llms.txt` and `catalog.json` show it verbatim |
 | `playground.headers` | no | Credentials in the format the mock accepts (e.g. `sk_test_…`), sent with every playground request. The build sends every sample request to a fresh mock and fails if none succeed with them |
 | `playground.basicAuth` | no | `"user:pass"` for mocks that take HTTP Basic auth; the build sends it as `authorization: Basic <base64>`. Use it instead of a literal `Basic …` header, which secret scanners flag |
 | `playground.operation` | no | The operation the playground opens on; it must succeed with its sample request |
@@ -154,6 +154,10 @@ After adding or editing `vendor`, run `bun run brands:sync`. It fetches the vend
 color and description into `sites/docs/src/data/brands.json` and `sites/docs/public/brands/`, which
 the site reads; `bun run check:brands` fails while they are stale. `bun run brands:sync -- --all
 --links` refreshes every vendor and checks that each website and docs link still answers.
+
+The docs site publishes that record at `/brands.json`. Every admin shell fetches it when the page
+opens (logo, website, vendor API reference, and the service's page on this site). The mock bundles
+do not contain it, so a docs deploy updates the chip in admins that are already published.
 
 Also add the package to `sites/docs/package.json` `devDependencies` (`"workspace:*"`) so turbo
 builds it before the site.
@@ -202,7 +206,7 @@ example owns its mock instances, so repeated launches and different examples sta
 
 The OAuth example is a complete reference: `app.ts` runs Hono plus `oauth4webapi` and the
 actual OAuth mock through a local Fetch dispatcher; `transport.ts` handles virtual cookies
-and redirects; `index.ts` keeps the app in its own sandboxed frame and opens a separate provider popup
+and redirects; `index.ts` pastes the app and provider HTML into the page and opens a separate provider window
 (with a dialog fallback when popups are blocked). Provider HTML forms use the same transport;
 the callback closes the provider surface and updates the app. Its application and transport modules run unchanged in
 Bun or a browser. No network listeners, fetch monkey patches, service workers, or real

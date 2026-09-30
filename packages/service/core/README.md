@@ -14,7 +14,7 @@ package (e.g. `@crvouga/mockingbird-service-stripe`) instead.
 npm install @crvouga/mockingbird-service @crvouga/mockingbird-openapi
 ```
 
-ESM only, portable (Node >=22, Bun >=1.2, workers). `@crvouga/mockingbird-openapi` provides
+ESM only (Node >=22, Bun >=1.2, workers). `@crvouga/mockingbird-openapi` provides
 `parseOpenAPIDocument` and the `OpenAPIDocument` type used below.
 
 ## Usage

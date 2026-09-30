@@ -56,7 +56,7 @@
       "website": "https://www.klaviyo.com",
       "docs": "https://developers.klaviyo.com/en/reference/api_overview"
     },
-    "status": "wip",
+    "parity": "Events",
     "parityTier": "cold",
     "playground": {
       "headers": {

@@ -34,7 +34,7 @@ The default credentials are Basic auth `admin:password` plus tenant headers `X-K
 
 ## API
 
-- `KillBillAPI`, `KillBillAPIOptions`, `KillBillEvent`: portable REST handler and event contract.
+- `KillBillAPI`, `KillBillAPIOptions`, `KillBillEvent`: REST handler and event contract.
 - Account, subscription, bundle, invoice, payment, transaction, and catalog state types.
 - `createRuntime`, `KillBillRuntime`, `KillBillRuntimeOptions`: full runtime and webhook hub.
 - `KILL_BILL_NAMESPACE`, `KILL_BILL_PRESETS`: namespace and fault controls.

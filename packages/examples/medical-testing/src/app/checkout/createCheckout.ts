@@ -21,14 +21,14 @@ export const createCheckout = async (
   const tests = await findLabTestsByIds(db, testIds)
   if (tests.length === 0) throw new NoTestsSelectedError("Select at least one test")
 
-  const [firstName, ...rest] = (customer.name ?? "Cove Patient").split(" ")
+  const [firstName, ...rest] = (customer.name ?? "Patient").split(" ")
 
   const session = await payments.createCheckoutSession({
     successUrl: CHECKOUT_SUCCESS_URL,
     cancelUrl: CHECKOUT_CANCEL_URL,
     metadata: {
       userId: customer.userId,
-      patientFirstName: firstName ?? "Cove",
+      patientFirstName: firstName ?? "Patient",
       patientLastName: rest.join(" ") || "Patient",
       patientEmail: customer.email ?? "patient@example.test",
     },

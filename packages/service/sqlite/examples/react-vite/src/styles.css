@@ -1,3 +1,5 @@
+@import "../../../../../ui/src/reset.css";
+
 :root {
   color-scheme: dark;
   --bg: #101218;
@@ -12,10 +14,6 @@
   --error-bg: #3a1d24;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --sans: "Segoe UI", system-ui, sans-serif;
-}
-
-* {
-  box-sizing: border-box;
 }
 
 html,

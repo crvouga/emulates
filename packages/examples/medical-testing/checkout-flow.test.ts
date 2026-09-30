@@ -44,7 +44,7 @@ const decodeEntities = (value: string): string =>
     .replace(/&amp;/g, "&")
 
 /** Parses a hosted page's real server-rendered HTML `<form>`s — the production counterpart to
- * this is `src/client/components/hostedFrame.ts`'s DOM-based form interception. A form with no
+ * this is `src/client/pasteHtml.ts`'s DOM-based form interception. A form with no
  * `action` attribute (the hosted checkout page's form) submits to its own URL — see the caller. */
 const extractForms = (html: string): ParsedForm[] => {
   const forms: ParsedForm[] = []
@@ -173,7 +173,7 @@ const waitUntil = async (predicate: () => Promise<boolean>, timeoutMs = 2_000): 
   throw new Error("Timed out waiting for condition")
 }
 
-describe("Cove checkout flow", () => {
+describe("example checkout flow", () => {
   test("buying a test pays, fulfills, and settles into results on its own", async () => {
     const { app, cookie } = await setup()
     await signInWithGoogle(app, cookie)

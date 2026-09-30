@@ -61,9 +61,10 @@ export const Shop = ({ onCheckout }: { onCheckout: (checkoutSessionId: string) =
   }
 
   return html`
-    <div>
+    <div class="cove-shop">
+      <div class="cove-shop-body">
       <h1>Shop lab tests</h1>
-      <p class="cove-muted">Pick the panels you want. Ships as an at-home testkit — results land in Orders.</p>
+      <p class="cove-lede">Pick the panels you want. Ships as an at-home test kit. Results land in Orders.</p>
       ${error && html`<p class="cove-alert cove-alert-error">${error}</p>`}
 
       ${byCategory.map(
@@ -79,15 +80,14 @@ export const Shop = ({ onCheckout }: { onCheckout: (checkoutSessionId: string) =
                   <button
                     type="button"
                     class="cove-test-card ${selected.has(test.id) ? "is-selected" : ""}"
+                    aria-pressed=${selected.has(test.id) ? "true" : "false"}
                     onClick=${() => toggle(test.id)}
                     key=${test.id}
                   >
-                    <div class="cove-test-card-top">
-                      <span class="cove-test-name">${test.name}</span>
-                      <span class="cove-test-price">${formatPrice(test.priceCents)}</span>
-                    </div>
+                    <span class="cove-test-name">${test.name}</span>
+                    <span class="cove-test-price">${formatPrice(test.priceCents)}</span>
                     <span class="cove-test-desc">${test.description}</span>
-                    <span class="cove-eyebrow">${selected.has(test.id) ? "✓ Added" : "+ Add"}</span>
+                    <span class="cove-test-add">${selected.has(test.id) ? "Added" : "Add"}</span>
                   </button>
                 `,
               )}
@@ -95,11 +95,12 @@ export const Shop = ({ onCheckout }: { onCheckout: (checkoutSessionId: string) =
           </div>
         `,
       )}
+      </div>
 
       ${
         selected.size > 0 &&
         html`<div class="cove-cart-bar">
-        <span>${selected.size} test${selected.size === 1 ? "" : "s"} selected — ${formatPrice(total)}</span>
+        <span class="cove-cart-summary">${selected.size} test${selected.size === 1 ? "" : "s"} · ${formatPrice(total)}</span>
         <button class="cove-btn cove-btn-accent" disabled=${pending} onClick=${checkout}>
           ${pending ? "Starting checkout…" : "Checkout"}
         </button>

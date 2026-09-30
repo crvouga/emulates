@@ -57,7 +57,7 @@
       "website": "https://resend.com",
       "docs": "https://resend.com/docs/api-reference/introduction"
     },
-    "status": "wip",
+    "parity": "Email send and inbound webhooks",
     "parityTier": "cold"
   },
   "scripts": {

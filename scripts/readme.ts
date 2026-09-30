@@ -1,7 +1,7 @@
 /**
  * Generates the repo README.md. Every word comes from a source the docs site also renders:
- * the shared copy (sites/docs/src/lib/content.ts), release tiers and categories (each service's
- * package.json `mockingbird` block), and the guides in docs/. Edit those, never README.md.
+ * the shared copy (sites/docs/src/lib/content.ts), each service's package.json `mockingbird`
+ * block (category, parity, vendor), and the guides in docs/. Edit those, never README.md.
  *
  *   bun run readme:sync     rewrite README.md
  *   bun run check:readme    fail if README.md is stale (CI)
@@ -22,8 +22,6 @@ import {
   RISK_DISCLAIMER,
 } from "../sites/docs/src/lib/content.ts"
 import { guideInfo, sortGuides } from "../sites/docs/src/lib/guides.ts"
-import { TIER_ORDER, TIERS } from "../sites/docs/src/lib/tiers.ts"
-import type { ServiceStatus } from "../sites/docs/src/lib/types.ts"
 import { discoverPackages, REPO, root } from "./release/lib.ts"
 
 const OUT = join(root, "README.md")
@@ -46,7 +44,7 @@ interface Manifest {
     layer?: string
     category?: string
     displayName?: string
-    status?: ServiceStatus
+    parity?: string
     vendor?: { website?: string; docs?: string }
   }
 }
@@ -60,12 +58,13 @@ const services = discoverPackages()
     if (
       !meta.displayName ||
       !meta.category ||
-      !meta.status ||
-      !(meta.status in TIERS) ||
+      typeof meta.parity !== "string" ||
+      meta.parity.trim() === "" ||
+      meta.parity.length > 80 ||
       !(meta.category in CATEGORIES)
     ) {
       console.error(
-        `::error::${pkg.relDir}/package.json: mockingbird.displayName, .category and .status are required`,
+        `::error::${pkg.relDir}/package.json: mockingbird.displayName, .category and .parity (a non-empty string of at most 80 characters) are required`,
       )
       process.exit(1)
     }
@@ -74,7 +73,7 @@ const services = discoverPackages()
       dir: pkg.relDir,
       displayName: meta.displayName,
       category: CATEGORIES[meta.category as CategorySlug].label,
-      tier: meta.status,
+      parity: meta.parity,
       description: (manifest.description ?? "").replace(/\s+/g, " ").trim(),
       website: meta.vendor?.website ?? null,
       docs: meta.vendor?.docs ?? null,
@@ -82,7 +81,6 @@ const services = discoverPackages()
   })
   .sort((a, b) => a.displayName.localeCompare(b.displayName))
 
-const count = (tier: ServiceStatus) => services.filter((s) => s.tier === tier).length
 const licenses = new Set(
   discoverPackages()
     .filter((p) => p.isPublic)
@@ -116,21 +114,14 @@ const vendorLinks = (s: { website: string | null; docs: string | null }) =>
     .filter(Boolean)
     .join(" · ")
 
-const serviceTable = (tier: ServiceStatus) => {
-  const rows = services
-    .filter((s) => s.tier === tier)
-    .sort(
-      (a, b) =>
-        (tier === "wip" ? a.category.localeCompare(b.category) : 0) ||
-        a.displayName.localeCompare(b.displayName),
-    )
-    .map(
-      (s) =>
-        `| [${cell(s.displayName)}](${s.dir}) | ${vendorLinks(s)} | ${cell(s.category)} | [\`${s.name}\`](https://www.npmjs.com/package/${s.name}) | ${cell(s.description)} |`,
-    )
+const serviceTable = () => {
+  const rows = services.map(
+    (s) =>
+      `| [${cell(s.displayName)}](${s.dir}) | ${vendorLinks(s)} | ${cell(s.category)} | [\`${s.name}\`](https://www.npmjs.com/package/${s.name}) | ${cell(s.parity)} | ${cell(s.description)} |`,
+  )
   return [
-    "| Service | Vendor | Category | Package | What it mocks |",
-    "| --- | --- | --- | --- | --- |",
+    "| Service | Vendor | Category | Package | Parity | What it mocks |",
+    "| --- | --- | --- | --- | --- | --- |",
     ...rows,
   ]
 }
@@ -151,8 +142,7 @@ const body = [
   IDENTITY.note,
   "",
   [
-    `[![${TIERS.ready.label}](${badge(TIERS.ready.label, count("ready"), "2ea44f")})](#ready)`,
-    `[![${TIERS.wip.label}](${badge(TIERS.wip.short, count("wip"), "8d4a32")})](#work-in-progress)`,
+    `[![Services](${badge("Services", services.length, "243f34")})](#services)`,
     `[![CI](https://github.com/${REPO}/actions/workflows/pr.yml/badge.svg)](https://github.com/${REPO}/actions/workflows/pr.yml)`,
     `[![License](${badge("license", license, "243f34")})](#license)`,
   ].join(" "),
@@ -174,7 +164,7 @@ const body = [
   QUICK_START.code,
   "```",
   "",
-  "Every package is self-contained ESM with TypeScript types, for Node >= 22 or Bun >= 1.2. To browse every service with a live, in-browser playground, run the docs site: `bun docs`.",
+  "Every package is self-contained ESM with TypeScript types. Every mock is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers. To open a live playground, run the docs site: `bun docs`.",
   "",
   "## Why Mockingbird",
   "",
@@ -184,11 +174,10 @@ const body = [
   "",
   "## Services",
   "",
-  `${services.length} services, each its own npm package. Every service declares a release tier:`,
+  `${services.length} services, each its own npm package. Every service declares the parity it keeps with its vendor.`,
   "",
-  ...TIER_ORDER.map((t) => `- **${TIERS[t].label}** (${count(t)}): ${TIERS[t].blurb}`),
+  ...serviceTable(),
   "",
-  ...TIER_ORDER.flatMap((t) => [`### ${TIERS[t].label}`, "", ...serviceTable(t), ""]),
   "Operation coverage per service is in each package's `SUPPORT.md` (or `COMPATIBILITY.md` for the SQL engines), and on the docs site's coverage page.",
   "",
   "## One contract for every HTTP service",

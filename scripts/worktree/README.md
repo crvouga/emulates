@@ -12,7 +12,7 @@ definition in [`sync.ts`](sync.ts), so the hosts cannot drift:
 | When | Script | What it does |
 | --- | --- | --- |
 | Worktree created | `./scripts/worktree/setup.sh` | Copies untracked files and `.env*` from the main checkout (without overwriting), reserves a docs port, then `bun run setup` (install, build, create `.env.local`) |
-| Run action | `./scripts/worktree/run.sh` | Builds the docs site's dependencies and starts `bun docs` on that port |
+| Run action | `./scripts/worktree/run.sh` | Runs `bun install` (lockfile may update in the worktree), then starts `bun docs` on that port |
 | Worktree deleted | `./scripts/worktree/teardown.sh` | Stops the dev server and releases the port |
 
 Edit the scripts, or `LIFECYCLE` in `sync.ts`; never a host's config. `bun run worktree:sync`

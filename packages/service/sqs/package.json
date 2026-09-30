@@ -56,7 +56,7 @@
       "website": "https://aws.amazon.com/sqs/",
       "docs": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/"
     },
-    "status": "wip",
+    "parity": "Queues, FIFO, and batches",
     "parityTier": "cold"
   },
   "scripts": {
