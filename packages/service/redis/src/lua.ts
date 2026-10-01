@@ -1,3 +1,4 @@
+import { decode, encode } from "@msgpack/msgpack"
 import { fromLatin1, latin1, utf8, utf8Text } from "./bytes.ts"
 import { sha1Hex } from "./sha1.ts"
 
@@ -1163,6 +1164,11 @@ export function luaGlobals(host: LuaRedisHost): Env {
     return [fromJson(JSON.parse(text))]
   })
   env.define("cjson", cjson)
+
+  const cmsgpack = new LuaTable()
+  cmsgpack.set("unpack", (args) => [fromJson(decode(fromLatin1(asString(args[0] ?? ""))))])
+  cmsgpack.set("pack", (args) => [latin1(encode(toJson(args[0] ?? null)))])
+  env.define("cmsgpack", cmsgpack)
 
   env.define("tonumber", (args) => {
     const value = args[0] ?? null

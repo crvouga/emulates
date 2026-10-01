@@ -88,6 +88,7 @@ export type RedisFault =
   | "busy"
   | "disconnect"
   | "timeout"
+  | "noscript"
   | { latencyMs: number }
   | null
 
@@ -3022,6 +3023,10 @@ export class Redis {
   }
 
   private cmdEval(session: Session, command: string, args: Uint8Array[], apply: boolean): Reply {
+    if (command === "evalsha" && this.faultValue === "noscript") {
+      this.faultValue = null
+      return err("NOSCRIPT No matching script. Please use EVAL.")
+    }
     if (args.length < 2) return arityError(command)
     const source =
       command === "eval" ? text(args[0]) : this.scripts.get(text(args[0]).toLowerCase())

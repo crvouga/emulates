@@ -71,6 +71,8 @@
   },
   "devDependencies": {
     "@crvouga/mockingbird-credentials": "workspace:*",
+    "@msgpack/msgpack": "3.1.2",
+    "bullmq": "5.67.1",
     "ioredis": "5.11.1"
   }
 }
