@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises"
 import { type ParseArgsConfig, parseArgs } from "node:util"
 import type { RequestLog, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
 import { type Listening, listen } from "./listen.js"
+import { startFleet, type FleetTarget } from "./fleet.js"
 
 export type CliOption = {
   type: "string" | "boolean"
@@ -156,6 +157,9 @@ const COMMON_SERVE_OPTIONS: Record<string, CliOption> = {
     value: "<file>",
     description: "Serve every service in a mockingbird.json config instead",
   },
+  "ready-file": { type: "string", description: "Atomically publish fleet endpoint JSON", value: "<file>" },
+  "connections-file": { type: "string", description: "Write private connection URLs with mode 0600", value: "<file>" },
+  "ready-json": { type: "boolean", description: "Emit one public JSON record after fleet readiness" },
 }
 
 const formatLog = (format: LogFormat) => {
@@ -189,10 +193,16 @@ const asString = (value: string | boolean | undefined): string | undefined =>
 
 /** A service entry in `mockingbird.json`. */
 export type ConfigService = {
+  protocol?: "http" | "postgres" | "redis"
   port?: number
   host?: string
   adminKey?: string
   seed?: string
+  password?: string
+  user?: string
+  database?: string
+  /** Protocol namespace selectors: database names for Postgres, logical DB indexes for Redis. */
+  namespaces?: Record<string, string | number>
   /** Service-specific serve flags, by long name: `{ "webhook-url": "…" }`. */
   options?: Record<string, string | boolean>
 }
@@ -201,13 +211,16 @@ export type MockingbirdConfig = {
   /** Keyed by service name: `junction` loads `@crvouga/mockingbird-service-junction`. */
   services: Record<string, ConfigService>
   log?: LogFormat
+  adminKey?: string
+  namespace?: string
+  control?: { host?: string; port?: number }
 }
 
-const loadTarget = async (name: string, own: ServeTarget): Promise<ServeTarget> => {
+const loadTarget = async (name: string, own: ServeTarget): Promise<FleetTarget> => {
   if (name === own.name) return own
   const specifier = `@crvouga/mockingbird-service-${name}/server`
   try {
-    const mod = (await import(specifier)) as { serveTarget?: ServeTarget }
+    const mod = (await import(specifier)) as { serveTarget?: FleetTarget }
     if (!mod.serveTarget) throw new Error(`${specifier} exports no serveTarget`)
     return mod.serveTarget
   } catch (error) {
@@ -240,9 +253,11 @@ const start = async (
   return listening
 }
 
-const untilSignal = async (servers: Listening[]): Promise<number> =>
+const untilSignal = async (servers: { close(): Promise<void> }[]): Promise<number> =>
   new Promise((resolve) => {
     const stop = async () => {
+      process.removeListener("SIGINT", stop)
+      process.removeListener("SIGTERM", stop)
       await Promise.allSettled(servers.map((s) => s.close()))
       resolve(0)
     }
@@ -264,27 +279,24 @@ export const serveCommand = (target: ServeTarget): CliCommand => ({
     }
     const configPath = asString(values.config)
     if (configPath !== undefined) {
-      const config = JSON.parse(await readFile(configPath, "utf8")) as MockingbirdConfig
-      const servers: Listening[] = []
       try {
-        for (const [name, entry] of Object.entries(config.services ?? {})) {
-          const each = await loadTarget(name, target)
-          servers.push(
-            await start(each, entry.options ?? {}, {
-              port: entry.port ?? each.defaultPort,
-              host: entry.host ?? "127.0.0.1",
-              ...(entry.adminKey !== undefined ? { adminKey: entry.adminKey } : {}),
-              ...(entry.seed !== undefined ? { seed: entry.seed } : {}),
-              log: config.log ?? log,
-            }),
-          )
-        }
+        const config = JSON.parse(await readFile(configPath, "utf8")) as MockingbirdConfig
+        const fleet = await startFleet(config, {
+          load: (name) => loadTarget(name, target),
+          onLog: formatLog(config.log ?? log),
+          ...(asString(values["ready-file"]) ? { readyFile: asString(values["ready-file"]) } : {}),
+          ...(asString(values["connections-file"]) ? { connectionsFile: asString(values["connections-file"]) } : {}),
+          onReady: (manifest) => {
+            if (values["ready-json"]) console.log(JSON.stringify(manifest))
+            else for (const [name, endpoint] of Object.entries(manifest.services))
+              console.log(`${name} mock listening on ${endpoint.url}`)
+          },
+        })
+        return untilSignal([fleet])
       } catch (error) {
-        await Promise.allSettled(servers.map((s) => s.close()))
         console.error(error instanceof Error ? error.message : String(error))
         return 1
       }
-      return untilSignal(servers)
     }
     const port = asString(values.port)
     const adminKey = asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY

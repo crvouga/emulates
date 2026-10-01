@@ -80,6 +80,7 @@ export type PostgresServer = {
   readonly connections: number;
   /** Arm a fault preset for the next statement / connection (see {@link ServerFaults}). */
   fault(fault: ServerFaults): void;
+  clearFaults(): void;
   /** Freeze the live state (the admin `snapshot()` control). */
   snapshot(name?: string): Snapshot;
   /** Stop listening and close every connection. */
@@ -184,6 +185,7 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
         fault(next) {
           Object.assign(faults, next);
         },
+        clearFaults() { for (const key of Object.keys(faults)) delete faults[key as keyof ServerFaults]; },
         snapshot(databaseName = initialName) {
           return cluster.requireDatabase(databaseName).snapshot();
         },

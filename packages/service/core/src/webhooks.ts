@@ -171,6 +171,9 @@ export type WebhookHubOptions = {
 }
 
 export type WebhookHub = {
+  pending(namespace: string): number
+  snapshot(namespace: string): unknown
+  restore(namespace: string, snapshot: unknown): void
   publish(input: PublishInput): WebhookMessage
   /** Replace a namespace's own endpoints (`PUT /__admin/webhook-endpoints`). */
   setEndpoints(namespace: string, endpoints: WebhookEndpoint[]): WebhookEndpoint[]
@@ -229,6 +232,14 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
   // Immediate (delay 0) attempts chain onto this so two deliveries scheduled in the same tick
   // (e.g. a reorder fault's swap) hit the receiver in schedule order, not fetch-race order.
   let immediate: Promise<unknown> = Promise.resolve()
+  const snapshots = new WeakMap<object, {
+    namespace: string;
+    endpoints: WebhookEndpoint[];
+    messages: WebhookMessage[];
+    deliveries: [string, WebhookDelivery][];
+    payloads: [string, { message: WebhookMessage; endpoint: WebhookEndpoint }][];
+    faults: { mode: WebhookFault["mode"]; remaining: number }[];
+  }>()
 
   const track = (work: Promise<void>) => {
     inFlight.add(work)
@@ -363,6 +374,33 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
   }
 
   const hub: WebhookHub = {
+    pending(namespace) {
+      return inFlight.size + (held.get(namespace)?.length ?? 0) +
+        [...deliveries.values()].filter((d) => d.namespace === namespace && d.state === "pending").length
+    },
+    snapshot(namespace) {
+      if (hub.pending(namespace) > 0) throw new Error("webhooks are not quiescent")
+      const handle = {}
+      snapshots.set(handle, structuredClone({
+        namespace, endpoints: own.get(namespace) ?? [],
+        messages: messages.filter((m) => m.namespace === namespace),
+        deliveries: [...deliveries].filter(([, d]) => d.namespace === namespace),
+        payloads: [...payloads].filter(([, p]) => p.message.namespace === namespace),
+        faults: faults.get(namespace) ?? [],
+      }))
+      return handle
+    },
+    restore(namespace, handle) {
+      const point = typeof handle === "object" && handle !== null ? snapshots.get(handle) : undefined
+      if (!point || point.namespace !== namespace || hub.pending(namespace) > 0) throw new Error("invalid webhook restore")
+      hub.clear(namespace)
+      const copied = structuredClone(point)
+      own.set(namespace, copied.endpoints)
+      messages.push(...copied.messages)
+      for (const [id, delivery] of copied.deliveries) deliveries.set(id, delivery)
+      for (const [id, payload] of copied.payloads) payloads.set(id, payload)
+      faults.set(namespace, copied.faults)
+    },
     publish(input) {
       const contentType =
         input.contentType ?? (input.form ? "application/x-www-form-urlencoded" : "application/json")

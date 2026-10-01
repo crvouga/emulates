@@ -1274,6 +1274,7 @@
       "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.5",
         "@biomejs/biome": "^2.5.8",
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
         "@crvouga/mockingbird-core": "workspace:*",
         "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-ui": "workspace:*",
@@ -1350,6 +1351,7 @@
         "mockingbird-redis": "./dist/cli.js",
       },
       "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
         "@crvouga/mockingbird-credentials": "workspace:*",
         "@msgpack/msgpack": "3.1.2",
         "bullmq": "5.67.1",

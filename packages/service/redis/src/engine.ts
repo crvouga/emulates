@@ -412,6 +412,13 @@ export class Redis {
   private scriptDepth = 0
   private commandCount = 0
   private closed = false
+  private controlPaused = false
+  private pendingCommands = 0
+  private readonly pendingLatency = new Set<() => void>()
+  private readonly snapshots = new WeakMap<object, {
+    dbs: object[]; scripts: Map<string, string>; rng: number; fault: RedisFault;
+    clock: ReturnType<RedisClock["state"]>; paused: boolean;
+  }>()
   consumersPaused = false
   private readonly disconnectListeners = new Set<(session: Session) => void>()
 
@@ -451,6 +458,44 @@ export class Redis {
   waiterCount(): number {
     return this.waiters.length
   }
+  connections(): number { return this.sessions.size }
+  pendingJobs(): number {
+    let count = 0
+    for (const db of this.dbs) for (const key of db.keys()) {
+      if (!/:(?:wait|paused|delayed|active|prioritized)$/.test(key)) continue
+      const value = db.get(key)
+      if (value?.kind === "list") count += value.items.length
+      if (value?.kind === "zset") count += value.members.size
+    }
+    return count
+  }
+  activeCommands(): number { return Math.max(0, this.pendingCommands - this.waiters.length) }
+  fence(): () => void {
+    if (this.controlPaused) throw new Error("Redis control in progress")
+    this.controlPaused = true
+    return () => { this.controlPaused = false }
+  }
+  snapshot(): object {
+    if (this.pendingCommands > 0) throw new Error("Redis is not quiescent")
+    const handle = {}
+    this.snapshots.set(handle, {
+      dbs: this.dbs.map((db) => db.snapshot()), scripts: new Map(this.scripts), rng: this.rngState,
+      fault: structuredClone(this.faultValue), clock: this.clock.state(), paused: this.consumersPaused,
+    })
+    return handle
+  }
+  restore(handle: unknown): void {
+    const point = typeof handle === "object" && handle !== null ? this.snapshots.get(handle) : undefined
+    if (!point || this.pendingCommands > 0) throw new Error("invalid Redis restore")
+    this.dbs.forEach((db, i) => db.restore(point.dbs[i] as object))
+    this.scripts = new Map(point.scripts); this.rngState = point.rng
+    this.faultValue = structuredClone(point.fault); this.consumersPaused = point.paused
+    this.clock.freeze(); this.clock.set(point.clock.now)
+    if (!point.clock.frozen) this.clock.unfreeze()
+  }
+  disconnect(session: Session): void {
+    if (this.sessions.has(session)) this.dropSession(session, "disconnect")
+  }
 
   inspect(db = 0): Array<{ key: string; type: string; pttl: number }> {
     const database = this.database(db)
@@ -464,6 +509,9 @@ export class Redis {
   reset(): void {
     for (const database of this.dbs) database.clear()
     this.scripts.clear()
+    this.faultValue = null
+    this.clock.reset()
+    this.consumersPaused = false
     for (const waiter of [...this.waiters]) {
       this.finishWaiter(waiter, nilArray())
     }
@@ -476,10 +524,11 @@ export class Redis {
 
   close(): void {
     this.closed = true
+    for (const cancel of [...this.pendingLatency]) cancel()
     for (const waiter of [...this.waiters]) {
       this.failWaiter(waiter, new RedisConnectionError("Connection is closed"))
     }
-    for (const session of [...this.sessions]) session.dead = true
+    for (const session of [...this.sessions]) this.disconnect(session)
   }
 
   onDisconnect(listener: (session: Session) => void): () => void {
@@ -513,10 +562,12 @@ export class Redis {
   }
 
   perform(session: Session, name: string, args: Uint8Array[]): Promise<Reply> {
+    if (this.controlPaused) return Promise.resolve(err("BUSY fleet control in progress"))
     if (session.dead || this.closed) {
       return Promise.reject(new RedisConnectionError("Connection is closed"))
     }
-    return new Promise((resolve, reject) => {
+    this.pendingCommands++
+    return new Promise<Reply>((resolve, reject) => {
       this.enqueue(async () => {
         try {
           if (session.dead || this.closed) {
@@ -544,7 +595,7 @@ export class Redis {
           reject(error instanceof Error ? error : new Error(String(error)))
         }
       })
-    })
+    }).finally(() => { this.pendingCommands-- })
   }
 
   private enqueue(task: () => Promise<void> | void): void {
@@ -563,10 +614,18 @@ export class Redis {
       const finish = () => {
         if (this.clock.now() < target) return
         unsub()
+        this.pendingLatency.delete(cancel)
         if (timer !== undefined) clearTimeout(timer)
         resolve()
       }
+      const cancel = () => {
+        unsub()
+        if (timer !== undefined) clearTimeout(timer)
+        this.pendingLatency.delete(cancel)
+        resolve()
+      }
       const unsub = this.clock.subscribe(finish)
+      this.pendingLatency.add(cancel)
       if (!this.clock.manual) timer = setTimeout(finish, fault.latencyMs)
       finish()
     })
@@ -802,6 +861,7 @@ export class Redis {
       case "lpop":
       case "rpop":
       case "llen":
+      case "lpos":
       case "lrange":
       case "lindex":
       case "lset":
@@ -1643,6 +1703,37 @@ export class Redis {
   private cmdList(session: Session, command: string, args: Uint8Array[], apply: boolean): Reply {
     const database = this.database(session.db)
     const key = text(args[0])
+    if (command === "lpos") {
+      if (args.length < 2) return arityError(command)
+      let rank = 1
+      let count: number | undefined
+      let maxlen = 0
+      for (let i = 2; i < args.length; i += 2) {
+        const option = upper(args[i])
+        const value = parseI64(args[i + 1] ?? utf8(""))
+        if (value === null) return notInteger()
+        if (option === "RANK") { rank = Number(value); if (rank === 0) return err("ERR RANK can't be zero: use 1 to start from the first match, 2 from the second ...") }
+        else if (option === "COUNT") { count = Number(value); if (count < 0) return err("ERR COUNT can't be negative") }
+        else if (option === "MAXLEN") { maxlen = Number(value); if (maxlen < 0) return err("ERR MAXLEN can't be negative") }
+        else return syntaxError()
+      }
+      const list = this.requireList(database, key, false)
+      if (list === null) return count === undefined ? nil() : arr([])
+      if (!("items" in list)) return list
+      const target = args[1] ?? utf8("")
+      const positions: number[] = []
+      let matches = 0
+      const length = maxlen === 0 ? list.items.length : Math.min(maxlen, list.items.length)
+      for (let i = 0; i < length; i++) {
+        const index = rank < 0 ? list.items.length - i - 1 : i
+        const item = list.items[index]
+        if (!item || compareBytes(item, target) !== 0) continue
+        if (++matches < Math.abs(rank)) continue
+        positions.push(index)
+        if (count === undefined || (count > 0 && positions.length >= count)) break
+      }
+      return count === undefined ? (positions[0] === undefined ? nil() : int(positions[0])) : arr(positions.map(int))
+    }
     if (command === "lpush" || command === "rpush") {
       if (args.length < 2) return arityError(command)
       const existing = this.requireList(database, key, false)

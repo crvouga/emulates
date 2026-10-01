@@ -36,6 +36,7 @@ export type ControlContext = {
   startedAt: number
   wallNow: () => number
   clock: Clock
+  namespaceClock?(namespace: string): Clock
   faults: FaultRegistry
   metrics: Metrics
   journal: Journal
@@ -163,26 +164,27 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
     "GET /namespaces": () =>
       json(200, { default: context.defaultNamespace, namespaces: context.namespaces() }),
 
-    "GET /clock": () => json(200, context.clock.state()),
-    "POST /clock": ({ body }) => {
+    "GET /clock": ({ namespace }) => json(200, (context.namespaceClock?.(namespace) ?? context.clock).state()),
+    "POST /clock": ({ body, namespace }) => {
+      const clock = context.namespaceClock?.(namespace) ?? context.clock
       if (!isRecord(body)) return adminError(400, "expected a JSON object")
-      if (body.reset === true) context.clock.reset()
+      if (body.reset === true) clock.reset()
       // Freeze before applying mutations so a compound `{ set, freeze: true }` request is
       // atomic. Setting a live clock adjusts its offset; freezing it afterward would read the
       // wall clock again and could pin it a millisecond past the requested instant.
-      if (body.freeze === true) context.clock.freeze()
+      if (body.freeze === true) clock.freeze()
       if (body.set !== undefined) {
         const instant = parseInstant(body.set)
         if (instant === undefined) return adminError(400, "set: expected epoch ms or ISO-8601")
-        context.clock.set(instant)
+        clock.set(instant)
       }
       if (body.advance !== undefined) {
         const delta = parseDuration(body.advance)
         if (delta === undefined) return adminError(400, 'advance: expected ms or "15m"-style')
-        context.clock.advance(delta)
+        clock.advance(delta)
       }
-      if (body.freeze === false) context.clock.unfreeze()
-      return json(200, context.clock.state())
+      if (body.freeze === false) clock.unfreeze()
+      return json(200, clock.state())
     },
 
     "GET /faults": () => json(200, { faults: context.faults.list() }),

@@ -1,4 +1,5 @@
 import { createServer, type Server, type Socket } from "node:net"
+import type { ConfigService, FleetChild } from "@crvouga/mockingbird-adapter-node"
 import { createRedis, type Redis, RedisConnectionError } from "./engine.ts"
 import { asCommand, encodeReply, type Reply, RespParser } from "./protocol.ts"
 
@@ -53,7 +54,7 @@ function attach(redis: Redis, socket: Socket, onGone: () => void): void {
     if (dropped === session) socket.destroy()
   })
   const finish = () => {
-    session.dead = true
+    redis.disconnect(session)
     stop()
     onGone()
   }
@@ -114,11 +115,6 @@ type FleetRuntime = {
   close(): Promise<void>
 }
 
-type HttpListening = {
-  close(): Promise<void>
-}
-
-let attachClose: ((http: HttpListening) => void) | undefined
 
 const isHealth = (pathname: string): boolean => {
   const path = pathname.replace(/\/+$/, "") || "/"
@@ -131,7 +127,9 @@ const isHealth = (pathname: string): boolean => {
  */
 export const serveTarget = {
   name: "redis",
-  defaultPort: DEFAULT_PORT,
+  protocol: "redis" as const,
+  defaultPort: 6379,
+  start: startProtocol,
   async create(): Promise<FleetRuntime> {
     const redis = createRedis()
     const tcp = await serve(redis, { host: "127.0.0.1", port: 0 })
@@ -145,19 +143,68 @@ export const serveTarget = {
         return new Response("not found", { status: 404 })
       },
     }
-    attachClose = (http) => {
-      const closeHttp = http.close.bind(http)
-      http.close = async () => {
-        await runtime.close()
-        await closeHttp()
-      }
-    }
     return runtime
-  },
-  listening(http: HttpListening) {
-    attachClose?.(http)
   },
   banner(runtime: FleetRuntime) {
     return [`resp: redis://127.0.0.1:${runtime.respPort}`]
   },
+}
+
+/** Each fleet namespace owns a listener and an engine; Redis SELECT retains vendor semantics. */
+async function startProtocol(entry: ConfigService): Promise<FleetChild> {
+  const namespaces = new Map<string, { redis: Redis; listener: RedisListening }>()
+  const selectors = { default: 0, ...entry.namespaces }
+  try {
+    for (const [name] of Object.entries(selectors)) {
+      if (!/^[A-Za-z0-9_.-]{1,64}$/.test(name)) throw new Error("invalid Redis namespace")
+      const redis = createRedis({
+        ...(entry.password !== undefined ? { password: entry.password } : {}),
+        ...(entry.seed !== undefined ? { seed: Number(entry.seed) } : {}),
+      })
+      const listener = await serve(redis, {
+        host: entry.host ?? "127.0.0.1", port: name === "default" ? (entry.port ?? 6379) : 0,
+      })
+      namespaces.set(name, { redis, listener })
+    }
+  } catch (error) {
+    await Promise.allSettled([...namespaces.values()].map(({ listener }) => listener.close()))
+    throw error
+  }
+  const get = (name: string) => {
+    const found = namespaces.get(name)
+    if (!found) throw new Error(`Redis namespace ${name} is not configured`)
+    return found
+  }
+  const url = (name: string, privateUrl = false) => {
+    const { listener } = get(name)
+    const host = listener.host.includes(":") ? `[${listener.host}]` : listener.host
+    const auth = privateUrl && entry.password !== undefined ? `:${encodeURIComponent(entry.password)}@` : ""
+    return `redis://${auth}${host}:${listener.port}`
+  }
+  return {
+    protocol: "redis", url: url("default"), connection: url("default", true),
+    namespaces: { mechanism: "endpoint", endpoints: Object.fromEntries([...namespaces.keys()].map((name) => [name, url(name)])) },
+    async ready() {
+      for (const { redis } of namespaces.values()) {
+        const session = redis.createSession()
+        try {
+          if (entry.password !== undefined) await redis.perform(session, "AUTH", [new TextEncoder().encode(entry.password)])
+          const reply = await redis.perform(session, "PING", [])
+          if (reply.t !== "simple" || reply.v !== "PONG") return false
+        } finally { redis.disconnect(session) }
+      }
+      return true
+    },
+    async close() { await Promise.all([...namespaces.values()].map(({ listener }) => listener.close())) },
+    lock: (name) => get(name).redis.fence(),
+    diagnostics(name) {
+      const { redis } = get(name)
+      return { activeRequests: redis.activeCommands(), activeConnections: redis.connections(),
+        blockedCommands: redis.waiterCount(), pendingJobs: redis.pendingJobs(), pendingWebhooks: 0, unmatchedRequests: 0 }
+    },
+    async checkpoint(name) { return get(name).redis.snapshot() },
+    async restore(name, point) { get(name).redis.restore(point) },
+    async reset(name) { get(name).redis.reset() },
+    clock: (name) => get(name).redis.clock,
+  }
 }

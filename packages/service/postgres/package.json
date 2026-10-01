@@ -32,6 +32,11 @@
       "types": "./dist/admin.d.ts",
       "import": "./dist/admin.js",
       "default": "./dist/admin.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "default": "./dist/server.js"
     }
   },
   "files": [
@@ -103,6 +108,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.8",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
     "@crvouga/mockingbird-core": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-ui": "workspace:*",
@@ -141,7 +147,9 @@
     "parity": "In-memory SQL engine",
     "entries": {
       "wire/index": "node",
-      "wire/cli": "node"
+      "wire/cli": "node",
+      "server": "node",
+      "wire/fleet": "node"
     }
   },
   "trustedDependencies": [
