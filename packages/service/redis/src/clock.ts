@@ -23,20 +23,42 @@ function controlledClock(start?: number): RedisClock {
   let frozen = start
   const listeners = new Set<() => void>()
   const now = () => frozen ?? Date.now() + offset
-  const notify = () => { for (const listener of [...listeners]) listener() }
+  const notify = () => {
+    for (const listener of [...listeners]) listener()
+  }
   return {
-    get manual() { return frozen !== undefined },
+    get manual() {
+      return frozen !== undefined
+    },
     now,
-    set(ms) { if (!Number.isFinite(ms)) throw new Error("invalid clock instant"); if (frozen !== undefined) frozen = ms; else offset = ms - Date.now(); notify() },
+    set(ms) {
+      if (!Number.isFinite(ms)) throw new Error("invalid clock instant")
+      if (frozen !== undefined) frozen = ms
+      else offset = ms - Date.now()
+      notify()
+    },
     advance(ms: number) {
       if (!Number.isFinite(ms)) throw new Error("invalid clock advance")
       if (frozen !== undefined) frozen += ms
       else offset += ms
       notify()
     },
-    freeze() { frozen = now(); notify() },
-    unfreeze() { if (frozen !== undefined) { offset = frozen - Date.now(); frozen = undefined }; notify() },
-    reset() { offset = 0; frozen = start; notify() },
+    freeze() {
+      frozen = now()
+      notify()
+    },
+    unfreeze() {
+      if (frozen !== undefined) {
+        offset = frozen - Date.now()
+        frozen = undefined
+      }
+      notify()
+    },
+    reset() {
+      offset = 0
+      frozen = start
+      notify()
+    },
     state: () => ({ now: now(), frozen: frozen !== undefined, offsetMs: offset }),
     subscribe(listener: () => void) {
       listeners.add(listener)

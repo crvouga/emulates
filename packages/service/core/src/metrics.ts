@@ -68,7 +68,10 @@ export const createMetrics = (partition = true): Metrics => {
     record(entry) {
       if (partition) {
         let scoped = namespaces.get(entry.namespace)
-        if (!scoped) { scoped = createMetrics(false); namespaces.set(entry.namespace, scoped) }
+        if (!scoped) {
+          scoped = createMetrics(false)
+          namespaces.set(entry.namespace, scoped)
+        }
         scoped.record(entry)
       }
       requests++
@@ -81,22 +84,28 @@ export const createMetrics = (partition = true): Metrics => {
         unmatched.set(route, (unmatched.get(route) ?? 0) + 1)
       }
     },
-    report: (namespace) => namespace !== undefined
-      ? (namespaces.get(namespace) ?? createMetrics(false)).report()
-      : ({
-      requests,
-      byOperation: Object.fromEntries([...byOperation].sort(([a], [b]) => a.localeCompare(b))),
-      unmatched: [...unmatched]
-        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .map(([route, count]) => {
-          const space = route.indexOf(" ")
-          return { method: route.slice(0, space), path: route.slice(space + 1), count }
-        }),
-      faults,
-      totalDurationMs,
-    }),
+    report: (namespace) =>
+      namespace !== undefined
+        ? (namespaces.get(namespace) ?? createMetrics(false)).report()
+        : {
+            requests,
+            byOperation: Object.fromEntries(
+              [...byOperation].sort(([a], [b]) => a.localeCompare(b)),
+            ),
+            unmatched: [...unmatched]
+              .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+              .map(([route, count]) => {
+                const space = route.indexOf(" ")
+                return { method: route.slice(0, space), path: route.slice(space + 1), count }
+              }),
+            faults,
+            totalDurationMs,
+          },
     reset(namespace) {
-      if (namespace !== undefined) { namespaces.delete(namespace); return }
+      if (namespace !== undefined) {
+        namespaces.delete(namespace)
+        return
+      }
       namespaces.clear()
       requests = 0
       faults = 0

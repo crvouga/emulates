@@ -102,7 +102,10 @@ export type FaultRegistry = {
   list(): (FaultRule & { remaining: number | null; hits: number })[]
   remove(id: string): boolean
   clear(): void
-  restore(namespace: string, rules: (FaultRule & { remaining: number | null; hits: number })[]): void
+  restore(
+    namespace: string,
+    rules: (FaultRule & { remaining: number | null; hits: number })[],
+  ): void
   /**
    * Every fault this request should get, in rule order, stopping at the first that answers
    * or drops (effect-only and delay-only rules let later rules match too). Consumes one of
@@ -167,7 +170,8 @@ export const createFaultRegistry = (
       entries.length = 0
     },
     restore(namespace, rules) {
-      for (let i = entries.length - 1; i >= 0; i--) if (entries[i]?.rule.namespace === namespace) entries.splice(i, 1)
+      for (let i = entries.length - 1; i >= 0; i--)
+        if (entries[i]?.rule.namespace === namespace) entries.splice(i, 1)
       for (const { remaining, hits, ...rule } of rules) entries.push({ rule, remaining, hits })
     },
     async take(candidate) {

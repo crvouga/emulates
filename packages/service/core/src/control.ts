@@ -164,7 +164,8 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
     "GET /namespaces": () =>
       json(200, { default: context.defaultNamespace, namespaces: context.namespaces() }),
 
-    "GET /clock": ({ namespace }) => json(200, (context.namespaceClock?.(namespace) ?? context.clock).state()),
+    "GET /clock": ({ namespace }) =>
+      json(200, (context.namespaceClock?.(namespace) ?? context.clock).state()),
     "POST /clock": ({ body, namespace }) => {
       const clock = context.namespaceClock?.(namespace) ?? context.clock
       if (!isRecord(body)) return adminError(400, "expected a JSON object")

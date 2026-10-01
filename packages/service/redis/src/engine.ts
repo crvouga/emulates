@@ -415,10 +415,17 @@ export class Redis {
   private controlPaused = false
   private pendingCommands = 0
   private readonly pendingLatency = new Set<() => void>()
-  private readonly snapshots = new WeakMap<object, {
-    dbs: object[]; scripts: Map<string, string>; rng: number; fault: RedisFault;
-    clock: ReturnType<RedisClock["state"]>; paused: boolean;
-  }>()
+  private readonly snapshots = new WeakMap<
+    object,
+    {
+      dbs: object[]
+      scripts: Map<string, string>
+      rng: number
+      fault: RedisFault
+      clock: ReturnType<RedisClock["state"]>
+      paused: boolean
+    }
+  >()
   consumersPaused = false
   private readonly disconnectListeners = new Set<(session: Session) => void>()
 
@@ -458,39 +465,56 @@ export class Redis {
   waiterCount(): number {
     return this.waiters.length
   }
-  connections(): number { return this.sessions.size }
+  connections(): number {
+    return this.sessions.size
+  }
   pendingJobs(): number {
     let count = 0
-    for (const db of this.dbs) for (const key of db.keys()) {
-      if (!/:(?:wait|paused|delayed|active|prioritized)$/.test(key)) continue
-      const value = db.get(key)
-      if (value?.kind === "list") count += value.items.length
-      if (value?.kind === "zset") count += value.members.size
-    }
+    for (const db of this.dbs)
+      for (const key of db.keys()) {
+        if (!/:(?:wait|paused|delayed|active|prioritized)$/.test(key)) continue
+        const value = db.get(key)
+        if (value?.kind === "list") count += value.items.length
+        if (value?.kind === "zset") count += value.members.size
+      }
     return count
   }
-  activeCommands(): number { return Math.max(0, this.pendingCommands - this.waiters.length) }
+  activeCommands(): number {
+    return Math.max(0, this.pendingCommands - this.waiters.length)
+  }
   fence(): () => void {
     if (this.controlPaused) throw new Error("Redis control in progress")
     this.controlPaused = true
-    return () => { this.controlPaused = false }
+    return () => {
+      this.controlPaused = false
+    }
   }
   snapshot(): object {
     if (this.pendingCommands > 0) throw new Error("Redis is not quiescent")
     const handle = {}
     this.snapshots.set(handle, {
-      dbs: this.dbs.map((db) => db.snapshot()), scripts: new Map(this.scripts), rng: this.rngState,
-      fault: structuredClone(this.faultValue), clock: this.clock.state(), paused: this.consumersPaused,
+      dbs: this.dbs.map((db) => db.snapshot()),
+      scripts: new Map(this.scripts),
+      rng: this.rngState,
+      fault: structuredClone(this.faultValue),
+      clock: this.clock.state(),
+      paused: this.consumersPaused,
     })
     return handle
   }
   restore(handle: unknown): void {
-    const point = typeof handle === "object" && handle !== null ? this.snapshots.get(handle) : undefined
+    const point =
+      typeof handle === "object" && handle !== null ? this.snapshots.get(handle) : undefined
     if (!point || this.pendingCommands > 0) throw new Error("invalid Redis restore")
-    this.dbs.forEach((db, i) => db.restore(point.dbs[i] as object))
-    this.scripts = new Map(point.scripts); this.rngState = point.rng
-    this.faultValue = structuredClone(point.fault); this.consumersPaused = point.paused
-    this.clock.freeze(); this.clock.set(point.clock.now)
+    this.dbs.forEach((db, i) => {
+      db.restore(point.dbs[i] as object)
+    })
+    this.scripts = new Map(point.scripts)
+    this.rngState = point.rng
+    this.faultValue = structuredClone(point.fault)
+    this.consumersPaused = point.paused
+    this.clock.freeze()
+    this.clock.set(point.clock.now)
     if (!point.clock.frozen) this.clock.unfreeze()
   }
   disconnect(session: Session): void {
@@ -595,7 +619,9 @@ export class Redis {
           reject(error instanceof Error ? error : new Error(String(error)))
         }
       })
-    }).finally(() => { this.pendingCommands-- })
+    }).finally(() => {
+      this.pendingCommands--
+    })
   }
 
   private enqueue(task: () => Promise<void> | void): void {
@@ -1712,10 +1738,19 @@ export class Redis {
         const option = upper(args[i])
         const value = parseI64(args[i + 1] ?? utf8(""))
         if (value === null) return notInteger()
-        if (option === "RANK") { rank = Number(value); if (rank === 0) return err("ERR RANK can't be zero: use 1 to start from the first match, 2 from the second ...") }
-        else if (option === "COUNT") { count = Number(value); if (count < 0) return err("ERR COUNT can't be negative") }
-        else if (option === "MAXLEN") { maxlen = Number(value); if (maxlen < 0) return err("ERR MAXLEN can't be negative") }
-        else return syntaxError()
+        if (option === "RANK") {
+          rank = Number(value)
+          if (rank === 0)
+            return err(
+              "ERR RANK can't be zero: use 1 to start from the first match, 2 from the second ...",
+            )
+        } else if (option === "COUNT") {
+          count = Number(value)
+          if (count < 0) return err("ERR COUNT can't be negative")
+        } else if (option === "MAXLEN") {
+          maxlen = Number(value)
+          if (maxlen < 0) return err("ERR MAXLEN can't be negative")
+        } else return syntaxError()
       }
       const list = this.requireList(database, key, false)
       if (list === null) return count === undefined ? nil() : arr([])
@@ -1732,7 +1767,11 @@ export class Redis {
         positions.push(index)
         if (count === undefined || (count > 0 && positions.length >= count)) break
       }
-      return count === undefined ? (positions[0] === undefined ? nil() : int(positions[0])) : arr(positions.map(int))
+      return count === undefined
+        ? positions[0] === undefined
+          ? nil()
+          : int(positions[0])
+        : arr(positions.map(int))
     }
     if (command === "lpush" || command === "rpush") {
       if (args.length < 2) return arityError(command)

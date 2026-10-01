@@ -284,14 +284,21 @@ export const createRuntime = <T extends ServiceInstance>(
   const namespaceClock = (name = DEFAULT_NAMESPACE): Clock => {
     if (!isolatedNamespaces || name === DEFAULT_NAMESPACE) return clock
     let found = namespaceClocks.get(name)
-    if (!found) { found = createClock(); namespaceClocks.set(name, found) }
+    if (!found) {
+      found = createClock()
+      namespaceClocks.set(name, found)
+    }
     return found
   }
-  const fleetPoints = new WeakMap<object, {
-    namespace: string; state: ServiceTimelineState;
-    faults: ReturnType<FaultRegistry["list"]>;
-    webhooks: unknown;
-  }>()
+  const fleetPoints = new WeakMap<
+    object,
+    {
+      namespace: string
+      state: ServiceTimelineState
+      faults: ReturnType<FaultRegistry["list"]>
+      webhooks: unknown
+    }
+  >()
   const timelines = new Map<string, Timeline<ServiceTimelineState>>()
   const branchStorage = new Map<string, string>()
   const captured = new Map<string, NamespaceSnapshot>()
@@ -309,7 +316,9 @@ export const createRuntime = <T extends ServiceInstance>(
         `namespace must match ${NAMESPACE_PATTERN}: ${JSON.stringify(publicNamespace)}`,
       )
     }
-    const createdContextRng = isolatedRng ?? (isolatedNamespaces && key !== DEFAULT_NAMESPACE ? createRng(options.seed ?? 0) : rng)
+    const createdContextRng =
+      isolatedRng ??
+      (isolatedNamespaces && key !== DEFAULT_NAMESPACE ? createRng(options.seed ?? 0) : rng)
     const created = options.create({
       namespace: storageNamespace(key),
       publicNamespace,
@@ -552,7 +561,8 @@ export const createRuntime = <T extends ServiceInstance>(
     credentials,
     webhooks: options.webhooks,
     isolateNamespaces() {
-      if (publicNamespaces.size > 1) throw new Error("enable namespace isolation before creating named namespaces")
+      if (publicNamespaces.size > 1)
+        throw new Error("enable namespace isolation before creating named namespaces")
       isolatedNamespaces = true
     },
     namespaceClock,
@@ -560,14 +570,16 @@ export const createRuntime = <T extends ServiceInstance>(
       instance(namespace)
       const handle = {}
       fleetPoints.set(handle, {
-        namespace, state: capture(namespace),
+        namespace,
+        state: capture(namespace),
         faults: structuredClone(faults.list().filter((rule) => rule.namespace === namespace)),
         webhooks: options.webhooks?.snapshot(namespace),
       })
       return handle
     },
     fleetRestore(handle, namespace) {
-      const point = typeof handle === "object" && handle !== null ? fleetPoints.get(handle) : undefined
+      const point =
+        typeof handle === "object" && handle !== null ? fleetPoints.get(handle) : undefined
       if (!point || point.namespace !== namespace) throw new Error("invalid fleet checkpoint")
       restoreNamespace(sqlite, storageNamespace(namespace), point.state.snapshot)
       captured.set(namespace, point.state.snapshot)
