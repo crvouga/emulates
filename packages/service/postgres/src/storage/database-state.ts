@@ -340,7 +340,13 @@ export class DatabaseState {
     this.settings.set("lc_numeric", "C");
     this.settings.set("lc_time", "C");
     this.settings.set("default_transaction_isolation", "read committed");
+    this.settings.set("lock_timeout", "0");
+    this.settings.set("idle_in_transaction_session_timeout", "0");
+    this.settings.set("transaction_timeout", "0");
     this.settings.set("statement_timeout", "0");
+    this.settings.set("check_function_bodies", "on");
+    this.settings.set("xmloption", "content");
+    this.settings.set("row_security", "on");
     this.settings.set("array_nulls", "on");
     this.settings.set("backslash_quote", "safe_encoding");
   }
