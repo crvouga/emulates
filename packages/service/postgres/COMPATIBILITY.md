@@ -18,6 +18,10 @@ A catalog ID appearing in a test file is **not** proof by itself. Trivial probes
 
 Intentional differences are finite and machine-readable in `compat/divergences.json` (PGMM snapshots, seeded `random()`/`now()`, sync single-session API, no aborted-transaction state, EXPLAIN stubs, trigger-order/`UPDATE OF` edges, float8 rounding/overflow edges, …). The wire server supports isolated database catalogs, startup selection, database lifecycle DDL, and copy-on-write template cloning. Human-readable: [DIVERGENCES.md](DIVERGENCES.md).
 
+The wire server supports protocol-v3 text and CSV `COPY FROM STDIN` / `COPY TO STDOUT`, including
+incremental `CopyData`, client aborts, and statement-atomic rollback. Binary COPY remains outside
+the compatibility surface.
+
 ## Status vocabulary
 
 | Status | Meaning |

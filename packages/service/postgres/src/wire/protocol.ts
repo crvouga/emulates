@@ -171,6 +171,18 @@ export const backend = {
     }),
   notificationResponse: (pid: number, channel: string, payload: string) =>
     message("A", (w) => w.i32(pid).cstring(channel).cstring(payload)),
+  copyInResponse: (columns: number) =>
+    message("G", (w) => {
+      w.u8(0).i16(columns);
+      for (let i = 0; i < columns; i++) w.i16(0);
+    }),
+  copyOutResponse: (columns: number) =>
+    message("H", (w) => {
+      w.u8(0).i16(columns);
+      for (let i = 0; i < columns; i++) w.i16(0);
+    }),
+  copyData: (data: Uint8Array) => message("d", (w) => w.bytes(data)),
+  copyDone: () => message("c", () => {}),
   /** The one-byte answers to SSLRequest / GSSENCRequest: no encryption here. */
   no: () => new Uint8Array([0x4e]),
 };

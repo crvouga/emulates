@@ -2,7 +2,11 @@ import type { Socket } from "node:net";
 import type { BindValue } from "../api/bind.ts";
 import type { Database } from "../api/database.ts";
 import type { TextResultSet } from "../api/statement.ts";
+import type { CopyStmt } from "../ast/nodes.ts";
 import { PostgresError } from "../errors/error.ts";
+import { executeCopyFromData } from "../executor/session.ts";
+import { EngineCtx } from "../expressions/context.ts";
+import { parse as parseSql } from "../parser/index.ts";
 import { typeOid } from "../types/value.ts";
 import { type Cluster, LockWait, type Session } from "./cluster.ts";
 import {
@@ -31,6 +35,16 @@ type Portal = {
   /** Set once executed (by Describe or Execute); rows are handed out from `cursor`. */
   outcome?: Outcome;
   cursor: number;
+};
+
+type CopyIn = {
+  stmt: CopyStmt;
+  buffer: string;
+  decoder: TextDecoder;
+  rowCount: number;
+  headerPending: boolean;
+  ownTransaction: boolean;
+  savepoint: string | null;
 };
 
 export type ServerFaults = {
@@ -261,6 +275,8 @@ export class Connection implements Session {
   private readonly prepared = new Map<string, Prepared>();
   private readonly portals = new Map<string, Portal>();
   private readonly notifications: Uint8Array[] = [];
+  private copyIn: CopyIn | null = null;
+  private copyDrain = false;
   private closed = false;
 
   constructor(
@@ -362,6 +378,20 @@ export class Connection implements Session {
         return;
       }
       this.fatal("08P01", "expected startup or password message");
+      return;
+    }
+    if (this.copyIn && message.kind === "typed") {
+      await this.handleCopyIn(message.type, message.body);
+      return;
+    }
+    if (this.copyDrain && message.kind === "typed") {
+      if (message.type === "c" || message.type === "f") {
+        this.copyDrain = false;
+        this.readyForQuery();
+      } else if (message.type === "X") {
+        this.socket.end();
+        this.dispose();
+      }
       return;
     }
     if (this.skipUntilSync && message.type !== "S" && message.type !== "X") return;
@@ -703,6 +733,24 @@ export class Connection implements Session {
       this.readyForQuery();
       return;
     }
+    if (statements.length === 1) {
+      const copy = this.copyStatement(statements[0] as string);
+      if (copy?.direction === "from") {
+        await this.beginCopyIn(copy);
+        return;
+      }
+      if (copy?.direction === "to") {
+        try {
+          const outcome = await this.execute(statements[0] as string);
+          this.sendCopyOut(outcome, this.copyColumnCount(copy));
+        } catch (error) {
+          this.write(backend.errorResponse(errorFields(error)));
+          if (this.inTransaction) this.aborted = true;
+        }
+        this.readyForQuery();
+        return;
+      }
+    }
     // Several statements in one message run as one implicit transaction block, unless the
     // script manages transactions itself or one is already open.
     const implicit = statements.length > 1 && !this.inTransaction && !statements.some((s) => TX_CONTROL.test(s));
@@ -724,6 +772,146 @@ export class Connection implements Session {
     }
     if (failed && this.inTransaction) this.aborted = true;
     this.readyForQuery();
+  }
+
+  private copyStatement(sql: string): CopyStmt | null {
+    try {
+      const statements = parseSql(sql);
+      const stmt = statements.length === 1 ? statements[0] : undefined;
+      return stmt?.type === "copy" ? stmt : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private copyColumnCount(stmt: CopyStmt): number {
+    if (stmt.columns) return stmt.columns.length;
+    if (stmt.table) return this.cluster.db.state.findTable(stmt.table)?.columns.length ?? 0;
+    return 0;
+  }
+
+  private async handleCopyIn(type: string, body: ByteReader): Promise<void> {
+    const copy = this.copyIn as CopyIn;
+    if (type === "d") {
+      try {
+        copy.buffer += copy.decoder.decode(body.rest(), { stream: true });
+        this.flushCopyRecords(copy, false);
+      } catch (error) {
+        this.abortCopyIn(copy, error, true);
+      }
+      return;
+    }
+    if (type === "f") {
+      const detail = body.cstring();
+      this.abortCopyIn(copy, pgError("internal", `COPY from stdin failed: ${detail}`, "57014"), false);
+      return;
+    }
+    if (type === "c") {
+      this.finishCopyIn(copy);
+      return;
+    }
+    if (type === "H") return;
+    if (type === "X") {
+      this.socket.end();
+      this.dispose();
+      return;
+    }
+    this.fatal("08P01", `unexpected frontend message type ${JSON.stringify(type)} during COPY`);
+  }
+
+  private async beginCopyIn(stmt: CopyStmt): Promise<void> {
+    await this.cluster.acquireTurn(this);
+    const tx = this.cluster.db.transactions;
+    const ownTransaction = !tx.inTransaction;
+    const savepoint = ownTransaction ? null : `__wire_copy_${this.pid}`;
+    if (ownTransaction) tx.begin();
+    else tx.savepoint(savepoint as string);
+    this.copyIn = {
+      stmt,
+      buffer: "",
+      decoder: new TextDecoder(),
+      rowCount: 0,
+      headerPending: stmt.options.header === true || String(stmt.options.header ?? "").toLowerCase() === "true",
+      ownTransaction,
+      savepoint,
+    };
+    this.write(backend.copyInResponse(this.copyColumnCount(stmt)));
+  }
+
+  private finishCopyIn(copy: CopyIn): void {
+    const tx = this.cluster.db.transactions;
+    try {
+      copy.buffer += copy.decoder.decode();
+      this.flushCopyRecords(copy, true);
+      if (copy.ownTransaction) tx.commit();
+      else tx.releaseSavepoint(copy.savepoint as string);
+      this.copyIn = null;
+      this.write(backend.commandComplete(`COPY ${copy.rowCount}`));
+      if (copy.ownTransaction) this.cluster.releaseTurn(this);
+      this.readyForQuery();
+    } catch (error) {
+      this.abortCopyIn(copy, error, false);
+    }
+  }
+
+  private flushCopyRecords(copy: CopyIn, final: boolean): void {
+    const format = String(copy.stmt.options.format ?? "text").toLowerCase();
+    const quote = String(copy.stmt.options.quote ?? '"');
+    const boundaries: number[] = [];
+    let quoted = false;
+    for (let i = 0; i < copy.buffer.length; i++) {
+      const char = copy.buffer[i];
+      if (format === "csv" && char === quote) {
+        if (quoted && copy.buffer[i + 1] === quote) i++;
+        else quoted = !quoted;
+      } else if (char === "\n" && !quoted) {
+        boundaries.push(i + 1);
+      }
+    }
+    if (final && quoted) {
+      throw new PostgresError("invalid_text_representation", "unterminated CSV quoted field", "22P04");
+    }
+    const end = boundaries.at(-1) ?? 0;
+    const data = final ? copy.buffer : end > 0 ? copy.buffer.slice(0, end) : "";
+    if (data === "") return;
+    copy.buffer = final ? "" : copy.buffer.slice(end);
+    const stmt = copy.headerPending ? copy.stmt : { ...copy.stmt, options: { ...copy.stmt.options, header: false } };
+    const env = {
+      ctx: new EngineCtx(this.cluster.db.state),
+      params: null,
+      ctes: new Map(),
+      outer: null,
+    };
+    const result = this.cluster.as(this, () => executeCopyFromData(env, stmt, data));
+    copy.rowCount += result.rowCount;
+    copy.headerPending = false;
+  }
+
+  private abortCopyIn(copy: CopyIn, error: unknown, drain: boolean): void {
+    const tx = this.cluster.db.transactions;
+    if (copy.ownTransaction) {
+      if (tx.inTransaction) tx.rollback();
+      this.cluster.releaseTurn(this);
+    } else {
+      tx.rollbackToSavepoint(copy.savepoint as string);
+      tx.releaseSavepoint(copy.savepoint as string);
+      this.aborted = true;
+    }
+    this.copyIn = null;
+    this.copyDrain = drain;
+    this.write(backend.errorResponse(errorFields(error)));
+    if (!drain) this.readyForQuery();
+  }
+
+  private sendCopyOut(outcome: Outcome, columns: number): void {
+    if (outcome.empty) throw pgError("internal", "COPY TO produced no result", "XX000");
+    this.write(backend.copyOutResponse(columns));
+    for (const row of outcome.result.rows) {
+      const line = row[0] ?? "";
+      this.write(backend.copyData(utf8.encode(`${line}\n`)));
+    }
+    this.write(backend.copyDone());
+    this.write(backend.commandComplete(outcome.tag));
   }
 
   private sendOutcome(

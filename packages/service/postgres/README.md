@@ -209,12 +209,14 @@ statement in a block is `25P02` until `ROLLBACK`, with `ReadyForQuery` reporting
 SCRAM-SHA-256 and trust auth, the extended query protocol (`Parse`/`Bind`/`Describe`/`Execute`/
 `Sync`) with text and binary parameters and results, real type OIDs in `RowDescription`, and
 `23505`/`23502` errors carrying the constraint, table and column the engine names, all work over
-the wire.
+the wire. `COPY … FROM STDIN` and `COPY … TO STDOUT` use protocol-v3 `CopyInResponse`,
+`CopyOutResponse`, `CopyData`, `CopyDone`, and `CopyFail` messages. Text and CSV streams are parsed
+incrementally across arbitrary frame and quoted-record boundaries; failed imports are atomic and
+leave the connection in PostgreSQL's transaction state.
 
 **Not modelled by the server:** row-level lock contention, so `SELECT … FOR UPDATE SKIP LOCKED`
 parses and returns rows but does not distribute disjoint rows across concurrent workers (there are
-no row locks); `COPY` streaming (`CopyInResponse`/`CopyData`) — use `copyFrom` on a shared
-`Database`; and the binary parameter formats beyond the common scalar types (a client that sends
+no row locks); binary `COPY`; and the binary parameter formats beyond the common scalar types (a client that sends
 another binary type gets `0A000`, and can switch that parameter to text).
 
 ### Method semantics
