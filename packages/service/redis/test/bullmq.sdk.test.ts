@@ -1,16 +1,43 @@
 import { expect, test } from "bun:test"
-import {
-  DelayedError,
-  FlowProducer,
-  Queue,
-  QueueEvents,
-  Scripts,
-  UnrecoverableError,
-  Worker,
-} from "bullmq"
+import { startFleet } from "@crvouga/mockingbird-adapter-node"
+import { DelayedError, FlowProducer, Queue, QueueEvents, UnrecoverableError, Worker } from "bullmq"
 import { Redis as IORedis } from "ioredis"
+import { Redis as LegacyRedis } from "ioredis-5-9"
 import { createRedis } from "../src/index.ts"
-import { serve } from "../src/server.ts"
+import { serve, serveTarget } from "../src/server.ts"
+import { admissionScript, bullmqContract } from "./bullmq-contract.ts"
+
+test("fleet snapshots reject a running BullMQ job and succeed after completion", async () => {
+  const fleet = await startFleet(
+    { services: { redis: { protocol: "redis", port: 0 } } },
+    { load: async () => serveTarget },
+  )
+  const endpoint = new URL(fleet.manifest.services.redis?.url as string)
+  const connection = {
+    host: endpoint.hostname,
+    port: Number(endpoint.port),
+    maxRetriesPerRequest: null,
+  }
+  const queue = new Queue("active-fixture", { connection })
+  const worker = new Worker(queue.name, undefined, { connection, autorun: false })
+  const snapshot = () =>
+    fetch(`${fleet.manifest.adminBase}/namespaces/default/snapshots`, { method: "POST" })
+  try {
+    await queue.add("active", {})
+    const job = await worker.getNextJob("owner", { block: false })
+    const response = await snapshot()
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ services: { redis: { activeJobs: 1 } } })
+    await job.moveToCompleted("ok", "owner", false)
+    await worker.close(true)
+    await queue.close()
+    expect((await snapshot()).status).toBe(201)
+  } finally {
+    await worker.close(true)
+    await queue.close()
+    await fleet.close()
+  }
+})
 
 test("BullMQ 5.67 Queue, Worker and QueueEvents complete a job and close", async () => {
   const redis = createRedis()
@@ -62,6 +89,74 @@ async function manual(
     await server.close()
   }
 }
+
+test("BullMQ public-client contract used by the native oracle", async () => {
+  const server = await serve(createRedis(), { port: 0 })
+  try {
+    expect(
+      await bullmqContract({ host: server.host, port: server.port, maxRetriesPerRequest: null }),
+    ).toMatchObject({
+      admission: {
+        codes: [1, 0, 0],
+        secondAdmission: 1,
+        rejectedAdmission: -1,
+        windowSize: 2,
+        rejectedReceipt: null,
+        receiptHasTtl: true,
+      },
+      paused: true,
+      completed: { value: 7 },
+      duplicateName: "paused",
+      deduplicated: true,
+      delayedState: "delayed",
+      backoffState: "delayed",
+      attemptsMade: 1,
+      fatalState: "failed",
+      fatalAttempts: 1,
+      removed: true,
+      parentBefore: "waiting-children",
+      childValues: ["child result"],
+      reloadState: "completed",
+      errors: [],
+    })
+  } finally {
+    await server.close()
+  }
+})
+
+test("BullMQ accepts an unmodified ioredis 5.9.2 connection", async () => {
+  await manual(async (_queue, _worker, _redis, connection) => {
+    const legacy = new LegacyRedis(connection)
+    // BullMQ publishes types against its own ioredis version; the wire/API contract is the test.
+    const queue = new Queue("legacy", { connection: legacy })
+    const worker = new Worker("legacy", undefined, {
+      connection: legacy,
+      autorun: false,
+    })
+    try {
+      const added = await queue.add("legacy", {})
+      const job = await worker.getNextJob("owner", { block: false })
+      expect(job.id).toBe(added.id)
+      await job.moveToCompleted("ok", "owner", false)
+      expect(await added.getState()).toBe("completed")
+    } finally {
+      await worker.close(true)
+      await queue.close()
+      await legacy.quit()
+    }
+  })
+})
+
+test("BullMQ observes READONLY and OOM faults, then recovers after they clear", async () => {
+  await manual(async (queue, _worker, redis) => {
+    redis.fault("readonly")
+    await expect(queue.add("readonly", {})).rejects.toThrow("READONLY")
+    redis.fault("oom")
+    await expect(queue.add("oom", {})).rejects.toThrow("OOM")
+    redis.fault(null)
+    expect((await queue.add("recovered", {})).id).toBeDefined()
+  })
+})
 
 test("BullMQ delayed jobs, backoff and attempts follow an injected client/server clock", async () => {
   await manual(async (queue, worker, redis) => {
@@ -122,6 +217,88 @@ test("BullMQ duplicate IDs, deduplication, auto removal and NOSCRIPT recovery", 
   })
 })
 
+test("BullMQ rate limits release on logical expiry and repeatable schedulers create successors", async () => {
+  await manual(async (queue, _worker, redis, connection) => {
+    const original = Date.now
+    let time = original()
+    Date.now = () => time
+    redis.clock.freeze()
+    redis.clock.set(time)
+    const worker = new Worker(queue.name, undefined, {
+      connection,
+      autorun: false,
+      limiter: { max: 1, duration: 1000 },
+    })
+    try {
+      await queue.add("one", {})
+      await queue.add("two", {})
+      const first = await worker.getNextJob("first", { block: false })
+      await first.moveToCompleted("ok", "first", false)
+      expect(await worker.getNextJob("limited", { block: false })).toBeUndefined()
+      time += 1000
+      redis.advance(1000)
+      const second = await worker.getNextJob("second", { block: false })
+      expect(second.name).toBe("two")
+      await second.moveToCompleted("ok", "second", false)
+      time += 1000
+      redis.advance(1000)
+      await queue.upsertJobScheduler("fixture", { every: 1000 }, { name: "scheduled", data: {} })
+      const scheduled = await worker.getNextJob("scheduled", { block: false })
+      expect(scheduled.name).toBe("scheduled")
+      await scheduled.moveToCompleted("ok", "scheduled", false)
+      time += 1000
+      redis.advance(1000)
+      const successor = await worker.getNextJob("successor", { block: false })
+      expect(successor.name).toBe("scheduled")
+      expect(successor.id).not.toBe(scheduled.id)
+      await successor.moveToCompleted("ok", "successor", false)
+    } finally {
+      Date.now = original
+      await worker.close(true)
+    }
+  })
+})
+
+test("delivery admission Lua is atomic under simultaneous public-client callers", async () => {
+  await manual(async (_queue, _worker, redis, connection) => {
+    redis.clock.freeze()
+    redis.clock.set(1_700_000_000_000)
+    const clients = [new IORedis(connection), new IORedis(connection), new IORedis(connection)]
+    const script = admissionScript
+    try {
+      expect(
+        await Promise.all(
+          clients.map((client) =>
+            client.eval(
+              script,
+              2,
+              "fixture-window",
+              "fixture-receipt",
+              redis.clock.now(),
+              "fixture",
+            ),
+          ),
+        ),
+      ).toEqual([1, 0, 0])
+      expect(await clients[0]?.zcard("fixture-window")).toBe(1)
+      redis.advance(1000)
+      expect(await clients[0]?.get("fixture-receipt")).toBeNull()
+      expect(
+        await clients[0]?.eval(
+          script,
+          2,
+          "fixture-window",
+          "fixture-receipt",
+          redis.clock.now(),
+          "fixture",
+        ),
+      ).toBe(1)
+    } finally {
+      for (const client of clients) client.disconnect()
+    }
+  })
+})
+
 test("BullMQ two workers, lock ownership, renewal, stalled recovery and concurrency", async () => {
   await manual(async (queue, worker, redis, connection) => {
     const other = new Worker("manual", undefined, { connection, autorun: false })
@@ -135,10 +312,10 @@ test("BullMQ two workers, lock ownership, renewal, stalled recovery and concurre
       expect(await owner?.extendLock("owner", 1000)).toBe(1)
       expect(await owner?.extendLock("wrong", 1000)).toBe(0)
       redis.advance(1001)
-      const scripts = new Scripts(worker)
-      await scripts.moveStalledJobsToWait()
-      redis.advance(30001)
-      await scripts.moveStalledJobsToWait()
+      const stalled = new Promise<string>((resolve) => worker.once("stalled", resolve))
+      worker.opts.stalledInterval = 1
+      await worker.startStalledCheckTimer()
+      expect(await stalled).toBe(String(job.id))
       expect(await job.getState()).toBe("waiting")
       const recovered = await other.getNextJob("recovered", { block: false })
       expect(recovered?.id).toBe(job.id)

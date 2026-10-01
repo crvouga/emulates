@@ -67,13 +67,17 @@
     "test": "bun test",
     "parity": "bun scripts/parity.ts",
     "portability": "bun ../../../scripts/portability.ts",
-    "pack:check": "bun ../../../scripts/pack-check.ts"
+    "pack:check": "bun ../../../scripts/pack-check.ts",
+    "parity:bullmq": "bun scripts/bullmq-parity.ts"
   },
   "devDependencies": {
     "@crvouga/mockingbird-adapter-node": "workspace:*",
     "@crvouga/mockingbird-credentials": "workspace:*",
-    "@msgpack/msgpack": "3.1.2",
     "bullmq": "5.67.1",
-    "ioredis": "5.11.1"
+    "ioredis": "5.11.1",
+    "ioredis-5-9": "npm:ioredis@5.9.2"
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "3.1.2"
   }
 }

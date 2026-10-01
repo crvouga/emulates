@@ -3188,7 +3188,10 @@ export class Redis {
     if (!apply || source === undefined) return queued()
     const keys = args.slice(2, 2 + Number(numkeys))
     const argv = args.slice(2 + Number(numkeys))
-    return this.runScript(session, source, keys, argv)
+    const result = this.runScript(session, source, keys, argv)
+    if (!(result.t === "error" && result.v.includes("Error compiling script:")))
+      this.scripts.set(sha1Hex(utf8(source)), source)
+    return result
   }
 
   private cmdScript(args: Uint8Array[], apply: boolean): Reply {
