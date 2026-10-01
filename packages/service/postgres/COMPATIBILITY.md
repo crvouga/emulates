@@ -10,6 +10,10 @@ See [COMPATIBILITY-AUDIT.md](COMPATIBILITY-AUDIT.md) for the latest evidence-bas
 
 Reference oracle: **PostgreSQL 18.3** via PGlite (`@electric-sql/pglite`, real Postgres compiled to WASM, in-process). Inventory: `bun run inventory`. Construct catalog: `bun run scenarios` → [`compat/scenarios.ts`](compat/scenarios.ts). Divergences: [`compat/divergences.json`](compat/divergences.json). Requirements matrix: `bun run requirements` → `compat/requirements.json` + `compat/coverage.json`.
 
+The Node `/server` entry participates in protocol fleets. Acceptance tests use `pg@8.23.0`
+for authenticated readiness, shutdown, namespace isolation, full-catalog reset/snapshot/restore and
+clock controls. This supervisor surface does not change the SQL dialect compatibility contract.
+
 ## Proof surface
 
 Differential tests compare a **tuple** per statement: rows (normalized to canonical PostgreSQL text where typed), column names and type names where requested, error SQLSTATE class + normalized message, command tag / `rowCount`, and transaction status, plus a **logical state dump** (catalog names, column definitions, row payloads, sequence values) after write sequences.

@@ -91,12 +91,14 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 {
   "services": {
     "junction": { "port": 8787, "options": { "corpus": "./test/junction-corpus.json" } },
-    "stripe": { "port": 12111 }
+    "stripe": { "port": 0 },
+    "postgres": { "protocol": "postgres", "port": 0 },
+    "redis": { "protocol": "redis", "port": 0 }
   }
 }
 ```
 
-`mockingbird.json` names services by their package suffix and takes each one's `serve` flags; any installed service's CLI can serve all of them. The database engines are not HTTP APIs, so they are outside this contract.
+`mockingbird.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.
 
 ## For coding agents
 
@@ -124,6 +126,7 @@ Building, testing and `bun run check` need no secrets and no accounts. Live pari
 | [Reporting issues](docs/REPORTING_ISSUES.md) | How coding agents in other projects file a GitHub issue when a mock diverges from its oracle, lacks a feature they call, or breaks, or when they need a service mocked that the catalog does not have yet. Agents in this repository pick the issues up and resolve them. |
 | [Releasing](docs/RELEASING.md) | How packages get from `main` to npm using Trusted Publishing, without a stored npm token. |
 | [Secrets runbook](docs/SECRETS.md) | Where every credential lives, who needs it, and how to run live parity without ever holding a sandbox key: GitHub Actions repo secrets are the only secret store. |
+| [Fleets](docs/FLEETS.md) | One service CLI can supervise installed HTTP mocks, PostgreSQL wire servers and Redis RESP servers. Every listener starts before readiness is published; a boot failure names the service, closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes the whole fleet. |
 
 ## License
 

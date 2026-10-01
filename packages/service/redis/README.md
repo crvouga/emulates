@@ -39,6 +39,10 @@ one instance. `redis.advance(ms)` moves an injected clock. `redis.inspect()`, `r
 `ioredis` can connect to the TCP server unchanged. Cluster `MOVED` / `ASK` is not implemented:
 `CLUSTER` and `READONLY` answer that cluster support is disabled.
 
+`mockingbird-redis serve --config mockingbird.json` supervises mixed HTTP/Postgres/Redis fleets.
+See [fleet configuration and controls](../../../docs/FLEETS.md) for ephemeral discovery, namespace
+endpoints, readiness, shutdown and coordinated state controls.
+
 ## API
 
 - `createRedis(options?)` returns a `Redis` instance.
@@ -54,6 +58,7 @@ one instance. `redis.advance(ms)` moves an injected clock. `redis.inspect()`, `r
 
 - Cluster redirects (`MOVED`, `ASK`) and replica replication. `ROLE` stays `master`.
 - Redis 8 modules, and the full Redis command set.
-- Full Lua 5.1, `cmsgpack`, and BullMQ beyond the script subset (`cjson`, `redis.call` / `pcall`).
+- Full Lua 5.1 and arbitrary untested scripts. BullMQ 5.67.1 queue/worker flows, including
+  `cmsgpack`, are covered by the public-client suite; see [SUPPORT.md](SUPPORT.md).
 - `XADD` / `XTRIM` `MAXLEN ~` trims exactly.
 - Set members are returned in byte order so results stay deterministic.
