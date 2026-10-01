@@ -37,7 +37,7 @@ Anything a PostgreSQL application can invoke through SQL against the PGlite **18
 
 1. **Snapshot format** — custom binary codec (`PGMM`), not `pg_dump` / on-disk clusters (logical state still round-trips).
 2. **Deterministic `random()` / `now()`** — seeded PRNG and fixed clock by default (injectable).
-3. **Single session** — no MVCC across connections, no isolation levels beyond one session, no `25P02` aborted-transaction state (documented divergence).
+3. **Single-session sync API** — no concurrent sessions or `25P02` aborted-transaction state. The optional wire server separately provides per-session `READ COMMITTED` workspaces and row locks.
 4. **NOT APPLICABLE** rows in `compat/coverage.json` (roles, replication, VACUUM internals, LISTEN/NOTIFY, cursors, full PL/pgSQL, extensions other than `pgcrypto`'s `digest()` and `pg_trgm`'s `similarity` / `<%` / `gin_trgm_ops`).
 
 The oracle exposes **2787 builtin functions** and **74 operators** in `pg_catalog`; postgres-mem implements **302 functions** and **41 operators**, and every remaining item is an explicit entry in [`compat/unsupported-register.json`](compat/unsupported-register.json) with a reason (trigger/internal plumbing, admin/monitoring, unsupported type families, …). The gate fails closed on silence.
@@ -76,7 +76,8 @@ The oracle exposes **2787 builtin functions** and **74 operators** in `pg_catalo
 | EXPLAIN | PARTIALLY VERIFIED | Stub plan shapes |
 | MERGE / CALL / cursors / LISTEN / full PL/pgSQL | UNSUPPORTED | Fail loud `0A000`, registered |
 | Roles / GRANT / VACUUM / ANALYZE / LOCK | NOT APPLICABLE | Parsed no-ops where harmless |
-| Wire protocol / multi-session MVCC / on-disk format | NOT APPLICABLE | |
+| Wire protocol / multi-session concurrency | PARTIALLY VERIFIED | `READ COMMITTED` workspaces; `FOR UPDATE`, `NOWAIT`, `SKIP LOCKED`, and deadlock detection |
+| On-disk PostgreSQL format | NOT APPLICABLE | PGMM snapshots are the persistence format |
 
 ## How to verify
 

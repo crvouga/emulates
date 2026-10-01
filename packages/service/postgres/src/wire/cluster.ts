@@ -6,11 +6,9 @@ import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
  * What every connection of one server shares: the engine, and the coordination the engine
  * (single-session, synchronous) does not do itself.
  *
- * - The **turn**: the engine holds one transaction at a time, so a connection inside an
- *   explicit transaction block holds the turn until it commits or rolls back, and every other
- *   connection's statement waits. A statement outside a block takes the turn for itself only.
- *   Uncommitted rows are therefore never visible to another connection (read committed holds),
- *   at the cost of running transaction blocks one at a time.
+ * - The **turn** serializes individual synchronous engine calls. Explicit transactions use
+ *   per-session copy-on-write workspaces in the connection, so the turn is released after every
+ *   statement and unrelated sessions keep progressing.
  * - **Advisory locks** per session, with waiters woken in order, and deadlock detection
  *   between a lock and the turn (`40P01`).
  * - **LISTEN / NOTIFY** fan-out, delivered when a listening connection is idle.

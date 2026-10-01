@@ -197,11 +197,12 @@ The wire server does not speak that HTTP API.
 failCommit })` arms the next statement or connection for a drop, a delay, or a `40001` commit
 failure.
 
-One engine is shared by every connection. The engine runs one statement at a time, so a connection
-inside an explicit `BEGIN` block holds it until `COMMIT`/`ROLLBACK` and other connections queue
-behind it — which keeps read-committed visibility (an uncommitted row is never seen by another
-connection) by serializing transaction blocks rather than by MVCC. Across connections the server
-adds what a single engine does not: per-session advisory locks (`pg_advisory_lock` /
+One committed engine is shared by every connection. Explicit transactions execute in per-session
+copy-on-write workspaces that rebase each statement on the latest committed state, providing
+`READ COMMITTED` visibility without holding an engine-wide transaction turn. Successful writes
+are applied atomically at commit; rollback discards the workspace. Across connections the server
+adds row locks for `SELECT … FOR UPDATE` (including blocking, `NOWAIT`, `SKIP LOCKED`, and
+deadlock SQLSTATE `40P01`) and per-session advisory locks (`pg_advisory_lock` /
 `pg_try_advisory_lock` / `_xact_` / `_unlock`) with in-order waiters and deadlock detection
 (`40P01`), `LISTEN`/`NOTIFY` delivered to idle listeners, `CancelRequest` (a blocked statement ends
 `57014` and the session stays usable), and per-connection aborted-transaction state (a failed
@@ -214,10 +215,10 @@ the wire. `COPY … FROM STDIN` and `COPY … TO STDOUT` use protocol-v3 `CopyIn
 incrementally across arbitrary frame and quoted-record boundaries; failed imports are atomic and
 leave the connection in PostgreSQL's transaction state.
 
-**Not modelled by the server:** row-level lock contention, so `SELECT … FOR UPDATE SKIP LOCKED`
-parses and returns rows but does not distribute disjoint rows across concurrent workers (there are
-no row locks); binary `COPY`; and the binary parameter formats beyond the common scalar types (a client that sends
-another binary type gets `0A000`, and can switch that parameter to text).
+**Not modelled by the server:** transaction ID and snapshot-inspection functions, predicate and
+table locks, isolation levels beyond `READ COMMITTED`, and the binary parameter formats beyond the
+common scalar types (a client that sends another binary type gets `0A000`, and can switch that
+parameter to text). Binary `COPY` is not supported.
 
 ### Method semantics
 
@@ -317,8 +318,8 @@ Goal: **SQL dialect** behavioural parity vs PostgreSQL **18.3** for the sync API
 [DROP-IN-CONTRACT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/postgres/docs/DROP-IN-CONTRACT.md).
 
 The in-process API has no async client, no connection pooling and no `pg_dump` codec; the optional
-[wire-protocol server](#wire-protocol-server-separate-processes) adds a TCP listener and coordinates
-several connections over the one engine, but by serializing transaction blocks, not by MVCC.
+[wire-protocol server](#wire-protocol-server-separate-processes) adds a TCP listener, per-session
+`READ COMMITTED` transaction workspaces, and row-level worker locks.
 Intentional differences: custom `PGMM` snapshots; seeded `random()` / fixed `now()` by default
 (`{ random: "os" }` / `{ now: "system" }` match PostgreSQL entropy and wall clock).
 

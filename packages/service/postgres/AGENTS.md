@@ -13,12 +13,11 @@ Guidance for humans and coding agents editing this repository. For install and c
 3. Single-session **engine**: no MVCC across connections, no aborted-transaction (`25P02`) state in the sync API
 4. `NOT APPLICABLE` items: roles/auth enforcement, replication, VACUUM internals, storage params, full PL/pgSQL
 
-**Non-goals:** matching `pg`/`postgres.js` **client APIs**, full PL/pgSQL, or MVCC. The optional
-wire-protocol server (`src/wire/`, a Node/Bun-only entry over the one engine) is in scope: it
-speaks frontend/backend v3 and coordinates connections by serializing transaction blocks, adding
-advisory locks, `LISTEN`/`NOTIFY`, `CancelRequest` and per-connection `25P02`. It deliberately does
-**not** add row-level lock contention (`SELECT … FOR UPDATE SKIP LOCKED` distribution) or `COPY`
-streaming.
+**Non-goals:** matching `pg`/`postgres.js` **client APIs**, full PL/pgSQL, or MVCC in the synchronous
+API. The optional wire-protocol server (`src/wire/`, a Node/Bun-only entry over the one engine) is
+in scope: it coordinates per-session `READ COMMITTED` workspaces and adds row locks (`FOR UPDATE`,
+`NOWAIT`, `SKIP LOCKED`, deadlock detection), advisory locks, `LISTEN`/`NOTIFY`, `CancelRequest`
+and per-connection `25P02`. `COPY` streaming remains an explicitly documented boundary.
 
 ## SQL pipeline
 
