@@ -318,8 +318,8 @@ Stable runtime exports of the main entry:
 | `Statement` | Class returned by `db.prepare(sql)` (not constructed directly): `run`, `all`, `get`, `result`. |
 | `SqliteError` | Error class thrown for SQL and API errors: `category` (`ErrorCategory`), `sqliteCode` / `code` (SQLite result-code name, e.g. `"SQLITE_CONSTRAINT_UNIQUE"`; default `"SQLITE_ERROR"`). |
 
-Signatures (types are exported too: `DatabaseOptions`, `RunResult`, `ResultSet`, `ErrorCategory`,
-`BindValue`, `QueryRow`, `QueryValue`):
+Signatures (types are exported too: `DatabaseOptions`, `HistoryCheckpoint`, `DatabaseHistory`,
+`RunResult`, `ResultSet`, `ErrorCategory`, `BindValue`, `QueryRow`, `QueryValue`):
 
 ```ts
 interface DatabaseOptions {
@@ -327,6 +327,20 @@ interface DatabaseOptions {
   random?: "deterministic" | "os"        // default "deterministic"; "os" is CSPRNG like SQLite
   now?: Date | (() => Date) | "system"   // default 2000-01-01T00:00:00.000Z; "system" is wall clock
   maxCheckpoints?: number                // timeline checkpoints to retain; default 1000
+}
+
+interface HistoryCheckpoint {
+  id: string
+  branch: string
+  parent: string | null
+  at: number
+}
+
+interface DatabaseHistory {
+  readonly size: number
+  head(branch?: string): HistoryCheckpoint | undefined
+  branches(): Readonly<Record<string, string>>
+  checkpoints(): readonly HistoryCheckpoint[]
 }
 
 declare class Database {

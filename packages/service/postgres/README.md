@@ -359,8 +359,9 @@ Stable runtime exports of the main entry:
 | `Statement` | Class returned by `db.prepare(sql)` (not constructed directly): `run`, `all`, `get`, `result`, `textResult`, and `sql`. |
 | `PostgresError` | Error class thrown for SQL and API errors: `category` (`ErrorCategory`), `sqlState` / `code` (five-character SQLSTATE, e.g. `"42P01"`, `"23505"`). |
 
-Signatures (types are exported too: `DatabaseOptions`, `RegisterFunctionOptions`, `ResultSet`,
-`RunResult`, `ErrorCategory`, `BindValue`, `JsValue`, `QueryRow`):
+Signatures (types are exported too: `DatabaseOptions`, `HistoryCheckpoint`, `DatabaseHistory`,
+`RegisterFunctionOptions`, `ResultSet`, `RunResult`, `ErrorCategory`, `BindValue`, `JsValue`,
+`QueryRow`):
 
 ```ts
 interface DatabaseOptions {
@@ -369,6 +370,20 @@ interface DatabaseOptions {
   now?: Date | (() => Date) | "system"   // default 2000-01-01T00:00:00.000Z; "system" is wall clock
   int8?: "bigint" | "number" | "string"  // default "bigint"; "number" is unsafe beyond MAX_SAFE_INTEGER
   maxCheckpoints?: number                // timeline checkpoints to retain; default 1000
+}
+
+interface HistoryCheckpoint {
+  id: string
+  branch: string
+  parent: string | null
+  at: number
+}
+
+interface DatabaseHistory {
+  readonly size: number
+  head(branch?: string): HistoryCheckpoint | undefined
+  branches(): Readonly<Record<string, string>>
+  checkpoints(): readonly HistoryCheckpoint[]
 }
 
 declare class Database {
