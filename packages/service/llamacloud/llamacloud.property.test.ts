@@ -48,7 +48,9 @@ describe("LlamaCloudAPI", () => {
         },
         coverageBias: 3,
         latencyToleranceMs: 1_000,
-        ...(params.seed === undefined ? {} : { seed: params.seed }),
+        // This test asserts whole-spec coverage, so keep its default walk reproducible. FC_SEED
+        // still overrides it when investigating another generated path.
+        seed: params.seed ?? 1,
         env: process.env,
         sleep: async () => {},
         log: () => {},
