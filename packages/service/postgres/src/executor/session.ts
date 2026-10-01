@@ -370,6 +370,28 @@ function parseCsvLine(line: string, delim: string, quote: string): (string | { q
   return fields;
 }
 
+function splitCsvRecords(data: string, quote: string): string[] {
+  const records: string[] = [];
+  let start = 0;
+  let quoted = false;
+  for (let i = 0; i < data.length; i++) {
+    const char = data[i];
+    if (char === quote) {
+      if (quoted && data[i + 1] === quote) i++;
+      else quoted = !quoted;
+      continue;
+    }
+    if (char === "\n" && !quoted) {
+      const end = i > start && data[i - 1] === "\r" ? i - 1 : i;
+      records.push(data.slice(start, end));
+      start = i + 1;
+    }
+  }
+  if (quoted) throw pgError("invalid_text_representation", "unterminated CSV quoted field", "22P04");
+  if (start < data.length) records.push(data.slice(start));
+  return records;
+}
+
 /**
  * Execute COPY ... FROM STDIN with api-provided text/csv data by synthesizing
  * an INSERT (reuses defaults, identity, constraints, FK actions, triggers).
@@ -385,7 +407,7 @@ export function executeCopyFromData(env: ExecEnv, stmt: CopyStmt, data: string):
   const quote = String(stmt.options.quote ?? '"');
   const header = stmt.options.header === true || String(stmt.options.header ?? "").toLowerCase() === "true";
 
-  let lines = data.split(/\r?\n/);
+  let lines = format === "csv" ? splitCsvRecords(data, quote) : data.split(/\r?\n/);
   // trailing newline yields an empty last line; "\." terminates the stream
   const endMarker = lines.indexOf("\\.");
   if (endMarker !== -1) lines = lines.slice(0, endMarker);
