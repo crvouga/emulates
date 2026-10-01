@@ -4,6 +4,7 @@ import { getAggregateFactories } from "../functions/aggregates.ts";
 import { getScalarFunctions } from "../functions/scalar.ts";
 import { getSrfFunctions } from "../functions/srf.ts";
 import { WINDOW_FUNCTION_NAMES } from "../functions/window.ts";
+import { databaseCatalogContext } from "../runtime/database-context.ts";
 import type { DatabaseState, SequenceData, TableData } from "../storage/database-state.ts";
 import {
   type Datum,
@@ -571,7 +572,8 @@ function pgSettings(ctx: EngineCtx): Relation {
   );
 }
 
-function pgDatabase(): Relation {
+function pgDatabase(ctx: EngineCtx): Relation {
+  const names = databaseCatalogContext(ctx.state).names();
   return rel(
     [
       ["oid", "oid"],
@@ -580,7 +582,7 @@ function pgDatabase(): Relation {
       ["datistemplate", "bool"],
       ["datallowconn", "bool"],
     ],
-    [[5, "postgres", 6, false, true]],
+    names.map((name, index) => [5 + index, name, 6, false, true]),
     "pg_database",
   );
 }
@@ -620,14 +622,15 @@ function pgTrigger(ctx: EngineCtx): Relation {
 
 // --- information_schema builders -------------------------------------------
 
-const CATALOG_NAME = "postgres";
+const catalogName = (state: DatabaseState): string => databaseCatalogContext(state).name;
 
 function infoSchemata(state: DatabaseState): Relation {
+  const catalog = catalogName(state);
   const rows: Datum[][] = [
-    [CATALOG_NAME, "pg_catalog", OWNER],
-    [CATALOG_NAME, "information_schema", OWNER],
+    [catalog, "pg_catalog", OWNER],
+    [catalog, "information_schema", OWNER],
   ];
-  for (const s of state.schemas.values()) rows.push([CATALOG_NAME, s.name, OWNER]);
+  for (const s of state.schemas.values()) rows.push([catalog, s.name, OWNER]);
   return rel(
     [
       ["catalog_name", "name"],
@@ -640,13 +643,14 @@ function infoSchemata(state: DatabaseState): Relation {
 }
 
 function infoTables(ctx: EngineCtx): Relation {
+  const catalog = catalogName(ctx.state);
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
     for (const t of schema.tables.values()) {
-      rows.push([CATALOG_NAME, t.schema, t.name, t.temp ? "LOCAL TEMPORARY" : "BASE TABLE", "YES"]);
+      rows.push([catalog, t.schema, t.name, t.temp ? "LOCAL TEMPORARY" : "BASE TABLE", "YES"]);
     }
     for (const v of schema.views.values()) {
-      if (!v.materialized) rows.push([CATALOG_NAME, v.schema, v.name, "VIEW", "NO"]);
+      if (!v.materialized) rows.push([catalog, v.schema, v.name, "VIEW", "NO"]);
     }
   }
   return rel(
@@ -663,6 +667,7 @@ function infoTables(ctx: EngineCtx): Relation {
 }
 
 function infoColumns(ctx: EngineCtx): Relation {
+  const catalog = catalogName(ctx.state);
   const rows: Datum[][] = [];
   for (const t of allTables(ctx.state)) {
     t.columns.forEach((c, i) => {
@@ -673,7 +678,7 @@ function infoColumns(ctx: EngineCtx): Relation {
       const dataType = isArrayType(id) ? "ARRAY" : isEnumType(id) ? "USER-DEFINED" : typeDisplayName(id);
       const udt = isArrayType(id) ? `_${arrayUdt(id)}` : isEnumType(id) ? id.slice(5).split(".").pop()! : id;
       rows.push([
-        CATALOG_NAME,
+        catalog,
         t.schema,
         t.name,
         c.name,
@@ -720,10 +725,11 @@ function arrayUdt(t: TypeId): string {
 }
 
 function infoViews(ctx: EngineCtx): Relation {
+  const catalog = catalogName(ctx.state);
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
     for (const v of schema.views.values()) {
-      if (!v.materialized) rows.push([CATALOG_NAME, v.schema, v.name, null]);
+      if (!v.materialized) rows.push([catalog, v.schema, v.name, null]);
     }
   }
   return rel(
@@ -739,10 +745,11 @@ function infoViews(ctx: EngineCtx): Relation {
 }
 
 function infoSequences(ctx: EngineCtx): Relation {
+  const catalog = catalogName(ctx.state);
   const rows: Datum[][] = [];
   for (const s of allSequences(ctx.state)) {
     rows.push([
-      CATALOG_NAME,
+      catalog,
       s.schema,
       s.name,
       typeDisplayName(s.dataType),
@@ -771,6 +778,7 @@ function infoSequences(ctx: EngineCtx): Relation {
 }
 
 function infoTableConstraints(ctx: EngineCtx): Relation {
+  const catalog = catalogName(ctx.state);
   const rows: Datum[][] = [];
   for (const t of allTables(ctx.state)) {
     for (const c of t.constraints) {
@@ -782,7 +790,7 @@ function infoTableConstraints(ctx: EngineCtx): Relation {
             : c.kind === "check"
               ? "CHECK"
               : "FOREIGN KEY";
-      rows.push([CATALOG_NAME, t.schema, c.name, CATALOG_NAME, t.schema, t.name, type]);
+      rows.push([catalog, t.schema, c.name, catalog, t.schema, t.name, type]);
     }
   }
   return rel(
@@ -801,12 +809,13 @@ function infoTableConstraints(ctx: EngineCtx): Relation {
 }
 
 function infoKeyColumnUsage(ctx: EngineCtx): Relation {
+  const catalog = catalogName(ctx.state);
   const rows: Datum[][] = [];
   for (const t of allTables(ctx.state)) {
     for (const c of t.constraints) {
       if (c.kind !== "primary_key" && c.kind !== "unique" && c.kind !== "foreign_key") continue;
       c.columns.forEach((col, i) => {
-        rows.push([CATALOG_NAME, t.schema, c.name, CATALOG_NAME, t.schema, t.name, col, i + 1]);
+        rows.push([catalog, t.schema, c.name, catalog, t.schema, t.name, col, i + 1]);
       });
     }
   }
@@ -827,12 +836,13 @@ function infoKeyColumnUsage(ctx: EngineCtx): Relation {
 }
 
 function infoRoutines(ctx: EngineCtx): Relation {
+  const catalog = catalogName(ctx.state);
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
     for (const fns of schema.functions.values()) {
       for (const f of fns) {
         rows.push([
-          CATALOG_NAME,
+          catalog,
           f.schema,
           f.name,
           "FUNCTION",
@@ -892,7 +902,7 @@ function buildCatalogRelation(ctx: EngineCtx, schema: string, name: string): Rel
       case "pg_settings":
         return pgSettings(ctx);
       case "pg_database":
-        return pgDatabase();
+        return pgDatabase(ctx);
       case "pg_roles":
       case "pg_user":
         return pgRoles();

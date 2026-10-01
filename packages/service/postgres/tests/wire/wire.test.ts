@@ -17,7 +17,7 @@ afterAll(async () => {
   await server.close();
 });
 
-const url = () => `postgres://postgres@${server.host}:${server.port}/db`;
+const url = () => `postgres://postgres@${server.host}:${server.port}/postgres`;
 const withClient = async <T>(fn: (client: pg.Client) => Promise<T>): Promise<T> => {
   const client = new pg.Client({ connectionString: url() });
   await client.connect();

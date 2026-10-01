@@ -16,7 +16,7 @@ Differential tests compare a **tuple** per statement: rows (normalized to canoni
 
 A catalog ID appearing in a test file is **not** proof by itself. Trivial probes are tracked in [`compat/smoke-baseline.json`](compat/smoke-baseline.json) and ratcheted downward (currently **0 smoke stubs** across 945 catalog scenarios). Generated operator/cast matrices live under [`tests/contract/matrices/`](tests/contract/matrices/). Observed mem≠oracle diffs must bind to a `compat/divergences.json` entry or be a **FAILURE** — unexplained diffs are not allowed.
 
-Intentional differences are finite and machine-readable in `compat/divergences.json` (PGMM snapshots, seeded `random()`/`now()`, sync single-session API, no aborted-transaction state, EXPLAIN stubs, trigger-order/`UPDATE OF` edges, float8 rounding/overflow edges, …). Human-readable: [DIVERGENCES.md](DIVERGENCES.md).
+Intentional differences are finite and machine-readable in `compat/divergences.json` (PGMM snapshots, seeded `random()`/`now()`, sync single-session API, no aborted-transaction state, EXPLAIN stubs, trigger-order/`UPDATE OF` edges, float8 rounding/overflow edges, …). The wire server supports isolated database catalogs, startup selection, database lifecycle DDL, and copy-on-write template cloning. Human-readable: [DIVERGENCES.md](DIVERGENCES.md).
 
 ## Status vocabulary
 

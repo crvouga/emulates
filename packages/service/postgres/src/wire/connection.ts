@@ -1,5 +1,6 @@
 import type { Socket } from "node:net";
 import type { BindValue } from "../api/bind.ts";
+import type { Database } from "../api/database.ts";
 import type { TextResultSet } from "../api/statement.ts";
 import { PostgresError } from "../errors/error.ts";
 import { typeOid } from "../types/value.ts";
@@ -68,6 +69,20 @@ const LISTEN = /^listen\s+("?)([A-Za-z_][\w$]*)\1\s*$/i;
 const UNLISTEN = /^unlisten\s+(\*|"?[A-Za-z_][\w$]*"?)\s*$/i;
 const NOTIFY = /^notify\s+("?)([A-Za-z_][\w$]*)\1\s*(?:,\s*'((?:[^']|'')*)')?\s*$/i;
 const RETURNS_ROWS = /^(select|with|values|show|table|explain)\b/i;
+const CLUSTER_DDL = /^(create|drop|alter)\s+database\b/i;
+const IDENT = '(?:"((?:[^"]|"")+)"|([A-Za-z_][A-Za-z0-9_$]*))';
+const CREATE_DATABASE = new RegExp(
+  `^create\\s+database\\s+${IDENT}(?:\\s+with)?(?:\\s+template\\s*(?:=\\s*)?${IDENT})?\\s*$`,
+  "i",
+);
+const DROP_DATABASE = new RegExp(
+  `^drop\\s+database\\s+(if\\s+exists\\s+)?${IDENT}(?:\\s+with\\s*\\(\\s*force\\s*\\))?\\s*$`,
+  "i",
+);
+const RENAME_DATABASE = new RegExp(`^alter\\s+database\\s+${IDENT}\\s+rename\\s+to\\s+${IDENT}\\s*$`, "i");
+
+const identifier = (quoted: string | undefined, plain: string | undefined): string =>
+  quoted === undefined ? (plain as string).toLowerCase() : quoted.replaceAll('""', '"');
 
 const TYPLEN: Record<string, number> = {
   bool: 1,
@@ -227,6 +242,8 @@ export class Connection implements Session {
   waitingForTurn: Session["waitingForTurn"] = null;
   waitingForLock: string | null = null;
   pendingNotifies: { channel: string; payload: string }[] = [];
+  database: Database;
+  databaseName: string;
 
   private readonly frames = new FrameParser();
   private readonly inbox: FrontendMessage[] = [];
@@ -251,6 +268,8 @@ export class Connection implements Session {
     private readonly cluster: Cluster,
     private readonly options: ConnectionOptions,
   ) {
+    this.database = cluster.db;
+    this.databaseName = cluster.defaultDatabaseName;
     this.pid = cluster.newPid();
     this.secret = Math.floor(Math.random() * 0x7fffffff);
     cluster.sessions.set(this.pid, this);
@@ -397,10 +416,13 @@ export class Connection implements Session {
     }
     this.user = parameters.user ?? "postgres";
     const requested = parameters.database && parameters.database.length > 0 ? parameters.database : this.user;
-    if (this.options.database !== undefined && requested !== this.options.database) {
+    const database = this.cluster.getDatabase(requested);
+    if (!database || (this.options.database !== undefined && requested !== this.options.database)) {
       this.fatal("3D000", `database "${requested}" does not exist`);
       return;
     }
+    this.database = database;
+    this.databaseName = requested;
     if (this.options.password !== undefined) {
       this.scram = new ScramServer(this.options.password);
       this.write(backend.authenticationSASL(["SCRAM-SHA-256"]));
@@ -469,7 +491,7 @@ export class Connection implements Session {
   // --- execution ----------------------------------------------------------------------------
 
   private get inTransaction(): boolean {
-    return this.cluster.turnHolder === this && this.cluster.db.transactions.inTransaction;
+    return this.cluster.turnHolder === this && this.database.transactions.inTransaction;
   }
 
   private status(): "I" | "T" | "E" {
@@ -520,7 +542,8 @@ export class Connection implements Session {
       if (!this.inTransaction) this.flushNotifies();
       return command("NOTIFY");
     }
-    const db = this.cluster.db;
+    if (CLUSTER_DDL.test(text)) return this.executeClusterDdl(text);
+    const db = this.database;
     for (;;) {
       if (this.cancelled) throw pgError("internal", "canceling statement due to user request", "57014");
       await this.cluster.acquireTurn(this);
@@ -574,7 +597,7 @@ export class Connection implements Session {
 
   /** The engine call itself: statement-atomic, and transaction control handled as the server sees it. */
   private runStatement(text: string, params: BindValue[], control: boolean): Outcome {
-    const db = this.cluster.db;
+    const db = this.database;
     const tx = db.transactions;
     const faults = this.options.faults;
     if (control && COMMIT.test(text)) {
@@ -618,7 +641,7 @@ export class Connection implements Session {
 
   /** Release the turn and transaction-scoped locks once no block is open; deliver NOTIFYs at commit. */
   private afterStatement(): void {
-    if (this.cluster.db.transactions.inTransaction) return;
+    if (this.database.transactions.inTransaction) return;
     this.cluster.unlockAll(this, true);
     this.cluster.releaseTurn(this);
     this.flushNotifies();
@@ -626,6 +649,35 @@ export class Connection implements Session {
 
   private flushNotifies(): void {
     for (const { channel, payload } of this.pendingNotifies.splice(0)) this.cluster.notify(this, channel, payload);
+  }
+
+  private executeClusterDdl(text: string): Outcome {
+    if (this.database.transactions.inTransaction) {
+      throw pgError("internal", "CREATE/DROP/ALTER DATABASE cannot run inside a transaction block", "25001");
+    }
+    const create = CREATE_DATABASE.exec(text);
+    if (create) {
+      const name = identifier(create[1], create[2]);
+      const template =
+        create[3] === undefined && create[4] === undefined ? undefined : identifier(create[3], create[4]);
+      this.cluster.createDatabase(name, template);
+      return command("CREATE DATABASE");
+    }
+    const drop = DROP_DATABASE.exec(text);
+    if (drop) {
+      const name = identifier(drop[2], drop[3]);
+      if (drop[1] && !this.cluster.getDatabase(name)) return command("DROP DATABASE");
+      this.cluster.dropDatabase(name, this);
+      return command("DROP DATABASE");
+    }
+    const rename = RENAME_DATABASE.exec(text);
+    if (rename) {
+      const from = identifier(rename[1], rename[2]);
+      const to = identifier(rename[3], rename[4]);
+      this.cluster.renameDatabase(from, to, this);
+      return command("ALTER DATABASE");
+    }
+    throw pgError("syntax", "unsupported CREATE/DROP/ALTER DATABASE option", "0A000");
   }
 
   private listen(channel: string): Outcome {
@@ -737,7 +789,7 @@ export class Connection implements Session {
     const text = sql.trim();
     if (text !== "" && !LISTEN.test(text) && !UNLISTEN.test(text) && !NOTIFY.test(text) && !TX_CONTROL.test(text)) {
       // Syntax is checked now (a parse error belongs to Parse), the statement runs at Execute.
-      this.cluster.db.prepare(text);
+      if (!CLUSTER_DDL.test(text)) this.database.prepare(text);
     }
     if (name !== "" && this.prepared.has(name)) {
       throw pgError("internal", `prepared statement "${name}" already exists`, "42P05");
@@ -799,7 +851,7 @@ export class Connection implements Session {
    */
   private async shapeOf(prepared: Prepared): Promise<TextResultSet | null> {
     if (!RETURNS_ROWS.test(prepared.sql)) return null;
-    const db = this.cluster.db;
+    const db = this.database;
     await this.cluster.acquireTurn(this);
     try {
       const params = prepared.paramOids.map(() => null);

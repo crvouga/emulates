@@ -173,6 +173,13 @@ const fromUri = await serve("postgres://postgres:secret@127.0.0.1:0/app")
 await fromUri.close()
 ```
 
+The wire server owns a PostgreSQL-style database catalog. Start on `postgres`, then use ordinary
+`CREATE DATABASE`, `DROP DATABASE`, and `ALTER DATABASE … RENAME TO` statements; startup packets
+select an isolated engine and unknown names fail with `3D000`. `CREATE DATABASE child TEMPLATE
+seed` forks `seed` through the same copy-on-write snapshot path as `Snapshot.open()`. The live names
+are available through `pg_database` and `server.databaseNames()`, while
+`server.getDatabase(name)` and `server.snapshot(name)` provide programmatic test controls.
+
 Or from the command line (installs a `mockingbird-postgres` bin):
 
 ```bash
