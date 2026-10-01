@@ -1,8 +1,9 @@
+import type { EventEmitter } from "node:events"
 import { readFile } from "node:fs/promises"
 import { type ParseArgsConfig, parseArgs } from "node:util"
 import type { RequestLog, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
+import { type FleetTarget, startFleet } from "./fleet.js"
 import { type Listening, listen } from "./listen.js"
-import { startFleet, type FleetTarget } from "./fleet.js"
 
 export type CliOption = {
   type: "string" | "boolean"
@@ -157,9 +158,20 @@ const COMMON_SERVE_OPTIONS: Record<string, CliOption> = {
     value: "<file>",
     description: "Serve every service in a mockingbird.json config instead",
   },
-  "ready-file": { type: "string", description: "Atomically publish fleet endpoint JSON", value: "<file>" },
-  "connections-file": { type: "string", description: "Write private connection URLs with mode 0600", value: "<file>" },
-  "ready-json": { type: "boolean", description: "Emit one public JSON record after fleet readiness" },
+  "ready-file": {
+    type: "string",
+    description: "Atomically publish fleet endpoint JSON",
+    value: "<file>",
+  },
+  "connections-file": {
+    type: "string",
+    description: "Write private connection URLs with mode 0600",
+    value: "<file>",
+  },
+  "ready-json": {
+    type: "boolean",
+    description: "Emit one public JSON record after fleet readiness",
+  },
 }
 
 const formatLog = (format: LogFormat) => {
@@ -256,8 +268,8 @@ const start = async (
 const untilSignal = async (servers: { close(): Promise<void> }[]): Promise<number> =>
   new Promise((resolve) => {
     const stop = async () => {
-      process.removeListener("SIGINT", stop)
-      process.removeListener("SIGTERM", stop)
+      ;(process as EventEmitter).removeListener("SIGINT", stop)
+      ;(process as EventEmitter).removeListener("SIGTERM", stop)
       await Promise.allSettled(servers.map((s) => s.close()))
       resolve(0)
     }
@@ -285,11 +297,14 @@ export const serveCommand = (target: ServeTarget): CliCommand => ({
           load: (name) => loadTarget(name, target),
           onLog: formatLog(config.log ?? log),
           ...(asString(values["ready-file"]) ? { readyFile: asString(values["ready-file"]) } : {}),
-          ...(asString(values["connections-file"]) ? { connectionsFile: asString(values["connections-file"]) } : {}),
+          ...(asString(values["connections-file"])
+            ? { connectionsFile: asString(values["connections-file"]) }
+            : {}),
           onReady: (manifest) => {
             if (values["ready-json"]) console.log(JSON.stringify(manifest))
-            else for (const [name, endpoint] of Object.entries(manifest.services))
-              console.log(`${name} mock listening on ${endpoint.url}`)
+            else
+              for (const [name, endpoint] of Object.entries(manifest.services))
+                console.log(`${name} mock listening on ${endpoint.url}`)
           },
         })
         return untilSignal([fleet])
