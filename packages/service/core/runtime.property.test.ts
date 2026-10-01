@@ -316,7 +316,15 @@ describe("runtime", () => {
   })
 
   test("the admin clock drives the service's timestamps", async () => {
-    const runtime = createRuntime({ name: "notes", document, create: notesService })
+    // Advance on every source read so `{ set, freeze: true }` deterministically catches an
+    // implementation that sets the live clock and then freezes it with a second wall-clock read.
+    let source = 1_000
+    const runtime = createRuntime({
+      name: "notes",
+      document,
+      create: notesService,
+      clock: createClock(() => source++),
+    })
     await runtime.fetch(
       new Request("http://mock.local/__admin/clock", {
         method: "POST",

@@ -167,6 +167,10 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
     "POST /clock": ({ body }) => {
       if (!isRecord(body)) return adminError(400, "expected a JSON object")
       if (body.reset === true) context.clock.reset()
+      // Freeze before applying mutations so a compound `{ set, freeze: true }` request is
+      // atomic. Setting a live clock adjusts its offset; freezing it afterward would read the
+      // wall clock again and could pin it a millisecond past the requested instant.
+      if (body.freeze === true) context.clock.freeze()
       if (body.set !== undefined) {
         const instant = parseInstant(body.set)
         if (instant === undefined) return adminError(400, "set: expected epoch ms or ISO-8601")
@@ -177,7 +181,6 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
         if (delta === undefined) return adminError(400, 'advance: expected ms or "15m"-style')
         context.clock.advance(delta)
       }
-      if (body.freeze === true) context.clock.freeze()
       if (body.freeze === false) context.clock.unfreeze()
       return json(200, context.clock.state())
     },
