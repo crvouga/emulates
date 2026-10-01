@@ -56,7 +56,7 @@ The oracle exposes **2787 builtin functions** and **74 operators** in `pg_catalo
 | GROUPING SETS / ROLLUP / CUBE, DISTINCT ON, LATERAL, set ops | VERIFIED | |
 | Recursive + data-modifying CTEs | VERIFIED | |
 | Constraints: PK / UNIQUE / NOT NULL / CHECK / FK actions | VERIFIED | DEFERRABLE parsed, checked at statement end |
-| Sequences / serial / identity | VERIFIED | |
+| Sequences / serial / identity | VERIFIED | Includes pg_dump identity sequence names and options |
 | Schemas + search_path + pg_catalog / information_schema | VERIFIED | Catalog columns are the commonly-queried subset |
 | Enums, domains, generated columns | VERIFIED | |
 | Triggers (row-level, LANGUAGE sql-expressible) | PARTIALLY VERIFIED | Creation-order firing, `UPDATE OF` ignored, no INSTEAD OF (documented) |
