@@ -11,6 +11,7 @@ export type FleetDiagnostics = {
   activeConnections: number
   blockedCommands: number
   pendingJobs: number
+  activeJobs?: number
   pendingWebhooks: number
   unmatchedRequests: number
 }
@@ -20,6 +21,7 @@ export type FleetChild = {
   protocol: "http" | "postgres" | "redis"
   url: string
   connection?: string
+  connections?: Record<string, string>
   healthUrl?: string
   adminUrl?: string
   namespaces: Record<string, unknown>
@@ -32,6 +34,7 @@ export type FleetChild = {
   restore(namespace: string, checkpoint: unknown): Promise<void>
   reset(namespace: string): Promise<void>
   clock(namespace: string): Clock
+  settle?(namespace: string): Promise<void>
 }
 
 export type ProtocolTarget = {
@@ -130,11 +133,7 @@ const httpChild = async (
   const active = new Map<string, number>()
   const api: FetchAPI = {
     async fetch(request) {
-      const path = new URL(request.url).pathname
-      const prefix = /^\/ns\/([^/]+)/.exec(path)
-      const namespace =
-        request.headers.get("x-mockingbird-namespace") ??
-        (prefix ? decodeURIComponent(prefix[1] as string) : "default")
+      const namespace = runtime.namespaceOf(request)
       if (locked.has(namespace)) return json(409, { error: "fleet control in progress", namespace })
       active.set(namespace, (active.get(namespace) ?? 0) + 1)
       try {
@@ -144,7 +143,7 @@ const httpChild = async (
       }
     },
   }
-  let server: Listening
+  let server: Listening | undefined
   try {
     server = await listen(api, {
       port: entry.port ?? target.defaultPort,
@@ -152,6 +151,8 @@ const httpChild = async (
     })
     target.listening?.(server)
   } catch (error) {
+    runtime.stop?.()
+    await server?.close()
     runtime.webhooks?.clear()
     await runtime.webhooks?.idle()
     throw error
@@ -162,8 +163,15 @@ const httpChild = async (
     healthUrl: `${server.url}/health`,
     adminUrl: `${server.url}/__admin`,
     namespaces: { header: "x-mockingbird-namespace", path: "/ns/{name}" },
-    ready: async () => (await runtime.fetch(new Request(`${server.url}/health`))).ok,
+    ready: async () => {
+      try {
+        return (await fetch(`${server.url}/health`, { signal: AbortSignal.timeout(2000) })).ok
+      } catch {
+        return false
+      }
+    },
     async close() {
+      runtime.stop?.()
       runtime.webhooks?.clear()
       await server.close()
       await runtime.webhooks?.idle()
@@ -191,6 +199,11 @@ const httpChild = async (
     },
     reset: (namespace) => runtime.reset(namespace),
     clock: (namespace) => runtime.namespaceClock(namespace),
+    async settle(namespace) {
+      const instance = runtime.instance(namespace) as ServiceInstance & { tick?(): unknown }
+      instance.tick?.()
+      await runtime.webhooks?.idle()
+    },
   }
 }
 
@@ -207,7 +220,10 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
   const startedAt = new Date().toISOString()
   const children = new Map<string, FleetChild>()
   const clocks = new Map<string, Clock>()
-  const checkpoints = new Map<string, { namespace: string; values: Map<string, unknown>; clock: ReturnType<Clock["state"]> }>()
+  const checkpoints = new Map<
+    string,
+    { namespace: string; values: Map<string, unknown>; clock: ReturnType<Clock["state"]> }
+  >()
   let supervisor: Listening | undefined
   let stopped = false
   let controlling = false
@@ -257,12 +273,21 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
     const results: Record<string, unknown> = {}
     let failure: string | undefined
     try {
-      for (const [name, child] of selected) { failure = name; release.push(child.lock(namespace)) }
+      for (const [name, child] of selected) {
+        failure = name
+        release.push(child.lock(namespace))
+      }
       const busy = Object.fromEntries(
         [...selected]
           .filter(([, child]) => {
             const state = child.diagnostics(namespace)
-            return state.activeRequests + state.blockedCommands + state.pendingWebhooks > 0
+            return (
+              state.activeRequests +
+                state.blockedCommands +
+                state.pendingWebhooks +
+                (state.activeJobs ?? 0) >
+              0
+            )
           })
           .map(([name, child]) => [name, child.diagnostics(namespace)]),
       )
@@ -406,6 +431,7 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
           childClock.freeze()
           childClock.set(target)
           if (!frozen) childClock.unfreeze()
+          await child.settle?.(namespace)
           return childClock.state()
         })
         if (response.ok) {
@@ -436,7 +462,8 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
         )
         if (response.ok) {
           const current = clock(namespace)
-          current.freeze(); current.set(point.clock.now)
+          current.freeze()
+          current.set(point.clock.now)
           if (!point.clock.frozen) current.unfreeze()
         }
         return response
@@ -506,7 +533,10 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
         id,
         pid: process.pid,
         services: Object.fromEntries(
-          [...children].map(([name, child]) => [name, { url: child.connection ?? child.url }]),
+          [...children].map(([name, child]) => [
+            name,
+            { url: child.connection ?? child.url, namespaces: child.connections },
+          ]),
         ),
       })
     if (options.readyFile) await atomicWrite(options.readyFile, manifest)

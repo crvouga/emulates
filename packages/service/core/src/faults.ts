@@ -98,13 +98,21 @@ export type FaultCandidate = {
 }
 
 export type FaultRegistry = {
+  isolateNamespaces(): void
+  snapshot(namespace: string): {
+    rules: (FaultRule & { remaining: number | null; hits: number; position: number })[]
+    rngState: number
+  }
   add(rule: FaultRule): FaultRule
   list(): (FaultRule & { remaining: number | null; hits: number })[]
   remove(id: string): boolean
   clear(): void
   restore(
     namespace: string,
-    rules: (FaultRule & { remaining: number | null; hits: number })[],
+    state: {
+      rules: (FaultRule & { remaining: number | null; hits: number; position: number })[]
+      rngState: number
+    },
   ): void
   /**
    * Every fault this request should get, in rule order, stopping at the first that answers
@@ -151,7 +159,36 @@ export const createFaultRegistry = (
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 ): FaultRegistry => {
   const entries: Entry[] = []
+  let isolated = false
+  const scopedRngs = new Map<string, Rng>()
+  const random = (namespace: string) => {
+    if (!isolated || namespace === "default") return rng
+    let scoped = scopedRngs.get(namespace)
+    if (!scoped) {
+      scoped = createRng(rng.seed)
+      scopedRngs.set(namespace, scoped)
+    }
+    return scoped
+  }
   return {
+    isolateNamespaces() {
+      isolated = true
+    },
+    snapshot(namespace) {
+      return {
+        rules: structuredClone(
+          entries
+            .map((entry, position) => ({
+              ...entry.rule,
+              remaining: entry.remaining,
+              hits: entry.hits,
+              position,
+            }))
+            .filter((entry) => entry.namespace === namespace),
+        ),
+        rngState: random(namespace).state(),
+      }
+    },
     add(rule) {
       const existing = entries.findIndex((e) => e.rule.id === rule.id)
       const entry: Entry = { rule, remaining: rule.count ?? null, hits: 0 }
@@ -168,11 +205,15 @@ export const createFaultRegistry = (
     },
     clear() {
       entries.length = 0
+      rng.reset()
+      scopedRngs.clear()
     },
-    restore(namespace, rules) {
+    restore(namespace, state) {
       for (let i = entries.length - 1; i >= 0; i--)
         if (entries[i]?.rule.namespace === namespace) entries.splice(i, 1)
-      for (const { remaining, hits, ...rule } of rules) entries.push({ rule, remaining, hits })
+      for (const { remaining, hits, position, ...rule } of state.rules)
+        entries.splice(Math.min(position, entries.length), 0, { rule, remaining, hits })
+      random(namespace).setState(state.rngState)
     },
     async take(candidate) {
       const hits: FaultHit[] = []
@@ -181,7 +222,7 @@ export const createFaultRegistry = (
         if (!matches(entry.rule, candidate)) continue
         const rate = entry.rule.rate ?? 1
         // Draw even when the rule always fires, so a seeded stream stays aligned.
-        if (rng.next() >= rate) continue
+        if (random(candidate.namespace).next() >= rate) continue
         entry.hits++
         if (entry.remaining !== null) entry.remaining--
         const delay = entry.rule.delayMs ?? entry.rule.latencyMs

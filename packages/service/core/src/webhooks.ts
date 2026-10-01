@@ -229,6 +229,7 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
   const faults = new Map<string, { mode: WebhookFault["mode"]; remaining: number }[]>()
   const held = new Map<string, WebhookMessage[]>()
   const inFlight = new Set<Promise<void>>()
+  const controllers = new Map<string, AbortController>()
   // Immediate (delay 0) attempts chain onto this so two deliveries scheduled in the same tick
   // (e.g. a reorder fault's swap) hit the receiver in schedule order, not fetch-race order.
   let immediate: Promise<unknown> = Promise.resolve()
@@ -264,6 +265,7 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
       responseBody: null,
     }
     const controller = new AbortController()
+    controllers.set(delivery.id, controller)
     const timer = scheduleTimer(() => controller.abort(), timeoutMs)
     try {
       const signed = await options.signer({
@@ -301,6 +303,7 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
           ? error.message
           : String(error)
     } finally {
+      controllers.delete(delivery.id)
       cancel(timer)
       record.durationMs = now() - started
       delivery.attempts.push(record)
@@ -320,6 +323,7 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
       // record nothing and reschedule at the same index forever, starving the event loop.
       if (!payloads.has(delivery.id)) return
       await attempt(delivery).then((ok) => {
+        if (!payloads.has(delivery.id)) return
         if (ok) delivery.state = "delivered"
         else schedule(delivery)
       })
@@ -507,6 +511,7 @@ export const createWebhookHub = (options: WebhookHubOptions): WebhookHub => {
     clear(namespace) {
       for (const [id, delivery] of deliveries) {
         if (namespace !== undefined && delivery.namespace !== namespace) continue
+        controllers.get(id)?.abort()
         const timer = pending.get(id)
         if (timer !== undefined) cancel(timer)
         pending.delete(id)

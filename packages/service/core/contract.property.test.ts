@@ -337,6 +337,38 @@ describe("webhooks", () => {
     expect(hub.deliveries()).toHaveLength(0)
   })
 
+  test("clear aborts an in-flight delivery and leaves no retry scheduled", async () => {
+    let started = () => {}
+    const entered = new Promise<void>((resolve) => {
+      started = resolve
+    })
+    let aborted = false
+    const hub = createWebhookHub({
+      signer: signers.none(),
+      endpoints: [{ url: "http://app.local/hook" }],
+      fetch: async (request) => {
+        started()
+        return new Promise<Response>((_resolve, reject) =>
+          request.signal.addEventListener(
+            "abort",
+            () => {
+              aborted = true
+              reject(new Error("fixture aborted"))
+            },
+            { once: true },
+          ),
+        )
+      },
+    })
+    hub.publish({ namespace: "worker-7", type: "a", body: {} })
+    await entered
+    hub.clear("worker-7")
+    await hub.idle()
+    expect(aborted).toBe(true)
+    expect(hub.deliveries()).toEqual([])
+    expect(hub.pending("worker-7")).toBe(0)
+  })
+
   test("admin endpoints, events, and reset clears a namespace's deliveries", async () => {
     const { runtime, hub } = notesRuntime()
     await runtime.fetch(

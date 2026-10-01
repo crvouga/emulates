@@ -122,6 +122,8 @@ export type ServiceTimelineState = Readonly<{
 export type ServiceCheckpoint = Checkpoint<ServiceTimelineState>
 
 export type ServiceRuntime<T extends ServiceInstance> = FetchAPI & {
+  /** Stop package-owned lifecycle timers when a supervisor closes the runtime. */
+  stop?(): void
   readonly name: string
   readonly sqlite: SqliteClient
   readonly clock: Clock
@@ -135,6 +137,7 @@ export type ServiceRuntime<T extends ServiceInstance> = FetchAPI & {
   /** Enable independent namespace clocks and PRNGs before serving a fleet. */
   isolateNamespaces(): void
   namespaceClock(namespace?: string): Clock
+  namespaceOf(request: Request): string
   /** Opaque in-process checkpoint including records, controls and webhook history. */
   fleetSnapshot(namespace: string): object
   fleetRestore(snapshot: unknown, namespace: string): void
@@ -295,7 +298,7 @@ export const createRuntime = <T extends ServiceInstance>(
     {
       namespace: string
       state: ServiceTimelineState
-      faults: ReturnType<FaultRegistry["list"]>
+      faults: ReturnType<FaultRegistry["snapshot"]>
       webhooks: unknown
     }
   >()
@@ -520,7 +523,7 @@ export const createRuntime = <T extends ServiceInstance>(
     }
     timelines.delete(name)
     captured.delete(name)
-    for (const rule of faults.list()) if (rule.namespace === name) faults.remove(rule.id)
+    faults.restore(name, { rules: [], rngState: createRng(options.seed ?? 0).state() })
     namespaceClock(name).reset()
     ;(branchRngs.get(name) ?? rng).reset()
     journal.clear(name)
@@ -570,15 +573,31 @@ export const createRuntime = <T extends ServiceInstance>(
       if (publicNamespaces.size > 1)
         throw new Error("enable namespace isolation before creating named namespaces")
       isolatedNamespaces = true
+      faults.isolateNamespaces()
     },
     namespaceClock,
+    namespaceOf(request) {
+      const url = new URL(request.url)
+      const prefixed = PATH_PREFIX.exec(url.pathname)
+      const selected =
+        request.headers.get(NAMESPACE_HEADER) ??
+        (prefixed ? decodeURIComponent(prefixed[1] as string) : undefined)
+      const path = prefixed ? (prefixed[2] ?? "/") : url.pathname
+      if (path === "/__admin" || path.startsWith("/__admin/"))
+        return url.searchParams.get("namespace") ?? selected ?? DEFAULT_NAMESPACE
+      if (selected !== undefined) return selected
+      const credential = options.credential?.(request)
+      return (
+        (credential !== undefined ? credentials.get(credential) : undefined) ?? DEFAULT_NAMESPACE
+      )
+    },
     fleetSnapshot(namespace) {
       instance(namespace)
       const handle = {}
       fleetPoints.set(handle, {
         namespace,
         state: capture(namespace),
-        faults: structuredClone(faults.list().filter((rule) => rule.namespace === namespace)),
+        faults: faults.snapshot(namespace),
         webhooks: options.webhooks?.snapshot(namespace),
       })
       return handle

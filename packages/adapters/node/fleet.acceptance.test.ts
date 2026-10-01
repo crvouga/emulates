@@ -164,12 +164,126 @@ test("fleet namespaces replay records, random choices and time; reset clears onl
       ).ok,
     ).toBe(true)
     expect(await mutate("worker-7")).toEqual(expected)
+    expect(
+      await (
+        await request(fleet, "/__fleet/clock?namespace=worker-7", undefined, "fixture-admin")
+      ).json(),
+    ).toMatchObject({ now: time, frozen: true })
     expect(await (await fetch(`${origin}/ns/other/things`)).json()).toHaveLength(1)
     expect(
       (await request(fleet, "/__fleet/namespaces/worker-7/reset", {}, "fixture-admin")).ok,
     ).toBe(true)
     expect(await (await fetch(`${origin}/ns/worker-7/things`)).json()).toEqual([])
     expect(await (await fetch(`${origin}/ns/other/things`)).json()).toHaveLength(1)
+  } finally {
+    await fleet.close()
+  }
+})
+
+test("fleet fault checkpoints replay probability and counts without consuming another namespace's stream", async () => {
+  const fleet = await startFleet(
+    { services: { fixture: { port: 0, seed: "fault-fixture" } } },
+    { load: async () => target() },
+  )
+  const origin = fleet.manifest.services.fixture?.url as string
+  const statuses = async (namespace: string) => {
+    const result: number[] = []
+    for (let i = 0; i < 16; i++)
+      result.push((await fetch(`${origin}/ns/${namespace}/things`)).status)
+    return result
+  }
+  try {
+    for (const namespace of ["worker-7", "other"]) {
+      const response = await fetch(`${origin}/ns/${namespace}/__admin/faults`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: `fault-${namespace}`, status: 503, rate: 0.5, count: 8 }),
+      })
+      expect(response.status).toBe(201)
+    }
+    const snapshot = (await (
+      await request(fleet, "/__fleet/namespaces/worker-7/snapshots", {})
+    ).json()) as { id: string }
+    await statuses("other")
+    const expected = await statuses("worker-7")
+    const other = await (await fetch(`${origin}/ns/other/__admin/faults`)).json()
+    expect(
+      (await request(fleet, `/__fleet/namespaces/worker-7/snapshots/${snapshot.id}/restore`, {}))
+        .ok,
+    ).toBe(true)
+    expect(await statuses("worker-7")).toEqual(expected)
+    expect(await (await fetch(`${origin}/ns/other/__admin/faults`)).json()).toEqual(other)
+    expect((await request(fleet, "/__fleet/namespaces/worker-7/reset", {})).ok).toBe(true)
+    expect(await statuses("worker-7")).toEqual(Array(16).fill(200))
+  } finally {
+    await fleet.close()
+  }
+})
+
+test("fleet snapshots report a conflict for an in-flight HTTP request", async () => {
+  let release = () => {}
+  let entered = () => {}
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const started = new Promise<void>((resolve) => {
+    entered = resolve
+  })
+  const delayed: ServeTarget = {
+    ...target(),
+    create: async (values, common) => {
+      const runtime = await target().create(values, common)
+      const instance = runtime.instance()
+      const fetch = instance.fetch.bind(instance)
+      instance.fetch = async (request) => {
+        entered()
+        await gate
+        return fetch(request)
+      }
+      return runtime
+    },
+  }
+  const fleet = await startFleet(
+    { services: { fixture: { port: 0 } } },
+    { load: async () => delayed },
+  )
+  const pending = fetch(`${fleet.manifest.services.fixture?.url}/things`, { method: "POST" })
+  try {
+    await started
+    const response = await request(fleet, "/__fleet/namespaces/default/snapshots", {})
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ services: { fixture: { activeRequests: 1 } } })
+  } finally {
+    release()
+    await pending
+    await fleet.close()
+  }
+})
+
+test("failed rollback never reports global success", async () => {
+  const bad: ServeTarget = {
+    ...target(),
+    create: async (values, common) => {
+      const runtime = await target().create(values, common)
+      runtime.reset = async () => {
+        throw new Error("fixture reset rejection")
+      }
+      runtime.fleetRestore = () => {
+        throw new Error("fixture restore rejection")
+      }
+      return runtime
+    },
+  }
+  const fleet = await startFleet({ services: { fixture: { port: 0 } } }, { load: async () => bad })
+  try {
+    expect(
+      await (await request(fleet, "/__fleet/namespaces/default/reset", {})).json(),
+    ).toMatchObject({
+      status: "failed",
+      failedService: "fixture",
+      rolledBack: false,
+      rollback: { fixture: "failed" },
+    })
   } finally {
     await fleet.close()
   }
