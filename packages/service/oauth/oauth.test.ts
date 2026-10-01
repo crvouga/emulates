@@ -239,6 +239,37 @@ describe("OAuth protocol", () => {
     expect(html).toContain('name="state" value="round-trip"')
     expect(response.headers.get("content-security-policy")).toContain("form-action com.acme.app:")
   })
+  test("browser callbacks use a provider handoff while programmatic clients keep redirects", async () => {
+    const browser = new OAuthAPI({
+      accounts: [account],
+      clients: [client],
+      nonce: () => "fixed-csp-nonce",
+    })
+    const tx = transaction(await (await authorize(browser)).text())
+    await browser.fetch(
+      request("/interaction", { transaction: tx, action: "select", account: "ada" }),
+    )
+    const handoff = await browser.fetch(
+      request(
+        "/interaction",
+        { transaction: tx, action: "allow" },
+        { "sec-fetch-mode": "navigate" },
+      ),
+    )
+    const location = handoff.headers.get("location") ?? ""
+    const html = await handoff.text()
+    expect(handoff.status).toBe(200)
+    expect(location.startsWith(callback)).toBe(true)
+    expect(handoff.headers.get("content-security-policy")).toContain("form-action 'none'")
+    expect(handoff.headers.get("referrer-policy")).toBe("no-referrer")
+    expect(html).toContain('data-testid="oauth-mock-redirect"')
+    expect(html).toContain('data-testid="oauth-mock-redirect-continue"')
+    expect(html).toContain('nonce="fixed-csp-nonce"')
+
+    const direct = await complete(api())
+    expect(direct.status).toBe(302)
+    expect(direct.headers.get("location")?.startsWith(callback)).toBe(true)
+  })
   test("refresh scope restriction and token-family revocation", async () => {
     const service = api()
     const tokens = await (
