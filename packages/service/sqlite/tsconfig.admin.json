@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "../..",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "DOM.AsyncIterable"]
+  },
+  "include": ["src/admin.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

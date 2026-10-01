@@ -128,6 +128,7 @@ export type {
 } from "./state-view.js"
 export { inspectState, STATE_FIELD_KINDS } from "./state-view.js"
 export type {
+  AdminExtension,
   AdminPanel,
   AdminUi,
   MockCheckpoint,

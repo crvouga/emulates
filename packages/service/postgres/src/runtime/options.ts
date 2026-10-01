@@ -32,6 +32,11 @@ export interface DatabaseOptions {
    * `"string"` is JSON-safe.
    */
   int8?: Int8Mode;
+  /**
+   * Retained timeline checkpoints. Branch heads and the origin pin are never
+   * collected. Default 1,000.
+   */
+  maxCheckpoints?: number;
 }
 
 /** Default {@link DatabaseOptions.seed} when constructing a {@link Database}. */

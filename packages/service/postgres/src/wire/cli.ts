@@ -3,13 +3,14 @@
  * `mockingbird-postgres serve --port <n>`: start the wire-protocol server (see ./index.ts).
  *
  *   mockingbird-postgres serve                 # a free port on 127.0.0.1, printed as a URL
+ *   mockingbird-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
  *   mockingbird-postgres serve --port 55432 --host 0.0.0.0 --password secret --log
  *
  * The connection string it prints works with `pg`, `postgres.js`, JDBC and `psql`.
  */
 import { type ServeOptions, serve } from "./index.ts";
 
-const usage = `mockingbird-postgres serve [--port <n>] [--host <h>] [--password <p>] [--server-version <v>] [--log]`;
+const usage = `mockingbird-postgres serve [postgres://URI] [--port <n>] [--host <h>] [--password <p>] [--server-version <v>] [--log]`;
 
 const args = process.argv.slice(2);
 if (args[0] !== "serve") {
@@ -21,6 +22,10 @@ const options: ServeOptions = {};
 let log = false;
 for (let i = 1; i < args.length; i++) {
   const flag = args[i];
+  if (flag !== undefined && (flag.startsWith("postgres://") || flag.startsWith("postgresql://"))) {
+    options.url = flag;
+    continue;
+  }
   const value = args[i + 1];
   const need = (): string => {
     if (value === undefined) {
@@ -60,8 +65,7 @@ if (log) {
 }
 
 const server = await serve(options);
-const auth = options.password ? `postgres:${options.password}@` : "postgres@";
-console.log(`mockingbird-postgres listening on postgres://${auth}${server.host}:${server.port}/postgres`);
+console.log(`mockingbird-postgres listening on ${server.connectionString}`);
 
 const stop = async () => {
   await server.close();

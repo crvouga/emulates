@@ -10,6 +10,7 @@ const build = Bun.spawn(
     "esbuild",
     "src/index.ts",
     "src/unstable.ts",
+    "src/admin.ts",
     "--bundle",
     "--format=esm",
     "--outdir=dist",
@@ -22,7 +23,27 @@ const build = Bun.spawn(
 const code = await build.exited;
 if (code !== 0) process.exit(code);
 
+const socketBuild = Bun.spawn(
+  [
+    "bunx",
+    "esbuild",
+    "src/socket/index.ts",
+    "src/socket/cli.ts",
+    "--bundle",
+    "--format=esm",
+    "--outdir=dist/socket",
+    "--platform=node",
+    "--target=node20",
+    "--external:node:*",
+    "--sourcemap",
+  ],
+  { stdout: "inherit", stderr: "inherit" },
+);
+const socketCode = await socketBuild.exited;
+if (socketCode !== 0) process.exit(socketCode);
+
 await $`tsc -p tsconfig.build.json`;
+await $`tsc -p tsconfig.build.socket.json`;
 
 // tsc keeps `.ts` specifiers in .d.ts even with rewriteRelativeImportExtensions
 // when the source uses allowImportingTsExtensions. Consumers resolve `.js` → `.d.ts`.
@@ -42,6 +63,24 @@ if (rewritten === 0) {
   process.exit(1);
 }
 
+await Bun.write(
+  "dist/admin.d.ts",
+  `import type { Database, DatabaseOptions } from "./api/database.js";
+
+export interface AdminOptions {
+  database?: Database;
+  adminKey?: string;
+  databaseOptions?: DatabaseOptions;
+}
+
+export interface AdminServer {
+  fetch(request: Request): Promise<Response>;
+}
+
+export declare function createAdmin(options?: AdminOptions): AdminServer;
+`,
+);
+
 const mod = await import(new URL("../dist/index.js", import.meta.url).href);
 if (typeof mod.Database !== "function") {
   console.error("Build incomplete: Database export missing at runtime");
@@ -51,6 +90,18 @@ if (typeof mod.Database !== "function") {
 const unstable = await import(new URL("../dist/unstable.js", import.meta.url).href);
 if (typeof unstable.parse !== "function") {
   console.error("Build incomplete: unstable.parse export missing at runtime");
+  process.exit(1);
+}
+
+const admin = await import(new URL("../dist/admin.js", import.meta.url).href);
+if (typeof admin.createAdmin !== "function") {
+  console.error("Build incomplete: createAdmin export missing at runtime");
+  process.exit(1);
+}
+
+const socket = await import(new URL("../dist/socket/index.js", import.meta.url).href);
+if (typeof socket.serve !== "function" || typeof socket.connect !== "function") {
+  console.error("Build incomplete: socket serve/connect export missing at runtime");
   process.exit(1);
 }
 

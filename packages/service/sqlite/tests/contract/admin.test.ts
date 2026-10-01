@@ -1,0 +1,85 @@
+import { describe, expect, test } from "bun:test";
+import { STANDARD_ADMIN_ROUTES } from "../../../core/src/surface.ts";
+import { createAdmin } from "../../src/admin.ts";
+import { Database } from "../../src/index.ts";
+
+const request = (path: string, init?: RequestInit): Request => new Request(`http://mock${path}`, init);
+
+describe("sqlite admin", () => {
+  test("lists the shared admin routes and runs SQL", async () => {
+    const db = new Database();
+    db.exec("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)");
+    db.exec("INSERT INTO users (name) VALUES ('Ada')");
+    const admin = createAdmin({ database: db });
+    const listed = (await (await admin.fetch(request("/__admin"))).json()) as { routes: string[] };
+    for (const route of STANDARD_ADMIN_ROUTES) expect(listed.routes).toContain(route);
+    expect(listed.routes).toContain("GET /sql/tables");
+    expect(listed.routes).toContain("POST /sql/query");
+
+    const tables = (await (await admin.fetch(request("/__admin/sql/tables"))).json()) as {
+      tables: { schema: string; name: string }[];
+    };
+    expect(tables.tables).toContainEqual(expect.objectContaining({ schema: "main", name: "users" }));
+
+    const opened = (await (await admin.fetch(request("/__admin/sql/tables/main/users?limit=50"))).json()) as {
+      columns: string[];
+      rows: { name: string }[];
+      total: number;
+    };
+    expect(opened.columns).toContain("name");
+    expect(opened.total).toBe(1);
+    expect(opened.rows[0]?.name).toBe("Ada");
+    expect((await admin.fetch(request("/__admin/sql/tables/main/missing"))).status).toBe(400);
+
+    const queried = await admin.fetch(
+      request("/__admin/sql/query", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sql: "SELECT name FROM users" }),
+      }),
+    );
+    expect(await queried.json()).toMatchObject({ rows: [{ name: "Ada" }] });
+    const broken = await admin.fetch(
+      request("/__admin/sql/query", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sql: "SELECT nope FROM missing" }),
+      }),
+    );
+    expect(broken.status).toBe(400);
+
+    const state = (await (await admin.fetch(request("/__admin/state"))).json()) as {
+      collections: { name: string; count: number }[];
+    };
+    expect(state.collections).toContainEqual(expect.objectContaining({ name: "main.users", count: 1 }));
+
+    const denied = await admin.fetch(
+      request("/__admin/state/main.users", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: "Grace" }),
+      }),
+    );
+    expect(denied.status).toBe(400);
+
+    const saved = (await (
+      await admin.fetch(request("/__admin/checkpoints", { method: "POST", body: "{}" }))
+    ).json()) as { id: string };
+    db.exec("INSERT INTO users (name) VALUES ('Grace')");
+    const restored = await admin.fetch(
+      request("/__admin/branches/main/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ checkpoint: saved.id }),
+      }),
+    );
+    expect(restored.status).toBe(200);
+    expect(db.query("SELECT name FROM users ORDER BY name")).toEqual([{ name: "Ada" }]);
+
+    const shell = await admin.fetch(request("/__admin/ui"));
+    expect(shell.headers.get("content-type")).toContain("text/html");
+    const html = await shell.text();
+    expect(html).toContain("sql-layout");
+    expect(html).toContain("function mountSqlExplorer");
+  });
+});

@@ -22,6 +22,11 @@ export interface DatabaseOptions {
    * Pass a `Date`, `() => Date`, or `"system"` for wall-clock `'now'` like SQLite.
    */
   now?: Date | Clock | "system";
+  /**
+   * Retained timeline checkpoints. Branch heads and the origin pin are never
+   * collected. Default 1,000.
+   */
+  maxCheckpoints?: number;
 }
 
 /** Default {@link DatabaseOptions.seed} when constructing a {@link Database}. */

@@ -46,6 +46,19 @@ export type ServeOptions = {
   parameters?: Record<string, string>;
   /** Per-statement log sink, for tests and debugging. */
   onLog?: (entry: ServerLog) => void;
+  /**
+   * `postgres://` or `postgresql://` URL. User, password, host, port, and database name
+   * fill the fields above when those fields are omitted. An omitted port means `5432`;
+   * pass port `0` in the URL (`postgres://postgres@127.0.0.1:0/app`) for an ephemeral port.
+   */
+  url?: string;
+  /**
+   * Database name clients must request in the startup packet. A different name is
+   * SQLSTATE `3D000`. Set from `url` when the path is non-empty. Unset accepts any name.
+   */
+  databaseName?: string;
+  /** Role shown in `connectionString`. A URI's username fills this. Default `postgres`. */
+  user?: string;
 };
 
 export type PostgresServer = {
@@ -53,6 +66,8 @@ export type PostgresServer = {
   readonly port: number;
   /** The bound host. */
   readonly host: string;
+  /** `postgres://` URL for the bound address, including the database name. */
+  readonly connectionString: string;
   /** The shared engine, for seeding, snapshotting or asserting from the test process. */
   readonly database: Database;
   /** The underlying `net.Server`. */
@@ -67,16 +82,60 @@ export type PostgresServer = {
   close(): Promise<void>;
 };
 
+export type ServeInput = ServeOptions | string;
+
+const parseUri = (raw: string): ServeOptions => {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error(`invalid postgres URI: ${raw}`);
+  }
+  if (url.protocol !== "postgres:" && url.protocol !== "postgresql:") {
+    throw new Error(`unsupported postgres URI protocol ${url.protocol}`);
+  }
+  const databaseName = decodeURIComponent(url.pathname.replace(/^\//, ""));
+  const password = url.password === "" ? undefined : decodeURIComponent(url.password);
+  const user = decodeURIComponent(url.username || "postgres");
+  const port = url.port === "" ? 5432 : Number(url.port);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error(`invalid postgres URI port: ${url.port}`);
+  return {
+    host: url.hostname || "127.0.0.1",
+    port,
+    user,
+    ...(password !== undefined ? { password } : {}),
+    ...(databaseName !== "" ? { databaseName } : {}),
+  };
+};
+
+const normalize = (input: ServeInput): ServeOptions => {
+  if (typeof input === "string") return parseUri(input);
+  if (input.url === undefined) return input;
+  const parsed = parseUri(input.url);
+  return {
+    ...parsed,
+    ...input,
+    host: input.host ?? parsed.host,
+    port: input.port ?? parsed.port,
+    password: input.password ?? parsed.password,
+    databaseName: input.databaseName ?? parsed.databaseName,
+    user: input.user ?? parsed.user,
+    parameters: input.parameters ?? parsed.parameters,
+  };
+};
+
 const isSnapshot = (value: unknown): value is Snapshot =>
   typeof value === "object" && value !== null && "open" in value && typeof (value as Snapshot).open === "function";
 
-/** Start a server and resolve once it is listening. */
-export const serve = (options: ServeOptions = {}): Promise<PostgresServer> => {
+/** Start a server and resolve once it is listening. A string argument is a `postgres://` URI. */
+export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
+  const options = normalize(input);
   const database = isSnapshot(options.database) ? options.database.open() : (options.database ?? new Database());
   const cluster = new Cluster(database);
   const faults: ServerFaults = {};
   const connections = new Set<Connection>();
   const host = options.host ?? "127.0.0.1";
+  const user = options.user || "postgres";
 
   const server = createServer((socket: Socket) => {
     socket.setNoDelay(true);
@@ -85,6 +144,7 @@ export const serve = (options: ServeOptions = {}): Promise<PostgresServer> => {
       serverVersion: options.serverVersion ?? "18.3",
       parameters: options.parameters ?? {},
       faults,
+      ...(options.databaseName !== undefined ? { database: options.databaseName } : {}),
       ...(options.onLog ? { onLog: options.onLog } : {}),
     });
     connections.add(connection);
@@ -97,9 +157,14 @@ export const serve = (options: ServeOptions = {}): Promise<PostgresServer> => {
       server.removeListener("error", reject);
       const address = server.address();
       const port = typeof address === "object" && address !== null ? address.port : 0;
+      const name = options.databaseName ?? "postgres";
+      const auth = options.password
+        ? `${encodeURIComponent(user)}:${encodeURIComponent(options.password)}@`
+        : `${encodeURIComponent(user)}@`;
       resolve({
         port,
         host,
+        connectionString: `postgres://${auth}${host}:${port}/${encodeURIComponent(name)}`,
         database,
         server,
         get connections() {

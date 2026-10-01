@@ -27,6 +27,11 @@
       "types": "./dist/wire/index.d.ts",
       "import": "./dist/wire/index.js",
       "default": "./dist/wire/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin.d.ts",
+      "import": "./dist/admin.js",
+      "default": "./dist/admin.js"
     }
   },
   "files": [
@@ -98,6 +103,8 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.8",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-ui": "workspace:*",
     "@electric-sql/pglite": "^0.5.5",
     "@types/bun": "latest",

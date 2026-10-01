@@ -10,6 +10,7 @@ const build = Bun.spawn(
     "esbuild",
     "src/index.ts",
     "src/unstable.ts",
+    "src/admin.ts",
     "--bundle",
     "--format=esm",
     "--outdir=dist",
@@ -34,7 +35,7 @@ const serverBuild = Bun.spawn(
     "--outdir=dist/wire",
     "--platform=node",
     "--target=node20",
-    "--packages=external",
+    "--external:node:*",
     "--sourcemap",
   ],
   { stdout: "inherit", stderr: "inherit" },
@@ -63,6 +64,26 @@ if (rewritten === 0) {
   process.exit(1);
 }
 
+// tsc would re-export the private admin helper. Publish a declaration that only
+// names this package's Database.
+await Bun.write(
+  "dist/admin.d.ts",
+  `import type { Database, DatabaseOptions } from "./api/database.js";
+
+export interface AdminOptions {
+  database?: Database;
+  adminKey?: string;
+  databaseOptions?: DatabaseOptions;
+}
+
+export interface AdminServer {
+  fetch(request: Request): Promise<Response>;
+}
+
+export declare function createAdmin(options?: AdminOptions): AdminServer;
+`,
+);
+
 const mod = await import(new URL("../dist/index.js", import.meta.url).href);
 if (typeof mod.Database !== "function") {
   console.error("Build incomplete: Database export missing at runtime");
@@ -78,6 +99,12 @@ if (typeof unstable.parse !== "function") {
 const server = await import(new URL("../dist/wire/index.js", import.meta.url).href);
 if (typeof server.serve !== "function") {
   console.error("Build incomplete: server serve export missing at runtime");
+  process.exit(1);
+}
+
+const admin = await import(new URL("../dist/admin.js", import.meta.url).href);
+if (typeof admin.createAdmin !== "function") {
+  console.error("Build incomplete: createAdmin export missing at runtime");
   process.exit(1);
 }
 

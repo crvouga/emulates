@@ -1,9 +1,11 @@
+import { type Checkpoint, Timeline } from "@crvouga/mockingbird-core";
 import { SqliteError } from "../errors/index.ts";
 import { parseUnits } from "../parser/index.ts";
 import {
   type Clock,
   type DatabaseOptions,
   DEFAULT_DATABASE_SEED,
+  fixedClock,
   OsEntropy,
   Prng,
   type RandomMode,
@@ -27,10 +29,29 @@ interface AdoptedDatabase {
   readonly systemClock: boolean;
 }
 
+/** A timeline checkpoint without its retained snapshot value. */
+export interface HistoryCheckpoint {
+  id: string;
+  branch: string;
+  parent: string | null;
+  at: number;
+}
+
+/** Branch heads and checkpoints owned by the shared Timeline. */
+export interface DatabaseHistory {
+  readonly size: number;
+  head(branch?: string): HistoryCheckpoint | undefined;
+  branches(): Readonly<Record<string, string>>;
+  checkpoints(): readonly HistoryCheckpoint[];
+}
+
 /** Additive time-travel controls for read APIs. */
 export interface QueryOptions {
-  /** Execute against this immutable checkpoint instead of the live database. */
-  at?: Snapshot;
+  /**
+   * Execute against this immutable snapshot, or a timeline checkpoint id,
+   * instead of the live database.
+   */
+  at?: Snapshot | string;
 }
 
 /**
@@ -81,6 +102,10 @@ export class Database {
   private transactionSequence = 0;
   /** Depth of active {@link transaction} callbacks (not SQL BEGIN). */
   private apiTransactionDepth = 0;
+  /** @internal Shared checkpoint DAG. Omitted from published declarations. */
+  readonly timeline: Timeline<Snapshot>;
+  private historyBranch = "main";
+  private originId = "";
 
   /**
    * Create an empty in-memory database.
@@ -96,15 +121,22 @@ export class Database {
       this.now = options.now;
       this.state = options.state;
       this.transactions = new TransactionManager(this.state, this.prng);
-      return;
+    } else {
+      this.seed = options.seed ?? DEFAULT_DATABASE_SEED;
+      this.randomMode = options.random ?? "deterministic";
+      this.systemClock = options.now === "system";
+      this.prng = this.randomMode === "os" ? new OsEntropy() : new Prng(this.seed);
+      this.now = resolveClock(options.now);
+      this.state = new DatabaseState();
+      this.transactions = new TransactionManager(this.state, this.prng);
     }
-    this.seed = options.seed ?? DEFAULT_DATABASE_SEED;
-    this.randomMode = options.random ?? "deterministic";
-    this.systemClock = options.now === "system";
-    this.prng = this.randomMode === "os" ? new OsEntropy() : new Prng(this.seed);
-    this.now = resolveClock(options.now);
-    this.state = new DatabaseState();
-    this.transactions = new TransactionManager(this.state, this.prng);
+    this.timeline = new Timeline<Snapshot>({
+      now: () => this.now().getTime(),
+      ...(options.maxCheckpoints !== undefined ? { maxCheckpoints: options.maxCheckpoints } : {}),
+    });
+    const origin = this.timeline.commit(this.captureLive());
+    this.originId = origin.id;
+    this.timeline.retain(origin.id);
   }
 
   /**
@@ -136,7 +168,15 @@ export class Database {
    */
   query<T = QueryRow>(sql: string, params: readonly BindValue[] = [], options: QueryOptions = {}): T[] {
     this.assertOpen();
-    if (options.at) return options.at.open().query<T>(sql, params);
+    const at = options.at;
+    if (typeof at === "string") {
+      try {
+        return this.timeline.get(at).value.open().query<T>(sql, params);
+      } catch (error) {
+        this.historyError(error);
+      }
+    }
+    if (at) return at.open().query<T>(sql, params);
     return this.prepareSingle(sql).all<T>(...params);
   }
 
@@ -201,16 +241,83 @@ export class Database {
    * @throws {SqliteError} If the database is closed or a transaction is open.
    */
   snapshot(): Snapshot {
-    this.assertOpen();
-    if (this.transactions.inTransaction) {
-      throw new SqliteError("cannot snapshot during a transaction", "transaction");
-    }
-    return captureSnapshot(this.state, this.prng, this.now, this.seed, this.randomMode, this.systemClock);
+    const point = this.record(this.historyBranch);
+    return this.timeline.get(point.id).value;
   }
 
   /** Alias for {@link snapshot}, naming the value as a timeline checkpoint. */
   checkpoint(): Snapshot {
     return this.snapshot();
+  }
+
+  /**
+   * Commit the live state onto `branch` (default: the branch this database follows).
+   * Does not switch the live database. Illegal inside a transaction.
+   */
+  record(branch = this.historyBranch): HistoryCheckpoint {
+    this.assertOpen();
+    if (this.transactions.inTransaction) {
+      throw new SqliteError("cannot snapshot during a transaction", "transaction");
+    }
+    try {
+      return project(this.timeline.commit(this.captureLive(), { branch }));
+    } catch (error) {
+      this.historyError(error);
+    }
+  }
+
+  /** Point `name` at a checkpoint without copying rows or switching the live database. */
+  fork(name: string, at?: string): HistoryCheckpoint {
+    this.assertOpen();
+    try {
+      const point = this.timeline.fork(name, at !== undefined ? { from: at } : {});
+      if (!point) throw new SqliteError("no checkpoint to fork from", "misuse");
+      return project(point);
+    } catch (error) {
+      if (error instanceof SqliteError) throw error;
+      this.historyError(error);
+    }
+  }
+
+  /** Move `branch` to `id` and install that checkpoint as the live database. */
+  checkout(id: string, branch = this.historyBranch): HistoryCheckpoint {
+    this.assertOpen();
+    if (this.transactions.inTransaction) {
+      throw new SqliteError("cannot checkout during a transaction", "transaction");
+    }
+    try {
+      const point = this.timeline.checkout(branch, id);
+      this.historyBranch = branch;
+      this.install(point.value);
+      return project(point);
+    } catch (error) {
+      this.historyError(error);
+    }
+  }
+
+  /** Return the live database to the origin checkpoint on `main`. */
+  reset(): HistoryCheckpoint {
+    return this.checkout(this.originId, "main");
+  }
+
+  /** Checkpoint ids and branch heads. Values stay inside the timeline. */
+  get history(): DatabaseHistory {
+    const timeline = this.timeline;
+    return {
+      get size() {
+        return timeline.size;
+      },
+      head(branch?: string) {
+        const point = timeline.head(branch);
+        return point ? project(point) : undefined;
+      },
+      branches() {
+        return timeline.branches();
+      },
+      checkpoints() {
+        return timeline.checkpoints().map(project);
+      },
+    };
   }
 
   /** Open a copy-on-write branch from `at`, or from the current state when omitted. */
@@ -273,6 +380,21 @@ export class Database {
     if (this.closed) throw new SqliteError("Database is closed", "misuse");
   }
 
+  private historyError(error: unknown): never {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new SqliteError(message, "misuse");
+  }
+
+  private captureLive(): Snapshot {
+    return captureSnapshot(this.state, this.prng, this.now, this.seed, this.randomMode, this.systemClock);
+  }
+
+  private install(snapshot: Snapshot): void {
+    this.state.replaceWith(snapshot.state.cloneShallow(), { adopt: true });
+    this.prng.setState(snapshot.prngState);
+    if (!this.systemClock) this.now = fixedClock(new Date(snapshot.nowMs));
+  }
+
   private prepareSingle(sql: string): Statement {
     const units = parseUnits(sql);
     if (units.length === 0) {
@@ -303,6 +425,10 @@ if (typeof disposeKey === "symbol") {
 
 function isAdopted(value: object): value is AdoptedDatabase {
   return ADOPT in value;
+}
+
+function project(point: Checkpoint<Snapshot>): HistoryCheckpoint {
+  return { id: point.id, branch: point.branch, parent: point.parent, at: point.at };
 }
 
 /** @internal Used by {@link Snapshot.open}. */

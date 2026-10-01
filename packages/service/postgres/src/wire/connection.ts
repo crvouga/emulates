@@ -55,6 +55,11 @@ export type ConnectionOptions = {
   parameters: Record<string, string>;
   faults: ServerFaults;
   onLog?: (entry: ServerLog) => void;
+  /**
+   * When set, a startup packet that names a different database is fatal `3D000`.
+   * Unset accepts any database name.
+   */
+  database?: string;
 };
 
 const TX_CONTROL = /^(begin|start\s+transaction|commit|end|rollback|abort|savepoint|release)\b/i;
@@ -391,6 +396,11 @@ export class Connection implements Session {
       return;
     }
     this.user = parameters.user ?? "postgres";
+    const requested = parameters.database && parameters.database.length > 0 ? parameters.database : this.user;
+    if (this.options.database !== undefined && requested !== this.options.database) {
+      this.fatal("3D000", `database "${requested}" does not exist`);
+      return;
+    }
     if (this.options.password !== undefined) {
       this.scram = new ScramServer(this.options.password);
       this.write(backend.authenticationSASL(["SCRAM-SHA-256"]));

@@ -16,6 +16,7 @@
  *   7. only mock services (`@crvouga/mockingbird-service-<name>`) are published; a
  *      service that imports private helper packages builds with
  *      scripts/bundle-service.ts, which inlines them into its `dist`.
+ *      Postgres and SQLite bundle the same way from scripts/build.ts.
  *
  *   bun run check:boundaries
  */
@@ -120,9 +121,13 @@ for (const pkg of packages.values()) {
   }
 }
 
-/** Private workspace packages a published service inlines into its bundle. */
+/**
+ * Private workspace packages a published service inlines into its bundle.
+ * `bundle-service.ts` is the usual build. Postgres and SQLite esbuild their
+ * own bundles from `scripts/build.ts` and inline the same private helpers.
+ */
 const bundled = (pkg: Pkg): string[] =>
-  pkg.public && pkg.build === BUNDLE_BUILD
+  pkg.public && (pkg.build === BUNDLE_BUILD || pkg.build === "bun run scripts/build.ts")
     ? [...pkg.devDependencies].filter((d) => packages.get(d)?.private === true)
     : []
 

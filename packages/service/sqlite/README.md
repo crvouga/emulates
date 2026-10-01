@@ -145,16 +145,39 @@ The mocks create their own tables (`mockingbird_records`, `mockingbird_sequences
 resetting one mock leaves the others' data in a shared database intact. Any other client with the same sync surface (better-sqlite3, a
 wrapped `bun:sqlite`) also satisfies the port.
 
+### Socket
+
+SQLite has no client/server protocol, so the stock `sqlite3` CLI cannot attach to this
+engine. `@crvouga/mockingbird-service-sqlite/socket` is a Node entry (it needs `node:net`)
+that listens on `sqlite://host:port/name` and speaks a length-prefixed JSON frame. The
+in-package `connect(uri)` client runs statements against it. Portable queries, including
+from a browser, go through the admin API (`POST /__admin/sql/query`) instead.
+
+```ts
+import { connect, serve } from "@crvouga/mockingbird-service-sqlite/socket"
+
+const server = await serve("sqlite://127.0.0.1:0/app")
+const db = await connect(server.url)
+await db.exec("CREATE TABLE notes (body TEXT)")
+await db.close()
+await server.close()
+```
+
+`mockingbird-sqlite serve` prints that URI. `createAdmin` from
+`@crvouga/mockingbird-service-sqlite/admin` serves the same `/__admin` surface as every
+other mock, including the table explorer.
+
 ### Method semantics
 
 | Method | Behaviour |
 | --- | --- |
 | `exec(sql)` | Runs all semicolon-separated statements; **discards** row results (`void`). Does **not** accept bind parameters. Read `db.changes` / `db.lastInsertRowid` afterwards if needed (counters reflect the **most recent** completed statement, matching SQLite). |
-| `query(sql, params?, { at? }?)` | **Single statement only** (trailing `;` is fine). Returns all rows. `at` queries an immutable checkpoint without changing live state. Multi-statement scripts throw `misuse`. |
+| `query(sql, params?, { at? }?)` | **Single statement only** (trailing `;` is fine). Returns all rows. `at` is a `Snapshot` or a timeline checkpoint id and queries that checkpoint without changing live state. Multi-statement scripts throw `misuse`. |
 | `prepare(sql)` | **Single statement only**. Parses immediately; the AST is reused. Pass binds as rest args to `run` / `all` / `get` / `result` on each call. |
 | `transaction(fn)` | If idle: `BEGIN`, `fn()`, `COMMIT`, or `ROLLBACK` + rethrow. If already in a transaction: nested savepoint. A nested SQL `BEGIN` still errors. `close()` inside `fn` throws `misuse`. |
-| `snapshot()` | Freeze a reusable `Snapshot` template (no encode). Illegal inside a transaction. |
-| `checkpoint()` / `branch(at?)` | Name a COW snapshot as a checkpoint; open an isolated branch from it (or current state). |
+| `snapshot()` | Freeze a reusable `Snapshot` template (no encode) and commit it on the followed timeline branch. Illegal inside a transaction. |
+| `checkpoint()` / `branch(at?)` | `checkpoint` records the same timeline point as `snapshot`. `branch` opens an isolated database from a snapshot (or the current state). |
+| `record(branch?)` / `fork(name, at?)` / `checkout(id, branch?)` / `reset()` | Timeline history on this database. `record` commits the live state. `fork` adds a branch pointer and does not switch live state. `checkout` installs a checkpoint. `reset` returns to the origin checkpoint on `main`. `history` lists heads and checkpoints. |
 | `Snapshot.open()` | Copy-on-write fork from a template. The parent stays open. |
 | `Snapshot.encode()` | Lazy SQLM blob for persistence / worker boot (computed once, cached). |
 | `Snapshot.decode(bytes)` | Decode a blob once per `Uint8Array` (WeakMap); later `open()` calls are copy-on-write. |
@@ -303,16 +326,22 @@ interface DatabaseOptions {
   seed?: number | bigint                 // default 1; ignored when random is "os"
   random?: "deterministic" | "os"        // default "deterministic"; "os" is CSPRNG like SQLite
   now?: Date | (() => Date) | "system"   // default 2000-01-01T00:00:00.000Z; "system" is wall clock
+  maxCheckpoints?: number                // timeline checkpoints to retain; default 1000
 }
 
 declare class Database {
   constructor(options?: DatabaseOptions)
   exec(sql: string): void
-  query<T = QueryRow>(sql: string, params?: readonly BindValue[], options?: { at?: Snapshot }): T[]
+  query<T = QueryRow>(sql: string, params?: readonly BindValue[], options?: { at?: Snapshot | string }): T[]
   prepare(sql: string): Statement
   transaction<T>(fn: () => T): T
   snapshot(): Snapshot
   checkpoint(): Snapshot
+  record(branch?: string): HistoryCheckpoint
+  fork(name: string, at?: string): HistoryCheckpoint
+  checkout(id: string, branch?: string): HistoryCheckpoint
+  reset(): HistoryCheckpoint
+  readonly history: DatabaseHistory
   branch(at?: Snapshot): Database
   close(): void                             // also [Symbol.dispose] when available
   readonly changes: number
