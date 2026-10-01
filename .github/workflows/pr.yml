@@ -8,8 +8,7 @@
 # by the GitGuardian app, not by a job in this file.
 #
 # Together the Static and Shard jobs run exactly `bun run check` (scripts/ci-plan.ts splits it and
-# fails on drift), spread over parallel runners. Release readiness prevents a new package from
-# merging when the one-time npm bootstrap credential is absent. Changes decides what a change needs from
+# fails on drift), spread over parallel runners. Changes decides what a change needs from
 # Turborepo's dependency graph: the Shard jobs run only the packages a change reaches (each changed
 # package and everything that depends on it), and skip entirely when it reaches none; turbo's
 # content hashes then replay what did not change inside those. Non-blocking checks (live parity,
@@ -95,26 +94,6 @@ jobs:
           subjectPatternError: |
             The PR title "{title}" looks empty after the type/scope prefix.
             Use a Conventional Commits title, e.g. "feat: add junction mock".
-
-  release_ready:
-    name: Release readiness
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - uses: ./.github/actions/setup
-        with:
-          turbo-cache: "false"
-
-      # Do not expose the credential to PR code. Only disclose whether main's release can perform
-      # the one-time creation of a package that does not exist on npm yet.
-      - name: Check planned packages can be published
-        env:
-          NPM_TOKEN_PRESENT: ${{ secrets.NPM_TOKEN != '' }}
-        run: bun run release:plan -- --check-publishable
 
   # Format, lint, boundaries and generated-file drift: no build, so it never waits on Changes.
   static:
@@ -211,7 +190,7 @@ jobs:
   check:
     name: Check
     if: always()
-    needs: [changes, release_ready, static, shard, smoke]
+    needs: [changes, static, shard, smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -225,7 +204,6 @@ jobs:
               .[$job].result == "success"
               or (.[$job].result == "skipped" and .changes.outputs[$needed] == "false");
             .changes.result == "success"
-            and .release_ready.result == "success"
             and .static.result == "success"
             and ran_or_not_needed("shard"; "shards")
             and ran_or_not_needed("smoke"; "smoke")

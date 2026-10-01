@@ -4,7 +4,7 @@
  * Only mock services (`@crvouga/mockingbird-service-*`) are published; every other
  * workspace package is private and bundled into the services. Reconciling means:
  *   - publish every service that is not on npm yet (Trusted Publishing (OIDC) cannot
- *     create packages, so without an NPM_TOKEN Actions secret a maintainer does it once),
+ *     create packages, so a maintainer does it once with an interactive npm login),
  *   - attach the GitHub Actions Trusted Publisher to every published service,
  *   - deprecate every package this repo no longer publishes (private helpers still on
  *     npm, and the archived @crvouga/postgres-mem / @crvouga/sqlite-mem).
@@ -43,7 +43,8 @@ function npmIsRecentEnough(version: string): boolean {
 
 const scratch = mkdtempSync(join(tmpdir(), "mockingbird-seed-"))
 const worktree = join(scratch, "main")
-const env: Record<string, string | undefined> = { ...process.env, NPM_TOKEN: "" }
+const env: Record<string, string | undefined> = { ...process.env }
+delete env.NODE_AUTH_TOKEN
 
 try {
   // 1. npm new enough for `npm trust`.

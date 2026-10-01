@@ -50,7 +50,7 @@ const GAP_SUMMARY: Record<PublisherGap, string> = {
   environment:
     "GitHub Actions publisher is limited to an environment. The Release workflow sets none. On the access page, clear Environment and allow npm publish.",
   "not-published":
-    "Not on npm yet, so there is no access page until the first publish (bun run release:bootstrap).",
+    "Not on npm yet, so there is no access page until the interactive first publish (bun run release:seed).",
 }
 
 export function accessUrl(name: string): string {

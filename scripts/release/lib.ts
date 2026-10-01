@@ -323,22 +323,20 @@ export async function npmVersions(name: string): Promise<string[] | { error: str
 }
 
 /**
- * Why a package cannot be published with the credentials this run has, or null.
+ * Why a package cannot be published from this run, or null.
  * Trusted Publishing (OIDC) can only publish new versions of a package that exists on npm;
- * creating one needs NPM_TOKEN or a local npm login. Only that package is blocked: the rest of
- * the run keeps releasing (docs/RELEASING.md).
+ * creating one needs an interactive local npm login. Only that package is blocked: the rest
+ * of the run keeps releasing (docs/RELEASING.md).
  */
 export function initialPackageBlocker(
   published: string[],
-  auth: { inCi: boolean; local: boolean; dryRun: boolean; npmToken: string },
+  run: { inCi: boolean; local: boolean; dryRun: boolean },
 ): string[] | null {
-  if (published.length > 0 || !auth.inCi || auth.local || auth.dryRun || auth.npmToken) return null
+  if (published.length > 0 || !run.inCi || run.local || run.dryRun) return null
   return [
     "package does not exist on npm yet, and Trusted Publishing (OIDC) cannot create packages.",
-    "Fix once, either way:",
-    "  - run `bun run release:bootstrap` to store an npm granular access token (read+write,",
-    `    @crvouga scope) as the NPM_TOKEN Actions secret on ${REPO}, then re-run this workflow; or`,
-    "  - locally, from any checkout: bun run release:seed",
+    "First-publish it with an interactive maintainer login, attach this workflow as its Trusted",
+    "Publisher, then re-run CI: bun run release:seed",
   ]
 }
 

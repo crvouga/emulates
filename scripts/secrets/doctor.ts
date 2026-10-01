@@ -46,8 +46,8 @@ for (const pkg of discoverPackages().filter((p) => p.isPublic)) {
     results.push({
       id: `npm:${pkg.name}`,
       status: "warn",
-      message: `${pkg.name} is not on npm yet — the next release creates it`,
-      details: ["Needs the NPM_TOKEN repo secret (bun run release:bootstrap)"],
+      message: `${pkg.name} is not on npm yet`,
+      details: ["First-publish it interactively with bun run release:seed"],
     })
   }
 }
