@@ -65,7 +65,7 @@ The oracle exposes **2787 builtin functions** and **74 operators** in `pg_catalo
 | `CREATE EXTENSION pgcrypto` / `digest()` | PARTIALLY VERIFIED | `digest(bytea, text)` and `digest(text, text)` for md5, sha1, sha224, sha256, sha384, sha512. `crypt`, `hmac`, `gen_salt`, and PGP functions are not installed. OpenSSL-only names (sha3, blake2, ripemd160, sm3) are not available. Extensions other than `pgcrypto` and `pg_trgm` still fail loud (`0A000`) |
 | `CREATE EXTENSION pg_trgm` | PARTIALLY VERIFIED | `similarity(text, text)`, `<%` at the default word-similarity threshold 0.6, and a single-column `gin_trgm_ops` index on `text` or `varchar`. `gist_trgm_ops`, multicolumn `gin_trgm_ops`, and non-default thresholds are not installed. |
 | COPY FROM/TO (text, csv) | VERIFIED | Via `copyFrom` API hook / rows out |
-| PREPARE / EXECUTE / DEALLOCATE, SET / SHOW / RESET | VERIFIED | GUC subset |
+| PREPARE / EXECUTE / DEALLOCATE, SET / SHOW / RESET | VERIFIED | GUC subset, including PostgreSQL dump and migration-client preambles |
 | Transactions / savepoints | VERIFIED | No `25P02` aborted state (documented divergence) |
 | Collation / ordering | PARTIALLY VERIFIED | `C` semantics pinned; locale/ICU out of scope |
 | Regex (`~`, `~*`, POSIX functions) | PARTIALLY VERIFIED | JS regex flavor mapped to POSIX ERE; documented edges |
