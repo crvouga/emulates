@@ -103,3 +103,17 @@ export function consentPage(
     "oauth-mock-consent",
   )
 }
+
+export function redirectPage(location: string, nonce: string): Response {
+  const response = page(
+    "Continue to your app",
+    `<span class="eyebrow">All set</span><h1 id="title">Back to your app</h1><p>Your sign-in response is ready.</p><a class="primary" id="callback" data-testid="oauth-mock-redirect-continue" href="${escapeHtml(location)}">Continue</a><script nonce="${nonce}">location.replace(document.getElementById('callback').href)</script>`,
+    200,
+    "'none'",
+    nonce,
+    "oauth-mock-redirect",
+  )
+  response.headers.set("location", location)
+  response.headers.set("referrer-policy", "no-referrer")
+  return response
+}

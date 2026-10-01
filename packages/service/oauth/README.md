@@ -113,7 +113,7 @@ Set `adminKey` (CLI `--admin-key`) to require `x-mockingbird-admin-key`. Program
 
 ### Test hooks on the interaction pages
 
-The chooser, signup, consent, `form_post` and error pages carry stable `data-testid` hooks, so a UI
+The chooser, signup, consent, redirect handoff, `form_post` and error pages carry stable `data-testid` hooks, so a UI
 suite (Playwright's `getByTestId`, a driver that selects only by test id) can drive them without CSS
 classes or visible copy. The ids are part of the documented surface and do not change between versions.
 Each page has exactly one root (the page's card), and every interactive element has its own id.
@@ -133,6 +133,8 @@ Each page has exactly one root (the page's card), and every interactive element 
 | consent | page root | `oauth-mock-consent` |
 | consent | Allow button | `oauth-mock-allow` |
 | consent (Apple, default `emailMode: "choose"`) | Share / Hide My Email radios | `oauth-mock-share-email`, `oauth-mock-hide-email` |
+| redirect handoff | page root | `oauth-mock-redirect` |
+| redirect handoff | no-JavaScript Continue link | `oauth-mock-redirect-continue` |
 | `form_post` | page root (the hand-off page) | `oauth-mock-form-post` |
 | `form_post` | no-JavaScript Continue button inside the `#callback` form | `oauth-mock-form-post-continue` |
 | expired or unknown sign-in | page root | `oauth-mock-error` |
@@ -282,7 +284,7 @@ This is a ready-to-use local/test identity provider, **not a production authenti
 
 Vendor-hosted Google Identity Services/One Tap, native Apple AuthenticationServices, passkeys, MFA, CAPTCHA, password recovery, email delivery/relay forwarding (only Apple's notification of a forwarding change is sent), app-transfer migration, vendor risk engines, tokeninfo/introspection, logout, GitHub Apps installation/device flows, and Microsoft Graph/tenant administration are not implemented. Other configurable OIDC providers can use the generic profile, but their proprietary scopes and claims are not emulated. Scopes are limited to each profile plus explicitly configured additional scopes. Microsoft uses the configured mock issuer, not real Entra tenant routing. GitHub is the OAuth app login surface, not the full REST API.
 
-No implicit flow, dynamic client registration, wildcard redirect matching, persistent signing-key storage (keys are held in memory; supply them through `signingKeys` or derive them from a seed), or distributed-session coordination is provided. Private-use redirect schemes work only when their complete URI is explicitly registered; executable/local schemes such as `javascript:`, `data:` and `file:` are rejected. Sign-in and consent pages extend CSP `form-action` with the transaction's redirect origin (or custom scheme) so browsers follow the redirect back to the client. Discovery, JWKS, token, userinfo and revoke answer `OPTIONS` preflights and reflect the request `Origin`, so browser (SPA + PKCE) clients can redeem codes directly; the interaction pages send no CORS headers. Snapshot restore is for the same runtime/instance; signing keys are not serialized. The default backing store is in-memory and state disappears when the process exits. A secure browser context and Web Crypto, Fetch and standard Web APIs are required; Node 22+, Bun and modern browsers provide them.
+No implicit flow, dynamic client registration, wildcard redirect matching, persistent signing-key storage (keys are held in memory; supply them through `signingKeys` or derive them from a seed), or distributed-session coordination is provided. Private-use redirect schemes work only when their complete URI is explicitly registered; executable/local schemes such as `javascript:`, `data:` and `file:` are rejected. Sign-in and consent pages extend CSP `form-action` with the transaction's redirect origin (or custom scheme). Browser navigation responses use a provider-owned handoff document so the callback can relay through another origin without inheriting the consent form's policy; direct programmatic interaction requests retain their HTTP redirect response. Discovery, JWKS, token, userinfo and revoke answer `OPTIONS` preflights and reflect the request `Origin`, so browser (SPA + PKCE) clients can redeem codes directly; the interaction pages send no CORS headers. Snapshot restore is for the same runtime/instance; signing keys are not serialized. The default backing store is in-memory and state disappears when the process exits. A secure browser context and Web Crypto, Fetch and standard Web APIs are required; Node 22+, Bun and modern browsers provide them.
 
 References: [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect), [Apple authorization request](https://developer.apple.com/documentation/signinwithapplerestapi/request-an-authorization-to-the-sign-in-with-apple-server.), and [OpenID Connect Core](https://openid.net/specs/openid-connect-core-1_0.html).
 
