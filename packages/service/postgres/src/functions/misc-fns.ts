@@ -1,6 +1,7 @@
 import { pgError } from "../errors/error.ts";
 import type { EngineCtx } from "../expressions/context.ts";
 import type { SequenceData } from "../storage/database-state.ts";
+import { databaseCatalogContext } from "../runtime/database-context.ts";
 import { castTo } from "../types/cast.ts";
 import { makeArray, tv, typeDisplayName } from "../types/value.ts";
 import { argBigInt, argInt, argText, type ScalarFn, strict } from "./util.ts";
@@ -99,8 +100,8 @@ export function getMiscFunctions(): Map<string, ScalarFn> {
   const m = new Map<string, ScalarFn>();
 
   m.set("version", () => tv("text", PG_VERSION_TEXT));
-  m.set("current_database", () => tv("name", "postgres"));
-  m.set("current_catalog", () => tv("name", "postgres"));
+  m.set("current_database", (ctx) => tv("name", databaseCatalogContext(ctx.state).name));
+  m.set("current_catalog", (ctx) => tv("name", databaseCatalogContext(ctx.state).name));
   m.set("current_schema", (ctx) => {
     const path = ctx.state.effectiveSearchPath();
     const first = path.find((s) => ctx.state.schemas.has(s));

@@ -1,5 +1,6 @@
-import type { Database } from "../api/database.ts";
+import { Database } from "../api/database.ts";
 import { PostgresError } from "../errors/error.ts";
+import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
 
 /**
  * What every connection of one server shares: the engine, and the coordination the engine
@@ -26,8 +27,93 @@ export class Cluster {
   current: Session | null = null;
   private nextPid = 1000;
 
-  constructor(readonly db: Database) {
-    registerSessionFunctions(this);
+  private readonly databases = new Map<string, Database>();
+
+  constructor(
+    db: Database,
+    readonly defaultDatabaseName = "postgres",
+  ) {
+    this.installDatabase(defaultDatabaseName, db);
+  }
+
+  /** The initial database, retained for the server's backwards-compatible public handle. */
+  get db(): Database {
+    return this.requireDatabase(this.defaultDatabaseName);
+  }
+
+  databaseNames(): string[] {
+    return [...this.databases.keys()].sort();
+  }
+
+  getDatabase(name: string): Database | undefined {
+    return this.databases.get(name);
+  }
+
+  requireDatabase(name: string): Database {
+    const db = this.databases.get(name);
+    if (!db) throw new PostgresError("undefined_object", `database "${name}" does not exist`, "3D000");
+    return db;
+  }
+
+  createDatabase(name: string, template?: string): void {
+    if (this.databases.has(name)) {
+      throw new PostgresError("duplicate_object", `database "${name}" already exists`, "42P04");
+    }
+    const db = template === undefined ? new Database() : this.requireTemplate(template).snapshot().open();
+    this.installDatabase(name, db);
+  }
+
+  dropDatabase(name: string, requester: Session): void {
+    if (name === requester.databaseName || this.activeConnections(name) > 0) {
+      throw new PostgresError(
+        "object_not_in_prerequisite_state",
+        `database "${name}" is being accessed by other users`,
+        "55006",
+      );
+    }
+    if (!this.databases.delete(name)) {
+      throw new PostgresError("undefined_object", `database "${name}" does not exist`, "3D000");
+    }
+  }
+
+  renameDatabase(from: string, to: string, requester: Session): void {
+    if (this.databases.has(to)) {
+      throw new PostgresError("duplicate_object", `database "${to}" already exists`, "42P04");
+    }
+    const db = this.requireDatabase(from);
+    if (from === requester.databaseName || this.activeConnections(from) > 0) {
+      throw new PostgresError(
+        "object_not_in_prerequisite_state",
+        `database "${from}" is being accessed by other users`,
+        "55006",
+      );
+    }
+    this.databases.delete(from);
+    this.installDatabase(to, db);
+  }
+
+  private requireTemplate(name: string): Database {
+    if (this.activeConnections(name) > 0) {
+      throw new PostgresError(
+        "object_not_in_prerequisite_state",
+        `source database "${name}" is being accessed by other users`,
+        "55006",
+      );
+    }
+    return this.requireDatabase(name);
+  }
+
+  private activeConnections(name: string): number {
+    let count = 0;
+    for (const session of this.sessions.values()) if (session.databaseName === name) count++;
+    return count;
+  }
+
+  private installDatabase(name: string, db: Database): void {
+    const context = { name, names: () => this.databaseNames() };
+    setDatabaseCatalogContext(db.state, context);
+    this.databases.set(name, db);
+    registerSessionFunctions(this, db);
   }
 
   newPid(): number {
@@ -130,7 +216,7 @@ export class Cluster {
     }
     this.unlockAll(session);
     if (this.turnHolder === session) {
-      if (this.db.transactions.inTransaction) this.db.transactions.rollback();
+      if (session.database.transactions.inTransaction) session.database.transactions.rollback();
       this.releaseTurn(session);
     }
   }
@@ -171,6 +257,8 @@ export class LockWait extends Error {
 /** What the cluster needs from a connection. */
 export interface Session {
   readonly pid: number;
+  database: Database;
+  databaseName: string;
   waitingForTurn: Waiter | null;
   waitingForLock: string | null;
   /** NOTIFYs issued inside the current transaction block, sent at commit. */
@@ -181,8 +269,7 @@ export interface Session {
 const lockKey = (args: unknown[]): string => args.map((a) => String(a)).join(":");
 
 /** The session-aware SQL functions, replacing the engine's single-session stubs. */
-const registerSessionFunctions = (cluster: Cluster): void => {
-  const db = cluster.db;
+const registerSessionFunctions = (cluster: Cluster, db: Database): void => {
   const me = (): Session => {
     if (!cluster.current) throw new PostgresError("internal", "no session is executing", "XX000");
     return cluster.current;

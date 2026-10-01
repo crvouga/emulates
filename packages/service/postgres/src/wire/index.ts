@@ -70,6 +70,10 @@ export type PostgresServer = {
   readonly connectionString: string;
   /** The shared engine, for seeding, snapshotting or asserting from the test process. */
   readonly database: Database;
+  /** Names in the cluster catalog, in deterministic order. */
+  databaseNames(): readonly string[];
+  /** Resolve a named database, or throw SQLSTATE `3D000`. */
+  getDatabase(name: string): Database;
   /** The underlying `net.Server`. */
   readonly server: Server;
   /** Open connections right now. */
@@ -77,7 +81,7 @@ export type PostgresServer = {
   /** Arm a fault preset for the next statement / connection (see {@link ServerFaults}). */
   fault(fault: ServerFaults): void;
   /** Freeze the live state (the admin `snapshot()` control). */
-  snapshot(): Snapshot;
+  snapshot(name?: string): Snapshot;
   /** Stop listening and close every connection. */
   close(): Promise<void>;
 };
@@ -131,7 +135,8 @@ const isSnapshot = (value: unknown): value is Snapshot =>
 export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
   const options = normalize(input);
   const database = isSnapshot(options.database) ? options.database.open() : (options.database ?? new Database());
-  const cluster = new Cluster(database);
+  const initialName = options.databaseName ?? "postgres";
+  const cluster = new Cluster(database, initialName);
   const faults: ServerFaults = {};
   const connections = new Set<Connection>();
   const host = options.host ?? "127.0.0.1";
@@ -157,7 +162,7 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
       server.removeListener("error", reject);
       const address = server.address();
       const port = typeof address === "object" && address !== null ? address.port : 0;
-      const name = options.databaseName ?? "postgres";
+      const name = initialName;
       const auth = options.password
         ? `${encodeURIComponent(user)}:${encodeURIComponent(options.password)}@`
         : `${encodeURIComponent(user)}@`;
@@ -166,6 +171,12 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
         host,
         connectionString: `postgres://${auth}${host}:${port}/${encodeURIComponent(name)}`,
         database,
+        databaseNames() {
+          return cluster.databaseNames();
+        },
+        getDatabase(databaseName) {
+          return cluster.requireDatabase(databaseName);
+        },
         server,
         get connections() {
           return connections.size;
@@ -173,8 +184,8 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
         fault(next) {
           Object.assign(faults, next);
         },
-        snapshot() {
-          return database.snapshot();
+        snapshot(databaseName = initialName) {
+          return cluster.requireDatabase(databaseName).snapshot();
         },
         close() {
           for (const connection of connections) connection.destroy();
