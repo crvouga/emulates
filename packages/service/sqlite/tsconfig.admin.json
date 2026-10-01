@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "../../..",
+    "baseUrl": ".",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "DOM.AsyncIterable"],
+    "paths": {
+      "@crvouga/mockingbird-sqlite": ["../../sqlite/src/index.ts"],
+      "@crvouga/mockingbird-service-sqlite": ["./src/index.ts"]
+    }
+  },
+  "include": ["src/admin.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

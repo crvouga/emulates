@@ -14,6 +14,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./admin": {
+      "types": "./dist/engine-admin.d.ts",
+      "default": "./dist/engine-admin.js"
     }
   },
   "repository": {

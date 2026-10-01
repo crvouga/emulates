@@ -187,6 +187,186 @@ export function faultPresetList(value: unknown): FaultPresetList {
   }
 }
 
+/**
+ * Table list and query box for a `sql` admin extension.
+ * Inlined into the page; do not close over module bindings. Use `root` for every
+ * lookup so two documents can boot in one page.
+ */
+export function mountSqlExplorer(
+  root: HTMLElement,
+  api: {
+    get: (path: string) => Promise<unknown>
+    send: (method: string, path: string, body?: unknown) => Promise<unknown>
+    namespace: () => string
+  },
+): void {
+  const cell = (value: unknown): string => {
+    if (value === null || value === undefined) return ""
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      return String(value)
+    }
+    return JSON.stringify(value) ?? ""
+  }
+  root.replaceChildren()
+  const layout = document.createElement("div")
+  layout.className = "sql-layout"
+  const tables = document.createElement("div")
+  tables.className = "sql-tables"
+  const stack = document.createElement("div")
+  stack.className = "stack"
+  const banner = document.createElement("p")
+  banner.className = "banner"
+  const grid = document.createElement("div")
+  const input = document.createElement("textarea")
+  input.className = "sql-input"
+  input.spellcheck = false
+  input.placeholder = "SELECT * FROM ..."
+  const actions = document.createElement("div")
+  actions.className = "row-actions"
+  const run = document.createElement("button")
+  run.type = "button"
+  run.textContent = "Run"
+  actions.append(run)
+  const result = document.createElement("pre")
+  stack.append(banner, grid, input, actions, result)
+  layout.append(tables, stack)
+  root.append(layout)
+
+  const showError = (error: unknown): void => {
+    banner.textContent = error instanceof Error ? error.message : String(error)
+    banner.classList.add("show")
+  }
+  const clearError = (): void => {
+    banner.textContent = ""
+    banner.classList.remove("show")
+  }
+  const renderGrid = (
+    columns: readonly string[],
+    rows: readonly Record<string, unknown>[],
+  ): void => {
+    grid.replaceChildren()
+    if (columns.length === 0) {
+      const empty = document.createElement("p")
+      empty.className = "empty"
+      empty.textContent = "No rows."
+      grid.append(empty)
+      return
+    }
+    const table = document.createElement("table")
+    const head = document.createElement("thead")
+    const headRow = document.createElement("tr")
+    for (const column of columns) {
+      const th = document.createElement("th")
+      th.textContent = column
+      headRow.append(th)
+    }
+    head.append(headRow)
+    const body = document.createElement("tbody")
+    for (const row of rows) {
+      const tr = document.createElement("tr")
+      for (const column of columns) {
+        const td = document.createElement("td")
+        td.dataset.label = column
+        td.textContent = cell(row[column])
+        tr.append(td)
+      }
+      body.append(tr)
+    }
+    table.append(head, body)
+    grid.append(table)
+  }
+  const rowsOf = (value: unknown): Record<string, unknown>[] => {
+    if (!isRecord(value) || !Array.isArray(value.rows)) return []
+    return value.rows.flatMap((row) => (isRecord(row) ? [row] : []))
+  }
+  const columnsOf = (value: unknown, rows: readonly Record<string, unknown>[]): string[] => {
+    if (isRecord(value) && Array.isArray(value.columns)) {
+      const named = value.columns.flatMap((column) => (typeof column === "string" ? [column] : []))
+      if (named.length > 0) return named
+    }
+    const first = rows[0]
+    return first === undefined ? [] : Object.keys(first)
+  }
+  let selected = ""
+  const loadPage = async (schema: string, name: string): Promise<void> => {
+    selected = `${schema}.${name}`
+    const page = await api.get(
+      `/sql/tables/${encodeURIComponent(schema)}/${encodeURIComponent(name)}?limit=50`,
+    )
+    const rows = rowsOf(page)
+    renderGrid(columnsOf(page, rows), rows)
+    const total = isRecord(page) && typeof page.total === "number" ? page.total : rows.length
+    result.textContent = `${selected} · ${total} rows`
+    for (const button of tables.querySelectorAll("button")) {
+      if (!(button instanceof HTMLButtonElement)) continue
+      button.setAttribute(
+        "aria-current",
+        button.dataset.schema === schema && button.dataset.table === name ? "true" : "false",
+      )
+    }
+  }
+  const loadTables = async (): Promise<void> => {
+    const payload = await api.get("/sql/tables")
+    const listed = isRecord(payload) && Array.isArray(payload.tables) ? payload.tables : []
+    tables.replaceChildren()
+    if (listed.length === 0) {
+      const empty = document.createElement("p")
+      empty.className = "empty"
+      empty.textContent = "No tables."
+      tables.append(empty)
+      return
+    }
+    for (const item of listed) {
+      if (!isRecord(item) || typeof item.schema !== "string" || typeof item.name !== "string")
+        continue
+      const button = document.createElement("button")
+      button.type = "button"
+      button.dataset.schema = item.schema
+      button.dataset.table = item.name
+      button.textContent = `${item.schema}.${item.name}`
+      tables.append(button)
+    }
+  }
+  tables.addEventListener("click", (event) => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const button = target.closest("button")
+    if (!(button instanceof HTMLButtonElement)) return
+    const schema = button.dataset.schema
+    const name = button.dataset.table
+    if (schema === undefined || name === undefined) return
+    clearError()
+    loadPage(schema, name).catch(showError)
+  })
+  run.addEventListener("click", () => {
+    const sql = input.value.trim()
+    if (sql === "") {
+      showError(new Error("Enter a statement"))
+      return
+    }
+    clearError()
+    api
+      .send("POST", "/sql/query", { sql })
+      .then((payload) => {
+        const rows = rowsOf(payload)
+        renderGrid(columnsOf(payload, rows), rows)
+        const count =
+          isRecord(payload) && typeof payload.rowCount === "number" ? payload.rowCount : rows.length
+        const truncated = isRecord(payload) && payload.truncated === true ? " (truncated)" : ""
+        result.textContent = `${count} rows${truncated}`
+      })
+      .catch(showError)
+  })
+  const namespace = document.getElementById("namespace")
+  if (namespace) {
+    namespace.addEventListener("change", () => {
+      clearError()
+      loadTables().catch(showError)
+    })
+  }
+  loadTables().catch(showError)
+}
+
 /** Boot the admin document. Inlined into the page; do not close over module bindings. */
 export function bootAdmin(config: AdminBootConfig): void {
   const fieldKinds = ["string", "number", "boolean", "null", "object", "array", "unknown"] as const
@@ -991,6 +1171,26 @@ export function bootAdmin(config: AdminBootConfig): void {
     if (typeof value.script === "string") panel.script = value.script
     return panel
   }
+  type Extension =
+    | (Panel & { kind: "panel" })
+    | { kind: "sql"; id: string; title: string; description: string }
+  const decodeExtension = (value: unknown): Extension | undefined => {
+    if (!isRecord(value)) return undefined
+    if (value.kind === "sql") {
+      return {
+        kind: "sql",
+        id: typeof value.id === "string" && value.id !== "" ? value.id : "sql",
+        title: typeof value.title === "string" && value.title !== "" ? value.title : "SQL",
+        description:
+          typeof value.description === "string"
+            ? value.description
+            : "Browse tables and run queries.",
+      }
+    }
+    if (value.kind !== "panel") return undefined
+    const panel = decodePanel(value)
+    return panel === undefined ? undefined : { kind: "panel", ...panel }
+  }
   const mountPanels = (panels: readonly Panel[]): void => {
     const nav = el("nav", HTMLElement)
     const views = el("views", HTMLElement)
@@ -1048,12 +1248,54 @@ export function bootAdmin(config: AdminBootConfig): void {
         return decoded === undefined ? [] : [decoded]
       })
       mountPanels(panels)
+      const extensions = requireList(
+        isRecord(manifest) ? manifest.extensions : undefined,
+        "Extensions",
+      ).flatMap((extension) => {
+        const decoded = decodeExtension(extension)
+        return decoded === undefined ? [] : [decoded]
+      })
+      const extensionPanels = extensions.flatMap((extension) =>
+        extension.kind === "panel" ? [extension] : [],
+      )
+      mountPanels(extensionPanels)
+      for (const extension of extensions) {
+        if (extension.kind !== "sql") continue
+        const nav = el("nav", HTMLElement)
+        const views = el("views", HTMLElement)
+        const button = document.createElement("button")
+        button.type = "button"
+        button.dataset.view = extension.id
+        button.textContent = extension.title
+        nav.append(button)
+        const section = document.createElement("section")
+        section.className = "view"
+        section.id = `view-${extension.id}`
+        section.hidden = true
+        const title = document.createElement("h2")
+        title.textContent = extension.title
+        const lede = document.createElement("p")
+        lede.className = "lede"
+        lede.textContent = extension.description
+        const body = document.createElement("div")
+        body.className = "panel-body"
+        section.append(title, lede, body)
+        views.append(section)
+        mountSqlExplorer(body, panelApi)
+      }
       return refresh()
     })
     .catch(showError)
 }
 
-const clientPrelude = [isRecord, mountAdminBrand, startAdminBrand, faultPresetList, bootAdmin]
+const clientPrelude = [
+  isRecord,
+  mountAdminBrand,
+  startAdminBrand,
+  faultPresetList,
+  mountSqlExplorer,
+  bootAdmin,
+]
   .map((fn) => fn.toString())
   .join("\n")
 

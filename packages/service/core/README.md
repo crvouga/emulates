@@ -138,7 +138,7 @@ the body is read.
 | `putObject` / `signV4` | | SigV4-signed S3 `PutObject` (for vendors that hand the app an `s3://` object). |
 | `defineMock` | `<T extends MockSurface>(runtime: T) => T` | Prove a runtime has the shared surface and keep its extra methods. `createRuntime` already returns one. |
 | `STANDARD_ADMIN_ROUTES` | `readonly string[]` | The `/__admin` keys every mock answers. Service routes add keys beside these. |
-| `assertAdminUi` | `(ui?: AdminUi) => void` | Reject a panel id or an empty title before the shell mounts it. Called by `createRuntime`. |
+| `assertAdminUi` | `(ui?: AdminUi) => void` | Reject a panel or extension id, a reserved view name, or an empty title before the shell mounts it. Called by `createRuntime`. |
 | `inspectState` | `(scope) => StateView` | Collections for one namespace: declarations, `Collection` fields on the instance, and stored names, with field kinds sampled from rows. |
 | `STATE_FIELD_KINDS` | `"string" \| "number" \| …` | The kinds a state field can report. |
 
@@ -149,7 +149,7 @@ Types:
 - `OperationContext` (handler argument): `{ request; url; params; query: FormObject; body: DecodedBody; sqlite; namespace; operation; now }`.
 - `OperationHandler`: `(context) => Response | Promise<Response>`; `OperationHandlers`: `Record<string, OperationHandler>`.
 - `APIOptions`: `{ sqlite?: SqliteClient; now?: () => number }`, the options every provider mock accepts.
-- `ServiceRuntime`: also exposes `state(namespace?)` (the same collection view as `GET /__admin/state`), `checkpoint(namespace?, branch?)`, `branch(name, { namespace?, at? })`, `checkout(id, { namespace?, branch? })`, and `timeline(namespace?)`. Equivalent HTTP control routes are `GET /__admin/timeline`, `POST /__admin/checkpoints`, `POST /__admin/branches/:name`, and `POST /__admin/branches/:name/checkout`. `RuntimeOptions.state` declares collections before any row exists. `RuntimeOptions.adminUi` adds panels or replaces `GET /__admin/ui`.
+- `ServiceRuntime`: also exposes `state(namespace?)` (the same collection view as `GET /__admin/state`), `checkpoint(namespace?, branch?)`, `branch(name, { namespace?, at? })`, `checkout(id, { namespace?, branch? })`, and `timeline(namespace?)`. Equivalent HTTP control routes are `GET /__admin/timeline`, `POST /__admin/checkpoints`, `POST /__admin/branches/:name`, and `POST /__admin/branches/:name/checkout`. `RuntimeOptions.state` declares collections before any row exists. `RuntimeOptions.adminUi` adds `panels`, first-class `extensions` (`panel` markup or the built-in `sql` table explorer), or replaces `GET /__admin/ui`. The SQL engines mount that explorer through `@crvouga/mockingbird-service/admin`.
 - `RuntimeIO`: injectable `wallNow`, `monotonicNow`, and `sleep`; pass a partial value as `RuntimeOptions.io` for fully controlled observations and fault delays. `WebhookHubOptions` likewise accepts `now`, `id`, `schedule`, `cancel`, and `fetch`.
 
 Provider state must live in the shared `Collection` storage and receives version history only from

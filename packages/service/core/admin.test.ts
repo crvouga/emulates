@@ -5,6 +5,7 @@ import {
   faultPresetList,
   isRecord,
   mountAdminBrand,
+  mountSqlExplorer,
   startAdminBrand,
 } from "./src/admin-client.js"
 import { ADMIN_BRANDS_URL, renderAdminDocument } from "./src/admin-ui.js"
@@ -256,6 +257,8 @@ describe("admin ui", () => {
     // A later copy of this module is renamed by the bundler. The call has to read
     // the name at runtime; a literal `bootAdmin(` throws and the section buttons stay dead.
     expect(adminClientSource.toString()).toContain("bootAdmin.name")
+    expect(bootAdmin.toString()).toContain(`${mountSqlExplorer.name}(`)
+    expect(html).toContain(`function ${mountSqlExplorer.name}(`)
   })
 
   test("clearing an empty journal tells you the click finished", () => {
@@ -416,6 +419,40 @@ describe("admin ui", () => {
     expect(() => faultPresetList({ presets: { rate_limited: { status: 429 } } })).toThrow(
       /not a list/,
     )
+  })
+
+  test("an extension is listed on the manifest and a reserved id is rejected", async () => {
+    const runtime = createRuntime({
+      name: "notes",
+      create: () => ({
+        fetch: async () => new Response("ok"),
+        reset: async () => {},
+      }),
+      adminUi: {
+        extensions: [{ kind: "sql", description: "Browse tables and run queries." }],
+      },
+    })
+    const manifest = (await (await call(runtime, "GET", "/__admin/ui/manifest")).json()) as {
+      extensions: { kind: string; id: string; title: string; description?: string }[]
+    }
+    expect(manifest.extensions).toEqual([
+      {
+        kind: "sql",
+        id: "sql",
+        title: "SQL",
+        description: "Browse tables and run queries.",
+      },
+    ])
+    expect(() =>
+      createRuntime({
+        name: "notes",
+        create: () => ({
+          fetch: async () => new Response("ok"),
+          reset: async () => {},
+        }),
+        adminUi: { extensions: [{ kind: "sql", id: "state" }] },
+      }),
+    ).toThrow(/reserved/)
   })
 
   test("a panel id the shell cannot mount is rejected up front", () => {

@@ -18,7 +18,20 @@
       "types": "./dist/unstable.d.ts",
       "import": "./dist/unstable.js",
       "default": "./dist/unstable.js"
+    },
+    "./admin": {
+      "types": "./dist/admin.d.ts",
+      "import": "./dist/admin.js",
+      "default": "./dist/admin.js"
+    },
+    "./socket": {
+      "types": "./dist/socket/index.d.ts",
+      "import": "./dist/socket/index.js",
+      "default": "./dist/socket/index.js"
     }
+  },
+  "bin": {
+    "mockingbird-sqlite": "./dist/socket/cli.js"
   },
   "files": [
     "dist",
@@ -77,7 +90,7 @@
     "scenarios": "bun run scripts/sqlite-scenarios.ts",
     "fts-surface": "bun run scripts/fts-oracle-surface.ts",
     "requirements": "bun run scripts/sqlite-requirements.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.admin.json",
     "typecheck:package": "tsc --noEmit -p tsconfig.package.json",
     "format": "biome format --config-path=biome.json --write .",
     "format:check": "biome format --config-path=biome.json .",
@@ -95,6 +108,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.8",
+    "@crvouga/mockingbird-core": "workspace:*",
     "@crvouga/mockingbird-ui": "workspace:*",
     "@types/bun": "latest",
     "alasql": "^4.17.3",
@@ -127,6 +141,10 @@
       "docs": "https://sqlite.org/docs.html",
       "description": "SQLite is a small, fast, self-contained, public-domain SQL database engine, the most widely deployed database in the world."
     },
-    "parity": "In-memory SQL engine"
+    "parity": "In-memory SQL engine",
+    "entries": {
+      "socket/index": "node",
+      "socket/cli": "node"
+    }
   }
 }

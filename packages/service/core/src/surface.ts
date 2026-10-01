@@ -122,6 +122,28 @@ export const STANDARD_ADMIN_ROUTES = [
 
 export type StandardAdminRoute = (typeof STANDARD_ADMIN_ROUTES)[number]
 
+/**
+ * A contribution the admin shell mounts beside the shared views.
+ * `panel` is author-owned markup. `sql` turns on the built-in table explorer
+ * and query runner, which call `GET /sql/tables` and `POST /sql/query`.
+ */
+export type AdminExtension =
+  | {
+      kind: "panel"
+      id: string
+      title: string
+      description?: string
+      html: string
+      script?: string
+    }
+  | {
+      kind: "sql"
+      /** DOM id suffix. Default `sql`. */
+      id?: string
+      title?: string
+      description?: string
+    }
+
 /** A panel the default admin shell mounts after the shared views. */
 export type AdminPanel = {
   /** DOM id suffix. Lowercase letters, digits, and hyphens. */
@@ -144,21 +166,41 @@ export type AdminPanel = {
  */
 export type AdminUi = {
   panels?: readonly AdminPanel[]
+  /** First-class shell contributions. `sql` mounts the shared database explorer. */
+  extensions?: readonly AdminExtension[]
   render?: (input: { service: string; defaultHtml: () => string }) => string
 }
 
 const PANEL_ID = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/
+const RESERVED_VIEWS = new Set(["overview", "state", "clock", "faults", "journal", "routes"])
 
-/** Reject a panel id the shell cannot mount. Called when the runtime is created. */
+const checkPanel = (
+  panel: { id: string; title: string },
+  seen: Set<string>,
+  label: string,
+): void => {
+  if (!PANEL_ID.test(panel.id)) {
+    throw new RangeError(`${label} id must match ${PANEL_ID}: ${JSON.stringify(panel.id)}`)
+  }
+  if (RESERVED_VIEWS.has(panel.id)) {
+    throw new RangeError(`${label} id ${panel.id} is reserved by the admin shell`)
+  }
+  if (seen.has(panel.id)) throw new RangeError(`duplicate admin view id ${panel.id}`)
+  seen.add(panel.id)
+  if (panel.title.trim() === "") throw new RangeError(`${label} ${panel.id} needs a title`)
+}
+
+/** Reject a panel or extension the shell cannot mount. Called when the runtime is created. */
 export const assertAdminUi = (ui: AdminUi | undefined): void => {
-  if (!ui?.panels) return
+  if (!ui) return
   const seen = new Set<string>()
-  for (const panel of ui.panels) {
-    if (!PANEL_ID.test(panel.id)) {
-      throw new RangeError(`admin panel id must match ${PANEL_ID}: ${JSON.stringify(panel.id)}`)
+  for (const panel of ui.panels ?? []) checkPanel(panel, seen, "admin panel")
+  for (const extension of ui.extensions ?? []) {
+    if (extension.kind === "panel") {
+      checkPanel(extension, seen, "admin extension")
+      continue
     }
-    if (seen.has(panel.id)) throw new RangeError(`duplicate admin panel id ${panel.id}`)
-    seen.add(panel.id)
-    if (panel.title.trim() === "") throw new RangeError(`admin panel ${panel.id} needs a title`)
+    const id = extension.id ?? "sql"
+    checkPanel({ id, title: extension.title ?? "SQL" }, seen, "admin extension")
   }
 }

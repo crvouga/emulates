@@ -164,19 +164,28 @@ in a local multi-service stack — start the frontend/backend v3 server instead 
 import { serve } from "@crvouga/mockingbird-service-postgres/wire"
 
 const server = await serve({ port: 0 }) // 0 → a free port, reported as server.port
-// postgres://postgres@127.0.0.1:${server.port}/db  — no initdb, no OS user, pure TypeScript
+// server.connectionString — postgres://postgres@127.0.0.1:<port>/postgres
 await server.close()
+
+const fromUri = await serve("postgres://postgres:secret@127.0.0.1:0/app")
+// fromUri.connectionString uses the bound port. A client that asks for another
+// database name is rejected with SQLSTATE 3D000.
+await fromUri.close()
 ```
 
 Or from the command line (installs a `mockingbird-postgres` bin):
 
 ```bash
 mockingbird-postgres serve --port 55432            # trust auth
-mockingbird-postgres serve --password secret --log # SCRAM-SHA-256, log each statement
+mockingbird-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
 ```
 
 `serve({ database })` shares an existing `Database`, and `serve({ database: snapshot })` boots every
 server from one frozen template, so a seeded stack starts from the same bytes each time.
+`createAdmin` from `@crvouga/mockingbird-service-postgres/admin` serves the same `/__admin`
+surface as every other mock, including the table explorer (`GET /sql/tables`, `POST /sql/query`).
+The wire server does not speak that HTTP API.
+
 `server.snapshot()` freezes the live state; `server.fault({ dropConnection | delayStatementMs |
 failCommit })` arms the next statement or connection for a drop, a delay, or a `40001` commit
 failure.
@@ -207,12 +216,13 @@ another binary type gets `0A000`, and can switch that parameter to text).
 | --- | --- |
 | `exec(sql)` | Runs all semicolon-separated statements; **discards** row results (`void`). Does **not** accept bind parameters. Read `db.changes` afterwards if needed (reflects the **most recent** completed DML statement). Dump-only `DO` blocks and `ALTER TABLE ... SET (` storage parameters are no-ops. |
 | `registerFunction(spec)` | Install a JavaScript scalar. Not stored in PGMM snapshots; `open()` of a live snapshot copies the implementation by reference. |
-| `query(sql, params?, { at? }?)` | **Single statement only** (trailing `;` is fine). Returns all rows. `at` queries an immutable checkpoint without changing live state. Multi-statement scripts throw `misuse`. |
+| `query(sql, params?, { at? }?)` | **Single statement only** (trailing `;` is fine). Returns all rows. `at` is a `Snapshot` or a timeline checkpoint id and queries that checkpoint without changing live state. Multi-statement scripts throw `misuse`. |
 | `prepare(sql)` | **Single statement only**. Parses immediately; the AST is reused. Pass binds as rest args to `run` / `all` / `get` / `result` / `textResult` on each call. |
 | `transaction(fn)` | If idle: `BEGIN`, `fn()`, `COMMIT`, or `ROLLBACK` + rethrow. If already in a transaction: nested savepoint. A nested SQL `BEGIN` inside is a no-op warning like PostgreSQL. `close()` inside `fn` throws `misuse`. |
 | `copyFrom(sql, data)` | Executes `COPY table [(cols)] FROM STDIN` with `data` as the copy-in payload (text or csv per the COPY options). Returns rows copied. `COPY ... TO STDOUT` output is returned as result rows by `query`. |
-| `snapshot()` | Freeze a reusable `Snapshot` template (no encode). Illegal inside a transaction (`25P01`). |
-| `checkpoint()` / `branch(at?)` | Name a COW snapshot as a checkpoint; open an isolated branch from it (or current state). |
+| `snapshot()` | Freeze a reusable `Snapshot` template (no encode) and commit it on the followed timeline branch. Illegal inside a transaction (`25P01`). |
+| `checkpoint()` / `branch(at?)` | `checkpoint` records the same timeline point as `snapshot`. `branch` opens an isolated database from a snapshot (or the current state). |
+| `record(branch?)` / `fork(name, at?)` / `checkout(id, branch?)` / `reset()` | Timeline history on this database. `record` commits the live state. `fork` adds a branch pointer and does not switch live state. `checkout` installs a checkpoint. `reset` returns to the origin checkpoint on `main`. `history` lists heads and checkpoints. |
 | `Snapshot.open()` | Copy-on-write fork from a template. The parent stays open. |
 | `Snapshot.encode()` | Lazy PGMM blob for persistence / worker boot (computed once, cached). |
 | `Snapshot.decode(bytes)` | Decode a blob once per `Uint8Array` (WeakMap); later `open()` calls are copy-on-write. |
@@ -349,8 +359,9 @@ Stable runtime exports of the main entry:
 | `Statement` | Class returned by `db.prepare(sql)` (not constructed directly): `run`, `all`, `get`, `result`, `textResult`, and `sql`. |
 | `PostgresError` | Error class thrown for SQL and API errors: `category` (`ErrorCategory`), `sqlState` / `code` (five-character SQLSTATE, e.g. `"42P01"`, `"23505"`). |
 
-Signatures (types are exported too: `DatabaseOptions`, `RegisterFunctionOptions`, `ResultSet`,
-`RunResult`, `ErrorCategory`, `BindValue`, `JsValue`, `QueryRow`):
+Signatures (types are exported too: `DatabaseOptions`, `HistoryCheckpoint`, `DatabaseHistory`,
+`RegisterFunctionOptions`, `ResultSet`, `RunResult`, `ErrorCategory`, `BindValue`, `JsValue`,
+`QueryRow`):
 
 ```ts
 interface DatabaseOptions {
@@ -358,6 +369,21 @@ interface DatabaseOptions {
   random?: "deterministic" | "os"        // default "deterministic"; "os" is CSPRNG like PostgreSQL
   now?: Date | (() => Date) | "system"   // default 2000-01-01T00:00:00.000Z; "system" is wall clock
   int8?: "bigint" | "number" | "string"  // default "bigint"; "number" is unsafe beyond MAX_SAFE_INTEGER
+  maxCheckpoints?: number                // timeline checkpoints to retain; default 1000
+}
+
+interface HistoryCheckpoint {
+  id: string
+  branch: string
+  parent: string | null
+  at: number
+}
+
+interface DatabaseHistory {
+  readonly size: number
+  head(branch?: string): HistoryCheckpoint | undefined
+  branches(): Readonly<Record<string, string>>
+  checkpoints(): readonly HistoryCheckpoint[]
 }
 
 declare class Database {
@@ -365,12 +391,17 @@ declare class Database {
   exec(sql: string): void
   registerFunction(spec: { name: string; args: string[]; returns: string; strict?: boolean;
                            fn: (...args: JsValue[]) => JsValue }): void
-  query<T = QueryRow>(sql: string, params?: readonly BindValue[], options?: { at?: Snapshot }): T[]
+  query<T = QueryRow>(sql: string, params?: readonly BindValue[], options?: { at?: Snapshot | string }): T[]
   prepare(sql: string): Statement
   transaction<T>(fn: () => T): T
   copyFrom(sql: string, data: string): number   // COPY t FROM STDIN payload (\copy analog)
   snapshot(): Snapshot
   checkpoint(): Snapshot
+  record(branch?: string): HistoryCheckpoint
+  fork(name: string, at?: string): HistoryCheckpoint
+  checkout(id: string, branch?: string): HistoryCheckpoint
+  reset(): HistoryCheckpoint
+  readonly history: DatabaseHistory
   branch(at?: Snapshot): Database
   close(): void                                  // also [Symbol.dispose] when available
   readonly changes: number                       // rows affected by the most recent INSERT/UPDATE/DELETE

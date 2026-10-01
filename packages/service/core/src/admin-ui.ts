@@ -2,7 +2,7 @@ import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import { adminClientSource } from "./admin-client.js"
 import type { AdminRoutes } from "./control.js"
 import { ADMIN_KEY_HEADER, ADMIN_PREFIX } from "./control.js"
-import type { AdminUi } from "./surface.js"
+import type { AdminExtension, AdminUi } from "./surface.js"
 import { STANDARD_ADMIN_ROUTES } from "./surface.js"
 
 const escapeHtml = (value: string): string =>
@@ -248,6 +248,12 @@ export const renderAdminDocument = (service: string): string => {
     border-radius: 999px; padding: 4px 8px;
   }
   .chip i { color: var(--faint); font-style: normal; }
+  .sql-layout {
+    display: grid; grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr); gap: 16px;
+  }
+  .sql-tables { display: flex; flex-direction: column; gap: 4px; max-height: 28rem; overflow: auto; }
+  .sql-tables button { text-align: left; }
+  .sql-input { font-family: var(--mono); min-height: 7rem; width: 100%; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--faint); font-weight: 600; font-size: 12px; }
@@ -311,7 +317,7 @@ export const renderAdminDocument = (service: string): string => {
       padding: 8px;
     }
     nav.side button { white-space: nowrap; flex: none; }
-    .split { grid-template-columns: minmax(0, 1fr); }
+    .split, .sql-layout { grid-template-columns: minmax(0, 1fr); }
     main { padding: 14px; }
     table, thead, tbody, tr, th, td { display: block; }
     thead { display: none; }
@@ -487,6 +493,25 @@ const json = (body: unknown): Response =>
     headers: { "content-type": "application/json; charset=utf-8" },
   })
 
+const describeExtension = (extension: AdminExtension): Record<string, unknown> => {
+  if (extension.kind === "sql") {
+    return {
+      kind: "sql",
+      id: extension.id ?? "sql",
+      title: extension.title ?? "SQL",
+      ...(extension.description !== undefined ? { description: extension.description } : {}),
+    }
+  }
+  return {
+    kind: "panel",
+    id: extension.id,
+    title: extension.title,
+    ...(extension.description !== undefined ? { description: extension.description } : {}),
+    html: extension.html,
+    ...(extension.script !== undefined ? { script: extension.script } : {}),
+  }
+}
+
 /** `GET /__admin/ui` plus the manifest a bespoke panel list is read from. */
 export const adminUiRoutes = (service: string, ui: AdminUi | undefined): AdminRoutes => {
   const shell = () => renderAdminDocument(service)
@@ -504,6 +529,7 @@ export const adminUiRoutes = (service: string, ui: AdminUi | undefined): AdminRo
           html: panel.html,
           ...(panel.script !== undefined ? { script: panel.script } : {}),
         })),
+        extensions: (ui?.extensions ?? []).map(describeExtension),
       }),
   }
 }
