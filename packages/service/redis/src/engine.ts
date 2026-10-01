@@ -400,6 +400,7 @@ export class Redis {
   readonly maxmemory: number
   private policy: "noeviction" | "allkeys-lru"
   private rngState: number
+  private readonly initialRngState: number
   private faultValue: RedisFault = null
   private tail: Promise<void> = Promise.resolve()
   private sessions = new Set<Session>()
@@ -438,7 +439,8 @@ export class Redis {
     this.authRequired = options.password !== undefined || this.users.length > 0
     this.maxmemory = options.maxmemory ?? 0
     this.policy = options.maxmemoryPolicy ?? "noeviction"
-    this.rngState = options.seed ?? 1
+    this.initialRngState = options.seed ?? 1
+    this.rngState = this.initialRngState
   }
 
   client(): RedisClient {
@@ -480,7 +482,21 @@ export class Redis {
     return count
   }
   activeCommands(): number {
-    return Math.max(0, this.pendingCommands - this.waiters.length)
+    return (
+      Math.max(0, this.pendingCommands - this.waiters.length) +
+      [...this.sessions].filter((session) => session.multi !== null || session.watching.length > 0)
+        .length
+    )
+  }
+  activeJobs(): number {
+    let count = 0
+    for (const db of this.dbs)
+      for (const key of db.keys()) {
+        if (!key.endsWith(":active")) continue
+        const value = db.get(key)
+        if (value?.kind === "list") count += value.items.length
+      }
+    return count
   }
   fence(): () => void {
     if (this.controlPaused) throw new Error("Redis control in progress")
@@ -531,6 +547,7 @@ export class Redis {
   }
 
   reset(): void {
+    this.rngState = this.initialRngState
     for (const database of this.dbs) database.clear()
     this.scripts.clear()
     this.faultValue = null
@@ -540,6 +557,7 @@ export class Redis {
       this.finishWaiter(waiter, nilArray())
     }
     for (const session of this.sessions) {
+      this.leavePubsub(session)
       session.multi = null
       session.multiFailed = false
       session.watching = []

@@ -1,5 +1,7 @@
 import { mkdir, rm } from "node:fs/promises";
 import { $ } from "bun";
+import { rollup } from "rollup";
+import { dts } from "rollup-plugin-dts";
 
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist", { recursive: true });
@@ -65,6 +67,19 @@ if (rewritten === 0) {
   console.error("Build incomplete: no declaration import specifiers were rewritten to .js");
   process.exit(1);
 }
+
+// Fleet types belong to private workspace helpers. Inline their declarations so
+// consumers need only the published Postgres package, as they do for /admin.
+const fleetTypes = await rollup({
+  input: "dist/wire/fleet.d.ts",
+  external: (id) => !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("@crvouga/mockingbird"),
+  plugins: [dts({ respectExternal: true, tsconfig: "tsconfig.build.wire.json" })],
+  onwarn: (warning) => {
+    throw new Error(warning.message);
+  },
+});
+await fleetTypes.write({ file: "dist/wire/fleet.d.ts", format: "es" });
+await fleetTypes.close();
 
 // tsc would re-export the private admin helper. Publish a declaration that only
 // names this package's Database.

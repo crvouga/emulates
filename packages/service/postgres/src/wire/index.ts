@@ -57,6 +57,8 @@ export type ServeOptions = {
    * SQLSTATE `3D000`. Set from `url` when the path is non-empty. Unset accepts any name.
    */
   databaseName?: string;
+  /** Accept other databases in this listener's catalog while retaining its default URL. */
+  allowDatabaseSelection?: boolean;
   /** Role shown in `connectionString`. A URI's username fills this. Default `postgres`. */
   user?: string;
 };
@@ -83,6 +85,9 @@ export type PostgresServer = {
   clearFaults(): void;
   /** Freeze the live state (the admin `snapshot()` control). */
   snapshot(name?: string): Snapshot;
+  snapshotAll(): Map<string, Snapshot>;
+  restoreAll(points: ReadonlyMap<string, Snapshot>): void;
+  faultState(): ServerFaults;
   /** Stop listening and close every connection. */
   close(): Promise<void>;
 };
@@ -150,7 +155,9 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
       serverVersion: options.serverVersion ?? "18.3",
       parameters: options.parameters ?? {},
       faults,
-      ...(options.databaseName !== undefined ? { database: options.databaseName } : {}),
+      ...(options.databaseName !== undefined && !options.allowDatabaseSelection
+        ? { database: options.databaseName }
+        : {}),
       ...(options.onLog ? { onLog: options.onLog } : {}),
     });
     connections.add(connection);
@@ -171,7 +178,9 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
         port,
         host,
         connectionString: `postgres://${auth}${host}:${port}/${encodeURIComponent(name)}`,
-        database,
+        get database() {
+          return cluster.db;
+        },
         databaseNames() {
           return cluster.databaseNames();
         },
@@ -185,7 +194,14 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
         fault(next) {
           Object.assign(faults, next);
         },
-        clearFaults() { for (const key of Object.keys(faults)) delete faults[key as keyof ServerFaults]; },
+        clearFaults() {
+          for (const key of Object.keys(faults)) delete faults[key as keyof ServerFaults];
+        },
+        faultState() {
+          return structuredClone(faults);
+        },
+        snapshotAll: () => cluster.snapshotAll(),
+        restoreAll: (points) => cluster.restoreAll(points),
         snapshot(databaseName = initialName) {
           return cluster.requireDatabase(databaseName).snapshot();
         },

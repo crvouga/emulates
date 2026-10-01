@@ -1,9 +1,22 @@
 #!/usr/bin/env node
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { createRedis } from "./index.ts"
-import { serve } from "./server.ts"
+import { serve, serveTarget } from "./server.ts"
 
 const usage = "mockingbird-redis [--port <n>] [--host <h>] [--password <p>]"
 const args = process.argv.slice(2)
+if (args[0] === "serve" && args.includes("--config")) {
+  process.exit(
+    await runCli(
+      {
+        bin: "mockingbird-redis",
+        description: "Redis and fleet server",
+        commands: { serve: serveCommand(serveTarget) },
+      },
+      args,
+    ),
+  )
+}
 let port = 6379
 let host = "127.0.0.1"
 let password: string | undefined

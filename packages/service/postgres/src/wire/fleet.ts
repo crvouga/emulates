@@ -1,6 +1,9 @@
 import type { ConfigService, FleetChild } from "@crvouga/mockingbird-adapter-node";
 import { createClock, type Clock } from "@crvouga/mockingbird-service";
 import { Database } from "../api/database.ts";
+import type { Snapshot } from "../api/snapshot.ts";
+import type { ServerFaults } from "./connection.ts";
+import { probe } from "./probe.ts";
 import { serve, type PostgresServer } from "./index.ts";
 
 /** Separate database listeners make the protocol namespace explicit in discovery. */
@@ -12,10 +15,16 @@ export async function startProtocol(entry: ConfigService): Promise<FleetChild> {
       if (!/^[A-Za-z0-9_.-]{1,64}$/.test(name) || typeof databaseName !== "string")
         throw new Error("invalid Postgres namespace/database name");
       const clock = createClock();
-      const database = new Database({ now: () => new Date(clock.now()),
-        ...(entry.seed !== undefined ? { seed: Number(entry.seed) } : {}) });
+      const database = new Database({
+        now: () => new Date(clock.now()),
+        ...(entry.seed !== undefined ? { seed: Number(entry.seed) } : {}),
+      });
       const server = await serve({
-        database, databaseName, host: entry.host ?? "127.0.0.1", port: name === "default" ? (entry.port ?? 0) : 0,
+        database,
+        databaseName,
+        allowDatabaseSelection: true,
+        host: entry.host ?? "127.0.0.1",
+        port: name === "default" ? (entry.port ?? 0) : 0,
         ...(entry.password !== undefined ? { password: entry.password } : {}),
         ...(entry.user !== undefined ? { user: entry.user } : {}),
       });
@@ -31,19 +40,40 @@ export async function startProtocol(entry: ConfigService): Promise<FleetChild> {
     return found;
   };
   const publicUrl = (name: string) => {
-    const url = new URL(get(name).server.connectionString); url.password = ""; return url.href;
+    const url = new URL(get(name).server.connectionString);
+    url.password = "";
+    return url.href;
   };
   const locked = new Set<string>();
-  const snapshots = new WeakMap<object, { namespace: string; databases: Map<string, string>; clock: ReturnType<Clock["state"]> }>();
+  const snapshots = new WeakMap<
+    object,
+    { namespace: string; databases: Map<string, Snapshot>; clock: ReturnType<Clock["state"]>; faults: ServerFaults }
+  >();
+  const origins = new Map([...namespaces].map(([name, { server }]) => [name, server.snapshotAll()]));
   return {
-    protocol: "postgres", url: publicUrl("default"), connection: get("default").server.connectionString,
-    namespaces: { mechanism: "endpoint", endpoints: Object.fromEntries([...namespaces.keys()].map((name) => [name, publicUrl(name)])) },
-    async ready() { return [...namespaces.values()].every(({ server }) => server.server.listening); },
+    protocol: "postgres",
+    url: publicUrl("default"),
+    connection: get("default").server.connectionString,
+    connections: Object.fromEntries([...namespaces].map(([name, { server }]) => [name, server.connectionString])),
+    namespaces: {
+      mechanism: "endpoint",
+      endpoints: Object.fromEntries([...namespaces.keys()].map((name) => [name, publicUrl(name)])),
+    },
+    async ready() {
+      const results = await Promise.all(
+        [...namespaces.values()].map(({ server }) =>
+          server.server.listening ? probe(server.connectionString) : false,
+        ),
+      );
+      return results.every(Boolean);
+    },
     async close() {
-      await Promise.all([...namespaces.values()].map(async ({ server }) => {
-        await server.close();
-        for (const name of server.databaseNames()) server.getDatabase(name).close();
-      }));
+      await Promise.all(
+        [...namespaces.values()].map(async ({ server }) => {
+          await server.close();
+          for (const name of server.databaseNames()) server.getDatabase(name).close();
+        }),
+      );
     },
     lock(namespace) {
       const { server } = get(namespace);
@@ -52,39 +82,50 @@ export async function startProtocol(entry: ConfigService): Promise<FleetChild> {
       const reject = (socket: import("node:net").Socket) => socket.destroy();
       // Prepend the fence, so the protocol handler never receives a live new socket.
       server.server.prependListener("connection", reject);
-      return () => { locked.delete(namespace); server.server.off("connection", reject); };
+      return () => {
+        locked.delete(namespace);
+        server.server.off("connection", reject);
+      };
     },
     diagnostics(namespace) {
       const { server } = get(namespace);
       // Even an idle client may retain prepared statements or a transaction workspace.
-      return { activeRequests: server.connections, activeConnections: server.connections,
-        blockedCommands: 0, pendingJobs: 0, pendingWebhooks: 0, unmatchedRequests: 0 };
+      return {
+        activeRequests: server.connections,
+        activeConnections: server.connections,
+        blockedCommands: 0,
+        pendingJobs: 0,
+        pendingWebhooks: 0,
+        unmatchedRequests: 0,
+      };
     },
     async checkpoint(namespace) {
       const { server, clock } = get(namespace);
       const handle = {};
-      const databases = new Map<string, string>();
-      for (const name of server.databaseNames()) {
-        const db = server.getDatabase(name);
-        const point = db.record(); db.timeline.retain(point.id); databases.set(name, point.id);
-      }
-      snapshots.set(handle, { namespace, databases, clock: clock.state() });
+      snapshots.set(handle, {
+        namespace,
+        databases: server.snapshotAll(),
+        clock: clock.state(),
+        faults: server.faultState(),
+      });
       return handle;
     },
     async restore(namespace, handle) {
       const point = typeof handle === "object" && handle !== null ? snapshots.get(handle) : undefined;
       if (!point || point.namespace !== namespace) throw new Error("invalid Postgres checkpoint");
       const { server, clock } = get(namespace);
-      for (const [name, id] of point.databases) {
-        const db = server.getDatabase(name); db.checkout(id); db.now = () => new Date(clock.now());
-      }
-      clock.freeze(); clock.set(point.clock.now); if (!point.clock.frozen) clock.unfreeze();
+      server.restoreAll(point.databases);
+      for (const name of server.databaseNames()) server.getDatabase(name).now = () => new Date(clock.now());
+      server.clearFaults();
+      server.fault(point.faults);
+      clock.freeze();
+      clock.set(point.clock.now);
+      if (!point.clock.frozen) clock.unfreeze();
     },
     async reset(namespace) {
       const { server, clock } = get(namespace);
-      for (const name of server.databaseNames()) {
-        const db = server.getDatabase(name); db.reset(); db.now = () => new Date(clock.now());
-      }
+      server.restoreAll(origins.get(namespace) as Map<string, Snapshot>);
+      for (const name of server.databaseNames()) server.getDatabase(name).now = () => new Date(clock.now());
       server.clearFaults();
       clock.reset();
     },

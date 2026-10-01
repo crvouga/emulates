@@ -1,5 +1,8 @@
 import type { EventEmitter } from "node:events"
 import { readFile } from "node:fs/promises"
+import { createRequire } from "node:module"
+import { resolve } from "node:path"
+import { pathToFileURL } from "node:url"
 import { type ParseArgsConfig, parseArgs } from "node:util"
 import type { RequestLog, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
 import { type FleetTarget, startFleet } from "./fleet.js"
@@ -228,11 +231,21 @@ export type MockingbirdConfig = {
   control?: { host?: string; port?: number }
 }
 
-const loadTarget = async (name: string, own: ServeTarget): Promise<FleetTarget> => {
+const loadTarget = async (name: string, own: FleetTarget): Promise<FleetTarget> => {
   if (name === own.name) return own
   const specifier = `@crvouga/mockingbird-service-${name}/server`
   try {
-    const mod = (await import(specifier)) as { serveTarget?: FleetTarget }
+    // A CLI run with npx may live outside the consumer project. Discover its locally
+    // installed services as well as siblings of the bundled CLI.
+    let mod: { serveTarget?: FleetTarget }
+    try {
+      mod = (await import(specifier)) as { serveTarget?: FleetTarget }
+    } catch {
+      const fromProject = createRequire(resolve(process.cwd(), "package.json"))
+      mod = (await import(pathToFileURL(fromProject.resolve(specifier)).href)) as {
+        serveTarget?: FleetTarget
+      }
+    }
     if (!mod.serveTarget) throw new Error(`${specifier} exports no serveTarget`)
     return mod.serveTarget
   } catch (error) {
@@ -278,9 +291,9 @@ const untilSignal = async (servers: { close(): Promise<void> }[]): Promise<numbe
   })
 
 /** The standard `serve` command for a service, including multi-service `--config`. */
-export const serveCommand = (target: ServeTarget): CliCommand => ({
-  summary: `Serve the ${target.name} mock over HTTP`,
-  options: { ...COMMON_SERVE_OPTIONS, ...target.options },
+export const serveCommand = (target: FleetTarget): CliCommand => ({
+  summary: `Serve the ${target.name} mock or a configured fleet`,
+  options: { ...COMMON_SERVE_OPTIONS, ...("options" in target ? target.options : {}) },
   async run(values) {
     const log = (
       values["log-requests"] === true ? "json" : (asString(values.log) ?? "pretty")
@@ -312,6 +325,10 @@ export const serveCommand = (target: ServeTarget): CliCommand => ({
         console.error(error instanceof Error ? error.message : String(error))
         return 1
       }
+    }
+    if ("start" in target) {
+      console.error("Use --config to supervise protocol services with this command")
+      return 2
     }
     const port = asString(values.port)
     const adminKey = asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY

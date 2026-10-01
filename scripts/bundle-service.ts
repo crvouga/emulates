@@ -90,7 +90,7 @@ const kept = new Set(
 )
 
 // Declarations: emit per-file with tsc, then roll each entry into one self-contained file.
-const types = mkdtempSync(join(pkgDir, ".types-"))
+const types = mkdtempSync(join(pkgDir, "dist", ".types-"))
 try {
   await $`tsc -p tsconfig.build.json --emitDeclarationOnly --declarationMap false --outDir ${types}`.cwd(
     pkgDir,
