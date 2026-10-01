@@ -488,15 +488,19 @@ export const createRuntime = <T extends ServiceInstance>(
     if (name === "*") {
       options.webhooks?.clear()
       for (const each of instances.values()) await each.reset()
+      for (const each of branchRngs.values()) each.reset()
       timelines.clear()
+      for (const storage of branchStorage.values()) {
+        instances.delete(storage)
+        branchRngs.delete(storage)
+        namespaceForStorage.delete(storage)
+      }
       branchStorage.clear()
-      branchRngs.clear()
       captured.clear()
       faults.clear()
       clock.reset()
       rng.reset()
       for (const each of namespaceClocks.values()) each.reset()
-      for (const each of branchRngs.values()) each.reset()
       return
     }
     options.webhooks?.clear(name)
@@ -509,6 +513,8 @@ export const createRuntime = <T extends ServiceInstance>(
       if (branchInstance) await branchInstance.reset()
       else clearNamespace(sqlite, storageNamespace(storage))
       branchStorage.delete(mapping)
+      instances.delete(storage)
+      namespaceForStorage.delete(storage)
       branchRngs.delete(storage)
       captured.delete(storage)
     }
