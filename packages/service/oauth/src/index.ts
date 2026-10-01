@@ -14,7 +14,7 @@ import type {
   Provider,
   Token,
 } from "./types.js"
-import { consentPage, escapeHtml, loginPage, page } from "./ui.js"
+import { consentPage, escapeHtml, loginPage, page, redirectPage } from "./ui.js"
 
 export type {
   BehaviorEvent,
@@ -54,7 +54,7 @@ export type OAuthAPIOptions = APIOptions &
     behavior?: BehaviorInput
     /** Replays behavior choices; also credentials when `deterministicCredentials` is set. */
     seed?: number | string
-    /** CSP nonce source for form-post responses. Defaults to `crypto.randomUUID`. */
+    /** CSP nonce source for callback handoff and form-post responses. Defaults to `crypto.randomUUID`. */
     nonce?: () => string
     /** Outbound delivery of Sign in with Apple server-to-server notifications. Defaults to global `fetch`. */
     webhooks?: { fetch?: (request: Request) => Promise<Response> }
@@ -1058,10 +1058,13 @@ export class OAuthAPI {
     const action = p.get("action")
     if (action === "deny") {
       this.transactions.delete(id)
-      return this.callback(auth, {
-        error: "access_denied",
-        error_description: "The user denied access",
-      })
+      return this.browserHandoff(
+        request,
+        this.callback(auth, {
+          error: "access_denied",
+          error_description: "The user denied access",
+        }),
+      )
     }
     if (action === "signup") {
       const email = (p.get("email") ?? "").trim().toLowerCase(),
@@ -1128,7 +1131,10 @@ export class OAuthAPI {
       ) {
         this.transactions.delete(id)
         return this.startSession(
-          await this.finish(auth as Authorization & { accountId: string }, issuer),
+          this.browserHandoff(
+            request,
+            await this.finish(auth as Authorization & { accountId: string }, issuer),
+          ),
           account.id,
           auth.authTime,
           issuer,
@@ -1152,13 +1158,27 @@ export class OAuthAPI {
         auth.emailChoice = choice
       this.transactions.delete(id)
       return this.startSession(
-        await this.finish(auth as Authorization & { accountId: string }, issuer),
+        this.browserHandoff(
+          request,
+          await this.finish(auth as Authorization & { accountId: string }, issuer),
+        ),
         account.id,
         auth.authTime,
         issuer,
       )
     }
     return fail("invalid_request", "Invalid interaction action")
+  }
+  private browserHandoff(request: Request, result: Response): Response {
+    const location = result.headers.get("location")
+    if (
+      request.headers.get("sec-fetch-mode")?.toLowerCase() !== "navigate" ||
+      !location ||
+      result.status < 300 ||
+      result.status >= 400
+    )
+      return result
+    return redirectPage(location, this.options.nonce?.() ?? this.credentials.nonce())
   }
   private startSession(
     result: Response,
