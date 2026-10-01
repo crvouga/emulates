@@ -17,7 +17,7 @@ afterAll(async () => {
   await server.close();
 });
 
-const url = () => `postgres://postgres@${server.host}:${server.port}/db`;
+const url = () => `postgres://postgres@${server.host}:${server.port}/postgres`;
 const withClient = async <T>(fn: (client: pg.Client) => Promise<T>): Promise<T> => {
   const client = new pg.Client({ connectionString: url() });
   await client.connect();
@@ -85,18 +85,15 @@ describe("extended query protocol", () => {
 });
 
 describe("transactions across connections", () => {
-  test("an uncommitted insert is invisible to another connection, and rollback discards it", async () => {
+  test("an uncommitted insert is invisible without blocking, and rollback discards it", async () => {
     await withClient(async (writer) => {
       await writer.query("CREATE TABLE acct (id int PRIMARY KEY)");
       await writer.query("BEGIN");
       await writer.query("INSERT INTO acct (id) VALUES (1)");
       await withClient(async (reader) => {
-        // The reader's count blocks behind the open block, so it never sees the dirty row.
-        const pending = reader.query("SELECT count(*)::int AS n FROM acct");
-        const raced = await Promise.race([pending.then(() => "read"), settle().then(() => "blocked")]);
-        expect(raced).toBe("blocked");
+        expect((await reader.query("SELECT count(*)::int AS n FROM acct")).rows).toEqual([{ n: 0 }]);
         await writer.query("ROLLBACK");
-        expect((await pending).rows).toEqual([{ n: 0 }]);
+        expect((await reader.query("SELECT count(*)::int AS n FROM acct")).rows).toEqual([{ n: 0 }]);
       });
     });
   });

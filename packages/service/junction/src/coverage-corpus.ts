@@ -24,7 +24,7 @@ export const PHLEBOTOMY_AVAILABILITY_ZIPS = ["85004"] as const
 export const ZIP_ADDRESSES: Readonly<
   Record<string, { first_line: string; city: string; state: string }>
 > = {
-  "85004": { first_line: "1 N Central Ave", city: "Phoenix", state: "AZ" },
+  "85004": { first_line: "West Lincoln Street", city: "Phoenix", state: "AZ" },
   "85234": { first_line: "1 Main St", city: "Gilbert", state: "AZ" },
   "11050": { first_line: "1 Main St", city: "Port Washington", state: "NY" },
   "10006": { first_line: "1 Main St", city: "New York", state: "NY" },
@@ -121,7 +121,7 @@ export const PSC_LAB_IDS = [4, 6, 13, 25] as const
 /** Sealed patient + address shapes for order parity (avoids junk 422 divergence). */
 export const COVERAGE_ORDER_ADDRESSES = [
   {
-    first_line: "1 N Central Ave",
+    first_line: "West Lincoln Street",
     city: "Phoenix",
     state: "AZ",
     zip: "85004",

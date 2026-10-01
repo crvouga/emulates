@@ -1941,15 +1941,20 @@ export class Parser {
   private parseIdentityOptions(): SequenceOptions {
     const options: SequenceOptions = {};
     if (this.eatPunct("(")) {
-      Object.assign(options, this.parseSequenceOptions());
+      Object.assign(options, this.parseSequenceOptions(true));
       this.expectPunct(")");
     }
     return options;
   }
 
-  private parseSequenceOptions(): SequenceOptions {
+  private parseSequenceOptions(identity = false): SequenceOptions {
     const options: SequenceOptions = {};
     for (;;) {
+      if (identity && this.eatKw("sequence")) {
+        this.expectKw("name");
+        options.sequenceName = this.qualifiedName();
+        continue;
+      }
       if (this.eatKw("increment")) {
         this.eatKw("by");
         options.increment = this.parseSignedBigInt();

@@ -40,8 +40,20 @@
     {
       "provider": "junction",
       "seed": 2058813869,
-      "status": "open",
-      "failure": "simulate_order real=500 'Internal Server Error' vs mock=200 'Success' after booked at-home phlebotomy order + unrelated cancels; sandbox 500 persisted through all 5 retries, reproduced on FC_SEED replay"
+      "status": "fixed",
+      "failure": "simulate_order real=500 'Internal Server Error' vs mock=200 'Success' after booked at-home phlebotomy order + unrelated cancels; sandbox 500 persisted through all 5 retries, reproduced on FC_SEED replay; isolated to cancelled testkit completion by four-case probe; fixed in PR #173, original walk 4 passed in Actions run 36537595637"
+    },
+    {
+      "provider": "junction",
+      "seed": 2058813869,
+      "status": "fixed",
+      "failure": "book_phlebotomy_appointment real=200 mock=200 but appointment events length real=2 mock=1 and location coordinates differ; exposed after simulation fix at path 4, walk seed 1746820281, Actions run 36537595637; not yet investigated with controlled booking probes; controlled cancellation/rebooking probe verified behavior; booking replay passed in Actions run 36593876971"
+    },
+    {
+      "provider": "junction",
+      "seed": 2058813869,
+      "status": "fixed",
+      "failure": "cancel_phlebotomy_appointment on a non-phlebotomy order: both 404, real detail=This order doesn't have a phlebotomy order. vs mock=No appointment for this order; path 4, walk seed 1746820281, Actions run 36593876971; modality guard regression added, verified by local sandbox replay 2026-09-29; original walk 5 now passes"
     },
     {
       "provider": "junction",
@@ -252,6 +264,30 @@
       "seed": 1537483448,
       "status": "fixed",
       "failure": "CreatePatient name=[false] (reachable once invalid bodies carry optional properties): the server's validator accepts a boolean or number in a name slot and echoes it, and any string in family/given; the response contract still required the request-side HumanName enums. Probed against the oracle: Patient.name items are now HumanNameOutput | null | boolean | number, and an emptied given part echoes as null"
+    },
+    {
+      "provider": "junction",
+      "seed": 2058813869,
+      "status": "fixed",
+      "failure": "Local sandbox replay 2026-09-29: appointment reschedule/cancel metadata, booking/reschedule order events, cancellation transaction status, and appointment modality/missing-resource guards diverged. Controlled probes and regressions added; original walk 5 passes."
+    },
+    {
+      "provider": "junction",
+      "seed": 2058813869,
+      "status": "fixed",
+      "failure": "Local walk 7 generated an unsendable Unicode x-idempotency-key. Junction command reshaping now consistently encodes opaque keys for both targets; HTTP construction regression and subsequent live walk 7 pass."
+    },
+    {
+      "provider": "junction",
+      "seed": 2058813869,
+      "status": "fixed",
+      "failure": "Additional cancelled-testkit simulation targets returned real 500 vs mock 200. Controlled matrix covered all 54 valid immediate targets: every response was 500 and the cancelled order remained unchanged. Matrix regression added; live walk 7 passes."
+    },
+    {
+      "provider": "junction",
+      "seed": 2058813869,
+      "status": "open",
+      "failure": "Local replay 2026-09-29, path 7, walk salt 998760424: testkit result PDF real 200 vs mock 404. A partial delivery-state implementation exposed raw-result metadata and transaction differences. Read-only polling after one simulation confirmed background completion from delivered_to_lab to completed without another write. Asynchronous testkit lifecycle and result metadata require a separate follow-up; full live parity has not passed."
     }
   ]
 }

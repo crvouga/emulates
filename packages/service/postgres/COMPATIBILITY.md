@@ -16,7 +16,11 @@ Differential tests compare a **tuple** per statement: rows (normalized to canoni
 
 A catalog ID appearing in a test file is **not** proof by itself. Trivial probes are tracked in [`compat/smoke-baseline.json`](compat/smoke-baseline.json) and ratcheted downward (currently **0 smoke stubs** across 945 catalog scenarios). Generated operator/cast matrices live under [`tests/contract/matrices/`](tests/contract/matrices/). Observed mem≠oracle diffs must bind to a `compat/divergences.json` entry or be a **FAILURE** — unexplained diffs are not allowed.
 
-Intentional differences are finite and machine-readable in `compat/divergences.json` (PGMM snapshots, seeded `random()`/`now()`, sync single-session API, no aborted-transaction state, EXPLAIN stubs, trigger-order/`UPDATE OF` edges, float8 rounding/overflow edges, …). Human-readable: [DIVERGENCES.md](DIVERGENCES.md).
+Intentional differences are finite and machine-readable in `compat/divergences.json` (PGMM snapshots, seeded `random()`/`now()`, sync single-session API, no aborted-transaction state, EXPLAIN stubs, trigger-order/`UPDATE OF` edges, float8 rounding/overflow edges, …). The wire server supports isolated database catalogs, startup selection, database lifecycle DDL, and copy-on-write template cloning. Human-readable: [DIVERGENCES.md](DIVERGENCES.md).
+
+The wire server supports protocol-v3 text and CSV `COPY FROM STDIN` / `COPY TO STDOUT`, including
+incremental `CopyData`, client aborts, and statement-atomic rollback. Binary COPY remains outside
+the compatibility surface.
 
 ## Status vocabulary
 
@@ -33,7 +37,7 @@ Anything a PostgreSQL application can invoke through SQL against the PGlite **18
 
 1. **Snapshot format** — custom binary codec (`PGMM`), not `pg_dump` / on-disk clusters (logical state still round-trips).
 2. **Deterministic `random()` / `now()`** — seeded PRNG and fixed clock by default (injectable).
-3. **Single session** — no MVCC across connections, no isolation levels beyond one session, no `25P02` aborted-transaction state (documented divergence).
+3. **Single-session sync API** — no concurrent sessions or `25P02` aborted-transaction state. The optional wire server separately provides per-session `READ COMMITTED` workspaces and row locks.
 4. **NOT APPLICABLE** rows in `compat/coverage.json` (roles, replication, VACUUM internals, LISTEN/NOTIFY, cursors, full PL/pgSQL, extensions other than `pgcrypto`'s `digest()` and `pg_trgm`'s `similarity` / `<%` / `gin_trgm_ops`).
 
 The oracle exposes **2787 builtin functions** and **74 operators** in `pg_catalog`; postgres-mem implements **302 functions** and **41 operators**, and every remaining item is an explicit entry in [`compat/unsupported-register.json`](compat/unsupported-register.json) with a reason (trigger/internal plumbing, admin/monitoring, unsupported type families, …). The gate fails closed on silence.
@@ -56,7 +60,7 @@ The oracle exposes **2787 builtin functions** and **74 operators** in `pg_catalo
 | GROUPING SETS / ROLLUP / CUBE, DISTINCT ON, LATERAL, set ops | VERIFIED | |
 | Recursive + data-modifying CTEs | VERIFIED | |
 | Constraints: PK / UNIQUE / NOT NULL / CHECK / FK actions | VERIFIED | DEFERRABLE parsed, checked at statement end |
-| Sequences / serial / identity | VERIFIED | |
+| Sequences / serial / identity | VERIFIED | Includes pg_dump identity sequence names and options |
 | Schemas + search_path + pg_catalog / information_schema | VERIFIED | Catalog columns are the commonly-queried subset |
 | Enums, domains, generated columns | VERIFIED | |
 | Triggers (row-level, LANGUAGE sql-expressible) | PARTIALLY VERIFIED | Creation-order firing, `UPDATE OF` ignored, no INSTEAD OF (documented) |
@@ -65,14 +69,15 @@ The oracle exposes **2787 builtin functions** and **74 operators** in `pg_catalo
 | `CREATE EXTENSION pgcrypto` / `digest()` | PARTIALLY VERIFIED | `digest(bytea, text)` and `digest(text, text)` for md5, sha1, sha224, sha256, sha384, sha512. `crypt`, `hmac`, `gen_salt`, and PGP functions are not installed. OpenSSL-only names (sha3, blake2, ripemd160, sm3) are not available. Extensions other than `pgcrypto` and `pg_trgm` still fail loud (`0A000`) |
 | `CREATE EXTENSION pg_trgm` | PARTIALLY VERIFIED | `similarity(text, text)`, `<%` at the default word-similarity threshold 0.6, and a single-column `gin_trgm_ops` index on `text` or `varchar`. `gist_trgm_ops`, multicolumn `gin_trgm_ops`, and non-default thresholds are not installed. |
 | COPY FROM/TO (text, csv) | VERIFIED | Via `copyFrom` API hook / rows out |
-| PREPARE / EXECUTE / DEALLOCATE, SET / SHOW / RESET | VERIFIED | GUC subset |
+| PREPARE / EXECUTE / DEALLOCATE, SET / SHOW / RESET | VERIFIED | GUC subset, including PostgreSQL dump and migration-client preambles |
 | Transactions / savepoints | VERIFIED | No `25P02` aborted state (documented divergence) |
 | Collation / ordering | PARTIALLY VERIFIED | `C` semantics pinned; locale/ICU out of scope |
 | Regex (`~`, `~*`, POSIX functions) | PARTIALLY VERIFIED | JS regex flavor mapped to POSIX ERE; documented edges |
 | EXPLAIN | PARTIALLY VERIFIED | Stub plan shapes |
 | MERGE / CALL / cursors / LISTEN / full PL/pgSQL | UNSUPPORTED | Fail loud `0A000`, registered |
 | Roles / GRANT / VACUUM / ANALYZE / LOCK | NOT APPLICABLE | Parsed no-ops where harmless |
-| Wire protocol / multi-session MVCC / on-disk format | NOT APPLICABLE | |
+| Wire protocol / multi-session concurrency | PARTIALLY VERIFIED | `READ COMMITTED` workspaces; `FOR UPDATE`, `NOWAIT`, `SKIP LOCKED`, and deadlock detection |
+| On-disk PostgreSQL format | NOT APPLICABLE | PGMM snapshots are the persistence format |
 
 ## How to verify
 

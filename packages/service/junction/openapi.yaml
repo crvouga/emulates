@@ -1503,6 +1503,13 @@ paths:
               schema:
                 type: string
                 examples: [Success]
+        "500":
+          description: Observed sandbox response for immediate completion of a cancelled testkit (PR 173, 2026-09-29)
+          content:
+            text/plain:
+              schema:
+                type: string
+                enum: [Internal Server Error]
         "404":
           description: Not Found
           content:

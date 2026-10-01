@@ -532,6 +532,7 @@ export interface CreateViewStmt {
 }
 
 export interface SequenceOptions {
+  sequenceName?: string[];
   increment?: bigint;
   minValue?: bigint | "no";
   maxValue?: bigint | "no";

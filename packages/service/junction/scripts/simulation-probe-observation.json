@@ -1,0 +1,136 @@
+{
+  "source": "https://github.com/crvouga/mockingbird/actions/runs/36536553888",
+  "observed_at": "2026-09-29",
+  "report": {
+    "complete": true,
+    "failure": null,
+    "cases": [
+      {
+        "cancelled": false,
+        "target": "testkit",
+        "before": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 1,
+          "requisitionCreated": false,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": false,
+          "hasRequisitionUrl": false
+        },
+        "status": 200,
+        "afterStatus": 200,
+        "after": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 7,
+          "requisitionCreated": true,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": false,
+          "hasRequisitionUrl": false
+        }
+      },
+      {
+        "cancelled": false,
+        "target": "at_home_phlebotomy",
+        "before": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 1,
+          "requisitionCreated": false,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": false,
+          "hasRequisitionUrl": false
+        },
+        "status": 200,
+        "afterStatus": 200,
+        "after": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 7,
+          "requisitionCreated": true,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": false,
+          "hasRequisitionUrl": false
+        }
+      },
+      {
+        "cancelled": true,
+        "target": "testkit",
+        "before": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 2,
+          "requisitionCreated": false,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": true,
+          "hasRequisitionUrl": false
+        },
+        "status": 500,
+        "afterStatus": 200,
+        "after": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 2,
+          "requisitionCreated": false,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": true,
+          "hasRequisitionUrl": false
+        }
+      },
+      {
+        "cancelled": true,
+        "target": "at_home_phlebotomy",
+        "before": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 2,
+          "requisitionCreated": false,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": true,
+          "hasRequisitionUrl": false
+        },
+        "status": 500,
+        "afterStatus": 200,
+        "after": {
+          "method": "testkit",
+          "detailsType": "testkit",
+          "eventCount": 2,
+          "requisitionCreated": false,
+          "appointmentScheduled": false,
+          "completed": false,
+          "cancelled": true,
+          "hasRequisitionUrl": false
+        }
+      }
+    ],
+    "cleanup": [
+      {
+        "resource": "order",
+        "status": 400
+      },
+      {
+        "resource": "order",
+        "status": 400
+      },
+      {
+        "resource": "order",
+        "status": 200
+      },
+      {
+        "resource": "order",
+        "status": 200
+      },
+      {
+        "resource": "user",
+        "status": 200
+      }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import { createExploreRng, type LogicalCommand } from "@crvouga/mockingbird-commands"
 import { seedParity } from "@crvouga/mockingbird-parity"
 import { fcParameters } from "@crvouga/mockingbird-testing"
 import { document, JunctionAPI } from "./src/index.js"
@@ -9,6 +10,33 @@ const params = fcParameters(process.env)
 const MOCK_HOST = "mock.junction.local"
 const AUTH = { "x-vital-api-key": "sk_us_mockingbird" }
 const now = () => 1_700_000_000_000
+
+test("generated idempotency headers survive HTTP request construction", () => {
+  const command: LogicalCommand = {
+    operationId: "book_psc_appointment_v3_order__order_id__psc_appointment_book_post",
+    parameters: { "x-idempotency-key": "𛋺𒉽ٺừ" },
+    body: {},
+    mediaType: "application/json",
+    invalid: undefined,
+  }
+  const shaped = reshapeCoverageGeoCommand(
+    command,
+    {
+      coverage: {},
+      history: [],
+      resourceCounts: {},
+      phase: "walk",
+      step: 0,
+      maxSteps: 1,
+    },
+    createExploreRng(1),
+  )
+  const key = String(shaped.parameters["x-idempotency-key"])
+  const request = new Request("https://junction.test", { headers: { "x-idempotency-key": key } })
+  expect(decodeURIComponent(request.headers.get("x-idempotency-key") ?? "")).toBe(
+    String(command.parameters["x-idempotency-key"]),
+  )
+})
 
 /** Full Junction lab-testing surface for offline seedParity confidence. */
 const OFFLINE_OPS = [

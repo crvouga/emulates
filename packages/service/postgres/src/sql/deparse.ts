@@ -46,7 +46,7 @@ function deparseFrom(item: Extract<SelectBody, { type: "select_core" }>["from"][
   return "(subquery)";
 }
 
-function quoteIdent(name: string): string {
+export function quoteIdent(name: string): string {
   if (/^[a-z_][a-z0-9_$]*$/.test(name)) return name;
   return `"${name.replaceAll('"', '""')}"`;
 }

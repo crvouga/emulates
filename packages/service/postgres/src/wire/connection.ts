@@ -1,7 +1,13 @@
 import type { Socket } from "node:net";
 import type { BindValue } from "../api/bind.ts";
+import type { Database } from "../api/database.ts";
 import type { TextResultSet } from "../api/statement.ts";
+import type { CopyStmt } from "../ast/nodes.ts";
 import { PostgresError } from "../errors/error.ts";
+import { executeCopyFromData } from "../executor/session.ts";
+import { EngineCtx } from "../expressions/context.ts";
+import { parse as parseSql } from "../parser/index.ts";
+import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
 import { typeOid } from "../types/value.ts";
 import { type Cluster, LockWait, type Session } from "./cluster.ts";
 import {
@@ -22,6 +28,13 @@ import { splitStatements } from "./split.ts";
 type Outcome = { empty: true } | { empty: false; result: TextResultSet; tag: string };
 
 type Prepared = { name: string; sql: string; paramOids: number[] };
+type LoggedStatement =
+  | { kind: "sql"; sql: string; params: BindValue[] }
+  | { kind: "copy"; stmt: CopyStmt; data: string };
+type TransactionWorkspace = {
+  statements: LoggedStatement[];
+  savepoints: Array<{ name: string; statementCount: number }>;
+};
 type Portal = {
   name: string;
   prepared: Prepared;
@@ -30,6 +43,17 @@ type Portal = {
   /** Set once executed (by Describe or Execute); rows are handed out from `cursor`. */
   outcome?: Outcome;
   cursor: number;
+};
+
+type CopyIn = {
+  stmt: CopyStmt;
+  database: Database;
+  workspace: boolean;
+  buffer: string;
+  decoder: TextDecoder;
+  rowCount: number;
+  headerPending: boolean;
+  loggedData: string;
 };
 
 export type ServerFaults = {
@@ -68,6 +92,28 @@ const LISTEN = /^listen\s+("?)([A-Za-z_][\w$]*)\1\s*$/i;
 const UNLISTEN = /^unlisten\s+(\*|"?[A-Za-z_][\w$]*"?)\s*$/i;
 const NOTIFY = /^notify\s+("?)([A-Za-z_][\w$]*)\1\s*(?:,\s*'((?:[^']|'')*)')?\s*$/i;
 const RETURNS_ROWS = /^(select|with|values|show|table|explain)\b/i;
+const CLUSTER_DDL = /^(create|drop|alter)\s+database\b/i;
+const IDENT = '(?:"((?:[^"]|"")+)"|([A-Za-z_][A-Za-z0-9_$]*))';
+const CREATE_DATABASE = new RegExp(
+  `^create\\s+database\\s+${IDENT}(?:\\s+with)?(?:\\s+template\\s*(?:=\\s*)?${IDENT})?\\s*$`,
+  "i",
+);
+const DROP_DATABASE = new RegExp(
+  `^drop\\s+database\\s+(if\\s+exists\\s+)?${IDENT}(?:\\s+with\\s*\\(\\s*force\\s*\\))?\\s*$`,
+  "i",
+);
+const RENAME_DATABASE = new RegExp(`^alter\\s+database\\s+${IDENT}\\s+rename\\s+to\\s+${IDENT}\\s*$`, "i");
+
+const identifier = (quoted: string | undefined, plain: string | undefined): string =>
+  quoted === undefined ? (plain as string).toLowerCase() : quoted.replaceAll('""', '"');
+const ROW_LOCK =
+  /\s+for\s+(?:no\s+key\s+update|key\s+share|update|share)(?:\s+of\s+(?:(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s*,\s*(?:(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?))*)?(?:\s+(nowait|skip\s+locked))?\s*$/i;
+const LIMIT = /\s+limit\s+(\d+)(?:\s+offset\s+(\d+))?\s*$/i;
+const FROM_TABLE = /\bfrom\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)/i;
+const UPDATE_TARGET =
+  /^update\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s+(?:as\s+)?(?:"[^"]+"|[A-Za-z_][\w$]*))?\s+set\s+[\s\S]*?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$/i;
+const DELETE_TARGET =
+  /^delete\s+from\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s+(?:as\s+)?(?:"[^"]+"|[A-Za-z_][\w$]*))?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$/i;
 
 const TYPLEN: Record<string, number> = {
   bool: 1,
@@ -172,6 +218,9 @@ const binaryValue = (type: string, text: string): Uint8Array | null => {
 const binaryEncodable = (type: string): boolean =>
   TEXT_TYPES.has(type) || ["bool", "int2", "int4", "oid", "int8", "float4", "float8", "bytea", "uuid"].includes(type);
 
+const mutatesDatabase = (sql: string): boolean =>
+  parseSql(sql).some((stmt) => !["select", "show", "explain", "transaction", "comment", "no_op"].includes(stmt.type));
+
 /** A bound parameter as the engine takes it: text binds as an untyped literal, binary by its OID. */
 const decodeParam = (oid: number, format: number, bytes: Uint8Array | null): BindValue => {
   if (bytes === null) return null;
@@ -227,6 +276,8 @@ export class Connection implements Session {
   waitingForTurn: Session["waitingForTurn"] = null;
   waitingForLock: string | null = null;
   pendingNotifies: { channel: string; payload: string }[] = [];
+  database: Database;
+  databaseName: string;
 
   private readonly frames = new FrameParser();
   private readonly inbox: FrontendMessage[] = [];
@@ -244,6 +295,10 @@ export class Connection implements Session {
   private readonly prepared = new Map<string, Prepared>();
   private readonly portals = new Map<string, Portal>();
   private readonly notifications: Uint8Array[] = [];
+  private copyIn: CopyIn | null = null;
+  private copyDrain = false;
+  /** Successful writes in this session's READ COMMITTED transaction workspace. */
+  private transaction: TransactionWorkspace | null = null;
   private closed = false;
 
   constructor(
@@ -251,6 +306,8 @@ export class Connection implements Session {
     private readonly cluster: Cluster,
     private readonly options: ConnectionOptions,
   ) {
+    this.database = cluster.db;
+    this.databaseName = cluster.defaultDatabaseName;
     this.pid = cluster.newPid();
     this.secret = Math.floor(Math.random() * 0x7fffffff);
     cluster.sessions.set(this.pid, this);
@@ -345,6 +402,20 @@ export class Connection implements Session {
       this.fatal("08P01", "expected startup or password message");
       return;
     }
+    if (this.copyIn && message.kind === "typed") {
+      await this.handleCopyIn(message.type, message.body);
+      return;
+    }
+    if (this.copyDrain && message.kind === "typed") {
+      if (message.type === "c" || message.type === "f") {
+        this.copyDrain = false;
+        this.readyForQuery();
+      } else if (message.type === "X") {
+        this.socket.end();
+        this.dispose();
+      }
+      return;
+    }
     if (this.skipUntilSync && message.type !== "S" && message.type !== "X") return;
     try {
       switch (message.type) {
@@ -397,10 +468,13 @@ export class Connection implements Session {
     }
     this.user = parameters.user ?? "postgres";
     const requested = parameters.database && parameters.database.length > 0 ? parameters.database : this.user;
-    if (this.options.database !== undefined && requested !== this.options.database) {
+    const database = this.cluster.getDatabase(requested);
+    if (!database || (this.options.database !== undefined && requested !== this.options.database)) {
       this.fatal("3D000", `database "${requested}" does not exist`);
       return;
     }
+    this.database = database;
+    this.databaseName = requested;
     if (this.options.password !== undefined) {
       this.scram = new ScramServer(this.options.password);
       this.write(backend.authenticationSASL(["SCRAM-SHA-256"]));
@@ -469,7 +543,7 @@ export class Connection implements Session {
   // --- execution ----------------------------------------------------------------------------
 
   private get inTransaction(): boolean {
-    return this.cluster.turnHolder === this && this.cluster.db.transactions.inTransaction;
+    return this.transaction !== null;
   }
 
   private status(): "I" | "T" | "E" {
@@ -495,6 +569,7 @@ export class Connection implements Session {
       return outcome;
     } catch (error) {
       if (this.inTransaction) this.aborted = true;
+      if (error instanceof PostgresError && error.sqlState === "40P01") this.cluster.unlockAll(this, true);
       const status = error instanceof PostgresError ? error.sqlState : "XX000";
       this.options.onLog?.({ pid: this.pid, sql: text, durationMs: performance.now() - started, status });
       throw error;
@@ -520,7 +595,7 @@ export class Connection implements Session {
       if (!this.inTransaction) this.flushNotifies();
       return command("NOTIFY");
     }
-    const db = this.cluster.db;
+    if (CLUSTER_DDL.test(text)) return this.executeClusterDdl(text);
     for (;;) {
       if (this.cancelled) throw pgError("internal", "canceling statement due to user request", "57014");
       await this.cluster.acquireTurn(this);
@@ -530,7 +605,7 @@ export class Connection implements Session {
         faults.delayStatementMs = undefined;
         await new Promise((resolve) => setTimeout(resolve, ms));
       }
-      if (faults.dropConnection && db.transactions.inTransaction) {
+      if (faults.dropConnection && this.inTransaction) {
         faults.dropConnection = undefined;
         this.destroy();
         throw new ConnectionDropped();
@@ -542,7 +617,7 @@ export class Connection implements Session {
       } catch (error) {
         if (error instanceof LockWait) {
           const key = error.key;
-          if (!db.transactions.inTransaction) this.cluster.releaseTurn(this);
+          this.cluster.releaseTurn(this);
           await this.waitForLock(key);
           continue;
         }
@@ -574,58 +649,217 @@ export class Connection implements Session {
 
   /** The engine call itself: statement-atomic, and transaction control handled as the server sees it. */
   private runStatement(text: string, params: BindValue[], control: boolean): Outcome {
-    const db = this.cluster.db;
-    const tx = db.transactions;
     const faults = this.options.faults;
     if (control && COMMIT.test(text)) {
       if (this.aborted) {
-        tx.rollback();
+        this.transaction = null;
         this.aborted = false;
         return command("ROLLBACK");
       }
       if (faults.failCommit !== undefined) {
         const code = faults.failCommit;
         faults.failCommit = undefined;
-        tx.rollback();
+        this.transaction = null;
         throw pgError("internal", "could not serialize access due to concurrent update", code);
       }
     }
     if (control && this.aborted && /^(rollback|abort)\b/i.test(text) && !/\bto\b/i.test(text)) {
-      tx.rollback();
+      this.transaction = null;
       this.aborted = false;
       return command("ROLLBACK");
     }
-    const run = () => {
-      const result = this.cluster.as(this, () => db.prepare(text).textResult(...params));
-      return { empty: false as const, result, tag: commandTag(result) };
-    };
-    if (control) return run();
-    if (tx.inTransaction) {
-      const name = `__wire_${this.pid}`;
-      tx.savepoint(name);
-      try {
-        const outcome = run();
-        tx.releaseSavepoint(name);
-        return outcome;
-      } catch (error) {
-        tx.rollbackToSavepoint(name);
-        tx.releaseSavepoint(name);
-        throw error;
+    if (control) return this.transactionControl(text);
+
+    const workspace = this.transaction === null ? null : this.openWorkspace();
+    const db = workspace ?? this.database;
+    try {
+      const run = () => {
+        const result = this.cluster.as(this, () => this.runQuery(db, text, params));
+        return { empty: false as const, result, tag: commandTag(result) };
+      };
+      const outcome = db.transaction(run);
+      if (this.transaction && mutatesDatabase(text)) {
+        this.transaction.statements.push({ kind: "sql", sql: text, params: params.slice() });
       }
+      return outcome;
+    } finally {
+      workspace?.close();
     }
-    return db.transaction(run);
   }
 
-  /** Release the turn and transaction-scoped locks once no block is open; deliver NOTIFYs at commit. */
+  /** Release the statement turn; transaction-scoped locks live until COMMIT / ROLLBACK. */
   private afterStatement(): void {
-    if (this.cluster.db.transactions.inTransaction) return;
-    this.cluster.unlockAll(this, true);
     this.cluster.releaseTurn(this);
-    this.flushNotifies();
+    if (!this.inTransaction) {
+      this.cluster.unlockAll(this, true);
+      this.flushNotifies();
+    }
+  }
+
+  private transactionControl(text: string): Outcome {
+    const stmt = parseSql(text)[0];
+    if (stmt?.type !== "transaction") throw pgError("syntax", "invalid transaction command", "42601");
+    switch (stmt.action) {
+      case "begin":
+        this.transaction ??= { statements: [], savepoints: [] };
+        return command("BEGIN");
+      case "commit": {
+        const transaction = this.transaction;
+        this.transaction = null;
+        if (transaction) {
+          this.database.transaction(() => {
+            for (const logged of transaction.statements) this.replay(this.database, logged);
+          });
+        }
+        return command("COMMIT");
+      }
+      case "rollback":
+        this.transaction = null;
+        return command("ROLLBACK");
+      case "savepoint": {
+        if (!this.transaction) throw pgError("internal", "SAVEPOINT can only be used in transaction blocks", "25P01");
+        this.transaction.savepoints.push({
+          name: stmt.savepointName as string,
+          statementCount: this.transaction.statements.length,
+        });
+        return command("SAVEPOINT");
+      }
+      case "release": {
+        const index = this.findSavepoint(stmt.savepointName as string);
+        this.transaction?.savepoints.splice(index);
+        return command("RELEASE");
+      }
+      case "rollback_to": {
+        const index = this.findSavepoint(stmt.savepointName as string);
+        const savepoint = this.transaction?.savepoints[index];
+        if (!this.transaction || !savepoint) throw pgError("internal", "savepoint does not exist", "3B001");
+        this.transaction.statements.splice(savepoint.statementCount);
+        this.transaction.savepoints.splice(index + 1);
+        this.aborted = false;
+        return command("ROLLBACK");
+      }
+    }
+  }
+
+  private findSavepoint(name: string): number {
+    if (!this.transaction) throw pgError("internal", "SAVEPOINT can only be used in transaction blocks", "25P01");
+    for (let i = this.transaction.savepoints.length - 1; i >= 0; i--) {
+      if (this.transaction.savepoints[i]?.name === name) return i;
+    }
+    throw pgError("internal", `savepoint "${name}" does not exist`, "3B001");
+  }
+
+  /** Rebase this transaction's successful writes onto the latest committed state. */
+  private openWorkspace(): Database {
+    const workspace = this.database.branch();
+    setDatabaseCatalogContext(workspace.state, {
+      name: this.databaseName,
+      names: () => this.cluster.databaseNames(),
+    });
+    for (const logged of this.transaction?.statements ?? []) {
+      workspace.transaction(() => this.replay(workspace, logged));
+    }
+    return workspace;
+  }
+
+  private replay(db: Database, logged: LoggedStatement): void {
+    this.cluster.as(this, () => {
+      if (logged.kind === "sql") db.prepare(logged.sql).textResult(...logged.params);
+      else {
+        const env = { ctx: new EngineCtx(db.state), params: null, ctes: new Map(), outer: null };
+        executeCopyFromData(env, logged.stmt, logged.data);
+      }
+    });
+  }
+
+  private runQuery(db: Database, text: string, params: BindValue[]): TextResultSet {
+    const lock = ROW_LOCK.exec(text);
+    if (!lock) {
+      const mutation = UPDATE_TARGET.exec(text) ?? DELETE_TARGET.exec(text);
+      if (mutation) {
+        const lockQuery = `SELECT * FROM ${mutation[1]}${mutation[2] ? ` WHERE ${mutation[2]}` : ""}`;
+        this.lockRows(db, lockQuery, params, "wait");
+      }
+      return db.prepare(text).textResult(...params);
+    }
+
+    let query = text.slice(0, lock.index).trimEnd();
+    const limitMatch = LIMIT.exec(query);
+    const limit = limitMatch ? Number(limitMatch[1]) : Number.POSITIVE_INFINITY;
+    const offset = limitMatch ? Number(limitMatch[2] ?? 0) : 0;
+    if (limitMatch) query = query.slice(0, limitMatch.index).trimEnd();
+    return this.lockRows(db, query, params, lock[1]?.toLowerCase().replace(/\s+/g, "_") ?? "wait", limit, offset);
+  }
+
+  private lockRows(
+    db: Database,
+    query: string,
+    params: BindValue[],
+    policy: string,
+    limit = Number.POSITIVE_INFINITY,
+    offset = 0,
+  ): TextResultSet {
+    const result = db.prepare(query).textResult(...params);
+    const rows: (string | null)[][] = [];
+    for (const row of result.rows.slice(offset)) {
+      const key = this.rowLockKey(db, query, result.columns, row);
+      if (this.cluster.tryLock(this, key, true)) {
+        rows.push(row);
+        if (rows.length >= limit) break;
+        continue;
+      }
+      if (policy === "skip_locked") continue;
+      if (policy === "nowait") {
+        throw pgError("internal", "could not obtain lock on row in relation", "55P03");
+      }
+      throw new LockWait(key);
+    }
+    return { ...result, rows, rowCount: rows.length };
+  }
+
+  private rowLockKey(db: Database, query: string, columns: string[], row: (string | null)[]): string {
+    const rawName = FROM_TABLE.exec(query)?.[1] ?? "query";
+    const parts = rawName
+      .split(".")
+      .map((part) => (part.startsWith('"') ? part.slice(1, -1).replaceAll('""', '"') : part.toLowerCase()));
+    const table = db.state.findTable(parts);
+    const primary = table?.constraints.find((constraint) => constraint.kind === "primary_key");
+    const indexes = primary?.columns.map((column) => columns.indexOf(column)) ?? [];
+    const identity = indexes.length > 0 && indexes.every((index) => index >= 0) ? indexes.map((i) => row[i]) : row;
+    return `row:${this.databaseName}:${parts.join(".")}:${JSON.stringify(identity)}`;
   }
 
   private flushNotifies(): void {
     for (const { channel, payload } of this.pendingNotifies.splice(0)) this.cluster.notify(this, channel, payload);
+  }
+
+  private executeClusterDdl(text: string): Outcome {
+    if (this.inTransaction) {
+      throw pgError("internal", "CREATE/DROP/ALTER DATABASE cannot run inside a transaction block", "25001");
+    }
+    const create = CREATE_DATABASE.exec(text);
+    if (create) {
+      const name = identifier(create[1], create[2]);
+      const template =
+        create[3] === undefined && create[4] === undefined ? undefined : identifier(create[3], create[4]);
+      this.cluster.createDatabase(name, template);
+      return command("CREATE DATABASE");
+    }
+    const drop = DROP_DATABASE.exec(text);
+    if (drop) {
+      const name = identifier(drop[2], drop[3]);
+      if (drop[1] && !this.cluster.getDatabase(name)) return command("DROP DATABASE");
+      this.cluster.dropDatabase(name, this);
+      return command("DROP DATABASE");
+    }
+    const rename = RENAME_DATABASE.exec(text);
+    if (rename) {
+      const from = identifier(rename[1], rename[2]);
+      const to = identifier(rename[3], rename[4]);
+      this.cluster.renameDatabase(from, to, this);
+      return command("ALTER DATABASE");
+    }
+    throw pgError("syntax", "unsupported CREATE/DROP/ALTER DATABASE option", "0A000");
   }
 
   private listen(channel: string): Outcome {
@@ -651,6 +885,24 @@ export class Connection implements Session {
       this.readyForQuery();
       return;
     }
+    if (statements.length === 1) {
+      const copy = this.copyStatement(statements[0] as string);
+      if (copy?.direction === "from") {
+        await this.beginCopyIn(copy);
+        return;
+      }
+      if (copy?.direction === "to") {
+        try {
+          const outcome = await this.execute(statements[0] as string);
+          this.sendCopyOut(outcome, this.copyColumnCount(copy));
+        } catch (error) {
+          this.write(backend.errorResponse(errorFields(error)));
+          if (this.inTransaction) this.aborted = true;
+        }
+        this.readyForQuery();
+        return;
+      }
+    }
     // Several statements in one message run as one implicit transaction block, unless the
     // script manages transactions itself or one is already open.
     const implicit = statements.length > 1 && !this.inTransaction && !statements.some((s) => TX_CONTROL.test(s));
@@ -672,6 +924,145 @@ export class Connection implements Session {
     }
     if (failed && this.inTransaction) this.aborted = true;
     this.readyForQuery();
+  }
+
+  private copyStatement(sql: string): CopyStmt | null {
+    try {
+      const statements = parseSql(sql);
+      const stmt = statements.length === 1 ? statements[0] : undefined;
+      return stmt?.type === "copy" ? stmt : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private copyColumnCount(stmt: CopyStmt): number {
+    if (stmt.columns) return stmt.columns.length;
+    if (stmt.table) return this.database.state.findTable(stmt.table)?.columns.length ?? 0;
+    return 0;
+  }
+
+  private async handleCopyIn(type: string, body: ByteReader): Promise<void> {
+    const copy = this.copyIn as CopyIn;
+    if (type === "d") {
+      try {
+        copy.buffer += copy.decoder.decode(body.rest(), { stream: true });
+        this.flushCopyRecords(copy, false);
+      } catch (error) {
+        this.abortCopyIn(copy, error, true);
+      }
+      return;
+    }
+    if (type === "f") {
+      const detail = body.cstring();
+      this.abortCopyIn(copy, pgError("internal", `COPY from stdin failed: ${detail}`, "57014"), false);
+      return;
+    }
+    if (type === "c") {
+      this.finishCopyIn(copy);
+      return;
+    }
+    if (type === "H") return;
+    if (type === "X") {
+      this.socket.end();
+      this.dispose();
+      return;
+    }
+    this.fatal("08P01", `unexpected frontend message type ${JSON.stringify(type)} during COPY`);
+  }
+
+  private async beginCopyIn(stmt: CopyStmt): Promise<void> {
+    await this.cluster.acquireTurn(this);
+    const workspace = this.transaction ? this.openWorkspace() : null;
+    const database = workspace ?? this.database;
+    database.transactions.begin();
+    this.copyIn = {
+      stmt,
+      database,
+      workspace: workspace !== null,
+      buffer: "",
+      decoder: new TextDecoder(),
+      rowCount: 0,
+      headerPending: stmt.options.header === true || String(stmt.options.header ?? "").toLowerCase() === "true",
+      loggedData: "",
+    };
+    this.write(backend.copyInResponse(this.copyColumnCount(stmt)));
+  }
+
+  private finishCopyIn(copy: CopyIn): void {
+    const tx = copy.database.transactions;
+    try {
+      copy.buffer += copy.decoder.decode();
+      this.flushCopyRecords(copy, true);
+      tx.commit();
+      if (copy.workspace) {
+        this.transaction?.statements.push({ kind: "copy", stmt: copy.stmt, data: copy.loggedData });
+        copy.database.close();
+      }
+      this.copyIn = null;
+      this.write(backend.commandComplete(`COPY ${copy.rowCount}`));
+      this.cluster.releaseTurn(this);
+      this.readyForQuery();
+    } catch (error) {
+      this.abortCopyIn(copy, error, false);
+    }
+  }
+
+  private flushCopyRecords(copy: CopyIn, final: boolean): void {
+    const format = String(copy.stmt.options.format ?? "text").toLowerCase();
+    const quote = String(copy.stmt.options.quote ?? '"');
+    const boundaries: number[] = [];
+    let quoted = false;
+    for (let i = 0; i < copy.buffer.length; i++) {
+      const char = copy.buffer[i];
+      if (format === "csv" && char === quote) {
+        if (quoted && copy.buffer[i + 1] === quote) i++;
+        else quoted = !quoted;
+      } else if (char === "\n" && !quoted) {
+        boundaries.push(i + 1);
+      }
+    }
+    if (final && quoted) {
+      throw new PostgresError("invalid_text_representation", "unterminated CSV quoted field", "22P04");
+    }
+    const end = boundaries.at(-1) ?? 0;
+    const data = final ? copy.buffer : end > 0 ? copy.buffer.slice(0, end) : "";
+    if (data === "") return;
+    copy.buffer = final ? "" : copy.buffer.slice(end);
+    const stmt = copy.headerPending ? copy.stmt : { ...copy.stmt, options: { ...copy.stmt.options, header: false } };
+    const env = {
+      ctx: new EngineCtx(copy.database.state),
+      params: null,
+      ctes: new Map(),
+      outer: null,
+    };
+    const result = this.cluster.as(this, () => executeCopyFromData(env, stmt, data));
+    copy.rowCount += result.rowCount;
+    copy.loggedData += data;
+    copy.headerPending = false;
+  }
+
+  private abortCopyIn(copy: CopyIn, error: unknown, drain: boolean): void {
+    const tx = copy.database.transactions;
+    if (tx.inTransaction) tx.rollback();
+    if (copy.workspace) copy.database.close();
+    if (this.inTransaction) this.aborted = true;
+    this.cluster.releaseTurn(this);
+    this.copyIn = null;
+    this.copyDrain = drain;
+    this.write(backend.errorResponse(errorFields(error)));
+    if (!drain) this.readyForQuery();
+  }
+
+  private sendCopyOut(outcome: Outcome, columns: number): void {
+    if (outcome.empty) throw pgError("internal", "COPY TO produced no result", "XX000");
+    this.write(backend.copyOutResponse(columns));
+    for (const row of outcome.result.rows) {
+      const line = row[0] ?? "";
+      this.write(backend.copyData(utf8.encode(`${line}\n`)));
+    }
+    this.write(backend.copyDone());
+    this.write(backend.commandComplete(outcome.tag));
   }
 
   private sendOutcome(
@@ -737,7 +1128,7 @@ export class Connection implements Session {
     const text = sql.trim();
     if (text !== "" && !LISTEN.test(text) && !UNLISTEN.test(text) && !NOTIFY.test(text) && !TX_CONTROL.test(text)) {
       // Syntax is checked now (a parse error belongs to Parse), the statement runs at Execute.
-      this.cluster.db.prepare(text);
+      if (!CLUSTER_DDL.test(text)) this.database.prepare(text);
     }
     if (name !== "" && this.prepared.has(name)) {
       throw pgError("internal", `prepared statement "${name}" already exists`, "42P05");
@@ -799,7 +1190,7 @@ export class Connection implements Session {
    */
   private async shapeOf(prepared: Prepared): Promise<TextResultSet | null> {
     if (!RETURNS_ROWS.test(prepared.sql)) return null;
-    const db = this.cluster.db;
+    const db = this.database;
     await this.cluster.acquireTurn(this);
     try {
       const params = prepared.paramOids.map(() => null);

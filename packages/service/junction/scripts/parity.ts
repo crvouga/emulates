@@ -18,6 +18,12 @@ import { document, JunctionAPI } from "../src/index.js"
 import { prefetchCoverageObservations } from "../src/prefetch.js"
 import { reshapeCoverageGeoCommand } from "../src/reshape.js"
 import { PARITY_SEEDS } from "../src/seeds.js"
+import { cancelWalkAppointments } from "./booking-cleanup.js"
+import bookingObservation from "./booking-probe-observation.json" with { type: "json" }
+import { probeBookingLifecycle } from "./booking-probes.js"
+import { diagnoseSimulationFailure } from "./simulation-diagnostics.js"
+import { probeSimulationLifecycle } from "./simulation-probes.js"
+import { withTestkitSettlement } from "./testkit-settlement.js"
 
 /** Docs: https://docs.junction.com/api-details/junction-api */
 const DEFAULT_JUNCTION_HOST = "api.sandbox.tryvital.io"
@@ -229,6 +235,13 @@ const cleanup = async ({
   real: { fetch: (request: Request) => Promise<Response>; baseUrl: string }
   scope: Scope
 }) => {
+  await cancelWalkAppointments(
+    probeCall,
+    table
+      .all()
+      .filter((resource) => resource.type === "order")
+      .flatMap((resource) => (resource.ids.real ? [resource.ids.real] : [])),
+  )
   for (const resource of table.all()) {
     const id = resource.ids.real
     if (id === undefined) continue
@@ -243,13 +256,36 @@ const cleanup = async ({
     }
   }
   await clearSandboxUsers()
+  walkPatientId = crypto.randomUUID()
 }
 
+let walkPatientId = crypto.randomUUID()
 const reshapeCommand = (
   command: LogicalCommand,
   state: ExploreState,
   rng: ExploreRng,
-): LogicalCommand => reshapeCoverageGeoCommand(command, state, rng)
+): LogicalCommand => {
+  const shaped = reshapeCoverageGeoCommand(command, state, rng)
+  if (shaped.operationId !== "create_order_v3_order_post") return shaped
+  const body = shaped.body as Record<string, unknown>
+  const phoneNumber = `+120255501${String([...walkPatientId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 100).padStart(2, "0")}`
+  return {
+    ...shaped,
+    body: {
+      ...body,
+      patient_details: {
+        ...(body.patient_details as Record<string, unknown>),
+        last_name: `Fixture${walkPatientId.replace(/[^a-z]/gi, "")}`,
+        email: `parity-${walkPatientId}@example.com`,
+        phone_number: phoneNumber,
+      },
+      patient_address: {
+        ...(body.patient_address as Record<string, unknown>),
+        phone_number: phoneNumber,
+      },
+    },
+  }
+}
 
 /**
  * The Vital sandbox intermittently answers 500/502/503/504 with a text body (documented
@@ -280,6 +316,7 @@ const retrySandbox5xx = async (request: Request): Promise<Response> => {
     await Bun.sleep(DEFAULT_MIN_INTERVAL_MS * (attempt + 2))
     response = await fetch(request.clone())
   }
+  await diagnoseSimulationFailure(request, response, fetch, console.warn)
   return response
 }
 
@@ -329,7 +366,7 @@ const runSeed = async (seed: number | undefined) => {
       real: {
         baseUrl,
         allowedHosts: [new URL(baseUrl).host],
-        fetch: (request: Request) => retrySandbox5xx(request),
+        fetch: withTestkitSettlement((request: Request) => retrySandbox5xx(request)),
         headers: () => ({
           ...authHeaders,
           "x-mockingbird-scope": Bun.env.MOCKINGBIRD_SCOPE ?? "junction-parity",
@@ -337,7 +374,12 @@ const runSeed = async (seed: number | undefined) => {
         minIntervalMs: DEFAULT_MIN_INTERVAL_MS,
       },
       mock: {
-        create: () => new JunctionAPI(),
+        create: () => {
+          const api = new JunctionAPI()
+          const fetch = api.fetch.bind(api)
+          api.fetch = withTestkitSettlement(fetch)
+          return api
+        },
         headers: () => ({ "x-vital-api-key": "sk_us_mockingbird" }),
       },
       ...(webhookParity === undefined ? {} : { webhooks: webhookParity }),
@@ -659,6 +701,61 @@ const probeLabAccounts = async () => {
     `junction lab-account probes: wrote corpus/lab-account-probes.json (${probes.length} probes)`,
   )
 }
+const probeCall: Parameters<typeof probeBookingLifecycle>[0] = async (method, path, body) => {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: {
+      ...authHeaders,
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    signal: AbortSignal.timeout(30_000),
+  })
+  const text = await response.text()
+  let parsed: unknown = null
+  try {
+    parsed = JSON.parse(text)
+  } catch {}
+  await Bun.sleep(DEFAULT_MIN_INTERVAL_MS * 4)
+  return { status: response.status, body: parsed }
+}
+const simulationProbe = await probeSimulationLifecycle(probeCall, crypto.randomUUID())
+const simulationCorpusDir = join(import.meta.dir, "..", "corpus")
+await mkdir(simulationCorpusDir, { recursive: true })
+await writeFile(
+  join(simulationCorpusDir, "simulation-probes.json"),
+  `${JSON.stringify(simulationProbe, null, 2)}\n`,
+)
+console.log(`junction simulation probes: ${JSON.stringify(simulationProbe)}`)
+if (!simulationProbe.complete)
+  throw new Error("junction simulation probes incomplete; see sanitized report")
+// Preserve the edge cases explicitly even if normal walk generation changes later.
+const expectedSimulationStatuses = [200, 200, 500, 500]
+if (
+  simulationProbe.cases.some(
+    (entry, index) =>
+      entry.status !== expectedSimulationStatuses[index] ||
+      (entry.cancelled && JSON.stringify(entry.before) !== JSON.stringify(entry.after)),
+  )
+) {
+  throw new Error("junction simulation edge-case baseline changed; see sanitized report")
+}
+
+const bookingProbe = await probeBookingLifecycle(probeCall, crypto.randomUUID())
+await writeFile(
+  join(simulationCorpusDir, "booking-probes.json"),
+  `${JSON.stringify(bookingProbe, null, 2)}\n`,
+)
+console.log(`junction booking probes: ${JSON.stringify(bookingProbe)}`)
+if (!bookingProbe.complete)
+  throw new Error("junction booking probes incomplete; see sanitized report")
+if (
+  JSON.stringify(bookingProbe.observations) !==
+  JSON.stringify(bookingObservation.report.observations)
+) {
+  throw new Error("junction booking lifecycle baseline changed; see sanitized report")
+}
+
 try {
   await probeLabAccounts()
 } catch (error) {

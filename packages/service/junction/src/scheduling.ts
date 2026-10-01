@@ -253,6 +253,39 @@ const zipTimezone = (zip: string): string => {
   return "America/Los_Angeles"
 }
 
+/** Recorded booking locations for the two synthetic addresses exercised in sandbox parity. */
+const observedPhlebotomyLocation = (address: Record<string, unknown>) => {
+  if (address.zip_code !== "85004") return undefined
+  if (address.first_line === "West Lincoln Street") return { lat: 33.44219, lng: -112.075075 }
+  if (address.first_line === "1 N Central Ave") return { lat: 33.4486237, lng: -112.0733246 }
+  return undefined
+}
+
+const duplicatePatientAppointment = (appointment: AppointmentRecord): never => {
+  const start = new Date(appointment.start_at as string)
+  const end = new Date(appointment.end_at as string)
+  const timeZone = appointment.iana_timezone ?? "America/Phoenix"
+  const date = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(start)
+    .replaceAll("/", "-")
+  const time = (value: Date) =>
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "numeric",
+      ...(value.getUTCMinutes() === 0 ? {} : { minute: "2-digit" as const }),
+    })
+      .format(value)
+      .replaceAll("\u202f", " ")
+  throw new HttpError(422, {
+    detail: `The patient already has an appointment with Getlabs on ${date} between ${time(start)} and ${time(end)}. Please cancel or reschedule the appointment before booking another appointment.`,
+  })
+}
+
 /** Known Vital sandbox centroids for booking location parity. */
 const ZIP_LOCATION: Readonly<Record<string, { lat: number; lng: number }>> = {
   "85004": { lat: 33.6242904, lng: -111.9283407 },
@@ -971,12 +1004,16 @@ const requireOrder = (state: JunctionState, orderId: string, context: OperationC
   if (!isUuid(orderId)) {
     throw new HttpError(422, { detail: [uuidError(orderId, ["path", "order_id"])] })
   }
-  const loaded: Order =
-    state.orders.get(orderId) ?? orderMissing(state, context.operation.operationId, orderId)
-  state.applyDueSimulateTransitions(context.now(), (_due, finalStatus, flags) => {
-    applySimulateTransition(state, loaded, finalStatus, flags, context)
-  })
+  if (!state.orders.has(orderId)) orderMissing(state, context.operation.operationId, orderId)
+  applyDueSimulations(state, context)
   return state.orders.get(orderId) ?? orderMissing(state, context.operation.operationId, orderId)
+}
+
+/** Drain pending work for its owning order, independent of which resource is being read. */
+export const applyDueSimulations = (state: JunctionState, context: OperationContext): void => {
+  state.applyDueSimulateTransitions(context.now(), (due, finalStatus, flags, phase) => {
+    applySimulateTransition(state, due, finalStatus, flags, context, phase)
+  })
 }
 
 const orderCollectionMethod = (order: Order): string => {
@@ -1076,7 +1113,8 @@ const applySimulationFlags = (order: Order, flags: Record<string, unknown> | nul
 
 /**
  * Mirror api.sandbox.tryvital.io `/v3/order/{id}/test` semantics (probed 2026-09):
- * - First call on a fresh order always creates `received.{method}.requisition_created`.
+ * - Testkit completion requests advance to delivered_to_lab, then complete on a later clock tick.
+ * - Other first calls on a fresh order create `received.{method}.requisition_created`.
  * - `at_home_phlebotomy` (and other non-walk-in methods): further `/test` calls are no-ops.
  * - `walk_in_test` after requisition:
  *   - matching `appointment_*` / `requisition_created` → no-op
@@ -1110,6 +1148,7 @@ const applySimulateTransition = (
   finalStatus: string,
   flags: Record<string, unknown> | null,
   context: OperationContext,
+  phase?: "testkit-completion",
 ): void => {
   const orderMethod =
     typeof order.lab_test.method === "string" && order.lab_test.method.length > 0
@@ -1147,7 +1186,33 @@ const applySimulateTransition = (
   let applyFlags = false
   let markCompleteDates = false
 
-  if (!hasRequisition) {
+  if (orderMethod === "testkit" && targetTail === "completed" && !hasCompleted) {
+    if (phase === "testkit-completion") {
+      statusesToApply = ["completed.testkit.completed"]
+      applyFlags = true
+      if (!flags || typeof flags.interpretation !== "string") order.interpretation = "abnormal"
+    } else if (
+      !order.events.some((event) => event.status === "sample_with_lab.testkit.delivered_to_lab")
+    ) {
+      statusesToApply = [
+        ...(!hasRequisition ? ["received.testkit.requisition_created"] : []),
+        "collecting_sample.testkit.transit_customer",
+        "collecting_sample.testkit.out_for_delivery",
+        "collecting_sample.testkit.with_customer",
+        "collecting_sample.testkit.transit_lab",
+        "sample_with_lab.testkit.delivered_to_lab",
+      ]
+      // A later virtual-clock tick models background work, not the vendor's wall-clock SLA.
+      // Reads apply this queued completion; a second simulation is neither needed nor sufficient.
+      state.queueSimulateTransition({
+        order_id: order.id,
+        due_at: context.now() + 1,
+        final_status: "completed.testkit.completed",
+        flags,
+        phase: "testkit-completion",
+      })
+    }
+  } else if (!hasRequisition) {
     statusesToApply = [`received.${orderMethod}.requisition_created`]
   } else if (orderMethod === "walk_in_test") {
     if (hasCompleted) {
@@ -1242,25 +1307,19 @@ const cancelAppointment = (
   appointment: AppointmentRecord,
   order: Order,
   nowMs: number,
+  eventData?: Record<string, unknown>,
 ): AppointmentRecord => {
   const nowIso = state.isoNow(() => nowMs)
   appointment.status = "cancelled"
-  appendAppointmentEvent(appointment, "cancelled", nowIso)
+  const appointmentEvent = appendAppointmentEvent(appointment, "cancelled", nowIso)
+  if (eventData !== undefined) {
+    appointmentEvent.data = eventData
+    appointment.event_data = eventData
+  }
   state.appointments.update(appointment.id, appointment)
   const eventStatus = CANCELLED_ORDER_EVENT[appointment.type]
-  const event = {
-    id: order.events.length + 1,
-    created_at: nowIso,
-    status: eventStatus,
-    status_detail: null,
-  }
-  order.status = "collecting_sample"
-  order.updated_at = nowIso
-  order.events.push(event)
-  order.last_event = event
-  state.orders.update(order.id, order)
+  linkAppointmentToOrder(state, order, appointment, eventStatus, nowIso)
   state.publishAppointmentWebhook(appointment, order.team_id, nowMs)
-  state.publishOrderWebhook(order, "labtest.order.updated", nowMs)
   return appointment
 }
 
@@ -1519,8 +1578,9 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePhlebotomyCapableOrder(order)
     const appointment = appointmentOfOrder(state, order.id)
-    if (appointment?.type !== "phlebotomy") notFound("No appointment for this order")
+    if (appointment?.type !== "phlebotomy") notFound("Appointment not found.")
     return jsonRes(200, renderAppointment(appointment))
   },
 
@@ -1529,8 +1589,9 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePscCapableOrder(order)
     const appointment = appointmentOfOrder(state, order.id)
-    if (appointment?.type !== "patient_service_center") notFound("No appointment for this order")
+    if (appointment?.type !== "patient_service_center") notFound("Appointment not found.")
     return jsonRes(200, renderAppointment(appointment))
   },
 
@@ -1555,6 +1616,23 @@ export const schedulingHandlers = (state: JunctionState) => ({
     ) {
       invalidBookingKey()
     }
+    // Controlled sandbox probe: a second order for the same patient cannot book
+    // an overlapping Getlabs appointment. Cancellation releases the patient slot.
+    const duplicate = state.appointments
+      .list()
+      .map((entry) => entry.value)
+      .find(
+        (appointment) =>
+          appointment.user_id === order.user_id &&
+          appointment.provider === "getlabs" &&
+          appointment.status !== "cancelled" &&
+          appointment.status !== "completed" &&
+          appointment.start_at !== null &&
+          appointment.end_at !== null &&
+          Date.parse(appointment.start_at) < Date.parse(record.end) &&
+          Date.parse(appointment.end_at) > Date.parse(record.start),
+      )
+    if (record.provider === "getlabs" && duplicate) duplicatePatientAppointment(duplicate)
     const nowIso = state.isoNow(context.now)
     const appointmentId = state.nextAppointmentId()
     const appointment: AppointmentRecord = {
@@ -1572,7 +1650,7 @@ export const schedulingHandlers = (state: JunctionState) => ({
       end_at: record.end,
       iana_timezone: zipTimezone(record.zip_code),
       address: record.address,
-      location: record.location,
+      location: observedPhlebotomyLocation(record.address) ?? record.location,
       can_reschedule: true,
       booking_key: record.key,
       site_code: null,
@@ -1584,11 +1662,18 @@ export const schedulingHandlers = (state: JunctionState) => ({
       updated_at: nowIso,
     }
     appendAppointmentEvent(appointment, "pending", nowIso)
-    appointment.event_status = "scheduled"
+    appendAppointmentEvent(appointment, "scheduled", nowIso)
     state.appointments.insert(appointmentId, appointment)
     state.appointmentsByOrder.insert(order.id, { appointment_id: appointmentId })
     record.consumed_by_order_id = order.id
     state.bookingKeys.update(record.key, record)
+    linkAppointmentToOrder(
+      state,
+      order,
+      appointment,
+      "collecting_sample.at_home_phlebotomy.appointment_pending",
+      nowIso,
+    )
     linkAppointmentToOrder(state, order, appointment, SCHEDULED_ORDER_EVENT.phlebotomy, nowIso)
     state.publishAppointmentWebhook(appointment, order.team_id, context.now())
     return jsonRes(200, renderAppointment(appointment))
@@ -1686,10 +1771,13 @@ export const schedulingHandlers = (state: JunctionState) => ({
     async (context: OperationContext) => {
       const orderId = context.params.order_id ?? ""
       const order = requireOrder(state, orderId, context)
+      requirePhlebotomyCapableOrder(order)
       const body = jsonObject(context)
       const bookingKey = typeof body.booking_key === "string" ? body.booking_key : ""
       const appointment = appointmentOfOrder(state, order.id)
-      if (appointment?.type !== "phlebotomy") notFound("No appointment for this order")
+      if (appointment?.type !== "phlebotomy") {
+        throw new HttpError(400, { detail: "This order doesn't have an appointment yet." })
+      }
       if (appointment.status === "cancelled")
         throw new HttpError(400, { detail: "Cannot reschedule a cancelled appointment" })
       const record = bookingKey === "" ? undefined : state.bookingKeys.get(bookingKey)
@@ -1706,12 +1794,15 @@ export const schedulingHandlers = (state: JunctionState) => ({
       appointment.end_at = record.end
       appointment.iana_timezone = zipTimezone(record.zip_code)
       appointment.address = record.address
-      appointment.location = record.location
+      appointment.location = observedPhlebotomyLocation(record.address) ?? record.location
       appointment.booking_key = record.key
-      appendAppointmentEvent(appointment, "scheduled", nowIso)
+      const event = appendAppointmentEvent(appointment, "scheduled", nowIso)
+      event.data = { origin: "patient", is_reschedule: true }
+      appointment.event_data = event.data
       state.appointments.update(appointment.id, appointment)
       record.consumed_by_order_id = order.id
       state.bookingKeys.update(record.key, record)
+      linkAppointmentToOrder(state, order, appointment, SCHEDULED_ORDER_EVENT.phlebotomy, nowIso)
       state.publishAppointmentWebhook(appointment, order.team_id, context.now())
       return jsonRes(200, renderAppointment(appointment))
     },
@@ -1721,6 +1812,8 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePscCapableOrder(order)
+    requireOrderHasRequisition(order)
     const body = jsonObject(context)
     const bookingKey = typeof body.booking_key === "string" ? body.booking_key : ""
     const appointment = appointmentOfOrder(state, order.id)
@@ -1759,6 +1852,7 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePhlebotomyCapableOrder(order)
     const body = jsonObject(context)
     const reasonId =
       typeof body.cancellation_reason_id === "string" ? body.cancellation_reason_id : ""
@@ -1773,7 +1867,12 @@ export const schedulingHandlers = (state: JunctionState) => ({
     }
     if (appointment.status === "cancelled") return jsonRes(200, renderAppointment(appointment))
     appointment.appointment_notes = typeof body.notes === "string" ? body.notes : null
-    cancelAppointment(state, appointment, order, context.now())
+    cancelAppointment(state, appointment, order, context.now(), {
+      origin: "patient",
+      // Junction spells these provider event fields with one "l".
+      cancelation_notes: appointment.appointment_notes,
+      cancelation_reason: reason.name,
+    })
     return jsonRes(200, renderAppointment(appointment))
   },
 
@@ -1782,6 +1881,10 @@ export const schedulingHandlers = (state: JunctionState) => ({
   ) => {
     const orderId = context.params.order_id ?? ""
     const order = requireOrder(state, orderId, context)
+    requirePscCapableOrder(order)
+    if (order.lab_test.lab.slug !== "quest") {
+      throw new HttpError(400, { detail: "This lab is not supported." })
+    }
     const body = jsonObject(context)
     const reasonId = typeof body.cancellationReasonId === "string" ? body.cancellationReasonId : ""
     const appointment = appointmentOfOrder(state, order.id)

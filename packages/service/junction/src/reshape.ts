@@ -18,7 +18,7 @@ const AVAIL_PSC = "get_psc_appointment_availability_v3_order_psc_appointment_ava
 
 /** Stable address fields so availability observation-cache keys match prefetch (85004). */
 export const AVAILABILITY_ADDRESS = {
-  first_line: "1 N Central Ave",
+  first_line: "West Lincoln Street",
   second_line: null as string | null,
   city: "Phoenix",
   state: "AZ",
@@ -51,6 +51,20 @@ export const reshapeCoverageGeoCommand = (
     labIds?: readonly number[]
   },
 ): LogicalCommand => {
+  // Idempotency keys are opaque, but generated Unicode cannot be sent as HTTP header bytes.
+  // Encode identically for both sides while retaining stable keys for replay.
+  const idempotencyKey = command.parameters["x-idempotency-key"]
+  if (typeof idempotencyKey === "string") {
+    command = {
+      ...command,
+      parameters: {
+        ...command.parameters,
+        "x-idempotency-key": encodeURIComponent(
+          new TextDecoder().decode(new TextEncoder().encode(idempotencyKey)),
+        ),
+      },
+    }
+  }
   const zips = options?.zips ?? COVERAGE_ZIPS
   const schedulingZips = options?.schedulingZips ?? PSC_AVAILABILITY_ZIPS
   const phlebotomyZips = options?.phlebotomyZips ?? PHLEBOTOMY_AVAILABILITY_ZIPS
