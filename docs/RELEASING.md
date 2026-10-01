@@ -1,6 +1,6 @@
 # Releasing
 
-How packages get from `main` to npm. Once the `NPM_TOKEN` repo secret is set, releases run automatically.
+How packages get from `main` to npm using Trusted Publishing, without a stored npm token.
 
 A pull request whose checks passed is releasable. Merging it to `main` is the release. The Release workflow ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) then publishes; it does not re-run Commitlint, Check, or the consumer smoke. Those already passed on the pull request ([`.github/workflows/pr.yml`](../.github/workflows/pr.yml)). Manual dispatch and a run every six hours only retry an interrupted publish ([`scripts/release/`](../scripts/release/lib.ts)):
 
@@ -10,17 +10,16 @@ A pull request whose checks passed is releasable. Merging it to `main` is the re
 
 Versions live in tags, so `package.json` keeps `0.0.0-development` and nothing is committed back to `main` (same model as semantic-release). Every step is idempotent — re-running a failed release job finishes it.
 
-OIDC cannot create a package that does not exist on npm yet. The release job reads the `NPM_TOKEN` GitHub Actions secret, creates missing packages with it, and attaches their Trusted Publisher automatically (`npm trust github`). `bun run release:bootstrap` securely prompts for a missing token, stores it as the repo secret with `gh secret set`, and starts the current CI workflow on `main`. `bun run release:seed` remains a local fallback using npm login; it reconciles npm with `origin/main` in a temporary worktree. See [docs/SECRETS.md](SECRETS.md). Without the token, a never-published package fails the run (and so do its dependents) but every other package still releases; set the token and re-run to publish the rest.
+OIDC cannot create a package that does not exist on npm yet. A maintainer runs `bun run release:seed` once with an interactive npm login; it first-publishes missing packages from `origin/main`, attaches `ci.yml` as each package's Trusted Publisher (`npm trust github`), and reconciles deprecations. CI never receives or falls back to a long-lived npm token. Until the seed runs, a never-published package fails the release (as do its dependents), while every independent package still releases. See [docs/SECRETS.md](SECRETS.md).
 
 ```bash
 bun run release:plan                   # what the next push to main would release
 bun run release:publish -- --dry-run   # plan + pack every tarball, no side effects
 bun run release:seed                   # reconcile npm with origin/main using your npm login
-bun run release:bootstrap              # set the NPM_TOKEN repo secret and run current CI on main
 bun run health                         # access pages whose Trusted Publisher still needs a click
-bun run secrets:doctor                 # npm / Trusted Publishing / NPM_TOKEN status
+bun run secrets:doctor                 # npm / Trusted Publishing / live parity status
 ```
 
-Every release (and the seed) deprecates npm packages this repo no longer publishes: the former helper packages (`@crvouga/mockingbird`, `-core`, `-service`, `-sqlite`, `-openapi*`, `-http-codec`, `-commands`, `-model`, `-canonicalize`, `-parity`, `-adapter-*`, `-openbao`), now bundled into the services, and the archived `@crvouga/postgres-mem` / `@crvouga/sqlite-mem`, which continue here as `@crvouga/mockingbird-service-postgres` / `-sqlite`. Deprecating needs account auth (`NPM_TOKEN` or the seed); OIDC alone only logs what it would deprecate.
+The seed deprecates npm packages this repo no longer publishes: the former helper packages (`@crvouga/mockingbird`, `-core`, `-service`, `-sqlite`, `-openapi*`, `-http-codec`, `-commands`, `-model`, `-canonicalize`, `-parity`, `-adapter-*`, `-openbao`), now bundled into the services, and the archived `@crvouga/postgres-mem` / `@crvouga/sqlite-mem`, which continue here as `@crvouga/mockingbird-service-postgres` / `-sqlite`. OIDC only authenticates publish operations, so CI logs deprecations for the next local seed instead of managing package settings.
 
 Local replica of the pull-request gate: `bun run check:full`.

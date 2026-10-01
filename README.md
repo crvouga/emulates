@@ -122,7 +122,7 @@ Building, testing and `bun run check` need no secrets and no accounts. Live pari
 | [Developing Mockingbird](docs/DEVELOPMENT.md) | Working on this repo: requirements, how the packages are layered, and the quality gates every change passes. |
 | [Design](docs/DESIGN.md) | Mockingbird looks like a field notebook kept on a northern mockingbird, Mimus polyglottos. The bird learns another bird's song and sings it back. The product does the same with an API: a familiar call, answered in kind. The site, this file, the GitHub README, llms.txt, and every package published to npm use the same sentence and the same mark. |
 | [Reporting issues](docs/REPORTING_ISSUES.md) | How coding agents in other projects file a GitHub issue when a mock diverges from its oracle, lacks a feature they call, or breaks, or when they need a service mocked that the catalog does not have yet. Agents in this repository pick the issues up and resolve them. |
-| [Releasing](docs/RELEASING.md) | How packages get from `main` to npm. Once the `NPM_TOKEN` repo secret is set, releases run automatically. |
+| [Releasing](docs/RELEASING.md) | How packages get from `main` to npm using Trusted Publishing, without a stored npm token. |
 | [Secrets runbook](docs/SECRETS.md) | Where every credential lives, who needs it, and how to run live parity without ever holding a sandbox key: GitHub Actions repo secrets are the only secret store. |
 
 ## License

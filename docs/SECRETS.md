@@ -11,7 +11,7 @@ bun test        # no secrets
 bun run check   # every CI gate, no secrets
 ```
 
-Secrets are only involved in three places, and all three run on GitHub with the repo's own
+Secrets are only involved in two places, and both run on GitHub with the repo's own
 Actions secrets. Anyone with **write access** to `crvouga/mockingbird` can use them without
 seeing a value (GitHub never returns a secret's value, to anyone):
 
@@ -19,7 +19,6 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 | --- | --- | --- |
 | [Parity](../.github/workflows/parity.yml) | the `<SERVICE>_*` keys its live-parity step maps | `bun run parity:remote -- <service…>`, `-- --all` or `-- --tier=warm`; by [tier](TESTING.md#parity-tiers) also on each PR that changes a hot service ([Advisory](../.github/workflows/advisory.yml), non-blocking, not for forks) and weekly for warm services |
 | [Verify](../.github/workflows/verify.yml) | `JUNCTION_API_KEY` | daily, or `gh workflow run verify.yml` |
-| [Release](../.github/workflows/ci.yml) | `NPM_TOKEN` (new packages only) | automatic on merge to `main` |
 
 ## Live parity
 
@@ -163,17 +162,11 @@ automatically on every green push to `main` (see [RELEASING.md](RELEASING.md)) a
 **npm Trusted Publishing (OIDC)**, which needs no stored credential.
 
 OIDC can only publish to packages that already exist on npm and trust this repo. For brand-new
-packages the release job uses the `NPM_TOKEN` repo secret:
-
-- **Automatic release.** A granular npm token with read+write on the `@crvouga` scope is stored as
-  `NPM_TOKEN`. CI creates missing packages, then runs `npm trust github` so later releases use
-  OIDC. A scheduled run every six hours retries interrupted releases.
-- **Setting the token.** `bun run release:bootstrap` prompts for it without echo, validates it with
-  npm, stores it with `gh secret set`, then runs and watches CI on `main`. `-- --replace` rotates it.
-- **Local fallback.** `bun run release:seed` (`-- --dry-run` to preview) runs `npm login` if
+packages, `bun run release:seed` (`-- --dry-run` to preview) runs `npm login` if
   needed, builds `origin/main` in a temporary worktree and runs `release:publish --local` there:
   it publishes with your npm login, pushes the tags and GitHub Releases, attaches the Trusted
-  Publishers and deprecates every package no longer published.
+  Publishers and deprecates every package no longer published. CI never receives or falls back
+  to a long-lived npm token. A scheduled run every six hours retries interrupted OIDC releases.
 
 ```bash
 bun run release:plan                       # what the next release would publish
@@ -182,8 +175,8 @@ bun run release:publish -- --dry-run
 
 ### Trusted Publisher settings
 
-Set automatically by the release job when it has npm account credentials. Manual equivalent, per
-package at `https://www.npmjs.com/package/<name>/access`:
+Set by the local seed after the first publish. Manual equivalent, per package at
+`https://www.npmjs.com/package/<name>/access`:
 
 - Organization/user: `crvouga`
 - Repository: `mockingbird`
@@ -213,9 +206,8 @@ what `main` already built and tested. No token, no server.
 
 | Credential | Where | Needed for |
 | --- | --- | --- |
-| npm Trusted Publisher (OIDC) | each package on npm | CI publish (attached automatically) |
+| npm Trusted Publisher (OIDC) | each package on npm | CI publish (attached by the local seed) |
 | `GITHUB_TOKEN` | built into GitHub Actions | automatic |
-| `NPM_TOKEN` | repo secret | creating new packages, deprecations |
 | `<SERVICE>_*` sandbox keys | repo secrets (+ optionally your `.env.local`) | live parity only |
 | `CLAUDE_CODE_OAUTH_TOKEN` | your `.env.local` (never a repo secret) | `bun github:resolve-issues`: your Claude subscription |
 | Resolve issues GitHub App | its public client id in `.github/resolve-issues-app.json`; no private key or client secret is kept | `bun github:resolve-issues`: mints a token per run for this repo only (`setup` creates it) |

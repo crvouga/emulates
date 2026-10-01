@@ -199,7 +199,7 @@ export async function ghAuthOk(): Promise<{ ok: boolean; error?: string }> {
 /** Strip likely token-shaped substrings from error output. */
 export function redactSecrets(text: string): string {
   return text
-    .replace(/npm_[A-Za-z0-9]{20,}/g, "[REDACTED_NPM_TOKEN]")
+    .replace(/npm_[A-Za-z0-9]{20,}/g, "[REDACTED_NPM_CREDENTIAL]")
     .replace(/ghp_[A-Za-z0-9]{20,}/g, "[REDACTED_GH_TOKEN]")
     .replace(/github_pat_[A-Za-z0-9_]{20,}/g, "[REDACTED_GH_TOKEN]")
 }

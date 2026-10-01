@@ -128,7 +128,7 @@ describe("trustedPublisherReport", () => {
         "GitHub Actions publisher does not allow npm publish (stage only). On the access page, allow npm publish.",
         accessUrl("@crvouga/mockingbird-service-stripe"),
         "",
-        "Not on npm yet, so there is no access page until the first publish (bun run release:bootstrap).",
+        "Not on npm yet, so there is no access page until the interactive first publish (bun run release:seed).",
         "@crvouga/mockingbird-service-paddle",
         "",
         "npm did not return the trusted publisher for these packages.",

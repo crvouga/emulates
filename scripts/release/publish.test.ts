@@ -4,16 +4,15 @@ import { initialPackageBlocker, releaseInOrder } from "./lib.ts"
 const release = (name: string, ...runtimeDeps: string[]) => ({ pkg: { name, runtimeDeps } })
 
 describe("initialPackageBlocker", () => {
-  const ci = { inCi: true, local: false, dryRun: false, npmToken: "" }
+  const ci = { inCi: true, local: false, dryRun: false }
 
-  test("a never-published package without NPM_TOKEN is blocked, and says how to unblock it", () => {
+  test("a never-published package is blocked in CI and points to interactive seeding", () => {
     const lines = initialPackageBlocker([], ci)
-    expect(lines?.join("\n")).toContain("NPM_TOKEN")
+    expect(lines?.join("\n")).toContain("bun run release:seed")
   })
 
-  test("published packages, tokens, local logins and dry runs are never blocked", () => {
+  test("published packages, local logins and dry runs are never blocked", () => {
     expect(initialPackageBlocker(["1.0.0"], ci)).toBeNull()
-    expect(initialPackageBlocker([], { ...ci, npmToken: "set" })).toBeNull()
     expect(initialPackageBlocker([], { ...ci, local: true })).toBeNull()
     expect(initialPackageBlocker([], { ...ci, dryRun: true })).toBeNull()
   })
