@@ -83,6 +83,17 @@ function truncIdent(s: string): string {
   return s.length > MAX_IDENT ? s.slice(0, MAX_IDENT) : s;
 }
 
+function identitySequenceTarget(
+  env: ExecEnv,
+  tableSchema: SchemaData,
+  defaultName: string,
+  options: SequenceOptions,
+): { schema: SchemaData; name: string } {
+  const parts = options.sequenceName;
+  if (!parts || parts.length === 0) return { schema: tableSchema, name: defaultName };
+  return targetSchema(env, parts);
+}
+
 // ---------------------------------------------------------------------------
 // sequences
 // ---------------------------------------------------------------------------
@@ -301,8 +312,8 @@ function buildColumn(
         break;
       }
       case "generated_identity": {
-        const seqName = truncIdent(`${tableName}_${def.name}_seq`);
-        const seq = buildSequence(env, schema, seqName, c.options, false);
+        const target = identitySequenceTarget(env, schema, truncIdent(`${tableName}_${def.name}_seq`), c.options);
+        const seq = buildSequence(env, target.schema, target.name, c.options, false);
         if (!c.options.as) {
           seq.dataType =
             col.type.id === "int2" || col.type.id === "int4" || col.type.id === "int8" ? col.type.id : "int8";
@@ -312,7 +323,7 @@ function buildColumn(
         }
         seq.ownedBy = { table: tableName, column: def.name };
         out.sequences.push(seq);
-        col.identity = { always: c.always, sequence: `${schema.name}.${seqName}` };
+        col.identity = { always: c.always, sequence: `${target.schema.name}.${target.name}` };
         col.notNull = true;
         break;
       }
@@ -464,10 +475,11 @@ export function executeCreateTable(env: ExecEnv, stmt: CreateTableStmt): ExecRes
   }
 
   for (const seq of built.sequences) {
-    if (schema.hasRelation(seq.name)) {
+    const seqSchema = state.getSchema(seq.schema);
+    if (seqSchema.hasRelation(seq.name)) {
       throw pgError("duplicate_table", `relation "${seq.name}" already exists`, "42P07");
     }
-    schema.sequences.set(seq.name, seq);
+    seqSchema.sequences.set(seq.name, seq);
   }
   const table = new TableData(schema.name, name, built.columns, state.nextOid(), stmt.temp);
   table.constraints = built.constraints;
@@ -856,7 +868,13 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
         const built: BuiltColumns = { columns: [], constraints: [], sequences: [] };
         const taken = constraintNames(table);
         const col = buildColumn(env, schema, table.name, action.column, built, taken);
-        for (const seq of built.sequences) schema.sequences.set(seq.name, seq);
+        for (const seq of built.sequences) {
+          const seqSchema = state.getSchema(seq.schema);
+          if (seqSchema.hasRelation(seq.name)) {
+            throw pgError("duplicate_table", `relation "${seq.name}" already exists`, "42P07");
+          }
+          seqSchema.sequences.set(seq.name, seq);
+        }
         table.columns.push(col);
         table.constraints.push(...built.constraints);
         // fill the new column for existing rows
@@ -1185,12 +1203,32 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
             "42P16",
           );
         }
-        const seqName = truncIdent(`${table.name}_${action.column}_seq`);
-        const seq = buildSequence(env, schema, seqName, action.options, false);
+        if (!col.notNull) {
+          throw pgError(
+            "object_not_in_prerequisite_state",
+            `column "${action.column}" of relation "${table.name}" must be declared NOT NULL before identity can be added`,
+            "55000",
+          );
+        }
+        const target = identitySequenceTarget(
+          env,
+          schema,
+          truncIdent(`${table.name}_${action.column}_seq`),
+          action.options,
+        );
+        if (target.schema.hasRelation(target.name)) {
+          throw pgError("duplicate_table", `relation "${target.name}" already exists`, "42P07");
+        }
+        const seq = buildSequence(env, target.schema, target.name, action.options, false);
+        if (!action.options.as) {
+          seq.dataType = col.type.id === "int2" || col.type.id === "int4" || col.type.id === "int8" ? col.type.id : "int8";
+          const limits = SEQ_LIMITS[seq.dataType]!;
+          if (action.options.maxValue === undefined) seq.maxValue = seq.increment > 0n ? limits.max : -1n;
+          if (action.options.minValue === undefined) seq.minValue = seq.increment > 0n ? 1n : limits.min;
+        }
         seq.ownedBy = { table: table.name, column: action.column };
-        schema.sequences.set(seqName, seq);
-        col.identity = { always: true, sequence: `${schema.name}.${seqName}` };
-        col.notNull = true;
+        target.schema.sequences.set(target.name, seq);
+        col.identity = { always: action.always, sequence: `${target.schema.name}.${target.name}` };
         break;
       }
       case "drop_identity": {

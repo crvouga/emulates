@@ -1,5 +1,6 @@
 import { pgError } from "../errors/error.ts";
 import type { EngineCtx } from "../expressions/context.ts";
+import { quoteIdent } from "../sql/deparse.ts";
 import type { SequenceData } from "../storage/database-state.ts";
 import { castTo } from "../types/cast.ts";
 import { makeArray, tv, typeDisplayName } from "../types/value.ts";
@@ -227,7 +228,7 @@ export function getMiscFunctions(): Map<string, ScalarFn> {
         "text",
         col.identity.sequence
           .split(".")
-          .map((p) => p)
+          .map(quoteIdent)
           .join("."),
       );
     }),
