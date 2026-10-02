@@ -157,7 +157,13 @@
       ]
     },
     "//#check:scripts": {
-      "inputs": ["scripts/**", "tsconfig.base.json", "package.json", "bun.lock"]
+      "inputs": [
+        "scripts/**",
+        "packages/adapters/node/src/fleet-manifest.ts",
+        "tsconfig.base.json",
+        "package.json",
+        "bun.lock"
+      ]
     },
     "//#check:workflows": {
       "inputs": [".github/workflows/**", ".github/actions/**", "scripts/check-workflows.ts"]

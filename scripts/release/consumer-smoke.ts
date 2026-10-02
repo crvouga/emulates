@@ -21,7 +21,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { $ } from "bun"
-import type { EndpointManifest } from "../../packages/adapters/node/src/fleet.js"
+import type { EndpointManifest } from "../../packages/adapters/node/src/fleet-manifest.js"
 import { discoverPackages, packedManifest, pinManifest, unresolvablePins } from "./lib.ts"
 
 const SMOKE_VERSION = "0.0.0-smoke"

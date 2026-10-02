@@ -4,7 +4,10 @@ import type { FetchAPI } from "@crvouga/mockingbird-core"
 import type { Clock, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
 import { createClock, parseDuration } from "@crvouga/mockingbird-service"
 import type { CommonServeOptions, ConfigService, MockingbirdConfig, ServeTarget } from "./cli.js"
+import type { EndpointManifest } from "./fleet-manifest.js"
 import { type Listening, listen } from "./listen.js"
+
+export type { EndpointManifest } from "./fleet-manifest.js"
 
 export type FleetDiagnostics = {
   activeRequests: number
@@ -44,28 +47,6 @@ export type ProtocolTarget = {
   start(entry: ConfigService): Promise<FleetChild>
 }
 export type FleetTarget = ServeTarget | ProtocolTarget
-
-export type EndpointManifest = {
-  version: 1
-  state: "ready"
-  pid: number
-  id: string
-  startedAt: string
-  adminBase: string
-  healthUrl: string
-  services: Record<
-    string,
-    {
-      protocol: FleetChild["protocol"]
-      url: string
-      healthUrl: string
-      adminUrl: string
-      namespaces: Record<string, unknown>
-      processReady: boolean
-      protocolReady: boolean
-    }
-  >
-}
 
 export type FleetOptions = {
   load(name: string): Promise<FleetTarget>
