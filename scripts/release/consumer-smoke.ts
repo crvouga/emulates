@@ -16,10 +16,12 @@
  *
  *   bun run build && bun run release:smoke
  */
+
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { $ } from "bun"
+import type { EndpointManifest } from "../../packages/adapters/node/src/fleet.js"
 import { discoverPackages, packedManifest, pinManifest, unresolvablePins } from "./lib.ts"
 
 const SMOKE_VERSION = "0.0.0-smoke"
@@ -97,7 +99,13 @@ try {
         private: true,
         type: "module",
         dependencies: overrides,
-        devDependencies: { typescript: "5.9.3", "@types/node": "22.20.1", "@types/bun": "1.4.0" },
+        devDependencies: {
+          typescript: "5.9.3",
+          "@types/node": "22.20.1",
+          "@types/bun": "1.4.0",
+          pg: "8.23.0",
+          ioredis: "5.11.1",
+        },
         overrides,
       },
       null,
@@ -208,7 +216,7 @@ console.log(`consumer-smoke: finished in ${Math.round((Date.now() - started) / 1
 // step) alive after the work is done.
 process.exit(exitCode)
 
-/** `serve --config`: one CLI boots every installed service, each answering `/health`. */
+/** `serve --config`: one CLI boots every installed service, publishing protocol-aware discovery and answering health. */
 async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
   const manifests = new Map(
     names.map((name) => [
@@ -234,21 +242,28 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
   )
   console.log(`consumer-smoke: ${services[0]} serve --config (${services.join(", ")})`)
   const proc = Bun.spawn(
-    ["node", join(app, "node_modules", launcher, entry), "serve", "--config", "mockingbird.json"],
+    [
+      "node",
+      join(app, "node_modules", launcher, entry),
+      "serve",
+      "--config",
+      "mockingbird.json",
+      "--ready-json",
+    ],
     { cwd: app, stdout: "pipe", stderr: "pipe", stdin: "ignore" },
   )
   const reader = proc.stdout.getReader()
   try {
-    const urls = new Map<string, string>()
+    let manifest: EndpointManifest | undefined
     const decoder = new TextDecoder()
     let buffered = ""
     const deadline = Date.now() + SERVE_READY_MS
-    while (urls.size < services.length) {
+    while (!manifest) {
       // Race the read: a server that never prints must not hang the suite.
       const next = await Promise.race([reader.read(), after(Math.max(0, deadline - Date.now()))])
       if (next === "timeout") {
         throw new Error(
-          `serve --config: only [${[...urls.keys()].join(", ")}] came up within ${SERVE_READY_MS}ms\n${buffered}`,
+          `serve --config: no complete ready manifest within ${SERVE_READY_MS}ms\n${buffered}`,
         )
       }
       if (next.done) {
@@ -258,17 +273,53 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
         )
       }
       buffered += decoder.decode(next.value)
-      for (const match of buffered.matchAll(/^(\S+) mock listening on (\S+)$/gm)) {
-        urls.set(match[1] as string, match[2] as string)
+      const newline = buffered.indexOf("\n")
+      if (newline >= 0) manifest = JSON.parse(buffered.slice(0, newline)) as EndpointManifest
+    }
+    if (manifest.version !== 1 || manifest.state !== "ready" || manifest.pid !== proc.pid)
+      throw new Error("invalid ready identity")
+    if (Object.keys(manifest.services).sort().join(",") !== [...services].sort().join(","))
+      throw new Error("incomplete fleet manifest")
+    const health = await fetch(manifest.healthUrl, { signal: AbortSignal.timeout(10_000) })
+    if (!health.ok) throw new Error(`aggregate health answered ${health.status}`)
+    const state = (await health.json()) as {
+      services: Record<string, { processReady: boolean; protocolReady: boolean }>
+    }
+    for (const [service, endpoint] of Object.entries(manifest.services)) {
+      if (!state.services[service]?.processReady || !state.services[service]?.protocolReady)
+        throw new Error(`${service} is not ready`)
+      if (endpoint.protocol === "http") {
+        const response = await fetch(endpoint.healthUrl, { signal: AbortSignal.timeout(10_000) })
+        const body = (await response.json()) as { status?: string; service?: string }
+        if (response.status !== 200 || body.service !== service)
+          throw new Error(`${service} /health answered ${response.status} ${JSON.stringify(body)}`)
       }
     }
-    for (const [service, url] of urls) {
-      const response = await fetch(`${url}/health`, { signal: AbortSignal.timeout(10_000) })
-      const body = (await response.json()) as { status?: string; service?: string }
-      if (response.status !== 200 || body.service !== service) {
-        throw new Error(`${service} /health answered ${response.status} ${JSON.stringify(body)}`)
-      }
-    }
+    writeFileSync(join(app, "ready-smoke.json"), JSON.stringify(manifest))
+    writeFileSync(
+      join(app, "fleet-protocols.mjs"),
+      `
+import { readFileSync } from "node:fs"
+import { strict as assert } from "node:assert"
+import { Client } from "pg"
+import Redis from "ioredis"
+const manifest = JSON.parse(readFileSync("ready-smoke.json", "utf8"))
+for (const endpoint of Object.values(manifest.services)) {
+  if (endpoint.protocol === "postgres") {
+    const client = new Client({ connectionString: endpoint.url })
+    await client.connect()
+    try { assert.deepEqual((await client.query("SELECT 7 AS value")).rows, [{ value: 7 }]) }
+    finally { await client.end() }
+  } else if (endpoint.protocol === "redis") {
+    const client = new Redis(endpoint.url, { retryStrategy: () => null })
+    try { assert.equal(await client.ping(), "PONG") }
+    finally { await client.quit() }
+  }
+}
+console.log("consumer-smoke: official pg and ioredis clients connected to published protocol endpoints")
+`,
+    )
+    await $`node fleet-protocols.mjs`.cwd(app)
   } finally {
     await reader.cancel().catch(() => undefined)
     proc.kill()
