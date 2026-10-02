@@ -49,7 +49,7 @@ try {
 } finally {
   probe.disconnect()
   await mock.close()
-  if (oracle.exitCode === null && oracle.signalCode === null) {
+  if (oracle.pid !== undefined && oracle.exitCode === null && oracle.signalCode === null) {
     const exited = once(oracle, "exit")
     oracle.kill("SIGTERM")
     await exited
