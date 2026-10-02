@@ -159,11 +159,13 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
   config: `{
   "services": {
     "junction": { "port": 8787, "options": { "corpus": "./test/junction-corpus.json" } },
-    "stripe": { "port": 12111 }
+    "stripe": { "port": 0 },
+    "postgres": { "protocol": "postgres", "port": 0 },
+    "redis": { "protocol": "redis", "port": 0 }
   }
 }`,
   configNote:
-    "`mockingbird.json` names services by their package suffix and takes each one's `serve` flags; any installed service's CLI can serve all of them. The database engines are not HTTP APIs, so they are outside this contract.",
+    "`mockingbird.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.",
 }
 
 export const AGENTS =

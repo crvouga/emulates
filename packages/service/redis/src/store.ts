@@ -88,6 +88,32 @@ export class Database {
   now(): number {
     return this.clock.now()
   }
+  snapshot(): object {
+    return structuredClone({
+      values: this.values,
+      expires: this.expires,
+      gens: this.gens,
+      lru: this.lru,
+      order: this.order,
+      tick: this.tick,
+    })
+  }
+  restore(snapshot: object): void {
+    const point = structuredClone(snapshot) as {
+      values: Map<string, Value>
+      expires: Map<string, number>
+      gens: Map<string, number>
+      lru: Map<string, number>
+      order: string[]
+      tick: number
+    }
+    this.values = point.values
+    this.expires = point.expires
+    this.gens = point.gens
+    this.lru = point.lru
+    this.order = point.order
+    this.tick = point.tick
+  }
 
   private bump(key: string): void {
     this.gens.set(key, (this.gens.get(key) ?? 0) + 1)

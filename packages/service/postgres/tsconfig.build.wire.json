@@ -10,7 +10,8 @@
     ]
   },
   "include": [
-    "src/wire/**/*"
+    "src/wire/**/*",
+    "src/server.ts"
   ],
   "exclude": [
     "node_modules",

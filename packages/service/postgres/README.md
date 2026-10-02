@@ -193,6 +193,13 @@ server from one frozen template, so a seeded stack starts from the same bytes ea
 surface as every other mock, including the table explorer (`GET /sql/tables`, `POST /sql/query`).
 The wire server does not speak that HTTP API.
 
+`mockingbird-postgres serve --config mockingbird.json` also supervises a mixed HTTP/Postgres/Redis
+fleet through the Node `/server` entry. See [fleet configuration and controls](../../../docs/FLEETS.md)
+for ephemeral discovery, namespace endpoints, aggregate health, snapshots and clocks. Each declared
+namespace has an independent cluster. Fleet checkpoints restore its entire catalog, including created
+and dropped databases, records, deterministic random state, faults and time; live client sessions
+return a conflict until closed.
+
 `server.snapshot()` freezes the live state; `server.fault({ dropConnection | delayStatementMs |
 failCommit })` arms the next statement or connection for a drop, a delay, or a `40001` commit
 failure.

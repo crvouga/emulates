@@ -8,11 +8,25 @@
  *
  * The connection string it prints works with `pg`, `postgres.js`, JDBC and `psql`.
  */
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node";
+import { serveTarget } from "../server.ts";
 import { type ServeOptions, serve } from "./index.ts";
 
 const usage = `mockingbird-postgres serve [postgres://URI] [--port <n>] [--host <h>] [--password <p>] [--server-version <v>] [--log]`;
 
 const args = process.argv.slice(2);
+if (args[0] === "serve" && args.includes("--config")) {
+  process.exit(
+    await runCli(
+      {
+        bin: "mockingbird-postgres",
+        description: "Postgres and fleet server",
+        commands: { serve: serveCommand(serveTarget) },
+      },
+      args,
+    ),
+  );
+}
 if (args[0] !== "serve") {
   console.error(usage);
   process.exit(args[0] === "--help" || args[0] === "-h" ? 0 : 2);

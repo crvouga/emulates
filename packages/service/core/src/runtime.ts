@@ -122,6 +122,8 @@ export type ServiceTimelineState = Readonly<{
 export type ServiceCheckpoint = Checkpoint<ServiceTimelineState>
 
 export type ServiceRuntime<T extends ServiceInstance> = FetchAPI & {
+  /** Stop package-owned lifecycle timers when a supervisor closes the runtime. */
+  stop?(): void
   readonly name: string
   readonly sqlite: SqliteClient
   readonly clock: Clock
@@ -132,6 +134,13 @@ export type ServiceRuntime<T extends ServiceInstance> = FetchAPI & {
   readonly credentials: CredentialRegistry
   /** The webhook hub, when the service has outbound webhooks. */
   readonly webhooks: WebhookHub | undefined
+  /** Enable independent namespace clocks and PRNGs before serving a fleet. */
+  isolateNamespaces(): void
+  namespaceClock(namespace?: string): Clock
+  namespaceOf(request: Request): string
+  /** Opaque in-process checkpoint including records, controls and webhook history. */
+  fleetSnapshot(namespace: string): object
+  fleetRestore(snapshot: unknown, namespace: string): void
   /** Expand a named preset into fault rules (and webhook faults) for `namespace`. */
   applyPreset(name: string, namespace?: string, overrides?: Partial<FaultRule>): FaultRule[]
   /** The instance behind `namespace` (the default one when omitted), created on first use. */
@@ -272,6 +281,27 @@ export const createRuntime = <T extends ServiceInstance>(
   const instances = new Map<string, T>()
   const publicNamespaces = new Set<string>()
   const branchRngs = new Map<string, Rng>()
+  const namespaceClocks = new Map<string, Clock>()
+  const namespaceForStorage = new Map<string, string>()
+  let isolatedNamespaces = false
+  const namespaceClock = (name = DEFAULT_NAMESPACE): Clock => {
+    if (!isolatedNamespaces || name === DEFAULT_NAMESPACE) return clock
+    let found = namespaceClocks.get(name)
+    if (!found) {
+      found = createClock()
+      namespaceClocks.set(name, found)
+    }
+    return found
+  }
+  const fleetPoints = new WeakMap<
+    object,
+    {
+      namespace: string
+      state: ServiceTimelineState
+      faults: ReturnType<FaultRegistry["snapshot"]>
+      webhooks: unknown
+    }
+  >()
   const timelines = new Map<string, Timeline<ServiceTimelineState>>()
   const branchStorage = new Map<string, string>()
   const captured = new Map<string, NamespaceSnapshot>()
@@ -289,16 +319,21 @@ export const createRuntime = <T extends ServiceInstance>(
         `namespace must match ${NAMESPACE_PATTERN}: ${JSON.stringify(publicNamespace)}`,
       )
     }
+    const createdContextRng =
+      isolatedRng ??
+      (isolatedNamespaces && key !== DEFAULT_NAMESPACE ? createRng(options.seed ?? 0) : rng)
     const created = options.create({
       namespace: storageNamespace(key),
       publicNamespace,
       sqlite,
-      clock,
-      rng: isolatedRng ?? rng,
+      clock: namespaceClock(publicNamespace),
+      rng: createdContextRng,
     })
     instances.set(key, created)
+    namespaceForStorage.set(key, publicNamespace)
     publicNamespaces.add(publicNamespace)
     if (isolatedRng) branchRngs.set(key, isolatedRng)
+    else if (isolatedNamespaces && key !== DEFAULT_NAMESPACE) branchRngs.set(key, createdContextRng)
     return created
   }
 
@@ -342,7 +377,7 @@ export const createRuntime = <T extends ServiceInstance>(
     captured.set(storage, snapshot)
     return Object.freeze({
       snapshot,
-      clock: Object.freeze(clock.state()),
+      clock: Object.freeze(namespaceClock(namespaceForStorage.get(storage) ?? storage).state()),
       rngState: (branchRngs.get(storage) ?? rng).state(),
     })
   }
@@ -352,7 +387,7 @@ export const createRuntime = <T extends ServiceInstance>(
     if (found) return found
     instance(name)
     found = new Timeline<ServiceTimelineState>({
-      now: clock.now,
+      now: namespaceClock(name).now,
       ...(options.maxCheckpoints !== undefined ? { maxCheckpoints: options.maxCheckpoints } : {}),
     })
     found.commit(capture(name))
@@ -379,10 +414,11 @@ export const createRuntime = <T extends ServiceInstance>(
         const point = history.checkout("main", at)
         restoreNamespace(sqlite, storageNamespace(namespace), point.value.snapshot)
         captured.set(namespace, point.value.snapshot)
-        rng.setState(point.value.rngState)
-        clock.set(point.value.clock.now)
-        if (point.value.clock.frozen) clock.freeze()
-        else clock.unfreeze()
+        ;(branchRngs.get(namespace) ?? rng).setState(point.value.rngState)
+        const selectedClock = namespaceClock(namespace)
+        selectedClock.set(point.value.clock.now)
+        if (point.value.clock.frozen) selectedClock.freeze()
+        else selectedClock.unfreeze()
       }
       return namespace
     }
@@ -444,9 +480,10 @@ export const createRuntime = <T extends ServiceInstance>(
     const storage = ensureBranch(namespace, branchName)
     restoreNamespace(sqlite, storageNamespace(storage), point.value.snapshot)
     captured.set(storage, point.value.snapshot)
-    clock.set(point.value.clock.now)
-    if (point.value.clock.frozen) clock.freeze()
-    else clock.unfreeze()
+    const selectedClock = namespaceClock(namespace)
+    selectedClock.set(point.value.clock.now)
+    if (point.value.clock.frozen) selectedClock.freeze()
+    else selectedClock.unfreeze()
     ;(branchRngs.get(storage) ?? rng).setState(point.value.rngState)
   }
 
@@ -454,10 +491,19 @@ export const createRuntime = <T extends ServiceInstance>(
     if (name === "*") {
       options.webhooks?.clear()
       for (const each of instances.values()) await each.reset()
+      for (const each of branchRngs.values()) each.reset()
       timelines.clear()
+      for (const storage of branchStorage.values()) {
+        instances.delete(storage)
+        branchRngs.delete(storage)
+        namespaceForStorage.delete(storage)
+      }
       branchStorage.clear()
-      branchRngs.clear()
       captured.clear()
+      faults.clear()
+      clock.reset()
+      rng.reset()
+      for (const each of namespaceClocks.values()) each.reset()
       return
     }
     options.webhooks?.clear(name)
@@ -470,11 +516,18 @@ export const createRuntime = <T extends ServiceInstance>(
       if (branchInstance) await branchInstance.reset()
       else clearNamespace(sqlite, storageNamespace(storage))
       branchStorage.delete(mapping)
+      instances.delete(storage)
+      namespaceForStorage.delete(storage)
       branchRngs.delete(storage)
       captured.delete(storage)
     }
     timelines.delete(name)
     captured.delete(name)
+    faults.restore(name, { rules: [], rngState: createRng(options.seed ?? 0).state() })
+    namespaceClock(name).reset()
+    ;(branchRngs.get(name) ?? rng).reset()
+    journal.clear(name)
+    metrics.reset(name)
   }
 
   const snapshot = (name: string = DEFAULT_NAMESPACE): NamespaceSnapshot => {
@@ -516,6 +569,54 @@ export const createRuntime = <T extends ServiceInstance>(
     rng,
     credentials,
     webhooks: options.webhooks,
+    isolateNamespaces() {
+      if (publicNamespaces.size > 1)
+        throw new Error("enable namespace isolation before creating named namespaces")
+      isolatedNamespaces = true
+      faults.isolateNamespaces()
+    },
+    namespaceClock,
+    namespaceOf(request) {
+      const url = new URL(request.url)
+      const prefixed = PATH_PREFIX.exec(url.pathname)
+      const selected =
+        request.headers.get(NAMESPACE_HEADER) ??
+        (prefixed ? decodeURIComponent(prefixed[1] as string) : undefined)
+      const path = prefixed ? (prefixed[2] ?? "/") : url.pathname
+      if (path === "/__admin" || path.startsWith("/__admin/"))
+        return url.searchParams.get("namespace") ?? selected ?? DEFAULT_NAMESPACE
+      if (selected !== undefined) return selected
+      const credential = options.credential?.(request)
+      return (
+        (credential !== undefined ? credentials.get(credential) : undefined) ?? DEFAULT_NAMESPACE
+      )
+    },
+    fleetSnapshot(namespace) {
+      instance(namespace)
+      const handle = {}
+      fleetPoints.set(handle, {
+        namespace,
+        state: capture(namespace),
+        faults: faults.snapshot(namespace),
+        webhooks: options.webhooks?.snapshot(namespace),
+      })
+      return handle
+    },
+    fleetRestore(handle, namespace) {
+      const point =
+        typeof handle === "object" && handle !== null ? fleetPoints.get(handle) : undefined
+      if (!point || point.namespace !== namespace) throw new Error("invalid fleet checkpoint")
+      restoreNamespace(sqlite, storageNamespace(namespace), point.state.snapshot)
+      captured.set(namespace, point.state.snapshot)
+      const selectedClock = namespaceClock(namespace)
+      selectedClock.freeze()
+      selectedClock.set(point.state.clock.now)
+      if (!point.state.clock.frozen) selectedClock.unfreeze()
+      ;(branchRngs.get(namespace) ?? rng).setState(point.state.rngState)
+      faults.restore(namespace, point.faults)
+      if (point.webhooks !== undefined) options.webhooks?.restore(namespace, point.webhooks)
+      timelines.delete(namespace)
+    },
     applyPreset: (name, namespace = DEFAULT_NAMESPACE, overrides = {}) => {
       const preset = options.presets?.[name]
       if (!preset) throw new RangeError(`no fault preset ${JSON.stringify(name)}`)
@@ -714,6 +815,7 @@ export const createRuntime = <T extends ServiceInstance>(
     startedAt: wallNow(),
     wallNow,
     clock,
+    namespaceClock,
     faults,
     metrics,
     journal,

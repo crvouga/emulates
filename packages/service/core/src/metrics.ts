@@ -53,11 +53,12 @@ export type MetricsReport = {
 
 export type Metrics = {
   record(entry: RequestLog): void
-  report(): MetricsReport
-  reset(): void
+  report(namespace?: string): MetricsReport
+  reset(namespace?: string): void
 }
 
-export const createMetrics = (): Metrics => {
+export const createMetrics = (partition = true): Metrics => {
+  const namespaces = new Map<string, Metrics>()
   let requests = 0
   let faults = 0
   let totalDurationMs = 0
@@ -65,6 +66,14 @@ export const createMetrics = (): Metrics => {
   const unmatched = new Map<string, number>()
   return {
     record(entry) {
+      if (partition) {
+        let scoped = namespaces.get(entry.namespace)
+        if (!scoped) {
+          scoped = createMetrics(false)
+          namespaces.set(entry.namespace, scoped)
+        }
+        scoped.record(entry)
+      }
       requests++
       totalDurationMs += entry.durationMs
       if (entry.faultId !== undefined) faults++
@@ -75,19 +84,29 @@ export const createMetrics = (): Metrics => {
         unmatched.set(route, (unmatched.get(route) ?? 0) + 1)
       }
     },
-    report: () => ({
-      requests,
-      byOperation: Object.fromEntries([...byOperation].sort(([a], [b]) => a.localeCompare(b))),
-      unmatched: [...unmatched]
-        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .map(([route, count]) => {
-          const space = route.indexOf(" ")
-          return { method: route.slice(0, space), path: route.slice(space + 1), count }
-        }),
-      faults,
-      totalDurationMs,
-    }),
-    reset() {
+    report: (namespace) =>
+      namespace !== undefined
+        ? (namespaces.get(namespace) ?? createMetrics(false)).report()
+        : {
+            requests,
+            byOperation: Object.fromEntries(
+              [...byOperation].sort(([a], [b]) => a.localeCompare(b)),
+            ),
+            unmatched: [...unmatched]
+              .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+              .map(([route, count]) => {
+                const space = route.indexOf(" ")
+                return { method: route.slice(0, space), path: route.slice(space + 1), count }
+              }),
+            faults,
+            totalDurationMs,
+          },
+    reset(namespace) {
+      if (namespace !== undefined) {
+        namespaces.delete(namespace)
+        return
+      }
+      namespaces.clear()
       requests = 0
       faults = 0
       totalDurationMs = 0

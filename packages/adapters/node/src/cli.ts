@@ -1,6 +1,11 @@
+import type { EventEmitter } from "node:events"
 import { readFile } from "node:fs/promises"
+import { createRequire } from "node:module"
+import { resolve } from "node:path"
+import { pathToFileURL } from "node:url"
 import { type ParseArgsConfig, parseArgs } from "node:util"
 import type { RequestLog, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
+import { type FleetTarget, startFleet } from "./fleet.js"
 import { type Listening, listen } from "./listen.js"
 
 export type CliOption = {
@@ -156,6 +161,20 @@ const COMMON_SERVE_OPTIONS: Record<string, CliOption> = {
     value: "<file>",
     description: "Serve every service in a mockingbird.json config instead",
   },
+  "ready-file": {
+    type: "string",
+    description: "Atomically publish fleet endpoint JSON",
+    value: "<file>",
+  },
+  "connections-file": {
+    type: "string",
+    description: "Write private connection URLs with mode 0600",
+    value: "<file>",
+  },
+  "ready-json": {
+    type: "boolean",
+    description: "Emit one public JSON record after fleet readiness",
+  },
 }
 
 const formatLog = (format: LogFormat) => {
@@ -189,10 +208,16 @@ const asString = (value: string | boolean | undefined): string | undefined =>
 
 /** A service entry in `mockingbird.json`. */
 export type ConfigService = {
+  protocol?: "http" | "postgres" | "redis"
   port?: number
   host?: string
   adminKey?: string
   seed?: string
+  password?: string
+  user?: string
+  database?: string
+  /** Protocol namespace selectors: database names for Postgres, logical DB indexes for Redis. */
+  namespaces?: Record<string, string | number>
   /** Service-specific serve flags, by long name: `{ "webhook-url": "…" }`. */
   options?: Record<string, string | boolean>
 }
@@ -201,13 +226,26 @@ export type MockingbirdConfig = {
   /** Keyed by service name: `junction` loads `@crvouga/mockingbird-service-junction`. */
   services: Record<string, ConfigService>
   log?: LogFormat
+  adminKey?: string
+  namespace?: string
+  control?: { host?: string; port?: number }
 }
 
-const loadTarget = async (name: string, own: ServeTarget): Promise<ServeTarget> => {
+const loadTarget = async (name: string, own: FleetTarget): Promise<FleetTarget> => {
   if (name === own.name) return own
   const specifier = `@crvouga/mockingbird-service-${name}/server`
   try {
-    const mod = (await import(specifier)) as { serveTarget?: ServeTarget }
+    // A CLI run with npx may live outside the consumer project. Discover its locally
+    // installed services as well as siblings of the bundled CLI.
+    let mod: { serveTarget?: FleetTarget }
+    try {
+      mod = (await import(specifier)) as { serveTarget?: FleetTarget }
+    } catch {
+      const fromProject = createRequire(resolve(process.cwd(), "package.json"))
+      mod = (await import(pathToFileURL(fromProject.resolve(specifier)).href)) as {
+        serveTarget?: FleetTarget
+      }
+    }
     if (!mod.serveTarget) throw new Error(`${specifier} exports no serveTarget`)
     return mod.serveTarget
   } catch (error) {
@@ -240,9 +278,11 @@ const start = async (
   return listening
 }
 
-const untilSignal = async (servers: Listening[]): Promise<number> =>
+const untilSignal = async (servers: { close(): Promise<void> }[]): Promise<number> =>
   new Promise((resolve) => {
     const stop = async () => {
+      ;(process as EventEmitter).removeListener("SIGINT", stop)
+      ;(process as EventEmitter).removeListener("SIGTERM", stop)
       await Promise.allSettled(servers.map((s) => s.close()))
       resolve(0)
     }
@@ -251,9 +291,9 @@ const untilSignal = async (servers: Listening[]): Promise<number> =>
   })
 
 /** The standard `serve` command for a service, including multi-service `--config`. */
-export const serveCommand = (target: ServeTarget): CliCommand => ({
-  summary: `Serve the ${target.name} mock over HTTP`,
-  options: { ...COMMON_SERVE_OPTIONS, ...target.options },
+export const serveCommand = (target: FleetTarget): CliCommand => ({
+  summary: `Serve the ${target.name} mock or a configured fleet`,
+  options: { ...COMMON_SERVE_OPTIONS, ...("options" in target ? target.options : {}) },
   async run(values) {
     const log = (
       values["log-requests"] === true ? "json" : (asString(values.log) ?? "pretty")
@@ -264,27 +304,34 @@ export const serveCommand = (target: ServeTarget): CliCommand => ({
     }
     const configPath = asString(values.config)
     if (configPath !== undefined) {
-      const config = JSON.parse(await readFile(configPath, "utf8")) as MockingbirdConfig
-      const servers: Listening[] = []
       try {
-        for (const [name, entry] of Object.entries(config.services ?? {})) {
-          const each = await loadTarget(name, target)
-          servers.push(
-            await start(each, entry.options ?? {}, {
-              port: entry.port ?? each.defaultPort,
-              host: entry.host ?? "127.0.0.1",
-              ...(entry.adminKey !== undefined ? { adminKey: entry.adminKey } : {}),
-              ...(entry.seed !== undefined ? { seed: entry.seed } : {}),
-              log: config.log ?? log,
-            }),
-          )
-        }
+        const config = JSON.parse(await readFile(configPath, "utf8")) as MockingbirdConfig
+        const adminKey =
+          config.adminKey ?? asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
+        if (adminKey !== undefined) config.adminKey = adminKey
+        const fleet = await startFleet(config, {
+          load: (name) => loadTarget(name, target),
+          onLog: formatLog(config.log ?? log),
+          ...(asString(values["ready-file"]) ? { readyFile: asString(values["ready-file"]) } : {}),
+          ...(asString(values["connections-file"])
+            ? { connectionsFile: asString(values["connections-file"]) }
+            : {}),
+          onReady: (manifest) => {
+            if (values["ready-json"]) console.log(JSON.stringify(manifest))
+            else
+              for (const [name, endpoint] of Object.entries(manifest.services))
+                console.log(`${name} mock listening on ${endpoint.url}`)
+          },
+        })
+        return untilSignal([fleet])
       } catch (error) {
-        await Promise.allSettled(servers.map((s) => s.close()))
         console.error(error instanceof Error ? error.message : String(error))
         return 1
       }
-      return untilSignal(servers)
+    }
+    if ("start" in target) {
+      console.error("Use --config to supervise protocol services with this command")
+      return 2
     }
     const port = asString(values.port)
     const adminKey = asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY

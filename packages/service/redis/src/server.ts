@@ -1,4 +1,5 @@
-import { createServer, type Server, type Socket } from "node:net"
+import { createConnection, createServer, type Server, type Socket } from "node:net"
+import type { ConfigService, FleetChild } from "@crvouga/mockingbird-adapter-node"
 import { createRedis, type Redis, RedisConnectionError } from "./engine.ts"
 import { asCommand, encodeReply, type Reply, RespParser } from "./protocol.ts"
 
@@ -53,7 +54,7 @@ function attach(redis: Redis, socket: Socket, onGone: () => void): void {
     if (dropped === session) socket.destroy()
   })
   const finish = () => {
-    session.dead = true
+    redis.disconnect(session)
     stop()
     onGone()
   }
@@ -114,12 +115,6 @@ type FleetRuntime = {
   close(): Promise<void>
 }
 
-type HttpListening = {
-  close(): Promise<void>
-}
-
-let attachClose: ((http: HttpListening) => void) | undefined
-
 const isHealth = (pathname: string): boolean => {
   const path = pathname.replace(/\/+$/, "") || "/"
   return path === "/health" || /^\/ns\/[^/]+\/health$/.test(path)
@@ -131,7 +126,9 @@ const isHealth = (pathname: string): boolean => {
  */
 export const serveTarget = {
   name: "redis",
-  defaultPort: DEFAULT_PORT,
+  protocol: "redis" as const,
+  defaultPort: 6379,
+  start: startProtocol,
   async create(): Promise<FleetRuntime> {
     const redis = createRedis()
     const tcp = await serve(redis, { host: "127.0.0.1", port: 0 })
@@ -145,19 +142,147 @@ export const serveTarget = {
         return new Response("not found", { status: 404 })
       },
     }
-    attachClose = (http) => {
-      const closeHttp = http.close.bind(http)
-      http.close = async () => {
-        await runtime.close()
-        await closeHttp()
-      }
-    }
     return runtime
-  },
-  listening(http: HttpListening) {
-    attachClose?.(http)
   },
   banner(runtime: FleetRuntime) {
     return [`resp: redis://127.0.0.1:${runtime.respPort}`]
   },
+}
+
+/** Each fleet namespace owns a listener and an engine; Redis SELECT retains vendor semantics. */
+async function startProtocol(entry: ConfigService): Promise<FleetChild> {
+  const namespaces = new Map<string, { redis: Redis; listener: RedisListening; database: number }>()
+  const selectors = { default: 0, ...entry.namespaces }
+  try {
+    for (const [name, database] of Object.entries(selectors)) {
+      if (!/^[A-Za-z0-9_.-]{1,64}$/.test(name)) throw new Error("invalid Redis namespace")
+      if (
+        typeof database !== "number" ||
+        !Number.isInteger(database) ||
+        database < 0 ||
+        database > 15
+      )
+        throw new Error("invalid Redis database index")
+      const redis = createRedis({
+        ...(entry.password !== undefined ? { password: entry.password } : {}),
+        ...(entry.seed !== undefined ? { seed: Number(entry.seed) } : {}),
+      })
+      const listener = await serve(redis, {
+        host: entry.host ?? "127.0.0.1",
+        port: name === "default" ? (entry.port ?? 6379) : 0,
+      })
+      namespaces.set(name, { redis, listener, database })
+    }
+  } catch (error) {
+    await Promise.allSettled([...namespaces.values()].map(({ listener }) => listener.close()))
+    throw error
+  }
+  const get = (name: string) => {
+    const found = namespaces.get(name)
+    if (!found) throw new Error(`Redis namespace ${name} is not configured`)
+    return found
+  }
+  const url = (name: string, privateUrl = false) => {
+    const { listener, database } = get(name)
+    const host = listener.host.includes(":") ? `[${listener.host}]` : listener.host
+    const auth =
+      privateUrl && entry.password !== undefined ? `:${encodeURIComponent(entry.password)}@` : ""
+    return `redis://${auth}${host}:${listener.port}/${database}`
+  }
+  return {
+    protocol: "redis",
+    url: url("default"),
+    connection: url("default", true),
+    connections: Object.fromEntries([...namespaces.keys()].map((name) => [name, url(name, true)])),
+    namespaces: {
+      mechanism: "endpoint",
+      endpoints: Object.fromEntries([...namespaces.keys()].map((name) => [name, url(name)])),
+    },
+    async ready() {
+      return (
+        await Promise.all(
+          [...namespaces.values()].map(({ listener, database }) =>
+            probe(listener, database, entry.password),
+          ),
+        )
+      ).every(Boolean)
+    },
+    async close() {
+      await Promise.all([...namespaces.values()].map(({ listener }) => listener.close()))
+    },
+    lock: (name) => get(name).redis.fence(),
+    diagnostics(name) {
+      const { redis } = get(name)
+      return {
+        activeRequests: redis.activeCommands(),
+        activeConnections: redis.connections(),
+        blockedCommands: redis.waiterCount(),
+        pendingJobs: redis.pendingJobs(),
+        activeJobs: redis.activeJobs(),
+        pendingWebhooks: 0,
+        unmatchedRequests: 0,
+      }
+    },
+    async checkpoint(name) {
+      return get(name).redis.snapshot()
+    },
+    async restore(name, point) {
+      get(name).redis.restore(point)
+    },
+    async reset(name) {
+      get(name).redis.reset()
+    },
+    clock: (name) => get(name).redis.clock,
+  }
+}
+
+/** Readiness checks the actual RESP listener, including configured authentication and SELECT. */
+function probe(
+  listener: RedisListening,
+  database: number,
+  password: string | undefined,
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = createConnection({ host: listener.host, port: listener.port })
+    const parser = new RespParser()
+    const commands = [
+      ...(password !== undefined ? [["AUTH", password]] : []),
+      ["SELECT", String(database)],
+      ["PING"],
+    ]
+    const expected = commands.map((command) => (command[0] === "PING" ? "PONG" : "OK"))
+    let result = false
+    const finish = (ok: boolean) => {
+      result = ok
+      socket.destroy()
+    }
+    const timeout = setTimeout(() => finish(false), 2000)
+    socket.once("close", () => {
+      clearTimeout(timeout)
+      resolve(result)
+    })
+    socket.on("error", () => finish(false))
+    socket.once("connect", () => {
+      for (const command of commands)
+        socket.write(
+          `*${command.length}\r\n${command.map((arg) => `$${Buffer.byteLength(arg)}\r\n${arg}\r\n`).join("")}`,
+        )
+    })
+    socket.on("data", (data) => {
+      try {
+        for (const reply of parser.push(data)) {
+          if (reply.t !== "simple" || reply.v !== expected.shift()) {
+            finish(false)
+            return
+          }
+          if (expected.length === 0) {
+            finish(true)
+            return
+          }
+        }
+      } catch {
+        finish(false)
+      }
+    })
+  })
 }

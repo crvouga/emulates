@@ -9,14 +9,20 @@ describe("public API exports", () => {
     expect(Object.keys(postgresMem).sort()).toEqual(["Database", "PostgresError", "Snapshot", "Statement"]);
   });
 
-  test("package.json exports ., ./admin, ./unstable and ./wire", () => {
+  test("package.json exports ., ./admin, ./unstable, ./wire and ./server", () => {
     const pkg = JSON.parse(readFileSync(join(import.meta.dir, "../../../package.json"), "utf8")) as {
       exports: Record<string, unknown>;
       mockingbird?: { entries?: Record<string, string> };
     };
-    expect(Object.keys(pkg.exports).sort()).toEqual([".", "./admin", "./unstable", "./wire"]);
+    expect(Object.keys(pkg.exports).sort()).toEqual([".", "./admin", "./server", "./unstable", "./wire"]);
     // The wire server is a Node-only entry, so the main and unstable entries stay portable.
-    expect(pkg.mockingbird?.entries).toEqual({ "wire/index": "node", "wire/cli": "node" });
+    expect(pkg.mockingbird?.entries).toEqual({
+      "wire/index": "node",
+      "wire/cli": "node",
+      server: "node",
+      "wire/fleet": "node",
+      "wire/probe": "node",
+    });
   });
 });
 

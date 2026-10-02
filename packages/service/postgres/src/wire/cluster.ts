@@ -1,4 +1,5 @@
 import { Database } from "../api/database.ts";
+import type { Snapshot } from "../api/snapshot.ts";
 import { PostgresError } from "../errors/error.ts";
 import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
 
@@ -42,6 +43,16 @@ export class Cluster {
   databaseNames(): string[] {
     return [...this.databases.keys()].sort();
   }
+  snapshotAll(): Map<string, Snapshot> {
+    return new Map([...this.databases].map(([name, db]) => [name, db.snapshot()]));
+  }
+  restoreAll(points: ReadonlyMap<string, Snapshot>): void {
+    if (this.sessions.size > 0) throw new Error("cannot restore a catalog with active sessions");
+    if (!points.has(this.defaultDatabaseName)) throw new Error("snapshot lacks default database");
+    for (const db of this.databases.values()) db.close();
+    this.databases.clear();
+    for (const [name, point] of points) this.installDatabase(name, point.open());
+  }
 
   getDatabase(name: string): Database | undefined {
     return this.databases.get(name);
@@ -57,7 +68,10 @@ export class Cluster {
     if (this.databases.has(name)) {
       throw new PostgresError("duplicate_object", `database "${name}" already exists`, "42P04");
     }
-    const db = template === undefined ? new Database() : this.requireTemplate(template).snapshot().open();
+    const db =
+      template === undefined
+        ? new Database({ now: this.db.now, seed: this.db.seed })
+        : this.requireTemplate(template).snapshot().open();
     this.installDatabase(name, db);
   }
 
