@@ -492,8 +492,15 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
         const target = await options.load(name)
         if (entry.protocol && entry.protocol !== ("protocol" in target ? target.protocol : "http"))
           throw new Error("configured protocol does not match target")
+        const adminKey = entry.adminKey ?? config.adminKey ?? process.env.MOCKINGBIRD_ADMIN_KEY
         const child =
-          "start" in target ? await target.start(entry) : await httpChild(target, entry, options)
+          "start" in target
+            ? await target.start(entry)
+            : await httpChild(
+                target,
+                { ...entry, ...(adminKey !== undefined ? { adminKey } : {}) },
+                options,
+              )
         children.set(name, child)
         if (!(await child.ready())) throw new Error("protocol readiness failed")
       } catch {

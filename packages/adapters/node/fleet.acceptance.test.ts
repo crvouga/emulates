@@ -135,6 +135,15 @@ test("fleet namespaces replay records, random choices and time; reset clears onl
     (await fetch(`${origin}/ns/${ns}/things`, { method: "POST" })).json()
   try {
     expect((await request(fleet, "/__fleet/namespaces/worker-7/reset", {})).status).toBe(401)
+    expect(
+      (
+        await fetch(`${origin}/__admin/clock`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ freeze: true }),
+        })
+      ).status,
+    ).toBe(401)
     const time = 1_700_000_000_000
     expect(
       (

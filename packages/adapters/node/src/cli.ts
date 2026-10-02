@@ -306,6 +306,9 @@ export const serveCommand = (target: FleetTarget): CliCommand => ({
     if (configPath !== undefined) {
       try {
         const config = JSON.parse(await readFile(configPath, "utf8")) as MockingbirdConfig
+        const adminKey =
+          config.adminKey ?? asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
+        if (adminKey !== undefined) config.adminKey = adminKey
         const fleet = await startFleet(config, {
           load: (name) => loadTarget(name, target),
           onLog: formatLog(config.log ?? log),
