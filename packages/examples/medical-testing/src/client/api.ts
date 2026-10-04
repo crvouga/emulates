@@ -19,6 +19,13 @@ export const setFetcher = (f: Fetcher): void => {
   fetcher = f
 }
 
+/** The component-library admin shares this client's authenticated, isomorphic transport. */
+export const fetchApp: Fetcher = async (path, init) => {
+  const response = await fetcher(path, init)
+  if (response.status === 401) for (const listener of unauthorizedListeners) listener()
+  return response
+}
+
 // A 401 partway through a session (an expired/lost cookie, or a page that
 // got reloaded out from under an in-progress session — this whole app runs
 // in one browser tab with no server-side session store beyond memory) used

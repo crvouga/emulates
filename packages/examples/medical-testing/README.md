@@ -11,8 +11,10 @@ reusable fullscreen example view, no server to start.
 
 ## Ports and adapters
 
-The app's own code — everything under `src/app/` and `src/client/` — never imports Mockingbird, has
-uses plain application contracts. The synthetic report generator is explicit demonstration
+The application's domain and HTTP code under `src/app/` use plain application contracts and
+never import Mockingbird. The client uses those HTTP routes; its administration page renders
+the shared React and Ant Design UI through the same scoped fetch in both run modes. The
+synthetic report generator is explicit demonstration
 data; it must be replaced with a provider report ingestion path for a real deployment:
 
 ```
@@ -36,8 +38,8 @@ src/composition/  wires a real adapter into every port and boots the app — the
 ```
 
 Swap every file under `src/adapters/` for ones that call real Google/Apple, real Stripe, a real
-lab-testing API, and a real Postgres connection, and nothing under `src/app/` or `src/client/`
-can keep the same architecture. Production deployment also needs durable sessions, real patient
+lab-testing API, and a real Postgres connection, and the application can keep the same
+architecture. Production deployment also needs durable sessions, real patient
 intake, provider report ingestion, and persistent infrastructure.
 
 ## What it demonstrates
@@ -77,7 +79,8 @@ intake, provider report ingestion, and persistent infrastructure.
 **In the browser, no server:** visit `/examples/medical-testing` on the docs site and click
 "Launch the app". The fullscreen view has a tab for the example and a tab for each mock it is using: Google,
 Apple, Stripe, Junction, and Postgres all open the shared admin UI against the same in-process
-state the app uses. Postgres includes the SQL table explorer and query runner alongside state,
+state the app uses. Every administration screen uses prebuilt Ant Design tables, forms,
+dialogs, navigation, and feedback. Postgres includes the SQL table explorer and query runner alongside state,
 clock, faults, journal, and routes. SQL changes appear in the app immediately; checkpoint and
 restore operate on this same database. New services and data sources join the same admin tab registry.
 

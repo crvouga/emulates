@@ -175,7 +175,15 @@ export type AdminUi = {
 }
 
 const PANEL_ID = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/
-const RESERVED_VIEWS = new Set(["overview", "state", "clock", "faults", "journal", "routes"])
+const RESERVED_VIEWS = new Set([
+  "overview",
+  "state",
+  "clock",
+  "faults",
+  "journal",
+  "routes",
+  "checkpoints",
+])
 
 const checkPanel = (
   panel: { id: string; title: string },
