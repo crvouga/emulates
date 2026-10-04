@@ -69,7 +69,7 @@ The full rationale, and when not to use it: [docs/WHY.md](docs/WHY.md).
 
 ## One contract for every HTTP service
 
-Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once.
+Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`MOCKINGBIRD_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.
 
 ```bash
 npx mockingbird-junction serve --port 8787                # one service

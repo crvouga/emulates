@@ -122,7 +122,7 @@ console.log((await list.json()).data[0].id === customer.id) // true`,
 
 export const CONTRACT = {
   intro:
-    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once.",
+    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`MOCKINGBIRD_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.",
   serve: `npx mockingbird-junction serve --port 8787                # one service
 npx mockingbird-junction serve --config mockingbird.json  # every service in the config`,
   rows: [

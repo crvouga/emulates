@@ -81,8 +81,9 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   describe?: () => Record<string, unknown>
   /** Service-specific admin routes, given the runtime so they can reach any namespace. */
   admin?: (runtime: ServiceRuntime<T>) => AdminRoutes
-  /** Require this value in `x-mockingbird-admin-key` on `/__admin/*`. Omit to leave admin open. */
+  /** Reserved tree for every internal HTTP endpoint, UI and namespace carrier. Default /__admin. */
   adminPrefix?: string
+  /** Require this value in `x-mockingbird-admin-key` on admin data routes. Omit to leave admin open. */
   adminKey?: string
   /** Structured request log sink, called once per request. */
   onLog?: (entry: RequestLog) => void
