@@ -110,6 +110,7 @@ export type StripeAPIOptions = APIOptions & {
   /** Which keys act as which account (shared across namespaces by the runtime). */
   accounts?: AccountDirectory | readonly AccountConfig[]
   /** The public namespace this instance serves, so hosted-page URLs route back to it. */
+  adminPrefix?: string
   publicNamespace?: string
   /** Public base URL for hosted pages (default: the origin the caller used). */
   publicUrl?: string
@@ -208,7 +209,7 @@ export class StripeAPI implements FetchAPI {
       namespacePrefix:
         options.publicNamespace === undefined || options.publicNamespace === "default"
           ? ""
-          : `/ns/${encodeURIComponent(options.publicNamespace)}`,
+          : `${options.adminPrefix ?? "/__admin"}/ns/${encodeURIComponent(options.publicNamespace)}`,
       publicUrl: options.publicUrl,
       ...(options.onEndpointsChanged ? { endpointsChanged: options.onEndpointsChanged } : {}),
     }

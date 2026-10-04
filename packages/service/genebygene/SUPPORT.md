@@ -58,4 +58,4 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `GetResultUrl` | `GET /api/v2/results/results/{resultId}/url` | ❌ unsupported | — | Our consumer never calls this endpoint (GXG/transport/gxg-client.ts). |
 | `GetResultPresignedUrl` | `GET /api/v2/results/results/presignedUrl` | ✅ supported | ✅ |  |
 | `PostConnectToken` | `POST /connect/token` | ✅ supported | ✅ |  |
-| `GetResultBlob` | `GET /__blob/{key}` | ✅ supported | ❌ disabled | Mock-only route; the real presigned URL points at S3, not the API host. |
+| `GetResultBlob` | `GET /__admin/blobs/{key}` | ✅ supported | ❌ disabled | Mock-only route; the real presigned URL points at S3, not the API host. |

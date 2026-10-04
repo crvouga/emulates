@@ -254,9 +254,9 @@ describe("S14 acceptance: the backend knowledge adapter against the mock", () =>
     expect(journal).toContain("UpsertBatchPipelineDocuments")
     expect(journal).not.toContain("sensitive")
     expect(journal).not.toContain("Private title")
-    // /ns/<name> also selects a namespace (for a base URL that cannot carry headers).
+    // /__admin/ns/<name> also selects a namespace (for a base URL that cannot carry headers).
     const viaPrefix = new LlamaCloudKnowledgeAdapter(
-      `${HOST}/ns/a/api/v1`,
+      `${HOST}/__admin/ns/a/api/v1`,
       { apiKey: "llx-other", indexName: INDEX },
       (r) => runtime.fetch(r),
     )
@@ -359,7 +359,7 @@ describe("served over HTTP", () => {
       )
       await client.upsertMarkdown("omega-3", "Omega-3", "Fish oil provides EPA and DHA.")
       expect((await client.search("fish oil"))[0]?.sourceId).toBe("omega-3")
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^llamacloud@/)
       expect(((await health.json()) as { status: string }).status).toBe("ok")
     } finally {

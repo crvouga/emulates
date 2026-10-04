@@ -40,7 +40,7 @@ export type Services = {
   paymentRetries: (account: string) => PaymentRetryPolicy
   /** How many endpoints an event of this account will be delivered to (`pending_webhooks`). */
   pendingWebhooks: (account: string, type: string) => number
-  /** Path prefix that selects this instance's namespace (`/ns/<name>`), or `""`. */
+  /** Path prefix that selects this instance's namespace (`/__admin/ns/<name>`), or `""`. */
   namespacePrefix: string
   /** Public base URL override for hosted pages; defaults to the caller's origin. */
   publicUrl: string | undefined
@@ -56,7 +56,7 @@ export type RequestScope = {
   /** The mock clock, in ms. */
   now: () => number
   era: ApiEra
-  /** Public base URL of this namespace's hosted pages, e.g. `http://127.0.0.1:12111/ns/w1`. */
+  /** Public base URL of this namespace's hosted pages, e.g. `http://127.0.0.1:12111/__admin/ns/w1`. */
   base: string
   /** Parameters of a fault effect that fired for this request, if it did. */
   effect: (name: string) => Record<string, unknown> | undefined

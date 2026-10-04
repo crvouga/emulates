@@ -66,7 +66,10 @@ export class OutboxStore<T extends OutboxItem = OutboxItem> {
 }
 
 const json = (status: number, body: unknown): Response =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8" },
+  })
 
 /** Epoch ms from `since=` given as epoch ms or ISO-8601; `null` when malformed. */
 export const parseSince = (value: string | null): number | undefined | null => {

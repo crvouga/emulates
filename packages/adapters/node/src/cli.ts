@@ -5,6 +5,7 @@ import { resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 import { type ParseArgsConfig, parseArgs } from "node:util"
 import type { RequestLog, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
+import { resolveAdminPrefix } from "@crvouga/mockingbird-service"
 import { type FleetTarget, startFleet } from "./fleet.js"
 import { type Listening, listen } from "./listen.js"
 
@@ -111,6 +112,7 @@ export const runCli = async (spec: CliSpec, argv: string[]): Promise<number> => 
 export type LogFormat = "pretty" | "json" | "off"
 
 export type CommonServeOptions = {
+  adminPrefix?: string
   adminKey: string | undefined
   seed: string | undefined
   onLog: ((entry: RequestLog) => void) | undefined
@@ -139,6 +141,11 @@ export type ServeTarget = {
 const COMMON_SERVE_OPTIONS: Record<string, CliOption> = {
   port: { type: "string", value: "<port>", description: "Port to listen on" },
   host: { type: "string", value: "<host>", description: "Interface to bind", default: "127.0.0.1" },
+  "admin-prefix": {
+    type: "string",
+    value: "<path>",
+    description: "Internal API prefix (default /__admin; env MOCKINGBIRD_ADMIN_PREFIX)",
+  },
   "admin-key": {
     type: "string",
     value: "<key>",
@@ -211,6 +218,7 @@ export type ConfigService = {
   protocol?: "http" | "postgres" | "redis"
   port?: number
   host?: string
+  adminPrefix?: string
   adminKey?: string
   seed?: string
   password?: string
@@ -226,6 +234,7 @@ export type MockingbirdConfig = {
   /** Keyed by service name: `junction` loads `@crvouga/mockingbird-service-junction`. */
   services: Record<string, ConfigService>
   log?: LogFormat
+  adminPrefix?: string
   adminKey?: string
   namespace?: string
   control?: { host?: string; port?: number }
@@ -259,9 +268,18 @@ const loadTarget = async (name: string, own: FleetTarget): Promise<FleetTarget> 
 const start = async (
   target: ServeTarget,
   values: CliValues,
-  config: { port: number; host: string; adminKey?: string; seed?: string; log: LogFormat },
+  config: {
+    port: number
+    host: string
+    adminPrefix?: string
+    adminKey?: string
+    seed?: string
+    log: LogFormat
+  },
 ): Promise<Listening> => {
+  const adminPrefix = resolveAdminPrefix(config.adminPrefix)
   const runtime = await target.create(values, {
+    adminPrefix,
     adminKey: config.adminKey,
     seed: config.seed,
     onLog: formatLog(config.log),
@@ -269,12 +287,13 @@ const start = async (
   const listening = await listen(runtime, { port: config.port, host: config.host })
   target.listening?.(listening)
   console.log(`${target.name} mock listening on ${listening.url}`)
-  console.log(`${target.name} health: GET ${listening.url}/health`)
+  console.log(`${target.name} health: GET ${listening.url}${adminPrefix}/health`)
   console.log(
-    `${target.name} admin: ${listening.url}/__admin (${config.adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
+    `${target.name} admin: ${listening.url}${adminPrefix} (${config.adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
   )
-  console.log(`${target.name} admin ui: ${listening.url}/__admin/ui`)
-  for (const line of target.banner?.(runtime) ?? []) console.log(`${target.name} ${line}`)
+  console.log(`${target.name} admin ui: ${listening.url}${adminPrefix}/ui`)
+  for (const line of target.banner?.(runtime) ?? [])
+    console.log(`${target.name} ${line.replaceAll("/__admin", adminPrefix)}`)
   return listening
 }
 
@@ -306,6 +325,11 @@ export const serveCommand = (target: FleetTarget): CliCommand => ({
     if (configPath !== undefined) {
       try {
         const config = JSON.parse(await readFile(configPath, "utf8")) as MockingbirdConfig
+        config.adminPrefix = resolveAdminPrefix(
+          config.adminPrefix ??
+            asString(values["admin-prefix"]) ??
+            process.env.MOCKINGBIRD_ADMIN_PREFIX,
+        )
         const adminKey =
           config.adminKey ?? asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
         if (adminKey !== undefined) config.adminKey = adminKey
@@ -339,6 +363,9 @@ export const serveCommand = (target: FleetTarget): CliCommand => ({
     let listening: Listening
     try {
       listening = await start(target, values, {
+        adminPrefix: resolveAdminPrefix(
+          asString(values["admin-prefix"]) ?? process.env.MOCKINGBIRD_ADMIN_PREFIX,
+        ),
         port: port === undefined ? target.defaultPort : Number.parseInt(port, 10),
         host: asString(values.host) ?? "127.0.0.1",
         ...(adminKey !== undefined ? { adminKey } : {}),

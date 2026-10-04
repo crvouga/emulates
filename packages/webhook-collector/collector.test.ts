@@ -28,9 +28,12 @@ test("new service slugs need no collector changes", async () => {
     })
     expect(response.status).toBe(202)
   }
-  const response = await app.request("http://localhost/events/walk-1?service=new-provider", {
-    headers: { authorization: "Bearer test-read-token" },
-  })
+  const response = await app.request(
+    "http://localhost/__admin/events/walk-1?service=new-provider",
+    {
+      headers: { authorization: "Bearer test-read-token" },
+    },
+  )
   expect(await response.json()).toEqual([{ event_type: "new-provider.created" }])
 })
 
@@ -51,12 +54,28 @@ test("rejects malformed service slugs and JSON without storing", async () => {
 
 test("collected payloads require a read token", async () => {
   const app = createWebhookCollector(memoryStore(), "test-read-token")
-  expect((await app.request("http://localhost/events")).status).toBe(401)
+  expect((await app.request("http://localhost/__admin/events")).status).toBe(401)
   expect(
     (
-      await app.request("http://localhost/events", {
+      await app.request("http://localhost/__admin/events", {
         headers: { authorization: "Bearer test-read-token" },
       })
     ).status,
   ).toBe(200)
+})
+
+test("collector control routes relocate together without aliases", async () => {
+  const app = createWebhookCollector(memoryStore(), "test-read-token", {
+    adminPrefix: "/_control/mock",
+  })
+  expect((await app.request("http://localhost/_control/mock/health")).status).toBe(200)
+  expect(
+    (
+      await app.request("http://localhost/_control/mock/events", {
+        headers: { authorization: "Bearer test-read-token" },
+      })
+    ).status,
+  ).toBe(200)
+  for (const path of ["/health", "/events", "/__admin/health", "/__admin/events"])
+    expect((await app.request(`http://localhost${path}`)).status).toBe(404)
 })

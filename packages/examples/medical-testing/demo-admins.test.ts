@@ -13,7 +13,7 @@ describe("live demo admins", () => {
     ])
 
     for (const admin of demo.admins) {
-      const health = await admin.fetch(new Request("https://mock.local/health"))
+      const health = await admin.fetch(new Request("https://mock.local/__admin/health"))
       expect(health.status).toBe(200)
       expect(((await health.json()) as { adminUi?: string }).adminUi).toBe("/__admin/ui")
       const ui = await admin.fetch(new Request("https://mock.local/__admin/ui"))

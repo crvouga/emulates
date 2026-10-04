@@ -265,13 +265,13 @@ describe("the wire", () => {
 
   test("h2c prior knowledge and HTTP/1.1 share the port", async () => {
     const session = connect(server.url)
-    const request = session.request({ ":method": "GET", ":path": "/health" })
+    const request = session.request({ ":method": "GET", ":path": "/__admin/health" })
     let body = ""
     for await (const chunk of request) body += chunk
     session.close()
     expect(JSON.parse(body).service).toBe("aws-speech")
     expect(
-      ((await (await fetch(`${server.url}/health`)).json()) as { service: string }).service,
+      ((await (await fetch(`${server.url}/__admin/health`)).json()) as { service: string }).service,
     ).toBe("aws-speech")
   })
 })

@@ -28,7 +28,7 @@ Point the EMR at the mock (all of these are required in `E/config/env.ts`):
 
 | EMR env | Value |
 | --- | --- |
-| `PERSONA_API_URL` | `http://127.0.0.1:8815` (or `…/ns/<namespace>`) |
+| `PERSONA_API_URL` | `http://127.0.0.1:8815` (or `…/__admin/ns/<namespace>`) |
 | `PERSONA_API_KEY` | any bearer (or the one passed as `--api-key`) |
 | `PERSONA_WEB_INQUIRY_URL`, `PERSONA_MOBILE_INQUIRY_URL` | `http://127.0.0.1:8815/verify` |
 | `PERSONA_IDENTITY_INQUIRY_TEMPLATE_ID`, `PERSONA_PHONE_INQUIRY_TEMPLATE_ID` | any `itmpl_…` ids |
@@ -114,7 +114,7 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `PERSONA_API_URL` and
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `PERSONA_API_URL` and
 `PERSONA_WEB_INQUIRY_URL` (the hosted page's links keep it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<PERSONA_API_KEY>": "<namespace>"}}`.
 

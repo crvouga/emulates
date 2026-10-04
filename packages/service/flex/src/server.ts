@@ -76,6 +76,7 @@ export const serveTarget: ServeTarget = {
         ...(publicUrl ? { publicUrl } : {}),
         ...(naming ? { eventNaming: naming as "dotted" | "underscored" } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -84,6 +85,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Bearer fsk_test_… (test mode) or fsk_… (live mode)",
     "hosted page: GET /pay/<checkout_session_id> (cards 4000051230000072 HSA, 4242424242424242, 4000000000000002 declines)",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<FLEX_API_KEY>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<FLEX_API_KEY>: <ns>}",
   ],
 }

@@ -49,7 +49,7 @@ Responses contain SDK-consumed Cognito fields and AWS-shaped exceptions (`__type
 - `POST /__admin/keys/rotate {"retainPrevious":true}` rotates signing keys with optional overlap.
 - Fault presets: `throttled`, `unavailable`.
 
-The shared runtime supplies reset, clock, snapshots, journals, metrics, faults, branches, and namespace isolation. Select namespaces through `x-mockingbird-namespace`, `/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime supplies reset, clock, snapshots, journals, metrics, faults, branches, and namespace isolation. Select namespaces through `x-mockingbird-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 

@@ -79,7 +79,7 @@ describe("Junction webhook receiver", () => {
       fc.asyncProperty(fc.constant(undefined), async () => {
         const environment = { WEBHOOK_EVENTS: new MemoryNamespace() } as unknown as Environment
         const response = await worker.fetch(
-          new Request("https://receiver.workers.dev/health"),
+          new Request("https://receiver.workers.dev/__admin/health"),
           environment,
         )
         expect(response.status).toBe(200)

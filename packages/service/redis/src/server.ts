@@ -1,5 +1,6 @@
 import { createConnection, createServer, type Server, type Socket } from "node:net"
 import type { ConfigService, FleetChild } from "@crvouga/mockingbird-adapter-node"
+import { matchNamespacePath, resolveAdminPrefix } from "@crvouga/mockingbird-service"
 import { createRedis, type Redis, RedisConnectionError } from "./engine.ts"
 import { asCommand, encodeReply, type Reply, RespParser } from "./protocol.ts"
 
@@ -115,13 +116,16 @@ type FleetRuntime = {
   close(): Promise<void>
 }
 
-const isHealth = (pathname: string): boolean => {
+const isHealth = (pathname: string, adminPrefix: string): boolean => {
   const path = pathname.replace(/\/+$/, "") || "/"
-  return path === "/health" || /^\/ns\/[^/]+\/health$/.test(path)
+  return (
+    path === `${adminPrefix}/health` ||
+    matchNamespacePath(path, adminPrefix)?.[2] === `${adminPrefix}/health`
+  )
 }
 
 /**
- * Fleet entry for `serve --config`. HTTP `GET /health` reports `service: redis`.
+ * Fleet entry for `serve --config`. HTTP `GET /__admin/health` reports `service: redis`.
  * RESP listens on an ephemeral port named in the startup banner.
  */
 export const serveTarget = {
@@ -129,14 +133,20 @@ export const serveTarget = {
   protocol: "redis" as const,
   defaultPort: 6379,
   start: startProtocol,
-  async create(): Promise<FleetRuntime> {
+  async create(
+    _values: unknown = {},
+    common: { adminPrefix?: string } = {},
+  ): Promise<FleetRuntime> {
     const redis = createRedis()
     const tcp = await serve(redis, { host: "127.0.0.1", port: 0 })
     const runtime: FleetRuntime = {
       respPort: tcp.port,
       close: () => tcp.close(),
       fetch: async (request: Request) => {
-        if (isHealth(new URL(request.url).pathname)) {
+        if (
+          request.method === "GET" &&
+          isHealth(new URL(request.url).pathname, resolveAdminPrefix(common.adminPrefix))
+        ) {
           return Response.json({ status: "ok", service: "redis" })
         }
         return new Response("not found", { status: 404 })

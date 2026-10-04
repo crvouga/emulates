@@ -100,9 +100,9 @@ State is partitioned by **account**, and the account is chosen by API key:
   (see Lifecycles and the clock); unset fields use `createRuntime({lifecycle: {paymentRetries}})`.
 
 **Namespaces** isolate parallel workers; each namespace has its own copy of every account. Carriers:
-the `x-mockingbird-namespace` header, the `/ns/<namespace>/…` path prefix, or **by API key**:
+the `x-mockingbird-namespace` header, the `/__admin/ns/<namespace>/…` path prefix, or **by API key**:
 `PUT /__admin/credentials {"credentials": {"sk_test_worker1": "w1"}}` (stripe-node cannot add
-headers). Hosted-page URLs carry the `/ns/<namespace>` prefix so the browser lands in the same one.
+headers). Hosted-page URLs carry the `/__admin/ns/<namespace>` prefix so the browser lands in the same one.
 
 ### API versions
 
@@ -337,7 +337,7 @@ hides objects younger than 60 s — search is consistent otherwise), `webhook_du
 {payment_intent|charge, reason?, amount?}` (emits `charge.dispute.created`),
 `POST /__admin/checkout/sessions/:id/complete|expire|async_payment_succeeded`,
 `POST /__admin/setup_intents/:id/succeed`, `GET /__admin/charges/:id`, `POST /__admin/tick`. The
-standard ones (`/health`, reset, snapshots, clock, faults, metrics, `GET /__admin/requests`,
+standard ones (`/__admin/health`, reset, snapshots, clock, faults, metrics, `GET /__admin/requests`,
 credentials, webhooks) come from the shared runtime. The journal records operation, status and ids
 only — never bodies, card numbers or emails.
 

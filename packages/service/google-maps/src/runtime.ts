@@ -132,6 +132,7 @@ export type GoogleMapsRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Addresses every namespace resolves. Default: the QA corpus. */
@@ -278,8 +279,8 @@ const adminRoutes = (runtime: ServiceRuntime<GoogleMapsAPI>): AdminRoutes => ({
 })
 
 /**
- * The Google Maps mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by API key
+ * The Google Maps mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PLACES_KEY>": "<namespace>"}}`), clock control,
  * fault presets and a request journal. Google Maps sends no webhooks.
  */
@@ -290,15 +291,17 @@ export const createRuntime = (options: GoogleMapsRuntimeOptions = {}): GoogleMap
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: keyCredential,
     presets: GOOGLE_MAPS_PRESETS,
-    create: ({ sqlite, namespace, publicNamespace, clock }) =>
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) =>
       new GoogleMapsAPI({
         sqlite,
         namespace,
         publicNamespace,
+        adminPrefix,
         now: clock.now,
         ...(options.corpus ? { corpus: options.corpus } : {}),
         ...(options.settings ? { settings: options.settings } : {}),

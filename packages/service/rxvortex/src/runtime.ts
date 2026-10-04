@@ -81,6 +81,7 @@ export type RxVortexRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /**
@@ -204,8 +205,8 @@ const adminRoutes = (runtime: ServiceRuntime<RxVortexAPI>): AdminRoutes => ({
 })
 
 /**
- * The RxVortex mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by client id
+ * The RxVortex mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by client id
  * (`PUT /__admin/credentials {"credentials": {"<RXVORTEX_CLIENT_ID>": "<namespace>"}}`),
  * clock control, fault presets, signed status webhooks and a request journal.
  */
@@ -223,6 +224,7 @@ export const createRuntime = (options: RxVortexRuntimeOptions = {}): RxVortexRun
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: tokenCredential,

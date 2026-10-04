@@ -13,6 +13,7 @@ function target(name = "fixture"): ServeTarget {
     create(_values, common) {
       return createRuntime({
         name,
+        ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
         ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
         ...(common.seed !== undefined ? { seed: common.seed } : {}),
         ...(common.onLog !== undefined ? { onLog: common.onLog } : {}),
@@ -132,9 +133,9 @@ test("fleet namespaces replay records, random choices and time; reset clears onl
   )
   const origin = fleet.manifest.services.fixture?.url as string
   const mutate = async (ns: string) =>
-    (await fetch(`${origin}/ns/${ns}/things`, { method: "POST" })).json()
+    (await fetch(`${origin}/__admin/ns/${ns}/things`, { method: "POST" })).json()
   try {
-    expect((await request(fleet, "/__fleet/namespaces/worker-7/reset", {})).status).toBe(401)
+    expect((await request(fleet, "/__admin/fleet/namespaces/worker-7/reset", {})).status).toBe(401)
     expect(
       (
         await fetch(`${origin}/__admin/clock`, {
@@ -149,7 +150,7 @@ test("fleet namespaces replay records, random choices and time; reset clears onl
       (
         await request(
           fleet,
-          "/__fleet/clock?namespace=worker-7",
+          "/__admin/fleet/clock?namespace=worker-7",
           { set: time, freeze: true },
           "fixture-admin",
         )
@@ -158,15 +159,20 @@ test("fleet namespaces replay records, random choices and time; reset clears onl
     await mutate("worker-7")
     await mutate("other")
     const snapshot = (await (
-      await request(fleet, "/__fleet/namespaces/worker-7/snapshots", {}, "fixture-admin")
+      await request(fleet, "/__admin/fleet/namespaces/worker-7/snapshots", {}, "fixture-admin")
     ).json()) as { id: string }
     const expected = await mutate("worker-7")
-    await request(fleet, "/__fleet/clock?namespace=worker-7", { advance: "1h" }, "fixture-admin")
+    await request(
+      fleet,
+      "/__admin/fleet/clock?namespace=worker-7",
+      { advance: "1h" },
+      "fixture-admin",
+    )
     expect(
       (
         await request(
           fleet,
-          `/__fleet/namespaces/worker-7/snapshots/${snapshot.id}/restore`,
+          `/__admin/fleet/namespaces/worker-7/snapshots/${snapshot.id}/restore`,
           {},
           "fixture-admin",
         )
@@ -175,15 +181,15 @@ test("fleet namespaces replay records, random choices and time; reset clears onl
     expect(await mutate("worker-7")).toEqual(expected)
     expect(
       await (
-        await request(fleet, "/__fleet/clock?namespace=worker-7", undefined, "fixture-admin")
+        await request(fleet, "/__admin/fleet/clock?namespace=worker-7", undefined, "fixture-admin")
       ).json(),
     ).toMatchObject({ now: time, frozen: true })
-    expect(await (await fetch(`${origin}/ns/other/things`)).json()).toHaveLength(1)
+    expect(await (await fetch(`${origin}/__admin/ns/other/things`)).json()).toHaveLength(1)
     expect(
-      (await request(fleet, "/__fleet/namespaces/worker-7/reset", {}, "fixture-admin")).ok,
+      (await request(fleet, "/__admin/fleet/namespaces/worker-7/reset", {}, "fixture-admin")).ok,
     ).toBe(true)
-    expect(await (await fetch(`${origin}/ns/worker-7/things`)).json()).toEqual([])
-    expect(await (await fetch(`${origin}/ns/other/things`)).json()).toHaveLength(1)
+    expect(await (await fetch(`${origin}/__admin/ns/worker-7/things`)).json()).toEqual([])
+    expect(await (await fetch(`${origin}/__admin/ns/other/things`)).json()).toHaveLength(1)
   } finally {
     await fleet.close()
   }
@@ -198,12 +204,12 @@ test("fleet fault checkpoints replay probability and counts without consuming an
   const statuses = async (namespace: string) => {
     const result: number[] = []
     for (let i = 0; i < 16; i++)
-      result.push((await fetch(`${origin}/ns/${namespace}/things`)).status)
+      result.push((await fetch(`${origin}/__admin/ns/${namespace}/things`)).status)
     return result
   }
   try {
     for (const namespace of ["worker-7", "other"]) {
-      const response = await fetch(`${origin}/ns/${namespace}/__admin/faults`, {
+      const response = await fetch(`${origin}/__admin/ns/${namespace}/__admin/faults`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id: `fault-${namespace}`, status: 503, rate: 0.5, count: 8 }),
@@ -211,18 +217,23 @@ test("fleet fault checkpoints replay probability and counts without consuming an
       expect(response.status).toBe(201)
     }
     const snapshot = (await (
-      await request(fleet, "/__fleet/namespaces/worker-7/snapshots", {})
+      await request(fleet, "/__admin/fleet/namespaces/worker-7/snapshots", {})
     ).json()) as { id: string }
     await statuses("other")
     const expected = await statuses("worker-7")
-    const other = await (await fetch(`${origin}/ns/other/__admin/faults`)).json()
+    const other = await (await fetch(`${origin}/__admin/ns/other/__admin/faults`)).json()
     expect(
-      (await request(fleet, `/__fleet/namespaces/worker-7/snapshots/${snapshot.id}/restore`, {}))
-        .ok,
+      (
+        await request(
+          fleet,
+          `/__admin/fleet/namespaces/worker-7/snapshots/${snapshot.id}/restore`,
+          {},
+        )
+      ).ok,
     ).toBe(true)
     expect(await statuses("worker-7")).toEqual(expected)
-    expect(await (await fetch(`${origin}/ns/other/__admin/faults`)).json()).toEqual(other)
-    expect((await request(fleet, "/__fleet/namespaces/worker-7/reset", {})).ok).toBe(true)
+    expect(await (await fetch(`${origin}/__admin/ns/other/__admin/faults`)).json()).toEqual(other)
+    expect((await request(fleet, "/__admin/fleet/namespaces/worker-7/reset", {})).ok).toBe(true)
     expect(await statuses("worker-7")).toEqual(Array(16).fill(200))
   } finally {
     await fleet.close()
@@ -259,7 +270,7 @@ test("fleet snapshots report a conflict for an in-flight HTTP request", async ()
   const pending = fetch(`${fleet.manifest.services.fixture?.url}/things`, { method: "POST" })
   try {
     await started
-    const response = await request(fleet, "/__fleet/namespaces/default/snapshots", {})
+    const response = await request(fleet, "/__admin/fleet/namespaces/default/snapshots", {})
     expect(response.status).toBe(409)
     expect(await response.json()).toMatchObject({ services: { fixture: { activeRequests: 1 } } })
   } finally {
@@ -286,7 +297,7 @@ test("failed rollback never reports global success", async () => {
   const fleet = await startFleet({ services: { fixture: { port: 0 } } }, { load: async () => bad })
   try {
     expect(
-      await (await request(fleet, "/__fleet/namespaces/default/reset", {})).json(),
+      await (await request(fleet, "/__admin/fleet/namespaces/default/reset", {})).json(),
     ).toMatchObject({
       status: "failed",
       failedService: "fixture",
@@ -320,7 +331,7 @@ test("a rejecting child rolls back earlier mutations and reports the failed serv
   try {
     const url = fleet.manifest.services.good?.url as string
     await fetch(`${url}/things`, { method: "POST" })
-    const response = await request(fleet, "/__fleet/namespaces/default/reset", {})
+    const response = await request(fleet, "/__admin/fleet/namespaces/default/reset", {})
     expect(response.status).toBe(500)
     expect(await response.json()).toMatchObject({
       failedService: "bad",
@@ -347,5 +358,43 @@ test("two independent fleets have distinct ports and cannot remove a newer proce
     await first.close()
     await second.close()
     await rm(dir, { recursive: true })
+  }
+})
+
+test("custom prefixes relocate aggregate controls, child APIs and namespace manifests", async () => {
+  const fleet = await startFleet(
+    {
+      adminPrefix: "/_control/mock",
+      adminKey: "locked",
+      services: { fixture: { port: 0 }, other: { port: 0, adminPrefix: "/_other" } },
+    },
+    { load: async (name) => target(name) },
+  )
+  try {
+    expect(fleet.manifest.adminBase).toEndWith("/_control/mock/fleet")
+    expect(fleet.manifest.healthUrl).toEndWith("/_control/mock/health")
+    expect((await fetch(fleet.manifest.healthUrl)).status).toBe(200)
+    for (const [name, prefix] of [
+      ["fixture", "/_control/mock"],
+      ["other", "/_other"],
+    ] as const) {
+      const child = fleet.manifest.services[name]
+      if (!child) throw new Error(`missing child ${name}`)
+      expect(child.adminUrl).toEndWith(prefix)
+      expect(child.namespaces.path).toBe(`${prefix}/ns/{name}`)
+      expect((await fetch(child.healthUrl)).status).toBe(200)
+      expect((await fetch(`${child.adminUrl}/clock`)).status).toBe(401)
+    }
+    expect(
+      (
+        await fetch(`${fleet.manifest.adminBase}/metrics`, {
+          headers: { "x-mockingbird-admin-key": "locked" },
+        })
+      ).status,
+    ).toBe(200)
+    expect((await fetch(new URL("/health", fleet.manifest.healthUrl))).status).toBe(404)
+    expect((await fetch(new URL("/__fleet/metrics", fleet.manifest.healthUrl))).status).toBe(404)
+  } finally {
+    await fleet.close()
   }
 })

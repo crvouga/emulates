@@ -42,7 +42,7 @@ for (const pkg of pkgs) {
   serviceLines.push(
     `- [${pkg.name}](${RAW}/${pkg.relDir}/README.md): ${description} Parity: ${parity}.`,
   )
-  for (const extra of ["SUPPORT.md", "COMPATIBILITY.md"]) {
+  for (const extra of ["DISCOVERY.md", "SUPPORT.md", "COMPATIBILITY.md"]) {
     if (existsSync(join(pkg.dir, extra))) {
       serviceLines.push(`- [${pkg.name} ${extra}](${RAW}/${pkg.relDir}/${extra}): coverage matrix`)
     }
@@ -54,7 +54,7 @@ const body = [
   "",
   `> ${IDENTITY.tagline} ${PITCH} Every HTTP mock is a Fetch handler (\`createRuntime().fetch(request) → Promise<Response>\`) published to npm as \`@crvouga/mockingbird-service-<name>\`. Every mock is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers.`,
   "",
-  "Install mocks as devDependencies; each package is self-contained. Prefer injecting the mock's `fetch` in-process; when a URL is required, run `npx mockingbird-<service> serve` (or `createServer` from `./server`); every HTTP service answers `GET /health`, `/__admin/*` (including `GET /__admin/state` and `GET /__admin/ui`) and `x-mockingbird-namespace`. Read the README of each package you use — it is the integration guide for coding agents (also shipped in `node_modules/<package>/README.md`).",
+  "Install mocks as devDependencies; each package is self-contained. Prefer injecting the mock's `fetch` in-process; when a URL is required, run `npx mockingbird-<service> serve` (or `createServer` from `./server`); every HTTP service answers `GET /__admin/health`, `/__admin/*` (including `GET /__admin/state` and `GET /__admin/ui`) and `x-mockingbird-namespace`. All internal paths use the configurable `adminPrefix` (CLI `--admin-prefix`, env `MOCKINGBIRD_ADMIN_PREFIX`), including namespace URLs `/__admin/ns/<name>/…`; there are no unprefixed health or namespace aliases. Read the README of each package you use — it is the integration guide for coding agents (also shipped in `node_modules/<package>/README.md`).",
   "",
   `The sentence above is the product's identity. The rules for the mark, the colors, and where that sentence has to appear: [Design](${RAW}/docs/DESIGN.md).`,
   "",

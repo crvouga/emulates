@@ -79,7 +79,7 @@ The `{partner}` path segment is your account's slug (e.g. `acme`); the mock acce
 
 **Auth.** HMAC mode: `X-API-KEY`, `X-TIMESTAMP` (epoch ms, within ±5 min of wall-clock time),
 `X-SIGNATURE` = base64 HMAC-SHA256(secret, `"<apiKey>:<path>:<timestamp>"`), where `path` is the
-request path without host, body or `/ns/<name>` prefix. With a known key + secret
+request path without host, body or `/__admin/ns/<name>` prefix. With a known key + secret
 (`--api-key/--api-secret` or `credentials` in settings) the signature is verified exactly;
 with none configured any key is accepted and the signature is checked for shape only. Legacy
 mode: `X-<Partner>-Auth-Key` (+ `X-API-Version: 1.0`), e.g. `X-Acme-Auth-Key`; any partner name is
@@ -127,7 +127,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `bad_s
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `AHA_API_URL` (the signature still covers
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `AHA_API_URL` (the signature still covers
 only the path after it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<AHA_API_KEY>": "<namespace>"}}`.
 

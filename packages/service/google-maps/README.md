@@ -63,7 +63,7 @@ maps.applyPreset("autocomplete_over_query_limit", "default", { count: 2 })
 
 Google serves it from a different host, `https://addressvalidation.googleapis.com`; the paths do
 not collide, so one mock serves both. Point the server-side client's Address Validation base URL
-at the mock (or at `<mock>/ns/<namespace>`), with the key as `?key=` (or `X-Goog-Api-Key`).
+at the mock (or at `<mock>/__admin/ns/<namespace>`), with the key as `?key=` (or `X-Goog-Api-Key`).
 
 ```ts
 import { createRuntime } from "@crvouga/mockingbird-service-google-maps"
@@ -146,7 +146,7 @@ has a `responseId`. Send a componentized address (line 1 + optional unit line 2,
 `packages/app/src/test-addresses` members, plus `ADDRESS_AT_HOME_PHLEBOTOMY_2` (501 N 5th St).
 Each has its real county and the city's coordinates. Place ids are stable (`ChIJ…` for rows;
 synthesized addresses get an `Ei…` id carrying the address, as Google's own address ids do, so
-Details needs no stored state). `GET /health` reports the corpus.
+Details needs no stored state). `GET /__admin/health` reports the corpus.
 
 ### Admin (beyond the standard contract)
 
@@ -171,7 +171,7 @@ counts `ValidateAddress` on its own.
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the base URL (the JS shim served under a
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the base URL (the JS shim served under a
 prefix calls back through it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<PLACES_KEY>": "<namespace>"}}` (the `key` query
 parameter, or `X-Goog-Api-Key` for Address Validation, is the credential). The request journal

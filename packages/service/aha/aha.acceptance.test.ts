@@ -294,10 +294,10 @@ describe("auth: HMAC and legacy modes", () => {
     if (!result.success) expect(String(result.error.details)).toContain("Invalid signature")
   })
 
-  test("the signature covers the path only: a /ns/<name> prefix on AHA_API_URL still verifies", async () => {
+  test("the signature covers the path only: a /__admin/ns/<name> prefix on AHA_API_URL still verifies", async () => {
     const { runtime } = harness()
     const scoped = new AhaServiceConsumer(
-      { apiUrl: `${API}/ns/worker-1`, apiKey: API_KEY, apiSecret: API_SECRET },
+      { apiUrl: `${API}/__admin/ns/worker-1`, apiKey: API_KEY, apiSecret: API_SECRET },
       (r) => runtime.fetch(r),
     )
     const result = await scoped.createOrUpdateOrder(

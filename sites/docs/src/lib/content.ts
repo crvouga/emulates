@@ -85,7 +85,7 @@ export const FEATURES = [
   {
     icon: "terminal",
     title: "One contract for every service",
-    body: "Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
+    body: "Every HTTP mock shares `/__admin/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
   },
 ] as const
 
@@ -122,7 +122,7 @@ console.log((await list.json()).data[0].id === customer.id) // true`,
 
 export const CONTRACT = {
   intro:
-    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once.",
+    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`MOCKINGBIRD_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.",
   serve: `npx mockingbird-junction serve --port 8787                # one service
 npx mockingbird-junction serve --config mockingbird.json  # every service in the config`,
   rows: [
@@ -130,7 +130,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
       "`createRuntime()` · `createServer()` (`./server`) · `mockingbird-<service> serve`",
       "The mock as one runtime-neutral `fetch`, or a listening server from Node or the CLI",
     ],
-    ["`GET /health`", "Unauthenticated readiness probe, outside the vendor's auth gate"],
+    ["`GET /__admin/health`", "Unauthenticated readiness probe, outside the vendor's auth gate"],
     [
       "`/__admin/*` (`x-mockingbird-admin-key` optional)",
       "Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes",
@@ -169,7 +169,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 }
 
 export const AGENTS =
-  "Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them with the parity each service declares, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
+  "Every npm package ships an agent index at `node_modules/<package>/DISCOVERY.md`. It points to the local behavior guide, exact capability matrix, machine-readable contract or compatibility evidence, public types, parity oracle, runtime introspection, and issue-reporting contract. [`llms.txt`](llms.txt) indexes those files with the parity each service declares, and the docs site publishes the same source material as markdown and JSON. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
 
 /** Guides in `docs/`, in the order the README and the site list them. Others follow by name. */
 export const GUIDE_ORDER = [

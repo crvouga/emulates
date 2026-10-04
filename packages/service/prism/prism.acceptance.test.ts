@@ -230,7 +230,7 @@ describe("S25 Prism acceptance: our body-scan adapter against the mock", () => {
     })
   })
 
-  test("namespaces by API key, header and /ns/ prefix; presigned URLs keep the namespace", async () => {
+  test("namespaces by API key, header and /__admin/ns/ prefix; presigned URLs keep the namespace", async () => {
     const { runtime, fetchImpl, admin } = harness()
     await admin("/credentials", { credentials: { "key-a": "a", "key-b": "b" } }, "PUT")
     const worker = (key: string, url = API) =>
@@ -240,11 +240,11 @@ describe("S25 Prism acceptance: our body-scan adapter against the mock", () => {
     const scan = await a.createScan({ subjectToken: subject.token, devicePlatform: "ios" })
     const id = scan.status === "ok" ? scan.data.externalId : ""
     expect((await worker("key-b").getScan(id)).status).toBe("not_found")
-    const viaPrefix = worker("any", `${API}/ns/a`)
+    const viaPrefix = worker("any", `${API}/__admin/ns/a`)
     expect((await viaPrefix.getScan(id)).status).toBe("ok")
     const target = await viaPrefix.getScanUploadTarget(id)
     const url = target.status === "ok" ? target.data.url : ""
-    expect(url).toContain("/ns/a/uploads/")
+    expect(url).toContain("/__admin/ns/a/uploads/")
     expect((await uploadCapture(fetchImpl, url, VIDEO)).type).toBe("upload-complete")
     const viaHeader = await runtime.fetch(
       new Request(`${API}/scans/${id}`, {
@@ -304,7 +304,7 @@ describe("served over HTTP", () => {
         await Bun.sleep(25)
       }
       expect(status).toBe("complete")
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^prism@/)
     } finally {
       await server.close()

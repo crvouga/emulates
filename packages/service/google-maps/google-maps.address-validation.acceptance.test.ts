@@ -336,7 +336,7 @@ describe("Address Validation (POST /v1:validateAddress) with USPS CASS", () => {
     expect(viaHeader.status).toBe(200)
   })
 
-  test("B11: /ns/<name> and key → namespace credentials route to that namespace's corpus and faults", async () => {
+  test("B11: /__admin/ns/<name> and key → namespace credentials route to that namespace's corpus and faults", async () => {
     const { admin, post, send } = harness()
     await admin("/credentials", { credentials: { "key-worker-a": "a" } }, "PUT")
     await admin("/corpus?namespace=a", { addresses: [APARTMENTS] }, "PUT")
@@ -344,7 +344,7 @@ describe("Address Validation (POST /v1:validateAddress) with USPS CASS", () => {
     // Namespace a knows the building (D: missing unit); the default namespace synthesizes it (Y).
     const byKey = await validateShipTo(send, BASE, "key-worker-a", input)
     expect(byKey).toMatchObject({ kind: "reject" })
-    const byPrefix = await post(validationRequestBody(input), `?key=${KEY}`, "/ns/a")
+    const byPrefix = await post(validationRequestBody(input), `?key=${KEY}`, "/__admin/ns/a")
     expect(byPrefix.body.result.uspsData.dpvConfirmation).toBe("D")
     const elsewhere = await validateShipTo(send, BASE, "key-worker-b", input)
     expect(elsewhere.kind).toBe("accept")

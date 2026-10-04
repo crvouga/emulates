@@ -114,7 +114,7 @@ const endpoint = (fleet: Fleet, service: string, ns = "default"): string => {
 }
 const control = (fleet: Fleet, path: string, body: unknown = {}) =>
   fleet.fetch(
-    new Request(`http://fleet/__fleet/${path}`, {
+    new Request(`http://fleet/__admin/fleet/${path}`, {
       method: "POST",
       body: JSON.stringify(body),
       headers: { "content-type": "application/json" },

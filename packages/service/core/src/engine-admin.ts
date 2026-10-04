@@ -1,6 +1,11 @@
 import { adminUiRoutes } from "./admin-ui.js"
 import { createClock } from "./clock.js"
-import { type AdminRoutes, type ControlPlane, createControlPlane } from "./control.js"
+import {
+  type AdminRoutes,
+  type ControlPlane,
+  createControlPlane,
+  resolveAdminPrefix,
+} from "./control.js"
 import { type CredentialRegistry, createCredentialRegistry, maskCredential } from "./credentials.js"
 import { createFaultRegistry } from "./faults.js"
 import { createJournal } from "./journal.js"
@@ -74,6 +79,7 @@ export type SqlEngine = {
 
 export type EngineAdminOptions = {
   name: string
+  adminPrefix?: string
   adminKey?: string
   dialect?: string
   /** Open the database for a namespace. Called once per namespace, including `default`. */
@@ -93,7 +99,7 @@ const PAGE_MAX = 200
 const json = (status: number, body: unknown): Response =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json; charset=utf-8" },
   })
 
 const adminError = (status: number, message: string): Response =>
@@ -344,8 +350,9 @@ const sqlRoutes = (engine: (namespace: string) => SqlEngine): AdminRoutes => ({
   },
 })
 
-/** Shared `/health` and `/__admin` surface for the SQL engines. */
+/** Shared `/__admin/health` and `/__admin` surface for the SQL engines. */
 export const createEngineAdmin = (options: EngineAdminOptions): EngineAdmin => {
+  const adminPrefix = resolveAdminPrefix(options.adminPrefix)
   const engines = new Map<string, SqlEngine>()
   const engine = (namespace: string): SqlEngine => {
     const existing = engines.get(namespace)
@@ -360,7 +367,7 @@ export const createEngineAdmin = (options: EngineAdminOptions): EngineAdmin => {
     ...credentialRoutes(createCredentialRegistry()),
     ...stateRoutes(engine),
     ...sqlRoutes(engine),
-    ...adminUiRoutes(options.name, { extensions: [SQL_ADMIN_EXTENSION] }),
+    ...adminUiRoutes(options.name, { extensions: [SQL_ADMIN_EXTENSION] }, adminPrefix),
   }
   const startedAt = Date.now()
   const plane: ControlPlane = createControlPlane({
@@ -393,6 +400,7 @@ export const createEngineAdmin = (options: EngineAdminOptions): EngineAdmin => {
     },
     describe: () => (options.dialect === undefined ? {} : { dialect: options.dialect }),
     routes,
+    adminPrefix,
     adminKey: options.adminKey,
   })
 

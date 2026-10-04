@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto"
 import { chmod, readFile, rename, rm, writeFile } from "node:fs/promises"
 import type { FetchAPI } from "@crvouga/mockingbird-core"
 import type { Clock, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
-import { createClock, parseDuration } from "@crvouga/mockingbird-service"
+import { createClock, parseDuration, resolveAdminPrefix } from "@crvouga/mockingbird-service"
 import type { CommonServeOptions, ConfigService, MockingbirdConfig, ServeTarget } from "./cli.js"
 import type { EndpointManifest } from "./fleet-manifest.js"
 import { type Listening, listen } from "./listen.js"
@@ -105,10 +105,12 @@ const httpChild = async (
   options: FleetOptions,
 ): Promise<FleetChild> => {
   const runtime: ServiceRuntime<ServiceInstance> = await target.create(entry.options ?? {}, {
+    adminPrefix: resolveAdminPrefix(entry.adminPrefix),
     adminKey: entry.adminKey,
     seed: entry.seed,
     onLog: options.onLog,
   })
+  const adminPrefix = resolveAdminPrefix(entry.adminPrefix)
   runtime.isolateNamespaces()
   const locked = new Set<string>()
   const active = new Map<string, number>()
@@ -141,12 +143,14 @@ const httpChild = async (
   return {
     protocol: "http",
     url: server.url,
-    healthUrl: `${server.url}/health`,
-    adminUrl: `${server.url}/__admin`,
-    namespaces: { header: "x-mockingbird-namespace", path: "/ns/{name}" },
+    healthUrl: `${server.url}${adminPrefix}/health`,
+    adminUrl: `${server.url}${adminPrefix}`,
+    namespaces: { header: "x-mockingbird-namespace", path: `${adminPrefix}/ns/{name}` },
     ready: async () => {
       try {
-        return (await fetch(`${server.url}/health`, { signal: AbortSignal.timeout(2000) })).ok
+        return (
+          await fetch(`${server.url}${adminPrefix}/health`, { signal: AbortSignal.timeout(2000) })
+        ).ok
       } catch {
         return false
       }
@@ -312,7 +316,11 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
   const api: FetchAPI = {
     async fetch(request) {
       const url = new URL(request.url)
-      if (url.pathname === "/health" && request.method === "GET") {
+      const adminPrefix = resolveAdminPrefix(config.adminPrefix)
+      const path = url.pathname.startsWith(`${adminPrefix}/`)
+        ? url.pathname.slice(adminPrefix.length)
+        : ""
+      if (path === "/health" && request.method === "GET") {
         const states = await Promise.all(
           [...children].map(async ([name, child]) => {
             let protocolReady = false
@@ -341,14 +349,13 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
           services: Object.fromEntries(states),
         })
       }
-      if (!url.pathname.startsWith("/__fleet/")) return json(404, { error: "not found" })
+      if (!path.startsWith("/fleet/")) return json(404, { error: "not found" })
       const adminKey = config.adminKey ?? process.env.MOCKINGBIRD_ADMIN_KEY
       if (adminKey !== undefined && request.headers.get("x-mockingbird-admin-key") !== adminKey)
         return json(401, { error: "admin key required" })
-      const route =
-        /^\/__fleet\/namespaces\/([^/]+)\/(reset|snapshots)(?:\/([^/]+)\/restore)?$/.exec(
-          url.pathname,
-        )
+      const route = /^\/fleet\/namespaces\/([^/]+)\/(reset|snapshots)(?:\/([^/]+)\/restore)?$/.exec(
+        path,
+      )
       const namespace = route
         ? decodeURIComponent(route[1] as string)
         : (url.searchParams.get("namespace") ??
@@ -356,9 +363,9 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
           config.namespace ??
           "default")
       if (!NS.test(namespace)) return json(400, { error: "invalid namespace" })
-      if (request.method === "GET" && url.pathname === "/__fleet/metrics")
+      if (request.method === "GET" && path === "/fleet/metrics")
         return json(200, { namespace, services: diagnostics(namespace) })
-      if (request.method === "GET" && url.pathname === "/__fleet/clock")
+      if (request.method === "GET" && path === "/fleet/clock")
         return json(200, {
           namespace,
           ...clock(namespace).state(),
@@ -382,12 +389,12 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
       } catch (error) {
         return json(400, { error: error instanceof Error ? error.message : "bad selection" })
       }
-      if (url.pathname === "/__fleet/wait-until-idle") {
+      if (path === "/fleet/wait-until-idle") {
         const services = diagnostics(namespace)
         const idle = Object.values(services).every((d) => pending(d) === 0)
         return json(idle ? 200 : 409, { status: idle ? "idle" : "busy", namespace, services })
       }
-      if (url.pathname === "/__fleet/clock") {
+      if (path === "/fleet/clock") {
         const current = clock(namespace)
         let target = current.now()
         if (body.set !== undefined) {
@@ -465,6 +472,7 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
     },
   }
   try {
+    const adminPrefix = resolveAdminPrefix(config.adminPrefix)
     if (!isObject(config.services) || Object.keys(config.services).length === 0)
       throw new Error("config must contain at least one service")
     for (const [name, entry] of Object.entries(config.services)) {
@@ -479,7 +487,11 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
             ? await target.start(entry)
             : await httpChild(
                 target,
-                { ...entry, ...(adminKey !== undefined ? { adminKey } : {}) },
+                {
+                  ...entry,
+                  adminPrefix: resolveAdminPrefix(entry.adminPrefix ?? adminPrefix),
+                  ...(adminKey !== undefined ? { adminKey } : {}),
+                },
                 options,
               )
         children.set(name, child)
@@ -498,16 +510,16 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
       pid: process.pid,
       id,
       startedAt,
-      adminBase: `${supervisor.url}/__fleet`,
-      healthUrl: `${supervisor.url}/health`,
+      adminBase: `${supervisor.url}${adminPrefix}/fleet`,
+      healthUrl: `${supervisor.url}${adminPrefix}/health`,
       services: Object.fromEntries(
         [...children].map(([name, child]) => [
           name,
           {
             protocol: child.protocol,
             url: publicUrl(child.url),
-            healthUrl: child.healthUrl ?? `${supervisor?.url}/health`,
-            adminUrl: child.adminUrl ?? `${supervisor?.url}/__fleet`,
+            healthUrl: child.healthUrl ?? `${supervisor?.url}${adminPrefix}/health`,
+            adminUrl: child.adminUrl ?? `${supervisor?.url}${adminPrefix}/fleet`,
             namespaces: child.namespaces,
             processReady: true,
             protocolReady: true,

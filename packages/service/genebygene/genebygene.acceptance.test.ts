@@ -1335,9 +1335,9 @@ describe("issue #122: read, demographics, edit, cancel", () => {
     const client = (ns: string) =>
       new GxgClient(
         new GxgHttpClient(
-          `${API}/ns/${ns}`,
+          `${API}/__admin/ns/${ns}`,
           new GxgAuthService({
-            tokenUrl: `${API}/ns/${ns}/connect/token`,
+            tokenUrl: `${API}/__admin/ns/${ns}/connect/token`,
             clientId: ns,
             clientSecret: "s",
             fetch: (r) => runtime.fetch(r),
@@ -1389,7 +1389,7 @@ describe("issue #122: results", () => {
     expect(completed).toHaveLength(2)
     expect(completed.every((e) => e.status === "verified")).toBe(true)
 
-    // B46: the presigned URL is this mock's /__blob/<key>; it expires on the mock clock.
+    // B46: the presigned URL is this mock's /__admin/blobs/<key>; it expires on the mock clock.
     const json = rows.find(
       (r) => r.resultType === "nutrigenomics_comprehensive_report_json",
     ) as Json
@@ -1399,7 +1399,7 @@ describe("issue #122: results", () => {
     )
     expect(presigned.status).toBe(200)
     const url = String(presigned.data?.presignedUrl)
-    expect(url).toMatch(/\/__blob\/.+\?.*X-Amz-Signature=/)
+    expect(url).toMatch(/\/__admin\/blobs\/.+\?.*X-Amz-Signature=/)
     const blob = await runtime.fetch(new Request(url))
     expect(blob.status).toBe(200)
     // B47: a synthetic report (no real genotype of a real person).

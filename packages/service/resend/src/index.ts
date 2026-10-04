@@ -105,7 +105,8 @@ export type SendOutcomeEvent = {
 }
 
 export type ResendAPIOptions = APIOptions & {
-  /** The public namespace name, for `/ns/<name>` download URLs. Default: the default namespace. */
+  /** The public namespace name, for `/__admin/ns/<name>` download URLs. Default: the default namespace. */
+  adminPrefix?: string
   publicNamespace?: string
   /** Called after every accepted send (not replays); awaited before the response. */
   onSent?: (email: SentEmail) => Promise<void> | void
@@ -205,6 +206,7 @@ export class ResendAPI implements FetchAPI {
   readonly state: ResendState
   private readonly service: Service
   private readonly now: () => number
+  private readonly adminPrefix: string
   private readonly publicNamespace: string | undefined
   private readonly onSent: ResendAPIOptions["onSent"]
   private readonly onOutcome: ResendAPIOptions["onOutcome"]
@@ -219,6 +221,7 @@ export class ResendAPI implements FetchAPI {
     const sqlite = bootSqlite(options.sqlite)
     const namespace = options.namespace ?? RESEND_NAMESPACE
     this.now = options.now ?? (() => Date.now())
+    this.adminPrefix = options.adminPrefix ?? "/__admin"
     this.publicNamespace = options.publicNamespace
     this.onSent = options.onSent
     this.onOutcome = options.onOutcome
@@ -509,7 +512,7 @@ export class ResendAPI implements FetchAPI {
   private downloadUrl(origin: string, attachmentId: string): string {
     const prefix =
       this.publicNamespace && this.publicNamespace !== "default"
-        ? `/ns/${encodeURIComponent(this.publicNamespace)}`
+        ? `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
         : ""
     return `${origin}${prefix}/downloads/inbound/${attachmentId}`
   }

@@ -722,10 +722,9 @@ describe("S7.6 acceptance: the SDK paths", () => {
       unscripted: 7,
       byFallback: { classifier: 1, chat: 1, scribe: 1, titan: 3, harness: 1 },
     })
-    const health = (await (await fetch(`${(await harness()).server.url}/health`)).json()) as Record<
-      string,
-      unknown
-    >
+    const health = (await (
+      await fetch(`${(await harness()).server.url}/__admin/health`)
+    ).json()) as Record<string, unknown>
     expect(health.status).toBe("ok")
   })
 

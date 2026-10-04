@@ -66,7 +66,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix in `KLAVIYO_URL`, or by private key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix in `KLAVIYO_URL`, or by private key:
 `PUT /__admin/credentials {"credentials": {"<KLAVIYO_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled

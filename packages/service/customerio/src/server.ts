@@ -66,6 +66,7 @@ export const serveTarget: ServeTarget = {
         ...(values["strict-messages"] === true ? { strictMessages: true } : {}),
         ...(trackingBase ? { trackingBase } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -74,6 +75,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "CDP: POST /v1/identify|track|batch with Basic <write key>: (the SDK's host)",
     "App API: POST /v1/send/email|sms|inbox_message, GET /v1/transactional, /v1/customers/{id}/attributes, /v1/messages/{id}",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
   ],
 }

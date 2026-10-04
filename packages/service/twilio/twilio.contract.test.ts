@@ -70,9 +70,9 @@ describe("Lookup v2 answers exactly what the live API recorded", () => {
 })
 
 describe("the service contract", () => {
-  test("/health, the x-mockingbird header and Twilio-shaped 404s", async () => {
+  test("/__admin/health, the x-mockingbird header and Twilio-shaped 404s", async () => {
     const runtime = createRuntime()
-    const health = await runtime.fetch(new Request(`${MOCK}/health`))
+    const health = await runtime.fetch(new Request(`${MOCK}/__admin/health`))
     expect(await health.json()).toMatchObject({ status: "ok", service: "twilio" })
     expect(health.headers.get("x-mockingbird")).toMatch(/^twilio@.*; ns=default$/)
     const missing = await send(runtime, "GET", "/api/2010-04-01/Accounts/AC1/Nope.json")
@@ -120,7 +120,7 @@ describe("the service contract", () => {
     expect(right.status).toBe(200)
   })
 
-  test("namespaces by header, by /ns/<name> prefix and by AccountSid", async () => {
+  test("namespaces by header, by /__admin/ns/<name> prefix and by AccountSid", async () => {
     const runtime = createRuntime()
     await admin(
       runtime,
@@ -137,7 +137,7 @@ describe("the service contract", () => {
         headers,
       )
     await start("", { ...basic(), "x-mockingbird-namespace": "by-header" })
-    await start("/ns/by-prefix", basic())
+    await start("/__admin/ns/by-prefix", basic())
     await start("", basic("AC11111111111111111111111111111111"))
     for (const ns of ["by-header", "by-prefix", "by-sid"]) {
       const latest = await runtime.fetch(
@@ -290,8 +290,11 @@ describe("the service contract", () => {
       `${base}/lookups/v2/PhoneNumbers/+1?Fields=x`,
     )
     expect(
-      twilioMockUrl("https://api.sydney.au1.twilio.com/2010-04-01/Accounts.json", `${base}/ns/w1/`),
-    ).toBe(`${base}/ns/w1/api/2010-04-01/Accounts.json`)
+      twilioMockUrl(
+        "https://api.sydney.au1.twilio.com/2010-04-01/Accounts.json",
+        `${base}/__admin/ns/w1/`,
+      ),
+    ).toBe(`${base}/__admin/ns/w1/api/2010-04-01/Accounts.json`)
     expect(twilioMockUrl("https://example.com/x", base)).toBe("https://example.com/x")
   })
 
@@ -301,7 +304,7 @@ describe("the service contract", () => {
       new Request("https://lookups.twilio.com/v2/PhoneNumbers/+12025550123", { headers: basic() }),
     )
     expect(response.status).toBe(200)
-    const health = await runtime.fetch(new Request("https://api.twilio.com/health"))
+    const health = await runtime.fetch(new Request("https://api.twilio.com/__admin/health"))
     expect(health.status).toBe(200)
   })
 })

@@ -45,7 +45,7 @@ npx mockingbird-junction serve --corpus my-team.json
 bun run mock:serve                                 # same, configured by HOST, PORT, MOCKINGBIRD_JUNCTION_CORPUS
 ```
 
-`GET /health` and `/__admin/*` are served ahead of the `x-vital-api-key` gate; see the
+`GET /__admin/health` and `/__admin/*` are served ahead of the `x-vital-api-key` gate; see the
 [service contract](../README.md#the-service-contract). With a corpus, ZIPs it does not cover answer
 `424 MOCKINGBIRD_UNKNOWN_ZIP` unless `--geo synthetic`.
 
@@ -72,7 +72,7 @@ bun test junction.sdk.property.test.ts
 # Corpus fidelity + cache-miss fallback + reset re-apply + parser validation
 bun test junction.sealed-corpus.property.test.ts
 
-# Served contract: /health, auth gate, /__admin/reset, webhook signing, missing-corpus exit
+# Served contract: /__admin/health, auth gate, /__admin/reset, webhook signing, missing-corpus exit
 bun test junction.server.property.test.ts
 
 # Live differential parity against the sandbox (the corpus is only a recording of parity truth)

@@ -474,9 +474,9 @@ describe("S12.1 acceptance: our Pharmetika adapter against the mock", () => {
 })
 
 describe("contract", () => {
-  test("/health, admin error shape, and namespaces by header and by /ns/ prefix", async () => {
+  test("/__admin/health, admin error shape, and namespaces by header and by /__admin/ns/ prefix", async () => {
     const { runtime, admin } = harness()
-    const health = await runtime.fetch(new Request(`${API}/health`))
+    const health = await runtime.fetch(new Request(`${API}/__admin/health`))
     expect(((await health.json()) as { status: string; service: string }).service).toBe(
       "pharmetika",
     )
@@ -495,7 +495,7 @@ describe("contract", () => {
     )
     const viaPrefix = new PharmetikaConsumer(
       {
-        apiUrl: `${API}/ns/worker-p`,
+        apiUrl: `${API}/__admin/ns/worker-p`,
         apiToken: TOKEN,
         practitionerIdentifier: "p",
         webhookSecret: null,
@@ -543,7 +543,7 @@ describe("served over HTTP", () => {
       )
       expect(statuses.map((s) => s.fulfillmentStatus)).toEqual(["processing", "shipped"])
       expect(statuses[0]?.pharmacyOrderId).toBe(placed.pharmacyOrderId as string)
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^pharmetika@/)
     } finally {
       await server.close()

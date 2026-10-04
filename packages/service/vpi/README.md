@@ -134,9 +134,9 @@ our zod parse fails closed).
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `VPI_API_URL`, or by login email:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `VPI_API_URL`, or by login email:
 `PUT /__admin/credentials {"credentials": {"<VPI_API_EMAIL>": "<namespace>"}}` (the JWT carries
-the email). Authentication itself lands in the default namespace (or the `/ns/` one); tokens
+the email). Authentication itself lands in the default namespace (or the `/__admin/ns/` one); tokens
 verify in every namespace.
 
 ### Deliberately not modelled

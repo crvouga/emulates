@@ -34,9 +34,9 @@ const said = async (response: Response) =>
     .message.content[0]?.text
 
 describe("the Mockingbird contract", () => {
-  test("/health is open and every response carries x-mockingbird", async () => {
+  test("/__admin/health is open and every response carries x-mockingbird", async () => {
     const runtime = createRuntime()
-    const health = await runtime.fetch(new Request(`${API}/health`))
+    const health = await runtime.fetch(new Request(`${API}/__admin/health`))
     expect(health.status).toBe(200)
     expect(await health.json()).toMatchObject({
       status: "ok",
@@ -49,7 +49,7 @@ describe("the Mockingbird contract", () => {
     expect(vendor.headers.get("x-amzn-requestid")).toMatch(/^[0-9a-f]{8}-/)
   })
 
-  test("namespaces isolate scripts by header, by /ns/ prefix, and by SigV4 access key id", async () => {
+  test("namespaces isolate scripts by header, by /__admin/ns/ prefix, and by SigV4 access key id", async () => {
     const runtime = createRuntime()
     await runtime.fetch(
       admin("/scripts?namespace=a", { scripts: [{ id: "a", turns: [{ text: "from a" }] }] }, "PUT"),
@@ -60,7 +60,7 @@ describe("the Mockingbird contract", () => {
     expect(
       await said(await runtime.fetch(converse("hi", { "x-mockingbird-namespace": "a" }))),
     ).toBe("from a")
-    expect(await said(await runtime.fetch(converse("hi", {}, "/ns/b")))).toBe("from b")
+    expect(await said(await runtime.fetch(converse("hi", {}, "/__admin/ns/b")))).toBe("from b")
     expect(await said(await runtime.fetch(converse("hi")))).toBe("OK.")
     await runtime.fetch(
       admin("/credentials", { credentials: { AKIDWORKERA: "a", AKIDWORKERB: "b" } }, "PUT"),

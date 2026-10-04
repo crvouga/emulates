@@ -90,6 +90,7 @@ export type EdamamRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   foods?: readonly Food[]
@@ -196,8 +197,8 @@ const adminRoutes = (runtime: ServiceRuntime<EdamamAPI>): AdminRoutes => ({
 })
 
 /**
- * The Edamam mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by application id
+ * The Edamam mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by application id
  * (`PUT /__admin/credentials {"credentials": {"<app_id>": "<namespace>"}}`), clock control,
  * fault presets and a request journal.
  */
@@ -208,6 +209,7 @@ export const createRuntime = (options: EdamamRuntimeOptions = {}): EdamamRuntime
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: appIdCredential,

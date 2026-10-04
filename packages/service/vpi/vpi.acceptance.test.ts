@@ -544,7 +544,7 @@ describe("served over HTTP", () => {
       const shipped = await vpi.getOrderStatus({ pharmacyOrderId: id })
       expect(shipped?.fulfillmentStatus).toBe("shipped")
       expect(shipped?.trackingNumber).toMatch(/^1Z/)
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^vpi@/)
     } finally {
       await server.close()

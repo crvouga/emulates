@@ -28,6 +28,49 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 
+/**
+ * Highlight already-serialized JSON without trusting any of its contents as markup.
+ * Kept dependency-free because this function is inlined into every mock's admin page.
+ */
+export function highlightJsonText(text: string): string {
+  const escapeToken = (value: string): string =>
+    value.replace(/[&<>"']/g, (char) => {
+      switch (char) {
+        case "&":
+          return "&amp;"
+        case "<":
+          return "&lt;"
+        case ">":
+          return "&gt;"
+        case '"':
+          return "&quot;"
+        default:
+          return "&#39;"
+      }
+    })
+  const token =
+    /("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"\s*:|"(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"|\b(?:true|false)\b|\bnull\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g
+  let cursor = 0
+  let html = ""
+  for (const match of text.matchAll(token)) {
+    const index = match.index ?? 0
+    const value = match[0]
+    html += escapeToken(text.slice(cursor, index))
+    const kind = value.startsWith('"')
+      ? value.trimEnd().endsWith(":")
+        ? "key"
+        : "string"
+      : value === "true" || value === "false"
+        ? "boolean"
+        : value === "null"
+          ? "null"
+          : "number"
+    html += `<span class="json-${kind}">${escapeToken(value)}</span>`
+    cursor = index + value.length
+  }
+  return html + escapeToken(text.slice(cursor))
+}
+
 /** Paint the header chip from a brands catalog. Hostile URLs and markup are dropped. */
 export function mountAdminBrand(
   doc: Document,
@@ -420,18 +463,25 @@ export function bootAdmin(config: AdminBootConfig): void {
     collection: string
     shape: StateView | null
     route: string | null
+    routes: string[]
     editing: string | null
   } = {
     namespace: "default",
     key: sessionStorage.getItem("mockingbird-admin-key") || "",
-    view: "overview",
+    view: ["overview", "state", "clock", "faults", "journal", "routes"].includes(
+      location.hash.slice(1),
+    )
+      ? location.hash.slice(1)
+      : "overview",
     collection: "",
     shape: null,
     route: null,
+    routes: [],
     editing: null,
   }
   const standard = new Set(config.standardRoutes)
   const banner = el("banner", HTMLElement)
+  const bannerMessage = el("banner-message", HTMLElement)
   const keyInput = el("admin-key", HTMLInputElement)
   keyInput.value = state.key
   const params = new URLSearchParams(location.search)
@@ -442,18 +492,21 @@ export function bootAdmin(config: AdminBootConfig): void {
     sessionStorage.setItem("mockingbird-admin-key", state.key)
     params.delete("key")
     const next = params.toString()
-    history.replaceState(null, "", location.pathname + (next ? `?${next}` : ""))
+    history.replaceState(null, "", location.pathname + (next ? `?${next}` : "") + location.hash)
   }
   const queryNamespace = params.get("namespace")
   if (queryNamespace) state.namespace = queryNamespace
 
   const showError = (error: unknown): void => {
-    banner.textContent = error instanceof Error ? error.message : String(error)
+    bannerMessage.textContent = error instanceof Error ? error.message : String(error)
     banner.classList.add("show")
+    banner.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }
   const clearError = (): void => {
     banner.classList.remove("show")
+    bannerMessage.textContent = ""
   }
+  el("banner-dismiss", HTMLButtonElement).addEventListener("click", clearError)
 
   const api = async (method: string, path: string, body?: unknown): Promise<unknown> => {
     const headers: Record<string, string> = { accept: "application/json" }
@@ -500,13 +553,21 @@ export function bootAdmin(config: AdminBootConfig): void {
   const isPanelScript = (value: unknown): value is (root: HTMLElement, api: PanelApi) => void =>
     typeof value === "function"
 
+  const themeButton = el("theme", HTMLButtonElement)
   const setTheme = (theme: string | null): void => {
     if (theme) document.documentElement.dataset.theme = theme
     else delete document.documentElement.dataset.theme
+    const dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches
+    themeButton.innerHTML = dark
+      ? '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v1.5M10 16.5V18M18 10h-1.5M3.5 10H2M15.7 4.3l-1 1M5.3 14.7l-1 1M15.7 15.7l-1-1M5.3 5.3l-1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
+      : '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16.8 12.2A7 7 0 0 1 7.8 3.2a7 7 0 1 0 9 9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>'
+    const label = dark ? "Use light theme" : "Use dark theme"
+    themeButton.setAttribute("aria-label", label)
+    themeButton.title = label
   }
   const storedTheme = localStorage.getItem("mockingbird-admin-theme")
-  if (storedTheme) setTheme(storedTheme)
-  el("theme", HTMLButtonElement).addEventListener("click", () => {
+  setTheme(storedTheme === "dark" || storedTheme === "light" ? storedTheme : null)
+  themeButton.addEventListener("click", () => {
     const current = document.documentElement.dataset.theme
     const dark = current ? current === "dark" : matchMedia("(prefers-color-scheme: dark)").matches
     const next = dark ? "light" : "dark"
@@ -524,6 +585,11 @@ export function bootAdmin(config: AdminBootConfig): void {
       if (!(section instanceof HTMLElement)) continue
       section.hidden = section.id !== `view-${view}`
     }
+    history.replaceState(
+      null,
+      "",
+      `${location.pathname}${location.search}#${encodeURIComponent(view)}`,
+    )
   }
   el("nav", HTMLElement).addEventListener("click", (event) => {
     const target = event.target
@@ -540,7 +606,7 @@ export function bootAdmin(config: AdminBootConfig): void {
     `<div class="grid">${items
       .map(
         (item) =>
-          `<article class="card"><div class="k">${item.k}</div><div class="v">${item.v}</div></article>`,
+          `<article class="card stat-card"><div class="k">${item.k}</div><div class="v">${item.v}</div></article>`,
       )
       .join("")}</div>`
   const table = <Row extends object>(
@@ -558,15 +624,21 @@ export function bootAdmin(config: AdminBootConfig): void {
         return `<tr${attrs}>${cells}</tr>`
       })
       .join("")
-    return `<table><thead>${head}</thead><tbody>${body}</tbody></table>`
+    return `<div class="table-shell"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`
   }
   const preview = (value: unknown): string => {
     const text = JSON.stringify(value) ?? "null"
-    return esc(text.length > 180 ? `${text.slice(0, 180)}…` : text)
+    const clipped = text.length > 180 ? `${text.slice(0, 180)}…` : text
+    return `<code class="json-inline">${highlightJsonText(clipped)}</code>`
   }
   const when = (epoch: number): string => {
     const date = new Date(epoch)
     return Number.isNaN(date.getTime()) ? String(epoch) : date.toISOString()
+  }
+  const journalWhen = (value: string): string => {
+    const numeric = value.trim() === "" ? Number.NaN : Number(value)
+    const epoch = Number.isFinite(numeric) ? numeric : Date.parse(value)
+    return Number.isFinite(epoch) ? when(epoch) : value
   }
   const clockCard = (epoch: number): string => {
     const date = new Date(epoch)
@@ -718,7 +790,7 @@ export function bootAdmin(config: AdminBootConfig): void {
 
   const renderOverview = async (): Promise<void> => {
     const [health, shape, clock, journal] = await Promise.all([
-      originGet("/health"),
+      originGet(`${config.adminPrefix}/health`),
       api("GET", "/state"),
       api("GET", "/clock"),
       api("GET", "/requests?limit=8"),
@@ -738,7 +810,9 @@ export function bootAdmin(config: AdminBootConfig): void {
       },
       {
         k: "Status",
-        v: esc(typeof health.status === "string" && health.status !== "" ? health.status : "ok"),
+        v: `<span class="badge ok">${esc(
+          typeof health.status === "string" && health.status !== "" ? health.status : "ok",
+        )}</span>`,
       },
       { k: "Namespace", v: esc(state.namespace) },
       { k: "Collections", v: String(decoded.collections.length) },
@@ -869,29 +943,51 @@ export function bootAdmin(config: AdminBootConfig): void {
     const journal = await api("GET", "/requests?limit=100")
     el("journal", HTMLElement).innerHTML = table(
       [
-        { label: "When", cell: (row: JournalRow) => esc(row.at) },
-        { label: "Method", cell: (row: JournalRow) => esc(row.method) },
+        { label: "When", cell: (row: JournalRow) => esc(journalWhen(row.at)) },
+        {
+          label: "Method",
+          cell: (row: JournalRow) => `<span class="method">${esc(row.method)}</span>`,
+        },
         { label: "Path", cell: (row: JournalRow) => esc(row.path) },
-        { label: "Status", cell: (row: JournalRow) => esc(row.status) },
+        {
+          label: "Status",
+          cell: (row: JournalRow) =>
+            `<span class="badge ${row.status.startsWith("2") ? "ok" : row.status.startsWith("4") || row.status.startsWith("5") ? "warn" : ""}">${esc(row.status)}</span>`,
+        },
         { label: "ms", cell: (row: JournalRow) => esc(row.durationMs) },
       ],
       decodeJournal(journal),
     )
   }
 
-  const renderRoutes = async (): Promise<void> => {
-    const data = await api("GET", "/")
-    if (!isRecord(data)) throw new Error("Route list was not an object")
-    const routes = requireList(data.routes, "Routes").map((route) => String(route))
+  const paintRoutes = (): void => {
+    const query = el("route-search", HTMLInputElement).value.trim().toLocaleLowerCase()
+    const routes = state.routes.filter((route) => route.toLocaleLowerCase().includes(query))
+    el("route-count", HTMLElement).textContent = `${routes.length} of ${state.routes.length}`
+    if (state.routes.length === 0) {
+      el("route-list", HTMLElement).innerHTML =
+        '<p class="empty">No admin routes are available.</p>'
+      return
+    }
+    if (routes.length === 0) {
+      el("route-list", HTMLElement).innerHTML = '<p class="empty">No routes match this filter.</p>'
+      return
+    }
     el("route-list", HTMLElement).innerHTML = routes
       .map((route) => {
         const extra = standard.has(route) ? "" : " <span class='badge'>extension</span>"
         const parts = route.split(" ")
         const method = parts[0] ?? ""
         const path = parts.slice(1).join(" ")
-        return `<div class="route"><span class="method">${esc(method)}</span><span>${esc(path)}${extra}</span><button class="btn" type="button" data-route="${esc(route)}">Use</button></div>`
+        return `<div class="route"><span class="method">${esc(method)}</span><span>${esc(path)}${extra}</span><button class="btn" type="button" data-route="${esc(route)}" aria-label="Use ${esc(route)}">Use</button></div>`
       })
       .join("")
+  }
+  const renderRoutes = async (): Promise<void> => {
+    const data = await api("GET", "/")
+    if (!isRecord(data)) throw new Error("Route list was not an object")
+    state.routes = requireList(data.routes, "Routes").map((route) => String(route))
+    paintRoutes()
   }
 
   const renderers: Record<string, () => Promise<void>> = {
@@ -902,10 +998,25 @@ export function bootAdmin(config: AdminBootConfig): void {
     journal: renderJournal,
     routes: renderRoutes,
   }
+  let refreshToken = 0
   async function refresh(): Promise<void> {
+    const token = ++refreshToken
     clearError()
+    const main = el("views", HTMLElement)
+    const sync = el("sync-status", HTMLElement)
+    main.setAttribute("aria-busy", "true")
+    sync.classList.add("busy")
+    sync.textContent = "Updating"
     const render = renderers[state.view]
-    if (render) await render()
+    try {
+      if (render) await render()
+      if (token === refreshToken) sync.textContent = "Up to date"
+    } finally {
+      if (token === refreshToken) {
+        main.removeAttribute("aria-busy")
+        sync.classList.remove("busy")
+      }
+    }
   }
 
   const delay = (ms: number): Promise<void> =>
@@ -921,9 +1032,24 @@ export function bootAdmin(config: AdminBootConfig): void {
     pending: string,
     done: string,
     work: () => Promise<unknown>,
+    confirmLabel?: string,
   ): Promise<void> => {
     if (button.dataset.pending === "1") return
     const label = button.textContent ?? ""
+    if (confirmLabel !== undefined && button.dataset.confirming !== "1") {
+      button.dataset.confirming = "1"
+      button.classList.add("confirming")
+      button.textContent = confirmLabel
+      window.setTimeout(() => {
+        if (button.dataset.confirming !== "1") return
+        button.textContent = label
+        button.classList.remove("confirming")
+        delete button.dataset.confirming
+      }, 3000)
+      return
+    }
+    button.classList.remove("confirming")
+    delete button.dataset.confirming
     const width = button.offsetWidth
     button.dataset.pending = "1"
     button.classList.add("pressed")
@@ -943,6 +1069,78 @@ export function bootAdmin(config: AdminBootConfig): void {
       button.removeAttribute("aria-busy")
       delete button.dataset.pending
     }
+  }
+
+  const wireJsonEditor = (
+    textareaId: string,
+    highlightId: string,
+    statusId: string,
+    shellId: string,
+    allowEmpty: boolean,
+  ): (() => void) => {
+    const textarea = el(textareaId, HTMLTextAreaElement)
+    const highlight = el(highlightId, HTMLElement)
+    const status = el(statusId, HTMLElement)
+    const shell = el(shellId, HTMLElement)
+    const sync = (): void => {
+      const text = textarea.value
+      highlight.innerHTML = `${highlightJsonText(text)}\n`
+      let valid = true
+      let message = "Valid JSON"
+      if (allowEmpty && text.trim() === "") message = "No body"
+      else {
+        try {
+          readJson(text)
+        } catch {
+          valid = false
+          message = "Invalid JSON"
+        }
+      }
+      shell.classList.toggle("invalid", !valid)
+      status.classList.toggle("invalid", !valid)
+      status.textContent = message
+      textarea.setAttribute("aria-invalid", valid ? "false" : "true")
+    }
+    const syncScroll = (): void => {
+      const preview = highlight.parentElement
+      if (!(preview instanceof HTMLElement)) return
+      preview.scrollTop = textarea.scrollTop
+      preview.scrollLeft = textarea.scrollLeft
+    }
+    textarea.addEventListener("input", sync)
+    textarea.addEventListener("scroll", syncScroll)
+    sync()
+    return sync
+  }
+  const syncRouteEditor = wireJsonEditor(
+    "route-body",
+    "route-highlight",
+    "route-json-status",
+    "route-editor",
+    true,
+  )
+  const syncRecordEditor = wireJsonEditor(
+    "editor-value",
+    "editor-highlight",
+    "editor-json-status",
+    "record-editor",
+    false,
+  )
+  for (const button of document.querySelectorAll("[data-format]")) {
+    if (!(button instanceof HTMLButtonElement)) continue
+    button.addEventListener("click", () => {
+      const target = button.dataset.format
+      if (target === undefined) return
+      const textarea = document.getElementById(target)
+      if (!(textarea instanceof HTMLTextAreaElement) || textarea.value.trim() === "") return
+      try {
+        textarea.value = JSON.stringify(readJson(textarea.value), null, 2) ?? ""
+        textarea.dispatchEvent(new Event("input"))
+        textarea.focus()
+      } catch {
+        showError(new Error("Fix the JSON before formatting it"))
+      }
+    })
   }
   document.addEventListener("click", (event) => {
     const target = event.target
@@ -1014,6 +1212,7 @@ export function bootAdmin(config: AdminBootConfig): void {
     } else {
       editorValue.value = "{\n  \n}"
     }
+    syncRecordEditor()
     editor.showModal()
   }
   el("new-record", HTMLButtonElement).addEventListener("click", () => {
@@ -1045,12 +1244,20 @@ export function bootAdmin(config: AdminBootConfig): void {
   editorDelete.addEventListener("click", () => {
     const id = state.editing
     if (!id) return
-    api("DELETE", `/state/${encodeURIComponent(state.collection)}/${encodeURIComponent(id)}`)
-      .then(() => {
-        editor.close()
-        return renderState()
-      })
-      .catch(showError)
+    confirmAction(
+      editorDelete,
+      "Deleting...",
+      "Deleted",
+      () =>
+        api(
+          "DELETE",
+          `/state/${encodeURIComponent(state.collection)}/${encodeURIComponent(id)}`,
+        ).then(() => {
+          editor.close()
+          return renderState()
+        }),
+      "Confirm delete",
+    ).catch(showError)
   })
 
   for (const button of document.querySelectorAll("[data-advance]")) {
@@ -1108,13 +1315,21 @@ export function bootAdmin(config: AdminBootConfig): void {
       .catch(showError)
   })
   el("fault-clear", HTMLButtonElement).addEventListener("click", () => {
-    confirmAction(el("fault-clear", HTMLButtonElement), "Clearing...", "Cleared", () =>
-      api("DELETE", "/faults").then(() => renderFaults()),
+    confirmAction(
+      el("fault-clear", HTMLButtonElement),
+      "Clearing...",
+      "Cleared",
+      () => api("DELETE", "/faults").then(() => renderFaults()),
+      "Confirm clear",
     ).catch(showError)
   })
   el("journal-clear", HTMLButtonElement).addEventListener("click", () => {
-    confirmAction(el("journal-clear", HTMLButtonElement), "Clearing...", "Cleared", () =>
-      api("DELETE", "/requests").then(() => renderJournal()),
+    confirmAction(
+      el("journal-clear", HTMLButtonElement),
+      "Clearing...",
+      "Cleared",
+      () => api("DELETE", "/requests").then(() => renderJournal()),
+      "Confirm clear",
     ).catch(showError)
   })
 
@@ -1127,9 +1342,18 @@ export function bootAdmin(config: AdminBootConfig): void {
     if (route === undefined) return
     state.route = route
     el("route-title", HTMLElement).textContent = route
+    el("route-send", HTMLButtonElement).disabled = false
     const method = route.split(" ")[0] ?? ""
-    el("route-body", HTMLTextAreaElement).disabled = method === "GET" || method === "DELETE"
+    const routeBody = el("route-body", HTMLTextAreaElement)
+    routeBody.disabled = method === "GET" || method === "DELETE"
+    el("route-editor", HTMLElement).hidden = routeBody.disabled
+    el("route-json-status", HTMLElement).parentElement?.toggleAttribute(
+      "hidden",
+      routeBody.disabled,
+    )
+    syncRouteEditor()
   })
+  el("route-search", HTMLInputElement).addEventListener("input", paintRoutes)
   el("route-form", HTMLFormElement).addEventListener("submit", (event) => {
     event.preventDefault()
     const send = async (): Promise<void> => {
@@ -1152,7 +1376,8 @@ export function bootAdmin(config: AdminBootConfig): void {
         }
       }
       const data = await api(method, concrete, body)
-      el("route-result", HTMLElement).textContent = JSON.stringify(data, null, 2)
+      const text = JSON.stringify(data, null, 2) ?? "null"
+      el("route-result", HTMLElement).innerHTML = `<code>${highlightJsonText(text)}</code>`
     }
     send().catch(showError)
   })
@@ -1283,6 +1508,7 @@ export function bootAdmin(config: AdminBootConfig): void {
         views.append(section)
         mountSqlExplorer(body, panelApi)
       }
+      show(document.getElementById(`view-${state.view}`) === null ? "overview" : state.view)
       return refresh()
     })
     .catch(showError)
@@ -1290,6 +1516,7 @@ export function bootAdmin(config: AdminBootConfig): void {
 
 const clientPrelude = [
   isRecord,
+  highlightJsonText,
   mountAdminBrand,
   startAdminBrand,
   faultPresetList,

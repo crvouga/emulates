@@ -7,7 +7,7 @@ if (!receiverUrl) {
   throw new Error("JUNCTION_WEBHOOK_RECEIVER_URL is required")
 }
 
-const healthUrl = `${receiverUrl}/health`
+const healthUrl = `${receiverUrl}/__admin/health`
 const response = await fetch(healthUrl)
 if (!response.ok) {
   throw new Error(`Junction webhook receiver returned ${response.status} at ${healthUrl}`)

@@ -1,3 +1,4 @@
+import { resolveAdminPrefix } from "@crvouga/mockingbird-service"
 import { Hono } from "hono"
 
 export type WebhookRow = {
@@ -19,20 +20,25 @@ export type WebhookCollectorEnv = { Variables: { store: WebhookStore } }
 const SERVICE_SLUG = /^[a-z][a-z0-9-]{0,63}$/
 const MAX_BODY_BYTES = 1_048_576
 
-export const createWebhookCollector = (store: WebhookStore, readToken?: string) => {
+export const createWebhookCollector = (
+  store: WebhookStore,
+  readToken?: string,
+  options: { adminPrefix?: string } = {},
+) => {
+  const adminPrefix = resolveAdminPrefix(options.adminPrefix)
   const app = new Hono<WebhookCollectorEnv>()
   app.use("*", async (c, next) => {
     c.set("store", store)
     return next()
   })
-  app.get("/health", (c) => c.json({ status: "ok" }))
-  app.use("/events/*", async (c, next) => {
+  app.get(`${adminPrefix}/health`, (c) => c.json({ status: "ok" }))
+  app.use(`${adminPrefix}/events/*`, async (c, next) => {
     if (!readToken) return c.json({ error: "collector_read_token_not_configured" }, 503)
     if (c.req.header("authorization") !== `Bearer ${readToken}`)
       return c.json({ error: "unauthorized" }, 401)
     return next()
   })
-  app.use("/events", async (c, next) => {
+  app.use(`${adminPrefix}/events`, async (c, next) => {
     if (!readToken) return c.json({ error: "collector_read_token_not_configured" }, 503)
     if (c.req.header("authorization") !== `Bearer ${readToken}`)
       return c.json({ error: "unauthorized" }, 401)
@@ -65,14 +71,14 @@ export const createWebhookCollector = (store: WebhookStore, readToken?: string) 
     })
     return c.json({ received: true }, 202)
   })
-  app.get("/events", async (c) => {
+  app.get(`${adminPrefix}/events`, async (c) => {
     const service = c.req.query("service")
     const runId = c.req.query("run_id")
     return c.json(
       await c.var.store.list({ ...(service ? { service } : {}), ...(runId ? { runId } : {}) }),
     )
   })
-  app.get("/events/:runId", async (c) => {
+  app.get(`${adminPrefix}/events/:runId`, async (c) => {
     const service = c.req.query("service")
     const rows = await c.var.store.list({
       runId: c.req.param("runId"),

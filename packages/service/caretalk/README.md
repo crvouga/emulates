@@ -94,7 +94,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `login
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `CARETALK_API_URL`, or by credential: tokens
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `CARETALK_API_URL`, or by credential: tokens
 carry the API user they were issued to, so `PUT /__admin/credentials {"credentials":
 {"<CARETALK_USERNAME>": "<ns>", "<CARETALK_API_KEY>": "<ns>"}}` routes both auth styles.
 

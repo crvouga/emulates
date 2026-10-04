@@ -37,7 +37,20 @@ const pkg = await tryReadJson<{
   bin?: string | Record<string, string>
   repository?: { url?: string }
   publishConfig?: { access?: string; provenance?: boolean }
-  mockingbird?: { runtime?: string; layer?: string }
+  mockingbird?: {
+    runtime?: string
+    layer?: string
+    discovery?: {
+      guide?: string
+      behavior?: string
+      capabilities?: string
+      contract?: string
+      types?: string
+      oracle?: { kind?: string; command?: string; note?: string }
+      introspection?: string[]
+      reporting?: string
+    }
+  }
 }>("package.json")
 
 if (!pkg) {
@@ -107,6 +120,40 @@ if (isPublic) {
     fail(
       `${name}: publishConfig.provenance should be true for npm Trusted Publishing (OIDC) rebuilds`,
     )
+  }
+  if (isPublic && pkg.mockingbird?.layer === "service") {
+    const discovery = pkg.mockingbird.discovery
+    if (!discovery) {
+      fail(`${name}: service package needs mockingbird.discovery metadata`)
+    } else {
+      const artifacts = [
+        discovery.guide,
+        discovery.behavior,
+        discovery.capabilities,
+        discovery.contract,
+        discovery.types,
+      ].filter((value): value is string => Boolean(value))
+      for (const artifact of artifacts) {
+        if (!existsSync(join(pkgDir, artifact))) {
+          fail(`${name}: mockingbird.discovery references missing ${artifact}`)
+        }
+        const top = artifact.split("/")[0]
+        if (top && top !== "dist" && !pkg.files?.includes(top) && !pkg.files?.includes(artifact)) {
+          fail(`${name}: discovery artifact ${artifact} is not included in package.json files`)
+        }
+      }
+      if (
+        !discovery.oracle?.kind ||
+        !discovery.oracle.command ||
+        !discovery.oracle.note ||
+        !discovery.reporting ||
+        !discovery.introspection?.length
+      ) {
+        fail(
+          `${name}: mockingbird.discovery must describe the oracle, reporting, and introspection`,
+        )
+      }
+    }
   }
 }
 
@@ -201,7 +248,12 @@ if (pack.exitCode !== 0) {
     entries = []
   }
   const files = entries[0]?.files?.map((f) => f.path) ?? []
-  for (const needed of ["dist/index.js", "dist/index.d.ts", "package.json"]) {
+  const neededFiles = ["dist/index.js", "dist/index.d.ts", "package.json"]
+  if (isPublic && pkg.mockingbird?.layer === "service") {
+    neededFiles.push("DISCOVERY.md", pkg.mockingbird.discovery?.capabilities ?? "")
+    if (pkg.mockingbird.discovery?.contract) neededFiles.push(pkg.mockingbird.discovery.contract)
+  }
+  for (const needed of neededFiles.filter(Boolean)) {
     if (!files.some((p) => p === needed || p.endsWith(`/${needed}`))) {
       fail(
         `${name}: npm tarball is missing ${needed}. Check package.json "files" and the build output.`,

@@ -334,7 +334,7 @@ export class JunctionState {
   private readonly adoptedRequests = new WeakSet<Request>()
   /** ZIPs the loaded corpus has serviceability records for. */
   coveredZips: ReadonlySet<string> = new Set()
-  /** Identifies the loaded corpus in errors and `/health`. */
+  /** Identifies the loaded corpus in errors and `/__admin/health`. */
   corpusLabel: string | undefined
   /**
    * The loaded corpus's recorded reads. Immutable and shared by every namespace, so it

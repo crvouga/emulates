@@ -158,7 +158,7 @@ describe("S19 Klaviyo acceptance: our consumer's logic against the mock", () => 
     expect(noRevision.status).toBe(400)
   })
 
-  test("namespaces by private key (and by /ns/ prefix in KLAVIYO_URL) isolate workers", async () => {
+  test("namespaces by private key (and by /__admin/ns/ prefix in KLAVIYO_URL) isolate workers", async () => {
     const { runtime, consumer, outbox } = harness()
     await runtime.fetch(
       new Request(`${API}/__admin/credentials`, {
@@ -168,7 +168,7 @@ describe("S19 Klaviyo acceptance: our consumer's logic against the mock", () => 
       }),
     )
     await consumer("pk_worker_a").pushDataToKlaviyo(order())
-    await consumer("pk_other", `${API}/ns/b/api/events/`).pushDataToKlaviyo(order())
+    await consumer("pk_other", `${API}/__admin/ns/b/api/events/`).pushDataToKlaviyo(order())
     expect(await outbox()).toHaveLength(0)
     const read = async (ns: string) =>
       (
@@ -257,7 +257,7 @@ describe("served over HTTP", () => {
         messages: unknown[]
       }
       expect(outbox.messages).toHaveLength(2)
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^klaviyo@/)
       expect(((await health.json()) as { status: string }).status).toBe("ok")
     } finally {
@@ -267,7 +267,7 @@ describe("served over HTTP", () => {
 })
 
 describe("contract", () => {
-  test("namespaces by header and by /ns/ prefix are isolated; reset clears one namespace", async () => {
+  test("namespaces by header and by /__admin/ns/ prefix are isolated; reset clears one namespace", async () => {
     const runtime = createRuntime()
     const get = (url: string, headers: Record<string, string> = {}) =>
       runtime.fetch(
@@ -280,7 +280,7 @@ describe("contract", () => {
     const before = (await (await get(`${base}/api/events/`)).json()) as Record<string, unknown[]>
     const viaHeader = await get(`${base}/api/events/`, { "x-mockingbird-namespace": "a" })
     expect(viaHeader.headers.get("x-mockingbird")).toMatch(/; ns=a$/)
-    const viaPrefix = await get(`${base}/ns/b/api/events/`)
+    const viaPrefix = await get(`${base}/__admin/ns/b/api/events/`)
     expect(viaPrefix.status).toBe(viaHeader.status)
     expect(viaPrefix.headers.get("x-mockingbird")).toMatch(/; ns=b$/)
     expect(((await viaPrefix.json()) as Record<string, unknown[]>).data?.length).toBe(
@@ -290,7 +290,7 @@ describe("contract", () => {
       new Request(`${base}/__admin/reset?namespace=a`, { method: "POST" }),
     )
     expect(reset.status).toBeLessThan(300)
-    const health = (await (await runtime.fetch(new Request(`${base}/health`))).json()) as {
+    const health = (await (await runtime.fetch(new Request(`${base}/__admin/health`))).json()) as {
       status: string
     }
     expect(health.status).toBe("ok")

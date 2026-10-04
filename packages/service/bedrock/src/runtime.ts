@@ -63,6 +63,7 @@ export type BedrockRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -140,8 +141,8 @@ const adminRoutes = (runtime: ServiceRuntime<BedrockAPI>): AdminRoutes => {
 }
 
 /**
- * The Bedrock mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by SigV4 access key id
+ * The Bedrock mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by SigV4 access key id
  * (`PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`),
  * clock control (script pacing runs on it), fault presets, scripts and a request journal
  * that records metadata only.
@@ -164,6 +165,7 @@ export const createRuntime = (options: BedrockRuntimeOptions = {}): BedrockRunti
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: accessKeyCredential,

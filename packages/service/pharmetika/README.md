@@ -143,7 +143,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 ### Namespaces
 
 Our backend's `fetch` cannot add headers, so a namespace can be chosen three ways:
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `PHARMETIKA_API_URL`, or by credential:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `PHARMETIKA_API_URL`, or by credential:
 `PUT /__admin/credentials {"credentials": {"<PHARMETIKA_API_TOKEN>": "<namespace>"}}` (the Basic
 username works the same way for the catalog client).
 

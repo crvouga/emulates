@@ -64,10 +64,12 @@ export const serveTarget: ServeTarget = {
         ? {
             forwardToInbox: {
               url: inbox,
+              ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
               ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
             },
           }
         : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -77,6 +79,6 @@ export const serveTarget: ServeTarget = {
     "auth: Authorization: Bearer re_… (any key); set RESEND_BASE_URL before importing resend",
     "outbox: GET /__admin/outbox?to=&tag=category:<v>, GET /__admin/outbox/:id/links",
     "inbound: POST /__admin/inbound {from, to, subject, text?, html?, attachments?} → email.received",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

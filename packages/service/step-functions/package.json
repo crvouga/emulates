@@ -8,7 +8,10 @@
   "files": [
     "dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "DISCOVERY.md",
+    "SUPPORT.md",
+    "openapi.yaml"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -57,7 +60,29 @@
       "docs": "https://docs.aws.amazon.com/step-functions/latest/apireference/"
     },
     "parity": "Executions and history",
-    "parityTier": "cold"
+    "parityTier": "cold",
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "contract": "openapi.yaml",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Live vendor API or sandbox",
+        "command": "bun run parity:service -- step-functions",
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+      },
+      "introspection": [
+        "GET /__admin/health",
+        "GET /__admin",
+        "GET /__admin/state",
+        "GET /__admin/requests",
+        "GET /__admin/metrics",
+        "GET /__admin/faults/presets",
+        "GET /__admin/ui"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js",

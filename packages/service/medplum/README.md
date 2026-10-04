@@ -124,7 +124,7 @@ export default { fetch: (request: Request) => medplum.fetch(request) }
 ```
 
 Namespaces isolate data. A request picks one with `x-mockingbird-namespace: <name>`, with a
-`/ns/<name>/` base-URL prefix (`new MedplumClient({ baseUrl: "http://localhost:8103/ns/worker-1/" })`),
+`/__admin/ns/<name>/` base-URL prefix (`new MedplumClient({ baseUrl: "http://localhost:8103/__admin/ns/worker-1/" })`),
 or through its client id (`PUT /__admin/credentials {"credentials": {"<clientId>": "<namespace>"}}`).
 A client is recognized from Basic auth, from a bearer token's `client_id`, or from the
 `client_id` field of a form-encoded token request.

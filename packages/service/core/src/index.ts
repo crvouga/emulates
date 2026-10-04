@@ -12,10 +12,14 @@ export type {
 export {
   ADMIN_KEY_HEADER,
   ADMIN_PREFIX,
+  assertAdminPrefixAvailable,
   createControlPlane,
   HEALTH_PATH,
+  isAdminPath,
+  matchNamespacePath,
   NAMESPACE_HEADER,
   parseDuration,
+  resolveAdminPrefix,
 } from "./control.js"
 export type {
   BasicCredentials,

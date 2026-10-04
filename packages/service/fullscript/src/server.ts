@@ -85,6 +85,7 @@ export const serveTarget: ServeTarget = {
           : {}),
         ...(results ? { resultsBaseUrl: results } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -92,6 +93,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "oauth: GET /oauth/authorize (auto-consents as prac_mock_1), POST /api/oauth/token, POST /api/oauth/revoke",
-    "namespaces: x-mockingbird-namespace, or a /ns/<name>/ suffix on FULLSCRIPT_API_URL",
+    "namespaces: x-mockingbird-namespace, or a /__admin/ns/<name>/ suffix on FULLSCRIPT_API_URL",
   ],
 }
