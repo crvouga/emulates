@@ -400,7 +400,7 @@ describe("service integration", () => {
       clients: [client],
       adminKey: "fixture-admin",
     })
-    expect((await runtime.fetch(request("/health"))).status).toBe(200)
+    expect((await runtime.fetch(request("/__admin/health"))).status).toBe(200)
     expect((await runtime.fetch(request("/__admin/accounts"))).status).toBe(401)
     runtime
       .instance("suite")
@@ -412,22 +412,22 @@ describe("service integration", () => {
     runtime.restore(snapshot, "suite")
     expect(runtime.instance("suite").accounts.count()).toBe(2)
     const discovery = await (
-      await runtime.fetch(request("/ns/suite/.well-known/openid-configuration"))
+      await runtime.fetch(request("/__admin/ns/suite/.well-known/openid-configuration"))
     ).json()
-    expect(discovery.issuer).toBe(`${issuer}/ns/suite`)
+    expect(discovery.issuer).toBe(`${issuer}/__admin/ns/suite`)
     const start = await runtime.fetch(
       request(
-        `/ns/suite/authorize?${new URLSearchParams({ client_id: "app", redirect_uri: callback, response_type: "code", scope: "openid" })}`,
+        `/__admin/ns/suite/authorize?${new URLSearchParams({ client_id: "app", redirect_uri: callback, response_type: "code", scope: "openid" })}`,
       ),
     )
-    expect(await start.text()).toContain(`${issuer}/ns/suite/interaction`)
+    expect(await start.text()).toContain(`${issuer}/__admin/ns/suite/interaction`)
 
     const adminHeaders = {
       "content-type": "application/json",
       "x-mockingbird-admin-key": "fixture-admin",
     }
     const registered = await runtime.fetch(
-      new Request(`${issuer}/ns/native/__admin/clients`, {
+      new Request(`${issuer}/__admin/ns/native/__admin/clients`, {
         method: "POST",
         headers: adminHeaders,
         body: JSON.stringify({
@@ -440,7 +440,7 @@ describe("service integration", () => {
     expect(registered.status).toBe(201)
     const nativeClients = await (
       await runtime.fetch(
-        new Request(`${issuer}/ns/native/__admin/clients`, { headers: adminHeaders }),
+        new Request(`${issuer}/__admin/ns/native/__admin/clients`, { headers: adminHeaders }),
       )
     ).json()
     expect(
@@ -510,10 +510,10 @@ describe("multi-provider runtime", () => {
     const runtime = createMultiRuntime({ mounts })
     const discovery = await (
       await runtime.fetch(
-        new Request(`${issuer}/ns/worker/google/.well-known/openid-configuration`),
+        new Request(`${issuer}/__admin/ns/worker/google/.well-known/openid-configuration`),
       )
     ).json()
-    expect(discovery.issuer).toBe(`${issuer}/ns/worker/google`)
+    expect(discovery.issuer).toBe(`${issuer}/__admin/ns/worker/google`)
     expect((await runtime.fetch(new Request(`${issuer}/googler/authorize`))).status).toBe(404)
     expect((await runtime.fetch(new Request(`${issuer}/googleish/authorize`))).status).toBe(404)
     expect((await runtime.fetch(new Request(`${issuer}/missing/authorize`))).status).toBe(404)
@@ -521,7 +521,7 @@ describe("multi-provider runtime", () => {
 
   test("aggregate health, reset, controls and startup validation", async () => {
     const runtime = createMultiRuntime({ mounts })
-    const health = await (await runtime.fetch(new Request(`${issuer}/health`))).json()
+    const health = await (await runtime.fetch(new Request(`${issuer}/__admin/health`))).json()
     expect(Object.keys(health.mounts)).toEqual(["/google", "/apple", "/oauth2"])
     expect((await runtime.fetch(new Request(`${issuer}/__admin/mounts`))).status).toBe(200)
     expect(

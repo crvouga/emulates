@@ -55,7 +55,8 @@ export const serveTarget: ServeTarget = {
       return createMultiRuntime({
         mounts: parsed.mounts,
         ...(common.seed !== undefined ? { seed: common.seed } : {}),
-        ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
+        ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
+      ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       }) as unknown as OAuthRuntime
     }
     const provider = values.provider ?? "oidc"
@@ -79,6 +80,7 @@ export const serveTarget: ServeTarget = {
         : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(typeof values.issuer === "string" ? { issuer: values.issuer } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
     })
   },

@@ -48,7 +48,8 @@ export const INVALID_API_KEY = "API Key is Invalid"
 export type HealthieAPIOptions = APIOptions & {
   /** Initial per-namespace settings (org API keys, sign-in namespace, URL lifetime). */
   settings?: Partial<Settings>
-  /** The public namespace name, so file URLs carry `/ns/<name>` when it is not the default. */
+  /** The public namespace name, so file URLs carry `/__admin/ns/<name>` when it is not the default. */
+  adminPrefix?: string
   publicNamespace?: string
   /** Called for every event Healthie would post to a webhook; the runtime delivers it. */
   onEvent?: (event: HealthieEvent) => void
@@ -115,6 +116,7 @@ export class HealthieAPI implements FetchAPI {
   readonly state: HealthieState
   private readonly service: Service
   private readonly now: () => number
+  private readonly adminPrefix: string
   private readonly publicNamespace: string | undefined
   private readonly onEvent: ((event: HealthieEvent) => void) | undefined
   private readonly storageNamespace: string
@@ -124,6 +126,7 @@ export class HealthieAPI implements FetchAPI {
     const namespace = options.namespace ?? HEALTHIE_NAMESPACE
     this.storageNamespace = namespace
     this.now = options.now ?? (() => Date.now())
+    this.adminPrefix = options.adminPrefix ?? "/__admin"
     this.publicNamespace = options.publicNamespace
     this.onEvent = options.onEvent
     this.state = new HealthieState(sqlite, namespace, {
@@ -178,7 +181,7 @@ export class HealthieAPI implements FetchAPI {
     const expires = Math.floor(this.now() / 1000) + (expiredAlready ? -1 : ttl)
     const prefix =
       this.publicNamespace && this.publicNamespace !== "default"
-        ? `/ns/${encodeURIComponent(this.publicNamespace)}`
+        ? `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
         : ""
     return `${origin}${prefix}/files/${fileId}.${expires}.${this.fileSignature(fileId, expires)}`
   }

@@ -152,7 +152,8 @@ export type CardInput = {
 }
 
 export type PaddleAPIOptions = APIOptions & {
-  /** The public namespace name, for `/ns/<name>` in `meta.pagination.next` and management URLs. */
+  /** The public namespace name, for `/__admin/ns/<name>` in `meta.pagination.next` and management URLs. */
+  adminPrefix?: string
   publicNamespace?: string
   /**
    * The default payment link: a `ready` automatic-collection transaction gets
@@ -195,6 +196,7 @@ export class PaddleAPI implements FetchAPI {
   readonly state: PaddleState
   private readonly service: Service
   private readonly now: () => number
+  private readonly adminPrefix: string
   private readonly publicNamespace: string | undefined
   private readonly paymentLink: string | undefined
   private readonly onEvent: PaddleAPIOptions["onEvent"]
@@ -208,6 +210,7 @@ export class PaddleAPI implements FetchAPI {
     const sqlite = bootSqlite(options.sqlite)
     const namespace = options.namespace ?? PADDLE_NAMESPACE
     this.now = options.now ?? (() => Date.now())
+    this.adminPrefix = options.adminPrefix ?? "/__admin"
     this.publicNamespace = options.publicNamespace
     this.paymentLink = options.paymentLink
     this.onEvent = options.onEvent
@@ -329,7 +332,7 @@ export class PaddleAPI implements FetchAPI {
 
   private prefix(): string {
     return this.publicNamespace && this.publicNamespace !== "default"
-      ? `/ns/${encodeURIComponent(this.publicNamespace)}`
+      ? `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
       : ""
   }
 

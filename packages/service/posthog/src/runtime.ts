@@ -81,6 +81,7 @@ export type PostHogRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Flags every namespace starts with (and returns to on reset). */
@@ -240,9 +241,9 @@ const adminRoutes = (runtime: ServiceRuntime<PostHogAPI>): AdminRoutes => {
 }
 
 /**
- * The PostHog mock with Mockingbird's full service contract: `/health`, `/__admin/*`, clock,
+ * The PostHog mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, clock,
  * fault presets and a request journal. PostHog SDKs cannot add headers, so a namespace is
- * chosen by the `/ns/<name>` host prefix (`POSTHOG_HOST=http://127.0.0.1:8795/ns/w1`), or by
+ * chosen by the `/__admin/ns/<name>` host prefix (`POSTHOG_HOST=http://127.0.0.1:8795/__admin/ns/w1`), or by
  * project token: `PUT /__admin/credentials {"credentials": {"<phc_token>": "<namespace>"}}`.
  * The token is read from `/array/{token}/…`, `?token=`, the body (`token`, `api_key`, a
  * batch's first event), or a personal API key's `Authorization: Bearer`.
@@ -255,6 +256,7 @@ export const createRuntime = (options: PostHogRuntimeOptions = {}): PostHogRunti
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: (request) => tokens.get(request),
@@ -277,9 +279,7 @@ export const createRuntime = (options: PostHogRuntimeOptions = {}): PostHogRunti
     const path = new URL(request.url).pathname
     if (
       !request.headers.has(NAMESPACE_HEADER) &&
-      !path.startsWith("/ns/") &&
-      !path.startsWith("/__admin") &&
-      path !== "/health"
+      !(path === (options.adminPrefix ?? "/__admin") || path.startsWith(`${options.adminPrefix ?? "/__admin"}/`))
     ) {
       const token = (await requestToken(request, path)) ?? bearerToken(request)
       if (token !== undefined) tokens.set(request, token)

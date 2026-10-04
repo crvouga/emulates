@@ -90,6 +90,7 @@ export type MedplumRuntimeOptions = Omit<
   /** Seeds generated ids, secrets and fault rates. */
   seed?: number | string
   /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Requests each namespace's journal keeps (`GET /__admin/requests`). Default 1000. */
@@ -214,22 +215,23 @@ const adminRoutes = (runtime: ServiceRuntime<MedplumAPI>): AdminRoutes => ({
 })
 
 /**
- * The Medplum mock with Mockingbird's full service contract: unauthenticated `/health`, the
+ * The Medplum mock with Mockingbird's full service contract: unauthenticated `/__admin/health`, the
  * `/__admin/*` control plane (reset, snapshot/restore, clock, faults, journal, metrics, plus
  * `/__admin/medplum/*` for clients, users, tokens and seed resources), and per-request
- * namespaces — by `x-mockingbird-namespace`, by `/ns/<name>/` base URL prefix, or by client:
+ * namespaces — by `x-mockingbird-namespace`, by `/__admin/ns/<name>/` base URL prefix, or by client:
  * `PUT /__admin/credentials {"credentials": {"<clientId>": "<namespace>"}}`.
  *
  * Runtime-neutral: serve it with any Fetch-native server (`./server` for Node).
  */
 export const createRuntime = (options: MedplumRuntimeOptions = {}): MedplumRuntime => {
-  const { sqlite, clock, seed, adminKey, onLog, journalSize, ...apiOptions } = options
+  const { sqlite, clock, seed, adminKey, adminPrefix, onLog, journalSize, ...apiOptions } = options
   const runtime: ServiceRuntime<MedplumAPI> = createServiceRuntime<MedplumAPI>({
     name: MEDPLUM_NAMESPACE,
     document,
     ...(sqlite ? { sqlite } : {}),
     ...(clock ? { clock } : {}),
     ...(seed !== undefined ? { seed } : {}),
+    ...(adminPrefix !== undefined ? { adminPrefix } : {}),
     ...(adminKey !== undefined ? { adminKey } : {}),
     ...(onLog ? { onLog } : {}),
     ...(journalSize !== undefined ? { journalSize } : {}),

@@ -85,6 +85,7 @@ export type OdxRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -149,8 +150,8 @@ const adminRoutes = (runtime: ServiceRuntime<OdxAPI>): AdminRoutes => ({
 })
 
 /**
- * The ODX mock with Mockingbird's full service contract: `/health`, `/__admin/*`, namespaces
- * by header, by `/ns/<name>` path prefix, or by `ApiKey`
+ * The ODX mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * by header, by `/__admin/ns/<name>` path prefix, or by `ApiKey`
  * (`PUT /__admin/credentials {"credentials": {"<OPTIMAL_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets, signed PatientTest webhooks and a request journal.
  */
@@ -183,6 +184,7 @@ export const createRuntime = (options: OdxRuntimeOptions = {}): OdxRuntime => {
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: apiKeyCredential,

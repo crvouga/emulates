@@ -57,7 +57,7 @@ void outbox
 | Route | Behaviour |
 | --- | --- |
 | `POST /v1/projects/{project_id}/messages:send` | Bearer required. Body `{ message, validate_only? }`. One registration `token` (topic and condition are rejected). Success is `{ name: "projects/{project_id}/messages/{id}" }`. Errors are a Google RPC envelope. `validate_only: true` validates and returns a name without storing anything. |
-| `GET /health` | Liveness, plus the `x-mockingbird` header on every response. |
+| `GET /__admin/health` | Liveness, plus the `x-mockingbird` header on every response. |
 
 ### Admin
 
@@ -100,7 +100,7 @@ Logical message time is `clockOffsetMs` plus the process-wide runtime clock. `PO
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>/` prefix, or `PUT /__admin/credentials` (bearer → namespace). A bearer listed in `settings.credentials` authorizes only that project. `strict: true` rejects bearers that are not listed. Webhooks: none. The device inbox is a test control, not a callback.
+`x-mockingbird-namespace`, a `/__admin/ns/<name>/` prefix, or `PUT /__admin/credentials` (bearer → namespace). A bearer listed in `settings.credentials` authorizes only that project. `strict: true` rejects bearers that are not listed. Webhooks: none. The device inbox is a test control, not a callback.
 
 ### SDK error codes
 
@@ -123,7 +123,7 @@ firebase-admin maps `error.details[].errorCode` when `@type` is `type.googleapis
 | Export | Kind | Description |
 | --- | --- | --- |
 | `FcmAPI` | class | In-process mock: `fetch(request)`, `reset()`, `logicalNow()`, `outbox(query)`, `inbox(token)`, `registerToken`, `setTokenState`, `ackInbox`, `deliverPending`, `dropMessage`, `duplicateMessage`, `putScript`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | Mock plus `/health`, `/__admin/*`, namespaces, clock, presets, and the journal. Options: `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `settings`. |
+| `createRuntime` | function | Mock plus `/__admin/health`, `/__admin/*`, namespaces, clock, presets, and the journal. Options: `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `settings`. |
 | `FCM_PRESETS` | object | Named fault presets. |
 | `FCM_NAMESPACE` | string | Service name, `"fcm"`. |
 | `FCM_FIXTURE_PROJECT` | string | Seeded project id, `"demo-project"`. |

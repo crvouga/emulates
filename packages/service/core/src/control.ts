@@ -4,9 +4,45 @@ import type { Journal } from "./journal.js"
 import type { Metrics } from "./metrics.js"
 
 /** Unauthenticated readiness probe, served ahead of every vendor auth gate. */
-export const HEALTH_PATH = "/health"
+export const HEALTH_PATH = "/__admin/health"
 /** Prefix of every control-plane route; never part of a vendor contract. */
 export const ADMIN_PREFIX = "/__admin"
+/** Resolve once at construction; ambiguous URL forms are never accepted. */
+export const resolveAdminPrefix = (prefix: string = ADMIN_PREFIX): string => {
+  if (!/^\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(prefix)) {
+    throw new Error(
+      "adminPrefix must be an absolute non-root path of literal segments, without a trailing slash",
+    )
+  }
+  return prefix
+}
+
+/** Segment-boundary matching prevents /__administer from entering the control plane. */
+export const isAdminPath = (path: string, prefix: string): boolean =>
+  path === prefix || path.startsWith(`${prefix}/`)
+
+/** SDK base URL namespace carrier, entirely inside the configured internal route tree. */
+export const matchNamespacePath = (path: string, prefix: string): RegExpExecArray | null =>
+  /^\/ns\/([^/]+)(\/.*)?$/.exec(isAdminPath(path, prefix) ? path.slice(prefix.length) : "")
+
+/** Fail before serving when the declared vendor contract overlaps the reserved tree. */
+export const assertAdminPrefixAvailable = (prefix: string, paths: readonly string[]): void => {
+  const reserved = prefix.split("/").slice(1)
+  for (const path of paths) {
+    const segments = path.split("/").slice(1)
+    // Catch-all vendor roots (e.g. S3 /{bucket}/{key}) share the listener.
+    // The internal tree is reserved before vendor dispatch, regardless of the wildcard.
+    if (segments.length < reserved.length || /^\{[^}]+\}$/.test(segments[0] ?? "")) continue
+    if (
+      reserved.every((part, i) => segments[i] === part || /^\{[^}]+\}$/.test(segments[i] ?? ""))
+    ) {
+      throw new Error(
+        `vendor route ${path} collides with adminPrefix ${prefix}; choose a different adminPrefix`,
+      )
+    }
+  }
+}
+
 /** Carries the admin key, which is separate from any vendor credential. */
 export const ADMIN_KEY_HEADER = "x-mockingbird-admin-key"
 /** Selects the isolated namespace a request reads and writes. */
@@ -60,9 +96,10 @@ export type ControlContext = {
       checkpoints: readonly { id: string; branch: string; parent: string | null; at: number }[]
     }
   }
-  /** Extra fields for `GET /health`, such as the loaded corpus version. */
+  /** Extra fields for `GET /__admin/health`, such as the loaded corpus version. */
   describe(): Record<string, unknown>
   routes: AdminRoutes
+  adminPrefix?: string
   adminKey: string | undefined
   /** Expand a named fault preset; enables `POST /faults {"preset": "<name>"}`. */
   applyPreset?(name: string, namespace: string, overrides: Partial<FaultRule>): FaultRule[]
@@ -138,6 +175,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
 export const createControlPlane = (context: ControlContext): ControlPlane => {
+  const adminPrefix = resolveAdminPrefix(context.adminPrefix)
   // Legacy snapshot ids are opaque aliases to pinned Timeline checkpoints. Timeline remains the
   // only history owner; this map carries no state value and can be removed with the alias.
   const snapshots = new Map<string, { namespace: string; checkpoint: string }>()
@@ -149,6 +187,7 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
     url.searchParams.get("namespace") ?? headerNamespace(request)
 
   const builtin: AdminRoutes = {
+    "GET /health": () => json(200, { status: "ok" }),
     "GET /": () =>
       json(200, {
         service: context.name,
@@ -347,21 +386,22 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
     namespaceOf: headerNamespace,
     async handle(request) {
       const url = new URL(request.url)
-      if (url.pathname === HEALTH_PATH && request.method === "GET") {
+      if (url.pathname === `${adminPrefix}/health` && request.method === "GET") {
         return json(200, {
           status: "ok",
           service: context.name,
           uptimeMs: context.wallNow() - context.startedAt,
           clock: context.clock.state(),
           namespaces: context.namespaces().length,
-          adminUi: `${ADMIN_PREFIX}/ui`,
           ...context.describe(),
+          adminPrefix,
+          adminUi: `${adminPrefix}/ui`,
         })
       }
-      if (url.pathname !== ADMIN_PREFIX && !url.pathname.startsWith(`${ADMIN_PREFIX}/`)) {
+      if (!isAdminPath(url.pathname, adminPrefix)) {
         return undefined
       }
-      const path = url.pathname.slice(ADMIN_PREFIX.length) || "/"
+      const path = url.pathname.slice(adminPrefix.length) || "/"
       // The shell has no data. Panel markup stays on GET /ui/manifest, which is locked.
       const shell = request.method === "GET" && (path === "/ui" || path === "/ui/")
       if (
@@ -373,7 +413,12 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
       }
       for (const route of routes) {
         if (route.method !== request.method) continue
-        const params = matchRoute(route.pattern, path)
+        let params: Record<string, string> | undefined
+        try {
+          params = matchRoute(route.pattern, path)
+        } catch {
+          return adminError(400, "invalid path encoding")
+        }
         if (!params) continue
         let body: unknown
         try {
@@ -391,7 +436,7 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
       }
       return adminError(
         404,
-        `no admin route ${request.method} ${path}; GET ${ADMIN_PREFIX} lists them`,
+        `no admin route ${request.method} ${path}; GET ${adminPrefix} lists them`,
       )
     },
   }

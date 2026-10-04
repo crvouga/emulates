@@ -4,7 +4,7 @@
  * same namespace), in the callback shapes and status enums the real script uses.
  */
 export type ShimOptions = {
-  /** Origin (plus any `/ns/<name>` prefix) the shim's `fetch` calls go to. */
+  /** Origin (plus any `/__admin/ns/<name>` prefix) the shim's `fetch` calls go to. */
   base: string
   key: string
   /** The key was refused: the shim calls `window.gm_authFailure()` once loaded. */

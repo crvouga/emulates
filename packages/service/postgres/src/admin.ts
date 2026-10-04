@@ -20,6 +20,7 @@ import { Database, type DatabaseOptions, type HistoryCheckpoint } from "./api/da
 export interface AdminOptions {
   /** Database for the `default` namespace. Other namespaces open a fresh engine. */
   database?: Database;
+  adminPrefix?: string
   adminKey?: string;
   /** Options for namespaces opened after `default`, and for `default` when `database` is omitted. */
   databaseOptions?: DatabaseOptions;
@@ -161,6 +162,7 @@ export function createAdmin(options: AdminOptions = {}): EngineAdmin {
   return createEngineAdmin({
     name: "postgres",
     dialect: "postgres",
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     open(namespace) {
       if (namespace === "default" && seeded) return adapt(seeded);

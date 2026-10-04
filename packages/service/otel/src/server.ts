@@ -67,6 +67,7 @@ export const serveTarget: ServeTarget = {
           : {}),
         ...(values["keep-bodies"] === true ? { keepBodies: true } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),

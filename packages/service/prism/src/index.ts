@@ -49,7 +49,7 @@ export type PrismAPIOptions = APIOptions & {
   settings?: Partial<Settings>
   /**
    * The namespace requests select this instance by, so presigned upload and asset URLs carry
-   * a `/ns/<name>` prefix (the capture page's PUT has no other namespace carrier).
+   * a `/__admin/ns/<name>` prefix (the capture page's PUT has no other namespace carrier).
    */
   publicNamespace?: string
 }
@@ -157,7 +157,7 @@ export class PrismAPI implements FetchAPI {
     this.now = options.now ?? (() => Date.now())
     this.prefix =
       options.publicNamespace && options.publicNamespace !== "default"
-        ? `/ns/${encodeURIComponent(options.publicNamespace)}`
+        ? `/__admin/ns/${encodeURIComponent(options.publicNamespace)}`
         : ""
     this.state = new PrismState(sqlite, namespace, options.settings ?? {})
     const handlers = defineOperations<SupportedOperationId>({

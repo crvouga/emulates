@@ -136,6 +136,7 @@ export type GeneByGeneRuntimeOptions = {
   /** Seeds every random choice the runtime makes (fault rates). */
   seed?: number | string
   /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Catalog every namespace starts with. Default: the recorded staging catalog. */
@@ -384,8 +385,8 @@ const adminRoutes = (runtime: ServiceRuntime<GeneByGeneAPI>): AdminRoutes => ({
 const SUBSCRIPTION_PREFIX = "gxg_sub_"
 
 /**
- * The Gene by Gene mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix (use it on both the API and the token URL),
+ * The Gene by Gene mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix (use it on both the API and the token URL),
  * or by client id (`PUT /__admin/credentials {"credentials": {"<client_id>": "<namespace>"}}`),
  * clock control, fault presets, GxG-signed notifications and a request journal.
  */
@@ -422,16 +423,18 @@ export const createRuntime = (options: GeneByGeneRuntimeOptions = {}): GeneByGen
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: tokenCredential,
     presets: GENEBYGENE_PRESETS,
     webhooks: hub,
-    create: ({ sqlite, namespace, publicNamespace, clock }) => {
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) => {
       const api: GeneByGeneAPI = new GeneByGeneAPI({
         sqlite,
         namespace,
         publicNamespace,
+        adminPrefix,
         now: clock.now,
         ...(options.products ? { products: options.products } : {}),
         ...(options.settings ? { settings: options.settings } : {}),

@@ -129,7 +129,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 The SDK cannot add headers, so a namespace can be chosen by API key:
 `PUT /__admin/credentials {"credentials": {"<MAILOSAUR_API_KEY>": "<namespace>"}}`. Also
-`x-mockingbird-namespace` or a `/ns/<name>` prefix for raw HTTP callers. Ingest into a namespace
+`x-mockingbird-namespace` or a `/__admin/ns/<name>` prefix for raw HTTP callers. Ingest into a namespace
 with `x-mockingbird-namespace` (the Resend mock forwards with its own namespace name).
 
 ### Deliberately not modelled

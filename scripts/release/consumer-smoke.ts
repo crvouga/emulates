@@ -9,7 +9,7 @@
  *   3. typechecks every ```ts example in every shipped README.md (the docs agents copy from),
  *   4. runs every `bin` with `--help`,
  *   5. boots every service that ships `./server` from one `mockingbird.json` through a
- *      single service's CLI (`serve --config`), and probes each one's `/health`.
+ *      single service's CLI (`serve --config`), and probes each one's `/__admin/health`.
  * Catches what per-package checks cannot: a published package depending on an unpublished
  * one, a runtime import missing from `dependencies`, a private helper left out of a
  * service bundle, files left out of the tarball.
@@ -292,7 +292,7 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
         const response = await fetch(endpoint.healthUrl, { signal: AbortSignal.timeout(10_000) })
         const body = (await response.json()) as { status?: string; service?: string }
         if (response.status !== 200 || body.service !== service)
-          throw new Error(`${service} /health answered ${response.status} ${JSON.stringify(body)}`)
+          throw new Error(`${service} /__admin/health answered ${response.status} ${JSON.stringify(body)}`)
       }
     }
     writeFileSync(join(app, "ready-smoke.json"), JSON.stringify(manifest))

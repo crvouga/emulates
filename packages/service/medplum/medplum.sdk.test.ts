@@ -233,14 +233,14 @@ describe("MedplumClient against the mock", () => {
     expect(admin.getProject()?.name).toBe("Super Admin")
   })
 
-  test("through the runtime, a /ns/<name>/ base URL isolates a namespace", async () => {
+  test("through the runtime, a /__admin/ns/<name>/ base URL isolates a namespace", async () => {
     const runtime = createRuntime({ baseUrl: BASE })
     const one = new MedplumClient({
-      baseUrl: "http://localhost:8103/ns/one/",
+      baseUrl: "http://localhost:8103/__admin/ns/one/",
       fetch: (url: string, init?: RequestInit) => runtime.fetch(new Request(url, init)),
     })
     const two = new MedplumClient({
-      baseUrl: "http://localhost:8103/ns/two/",
+      baseUrl: "http://localhost:8103/__admin/ns/two/",
       fetch: (url: string, init?: RequestInit) => runtime.fetch(new Request(url, init)),
     })
     await one.startClientLogin(DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET)

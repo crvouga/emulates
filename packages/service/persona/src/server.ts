@@ -57,6 +57,7 @@ export const serveTarget: ServeTarget = {
     return createRuntime({
       ...(url ? { webhooks: { url, ...(secret ? { secret } : {}) } } : {}),
       ...(key ? { settings: { apiKeys: [key] } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -64,7 +65,7 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "API: PERSONA_API_URL=<this>/ (POST/GET /inquiries, GET /inquiries/{id}), Authorization: Bearer <key>",
-    "hosted flow: PERSONA_WEB_INQUIRY_URL=<this>/verify (or /ns/<name>/verify)",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "hosted flow: PERSONA_WEB_INQUIRY_URL=<this>/verify (or /__admin/ns/<name>/verify)",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

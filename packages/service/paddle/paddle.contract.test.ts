@@ -48,7 +48,7 @@ type ErrorEnvelope = { error: { type: string; code: string; detail: string; erro
 describe("the service contract", () => {
   test("health, auth errors, not found and the x-mockingbird header", async () => {
     const { call, json } = harness()
-    expect((await call("/health", { key: "" })).status).toBe(200)
+    expect((await call("/__admin/health", { key: "" })).status).toBe(200)
     const missing = await call("/customers", { key: "" })
     expect(missing.status).toBe(403)
     expect(((await missing.json()) as ErrorEnvelope).error.code).toBe("authentication_missing")
@@ -69,7 +69,7 @@ describe("the service contract", () => {
     expect(invalid.error.errors).toEqual([{ field: "email", message: "email: required field" }])
   })
 
-  test("namespaces by header, by /ns/ prefix and by API key are isolated", async () => {
+  test("namespaces by header, by /__admin/ns/ prefix and by API key are isolated", async () => {
     const { call, json } = harness()
     await call("/__admin/credentials", {
       method: "PUT",
@@ -89,9 +89,9 @@ describe("the service contract", () => {
       (await call(`/customers/${created.data.id}`, { headers: { "x-mockingbird-namespace": "a" } }))
         .status,
     ).toBe(200)
-    expect((await call(`/ns/a/customers/${created.data.id}`)).status).toBe(200)
+    expect((await call(`/__admin/ns/a/customers/${created.data.id}`)).status).toBe(200)
     const page = await json<{ meta: { pagination: { next: string } } }>(
-      "/ns/a/customers?per_page=1",
+      "/__admin/ns/a/customers?per_page=1",
     )
     expect(page.meta.pagination.next).toMatch(
       /^http:\/\/paddle\.mock\/ns\/a\/customers\?per_page=1&after=ctm_/,
@@ -510,7 +510,7 @@ describe("served over HTTP", () => {
       },
       COMMON,
     )
-    const health = (await (await runtime.fetch(new Request(`${API}/health`))).json()) as {
+    const health = (await (await runtime.fetch(new Request(`${API}/__admin/health`))).json()) as {
       webhooks: string
       paymentLink: string
       fixtures: boolean

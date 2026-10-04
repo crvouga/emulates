@@ -138,7 +138,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n, "latencyM
 
 The Twilio SDK cannot add headers, so a suite picks a namespace by **AccountSid**:
 `PUT /__admin/credentials {"credentials": {"<TWILIO_ACCOUNT_SID>": "<namespace>"}}`. A namespace
-can also come from the `x-mockingbird-namespace` header or a `/ns/<name>` prefix on the base URL
+can also come from the `x-mockingbird-namespace` header or a `/__admin/ns/<name>` prefix on the base URL
 (`twilioMockUrl` keeps the prefix).
 
 ### Deliberately not modelled

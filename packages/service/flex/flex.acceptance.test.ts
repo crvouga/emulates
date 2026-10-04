@@ -643,7 +643,7 @@ describe("S4.6 hosted page", () => {
     expect((await h.runtime.fetch(new Request(`${API}/pay/fcs_missing`))).status).toBe(404)
   })
 
-  test("in a namespace, the hosted URL carries /ns/<name> (the browser sends no headers)", async () => {
+  test("in a namespace, the hosted URL carries /__admin/ns/<name> (the browser sends no headers)", async () => {
     const h = harness()
     await h.admin("/credentials", { credentials: { fsk_test_worker_b: "b" } }, "PUT")
     const worker = new FlexApiClient({
@@ -664,7 +664,7 @@ describe("S4.6 hosted page", () => {
       },
       "ns-key",
     )
-    expect(new URL(session.redirect_url).pathname).toBe(`/ns/b/pay/${session.checkout_session_id}`)
+    expect(new URL(session.redirect_url).pathname).toBe(`/__admin/ns/b/pay/${session.checkout_session_id}`)
     const paid = await payOnHostedPage((r) => h.runtime.fetch(r), session.redirect_url, HSA)
     expect(paid.response.status).toBe(302)
     expect((await worker.getCheckoutSession(session.checkout_session_id)).status).toBe("complete")

@@ -71,8 +71,8 @@ afterAll(() => {
 })
 
 describe("junction mock server contract", () => {
-  test("/health is reachable without auth", async () => {
-    const response = await fetch(`${base}/health`)
+  test("/__admin/health is reachable without auth", async () => {
+    const response = await fetch(`${base}/__admin/health`)
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ status: "ok" })
   })

@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
   audioTurnChunks: 0,
 }
 
-/** Counts for `GET /__admin/scripts` (and `/health`): metadata only. */
+/** Counts for `GET /__admin/scripts` (and `/__admin/health`): metadata only. */
 export type ModelStats = {
   calls: number
   scripted: number

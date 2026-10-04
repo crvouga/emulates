@@ -87,6 +87,7 @@ export type GoogleMapsAPIOptions = APIOptions & {
   /** Initial per-namespace settings (accepted keys, public URL for the JS shim). */
   settings?: Partial<Settings>
   /** The public namespace name, so the JS shim can call back into the same namespace. */
+  adminPrefix?: string
   publicNamespace?: string
 }
 
@@ -154,11 +155,13 @@ export class GoogleMapsAPI implements FetchAPI {
   readonly sqlite: SqliteClient
   readonly state: GoogleMapsState
   private readonly service: Service
+  private readonly adminPrefix: string
   private readonly publicNamespace: string
 
   constructor(options: GoogleMapsAPIOptions = {}) {
     const sqlite = bootSqlite(options.sqlite)
     const namespace = options.namespace ?? GOOGLE_MAPS_NAMESPACE
+    this.adminPrefix = options.adminPrefix ?? "/__admin"
     this.publicNamespace = options.publicNamespace ?? "default"
     this.state = new GoogleMapsState(sqlite, namespace, {
       corpus: options.corpus ?? [],
@@ -410,7 +413,7 @@ export class GoogleMapsAPI implements FetchAPI {
     const settings = this.state.current()
     const origin = (settings.publicUrl ?? context.url.origin).replace(/\/$/, "")
     const prefix =
-      this.publicNamespace === "default" ? "" : `/ns/${encodeURIComponent(this.publicNamespace)}`
+      this.publicNamespace === "default" ? "" : `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
     const callback = text(context.query.callback) ?? null
     const safeCallback = callback && /^[A-Za-z_$][\w$.]*$/.test(callback) ? callback : null
     const authFailed = !key || (settings.keys.length > 0 && !settings.keys.includes(key))

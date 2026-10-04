@@ -113,7 +113,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `token
 
 ### Namespaces
 
-A `/ns/<name>/` suffix on `FULLSCRIPT_API_URL` (our client resolves relative `api/…` paths, so
+A `/__admin/ns/<name>/` suffix on `FULLSCRIPT_API_URL` (our client resolves relative `api/…` paths, so
 the prefix survives, and PDF URLs keep it), `x-mockingbird-namespace`, or by OAuth client for
 API calls (`PUT /__admin/credentials {"credentials": {"<FULLSCRIPT_CLIENT_ID>": "<ns>"}}`;
 tokens carry the client they were issued to). Token requests carry the client only in their

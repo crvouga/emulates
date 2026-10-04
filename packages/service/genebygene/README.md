@@ -48,8 +48,8 @@ changes:
 
 | App env | Value |
 | --- | --- |
-| `GENE_BY_GENE_API_URL` (alias `GENE_BY_GENE_API_BASE_URL`) | `http://127.0.0.1:8788` (or `…/ns/<namespace>`) |
-| `GENE_BY_GENE_API_ACCESS_TOKEN_URL` | `http://127.0.0.1:8788/connect/token` (or `…/ns/<namespace>/connect/token`) |
+| `GENE_BY_GENE_API_URL` (alias `GENE_BY_GENE_API_BASE_URL`) | `http://127.0.0.1:8788` (or `…/__admin/ns/<namespace>`) |
+| `GENE_BY_GENE_API_ACCESS_TOKEN_URL` | `http://127.0.0.1:8788/connect/token` (or `…/__admin/ns/<namespace>/connect/token`) |
 | `GENE_BY_GENE_API_KEY` / `GENE_BY_GENE_API_CLIENT_SECRET` | anything, unless `--client-id/--client-secret` pin a pair |
 | `GENE_BY_GENE_RESULTS_S3_*` | the stack's s3rver, matching `--results-s3-endpoint/--results-s3-bucket` |
 
@@ -102,7 +102,7 @@ await admin("/kits/WB3K9Q2X/transition", { to: "Error", errorCode: 19 }) // Kit.
 | `PATCH /api/v2/kits/{kitNumber}/attributes` | `{kitNumber, attributes:[{name, value}]}` (names matched case-insensitively against the recorded attribute catalog, stored lowercase: our consumer sends `firstname, lastname, dateofbirth, gender, race, ethnicity`). Unknown name → 400; bad `dateofbirth` (not `YYYYMMDD`) or `gender` (not `M/F/Unknown`) → 422; returns every attribute. |
 | `DELETE /api/v2/fulfillments/{id}`, `/api/v2/kits/{kit}/orderLines`, `/api/v2/orderLines/{id}` | The three cancel layers: 204; a shipped or already-canceled fulfillment, or a kit/line already with the lab, is 400 "… not in a cancellable status"; unknown or already-canceled kits/lines are 404 `Resource not found.` (`Kit <kit> not found` for a kit). Canceling a fulfillment or a kit sends `Kit.KitOrderLine.Canceled`. |
 | `GET /api/v2/results[?kitNumber]`, `/api/v2/kits/{kit}/results`, `/api/v2/results/search` | An unknown `kitNumber` filter is an empty page. `{resultPayload: "s3://<bucket>/<namespace>/<kit>.<json\|csv\|pdf>", resultType, resultDisplayName, resultDate, orderLineId, orderId, kitNumber, resultId}`. |
-| `GET /api/v2/results/results/presignedUrl?resultId&kitNumber&resultType` | Needs a `resultId`, or a `kitNumber` with a `resultType` (400 `'Result Id' must not be empty.` …); none matching is 404 "There is no report assoicated with that result" (staging's spelling). `{presignedUrl, resultId, kitNumber, resultType, expiresAt}`; the URL is `GET {mock}/__blob/<key>?X-Amz-…` and answers the bytes, or 403 `AccessDenied` (bad signature, expired on the mock clock, or the `presigned_access_denied` preset). |
+| `GET /api/v2/results/results/presignedUrl?resultId&kitNumber&resultType` | Needs a `resultId`, or a `kitNumber` with a `resultType` (400 `'Result Id' must not be empty.` …); none matching is 404 "There is no report assoicated with that result" (staging's spelling). `{presignedUrl, resultId, kitNumber, resultType, expiresAt}`; the URL is `GET {mock}/__admin/blobs/<key>?X-Amz-…` and answers the bytes, or 403 `AccessDenied` (bad signature, expired on the mock clock, or the `presigned_access_denied` preset). |
 | `GET /api/v2/attributes[?entityType]`, `/api/v2/eventTypes[?name]` | The recorded live catalogs (`src/corpus/live-catalogs.json`): 240 attribute definitions and 12 event types `{name, payloadStructure, subscriptionTypes}`. A blank `name` lists them all. |
 | `GET/POST /api/v2/notificationSubscriptions`, `GET/PATCH/DELETE …/{id}` | `{id, endPoint, events, secret, active, …}`. `secret` is returned **only** by POST. Accepts `application/json-patch+json`. `Kit.KitOrderLine.Canceled` (or any name the event-type list lacks) in `events` is 400 "Valid event type is required."; a second subscription for the same endpoint is 400; an unknown id is 404 `Invalid Id <id>` (the empty GUID: 400 `Valid Notification Subscription Id required.`) |
 
@@ -258,7 +258,7 @@ shipped place answers Address Not Found even for a good street), `slow_orders` (
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on both `GENE_BY_GENE_API_URL` and the token
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on both `GENE_BY_GENE_API_URL` and the token
 URL, or by client id: `PUT /__admin/credentials {"credentials": {"<client_id>": "<namespace>"}}`
 (tokens carry the client id they were issued to). Kit numbers and result keys are salted per
 namespace, so parallel workers never collide in the shared results bucket.

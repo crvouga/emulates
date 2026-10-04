@@ -74,7 +74,7 @@ export class WebhookEvents {
 export default {
   async fetch(request: Request, environment: Environment) {
     const url = new URL(request.url)
-    if (request.method === "GET" && url.pathname === "/health") return json(200, { status: "ok" })
+    if (request.method === "GET" && url.pathname === "/__admin/health") return json(200, { status: "ok" })
     if (request.method === "GET" && url.pathname.startsWith("/events/")) {
       const runId = decodeURIComponent(url.pathname.slice("/events/".length)).trim()
       if (!runId) return json(400, { error: "missing_run_id" })

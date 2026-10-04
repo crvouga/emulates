@@ -92,9 +92,9 @@ const admin = (runtime: JunctionRuntime, method: string, path: string, body?: un
   call(runtime, method, `/__admin${path}`, body !== undefined ? { body } : {})
 
 describe("service contract", () => {
-  test("/health needs no vendor key and names the corpus", async () => {
+  test("/__admin/health needs no vendor key and names the corpus", async () => {
     const runtime = createRuntime({ corpus: defaultCorpus })
-    const res = await runtime.fetch(new Request("http://mock.local/health"))
+    const res = await runtime.fetch(new Request("http://mock.local/__admin/health"))
     expect(res.status).toBe(200)
     const body = (await res.json()) as Json
     expect(body).toMatchObject({ status: "ok", service: "junction", geo: "corpus" })

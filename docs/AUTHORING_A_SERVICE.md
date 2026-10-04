@@ -31,13 +31,30 @@ packages/service/<name>/
 
 `createRuntime({ name, document, create, … })` wraps your API class in the standard contract:
 
+Every Mockingbird HTTP extension lives under one reserved prefix, default `/__admin`.
+Set `adminPrefix` on any mock's `createRuntime` / `createServer`, or use
+`serve --admin-prefix /_control/mock` (`MOCKINGBIRD_ADMIN_PREFIX`). It moves health,
+admin APIs, UI, signed mock downloads, and namespace base URLs together. Prefixes
+are absolute non-root paths of literal letters, digits, underscores and hyphens,
+without a trailing slash. The runtime rejects declared vendor routes that overlap
+the chosen literal tree; choose another prefix to resolve a collision. Vendor catch-all
+roots (such as S3 `/{bucket}/{key}`) dispatch after the reserved internal tree: the
+prefix is never a vendor resource name. Change the prefix if a test needs that name.
+All other paths belong to the vendor. `/health` and `/ns/<name>` have no compatibility aliases.
+
+Service admin routes are relative (`GET /settings`), never mounted separately.
+Signed transport stand-ins may declare `x-mockingbird-internal: true` on an OpenAPI
+path under `/__admin/blobs/`; the runtime relocates it with the prefix while retaining
+its signature authentication, faults, logging and vendor response shape. Never put
+Mockingbird-specific paths into the vendor contract without that annotation.
+
 | Contract item | How |
 | --- | --- |
-| `GET /health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-mockingbird` response header | automatic |
+| `GET /__admin/health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-mockingbird` response header | automatic |
 | State introspection | automatic. `GET /__admin/state` lists every collection: ones you declare with `state:`, every `Collection` hanging off the instance, and every name already stored. `POST /__admin/state/:collection` with `{ id?, value }` creates a row; `PUT` replaces, `PATCH` shallow-merges an object, `DELETE` removes it. A successful write checkpoints `main`. The same view is `runtime.state(namespace?)`. |
 | Admin UI | automatic at `GET /__admin/ui` (the HTML shell is not behind the admin key; `/__admin/ui/manifest` and the data routes are). Pass `adminUi.panels` to add a view (`id`, `title`, `html`, optional `script` called as `(root, api) => void`). Pass `adminUi.render({ service, defaultHtml })` to replace the document; call `defaultHtml()` to keep the shared shell. [`packages/service/plane`](../packages/service/plane) is the bespoke-panel example. |
 | Namespaces by header | automatic (`x-mockingbird-namespace`) |
-| Namespaces by path prefix | automatic: `/ns/<name>/…` is stripped and selects `<name>` |
+| Namespaces by path prefix | automatic: `/__admin/ns/<name>/…` is stripped and selects `<name>` |
 | Namespaces by credential | pass `credential: (request) => string \| undefined` (`bearerToken`, `basicAuth(r)?.username`, `sigV4AccessKeyId`, or your own); suites map credentials with `PUT /__admin/credentials {"credentials": {"<cred>": "<ns>"}}` |
 | Fault injection | automatic (`POST /__admin/faults {operationId?, method?, pathPrefix?, status?, body?, count?, rate?, latencyMs?, drop?, effect?}`) |
 | Fault presets | pass `presets: Record<string, FaultPreset>`; `POST /__admin/faults {"preset": "name", "count"?: n}`, `GET /__admin/faults/presets` |
@@ -54,7 +71,7 @@ Handlers are keyed by `operationId` (`defineOperations<SupportedOperationId>({..
 `createRuntime` returns a `MockSurface`. Extra methods (`tick`, a typed webhook hub, account
 directories) stay on the value; removing a shared member fails the typecheck.
 `packages/service/conformance` imports every HTTP mock's `createRuntime` and checks it is
-`(options?: MockCreateOptions) => MockSurface`, then probes `/health`, `/__admin`, `/__admin/ui`,
+`(options?: MockCreateOptions) => MockSurface`, then probes `/__admin/health`, `/__admin`, `/__admin/ui`,
 and `/__admin/state`. A new mock has to be added there. `defineMock` is the same check for a
 runtime you build by hand. Service admin routes add keys beside the standard ones; a standard key
 keeps the shared handler.
@@ -106,7 +123,7 @@ would echo back.
    exact version our consumer pins and point it at the mock (base URL / endpoint override /
    custom fetch). Signature verification with the vendor's own verifier (`stripe.webhooks
    .constructEvent`, `svix`'s `Webhook.verify`, `twilio.validateRequest`) beats a re-implementation.
-4. **Contract/runtime**: `/health`, namespace isolation (header, `/ns/` prefix, credential),
+4. **Contract/runtime**: `/__admin/health`, namespace isolation (header, `/__admin/ns/` prefix, credential),
    presets (each one named in the catalog), webhook signing verified with an independent HMAC
    (`node:crypto`), journal holds no bodies.
 5. **Served over HTTP**: start `createServer()`, hit it with plain `fetch`, receive a webhook on a

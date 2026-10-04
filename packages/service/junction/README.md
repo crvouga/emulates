@@ -111,7 +111,7 @@ npx mockingbird-junction serve --config mockingbird.json
 import { createServer } from "@crvouga/mockingbird-service-junction/server"
 
 const server = await createServer() // shipped corpus, any free port
-const health = await fetch(`${server.url}/health`)
+const health = await fetch(`${server.url}/__admin/health`)
 console.log(health.status) // 200
 
 // Point the Vital SDK (or your backend's Junction base URL) at server.url, then:
@@ -226,7 +226,7 @@ while keeping the production and sandbox guards intact.
 
 Every Mockingbird service answers the same control surface, outside the vendor's auth gate:
 
-- `GET /health` — unauthenticated readiness probe:
+- `GET /__admin/health` — unauthenticated readiness probe:
   `{ "status": "ok", "service": "junction", "corpus": "<label>", "geo": "corpus", … }`.
 - `/__admin/*` — the control plane. Open by default; with `--admin-key` / `adminKey` it requires
   `x-mockingbird-admin-key`, which is separate from any vendor key. Admin errors have one shape,
@@ -696,7 +696,7 @@ With a fixed clock (`clock` / `POST /__admin/clock {"set": …, "freeze": true}`
 replays exactly. Stable across runs: user ids, order ids, event ids, sample ids, booking keys and
 webhook message ids (derived from sequence numbers), timestamps (from the clock), generated
 availability, and which requests a partial-`rate` fault hits. Wall-clock by design: webhook
-`svix-timestamp`, `/health` uptime, and request log durations.
+`svix-timestamp`, `/__admin/health` uptime, and request log durations.
 
 ## What is and is not modelled
 
@@ -739,7 +739,7 @@ Main entry (`@crvouga/mockingbird-service-junction`, runtime-neutral):
 | `pullCorpus` | `(options: PullCorpusOptions) => Promise<SealedCorpus>` — record a corpus from a real team (GETs only). |
 | `diffCorpus` | `(before, after) => CorpusDiff` — ZIPs, lab tests, lab accounts and observations added / removed / changed. |
 | `fingerprintCorpus` | `(corpus) => Promise<string>` — SHA-256 of a corpus's content. |
-| `corpusLabel` | `(corpus) => string` — the short label `/health` and logs show, e.g. `v1-2026-09-18-HqFDuEAuhkwD`. |
+| `corpusLabel` | `(corpus) => string` — the short label `/__admin/health` and logs show, e.g. `v1-2026-09-18-HqFDuEAuhkwD`. |
 | `parseSealedCorpus` | `(value: unknown) => SealedCorpus`; throws on a non-object or unsupported `version`. |
 | `SEALED_CORPUS_VERSION` | Current corpus format version (`2`: adds `teamId`). |
 | `SUPPORTED_SEALED_CORPUS_VERSIONS` | Versions `parseSealedCorpus` loads (`[1, 2]`). |

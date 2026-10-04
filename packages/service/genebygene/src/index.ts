@@ -202,6 +202,7 @@ export type GeneByGeneAPIOptions = APIOptions & {
   /** Also write result files here (the stack's s3rver); `resultPayload` then names its bucket. */
   resultsS3?: S3Target
   /** The public namespace name, put on presigned URLs (`?namespace=`) so they route back here. */
+  adminPrefix?: string
   publicNamespace?: string
 }
 
@@ -660,7 +661,7 @@ const csv = (value: string | undefined) =>
  * fulfillments (an outbound shipment plus a return label) and every line carries the order's
  * kit numbers. Kits move along the status ladder only through admin transitions, which emit the
  * matching notification and, at `Completed`, publish result files (JSON, PDF, CSV) that
- * `presignedUrl` and `GET /__blob/<key>` serve and, when configured, the stack's S3 receives.
+ * `presignedUrl` and `GET /__admin/blobs/<key>` serve and, when configured, the stack's S3 receives.
  */
 export class GeneByGeneAPI implements FetchAPI {
   readonly app: Hono
@@ -670,6 +671,7 @@ export class GeneByGeneAPI implements FetchAPI {
   private readonly now: () => number
   private readonly onWebhook: ((event: GxgWebhook) => void) | undefined
   private readonly resultsS3: S3Target | undefined
+  private readonly adminPrefix: string
   private readonly publicNamespace: string | undefined
 
   constructor(options: GeneByGeneAPIOptions = {}) {
@@ -678,6 +680,7 @@ export class GeneByGeneAPI implements FetchAPI {
     this.now = options.now ?? (() => Date.now())
     this.onWebhook = options.onWebhook
     this.resultsS3 = options.resultsS3
+    this.adminPrefix = options.adminPrefix ?? "/__admin"
     this.publicNamespace = options.publicNamespace
     this.state = new GeneByGeneState(sqlite, namespace, {
       products: options.products ?? [],
@@ -2069,7 +2072,7 @@ export class GeneByGeneAPI implements FetchAPI {
     })
     return annotateResponse(
       jsonRes(200, {
-        presignedUrl: `${context.url.origin}/__blob/${encodeURIComponent(result.key)}?${params}`,
+        presignedUrl: `${context.url.origin}${this.adminPrefix}/blobs/${encodeURIComponent(result.key)}?${params}`,
         resultId: result.resultId,
         kitNumber: result.kitNumber,
         resultType: result.resultType,

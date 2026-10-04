@@ -80,6 +80,7 @@ export type AhaRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -207,8 +208,8 @@ const adminRoutes = (runtime: ServiceRuntime<AhaAPI>): AdminRoutes => ({
 })
 
 /**
- * The AHA mock with Mockingbird's full service contract: `/health`, `/__admin/*`, namespaces
- * by header, by `/ns/<name>` prefix on `AHA_API_URL`, or by API key
+ * The AHA mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * by header, by `/__admin/ns/<name>` prefix on `AHA_API_URL`, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<AHA_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets, webhooks and a request journal.
  */
@@ -226,6 +227,7 @@ export const createRuntime = (options: AhaRuntimeOptions = {}): AhaRuntime => {
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: apiKeyCredential,

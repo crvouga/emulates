@@ -114,7 +114,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n, "params"?
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the webhook URL or API base, or by
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the webhook URL or API base, or by
 credential: `PUT /__admin/credentials {"credentials": {"xoxb-worker-a": "a", "T000/B000/XXXX": "b"}}`
 maps a bot token or a webhook's `T/B/X` path to a namespace.
 

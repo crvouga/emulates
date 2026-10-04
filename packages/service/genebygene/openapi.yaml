@@ -4,7 +4,7 @@ openapi: 3.0.1
 info:
   title: "Nucleus API v2.0 (Gene by Gene), vendored for Mockingbird"
   version: "2.0"
-  description: "Gene by Gene's Nucleus API v2, vendored from the Swagger document our consumer commits\n(`GXG/transport/spec/gxg-openapi.json`, source https://demo-api.genebygene.com/swagger/v2/swagger.json)\nby `scripts/vendor-openapi.ts`, with operationIds, Mockingbird annotations, the fields the live\nAPI returns but Swagger omits, the auth host's `/connect/token`, and the mock's `/__blob/{key}`."
+  description: "Gene by Gene's Nucleus API v2, vendored from the Swagger document our consumer commits\n(`GXG/transport/spec/gxg-openapi.json`, source https://demo-api.genebygene.com/swagger/v2/swagger.json)\nby `scripts/vendor-openapi.ts`, with operationIds, Mockingbird annotations, the fields the live\nAPI returns but Swagger omits, the auth host's `/connect/token`, and the mock's `/__admin/blobs/{key}`."
   x-mockingbird-upstream:
     swagger: https://demo-api.genebygene.com/swagger/v2/swagger.json
     docs: https://api.genebygene.com/assets/GxG%20API%20Services%20Developer%20Guide%202022.pdf
@@ -2409,7 +2409,8 @@ paths:
                 $ref: "#/components/schemas/.ErrorDto"
         "500":
           description: Internal Server Error
-  "/__blob/{key}":
+  "/__admin/blobs/{key}":
+    x-mockingbird-internal: true
     get:
       tags:
         - Mockingbird

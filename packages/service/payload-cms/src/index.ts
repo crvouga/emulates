@@ -48,7 +48,7 @@ const NOT_FOUND = "The requested resource was not found."
 /**
  * The credential a request carries: an API key (`Authorization: <collection> API-Key <key>`)
  * or a bearer JWT. Our backend sends none (the marketing collection is public), so namespaces
- * usually come from the header or the `/ns/<name>` prefix on `PAYLOAD_CMS_API_URL`.
+ * usually come from the header or the `/__admin/ns/<name>` prefix on `PAYLOAD_CMS_API_URL`.
  */
 export const payloadCredential = (request: Request): string | undefined => {
   const header = request.headers.get("authorization") ?? ""

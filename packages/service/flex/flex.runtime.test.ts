@@ -46,9 +46,9 @@ const call = (
   )
 
 describe("service contract", () => {
-  test("/health, the x-mockingbird header, and the admin route list", async () => {
+  test("/__admin/health, the x-mockingbird header, and the admin route list", async () => {
     const runtime = createRuntime()
-    const health = await call(runtime, "/health")
+    const health = await call(runtime, "/__admin/health")
     expect(health.status).toBe(200)
     expect(await health.json()).toMatchObject({
       status: "ok",
@@ -71,7 +71,7 @@ describe("service contract", () => {
     }
   })
 
-  test("namespaces by header, by /ns/ prefix and by API key stay isolated", async () => {
+  test("namespaces by header, by /__admin/ns/ prefix and by API key stay isolated", async () => {
     const runtime = createRuntime()
     const created = await call(runtime, "/v1/checkout/sessions", {
       key: "fsk_test_a",
@@ -81,7 +81,7 @@ describe("service contract", () => {
     const id = ((await created.json()) as { checkout_session: { checkout_session_id: string } })
       .checkout_session.checkout_session_id
     expect(
-      (await call(runtime, `/ns/a/v1/checkout/sessions/${id}`, { key: "fsk_test_x" })).status,
+      (await call(runtime, `/__admin/ns/a/v1/checkout/sessions/${id}`, { key: "fsk_test_x" })).status,
     ).toBe(200)
     expect((await call(runtime, `/v1/checkout/sessions/${id}`, { key: "fsk_test_a" })).status).toBe(
       404,

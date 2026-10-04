@@ -4,9 +4,9 @@ import { createRuntime } from "./src/index.js"
 const AUTH = { authorization: "Bearer sk_test_mockingbird" }
 const at = (namespace: string) => ({ ...AUTH, "x-mockingbird-namespace": namespace })
 
-test("/health answers without credentials; vendor routes still require them", async () => {
+test("/__admin/health answers without credentials; vendor routes still require them", async () => {
   const runtime = createRuntime()
-  const health = await runtime.fetch(new Request("http://mock.local/health"))
+  const health = await runtime.fetch(new Request("http://mock.local/__admin/health"))
   expect(health.status).toBe(200)
   expect(await health.json()).toMatchObject({ status: "ok", service: "stripe" })
   const vendor = await runtime.fetch(

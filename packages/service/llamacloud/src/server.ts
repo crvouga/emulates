@@ -70,6 +70,7 @@ export const serveTarget: ServeTarget = {
           ? { pipelines: [{ name: "acme-member-kb-v1", projectName: project }] }
           : {}),
       ...(key ? { settings: { apiKeys: [key] } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -78,6 +79,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Bearer <LLAMACLOUD_API_KEY>",
     "backend: LLAMACLOUD_BASE_URL=<this>/api/v1; Python chat SDK: LLAMA_CLOUD_BASE_URL=<this>",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

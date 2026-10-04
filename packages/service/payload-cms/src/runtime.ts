@@ -86,6 +86,7 @@ export type PayloadCmsRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Collections every namespace starts with. Default: the marketing collection seed. */
@@ -144,8 +145,8 @@ const adminRoutes = (runtime: ServiceRuntime<PayloadCmsAPI>): AdminRoutes => ({
 })
 
 /**
- * The Payload CMS mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix (on `PAYLOAD_CMS_API_URL`), or by API key
+ * The Payload CMS mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix (on `PAYLOAD_CMS_API_URL`), or by API key
  * / bearer token, clock control, fault presets and a request journal.
  */
 export const createRuntime = (options: PayloadCmsRuntimeOptions = {}): PayloadCmsRuntime =>
@@ -155,6 +156,7 @@ export const createRuntime = (options: PayloadCmsRuntimeOptions = {}): PayloadCm
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: payloadCredential,

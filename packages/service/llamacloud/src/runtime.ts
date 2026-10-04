@@ -54,6 +54,7 @@ export type LlamaCloudRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   pipelines?: readonly PipelineSeed[]
@@ -156,8 +157,8 @@ const adminRoutes = (runtime: ServiceRuntime<LlamaCloudAPI>): AdminRoutes => ({
 })
 
 /**
- * The LlamaCloud mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by API key
+ * The LlamaCloud mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<LLAMACLOUD_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets and a request journal (metadata only: never queries or text).
  */
@@ -168,6 +169,7 @@ export const createRuntime = (options: LlamaCloudRuntimeOptions = {}): LlamaClou
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: bearerToken,

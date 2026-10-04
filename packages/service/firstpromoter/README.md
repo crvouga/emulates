@@ -99,7 +99,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix in `FIRST_PROMOTER_API_URL`, or by API key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix in `FIRST_PROMOTER_API_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<FIRST_PROMOTER_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled

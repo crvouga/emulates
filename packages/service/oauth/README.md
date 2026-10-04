@@ -71,7 +71,7 @@ Override the authorization, token, userinfo and JWKS endpoints in your applicati
 
 For example, an Auth.js-style OIDC provider can use `type: "oidc"`, `issuer: "http://localhost:8810"`, `clientId`, `clientSecret`, and `checks: ["pkce", "state"]`. For existing Google/Apple presets, override **all** remote endpoints and issuer validation; changing the authorization URL alone is insufficient. In-process HTTP clients can route requests to `identity.fetch`. Browser navigation must reach a served mock or a service worker that routes those requests.
 
-The issuer defaults to the incoming origin (and `/ns/<name>` when used). Set `issuer` to the public URL behind a reverse proxy; it may include a mount path. Avoid a fixed issuer shared across namespaces: use the namespace URL and its own discovery/JWKS so each namespace remains an independent issuer.
+The issuer defaults to the incoming origin (and `/__admin/ns/<name>` when used). Set `issuer` to the public URL behind a reverse proxy; it may include a mount path. Avoid a fixed issuer shared across namespaces: use the namespace URL and its own discovery/JWKS so each namespace remains an independent issuer.
 
 ### Multiple providers on one listener
 
@@ -93,7 +93,7 @@ const server = await createMultiServer({
 })
 ```
 
-Use `/ns/<name>/<mount>/…` for URL-selected namespaces. `GET /health` reports every mount; `POST /__admin/reset?all=1` resets them atomically. Other aggregate admin requests select a runtime with `?mount=/google`, while mount-scoped controls are also available at `/google/__admin/*`. Duplicate or unsafe mount paths, duplicate explicit issuers, and duplicate client/key IDs within a mount fail before the listener starts.
+Use `/__admin/ns/<name>/<mount>/…` for URL-selected namespaces. `GET /__admin/health` reports every mount; `POST /__admin/reset?all=1` resets them atomically. Other aggregate admin requests select a runtime with `?mount=/google`, while mount-scoped controls are also available at `/google/__admin/*`. Duplicate or unsafe mount paths, duplicate explicit issuers, and duplicate client/key IDs within a mount fail before the listener starts.
 
 For the CLI, put the same `mounts` array in a JSON file and run `npx mockingbird-oauth serve --mounts oauth-mounts.json --port 8810`.
 
@@ -250,7 +250,7 @@ const runtime = createRuntime({
 
 ### Shared service controls
 
-The runtime supplies `/health`, `/__admin/reset`, snapshots, mock clock, request journal, metrics, fault injection and namespace isolation. Use `x-mockingbird-namespace` for in-process tests or `/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
+The runtime supplies `/__admin/health`, `/__admin/reset`, snapshots, mock clock, request journal, metrics, fault injection and namespace isolation. Use `x-mockingbird-namespace` for in-process tests or `/__admin/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
 
 `OAUTH_PRESETS` includes `token_unavailable` and `access_denied`. Fault rules can also target a provider-specific path, e.g. `POST /__admin/faults` with `{"pathPrefix":"/auth/token","status":503,"body":{"error":"temporarily_unavailable"}}`. The only outbound requests are the Apple notifications above. Journals contain request metadata, never passwords or request bodies.
 

@@ -120,7 +120,8 @@ export type FlexAPIOptions = APIOptions & {
   products?: readonly ProductRecord[]
   /** Initial per-namespace settings. */
   settings?: Partial<Settings>
-  /** The public namespace name, so hosted-page URLs carry `/ns/<name>` (the browser has no headers). */
+  /** The public namespace name, so hosted-page URLs carry `/__admin/ns/<name>` (the browser has no headers). */
+  adminPrefix?: string
   publicNamespace?: string
   /** Called for every webhook event; the runtime signs and delivers it. */
   onEvent?: (event: FlexEvent) => void
@@ -207,6 +208,7 @@ export class FlexAPI implements FetchAPI {
   private readonly service: Service
   private readonly idempotency: IdempotencyStore
   private readonly now: () => number
+  private readonly adminPrefix: string
   private readonly publicNamespace: string
   private readonly onEvent: ((event: FlexEvent) => void) | undefined
 
@@ -214,6 +216,7 @@ export class FlexAPI implements FetchAPI {
     const sqlite = bootSqlite(options.sqlite)
     const namespace = options.namespace ?? FLEX_NAMESPACE
     this.now = options.now ?? (() => Date.now())
+    this.adminPrefix = options.adminPrefix ?? "/__admin"
     this.publicNamespace = options.publicNamespace ?? "default"
     this.onEvent = options.onEvent
     this.state = new FlexState(sqlite, namespace, {
@@ -407,7 +410,7 @@ export class FlexAPI implements FetchAPI {
     const configured = this.state.current().publicUrl
     if (configured) return configured.replace(/\/$/, "")
     const prefix =
-      this.publicNamespace === "default" ? "" : `/ns/${encodeURIComponent(this.publicNamespace)}`
+      this.publicNamespace === "default" ? "" : `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
     return `${context.url.origin}${prefix}`
   }
 

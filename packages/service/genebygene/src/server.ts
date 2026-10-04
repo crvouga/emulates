@@ -111,6 +111,7 @@ export const serveTarget: ServeTarget = {
           ? { clients: [{ client_id: clientId, client_secret: clientSecret }] }
           : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -119,6 +120,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: POST /connect/token (form: grant_type=client_credentials, client_id, client_secret) on this same port",
     "api:  /api/v2/* with Authorization: Bearer <token>",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/… (API and token URL), or PUT /__admin/credentials {<client_id>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/… (API and token URL), or PUT /__admin/credentials {<client_id>: <ns>}",
   ],
 }

@@ -54,6 +54,7 @@ export type JunctionRuntimeOptions = {
   /** Seeds fault rates and webhook retry jitter. */
   seed?: number | string
   /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
 }
@@ -65,7 +66,7 @@ export type JunctionRuntime = ServiceRuntime<JunctionAPI> & {
 
 /**
  * The Junction mock with Mockingbird's full service contract: unauthenticated
- * `/health`, the `/__admin/*` control plane, per-request namespaces
+ * `/__admin/health`, the `/__admin/*` control plane, per-request namespaces
  * (`x-mockingbird-namespace`), clock control, fault injection and request metrics.
  * Runtime-neutral: serve it with any Fetch-native server, or use `./server` for Node.
  */
@@ -77,6 +78,7 @@ export const createRuntime = (options: JunctionRuntimeOptions = {}): JunctionRun
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     ...(options.journalSize !== undefined ? { journalSize: options.journalSize } : {}),

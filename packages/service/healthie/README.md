@@ -96,7 +96,7 @@ await healthie.fetch(
 | Route | Behaviour |
 | --- | --- |
 | `POST /graphql` | One document per request, sent as JSON `{query, variables, operationName}` or as a [GraphQL multipart request](https://github.com/jaydenseric/graphql-multipart-request-spec) (`operations`, `map`, file parts) for `Upload` variables. The `Authorization` header carries the API key as `Bearer <key>`, `Basic <key>` or the bare key. `AuthorizationSource: API` is accepted and ignored. Errors come back with HTTP 200, as on Healthie. A body that is not GraphQL gets a 400. |
-| `GET /files/{token}` | The bytes behind `document.expiring_url` and `user.avatar_url`, which point here on the request's own origin (with `/ns/<name>` when namespaced). Links are signed and expire on the mock clock (`expiringUrlSeconds`, default 300). A tampered or expired link gets a 403 and a deleted file a 404. Each download adds one entry to `document.opens`. |
+| `GET /files/{token}` | The bytes behind `document.expiring_url` and `user.avatar_url`, which point here on the request's own origin (with `/__admin/ns/<name>` when namespaced). Links are signed and expire on the mock clock (`expiringUrlSeconds`, default 300). A tampered or expired link gets a 403 and a deleted file a 404. Each download adds one entry to `document.opens`. |
 
 GraphQL root fields: `currentUser`, `user(id)`, `users(keywords, should_paginate, …)`,
 `location(id)`, `locations`, `documents(…)`, `document(id)`, `folders(…)`,
@@ -195,7 +195,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`):
 Choose a namespace in any of three ways:
 
 - the `x-mockingbird-namespace` header;
-- a `/ns/<name>/graphql` prefix on `HEALTHIE_API_URL` (file URLs keep the prefix);
+- a `/__admin/ns/<name>/graphql` prefix on `HEALTHIE_API_URL` (file URLs keep the prefix);
 - by API key, with `PUT /__admin/credentials {"credentials": {"<key>": "<namespace>"}}`.
 
 `signIn` sends no key, so parallel suites that sign in need the header or the path prefix.

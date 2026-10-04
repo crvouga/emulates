@@ -25,7 +25,7 @@ export const createWebhookCollector = (store: WebhookStore, readToken?: string) 
     c.set("store", store)
     return next()
   })
-  app.get("/health", (c) => c.json({ status: "ok" }))
+  app.get("/__admin/health", (c) => c.json({ status: "ok" }))
   app.use("/events/*", async (c, next) => {
     if (!readToken) return c.json({ error: "collector_read_token_not_configured" }, 503)
     if (c.req.header("authorization") !== `Bearer ${readToken}`)

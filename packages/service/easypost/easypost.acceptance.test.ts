@@ -189,7 +189,7 @@ describe("S25 EasyPost acceptance: our tracking lookup against the mock", () => 
     expect(journal.requests.every((r) => r.ids?.trackerId?.startsWith("trk_"))).toBe(true)
   })
 
-  test("namespaces by API key, by header and by /ns/ prefix isolate workers", async () => {
+  test("namespaces by API key, by header and by /__admin/ns/ prefix isolate workers", async () => {
     const { runtime, fetchImpl, admin } = harness()
     await admin("/credentials", { credentials: { EZTK_worker_a: "a", EZTK_worker_b: "b" } }, "PUT")
     await admin(`/trackers/${UPS}/transition?namespace=a`, { status: "delivered" })
@@ -197,7 +197,7 @@ describe("S25 EasyPost acceptance: our tracking lookup against the mock", () => 
       lookupTrackingStatus({ baseUrl, trackingNumber: UPS, apiKey, fetchImpl })
     expect((await as("EZTK_worker_a")).status).toBe("delivered")
     expect((await as("EZTK_worker_b")).status).toBe("unknown")
-    expect((await as(KEY, `${API}/ns/a`)).status).toBe("delivered")
+    expect((await as(KEY, `${API}/__admin/ns/a`)).status).toBe("delivered")
     const viaHeader = await runtime.fetch(
       new Request(`${API}/v2/trackers?tracking_code=${UPS}`, {
         headers: { authorization: `Basic ${btoa(`${KEY}:`)}`, "x-mockingbird-namespace": "a" },
@@ -207,7 +207,7 @@ describe("S25 EasyPost acceptance: our tracking lookup against the mock", () => 
     expect(((await viaHeader.json()) as { trackers: unknown[] }).trackers).toHaveLength(1)
   })
 
-  test("every documented preset is registered, and /health answers", async () => {
+  test("every documented preset is registered, and /__admin/health answers", async () => {
     expect(Object.keys(EASYPOST_PRESETS)).toEqual(
       expect.arrayContaining([
         "rate_limited",
@@ -218,7 +218,7 @@ describe("S25 EasyPost acceptance: our tracking lookup against the mock", () => 
       ]),
     )
     const { runtime } = harness()
-    const health = await runtime.fetch(new Request(`${API}/health`))
+    const health = await runtime.fetch(new Request(`${API}/__admin/health`))
     expect(((await health.json()) as { status: string }).status).toBe("ok")
   })
 })
@@ -240,7 +240,7 @@ describe("served over HTTP", () => {
         fetchImpl,
       })
       expect(result).toMatchObject({ status: "delivered", carrier: "USPS" })
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^easypost@/)
     } finally {
       await server.close()

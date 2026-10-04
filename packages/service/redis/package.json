@@ -72,6 +72,7 @@
   },
   "devDependencies": {
     "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-credentials": "workspace:*",
     "bullmq": "5.67.1",
     "ioredis": "5.11.1",

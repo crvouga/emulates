@@ -337,7 +337,7 @@ describe("S21 acceptance: our member app's address flows against the mock", () =
     expect(await loadGoogleMapsScript(fakeWindow(send), send, BASE, KEY)).toBe("error")
   })
 
-  test("namespaces by API key and by /ns/ prefix isolate custom addresses; the shim stays in its namespace", async () => {
+  test("namespaces by API key and by /__admin/ns/ prefix isolate custom addresses; the shim stays in its namespace", async () => {
     const { admin, send } = harness()
     await admin("/credentials", { credentials: { "key-worker-a": "a" } }, "PUT")
     const custom = {
@@ -360,9 +360,9 @@ describe("S21 acceptance: our member app's address flows against the mock", () =
     })
     expect(await b.fetchPredictions("77 Mockingbird")).toEqual([])
 
-    // `/ns/a` on the base URL: the shim it serves calls back through `/ns/a`.
+    // `/__admin/ns/a` on the base URL: the shim it serves calls back through `/__admin/ns/a`.
     const win = fakeWindow(send)
-    expect(await loadGoogleMapsScript(win, send, `${BASE}/ns/a`, "any-key")).toBe("loaded")
+    expect(await loadGoogleMapsScript(win, send, `${BASE}/__admin/ns/a`, "any-key")).toBe("loaded")
     const web = new WebAddressAutocomplete(win)
     expect((await web.fetchPredictions("77 Mockingbird"))[0]?.mainText).toBe("77 Mockingbird Ln")
     const other = fakeWindow(send)
@@ -372,9 +372,9 @@ describe("S21 acceptance: our member app's address flows against the mock", () =
     expect((await admin("/corpus", { addresses: [{ line1: "x" }] }, "PUT")).status).toBe(400)
   })
 
-  test("contract: /health, x-mockingbird header, every documented preset", async () => {
+  test("contract: /__admin/health, x-mockingbird header, every documented preset", async () => {
     const { runtime } = harness()
-    const health = await runtime.fetch(new Request(`${BASE}/health`))
+    const health = await runtime.fetch(new Request(`${BASE}/__admin/health`))
     expect(((await health.json()) as { service: string }).service).toBe("google-maps")
     expect(health.headers.get("x-mockingbird")).toMatch(/^google-maps@/)
     expect(Object.keys(GOOGLE_MAPS_PRESETS)).toEqual(
@@ -422,7 +422,7 @@ describe("served over HTTP", () => {
       const script = await fetch(`${server.url}/maps/api/js?key=${KEY}&libraries=places`)
       expect(script.headers.get("content-type")).toMatch(/javascript/)
       expect(await script.text()).toContain(server.url)
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^google-maps@/)
     } finally {
       await server.close()

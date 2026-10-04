@@ -8,6 +8,7 @@ import {
   type FaultPreset,
   outboxAdminRoutes,
   type RequestLog,
+  resolveAdminPrefix,
   type ServiceRuntime,
   signers,
   type WebhookEndpoint,
@@ -130,6 +131,7 @@ export type ForwardTarget = {
   /** The Mailosaur mock's base URL, e.g. `http://127.0.0.1:8793`. */
   url: string
   /** Its `x-mockingbird-admin-key`, when it has one. */
+  adminPrefix?: string
   adminKey?: string
   /** Give up on a forward after this long (the send still succeeds). Default 2000 ms. */
   timeoutMs?: number
@@ -149,25 +151,28 @@ export const forwardToInbox = async (
 ): Promise<boolean> => {
   const send = target.fetch ?? ((request: Request) => fetch(request))
   const response = await send(
-    new Request(`${target.url.replace(/\/$/, "")}/__admin/ingest`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-mockingbird-namespace": namespace,
-        ...(target.adminKey ? { "x-mockingbird-admin-key": target.adminKey } : {}),
+    new Request(
+      `${target.url.replace(/\/$/, "")}${resolveAdminPrefix(target.adminPrefix)}/ingest`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-mockingbird-namespace": namespace,
+          ...(target.adminKey ? { "x-mockingbird-admin-key": target.adminKey } : {}),
+        },
+        body: JSON.stringify({
+          from: email.from,
+          to: email.toHeader,
+          cc: email.cc,
+          bcc: email.bcc,
+          subject: email.subject,
+          html: email.html,
+          text: email.text,
+          headers: email.headers,
+        }),
+        signal: AbortSignal.timeout(target.timeoutMs ?? 2_000),
       },
-      body: JSON.stringify({
-        from: email.from,
-        to: email.toHeader,
-        cc: email.cc,
-        bcc: email.bcc,
-        subject: email.subject,
-        html: email.html,
-        text: email.text,
-        headers: email.headers,
-      }),
-      signal: AbortSignal.timeout(target.timeoutMs ?? 2_000),
-    }),
+    ),
   )
   await response.body?.cancel()
   return response.ok
@@ -177,6 +182,7 @@ export type ResendRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /**
@@ -277,8 +283,8 @@ const adminRoutes =
   })
 
 /**
- * The Resend mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by API key
+ * The Resend mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<RESEND_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets, an outbox, Svix-signed inbound webhooks and a request journal.
  */
@@ -299,16 +305,18 @@ export const createRuntime = (options: ResendRuntimeOptions = {}): ResendRuntime
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: bearerToken,
     presets: RESEND_PRESETS,
     webhooks: hub,
-    create: ({ sqlite, namespace, publicNamespace, clock }) =>
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) =>
       new ResendAPI({
         sqlite,
         namespace,
         publicNamespace,
+        adminPrefix,
         now: clock.now,
         onOutcome: (event) => recordOutcome(event),
         ...(target

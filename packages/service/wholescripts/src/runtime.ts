@@ -51,6 +51,7 @@ export type WholescriptsRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   catalog?: Catalog
@@ -141,8 +142,8 @@ const adminRoutes = (runtime: ServiceRuntime<WholescriptsAPI>): AdminRoutes => (
 })
 
 /**
- * The Wholescripts mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by Basic username
+ * The Wholescripts mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by Basic username
  * (`PUT /__admin/credentials {"credentials": {"<WHOLESCRIPTS_USERNAME>": "<namespace>"}}`),
  * clock control, fault presets and a request journal. Wholescripts sends no webhooks.
  */
@@ -153,6 +154,7 @@ export const createRuntime = (options: WholescriptsRuntimeOptions = {}): Wholesc
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: basicUsername,

@@ -85,7 +85,7 @@ export const FEATURES = [
   {
     icon: "terminal",
     title: "One contract for every service",
-    body: "Every HTTP mock shares `/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
+    body: "Every HTTP mock shares `/__admin/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
   },
 ] as const
 
@@ -130,7 +130,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
       "`createRuntime()` · `createServer()` (`./server`) · `mockingbird-<service> serve`",
       "The mock as one runtime-neutral `fetch`, or a listening server from Node or the CLI",
     ],
-    ["`GET /health`", "Unauthenticated readiness probe, outside the vendor's auth gate"],
+    ["`GET /__admin/health`", "Unauthenticated readiness probe, outside the vendor's auth gate"],
     [
       "`/__admin/*` (`x-mockingbird-admin-key` optional)",
       "Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes",

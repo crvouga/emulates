@@ -98,7 +98,7 @@ connection drops: the scheduler's "order may have been placed" branch), `status_
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `WHOLESCRIPTS_API_URL`, or by Basic
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `WHOLESCRIPTS_API_URL`, or by Basic
 username: `PUT /__admin/credentials {"credentials": {"<WHOLESCRIPTS_USERNAME>": "<namespace>"}}`.
 
 ### Corpus and seed data

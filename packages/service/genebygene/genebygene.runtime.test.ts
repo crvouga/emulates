@@ -40,9 +40,9 @@ const consumer = (
 }
 
 describe("service contract", () => {
-  test("/health answers without credentials and reports the corpus; vendor routes need a bearer", async () => {
+  test("/__admin/health answers without credentials and reports the corpus; vendor routes need a bearer", async () => {
     const runtime = createRuntime()
-    const health = await runtime.fetch(new Request("http://mock.local/health"))
+    const health = await runtime.fetch(new Request("http://mock.local/__admin/health"))
     expect(health.status).toBe(200)
     expect(await health.json()).toMatchObject({
       status: "ok",
@@ -89,10 +89,15 @@ describe("service contract", () => {
     ).toBe("Standard Swab Domestic Kit with DHL Return Label")
   })
 
-  test("namespaces isolate orders: by header, by /ns/ prefix (API and token URL), and by client id", async () => {
+  test("namespaces isolate orders: by header, by /__admin/ns/ prefix (API and token URL), and by client id", async () => {
     const runtime = createRuntime()
     const fetch = (r: Request) => runtime.fetch(r)
-    const a = consumer("http://mock.local/ns/a", fetch, "client-a", "http://mock.local/ns/a")
+    const a = consumer(
+      "http://mock.local/__admin/ns/a",
+      fetch,
+      "client-a",
+      "http://mock.local/__admin/ns/a",
+    )
     const placed = await placeOrder(a, {
       productId: BUNDLE,
       placerOrderNumber: "p",
@@ -101,7 +106,12 @@ describe("service contract", () => {
     expect(placed.ok).toBe(true)
     const orderId = placed.ok ? placed.orderId : ""
     expect(await a.fetchOrderFromVendor(orderId)).not.toBeNull()
-    const b = consumer("http://mock.local/ns/b", fetch, "client-b", "http://mock.local/ns/b")
+    const b = consumer(
+      "http://mock.local/__admin/ns/b",
+      fetch,
+      "client-b",
+      "http://mock.local/__admin/ns/b",
+    )
     expect(await b.fetchOrderFromVendor(orderId)).toBeNull()
 
     // By client id: the default-namespace token's client maps to "a".
@@ -334,7 +344,7 @@ describe("served over HTTP", () => {
         kitNumber: kit,
         resultType: "nutrigenomics_comprehensive_report_json",
       })
-      expect(presignedUrl.startsWith(`${server.url}/__blob/`)).toBe(true)
+      expect(presignedUrl.startsWith(`${server.url}/__admin/blobs/`)).toBe(true)
       const blob = await fetch(presignedUrl)
       expect(blob.status).toBe(200)
       expect(((await blob.json()) as { ancestry?: unknown }).ancestry).toBeDefined()
@@ -344,3 +354,28 @@ describe("served over HTTP", () => {
     }
   })
 })
+
+for (const adminPrefix of ["/__admin", "/_control/mock"]) {
+  test(`signed blobs follow ${adminPrefix} without requiring an admin key`, async () => {
+    const runtime = createRuntime({ adminPrefix, adminKey: "locked" })
+    const c = consumer("http://mock.local", runtime.fetch)
+    const placed = await placeOrder(c, {
+      productId: BUNDLE,
+      placerOrderNumber: "signed-prefix",
+      address: ADDRESS,
+    })
+    expect(placed.ok).toBe(true)
+    const kit = placed.ok ? (placed.kitNumbers[0] ?? "") : ""
+    runtime.completeKit(kit)
+    const { presignedUrl } = await c.fetchResultPresignedUrl({
+      kitNumber: kit,
+      resultType: "nutrigenomics_comprehensive_report_json",
+    })
+    expect(new URL(presignedUrl).pathname.startsWith(`${adminPrefix}/blobs/`)).toBe(true)
+    expect((await runtime.fetch(new Request(presignedUrl))).status).toBe(200)
+    const invalid = new URL(presignedUrl)
+    invalid.searchParams.set("X-Amz-Signature", "invalid")
+    expect((await runtime.fetch(new Request(invalid))).status).toBe(403)
+    expect((await runtime.fetch(new Request("http://mock.local/__blob/old"))).status).not.toBe(200)
+  })
+}

@@ -95,6 +95,7 @@ export const serveTarget: ServeTarget = {
       tickMs: 100,
       ...(url ? { webhooks: { url, ...(secret ? { secret } : {}) } } : {}),
       settings,
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -103,6 +104,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: X-API-KEY + X-TIMESTAMP + X-SIGNATURE (HMAC), or legacy X-<Partner>-Auth-Key",
     "webhooks: POST /__admin/orders/<AC-n>/transition {status, drawStatus?, scheduledAt?, timeZone?}",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<AHA_API_KEY>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AHA_API_KEY>: <ns>}",
   ],
 }

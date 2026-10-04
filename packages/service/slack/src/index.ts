@@ -63,7 +63,7 @@ export const slackCredential = (request: Request): string | undefined => {
   const token = bearerToken(request)
   if (token) return token
   const path = new URL(request.url).pathname
-  return WEBHOOK_PATH.exec(path.replace(/^\/ns\/[^/]+/, ""))?.[1]
+  return WEBHOOK_PATH.exec(path.replace(/^\/__admin\/ns\/[^/]+/, ""))?.[1]
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

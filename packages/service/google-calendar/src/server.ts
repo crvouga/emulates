@@ -66,6 +66,7 @@ export const serveTarget: ServeTarget = {
           : {}),
         ...(values["require-https-webhooks"] === true ? { requireHttpsWebhooks: true } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -74,6 +75,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "rootUrl: <this url>/ for googleapis; OAuth2Client endpoints: <this url>/token, <this url>/revoke",
     "sign in with authorization code 4/mock-<name> (→ <name>@example.com) or 4/mock-<email>",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<email>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<email>: <ns>}",
   ],
 }

@@ -43,9 +43,9 @@ const harness = () => {
 }
 
 describe("service contract", () => {
-  test("/health names the service and the loaded corpus; every response carries x-mockingbird", async () => {
+  test("/__admin/health names the service and the loaded corpus; every response carries x-mockingbird", async () => {
     const { call } = harness()
-    const health = await call("/health")
+    const health = await call("/__admin/health")
     expect(health.status).toBe(200)
     expect(await health.json()).toMatchObject({
       status: "ok",
@@ -73,7 +73,7 @@ describe("service contract", () => {
     })
   })
 
-  test("namespaces by header, by /ns/ prefix and by API key all isolate state", async () => {
+  test("namespaces by header, by /__admin/ns/ prefix and by API key all isolate state", async () => {
     const { call, admin } = harness()
     const created = await call(
       "/v1/customers",
@@ -83,7 +83,7 @@ describe("service contract", () => {
     const read = (path: string, headers: Record<string, string> = {}) =>
       call(path, { headers: { authorization: `Bearer ${KEY}`, ...headers } })
     expect((await read(`/v1/customers/${id}`, { "x-mockingbird-namespace": "a" })).status).toBe(200)
-    expect((await read(`/ns/a/v1/customers/${id}`)).status).toBe(200)
+    expect((await read(`/__admin/ns/a/v1/customers/${id}`)).status).toBe(200)
     expect((await read(`/v1/customers/${id}`)).status).toBe(404)
     expect((await admin("PUT", "/credentials", { credentials: { [KEY]: "a" } })).status).toBe(200)
     expect((await read(`/v1/customers/${id}`)).status).toBe(200)

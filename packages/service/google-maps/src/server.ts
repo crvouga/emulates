@@ -62,6 +62,7 @@ export const serveTarget: ServeTarget = {
           : {}),
         ...(publicUrl ? { publicUrl } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -71,6 +72,6 @@ export const serveTarget: ServeTarget = {
     "REST: /maps/api/place/{autocomplete,details,findplacefromtext}/json, /maps/api/geocode/json (?key=)",
     'web: <script src="<this server>/maps/api/js?key=…&libraries=places">',
     "Address Validation: POST /v1:validateAddress?key= (addressvalidation.googleapis.com)",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
   ],
 }

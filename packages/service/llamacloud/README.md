@@ -157,7 +157,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 Neither consumer can add headers, so a namespace can be chosen three ways:
 
 - the `x-mockingbird-namespace` header;
-- a `/ns/<name>` prefix on the base URL;
+- a `/__admin/ns/<name>` prefix on the base URL;
 - the API key: `PUT /__admin/credentials {"credentials": {"<LLAMACLOUD_API_KEY>": "<namespace>"}}`.
 
 Each namespace starts with the seeded pipelines, by default `acme-member-kb-v1` in project

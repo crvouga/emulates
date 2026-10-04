@@ -3,7 +3,16 @@ import { listOperations, type OpenAPIDocument } from "@crvouga/mockingbird-opena
 import { clearNamespace, type SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { adminUiRoutes } from "./admin-ui.js"
 import { type Clock, createClock } from "./clock.js"
-import { type AdminRoutes, createControlPlane, NAMESPACE_HEADER } from "./control.js"
+import {
+  ADMIN_PREFIX,
+  type AdminRoutes,
+  assertAdminPrefixAvailable,
+  createControlPlane,
+  isAdminPath,
+  matchNamespacePath,
+  NAMESPACE_HEADER,
+  resolveAdminPrefix,
+} from "./control.js"
 import { type CredentialRegistry, createCredentialRegistry, maskCredential } from "./credentials.js"
 import {
   createFaultRegistry,
@@ -48,6 +57,7 @@ export type InstanceContext = {
   /** Storage namespace for this instance's records. */
   namespace: string
   /** The public namespace name a request selects it by. */
+  adminPrefix: string
   publicNamespace: string
   sqlite: SqliteClient
   clock: Clock
@@ -67,11 +77,12 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   clock?: Clock
   /** Seeds every random choice the runtime makes (fault rates). Default `0`. */
   seed?: number | string
-  /** Extra `GET /health` fields, such as the loaded corpus version. */
+  /** Extra `GET /__admin/health` fields, such as the loaded corpus version. */
   describe?: () => Record<string, unknown>
   /** Service-specific admin routes, given the runtime so they can reach any namespace. */
   admin?: (runtime: ServiceRuntime<T>) => AdminRoutes
   /** Require this value in `x-mockingbird-admin-key` on `/__admin/*`. Omit to leave admin open. */
+  adminPrefix?: string
   adminKey?: string
   /** Structured request log sink, called once per request. */
   onLog?: (entry: RequestLog) => void
@@ -172,8 +183,7 @@ export const DEFAULT_NAMESPACE = "default"
 
 const NAMESPACE_PATTERN = /^[A-Za-z0-9_.-]{1,64}$/
 
-/** `/ns/<namespace>/…`: the namespace carrier for SDKs that only take a base URL. */
-const PATH_PREFIX = /^\/ns\/([^/]+)(\/.*)?$/
+/** `/__admin/ns/<namespace>/…`: the namespace carrier for SDKs that only take a base URL. */
 const BRANCH_PATTERN = /^[A-Za-z0-9_.-]{1,64}$/
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"])
 
@@ -255,7 +265,7 @@ const operationMatcher = (document: OpenAPIDocument) => {
 }
 
 /**
- * Wrap a service in the shared Mockingbird contract: an unauthenticated `/health`,
+ * Wrap a service in the shared Mockingbird contract: an unauthenticated `/__admin/health`,
  * the `/__admin/*` control plane, per-request namespaces, a controllable clock,
  * fault injection, and request metrics.
  *
@@ -266,6 +276,30 @@ const operationMatcher = (document: OpenAPIDocument) => {
 export const createRuntime = <T extends ServiceInstance>(
   options: RuntimeOptions<T>,
 ): ServiceRuntime<T> => {
+  const adminPrefix = resolveAdminPrefix(options.adminPrefix)
+  const internalPaths = Object.entries(options.document?.paths ?? {})
+    .filter(([, item]) => item["x-mockingbird-internal"] === true)
+    .map(([path]) => path)
+  for (const path of internalPaths) {
+    if (!path.startsWith(`${ADMIN_PREFIX}/blobs/`))
+      throw new Error(`internal transport ${path} must live under ${ADMIN_PREFIX}/blobs/`)
+  }
+  assertAdminPrefixAvailable(
+    adminPrefix,
+    Object.keys(options.document?.paths ?? {}).filter((path) => !internalPaths.includes(path)),
+  )
+  const internalMatch = (path: string): string | undefined => {
+    for (const pattern of internalPaths) {
+      const actual = path.split("/")
+      const expected = pattern.split("/")
+      if (
+        actual.length === expected.length &&
+        expected.every((part, i) => part.startsWith("{") || part === actual[i])
+      )
+        return pattern
+    }
+    return undefined
+  }
   assertAdminUi(options.adminUi)
   const sqlite = bootSqlite(options.sqlite)
   const clock = options.clock ?? createClock()
@@ -325,6 +359,7 @@ export const createRuntime = <T extends ServiceInstance>(
     const created = options.create({
       namespace: storageNamespace(key),
       publicNamespace,
+      adminPrefix,
       sqlite,
       clock: namespaceClock(publicNamespace),
       rng: createdContextRng,
@@ -578,12 +613,12 @@ export const createRuntime = <T extends ServiceInstance>(
     namespaceClock,
     namespaceOf(request) {
       const url = new URL(request.url)
-      const prefixed = PATH_PREFIX.exec(url.pathname)
+      const prefixed = matchNamespacePath(url.pathname, adminPrefix)
       const selected =
         request.headers.get(NAMESPACE_HEADER) ??
         (prefixed ? decodeURIComponent(prefixed[1] as string) : undefined)
       const path = prefixed ? (prefixed[2] ?? "/") : url.pathname
-      if (path === "/__admin" || path.startsWith("/__admin/"))
+      if (isAdminPath(path, adminPrefix))
         return url.searchParams.get("namespace") ?? selected ?? DEFAULT_NAMESPACE
       if (selected !== undefined) return selected
       const credential = options.credential?.(request)
@@ -649,8 +684,8 @@ export const createRuntime = <T extends ServiceInstance>(
     state: (namespace = DEFAULT_NAMESPACE) => inspectState(stateScope(namespace)),
     fetch: async (incoming) => {
       let request = incoming
-      // `/ns/<name>/…` selects a namespace (and is stripped) for SDKs that cannot add headers.
-      const prefixed = PATH_PREFIX.exec(new URL(request.url).pathname)
+      // `/__admin/ns/<name>/…` selects a namespace (and is stripped) for SDKs that cannot add headers.
+      const prefixed = matchNamespacePath(new URL(request.url).pathname, adminPrefix)
       if (prefixed) {
         const url = new URL(request.url)
         url.pathname = prefixed[2] ?? "/"
@@ -666,7 +701,20 @@ export const createRuntime = <T extends ServiceInstance>(
           signal: request.signal,
         })
       }
-      let namespace = control.namespaceOf(request)
+      const internalUrl = new URL(request.url)
+      const internalPath = isAdminPath(internalUrl.pathname, adminPrefix)
+        ? `${ADMIN_PREFIX}${internalUrl.pathname.slice(adminPrefix.length)}`
+        : ""
+      const internal = internalMatch(internalPath)
+      if (adminPrefix !== ADMIN_PREFIX && internalMatch(internalUrl.pathname) && !internal)
+        return adminFail(404, "internal transport is only available under adminPrefix")
+      if (internal) {
+        internalUrl.pathname = internalPath
+        request = new Request(internalUrl, request)
+      }
+      let namespace = internal
+        ? (internalUrl.searchParams.get("namespace") ?? control.namespaceOf(request))
+        : control.namespaceOf(request)
       if (!request.headers.has(NAMESPACE_HEADER) && options.credential) {
         const credential = options.credential(request)
         const mapped = credential !== undefined ? credentials.get(credential) : undefined
@@ -689,7 +737,7 @@ export const createRuntime = <T extends ServiceInstance>(
           return copy
         }
       }
-      const handled = await control.handle(request)
+      const handled = internal ? undefined : await control.handle(request)
       if (handled) return stamp(handled)
       const started = monotonicNow()
       const url = new URL(request.url)
@@ -875,8 +923,9 @@ export const createRuntime = <T extends ServiceInstance>(
           checkpoint(namespace, "main")
         },
       }),
-      ...adminUiRoutes(options.name, options.adminUi),
+      ...adminUiRoutes(options.name, options.adminUi, adminPrefix),
     },
+    adminPrefix,
     adminKey: options.adminKey,
   })
 

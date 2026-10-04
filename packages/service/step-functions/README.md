@@ -27,7 +27,7 @@ const mock = await createServer({
     },
   ],
 })
-const health = await fetch(`${mock.url}/health`)
+const health = await fetch(`${mock.url}/__admin/health`)
 ```
 
 Supported operations are StartExecution, DescribeExecution, StopExecution, GetExecutionHistory, SendTaskSuccess, SendTaskFailure, and SendTaskHeartbeat. Running executions are idempotent by state-machine ARN, name, and exact input. Closed-name reuse and conflicting running input return ExecutionAlreadyExists. JSON input/output remain strings at the wire.
@@ -41,7 +41,7 @@ Supported operations are StartExecution, DescribeExecution, StopExecution, GetEx
 - Scripted machines transition when the shared clock reaches `afterMs`; no polling sleep is necessary.
 - Fault presets are `throttled` and `unavailable`.
 
-The shared runtime also supplies reset, timeline, journal, metrics, faults, and namespace isolation through `x-mockingbird-namespace`, `/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime also supplies reset, timeline, journal, metrics, faults, and namespace isolation through `x-mockingbird-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 

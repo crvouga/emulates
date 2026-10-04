@@ -95,6 +95,7 @@ export const serveTarget: ServeTarget = {
       ...(email || password
         ? { superAdmin: { ...(email ? { email } : {}), ...(password ? { password } : {}) } }
         : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -106,7 +107,7 @@ export const serveTarget: ServeTarget = {
       "routes: /fhir/R4/…, /oauth2/token, /auth/login, /auth/me, /admin/projects/…, /healthcheck",
       `client credentials: ${info.project?.clientId} / ${info.project?.clientSecret} (project ${info.project?.id})`,
       `super admin: ${info.superAdmin.email} / ${info.superAdmin.password}`,
-      "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<clientId>: <ns>}",
+      "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<clientId>: <ns>}",
     ]
   },
 }

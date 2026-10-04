@@ -321,7 +321,7 @@ describe("S25 Fullscript acceptance: the EMR's integration against the mock", ()
     )
   })
 
-  test("namespaces by /ns/ prefix on FULLSCRIPT_API_URL, by header, and by OAuth client; no bodies in the journal", async () => {
+  test("namespaces by /__admin/ns/ prefix on FULLSCRIPT_API_URL, by header, and by OAuth client; no bodies in the journal", async () => {
     const { runtime, fetchImpl } = harness()
     const a = createClient({
       apiUrl: `${API}ns/a/`,
