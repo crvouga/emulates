@@ -1,18 +1,21 @@
-# Lab orders — a full-stack example
+# Lab testing workspace — an isomorphic full-stack example
 
-A plain lab-testing app: a patient signs in with Google or Apple, shops lab tests, pays through a
-hosted checkout page, and the paid order is fulfilled as a lab order — all persisted to a
-Postgres-dialect database, in one process, with no real network calls.
+A lab-testing workspace with patient, clinician, and administrator roles. Sign in with Google or
+Apple, build an order, pay through hosted checkout, track fulfillment, inspect biomarker reports,
+record clinical reviews, and download records. State lives in a Postgres-dialect database in one
+process. Both run modes use the same frontend, HTTP routes, permissions, and repositories.
 
 It also runs as a self-contained, in-browser component — see `/examples/medical-testing` on the
 docs site, where the entire app (client, server, and database) is mounted and runs inside a
-single `<app-example>` on the page, no server to start.
+reusable fullscreen example view, no server to start.
 
 ## Ports and adapters
 
-The app's own code — everything under `src/app/` and `src/client/` — never imports Mockingbird, has
-no concept of "mocking" or "testing," and doesn't know it's running against mocks at all. It's
-written the way a real production app would be:
+The application's domain and HTTP code under `src/app/` use plain application contracts and
+never import Mockingbird. The client uses those HTTP routes; its administration page renders
+the shared React and Ant Design UI through the same scoped fetch in both run modes. The
+synthetic report generator is explicit demonstration
+data; it must be replaced with a provider report ingestion path for a real deployment:
 
 ```
 src/app/
@@ -35,8 +38,9 @@ src/composition/  wires a real adapter into every port and boots the app — the
 ```
 
 Swap every file under `src/adapters/` for ones that call real Google/Apple, real Stripe, a real
-lab-testing API, and a real Postgres connection, and nothing under `src/app/` or `src/client/`
-would need to change.
+lab-testing API, and a real Postgres connection, and the application can keep the same
+architecture. Production deployment also needs durable sessions, real patient
+intake, provider report ingestion, and persistent infrastructure.
 
 ## What it demonstrates
 
@@ -73,9 +77,12 @@ would need to change.
 ## Run it
 
 **In the browser, no server:** visit `/examples/medical-testing` on the docs site and click
-"Launch the app". The window has a tab for the example and a tab for each mock it is using: Google,
-Apple, Stripe, and Junction open that mock's admin UI against the same in-process state, and Postgres
-lists the tables the example writes.
+"Launch the app". The fullscreen view has a tab for the example and a tab for each mock it is using: Google,
+Apple, Stripe, Junction, and Postgres all open the shared admin UI against the same in-process
+state the app uses. Every administration screen uses prebuilt Ant Design tables, forms,
+dialogs, navigation, and feedback. Postgres includes the SQL table explorer and query runner alongside state,
+clock, faults, journal, and routes. SQL changes appear in the app immediately; checkpoint and
+restore operate on this same database. New services and data sources join the same admin tab registry.
 
 **As a standalone dev server:**
 
@@ -92,6 +99,33 @@ consent, pick a test or two, pay with `4242 4242 4242 4242` (or `4000 0000 0000 
 decline), then watch **Orders** — the order fulfills and settles into results on its own, no
 button to press.
 
+## Workspace features
+
+- Searchable test catalog, category filters, itemized cart, order acknowledgment, and hosted payment.
+- Loading, empty, error/retry, and success states; active orders refresh automatically.
+- Resume an unpaid checkout from its order details.
+- Detailed reports with biomarker values, units, synthetic reference ranges, flags, and prior samples.
+- Persisted, timestamped timelines for order placement, payment, processing, results, and review.
+- Clinician notes recorded with reviewer identity and timestamp, visible to the patient.
+- Download results as CSV, itemized receipts as TXT, and complete order records as JSON.
+- Editable profile and an in-app report update preference.
+- Administration with member search, confirmed role changes, a permission matrix, and an audit log.
+- Generic responsive styling with system fonts, light/dark support, and reduced-motion support.
+
+| Role | Access |
+| --- | --- |
+| Patient | Own orders, checkout, reports, downloads, and profile |
+| Clinician | Patient access plus all patient orders and clinical review |
+| Administrator | Clinician access plus member roles and audit history |
+
+Permissions are enforced in HTTP handlers, including downloads and hosted checkout ownership.
+Administrators cannot change their own role. Changing another member's role takes effect on their
+next request, even in an existing session. Reviews and downloads appear in the audit log.
+
+Ada starts with two fictional completed reports, one reviewed and one awaiting review. Switch
+accounts by signing out in **Account**. Closing and reopening the docs example resets its running
+instance. Standalone state lasts for the server process. No external avatar or font requests.
+
 ## Walking the API by hand
 
 Both the OAuth sign-in and the hosted checkout are form-driven (see `checkout-flow.test.ts` for
@@ -101,9 +135,8 @@ settle-to-results progression.
 
 ## Known limitations (intentionally out of scope)
 
-- One seeded account per provider (`ada@example.test` for Google, `grace@example.test` for
-  Apple) — no real account creation flow beyond what the OAuth mock's own "Create a new account"
-  screen offers.
+- Google offers Ada Lovelace (patient), Morgan Chen (clinician), and Alex Morgan (administrator).
+  Apple offers Grace Hopper (patient). Newly created OAuth accounts start as patients.
 - Sessions are an in-memory `Map`; this is not how you'd build session storage for anything real.
 - One hardcoded patient address/phone on every lab order — no real intake form.
 - The standalone server's client bundle is rebuilt once at process startup with `Bun.build`

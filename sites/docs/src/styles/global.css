@@ -1191,14 +1191,16 @@ html.example-modal-open {
 }
 
 .example-modal {
-  width: min(1240px, calc(100vw - 48px));
-  height: min(920px, calc(100dvh - 48px));
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
   max-width: none;
   max-height: none;
-  margin: auto;
+  margin: 0;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border: 0;
+  border-radius: 0;
   background: var(--bg);
   color: var(--fg);
   box-shadow: var(--shadow-lg);
@@ -1209,14 +1211,6 @@ html.example-modal-open {
 .example-modal[open] {
   display: flex;
   flex-direction: column;
-  animation: example-modal-in 0.16s var(--ease);
-}
-
-@keyframes example-modal-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.99);
-  }
 }
 
 .example-modal::backdrop {
@@ -1276,6 +1270,10 @@ html.example-modal-open {
   padding: 24px;
   color: var(--fg-muted);
   font-size: 13.5px;
+}
+
+.example-modal-status[hidden] {
+  display: none;
 }
 
 .example-modal-host {

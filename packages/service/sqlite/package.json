@@ -107,6 +107,7 @@
     "fc": "clear && bun format && bun check:full"
   },
   "devDependencies": {
+    "@crvouga/mockingbird-admin-ui": "workspace:*",
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.8",
     "@crvouga/mockingbird-core": "workspace:*",

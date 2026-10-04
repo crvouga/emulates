@@ -130,39 +130,6 @@ const PLANE_STATE: readonly StateDeclaration[] = [
   { name: "rate_limits", label: "Rate limits" },
 ]
 
-const MOVE_PANEL_HTML = `<form class="stack">
-  <label class="field">Work item id
-    <input name="id" required autocomplete="off" spellcheck="false">
-  </label>
-  <label class="field">State name or id
-    <input name="state" required placeholder="Done" autocomplete="off">
-  </label>
-  <div class="row-actions">
-    <button class="btn-primary" type="submit">Move</button>
-  </div>
-  <pre data-result hidden></pre>
-</form>`
-
-const MOVE_PANEL_SCRIPT = `
-const form = root.querySelector("form")
-const out = root.querySelector("[data-result]")
-form.addEventListener("submit", (event) => {
-  event.preventDefault()
-  const data = new FormData(form)
-  const id = String(data.get("id") || "").trim()
-  const stateName = String(data.get("state") || "").trim()
-  api.send("POST", "/work-items/" + encodeURIComponent(id) + "/state", { state: stateName })
-    .then((item) => {
-      out.hidden = false
-      out.textContent = JSON.stringify(item, null, 2)
-    })
-    .catch((error) => {
-      out.hidden = false
-      out.textContent = error instanceof Error ? error.message : String(error)
-    })
-})
-`.trim()
-
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
@@ -272,13 +239,14 @@ export const createRuntime = (options: PlaneRuntimeOptions = {}): PlaneRuntime =
     presets: PLANE_PRESETS,
     state: PLANE_STATE,
     adminUi: {
-      panels: [
+      extensions: [
         {
+          kind: "route",
           id: "move-work-item",
           title: "Move a work item",
           description: "Uses Plane's admin route, which resolves a state by id or by name.",
-          html: MOVE_PANEL_HTML,
-          script: MOVE_PANEL_SCRIPT,
+          route: "POST /work-items/:id/state",
+          body: { state: "Done" },
         },
       ],
     },

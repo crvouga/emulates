@@ -3,7 +3,13 @@ import { useState } from "preact/hooks"
 import { CheckoutModal } from "../components/CheckoutModal.js"
 import { navigate } from "../router.js"
 
-export const Checkout = ({ checkoutSessionId }: { checkoutSessionId: string | null }) => {
+export const Checkout = ({
+  checkoutSessionId,
+  onPaid,
+}: {
+  checkoutSessionId: string | null
+  onPaid: () => void
+}) => {
   const [open, setOpen] = useState(true)
 
   if (!checkoutSessionId) {
@@ -27,7 +33,7 @@ export const Checkout = ({ checkoutSessionId }: { checkoutSessionId: string | nu
   return html`
     <${CheckoutModal}
       checkoutSessionId=${checkoutSessionId}
-      onDone=${() => navigate("orders")}
+      onDone=${onPaid}
       onClose=${() => {
         setOpen(false)
         navigate("shop")

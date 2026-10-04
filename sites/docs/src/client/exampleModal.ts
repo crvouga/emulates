@@ -43,6 +43,11 @@ export function defineExampleLauncher(
       void this.launch()
     }
 
+    private readonly retry = () => {
+      this.unmount()
+      void this.launch()
+    }
+
     private readonly close = () => {
       this.dialog?.close()
     }
@@ -61,6 +66,7 @@ export function defineExampleLauncher(
         button.addEventListener("click", this.open)
       for (const button of this.querySelectorAll("[data-example-close]"))
         button.addEventListener("click", this.close)
+      this.querySelector("[data-example-retry]")?.addEventListener("click", this.retry)
       this.dialog?.addEventListener("close", this.closed)
     }
 
@@ -69,9 +75,10 @@ export function defineExampleLauncher(
         button.removeEventListener("click", this.open)
       for (const button of this.querySelectorAll("[data-example-close]"))
         button.removeEventListener("click", this.close)
+      this.querySelector("[data-example-retry]")?.removeEventListener("click", this.retry)
       this.dialog?.removeEventListener("close", this.closed)
       if (this.dialog?.open) this.dialog.close()
-      this.unmount()
+      this.closed()
     }
 
     private unmount() {
@@ -87,8 +94,14 @@ export function defineExampleLauncher(
     private async launch() {
       const host = this.querySelector<HTMLElement>("[data-example-host]")
       const status = this.querySelector<HTMLElement>("[data-example-status]")
+      const state = this.querySelector<HTMLElement>("[data-example-state]")
+      const retry = this.querySelector<HTMLButtonElement>("[data-example-retry]")
       if (!host || !status) return
       const generation = ++this.generation
+      if (state) state.hidden = false
+      if (retry) retry.hidden = true
+      status.setAttribute("role", "status")
+      host.setAttribute("aria-busy", "true")
       status.hidden = false
       status.textContent = "Loading the example…"
       try {
@@ -103,11 +116,16 @@ export function defineExampleLauncher(
           return
         }
         this.cleanup = cleanup ?? undefined
+        if (state) state.hidden = true
+        host.removeAttribute("aria-busy")
         status.hidden = true
         const focusRoot = host.shadowRoot ?? host
         focusRoot.querySelector<HTMLElement>("button, select, a, input, [tabindex='0']")?.focus()
       } catch (error) {
         if (generation !== this.generation) return
+        host.removeAttribute("aria-busy")
+        status.setAttribute("role", "alert")
+        if (retry) retry.hidden = false
         status.textContent = `Could not load the example: ${error instanceof Error ? error.message : String(error)}`
       }
     }

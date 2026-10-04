@@ -381,4 +381,200 @@ ${scopeReset(".cove-app")}
   .cove-modal-backdrop { padding: 0; }
   .cove-modal { max-width: none; height: 100%; border-radius: 0; }
 }
+/* Application workspace. Neutral surfaces, system type, and a single control language. */
+.cove-app { font-size: 14px; }
+.cove-app :where(h1, h2, h3, h4) { font-family: var(--cove-font); }
+.cove-shell { flex-direction: row; }
+.cove-sidebar { width: 220px; flex: none; display: flex; flex-direction: column; padding: 24px 14px 14px; border-right: 1px solid var(--cove-border); background: var(--cove-surface); min-height: 0; }
+.cove-wordmark { display: flex; align-items: center; gap: 10px; padding: 0 8px; font: inherit; font-size: 16px; font-weight: 650; background: transparent; border: 0; white-space: nowrap; }
+.cove-logo-box { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--cove-border); border-radius: 7px; font-size: 22px; font-weight: 450; }
+.cove-workspace-label { padding: 32px 10px 10px; color: var(--cove-muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.cove-sidebar .cove-nav-links { flex-direction: column; align-items: stretch; gap: 4px; }
+.cove-sidebar .cove-nav-link { display: flex; gap: 12px; align-items: center; border: 0; background: transparent; font-size: 13px; font-weight: 500; text-align: left; padding: 10px 12px; }
+.cove-sidebar .cove-nav-link.is-active { background: var(--cove-panel); color: var(--cove-ink); font-weight: 650; }
+.cove-nav-link > span { width: 18px; font-size: 18px; text-align: center; }
+.cove-sidebar-bottom { margin-top: auto; padding-top: 32px; }
+.cove-sidebar-bottom > p { padding: 0 10px 16px; font-size: 12px; }
+.cove-sidebar .cove-nav-user { width: 100%; border-radius: 8px; max-width: none; padding: 10px 8px; border-top: 1px solid var(--cove-border); }
+.cove-nav-user > span:nth-child(2) { flex: 1; min-width: 0; text-align: left; }
+.cove-nav-user strong { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+.cove-nav-user small { display: block; color: var(--cove-muted); text-transform: capitalize; font-size: 11px; }
+.cove-workspace { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.cove-topbar { flex: none; min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 32px; background: var(--cove-surface); border-bottom: 1px solid var(--cove-border); font-size: 13px; }
+.cove-topbar-right { display: flex; align-items: center; gap: 12px; }
+.cove-role { display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; text-transform: capitalize; padding: 3px 8px; border: 1px solid var(--cove-border); border-radius: 5px; color: var(--cove-muted); background: var(--cove-surface); }
+.cove-main { padding: 32px; }
+.cove-container { width: 100%; max-width: 1120px; }
+.cove-page { display: flex; flex-direction: column; gap: 24px; }
+.cove-page > .cove-btn { align-self: flex-start; }
+.cove-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.cove-page-head > div { min-width: 0; }
+.cove-page-head > .cove-btn { flex: none; }
+.cove-app :where(h1) { font-size: 28px; font-weight: 600; letter-spacing: -.025em; line-height: 1.25; text-wrap: balance; }
+.cove-app :where(h2) { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+.cove-app :where(h3) { font-size: 14px; font-weight: 600; margin: 6px 0; }
+.cove-eyebrow { font-size: 11px; letter-spacing: .07em; color: var(--cove-muted); font-weight: 500; margin-bottom: 10px; display: block; }
+.cove-lede { font-size: 14px; margin: 10px 0 0; line-height: 1.6; }
+.cove-text-sm { font-size: 12px; }
+.cove-section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.cove-section-head h2, .cove-section-head p { margin: 0; }
+.cove-card { padding: 24px; border-radius: 8px; }
+.cove-card-gap { margin-bottom: 20px; }
+.cove-btn { padding: 9px 14px; min-height: 38px; font-size: 13px; font-weight: 550; border-radius: 6px; }
+.cove-btn-sm { padding: 6px 10px; min-height: 32px; font-size: 12px; }
+.cove-input { width: 100%; min-height: 38px; font-size: 13px; border-radius: 6px; }
+.cove-input:read-only { background: var(--cove-panel); color: var(--cove-muted); }
+.cove-field { font-size: 12px; font-weight: 500; gap: 6px; }
+.cove-checkbox { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; margin: 20px 0; cursor: pointer; }
+.cove-checkbox input { width: 16px; height: 16px; margin-top: 2px; flex: none; accent-color: var(--cove-primary); }
+.cove-checkbox small { display: block; margin-top: 4px; color: var(--cove-muted); }
+.cove-search { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 500; flex: 1; min-width: 160px; }
+.cove-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.cove-toolbar .cove-field { margin: 0; }
+.cove-toolbar .cove-btn { align-self: flex-end; }
+.cove-alert { margin: 0; }
+.cove-alert strong { display: block; margin-bottom: 6px; }
+.cove-alert p { color: inherit; }
+.cove-segment { display: flex; flex-wrap: wrap; align-self: flex-start; padding: 4px; gap: 4px; border: 1px solid var(--cove-border); border-radius: 7px; background: var(--cove-surface); }
+.cove-segment button { background: transparent; border: 0; border-radius: 4px; padding: 7px 10px; font-size: 12px; }
+.cove-segment button[aria-pressed="true"] { background: var(--cove-panel); font-weight: 600; }
+.cove-stat-row { margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.cove-report-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 16px; }
+.cove-stat { background: var(--cove-surface); border: 1px solid var(--cove-border); border-radius: 8px; padding: 20px; }
+.cove-stat-value { font-size: 30px; font-weight: 550; line-height: 1.2; margin-top: 12px; }
+.cove-stat-value.cove-text-sm { font-size: 18px; }
+.cove-stat-label { font-size: 12px; font-weight: 450; }
+.cove-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.cove-recent { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; text-align: left; border: 0; border-bottom: 1px solid var(--cove-border); background: transparent; }
+.cove-recent:last-child { border-bottom: 0; }
+.cove-recent:hover strong { text-decoration: underline; }
+.cove-recent strong { font-size: 13px; font-weight: 550; }
+.cove-recent p { margin: 5px 0 0; font-size: 12px; color: var(--cove-muted); }
+.cove-how-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+.cove-shop-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.cove-categories { margin: 16px 0 24px; }
+.cove-test-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cove-test-card { border-radius: 8px; padding: 20px; gap: 10px; cursor: default; }
+.cove-test-card h2 { margin: 0; font-size: 16px; }
+.cove-test-card .cove-eyebrow { margin: 0; }
+.cove-test-desc { margin: 0; font-size: 13px; }
+.cove-test-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.cove-test-meta span { font-size: 10px; color: var(--cove-muted); border: 1px solid var(--cove-border); border-radius: 4px; padding: 3px 6px; }
+.cove-test-card details { width: 100%; border-top: 1px solid var(--cove-border); padding-top: 12px; font-size: 12px; }
+.cove-test-card summary { cursor: pointer; color: var(--cove-muted); }
+.cove-test-card details p { margin-top: 10px; }
+.cove-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 10px 0; }
+.cove-cart { position: sticky; top: 0; padding: 20px; }
+.cove-cart-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--cove-border); padding: 14px 0; }
+.cove-cart-item strong { font-size: 12px; }
+.cove-cart-item p { margin: 6px 0 0; }
+.cove-cart .cove-btn-block { margin-bottom: 12px; }
+.cove-cart-placeholder { display: grid; place-items: center; min-height: 90px; border: 1px dashed var(--cove-border); border-radius: 6px; margin-top: 24px; font-size: 24px; color: var(--cove-muted); }
+.cove-order-button { width: 100%; text-align: left; font: inherit; cursor: pointer; }
+.cove-order-button:hover { border-color: var(--cove-muted); }
+.cove-order-button h2 { margin: 16px 0 8px; }
+.cove-order-button .cove-summary-row { padding: 0; }
+.cove-badge { text-transform: none; font-weight: 500; letter-spacing: 0; font-size: 11px; padding: 4px 8px; border-radius: 5px; flex: none; }
+.cove-badge-processing, .cove-badge-reviewed { background: var(--cove-panel); color: var(--cove-ink); }
+.cove-badge-normal { background: var(--cove-success-bg); color: var(--cove-success); }
+.cove-badge-high, .cove-badge-low { background: var(--cove-warn-bg); color: var(--cove-warn); }
+.cove-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--cove-border); }
+.cove-tabs button { border: 0; border-bottom: 2px solid transparent; padding: 12px 0; margin-bottom: -1px; background: transparent; font: inherit; color: var(--cove-muted); font-size: 13px; }
+.cove-tabs button[aria-selected="true"] { border-bottom-color: var(--cove-primary); color: var(--cove-ink); font-weight: 600; }
+.cove-progress { display: flex; list-style: none; padding: 20px; border: 1px solid var(--cove-border); border-radius: 8px; background: var(--cove-surface); }
+.cove-progress li { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cove-muted); }
+.cove-progress li span { width: 24px; height: 24px; border: 1px solid var(--cove-border); border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 10px; }
+.cove-progress li.is-done { color: var(--cove-ink); }
+.cove-progress li.is-done span { background: var(--cove-primary); color: var(--cove-on-brand); border-color: transparent; }
+.cove-table-scroll { width: 100%; overflow: auto; }
+.cove-results-table { margin: 0; min-width: 480px; font-size: 12px; }
+.cove-results-table th { padding: 12px 10px; color: var(--cove-muted); font-size: 11px; font-weight: 500; white-space: nowrap; }
+.cove-results-table td { padding: 16px 10px; font-variant-numeric: tabular-nums; }
+.cove-results-table tr:last-child td { border: 0; }
+.cove-results-table .cove-field { margin: 0; }
+.cove-range { position: relative; height: 4px; margin: 8px 0 0; width: 100px; border-radius: 3px; background: var(--cove-border); }
+.cove-range i { position: absolute; width: 7px; height: 7px; top: -2px; border-radius: 50%; background: var(--cove-success); }
+.cove-range i.is-flagged { background: var(--cove-warn); }
+.cove-event-list { list-style: none; padding: 0; margin-top: 24px; }
+.cove-event-list li { display: flex; gap: 16px; position: relative; padding-bottom: 28px; }
+.cove-event-list li:not(:last-child)::before { content: ""; position: absolute; left: 4px; top: 10px; bottom: 0; width: 1px; background: var(--cove-border); }
+.cove-event-dot { width: 9px; height: 9px; margin-top: 6px; background: var(--cove-primary); border-radius: 50%; flex: none; }
+.cove-event-list p { margin: 6px 0; font-size: 13px; }
+.cove-event-list small { color: var(--cove-muted); font-size: 11px; }
+.cove-review-note { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 16px; }
+.cove-file-row { display: flex; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--cove-border); }
+.cove-file-row:last-child { border: 0; }
+.cove-file-row > div { flex: 1; }
+.cove-file-row p { margin: 4px 0 0; }
+.cove-file-icon { display: grid; place-items: center; width: 36px; height: 40px; border: 1px solid var(--cove-border); border-radius: 5px; }
+.cove-permission-list { list-style: none; padding: 0; }
+.cove-permission-list li { display: flex; gap: 10px; font-size: 12px; padding: 8px 0; }
+.cove-permission-list span { color: var(--cove-success); }
+.cove-confirm { background: var(--cove-panel); border: 1px solid var(--cove-border); padding: 20px; border-radius: 6px; margin-bottom: 20px; }
+.cove-signin-layout { max-width: 1000px; margin: auto; min-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 72px; align-items: center; padding: 24px; }
+.cove-signin-intro > .cove-wordmark { padding: 0; margin-bottom: 60px; }
+.cove-signin-intro h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 550; letter-spacing: -.04em; }
+.cove-signin-intro .cove-lede { margin: 20px 0 36px; }
+.cove-signin-features > div { display: flex; gap: 20px; margin: 24px 0; }
+.cove-signin-features > div > span { color: var(--cove-muted); font-size: 12px; padding-top: 3px; }
+.cove-signin-features h2 { font-size: 14px; }
+.cove-signin-features p { color: var(--cove-muted); font-size: 12px; margin: 0; }
+.cove-signin-card { width: 100%; padding: 28px; }
+.cove-signin-box { margin: 24px 0; }
+.cove-demo-accounts { border-top: 1px solid var(--cove-border); padding-top: 20px; }
+.cove-demo-account { margin-top: 16px; }
+.cove-demo-account > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; }
+.cove-demo-account small { display: block; font-size: 11px; color: var(--cove-muted); margin-top: 5px; }
+.cove-disclaimer { font-size: 11px; line-height: 1.6; }
+.cove-footer { flex: none; text-align: center; border-top: 1px solid var(--cove-border); padding: 10px 16px; font-size: 10px; color: var(--cove-muted); background: var(--cove-surface); }
+.cove-empty { padding: 40px 24px; align-items: center; text-align: center; }
+.cove-empty h2 { margin: 0; }
+.cove-empty p { color: var(--cove-muted); font-size: 13px; max-width: 44ch; }
+.cove-empty-icon { font-size: 24px; margin-bottom: 4px; }
+.cove-loading { gap: 12px; min-height: 180px; font-size: 13px; }
+.cove-spinner { width: 16px; height: 16px; border: 2px solid var(--cove-border); border-top-color: var(--cove-primary); border-radius: 50%; animation: cove-spin 1s linear infinite; }
+@keyframes cove-spin { to { transform: rotate(360deg); } }
+.cove-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.cove-app :where(button:disabled) { cursor: not-allowed; opacity: .55; }
+@container cove (max-width: 1100px) {
+  .cove-sidebar { width: 190px; }
+  .cove-shop-layout { grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; }
+  .cove-test-grid { grid-template-columns: 1fr; }
+  .cove-main { padding: 24px; }
+  .cove-signin-layout { gap: 36px; }
+}
+@container cove (max-width: 850px) {
+  .cove-shell { flex-direction: column; }
+  .cove-sidebar { width: 100%; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--cove-border); }
+  .cove-sidebar .cove-wordmark { margin-bottom: 12px; }
+  .cove-workspace-label, .cove-sidebar-bottom { display: none; }
+  .cove-sidebar .cove-nav-links { flex-direction: row; overflow-x: auto; flex-wrap: nowrap; }
+  .cove-sidebar .cove-nav-link { white-space: nowrap; padding: 8px 10px; font-size: 12px; flex: none; }
+  .cove-topbar { min-height: 48px; padding: 8px 20px; }
+  .cove-dashboard-grid { grid-template-columns: 1fr; }
+  .cove-signin-layout { grid-template-columns: 1fr; max-width: 500px; padding: 0; }
+  .cove-signin-intro > .cove-wordmark { margin-bottom: 30px; }
+  .cove-signin-features { display: none; }
+  .cove-signin-intro .cove-lede { margin-bottom: 0; }
+}
+@container cove (max-width: 560px) {
+  .cove-main { padding: 20px 16px; }
+  .cove-card { padding: 18px; }
+  .cove-page-head { flex-direction: column; gap: 16px; }
+  .cove-shop-layout { grid-template-columns: 1fr; }
+  .cove-cart { position: static; }
+  .cove-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .cove-stat { padding: 16px; }
+  .cove-how-grid { grid-template-columns: 1fr; gap: 16px; }
+  .cove-tabs { gap: 16px; }
+  .cove-tabs button { font-size: 12px; }
+  .cove-progress { padding: 14px; }
+  .cove-progress li { flex-direction: column; align-items: center; text-align: center; font-size: 10px; }
+  .cove-section-head { flex-wrap: wrap; }
+  .cove-file-row { gap: 10px; flex-wrap: wrap; }
+  .cove-file-icon { display: none; }
+  .cove-footer { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) { .cove-spinner { animation: none; } .cove-btn { transition: none; } }
+
 `

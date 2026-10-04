@@ -1,69 +1,54 @@
 import { html } from "htm/preact"
-import { useEffect, useState } from "preact/hooks"
-import { api, type Order, type User } from "../api.js"
-import { IconCheckCircle, IconClipboardCheck, IconHourglass } from "../components/Icons.js"
+import { can } from "../../app/model.js"
+import { api, type User } from "../api.js"
+import { Badge, date, Empty, ErrorState, Loading, useResource } from "../components/States.js"
 import { navigate } from "../router.js"
 
-const initial = (name: string | null): string => (name?.trim()?.[0] ?? "?").toUpperCase()
-
 export const Dashboard = ({ user }: { user: User }) => {
-  const [orders, setOrders] = useState<Order[] | null>(null)
-
-  useEffect(() => {
-    void api
-      .orders()
-      .then((res) => setOrders(res.orders))
-      .catch(() => setOrders([]))
-  }, [])
-
-  const active = orders?.filter((o) => o.status !== "results_ready").length ?? 0
-  const mostRecent = orders?.[0]
-
-  return html`
-    <div>
-      <div class="cove-greeting">
-        <span class="cove-avatar">
-          ${user.picture ? html`<img src=${user.picture} alt="" />` : initial(user.name)}
-        </span>
-        <div>
-          <h1>Welcome back${user.name ? `, ${user.name.split(" ")[0]}` : ""}.</h1>
-          <p class="cove-lede">Orders and results for this account.</p>
-        </div>
-      </div>
-
-      <div class="cove-stat-row">
-        <div class="cove-stat">
-          <span class="cove-stat-icon"><${IconClipboardCheck} /></span>
-          <div class="cove-stat-value">${orders === null ? "—" : orders.length}</div>
-          <div class="cove-stat-label">Total orders</div>
-        </div>
-        <div class="cove-stat">
-          <span class="cove-stat-icon"><${IconHourglass} /></span>
-          <div class="cove-stat-value">${orders === null ? "—" : active}</div>
-          <div class="cove-stat-label">In progress</div>
-        </div>
-        <div class="cove-stat">
-          <span class="cove-stat-icon"><${IconCheckCircle} /></span>
-          <div class="cove-stat-value">${orders === null ? "—" : orders.filter((o) => o.interpretation).length}</div>
-          <div class="cove-stat-label">Results ready</div>
-        </div>
-      </div>
-
-      ${
-        mostRecent &&
-        html`<div class="cove-card cove-card-gap">
-        <span class="cove-eyebrow">Most recent order</span>
-        <h2>${mostRecent.items.map((i) => i.testName).join(", ")}</h2>
-        <p><span class="cove-badge cove-badge-${mostRecent.status}">${mostRecent.status.replaceAll("_", " ")}</span></p>
-        <button class="cove-btn cove-btn-ghost" onClick=${() => navigate("orders")}>View orders</button>
-      </div>`
-      }
-
-      <div class="cove-card">
-        <h2>Ready for your next panel?</h2>
-        <p class="cove-muted">Browse the catalog and check out in a couple of minutes.</p>
-        <button class="cove-btn cove-btn-primary" onClick=${() => navigate("shop")}>Shop lab tests</button>
-      </div>
-    </div>
-  `
+  const team = can(user.role, "orders.read")
+  const { data, error, busy, refresh } = useResource(() => api.orders(team))
+  const orders = data?.orders ?? []
+  const ready = orders.filter((order) => order.status === "results_ready")
+  const active = orders.filter((order) => !["results_ready", "cancelled"].includes(order.status))
+  const unreviewed = ready.filter((order) => !order.reviewedAt)
+  const showUpdates = user.notifications && unreviewed.length > 0
+  return html`<div class="cove-page">
+    <div class="cove-page-head"><div><p class="cove-eyebrow">${team ? "Care workspace" : "Personal workspace"}</p><h1>Welcome back${user.name ? `, ${user.name.split(" ")[0]}` : ""}.</h1><p class="cove-lede">${team ? "Keep track of patient orders and reports awaiting your review." : "A clear view of your tests, results, and next steps."}</p></div><button class="cove-btn cove-btn-primary" onClick=${() => navigate("shop")}>+ Order tests</button></div>
+    ${error && html`<${ErrorState} error=${error} retry=${refresh}/>`}
+    ${
+      !data
+        ? busy
+          ? html`<${Loading}/>`
+          : null
+        : html`
+      <div class="cove-stat-row">${[
+        [orders.length, "Total orders"],
+        [active.length, "In progress"],
+        [ready.length, "Reports available"],
+        [unreviewed.length, "Awaiting review"],
+      ].map(
+        ([value, label]) =>
+          html`<div class="cove-stat" key=${label}><span class="cove-stat-label">${label}</span><div class="cove-stat-value">${value}</div></div>`,
+      )}</div>
+      <div class="cove-dashboard-grid"><section class="cove-card"><div class="cove-section-head"><h2>Recent activity</h2><button class="cove-btn cove-btn-ghost cove-btn-sm" onClick=${() => navigate("orders")}>View orders ↗</button></div>${orders.length ? html`<div class="cove-recent-list">${orders.slice(0, 4).map((order) => html`<button class="cove-recent" key=${order.id} onClick=${() => navigate(order.status === "results_ready" ? "results" : "orders")}><div><strong>${order.items.map((item) => item.testName).join(" + ")}</strong><p>${team ? `${order.patientName} · ` : ""}${date(order.createdAt)}</p></div><${Badge} status=${order.status}/></button>`)}</div>` : html`<${Empty} title="Your history starts here" detail="Once you order a test, you can follow its progress here." action=${() => navigate("shop")} label="Find a test"/>`}</section>
+      <aside class="cove-card"><p class="cove-eyebrow">${user.notifications ? "Next steps" : "Quick access"}</p><h2>${showUpdates ? (team ? "Reports need your review" : "New results are available") : active.length ? "An order is in progress" : "Ready for your next test?"}</h2><p class="cove-muted">${showUpdates ? (team ? "Open all patient results to review measurements and record your notes." : "See biomarker values, reference ranges, and your care team’s review.") : active.length ? "Follow your order timeline. This workspace updates as your order progresses." : "Browse individual tests and panels. Review your total before checkout."}</p><button class="cove-btn cove-btn-primary" onClick=${() => navigate(showUpdates ? "results" : active.length ? "orders" : "shop")}>${showUpdates ? "View results" : active.length ? "Track order" : "Browse catalog"} ↗</button></aside></div>
+      <section class="cove-card"><h2>How testing works</h2><div class="cove-how-grid">${[
+        ["01", "Choose your tests", "Select individual tests or combine panels in one order."],
+        [
+          "02",
+          "Complete collection",
+          "Your kit request and laboratory processing appear on the timeline.",
+        ],
+        [
+          "03",
+          "Explore your results",
+          "Review measurements, see care notes, and download your records.",
+        ],
+      ].map(
+        ([number, title, detail]) =>
+          html`<div key=${number}><span class="cove-muted cove-text-sm">${number}</span><h3>${title}</h3><p class="cove-muted cove-text-sm">${detail}</p></div>`,
+      )}</div></section>
+    `
+    }
+  </div>`
 }

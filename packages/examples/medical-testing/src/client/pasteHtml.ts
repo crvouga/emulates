@@ -165,7 +165,7 @@ export const pasteHtml = (
   const shadowListeners: TrackedListener[] = []
   if (options.scripts !== false) {
     const scopedWindow = new Proxy(window, {
-      get(target, prop, receiver) {
+      get(target, prop) {
         if (prop === "addEventListener") {
           return (
             type: string,
@@ -189,7 +189,8 @@ export const pasteHtml = (
             window.removeEventListener(type, listener, opts)
           }
         }
-        const value: unknown = Reflect.get(target, prop, receiver)
+        // Native Window getters require their real Window as the receiver.
+        const value: unknown = Reflect.get(target, prop, target)
         return typeof value === "function" ? value.bind(target) : value
       },
     })
@@ -228,12 +229,14 @@ export const pasteHtml = (
           scopedWindow,
         )
       } catch (error) {
-        console.error(error)
+        console.error(error instanceof Error ? (error.stack ?? error.message) : String(error))
       }
     }
   }
 
   return () => {
+    // Framework clients unmount their roots before their document is detached.
+    shadow.dispatchEvent(new Event("mockingbird:unmount"))
     detach()
     for (const item of windowListeners)
       window.removeEventListener(item.type, item.listener, item.options)
@@ -290,7 +293,7 @@ const scopedDocument = (
   listeners: TrackedListener[],
 ): Document =>
   new Proxy(owner, {
-    get(target, prop, receiver) {
+    get(target, prop) {
       if (prop === "getElementById") return (id: string) => shadow.getElementById(id)
       if (prop === "querySelector") return (selector: string) => shadow.querySelector(selector)
       if (prop === "querySelectorAll")
@@ -313,7 +316,7 @@ const scopedDocument = (
       if (prop === "removeEventListener")
         return (type: string, listener: EventListener, opts?: boolean | AddEventListenerOptions) =>
           shadow.removeEventListener(type, listener, opts)
-      const value: unknown = Reflect.get(target, prop, receiver)
+      const value: unknown = Reflect.get(target, prop, target)
       return typeof value === "function" ? value.bind(target) : value
     },
   }) as Document

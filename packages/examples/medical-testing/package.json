@@ -38,6 +38,7 @@
     "preact": "10.24.3"
   },
   "devDependencies": {
+    "@crvouga/mockingbird-admin-ui": "workspace:*",
     "@crvouga/mockingbird-ui": "workspace:*",
     "@types/bun": "1.4.0"
   }
