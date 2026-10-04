@@ -277,6 +277,104 @@ paths:
   /api/2010-04-01/Accounts/{AccountSid}/Messages.json:
     parameters:
       - $ref: "#/components/parameters/AccountSid"
+    get:
+      operationId: ListMessages
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+        - name: PageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: Page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: PageToken
+          in: query
+          schema:
+            type: string
+        - name: To
+          in: query
+          schema:
+            type: string
+        - name: From
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Message resources in newest-first order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [messages, page, page_size, start, end, uri, first_page_uri, next_page_uri, previous_page_uri]
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Message"
+                  page:
+                    type: integer
+                  page_size:
+                    type: integer
+                  start:
+                    type: integer
+                  end:
+                    type: integer
+                  uri:
+                    type: string
+                    x-mockingbird-volatile:
+                      kind: url
+                  first_page_uri:
+                    type: string
+                    x-mockingbird-volatile:
+                      kind: url
+                  next_page_uri:
+                    type: ["string", "null"]
+                    x-mockingbird-volatile:
+                      kind: url
+                  previous_page_uri:
+                    type: ["string", "null"]
+                    x-mockingbird-volatile:
+                      kind: url
+        "400":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       operationId: CreateMessage
       x-mockingbird:
