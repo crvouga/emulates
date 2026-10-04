@@ -16,6 +16,7 @@ import {
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
+import { Commissions } from "./commissions.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
   type CampaignReward,
@@ -143,6 +144,7 @@ export class FirstPromoterAPI implements FetchAPI {
   readonly app: Hono
   readonly sqlite: SqliteClient
   readonly state: FirstPromoterState
+  readonly commissions: Commissions
   private readonly service: Service
   private readonly now: () => number
   private readonly onWebhook: ((event: LeadBecomesReferralWebhook) => void) | undefined
@@ -153,6 +155,7 @@ export class FirstPromoterAPI implements FetchAPI {
     this.now = options.now ?? (() => Date.now())
     this.onWebhook = options.onWebhook
     this.state = new FirstPromoterState(sqlite, namespace, options.settings ?? {})
+    this.commissions = new Commissions(this.state, this.now)
     const handlers = defineOperations<SupportedOperationId>({
       TrackSignup: (context) => this.trackSignup(context),
       ListPromoters: (context) => this.listPromoters(context),
@@ -163,6 +166,40 @@ export class FirstPromoterAPI implements FetchAPI {
       IframeLogin: (context) => this.iframeLogin(context),
       ListReferrals: (context) => this.listReferrals(context),
       GetReferral: (context) => this.getReferral(context),
+      ListCommissions: (context) => this.commissions.list(context.url.searchParams),
+      FulfillCommissions: (context) => this.commissionBatch(context, "mark_fulfilled"),
+      DestroyCommissions: (context) => this.commissionBatch(context, "destroy"),
+      ListBatchProcesses: (context) =>
+        jsonRes(
+          200,
+          this.state.batches
+            .list({
+              order: "newest",
+              where: (row) =>
+                context.url.searchParams.has("filters[status]")
+                  ? row.status === context.url.searchParams.get("filters[status]")
+                  : row.status !== "completed",
+            })
+            .map((row) => row.value),
+        ),
+      GetBatchProcess: (context) => {
+        const batch = this.state.batches.get(context.params.id ?? "")
+        return batch ? jsonRes(200, batch) : error(404, "Batch process not found")
+      },
+      BatchProcessProgress: (context) =>
+        jsonRes(
+          200,
+          Object.fromEntries(
+            this.state.batches
+              .list({
+                where: (row) =>
+                  context.url.searchParams.has("filters[status]")
+                    ? row.status === context.url.searchParams.get("filters[status]")
+                    : row.status !== "completed",
+              })
+              .map((row) => [row.value.id, row.value.progress]),
+          ),
+        ),
     })
     this.service = createService({
       document,
@@ -180,6 +217,7 @@ export class FirstPromoterAPI implements FetchAPI {
         if (!context.request.headers.get("account-id")?.trim()) {
           return error(401, "Account-ID header is required")
         }
+        this.commissions.settle()
         return undefined
       },
     })
@@ -198,6 +236,21 @@ export class FirstPromoterAPI implements FetchAPI {
 
   private iso(): string {
     return new Date(this.now()).toISOString()
+  }
+
+  private commissionBatch(
+    context: OperationContext,
+    action: "mark_fulfilled" | "destroy",
+  ): Response {
+    const body = record(context)
+    const invalid = validation(context)
+    if (invalid) return invalid
+    const batch = this.commissions.submit(
+      body.ids as number[],
+      action,
+      faultEffect(context.request, "batch_partial_failure") !== undefined,
+    )
+    return jsonRes(batch.status === "pending" ? 202 : 200, batch)
   }
 
   private renderReferral(referral: ReferralRecord) {

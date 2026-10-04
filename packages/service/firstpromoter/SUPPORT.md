@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **9**
-- supported by the mock: **9**
-- parity enabled: **9**
+- operations in spec: **15**
+- supported by the mock: **15**
+- parity enabled: **15**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -17,3 +17,9 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `IframeLogin` | `POST /v2/promoters/iframe_login` | ✅ supported | ✅ |  |
 | `ListReferrals` | `GET /v2/company/referrals` | ✅ supported | ✅ |  |
 | `GetReferral` | `GET /v2/company/referrals/{id}` | ✅ supported | ✅ |  |
+| `ListCommissions` | `GET /v2/company/commissions` | ✅ supported | ✅ |  |
+| `FulfillCommissions` | `POST /v2/company/commissions/mark_fulfilled` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `DestroyCommissions` | `DELETE /v2/company/commissions/destroy` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `ListBatchProcesses` | `GET /v2/company/batch_processes` | ✅ supported | ✅ |  |
+| `BatchProcessProgress` | `GET /v2/company/batch_processes/progress` | ✅ supported | ✅ |  |
+| `GetBatchProcess` | `GET /v2/company/batch_processes/{id}` | ✅ supported | ✅ |  |

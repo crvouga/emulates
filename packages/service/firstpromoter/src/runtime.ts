@@ -14,7 +14,7 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { FIRSTPROMOTER_NAMESPACE, FirstPromoterAPI } from "./index.js"
-import type { Campaign, Settings } from "./state.js"
+import type { Campaign, CommissionUnit, Settings } from "./state.js"
 
 /** Where our backend receives FirstPromoter webhooks (`users.controller.ts`, Basic auth). */
 export const WEBHOOK_PATH = "/users/webhooks/first-promoter"
@@ -24,6 +24,14 @@ export const WEBHOOK_PATH = "/users/webhooks/first-promoter"
  * `POST /__admin/faults {"preset": "<name>"}` (add `count` to limit it).
  */
 export const FIRSTPROMOTER_PRESETS: Record<string, FaultPreset> = {
+  batch_partial_failure: {
+    description:
+      "The first selected commission fails; other items complete normally (synthetic test control)",
+    rules: [
+      { operationId: "FulfillCommissions", effect: "batch_partial_failure" },
+      { operationId: "DestroyCommissions", effect: "batch_partial_failure" },
+    ],
+  },
   created_but_500: {
     description:
       "Promoter create stores the promoter, then answers 500 (the next attempt must adopt it by cust_id)",
@@ -110,6 +118,49 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
 const adminRoutes = (runtime: ServiceRuntime<FirstPromoterAPI>): AdminRoutes => ({
+  "POST /commissions": ({ body, namespace }) => {
+    if (
+      !isRecord(body) ||
+      !Number.isInteger(body.promoter_campaign_id) ||
+      !Number.isInteger(body.amount) ||
+      Number(body.amount) < 0
+    )
+      return adminError(
+        400,
+        "expected {promoter_campaign_id, amount, unit?, status?, fulfilled?, referral_id?}",
+      )
+    const units = ["cash", "credits", "points", "free_months", "mon_discount", "discount_per"]
+    const unit = body.unit ?? "points"
+    const status = body.status ?? "approved"
+    if (
+      !units.includes(String(unit)) ||
+      !["pending", "approved", "denied"].includes(String(status)) ||
+      (body.fulfilled !== undefined && typeof body.fulfilled !== "boolean") ||
+      (body.is_paid !== undefined && typeof body.is_paid !== "boolean") ||
+      (body.referral_id !== undefined && !Number.isInteger(body.referral_id)) ||
+      (body.sale_amount !== undefined &&
+        (!Number.isInteger(body.sale_amount) || Number(body.sale_amount) < 0))
+    )
+      return adminError(400, "invalid commission fixture")
+    const api = runtime.instance(namespace)
+    const row = api.commissions.seed({
+      promoter_campaign_id: Number(body.promoter_campaign_id),
+      referral_id: typeof body.referral_id === "number" ? body.referral_id : null,
+      amount: Number(body.amount),
+      unit: unit as CommissionUnit,
+      status: status as "pending" | "approved" | "denied",
+      fulfilled: body.fulfilled === true,
+      is_paid: body.is_paid === true,
+      commission_type: body.referral_id === undefined ? "custom" : "sale",
+      sale_amount: typeof body.sale_amount === "number" ? body.sale_amount : 0,
+      original_sale_currency: null,
+      event_id: typeof body.event_id === "string" ? body.event_id : null,
+      plan_id: null,
+    })
+    return row
+      ? json(201, api.commissions.render(row))
+      : adminError(400, "unknown or mismatched promoter campaign/referral")
+  },
   "GET /promoters": ({ namespace }) =>
     json(200, { promoters: runtime.instance(namespace).state.all() }),
   "POST /promoters": ({ body, namespace }) => {

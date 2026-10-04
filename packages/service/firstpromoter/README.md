@@ -96,6 +96,7 @@ is `user:pass`. Non-2xx answers are retried; `GET /__admin/webhooks`, `…/event
 | `POST /__admin/clicks` | `{ref_token}` → `{tid, promoterId}`: a click on the promoter's link. |
 | `GET /__admin/referrals` | Tracked signups. |
 | `POST /__admin/referrals/:id/convert` | `{saleAmount?}`: the lead paid; credits the promoter (percent reward × amount) and posts the webhook. |
+| `POST /__admin/commissions` | Seed a commission against an existing `{promoter_campaign_id, amount, unit?, status?, fulfilled?, is_paid?, referral_id?, sale_amount?, event_id?}`. Defaults: approved, points, unfulfilled/unpaid. A referral must belong to that promoter and campaign. |
 | `GET\|PUT /__admin/settings` | `{website?, defaultCampaignId?, autoConvert?, campaigns?}` (campaigns carry `referralRewards` / `promoterRewards` with `coupon`, `amount`, `unit`, `per_of_sale`). The default campaign's referral coupon is `ACME50`. |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /__admin/faults/presets`):
@@ -103,6 +104,22 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 (lookups 503: neither create nor adopt), `no_campaign` (no `promoter_campaigns`: no ref link),
 `unauthorized`, `rate_limited`, `server_error`, `connection_drop`, `webhook_duplicate`,
 `webhook_drop`.
+
+Commission reconciliation follows FirstPromoter's [published contract](https://github.com/firstpromoter/docs/blob/d4e9e6f16bf4801c524508d2809a425ea6419d7d/api-reference-v2/api-admin/commissions/openapi-v2-commissions.json):
+`GET /v2/company/commissions` returns a bare array, newest first, with `q`, repeated `ids[]`,
+`page` / `per_page` (1 / 20 by default, maximum 100), and filters for `status`, nonmonetary
+`fulfilled=yes|no`, monetary `paid=yes|no`, `promoter_id`, `campaign_id`, amount / sale-amount
+ranges and creation-date ranges. `POST …/commissions/mark_fulfilled` fulfills nonmonetary
+commissions; `DELETE …/commissions/destroy` deletes selected commissions. Both take `{ids}`.
+Batches of at most five IDs return 200/completed; larger batches return 202/pending. In the
+mock they move to in_progress after the clock advances and complete at 1,000 ms, on the next
+authenticated API call. The batch collections and pending work participate in reset and snapshots.
+`GET …/batch_processes` and `…/batch_processes/progress` list unfinished work by default
+(`filters[status]` selects another status); `GET …/batch_processes/{id}` returns counts and
+processing errors. `batch_partial_failure` fails the first selected item while processing the
+others. Timing, missing-ID/monetary-item error text, and this preset are synthetic controls;
+they are not claims about the vendor's worker timing or exact error messages. Fulfillment is
+stored separately from the vendor's `is_paid` monetary field.
 
 ### Namespaces
 
@@ -116,7 +133,8 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
   branches on `ok` / 404, which the mock gets right.
 - The v1 API our EMR backend still calls (`/v1/promoters/*`, `/v1/track/signup`,
   `/v1/reports/campaigns`); the catalog scopes this mock to v2.
-- Sales, refunds, commissions and payouts beyond the single `convert` step; fraud checks;
+- Sales, refunds, commission creation/editing/approval, cash payouts and commission filters
+  beyond those listed above; fraud checks;
   promo codes; the hosted affiliate portal behind the iframe token.
 - Referral editing/deletion, username/website profile provisioning, cancelled-date filters and split attribution.
 - Promoter ids are sequential from 4800001 per namespace.
