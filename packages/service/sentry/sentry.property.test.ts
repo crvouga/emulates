@@ -46,8 +46,9 @@ test("a divergent event list is detected", async () => {
     provider: "sentry",
     spec: document,
     only: ["ListProjectEvents"],
-    numRuns: 3,
+    numRuns: 10,
     maxCommands: 3,
+    seed: 0,
     invalidProbability: 0,
     real: {
       baseUrl: "https://sentry.fixture",
@@ -58,7 +59,9 @@ test("a divergent event list is detected", async () => {
     mock: {
       baseUrl: "https://sentry.fixture",
       headers,
-      create: () => ({ fetch: async () => Response.json([{ broken: true }]) }),
+      create: () => ({
+        fetch: async () => Response.json({ error: "Deliberately divergent" }, { status: 503 }),
+      }),
     },
     sleep: async () => {},
     log: () => {},

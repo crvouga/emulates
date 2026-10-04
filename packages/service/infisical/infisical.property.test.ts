@@ -82,8 +82,9 @@ test("a deliberately divergent secret list is detected", async () => {
     provider: "infisical",
     spec,
     only: ["ListSecrets"],
-    numRuns: 3,
+    numRuns: 10,
     maxCommands: 3,
+    seed: 0,
     invalidProbability: 0,
     real: {
       baseUrl: "https://infisical.fixture",
@@ -94,7 +95,9 @@ test("a deliberately divergent secret list is detected", async () => {
     mock: {
       baseUrl: "https://infisical.fixture",
       headers,
-      create: () => ({ fetch: async () => Response.json({ secrets: [{ broken: true }] }) }),
+      create: () => ({
+        fetch: async () => Response.json({ error: "Deliberately divergent" }, { status: 503 }),
+      }),
     },
     sleep: async () => {},
     log: () => {},

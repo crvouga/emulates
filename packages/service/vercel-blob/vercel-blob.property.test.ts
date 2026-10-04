@@ -73,8 +73,9 @@ test("self-parity catches a deliberately divergent store", async () => {
     provider: "vercel-blob",
     spec,
     only: ["ReadBlobStore"],
-    numRuns: 3,
+    numRuns: 10,
     maxCommands: 3,
+    seed: 0,
     invalidProbability: 0,
     real: {
       baseUrl: "http://mock.local",
