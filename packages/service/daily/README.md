@@ -76,6 +76,7 @@ await admin("/rooms/<room name>/session", {
 
 | Route | Behaviour |
 | --- | --- |
+| `GET /v1/rooms` | `{total_count, data}` in newest-first creation order; `limit` (default 100), `ending_before` and `starting_after` use room IDs. Shares state with room creation, updates and deletion. |
 | `POST /v1/rooms` | `{name?, privacy?, properties?}`; unknown properties, bad types and a duplicate `name` are 400 `{error: "invalid-request-error", info}`. No name → a random 20-character one. Answers `{id, name, api_created, privacy, url: <roomUrlBase><name>, created_at, config}` with `config` echoing the properties. Accepts both the backend's strict body and the EMR's `generateRoomConfig` body. |
 | `GET /v1/rooms/:name` | The room, or 404 `{error: "not-found", info: "room <name> not found"}` (the EMR branches on `message.includes('404')`). |
 | `POST /v1/rooms/:name` | Merge `properties` (and `privacy`) into the room; 404 when missing. |
@@ -140,7 +141,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `room_
   through `useCallProviderLogic(createCallObject)`.
 - The room page at `https://<domain>.daily.co/<room>?t=` (the URL is produced, not served).
 - Daily's own webhook signature scheme and webhook registration API (see above).
-- Room listing, recordings/transcripts REST APIs, dial-out, streaming.
+- Recordings/transcripts REST APIs, dial-out, streaming.
 
 ## API
 

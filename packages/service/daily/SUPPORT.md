@@ -2,12 +2,13 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **8**
-- supported by the mock: **8**
-- parity enabled: **8**
+- operations in spec: **9**
+- supported by the mock: **9**
+- parity enabled: **9**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
+| `ListRooms` | `GET /v1/rooms` | ✅ supported | ✅ |  |
 | `CreateRoom` | `POST /v1/rooms` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetRoom` | `GET /v1/rooms/{name}` | ✅ supported | ✅ |  |
 | `UpdateRoom` | `POST /v1/rooms/{name}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
