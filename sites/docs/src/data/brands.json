@@ -581,6 +581,21 @@
     "logo": "/brands/s3.png",
     "logoSource": "site"
   },
+  "sentry": {
+    "vendor": "Sentry",
+    "website": "https://sentry.io",
+    "docs": "https://develop.sentry.dev/sdk/foundations/envelopes/",
+    "description": "Sentry provides application error monitoring, performance traces and issue tracking.",
+    "input": {
+      "website": "https://sentry.io",
+      "docs": "https://develop.sentry.dev/sdk/foundations/envelopes/",
+      "description": "Sentry provides application error monitoring, performance traces and issue tracking.",
+      "icon": "sentry"
+    },
+    "color": "#362D59",
+    "logo": "/brands/sentry.svg",
+    "logoSource": "simple-icons"
+  },
   "slack": {
     "vendor": "Slack",
     "website": "https://slack.com",

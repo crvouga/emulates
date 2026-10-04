@@ -41,6 +41,7 @@ import type { createRuntime as createPrism } from "@crvouga/mockingbird-service-
 import type { createRuntime as createResend } from "@crvouga/mockingbird-service-resend"
 import type { createRuntime as createRxvortex } from "@crvouga/mockingbird-service-rxvortex"
 import type { createRuntime as createS3 } from "@crvouga/mockingbird-service-s3"
+import type { createRuntime as createSentry } from "@crvouga/mockingbird-service-sentry"
 import type { createRuntime as createSlack } from "@crvouga/mockingbird-service-slack"
 import type { createRuntime as createSqs } from "@crvouga/mockingbird-service-sqs"
 import type { createRuntime as createStepFunctions } from "@crvouga/mockingbird-service-step-functions"
@@ -100,6 +101,7 @@ export type SurfaceProof = [
   Assert<typeof createPrism>,
   Assert<typeof createResend>,
   Assert<typeof createRxvortex>,
+  Assert<typeof createSentry>,
   Assert<typeof createS3>,
   Assert<typeof createSlack>,
   Assert<typeof createSqs>,

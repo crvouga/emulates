@@ -62,6 +62,7 @@
     "@crvouga/mockingbird-service-textract": "workspace:*",
     "@crvouga/mockingbird-service-twilio": "workspace:*",
     "@crvouga/mockingbird-service-vpi": "workspace:*",
-    "@crvouga/mockingbird-service-wholescripts": "workspace:*"
+    "@crvouga/mockingbird-service-wholescripts": "workspace:*",
+    "@crvouga/mockingbird-service-sentry": "workspace:*"
   }
 }
