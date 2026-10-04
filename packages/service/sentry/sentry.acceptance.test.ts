@@ -397,3 +397,25 @@ test("served HTTP accepts raw and multipart minidumps, credential namespaces and
     await server.close()
   }
 })
+
+test("legacy false messages are accepted and normalized without overwriting REST resource fields", async () => {
+  const runtime = createRuntime()
+  const client = fixture(runtime)
+  const response = await client.store({
+    event_id: eventId(50),
+    message: false,
+    id: "spoofed",
+    projectID: "other",
+    groupID: "spoofed",
+    dateCreated: "invalid",
+  })
+  expect(response.status).toBe(200)
+  const detail = await (
+    await client.request("GET", `/api/0/projects/fixture-org/fixture/events/${eventId(50)}/`)
+  ).json()
+  expect(detail.message).toBe("")
+  expect(detail.id).toBe(eventId(50))
+  expect(detail.projectID).toBe("1")
+  expect(detail.groupID).toMatch(/^\d+$/)
+  expect(Number.isFinite(Date.parse(detail.dateCreated))).toBe(true)
+})

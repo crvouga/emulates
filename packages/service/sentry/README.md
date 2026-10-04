@@ -48,7 +48,8 @@ mockingbird-sentry serve --port 8810
   sessions/client-report items. Gzip/deflate request compression is supported. Responses are
   `200 {"id": "<event ID>"}` when an ID applies, or `200 {}` for session/report-only envelopes.
 - `POST /api/{project}/store/`: JSON event ingestion; generates a deterministic 32-hex event ID
-  when absent. Event IDs dedupe per project, including concurrent retries: a replay returns the
+  when absent. Legacy `message: false` is accepted and ignored, matching Relay LogEntry; raw
+  input attributes cannot overwrite normalized REST fields. Event IDs dedupe per project, including concurrent retries: a replay returns the
   same ID without a second capture, issue count or attachment.
 - `POST /api/{project}/minidump/`: raw native minidump or multipart `upload_file_minidump`, optional
   `sentry` JSON and additional files. Returns the hyphenated event UUID as plain text, like Relay.
@@ -133,6 +134,7 @@ return redacted data, while authenticated attachment download is an explicit byt
 - [Relay envelope response](https://github.com/getsentry/relay/blob/c4e9930349068039dd6ecd06cf338c527ee90165/relay-server/src/endpoints/envelope.rs),
   [auth status/messages](https://github.com/getsentry/relay/blob/c4e9930349068039dd6ecd06cf338c527ee90165/relay-server/src/extractors/request_meta.rs),
   [ingest errors, quota headers and minidump response](https://github.com/getsentry/relay/blob/c4e9930349068039dd6ecd06cf338c527ee90165/relay-server/src/endpoints/common.rs).
+- [Relay legacy message normalization](https://github.com/getsentry/relay/blob/c4e9930349068039dd6ecd06cf338c527ee90165/relay-event-schema/src/protocol/logentry.rs) explicitly ignores `message: false`; its CI-discovered seed is retained in the regression registry.
 - Official npm SDK source for `@sentry/node`, `@sentry/core` and `@sentry/nextjs` 11.4.0; served
   tests use the actual clients and transport, not a reimplementation of SDK quota handling.
 

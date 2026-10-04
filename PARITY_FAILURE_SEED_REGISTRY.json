@@ -288,6 +288,12 @@
       "seed": 2058813869,
       "status": "open",
       "failure": "Local replay 2026-09-29, path 7, walk salt 998760424: testkit result PDF real 200 vs mock 404. A partial delivery-state implementation exposed raw-result metadata and transaction differences. Read-only polling after one simulation confirmed background completion from delivered_to_lab to completed without another write. Asynchronous testkit lifecycle and result metadata require a separate follow-up; full live parity has not passed."
+    },
+    {
+      "provider": "sentry",
+      "seed": 115477026,
+      "status": "fixed",
+      "failure": "GetProjectEvent copied raw legacy message=false over its normalized REST string field after StoreEvent; Relay LogEntry ignores false rather than rejecting ingestion. Fixed after exact CI seed replay, 11 package tests and all 598 repository checks; official Relay source is the oracle fallback because live credentials are unavailable."
     }
   ]
 }

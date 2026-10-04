@@ -398,6 +398,8 @@ export class SentryAPI implements FetchAPI {
       for (const { item, data: input } of events) {
         if (!outputId) continue
         const data = object(this.scrub(input))
+        // Relay LogEntry accepts legacy message=false and discards that value.
+        if (data.message === false) delete data.message
         // Production personal attributes are deliberately not retained; user.id is the fake fixture identity.
         if (data.user)
           data.user = object(data.user).id === undefined ? null : { id: object(data.user).id }
@@ -564,6 +566,8 @@ export class SentryAPI implements FetchAPI {
         tags.push({ key, value: String(data[key]) })
     }
     return {
+      // Vendor response fields must win over unknown incoming event attributes.
+      ...(full ? data : {}),
       id: event.event_id,
       eventID: event.event_id,
       groupID: event.groupId,
@@ -582,7 +586,6 @@ export class SentryAPI implements FetchAPI {
       entries,
       user: data.user ?? null,
       contexts: data.contexts ?? {},
-      ...(full ? { ...data, id: event.event_id, eventID: event.event_id, tags, entries } : {}),
       metadata: { title: event.title },
     }
   }
