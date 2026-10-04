@@ -1,7 +1,9 @@
 import { Hono } from "hono"
 import { getCookie } from "hono/cookie"
+import { HTTPException } from "hono/http-exception"
 import { SESSION_COOKIE, SESSION_HEADER, userForToken } from "../auth/session.js"
 import type { AppDeps, AppEnv } from "./appEnv.js"
+import { adminRoutes } from "./routes/admin.js"
 import { authRoutes } from "./routes/auth.js"
 import { catalogRoutes } from "./routes/catalog.js"
 import { checkoutRoutes } from "./routes/checkout.js"
@@ -36,6 +38,16 @@ export const createApp = (deps: AppDeps, assets: ClientAssets): Hono<AppEnv> => 
     await next()
   })
 
+  app.onError((error, c) => {
+    if (error instanceof HTTPException) return c.json({ error: error.message }, error.status)
+    if (error instanceof SyntaxError) return c.json({ error: "Invalid request body." }, 400)
+    return c.json({ error: "Something went wrong. Please try again." }, 500)
+  })
+  app.use("/api/*", async (c, next) => {
+    c.header("cache-control", "no-store")
+    await next()
+  })
+  app.route("/api/admin", adminRoutes)
   app.route("/api/auth", authRoutes)
   app.route("/api", catalogRoutes)
   app.route("/api/checkout", checkoutRoutes)

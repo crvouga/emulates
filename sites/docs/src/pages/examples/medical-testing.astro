@@ -34,10 +34,16 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
     <section class="live-app">
       <p class="live-note">
         Everything in the app — the Google/Apple OAuth sign-in, the shop, the Stripe checkout, the Junction
-        fulfillment, and the Postgres-backed order history — runs entirely in this browser tab. The window opens
+        fulfillment, and the Postgres-backed order history — runs entirely in this browser tab. The fullscreen view opens
         on the example app, and the other tabs are the live admin UI for each mock the app is talking to. No server to start,
         and no real network call to Google, Apple, Stripe, or Junction.
       </p>
+      <div class="example-capabilities">
+        <div><h2>Patient workspace</h2><p>Search the catalog, build an order, pay, track progress, explore biomarker reports, and download records.</p></div>
+        <div><h2>Clinical review</h2><p>Inspect all patient reports, compare values and reference ranges, and add a signed, timestamped review.</p></div>
+        <div><h2>Administration</h2><p>Manage patient, clinician, and administrator roles with server-enforced permissions and an audit log.</p></div>
+      </div>
+      <p class="live-note">Choose Ada (patient), Morgan (clinician), or Alex (administrator) in the Google account chooser. Ada starts with two fictional reports. Sign out in Account to switch roles. Changes last until the example closes; reopening starts a fresh workspace.</p>
       <ExampleLauncher element="app-example" example={example.slug} title={example.title} launchLabel="Launch the app" fit="app" />
     </section>
 
@@ -102,6 +108,10 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
     display: block;
     min-width: 0;
   }
+  .example-capabilities { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; margin: 24px 0; }
+  .example-capabilities > div { border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .example-capabilities h2 { font-size: 15px; margin-bottom: 8px; }
+  .example-capabilities p { color: var(--fg-muted); font-size: 13px; line-height: 1.6; }
   .run-locally {
     margin-top: 48px;
     padding-top: 24px;

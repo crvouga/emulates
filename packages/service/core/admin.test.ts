@@ -1,14 +1,4 @@
 import { describe, expect, test } from "bun:test"
-import {
-  adminClientSource,
-  bootAdmin,
-  faultPresetList,
-  highlightJsonText,
-  isRecord,
-  mountAdminBrand,
-  mountSqlExplorer,
-  startAdminBrand,
-} from "./src/admin-client.js"
 import { ADMIN_BRANDS_URL, renderAdminDocument } from "./src/admin-ui.js"
 import {
   ADMIN_KEY_HEADER,
@@ -209,7 +199,7 @@ describe("admin ui", () => {
     expect(html).toContain("prefers-color-scheme")
     expect(html).toContain("data-mockingbird-admin")
     expect(html).toContain(ADMIN_BRANDS_URL)
-    expect(html).toContain('id="vendor"')
+    expect(html.includes('data-admin-ui-library="antd"')).toBe(true)
     expect(html).not.toContain("https://stripe.com")
     expect((await call(runtime, "GET", "/__admin/ui/")).status).toBe(200)
 
@@ -246,200 +236,20 @@ describe("admin ui", () => {
     expect(html.endsWith("<!-- end notes -->")).toBe(true)
   })
 
-  test("the embedded script calls its boot function by the name that function declares", () => {
+  test("the shared document contains the bundled component UI and escapes configuration", () => {
     const html = renderAdminDocument("stripe")
-    const script = html.slice(
-      html.lastIndexOf("<script>\n") + "<script>\n".length,
-      html.lastIndexOf("\n</script>"),
-    )
-    const declared = [...script.matchAll(/^function (\w+)\(/gm)].map((match) => match[1])
-    const call = script.trim().split("\n").at(-1) ?? ""
-    const callee = /^(\w+)\(/.exec(call)?.[1]
-    expect(callee).toBe(bootAdmin.name)
-    expect(declared.at(-1)).toBe(callee)
-    // A later copy of this module is renamed by the bundler. The call has to read
-    // the name at runtime; a literal `bootAdmin(` throws and the section buttons stay dead.
-    expect(adminClientSource.toString()).toContain("bootAdmin.name")
-    expect(bootAdmin.toString()).toContain(`${mountSqlExplorer.name}(`)
-    expect(html).toContain(`function ${mountSqlExplorer.name}(`)
-  })
-
-  test("JSON is syntax highlighted without allowing markup through", () => {
-    const highlighted = highlightJsonText(
-      '{"name":"<script>alert(1)</script>","count":42,"ready":true,"empty":null}',
-    )
-    expect(highlighted).toContain('class="json-key"')
-    expect(highlighted).toContain('class="json-string"')
-    expect(highlighted).toContain('class="json-number"')
-    expect(highlighted).toContain('class="json-boolean"')
-    expect(highlighted).toContain('class="json-null"')
-    expect(highlighted).toContain("&lt;script&gt;")
-    expect(highlighted).not.toContain("<script>")
-
-    const html = renderAdminDocument("notes")
-    expect(html).toContain('class="json-editor"')
-    expect(html).toContain("highlightJsonText")
-    expect(html).toContain('aria-live="polite"')
-  })
-
-  test("clearing an empty journal tells you the click finished", () => {
-    const html = renderAdminDocument("notes")
-    expect(html).toContain("Clearing...")
-    expect(html).toContain("Cleared")
-    expect(html).toContain('classList.add("pressed")')
-  })
-
-  test("the header chip is painted from a remote record, never from the bundle", async () => {
-    const html = renderAdminDocument("stripe")
-    expect(html).toContain(mountAdminBrand.toString())
-    expect(html).toContain(startAdminBrand.toString())
+    expect(html).toContain('data-admin-ui-library="antd"')
+    expect(html).toContain('id="admin-root"')
+    expect(html).toContain("MockingbirdAdmin.mount(")
+    expect(html).toContain(ADMIN_BRANDS_URL)
     expect(html).not.toContain("https://stripe.com")
     expect(html).not.toContain("https://docs.stripe.com")
-
-    type Node = {
-      tag: string
-      hidden: boolean
-      children: Node[]
-      className: string
-      textContent: string
-      href: string
-      src: string
-      title: string
-      style: { borderColor: string }
-      append: (...nodes: Node[]) => void
-      replaceChildren: () => void
-      setAttribute: (name: string, value: string) => void
-      removeAttribute: (name: string) => void
-    }
-    const createElement = (tag: string): Node => {
-      const node: Node = {
-        tag,
-        hidden: false,
-        children: [],
-        className: "",
-        textContent: "",
-        href: "",
-        src: "",
-        title: "",
-        style: { borderColor: "" },
-        append(...nodes) {
-          this.children.push(...nodes)
-        },
-        replaceChildren() {
-          this.children = []
-        },
-        setAttribute() {},
-        removeAttribute() {},
-      }
-      return node
-    }
-    const paint = async (
-      catalog: unknown,
-      search = "",
-      page = "http://127.0.0.1:8787/__admin/ui",
-    ) => {
-      const host = createElement("div")
-      host.hidden = true
-      let requested = ""
-      const document = {
-        createElement,
-        querySelector: () => ({ getAttribute: () => "stripe" }),
-      }
-      const location = { href: page, origin: new URL(page).origin }
-      const fetch = (url: string) => {
-        requested = url
-        return Promise.resolve({
-          ok: catalog !== "fail",
-          json: async () => catalog,
-        })
-      }
-      const run = new Function(
-        "$",
-        "params",
-        "location",
-        "fetch",
-        "document",
-        "brandsUrl",
-        `${isRecord.toString()}\n${mountAdminBrand.toString()}\n${startAdminBrand.toString()}\nstartAdminBrand({ document, $, params, location, fetch, brandsUrl })`,
-      )
-      run(
-        (id: string) => (id === "vendor" ? host : null),
-        new URLSearchParams(search),
-        location,
-        fetch,
-        document,
-        ADMIN_BRANDS_URL,
-      )
-      await new Promise((resolve) => setTimeout(resolve, 0))
-      return { host, requested }
-    }
-    const stripe = {
-      stripe: {
-        vendor: "Stripe",
-        website: "https://stripe.com",
-        docs: "https://docs.stripe.com/api",
-        guide: "https://mockingbird.chrisvouga.dev/services/stripe",
-        logo: "https://mockingbird.chrisvouga.dev/brands/stripe.svg",
-        color: "#635bff",
-        description: "Payments.",
-      },
-    }
-
-    const shown = await paint(stripe)
-    expect(shown.requested).toBe(ADMIN_BRANDS_URL)
-    expect(shown.host.hidden).toBe(false)
-    const text = shown.host.children.map((node) => node.textContent)
-    expect(text).toEqual(["", "Stripe", "·", "stripe.com", "·", "Docs", "·", "API"])
-    const links = shown.host.children.filter((node) => node.tag === "a")
-    expect(links.map((node) => node.href)).toEqual([
-      "https://stripe.com/",
-      "https://mockingbird.chrisvouga.dev/services/stripe",
-      "https://docs.stripe.com/api",
-    ])
-    expect(shown.host.children[0]?.src).toBe("https://mockingbird.chrisvouga.dev/brands/stripe.svg")
-    expect(shown.host.children[0]?.style.borderColor).toBe("#635bff")
-    expect(shown.host.children[1]?.title).toBe("Payments.")
-
-    const local = await paint(stripe, "brands=http://127.0.0.1:4321/brands.json")
-    expect(local.requested).toBe("http://127.0.0.1:4321/brands.json")
-    const remote = await paint(stripe, "brands=https://evil.example/brands.json")
-    expect(remote.requested).toBe(ADMIN_BRANDS_URL)
-
-    const hostile = await paint({
-      stripe: {
-        vendor: "<img src=x onerror=alert(1)>",
-        website: "javascript:alert(1)",
-        docs: "data:text/html,hi",
-        guide: "https://mockingbird.chrisvouga.dev/services/stripe",
-        logo: "javascript:alert(1)",
-      },
-    })
-    expect(hostile.host.hidden).toBe(false)
-    expect(hostile.host.children.some((node) => node.tag === "img")).toBe(false)
-    expect(hostile.host.children.map((node) => node.href).filter(Boolean)).toEqual([
-      "https://mockingbird.chrisvouga.dev/services/stripe",
-    ])
-    expect(hostile.host.children.some((node) => node.textContent.includes("<img"))).toBe(true)
-
-    const missing = await paint({})
-    expect(missing.host.hidden).toBe(true)
-    const offline = await paint("fail")
-    expect(offline.host.hidden).toBe(true)
-  })
-
-  test("fault presets are a list, so the faults page can map them", () => {
-    const html = renderAdminDocument("junction")
-    expect(html).toContain(faultPresetList.toString())
-    expect(html).toContain("faultPresetList(presets).presets")
-    expect(
-      faultPresetList({ presets: [{ name: "sandbox_user_quota" }, { name: "rate_limited" }] }),
-    ).toEqual({
-      presets: [{ name: "sandbox_user_quota" }, { name: "rate_limited" }],
-    })
-    expect(faultPresetList({})).toEqual({ presets: [] })
-    expect(() => faultPresetList({ presets: { rate_limited: { status: 429 } } })).toThrow(
-      /not a list/,
-    )
+    // All runtime dependencies are bundled; the document works with an in-process fetch.
+    expect(html).not.toMatch(/<script[^>]+src=/)
+    const hostile = renderAdminDocument('</script><script>alert("x")</script>')
+    expect(hostile).not.toContain('</script><script>alert("x")')
+    expect(hostile).toContain("\\u003c/script>")
+    expect(hostile.match(/<\/script>/g)?.length).toBe(1)
   })
 
   test("an extension is listed on the manifest and a reserved id is rejected", async () => {
@@ -450,11 +260,27 @@ describe("admin ui", () => {
         reset: async () => {},
       }),
       adminUi: {
-        extensions: [{ kind: "sql", description: "Browse tables and run queries." }],
+        extensions: [
+          { kind: "sql", description: "Browse tables and run queries." },
+          {
+            kind: "route",
+            id: "move",
+            title: "Move",
+            route: "POST /items/:id/state",
+            body: { state: "Done" },
+          },
+        ],
       },
     })
     const manifest = (await (await call(runtime, "GET", "/__admin/ui/manifest")).json()) as {
-      extensions: { kind: string; id: string; title: string; description?: string }[]
+      extensions: {
+        kind: string
+        id: string
+        title: string
+        description?: string
+        route?: string
+        body?: unknown
+      }[]
     }
     expect(manifest.extensions).toEqual([
       {
@@ -462,6 +288,13 @@ describe("admin ui", () => {
         id: "sql",
         title: "SQL",
         description: "Browse tables and run queries.",
+      },
+      {
+        kind: "route",
+        id: "move",
+        title: "Move",
+        route: "POST /items/:id/state",
+        body: { state: "Done" },
       },
     ])
     expect(() =>
@@ -474,6 +307,17 @@ describe("admin ui", () => {
         adminUi: { extensions: [{ kind: "sql", id: "state" }] },
       }),
     ).toThrow(/reserved/)
+    expect(() =>
+      createRuntime({
+        name: "notes",
+        create: () => ({ fetch: async () => new Response("ok"), reset: async () => {} }),
+        adminUi: {
+          extensions: [
+            { kind: "route", id: "bad-route", title: "Bad", route: "https://example.test/" },
+          ],
+        },
+      }),
+    ).toThrow(/method and route path/)
   })
 
   test("a panel id the shell cannot mount is rejected up front", () => {

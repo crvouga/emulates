@@ -43,6 +43,7 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
+    "@crvouga/mockingbird-admin-ui": "workspace:*",
     "@crvouga/mockingbird-core": "workspace:*",
     "@crvouga/mockingbird-sqlite": "workspace:*",
     "@crvouga/mockingbird-openapi": "workspace:*",

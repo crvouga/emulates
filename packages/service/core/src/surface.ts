@@ -129,8 +129,19 @@ export type StandardAdminRoute = (typeof STANDARD_ADMIN_ROUTES)[number]
  * A contribution the admin shell mounts beside the shared views.
  * `panel` is author-owned markup. `sql` turns on the built-in table explorer
  * and query runner, which call `GET /sql/tables` and `POST /sql/query`.
+ * `route` presents an admin action with the shell's prebuilt form and response view.
  */
 export type AdminExtension =
+  | {
+      kind: "route"
+      id: string
+      title: string
+      description?: string
+      /** An existing admin route, including its method and any path parameters. */
+      route: string
+      /** Initial JSON body shown in the request form. */
+      body?: unknown
+    }
   | {
       kind: "panel"
       id: string
@@ -175,7 +186,15 @@ export type AdminUi = {
 }
 
 const PANEL_ID = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/
-const RESERVED_VIEWS = new Set(["overview", "state", "clock", "faults", "journal", "routes"])
+const RESERVED_VIEWS = new Set([
+  "overview",
+  "state",
+  "clock",
+  "faults",
+  "journal",
+  "routes",
+  "checkpoints",
+])
 
 const checkPanel = (
   panel: { id: string; title: string },
@@ -199,8 +218,13 @@ export const assertAdminUi = (ui: AdminUi | undefined): void => {
   const seen = new Set<string>()
   for (const panel of ui.panels ?? []) checkPanel(panel, seen, "admin panel")
   for (const extension of ui.extensions ?? []) {
-    if (extension.kind === "panel") {
+    if (extension.kind === "panel" || extension.kind === "route") {
       checkPanel(extension, seen, "admin extension")
+      if (
+        extension.kind === "route" &&
+        !/^(GET|POST|PUT|PATCH|DELETE) \/\S*$/.test(extension.route)
+      )
+        throw new RangeError(`admin extension ${extension.id} needs a method and route path`)
       continue
     }
     const id = extension.id ?? "sql"

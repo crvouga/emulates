@@ -81,6 +81,24 @@ export const createJunctionMockLabTesting = (params: {
    */
   const scheduleAutomaticProgress = (labOrderId: string): void => {
     setTimeout(() => {
+      void params
+        .dispatch(
+          new Request(params.webhookUrl, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              type: "order.status_updated",
+              labOrderId,
+              status: "processing",
+              interpretation: null,
+            }),
+          }),
+        )
+        .catch(() => {
+          /* The instance may have been disposed. */
+        })
+    }, 1_500)
+    setTimeout(() => {
       void (async () => {
         const updated = junction.transitionOrder(labOrderId, "completed.completed", {
           now: () => Date.now(),
@@ -100,7 +118,9 @@ export const createJunctionMockLabTesting = (params: {
             body: JSON.stringify(event),
           }),
         )
-      })()
+      })().catch(() => {
+        /* The instance may have been disposed. */
+      })
     }, RESULTS_READY_DELAY_MS)
   }
 

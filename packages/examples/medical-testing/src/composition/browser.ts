@@ -50,7 +50,6 @@ export const mount = async (host: HTMLElement): Promise<() => void> => {
 
   return mountDemoShell(host, {
     admins: demo.admins,
-    db: demo.db,
-    mountApp: (panel) => mountApp(panel),
+    mountApp: (panel) => mountApp(panel, true),
   })
 }
