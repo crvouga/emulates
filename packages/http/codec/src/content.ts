@@ -57,7 +57,42 @@ export const decodeBody = (
 
 /** Read and decode a Request/Response body. */
 export const readBody = async (message: Request | Response): Promise<DecodedBody> => {
-  const bytes = new Uint8Array(await message.arrayBuffer())
+  // An in-process Request's body does not automatically observe its AbortSignal.
+  // Cancel the active reader so an incomplete upload cannot strand the caller.
+  if (!(message instanceof Request) || !message.body) {
+    if (message instanceof Request) message.signal.throwIfAborted()
+    return decodeBody(
+      message.headers.get("content-type"),
+      new Uint8Array(await message.arrayBuffer()),
+    )
+  }
+  message.signal.throwIfAborted()
+  const reader = message.body.getReader()
+  const cancel = () => {
+    void reader.cancel(message.signal.reason).catch(() => {})
+  }
+  message.signal.addEventListener("abort", cancel, { once: true })
+  const chunks: Uint8Array[] = []
+  let size = 0
+  try {
+    for (;;) {
+      message.signal.throwIfAborted()
+      const { done, value } = await reader.read()
+      message.signal.throwIfAborted()
+      if (done) break
+      chunks.push(value)
+      size += value.byteLength
+    }
+  } finally {
+    message.signal.removeEventListener("abort", cancel)
+    reader.releaseLock()
+  }
+  const bytes = new Uint8Array(size)
+  let offset = 0
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset)
+    offset += chunk.byteLength
+  }
   return decodeBody(message.headers.get("content-type"), bytes)
 }
 

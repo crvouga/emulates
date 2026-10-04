@@ -31,6 +31,7 @@ import type { createRuntime as createMediaconvert } from "@crvouga/mockingbird-s
 import type { createRuntime as createMedplum } from "@crvouga/mockingbird-service-medplum"
 import type { createRuntime as createOauth } from "@crvouga/mockingbird-service-oauth"
 import type { createRuntime as createOdx } from "@crvouga/mockingbird-service-odx"
+import type { createRuntime as createOpenAI } from "@crvouga/mockingbird-service-openai"
 import type { createRuntime as createOtel } from "@crvouga/mockingbird-service-otel"
 import type { createRuntime as createPaddle } from "@crvouga/mockingbird-service-paddle"
 import type { createRuntime as createPayloadCms } from "@crvouga/mockingbird-service-payload-cms"
@@ -93,6 +94,7 @@ export type SurfaceProof = [
   Assert<typeof createMediaconvert>,
   Assert<typeof createMedplum>,
   Assert<typeof createOauth>,
+  Assert<typeof createOpenAI>,
   Assert<typeof createOdx>,
   Assert<typeof createOtel>,
   Assert<typeof createPaddle>,
