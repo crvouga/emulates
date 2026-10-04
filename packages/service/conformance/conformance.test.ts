@@ -37,7 +37,10 @@ const call = async (
   runtime.fetch(
     new Request(`http://mock.local${path}`, {
       method,
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-mockingbird-admin-key": "conformance-fixture-admin",
+      },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     }),
   )
@@ -49,7 +52,7 @@ for (const adminPrefix of ["/__admin", "/_control/mock"])
       const failures: string[] = []
       for (const name of httpMocks()) {
         const mod = (await import(`../${name}/src/index.ts`)) as {
-          createRuntime: (options?: { seed?: number; adminPrefix?: string }) => {
+          createRuntime: (options?: { seed?: number; adminPrefix?: string; adminKey?: string }) => {
             fetch(request: Request): Promise<Response>
             state(namespace?: string): { collections: unknown[] }
             stop?: () => void
@@ -57,7 +60,11 @@ for (const adminPrefix of ["/__admin", "/_control/mock"])
         }
         let runtime: ReturnType<typeof mod.createRuntime> | undefined
         try {
-          runtime = mod.createRuntime({ seed: 1, adminPrefix })
+          runtime = mod.createRuntime({
+            seed: 1,
+            adminPrefix,
+            adminKey: "conformance-fixture-admin",
+          })
           const health = await call(runtime, "GET", `${adminPrefix}/health`)
           if (health.status !== 200) failures.push(`${name}: health ${health.status}`)
           const healthBody = (await health.json()) as { adminUi?: string }

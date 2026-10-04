@@ -262,6 +262,21 @@
     "logo": "/brands/healthie.png",
     "logoSource": "site"
   },
+  "infisical": {
+    "vendor": "Infisical",
+    "website": "https://infisical.com",
+    "docs": "https://infisical.com/docs/api-reference/overview/introduction",
+    "description": "Infisical manages project secrets and machine identity access.",
+    "input": {
+      "website": "https://infisical.com",
+      "docs": "https://infisical.com/docs/api-reference/overview/introduction",
+      "description": "Infisical manages project secrets and machine identity access.",
+      "icon": false
+    },
+    "color": null,
+    "logo": "/brands/infisical.ico",
+    "logoSource": "site"
+  },
   "intercom": {
     "vendor": "Intercom",
     "website": "https://www.intercom.com",

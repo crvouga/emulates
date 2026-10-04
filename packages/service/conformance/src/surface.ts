@@ -19,6 +19,7 @@ import type { createRuntime as createGenebygene } from "@crvouga/mockingbird-ser
 import type { createRuntime as createGoogleCalendar } from "@crvouga/mockingbird-service-google-calendar"
 import type { createRuntime as createGoogleMaps } from "@crvouga/mockingbird-service-google-maps"
 import type { createRuntime as createHealthie } from "@crvouga/mockingbird-service-healthie"
+import type { createRuntime as createInfisical } from "@crvouga/mockingbird-service-infisical"
 import type { createRuntime as createIntercom } from "@crvouga/mockingbird-service-intercom"
 import type { createRuntime as createJunction } from "@crvouga/mockingbird-service-junction"
 import type { createRuntime as createKillBill } from "@crvouga/mockingbird-service-kill-bill"
@@ -80,6 +81,7 @@ export type SurfaceProof = [
   Assert<typeof createGoogleCalendar>,
   Assert<typeof createGoogleMaps>,
   Assert<typeof createHealthie>,
+  Assert<typeof createInfisical>,
   Assert<typeof createIntercom>,
   Assert<typeof createJunction>,
   Assert<typeof createKillBill>,

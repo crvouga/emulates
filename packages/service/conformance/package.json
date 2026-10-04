@@ -33,6 +33,7 @@
     "@crvouga/mockingbird-service-google-calendar": "workspace:*",
     "@crvouga/mockingbird-service-google-maps": "workspace:*",
     "@crvouga/mockingbird-service-healthie": "workspace:*",
+    "@crvouga/mockingbird-service-infisical": "workspace:*",
     "@crvouga/mockingbird-service-intercom": "workspace:*",
     "@crvouga/mockingbird-service-junction": "workspace:*",
     "@crvouga/mockingbird-service-kill-bill": "workspace:*",
@@ -55,6 +56,7 @@
     "@crvouga/mockingbird-service-resend": "workspace:*",
     "@crvouga/mockingbird-service-rxvortex": "workspace:*",
     "@crvouga/mockingbird-service-s3": "workspace:*",
+    "@crvouga/mockingbird-service-sentry": "workspace:*",
     "@crvouga/mockingbird-service-slack": "workspace:*",
     "@crvouga/mockingbird-service-sqs": "workspace:*",
     "@crvouga/mockingbird-service-step-functions": "workspace:*",
@@ -62,7 +64,6 @@
     "@crvouga/mockingbird-service-textract": "workspace:*",
     "@crvouga/mockingbird-service-twilio": "workspace:*",
     "@crvouga/mockingbird-service-vpi": "workspace:*",
-    "@crvouga/mockingbird-service-wholescripts": "workspace:*",
-    "@crvouga/mockingbird-service-sentry": "workspace:*"
+    "@crvouga/mockingbird-service-wholescripts": "workspace:*"
   }
 }
