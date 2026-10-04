@@ -44,7 +44,15 @@ export type Panel = {
   script?: string
 }
 export type SqlExtension = { kind: "sql"; id: string; title: string; description?: string }
-export type Manifest = { panels: Panel[]; extensions: (Panel | SqlExtension)[] }
+export type RouteExtension = {
+  kind: "route"
+  id: string
+  title: string
+  description?: string
+  route: string
+  body?: unknown
+}
+export type Manifest = { panels: Panel[]; extensions: (Panel | SqlExtension | RouteExtension)[] }
 export type SqlTable = {
   schema: string
   name: string

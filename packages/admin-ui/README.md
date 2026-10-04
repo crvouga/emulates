@@ -15,7 +15,9 @@ The client calls the existing admin API through the document's scoped fetch.
 Ant Design's StyleProvider and ConfigProvider keep styles and portals within the
 embedded document. Hosts dispatch `mockingbird:unmount` before detaching the document
 to dispose the React root. Service-owned manifest panels keep their existing API
-and can return a cleanup function from their script.
+and can return a cleanup function from their script. Declarative `route` extensions
+render service actions with the shared prebuilt request form and response viewer;
+the built-in Plane action uses this instead of shipping a custom HTML form.
 
 SQL engines use the same UI as HTTP services. SQL changes remain in the live
 database. State writes, clock controls, fault injection, journals, route execution,

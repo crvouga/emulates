@@ -243,6 +243,15 @@ function Workspace({
       content =
         panel?.kind === "sql" ? (
           <SqlExplorer {...common} />
+        ) : panel?.kind === "route" ? (
+          <RoutesView
+            {...common}
+            standardRoutes={config.standardRoutes}
+            initialRoute={panel.route}
+            initialBody={panel.body}
+            title={panel.title}
+            {...(panel.description ? { description: panel.description } : {})}
+          />
         ) : (
           panel && <CustomPanel panel={panel} api={api} />
         )

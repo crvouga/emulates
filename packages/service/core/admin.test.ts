@@ -260,11 +260,27 @@ describe("admin ui", () => {
         reset: async () => {},
       }),
       adminUi: {
-        extensions: [{ kind: "sql", description: "Browse tables and run queries." }],
+        extensions: [
+          { kind: "sql", description: "Browse tables and run queries." },
+          {
+            kind: "route",
+            id: "move",
+            title: "Move",
+            route: "POST /items/:id/state",
+            body: { state: "Done" },
+          },
+        ],
       },
     })
     const manifest = (await (await call(runtime, "GET", "/__admin/ui/manifest")).json()) as {
-      extensions: { kind: string; id: string; title: string; description?: string }[]
+      extensions: {
+        kind: string
+        id: string
+        title: string
+        description?: string
+        route?: string
+        body?: unknown
+      }[]
     }
     expect(manifest.extensions).toEqual([
       {
@@ -272,6 +288,13 @@ describe("admin ui", () => {
         id: "sql",
         title: "SQL",
         description: "Browse tables and run queries.",
+      },
+      {
+        kind: "route",
+        id: "move",
+        title: "Move",
+        route: "POST /items/:id/state",
+        body: { state: "Done" },
       },
     ])
     expect(() =>
@@ -284,6 +307,17 @@ describe("admin ui", () => {
         adminUi: { extensions: [{ kind: "sql", id: "state" }] },
       }),
     ).toThrow(/reserved/)
+    expect(() =>
+      createRuntime({
+        name: "notes",
+        create: () => ({ fetch: async () => new Response("ok"), reset: async () => {} }),
+        adminUi: {
+          extensions: [
+            { kind: "route", id: "bad-route", title: "Bad", route: "https://example.test/" },
+          ],
+        },
+      }),
+    ).toThrow(/method and route path/)
   })
 
   test("a panel id the shell cannot mount is rejected up front", () => {

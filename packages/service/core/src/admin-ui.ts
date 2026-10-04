@@ -76,6 +76,7 @@ const json = (body: unknown): Response =>
   })
 
 const describeExtension = (extension: AdminExtension): Record<string, unknown> => {
+  if (extension.kind === "route") return { ...extension }
   if (extension.kind === "sql") {
     return {
       kind: "sql",

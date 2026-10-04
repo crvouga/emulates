@@ -17,7 +17,7 @@ import {
 import { useState } from "react"
 import { DataTable, ErrorNotice, Json, Refresh, useAction, useResource } from "./components.js"
 import type { Api, Clock, Journal, StateView } from "./model.js"
-import { errorMessage, text } from "./model.js"
+import { errorMessage, pretty, text } from "./model.js"
 
 export function Overview({ api, revision }: { api: Api; revision: number }) {
   const health = useResource<Record<string, unknown>>(api, "/health", revision)
@@ -337,14 +337,22 @@ export function RoutesView({
   api,
   revision,
   standardRoutes,
+  initialRoute,
+  initialBody,
+  title = "Routes",
+  description,
 }: {
   api: Api
   revision: number
   standardRoutes: readonly string[]
+  initialRoute?: string
+  initialBody?: unknown
+  title?: string
+  description?: string
 }) {
   const routes = useResource<{ routes: string[] }>(api, "/", revision)
-  const [selected, setSelected] = useState<string | undefined>()
-  const [body, setBody] = useState("{}")
+  const [selected, setSelected] = useState<string | undefined>(initialRoute)
+  const [body, setBody] = useState(pretty(initialBody ?? {}))
   const [result, setResult] = useState<unknown>()
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -377,10 +385,11 @@ export function RoutesView({
     <Flex vertical gap="large">
       <Flex wrap gap="middle" justify="space-between">
         <Typography.Title level={3} style={{ margin: 0 }}>
-          Routes
+          {title}
         </Typography.Title>
         <Refresh loading={routes.loading} onClick={routes.reload} />
       </Flex>
+      {description && <Typography.Paragraph>{description}</Typography.Paragraph>}
       <ErrorNotice error={routes.error ?? error} retry={routes.reload} />
       <Card title="Admin request runner">
         <Flex vertical gap="middle">
@@ -390,6 +399,7 @@ export function RoutesView({
             optionFilterProp="label"
             placeholder="Select a route"
             value={selected}
+            disabled={Boolean(initialRoute)}
             onChange={(route) => {
               setSelected(route)
               setResult(undefined)
