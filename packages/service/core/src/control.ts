@@ -119,7 +119,7 @@ export type ControlPlane = {
 const json = (status: number, body: unknown): Response =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json; charset=utf-8" },
   })
 
 /** Admin errors use one documented shape, distinct from any vendor's error body. */
@@ -186,8 +186,21 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
   const adminNamespace = (request: Request, url: URL): string =>
     url.searchParams.get("namespace") ?? headerNamespace(request)
 
+  const health = (): Response => {
+    return json(200, {
+      ...context.describe(),
+      status: "ok",
+      service: context.name,
+      uptimeMs: context.wallNow() - context.startedAt,
+      clock: context.clock.state(),
+      namespaces: context.namespaces().length,
+      adminPrefix,
+      adminUi: `${adminPrefix}/ui`,
+    })
+  }
+
   const builtin: AdminRoutes = {
-    "GET /health": () => json(200, { status: "ok" }),
+    "GET /health": health,
     "GET /": () =>
       json(200, {
         service: context.name,
@@ -375,7 +388,13 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
     },
   }
 
-  const routes = [...Object.entries(context.routes), ...Object.entries(builtin)].map(
+  for (const key of Object.keys(context.routes)) {
+    if (Object.hasOwn(builtin, key)) throw new Error(`admin route ${key} overrides a shared route`)
+    const path = key.slice(key.indexOf(" ") + 1)
+    if (isAdminPath(path, "/ns") || isAdminPath(path, "/blobs"))
+      throw new Error(`admin route ${key} overlaps an internal transport`)
+  }
+  const routes = [...Object.entries(builtin), ...Object.entries(context.routes)].map(
     ([key, handler]) => {
       const space = key.indexOf(" ")
       return { method: key.slice(0, space), pattern: key.slice(space + 1), handler }
@@ -387,16 +406,7 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
     async handle(request) {
       const url = new URL(request.url)
       if (url.pathname === `${adminPrefix}/health` && request.method === "GET") {
-        return json(200, {
-          status: "ok",
-          service: context.name,
-          uptimeMs: context.wallNow() - context.startedAt,
-          clock: context.clock.state(),
-          namespaces: context.namespaces().length,
-          ...context.describe(),
-          adminPrefix,
-          adminUi: `${adminPrefix}/ui`,
-        })
+        return health()
       }
       if (!isAdminPath(url.pathname, adminPrefix)) {
         return undefined
@@ -426,11 +436,13 @@ export const createControlPlane = (context: ControlContext): ControlPlane => {
         } catch {
           return adminError(400, "request body is not valid JSON")
         }
+        const namespace = adminNamespace(request, url)
+        if (!/^[A-Za-z0-9_.-]{1,64}$/.test(namespace)) return adminError(400, "invalid namespace")
         return route.handler({
           request,
           url,
           params,
-          namespace: adminNamespace(request, url),
+          namespace,
           body,
         })
       }

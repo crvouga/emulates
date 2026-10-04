@@ -99,7 +99,7 @@ const PAGE_MAX = 200
 const json = (status: number, body: unknown): Response =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json; charset=utf-8" },
   })
 
 const adminError = (status: number, message: string): Response =>

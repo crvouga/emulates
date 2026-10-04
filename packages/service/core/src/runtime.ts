@@ -786,7 +786,7 @@ export const createRuntime = <T extends ServiceInstance>(
                 message: `${NAMESPACE_HEADER} must match ${NAMESPACE_PATTERN}`,
               },
             }),
-            { status: 400, headers: { "content-type": "application/json" } },
+            { status: 400, headers: { "content-type": "application/json; charset=utf-8" } },
           ),
         )
       }
@@ -943,7 +943,10 @@ const mutableResponse = (response: Response): Response => {
 }
 
 const adminJson = (status: number, body: unknown): Response =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8" },
+  })
 
 const adminFail = (status: number, message: string): Response =>
   adminJson(status, { error: { type: "mockingbird_admin", message } })
