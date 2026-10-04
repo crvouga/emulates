@@ -16,6 +16,7 @@ import type { createRuntime as createFlex } from "@crvouga/mockingbird-service-f
 import type { createRuntime as createFormbricks } from "@crvouga/mockingbird-service-formbricks"
 import type { createRuntime as createFullscript } from "@crvouga/mockingbird-service-fullscript"
 import type { createRuntime as createGenebygene } from "@crvouga/mockingbird-service-genebygene"
+import type { createRuntime as createGoogleAds } from "@crvouga/mockingbird-service-google-ads"
 import type { createRuntime as createGoogleCalendar } from "@crvouga/mockingbird-service-google-calendar"
 import type { createRuntime as createGoogleMaps } from "@crvouga/mockingbird-service-google-maps"
 import type { createRuntime as createHealthie } from "@crvouga/mockingbird-service-healthie"
@@ -94,6 +95,7 @@ export type SurfaceProof = [
   Assert<typeof createMediaconvert>,
   Assert<typeof createMedplum>,
   Assert<typeof createOauth>,
+  Assert<typeof createGoogleAds>,
   Assert<typeof createOpenAI>,
   Assert<typeof createOdx>,
   Assert<typeof createOtel>,

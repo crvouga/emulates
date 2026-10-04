@@ -80,6 +80,7 @@
     "@crvouga/mockingbird-service-vpi": "workspace:*",
     "@crvouga/mockingbird-service-wholescripts": "workspace:*",
     "@types/node": "22.20.1",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "@crvouga/mockingbird-service-google-ads": "workspace:*"
   }
 }

@@ -223,6 +223,22 @@
     "logo": "/brands/genebygene.png",
     "logoSource": "site"
   },
+  "google-ads": {
+    "vendor": "Google Ads",
+    "website": "https://ads.google.com",
+    "docs": "https://developers.google.com/google-ads/api/docs/start",
+    "description": "Google Ads campaign reporting and Google Analytics event collection and reporting.",
+    "input": {
+      "name": "Google Ads",
+      "website": "https://ads.google.com",
+      "docs": "https://developers.google.com/google-ads/api/docs/start",
+      "description": "Google Ads campaign reporting and Google Analytics event collection and reporting.",
+      "icon": "googleads"
+    },
+    "color": "#4285F4",
+    "logo": "/brands/google-ads.svg",
+    "logoSource": "simple-icons"
+  },
   "google-calendar": {
     "vendor": "Google Calendar",
     "website": "https://workspace.google.com/products/calendar/",
