@@ -64,17 +64,10 @@ describe("ResendAPI", () => {
       await fc.assert(
         fc.asyncProperty(fc.integer(), async (seed) => {
           const reference = new ResendAPI({ now })
-          const faulty = () => {
-            const api = new ResendAPI({ now })
-            return {
-              fetch: async (request: Request) => {
-                const response = await api.fetch(request)
-                if (request.method !== "GET" || response.status !== 200) return response
-                const body = (await response.json()) as { subject: string }
-                return Response.json({ ...body, subject: `${body.subject} (diverged)` })
-              },
-            }
-          }
+          const faulty = () => ({
+            fetch: async () =>
+              Response.json({ name: "application_error", message: "diverged" }, { status: 503 }),
+          })
           const failure = await parity({
             provider: "resend",
             spec: document,
