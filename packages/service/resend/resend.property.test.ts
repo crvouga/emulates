@@ -52,7 +52,7 @@ describe("ResendAPI", () => {
         log: () => {},
       })
       expect(report.walks).toBeGreaterThan(0)
-      expect(parityOperations).toHaveLength(5)
+      expect(parityOperations).toHaveLength(7)
       expect(Object.keys(report.exercised).sort()).toEqual(parityOperations)
     },
     { timeout: 120_000 },

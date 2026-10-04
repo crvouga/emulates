@@ -224,6 +224,8 @@ export class ResendAPI implements FetchAPI {
     this.onOutcome = options.onOutcome
     this.state = new ResendState(sqlite, namespace)
     const handlers = defineOperations<SupportedOperationId>({
+      ListEmails: (context) => this.listEmails(context),
+      ListReceivedEmails: (context) => this.listReceivedEmails(context),
       SendEmail: (context) => this.send(context),
       GetEmail: (context) => this.getEmail(context),
       GetReceivedEmail: (context) => this.getReceived(context),
@@ -422,6 +424,79 @@ export class ResendAPI implements FetchAPI {
       }),
       { ids: { emailId: email.id } },
     )
+  }
+
+  private emailPage<T extends { id: string }>(
+    context: OperationContext,
+    records: T[],
+    defaultLimit: number,
+  ) {
+    const query = context.url.searchParams
+    const rawLimit = query.get("limit")
+    const limit = rawLimit === null ? Math.max(1, defaultLimit) : Number(rawLimit)
+    const reject = (message: string): never => {
+      throw new HttpError(422, { statusCode: 422, name: "validation_error", message })
+    }
+    if (!Number.isSafeInteger(limit) || limit < 1 || (rawLimit !== null && limit > 100)) {
+      reject("The pagination limit must be a number between 1 and 100.")
+    }
+    const after = query.get("after")
+    const before = query.get("before")
+    if (after !== null && before !== null) reject("Provide either before or after, not both.")
+    let selected = records
+    const cursor = after ?? before
+    if (cursor !== null) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cursor)) {
+        reject("Invalid pagination cursor format.")
+      }
+      const index = records.findIndex((email) => email.id === cursor)
+      selected =
+        index < 0 ? [] : after !== null ? records.slice(index + 1) : records.slice(0, index)
+    }
+    return {
+      object: "list",
+      has_more: selected.length > limit,
+      data: before === null ? selected.slice(0, limit) : selected.slice(-limit),
+    }
+  }
+
+  private listEmails(context: OperationContext): Response {
+    const records = this.state.outbox
+      .list()
+      .reverse()
+      .map((email) => ({
+        id: email.id,
+        message_id: `<${email.id}@mock.resend.test>`,
+        to: email.toHeader,
+        from: email.from,
+        created_at: email.createdAt,
+        subject: email.subject,
+        bcc: email.bcc.length > 0 ? email.bcc : null,
+        cc: email.cc.length > 0 ? email.cc : null,
+        reply_to: email.replyTo.length > 0 ? email.replyTo : null,
+        last_event: email.scheduledAt ? "scheduled" : "delivered",
+        scheduled_at: email.scheduledAt,
+      }))
+    return jsonRes(200, this.emailPage(context, records, 20))
+  }
+
+  private listReceivedEmails(context: OperationContext): Response {
+    const records = this.state.received.list({ order: "newest" }).map(({ value: email }) => ({
+      id: email.id,
+      to: email.to,
+      from: email.from,
+      created_at: email.createdAt,
+      subject: email.subject,
+      bcc: email.bcc,
+      cc: email.cc,
+      reply_to: email.replyTo,
+      message_id: email.messageId,
+      attachments: email.attachments.map((attachment) => ({
+        ...this.attachmentMeta(attachment),
+        size: attachment.size,
+      })),
+    }))
+    return jsonRes(200, this.emailPage(context, records, records.length))
   }
 
   /** Store an inbound email and build the `email.received` event for it. */
