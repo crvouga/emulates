@@ -1,12 +1,17 @@
 import { expect, test } from "bun:test"
-import { assertAdminPrefixAvailable, createRuntime, resolveAdminPrefix } from "./src/index.js"
+import {
+  type AdminRoutes,
+  assertAdminPrefixAvailable,
+  createRuntime,
+  resolveAdminPrefix,
+} from "./src/index.js"
 
-const make = (adminPrefix?: string) =>
+const make = (adminPrefix?: string, routes?: AdminRoutes) =>
   createRuntime({
     name: "prefix-probe",
     ...(adminPrefix === undefined ? {} : { adminPrefix }),
     adminKey: "admin-secret",
-    admin: () => ({ "GET /extension": () => Response.json({ extension: true }) }),
+    admin: () => routes ?? { "GET /extension": () => Response.json({ extension: true }) },
     create: ({ publicNamespace }) => ({
       fetch: async (request: Request) =>
         Response.json({ vendor: new URL(request.url).pathname, namespace: publicNamespace }),
@@ -26,6 +31,7 @@ for (const prefix of ["/__admin", "/_control/mock"]) {
     {
       const health = await call(runtime, `${prefix}/health`)
       expect(health.status).toBe(200)
+      expect(health.headers.get("content-type")).toBe("application/json; charset=utf-8")
       expect(await health.json()).toMatchObject({ adminPrefix: prefix, adminUi: `${prefix}/ui` })
       expect((await call(runtime, `${prefix}/extension`)).status).toBe(401)
       expect(await (await call(runtime, `${prefix}/extension`, "admin-secret")).json()).toEqual({
@@ -36,6 +42,9 @@ for (const prefix of ["/__admin", "/_control/mock"]) {
       expect(await ui.text()).toContain(`"adminPrefix":"${prefix}"`)
       expect((await call(runtime, `${prefix}/ui/manifest`)).status).toBe(401)
       expect((await call(runtime, `${prefix}/no-such-route`, "admin-secret")).status).toBe(404)
+      expect(
+        (await call(runtime, `${prefix}/clock?namespace=invalid!`, "admin-secret")).status,
+      ).toBe(400)
       expect((await call(runtime, `${prefix}/state/%ZZ`, "admin-secret")).status).toBe(400)
       for (const path of [
         "/health",
@@ -85,4 +94,14 @@ test("prefix validation and declared vendor collisions fail before serving", () 
     ]),
   ).not.toThrow()
   expect(() => make("/")).toThrow()
+})
+
+test("extensions cannot replace shared routes or namespace and blob transports", async () => {
+  for (const route of ["GET /clock", "GET /health", "GET /ns/:name", "GET /blobs/:key"]) {
+    expect(() => make(undefined, { [route]: () => Response.json({ replaced: true }) })).toThrow()
+  }
+  const runtime = make(undefined, { "GET /:anything": () => Response.json({ replaced: true }) })
+  expect(await (await call(runtime, "/__admin/clock", "admin-secret")).json()).not.toHaveProperty(
+    "replaced",
+  )
 })
