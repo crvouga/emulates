@@ -84,19 +84,19 @@
     "libphonenumber-js": "1.13.4"
   },
   "devDependencies": {
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
+    "fast-check": "4.9.0",
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
     "@crvouga/mockingbird-credentials": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
     "@crvouga/mockingbird-openapi-codegen": "workspace:*",
     "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
     "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-testing": "workspace:*",
-    "fast-check": "4.9.0",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
     "twilio": "5.10.0",
     "twilio-reconciliation": "npm:twilio@5.13.1"
   }

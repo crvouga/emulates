@@ -44,7 +44,9 @@ test("twilio@5.13.1 lists messages and follows forward/backward links over HTTP 
     ).toBe(true)
     const first = await client.messages.page({ pageSize: 1 })
     const second = await first.nextPage()
+    if (!second) throw new Error("missing second SDK page")
     const previous = await second.previousPage()
+    if (!previous) throw new Error("missing previous SDK page")
     expect(previous.instances[0]?.sid).toBe(first.instances[0]?.sid)
     // New inserts do not shift the position of the SID cursor while enumeration continues.
     await client.messages.create({
@@ -53,6 +55,7 @@ test("twilio@5.13.1 lists messages and follows forward/backward links over HTTP 
       body: "newer synthetic fixture",
     })
     const third = await second.nextPage()
+    if (!third) throw new Error("missing third SDK page")
     expect(third.instances[0]?.sid).toBe(ids[0])
     expect(third.nextPageUrl).toBeUndefined()
     const emptyNamespaceClient = new sdk.Twilio(account, "fixture-token", {
