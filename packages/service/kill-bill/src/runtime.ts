@@ -169,10 +169,11 @@ export const createRuntime = (options: KillBillRuntimeOptions = {}): KillBillRun
     ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
-    create: ({ sqlite, namespace, clock }) =>
+    create: ({ sqlite, namespace, clock, adminPrefix }) =>
       new KillBillAPI({
         sqlite,
         namespace,
+        adminPrefix,
         now: clock.now,
         ...(options.username ? { username: options.username } : {}),
         ...(options.password ? { password: options.password } : {}),

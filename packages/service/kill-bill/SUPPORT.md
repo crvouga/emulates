@@ -2,12 +2,14 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **14**
-- supported by the mock: **14**
-- parity enabled: **14**
+- operations in spec: **16**
+- supported by the mock: **16**
+- parity enabled: **16**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
+| `PaginateAccounts` | `GET /1.0/kb/accounts/pagination` | ✅ supported | ✅ |  |
+| `PaginateInvoices` | `GET /1.0/kb/invoices/pagination` | ✅ supported | ✅ |  |
 | `GetTenantByApiKey` | `GET /1.0/kb/tenants` | ✅ supported | ✅ |  |
 | `CreateTenant` | `POST /1.0/kb/tenants` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `GetNotificationCallbacks` | `GET /1.0/kb/tenants/registerNotificationCallback` | ✅ supported | ✅ |  |
