@@ -147,7 +147,11 @@ The emulator supplies wire/error/list evidence; it explicitly does **not** imple
 which is verified here with the real SDK and the SDK documentation's multipart rules.
 
 `bun test` runs SDK, binary acceptance, all parity-enabled JSON operation walks, a divergent
-instance check, namespace/reset/clock/Timeline and catalog preset tests. `bun run parity` is cold
+instance check, namespace/reset/clock/Timeline and catalog preset tests. The served SDK tests run
+`put → public GET → overwrite → del` and manual/automatic multipart against this package,
+without modifying the SDK or contacting Vercel. Two-part acceptance verifies that failed parts
+leave earlier parts intact and that only validated completion makes the object visible.
+`bun run parity` is cold
 and read-only: `VERCEL_BLOB_API_URL` and `VERCEL_BLOB_READ_WRITE_TOKEN` must name an empty test
 store. Missing credentials or a nonempty/inaccessible store exit 2, never a passing live result.
 
