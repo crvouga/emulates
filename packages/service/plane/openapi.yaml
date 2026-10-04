@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Plane REST API (Mockingbird subset)
   description: 'Stateful mock subset of Plane''s public REST API v1 for one project: work items (cursor-paginated
-    list, get, create, patch), comments, links, states and labels. Hand-authored from Plane''s API reference
+    list, get, create, patch), comments, links, states, labels, cycles and work-item types. Hand-authored from Plane''s API reference
     and the consumer''s zod schemas (plane-response.ts).
 
     '
@@ -486,6 +486,33 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/AddCycleWorkItemsBody"
+  /api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/:
+    parameters:
+      - $ref: "#/components/parameters/Slug"
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      operationId: ListWorkItemTypes
+      description: All work-item types for the project, as a bare array.
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Work-item types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkItemType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/Throttled"
 components:
   securitySchemes:
     apiKey:
@@ -586,6 +613,20 @@ components:
       - project
       - workspace
       properties:
+        type_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          x-mockingbird-volatile:
+            kind: id
+        type:
+          type:
+            - string
+            - "null"
+          format: uuid
+          x-mockingbird-volatile:
+            kind: id
         id:
           type: string
           format: uuid
@@ -1040,6 +1081,14 @@ components:
       required:
       - name
       properties:
+        type_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          x-mockingbird-resource-ref:
+            type: work_item_type
+            missing: 00000000-0000-4000-8000-000000000000
         name:
           type: string
           minLength: 1
@@ -1073,6 +1122,14 @@ components:
     UpdateWorkItemBody:
       type: object
       properties:
+        type_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+          x-mockingbird-resource-ref:
+            type: work_item_type
+            missing: 00000000-0000-4000-8000-000000000000
         name:
           type: string
           minLength: 1
@@ -1349,3 +1406,53 @@ components:
               type: string
             message:
               type: string
+    WorkItemType:
+      type: object
+      required:
+        - id
+        - name
+        - project_ids
+        - is_default
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-mockingbird-resource:
+            type: work_item_type
+            identity: true
+          x-mockingbird-volatile:
+            kind: id
+        name:
+          type: string
+        description:
+          type: string
+        project_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        logo_props:
+          type: object
+        is_epic:
+          type: boolean
+        is_default:
+          type: boolean
+        is_active:
+          type: boolean
+        level:
+          type: number
+        created_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        updated_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        deleted_at:
+          type:
+            - string
+            - "null"

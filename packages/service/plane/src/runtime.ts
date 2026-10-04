@@ -10,7 +10,7 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { apiKeyCredential, PLANE_NAMESPACE, PlaneAPI } from "./index.js"
-import type { Settings } from "./state.js"
+import type { Settings, WorkItemTypeSeed } from "./state.js"
 
 const API = "/api/v1/workspaces/"
 
@@ -120,6 +120,7 @@ const PLANE_STATE: readonly StateDeclaration[] = [
   { name: "links", label: "Links" },
   { name: "cycles", label: "Cycles" },
   { name: "cycle_memberships", label: "Cycle memberships" },
+  { name: "work_item_types", label: "Work-item types" },
   {
     name: "settings",
     label: "Settings",
@@ -169,6 +170,44 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
 const adminRoutes = (runtime: ServiceRuntime<PlaneAPI>): AdminRoutes => ({
+  "POST /work-item-types": ({ body, namespace }) => {
+    if (
+      !isRecord(body) ||
+      typeof body.workspace !== "string" ||
+      typeof body.project !== "string" ||
+      !Array.isArray(body.types)
+    ) {
+      return adminError(
+        400,
+        'expected {"workspace": "<slug>", "project": "<uuid>", "types": [{"name": "Bug"}]}',
+      )
+    }
+    const types: WorkItemTypeSeed[] = []
+    for (const type of body.types) {
+      if (
+        !isRecord(type) ||
+        typeof type.name !== "string" ||
+        !type.name.trim() ||
+        type.name.trim().length > 255 ||
+        (type.description !== undefined && typeof type.description !== "string") ||
+        (type.is_default !== undefined && typeof type.is_default !== "boolean")
+      ) {
+        return adminError(
+          400,
+          "each type requires a non-empty name (up to 255 characters), optional description and boolean is_default",
+        )
+      }
+      types.push({
+        name: type.name.trim(),
+        ...(typeof type.description === "string" ? { description: type.description } : {}),
+        ...(typeof type.is_default === "boolean" ? { is_default: type.is_default } : {}),
+      })
+    }
+    const seeded = runtime
+      .instance(namespace)
+      .seedWorkItemTypes(body.workspace, body.project, types)
+    return seeded ? json(200, seeded) : adminError(409, "project is not in settings.projects")
+  },
   "GET /work-items": ({ namespace }) =>
     json(200, { work_items: runtime.instance(namespace).workItems() }),
   "POST /work-items/:id/state": ({ params, body, namespace }) => {

@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **15**
-- supported by the mock: **15**
-- parity enabled: **15**
+- operations in spec: **16**
+- supported by the mock: **16**
+- parity enabled: **16**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -23,3 +23,4 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `CreateCycle` | `POST /api/v1/workspaces/{slug}/projects/{project_id}/cycles/` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ListCycleWorkItems` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/` | ✅ supported | ✅ |  |
 | `AddCycleWorkItems` | `POST /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `ListWorkItemTypes` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/` | ✅ supported | ✅ |  |

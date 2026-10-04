@@ -26,9 +26,11 @@ import {
   PlaneState,
   type PlaneStateRecord,
   type PlaneWorkItemRecord,
+  type PlaneWorkItemType,
   type ProjectRecord,
   type Settings,
   uuidFrom,
+  type WorkItemTypeSeed,
 } from "./state.js"
 
 export type { FetchAPI } from "@crvouga/mockingbird-core"
@@ -43,9 +45,11 @@ export type {
   PlaneLinkRecord,
   PlaneStateRecord,
   PlaneWorkItemRecord,
+  PlaneWorkItemType,
   ProjectRecord,
   Settings,
   StateGroup,
+  WorkItemTypeSeed,
 } from "./state.js"
 export { DEFAULT_STATES, uuidFrom } from "./state.js"
 
@@ -137,6 +141,7 @@ export class PlaneAPI implements FetchAPI {
       CreateCycle: (context) => this.createCycle(context),
       ListCycleWorkItems: (context) => this.listCycleWorkItems(context),
       AddCycleWorkItems: (context) => this.addCycleWorkItems(context),
+      ListWorkItemTypes: (context) => jsonRes(200, this.typesOf(this.project(context).id)),
     })
     this.service = createService({
       document,
@@ -247,6 +252,45 @@ export class PlaneAPI implements FetchAPI {
     return this.state.labels
       .list({ order: "oldest", where: (l) => l.project === projectId })
       .map((r) => r.value)
+  }
+
+  typesOf(projectId: string): PlaneWorkItemType[] {
+    return this.state.types
+      .list({
+        order: "oldest",
+        where: (type) => type.project_ids.includes(projectId) && type.deleted_at === null,
+      })
+      .map((row) => row.value)
+  }
+
+  /** Idempotent fixture provisioning; type IDs remain stable when metadata is reseeded. */
+  seedWorkItemTypes(
+    workspace: string,
+    projectId: string,
+    types: WorkItemTypeSeed[],
+  ): PlaneWorkItemType[] | undefined {
+    const project = this.ensureProject(workspace, projectId)
+    if (!project) return undefined
+    const now = this.iso()
+    for (const type of types) {
+      const id = uuidFrom(`${projectId}:type:${type.name}`)
+      const existing = this.state.types.get(id)
+      this.state.types.insert(id, {
+        id,
+        name: type.name,
+        description: type.description ?? existing?.description ?? "",
+        project_ids: [project.id],
+        logo_props: {},
+        is_epic: false,
+        is_default: type.is_default ?? existing?.is_default ?? false,
+        is_active: true,
+        level: 0,
+        created_at: existing?.created_at ?? now,
+        updated_at: now,
+        deleted_at: null,
+      })
+    }
+    return this.typesOf(project.id)
   }
 
   /** Plane's cursor paginator: `cursor=<per_page>:<page>:<is_prev>`, offset = page × per_page. */
@@ -503,12 +547,22 @@ export class PlaneAPI implements FetchAPI {
     return context.body.kind === "json" ? (context.body.value as Record<string, unknown>) : {}
   }
 
-  /** Validate `state` / `labels` references against the project, DRF-style. */
+  /** Validate workflow references before any part of a write is persisted, DRF-style. */
   private references(
     project: ProjectRecord,
     body: Record<string, unknown>,
-  ): { state?: PlaneStateRecord; labels?: string[] } {
-    const out: { state?: PlaneStateRecord; labels?: string[] } = {}
+  ): { state?: PlaneStateRecord; labels?: string[]; typeId?: string | null } {
+    const out: { state?: PlaneStateRecord; labels?: string[]; typeId?: string | null } = {}
+    if (body.type_id === null) out.typeId = null
+    else if (typeof body.type_id === "string") {
+      const type = this.state.types.get(body.type_id)
+      if (!type?.project_ids.includes(project.id) || type.deleted_at !== null) {
+        throw new HttpError(400, {
+          type_id: [`Invalid pk "${body.type_id}" - object does not exist.`],
+        })
+      }
+      out.typeId = type.id
+    }
     if (typeof body.state === "string") {
       const state = this.state.states.get(body.state)
       if (!state || state.project !== project.id) {
@@ -535,6 +589,8 @@ export class PlaneAPI implements FetchAPI {
       refs.state ?? this.statesOf(project.id).find((s) => s.default) ?? this.statesOf(project.id)[0]
     const now = this.iso()
     const html = typeof body.description_html === "string" ? body.description_html : "<p></p>"
+    const typeId =
+      refs.typeId ?? this.typesOf(project.id).find((type) => type.is_default)?.id ?? null
     const item: PlaneWorkItemRecord = {
       id: this.state.uuid("work_item"),
       sequence_id: project.nextSequence,
@@ -543,6 +599,8 @@ export class PlaneAPI implements FetchAPI {
       description_stripped: stripTags(html) || null,
       priority: (body.priority as PlaneWorkItemRecord["priority"]) ?? "none",
       state: state?.id ?? "",
+      type_id: typeId,
+      type: typeId,
       labels: refs.labels ?? [],
       assignees: [],
       parent: null,
@@ -582,6 +640,7 @@ export class PlaneAPI implements FetchAPI {
         : {}),
       ...(refs.labels ? { labels: refs.labels } : {}),
       ...(refs.state ? { state: refs.state.id } : {}),
+      ...(refs.typeId !== undefined ? { type_id: refs.typeId, type: refs.typeId } : {}),
     })
     return annotateResponse(jsonRes(200, next), { ids: { workItemId: next.id } })
   }
