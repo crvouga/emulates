@@ -635,6 +635,11 @@ export function bootAdmin(config: AdminBootConfig): void {
     const date = new Date(epoch)
     return Number.isNaN(date.getTime()) ? String(epoch) : date.toISOString()
   }
+  const journalWhen = (value: string): string => {
+    const numeric = value.trim() === "" ? Number.NaN : Number(value)
+    const epoch = Number.isFinite(numeric) ? numeric : Date.parse(value)
+    return Number.isFinite(epoch) ? when(epoch) : value
+  }
   const clockCard = (epoch: number): string => {
     const date = new Date(epoch)
     if (Number.isNaN(date.getTime())) return esc(String(epoch))
@@ -938,7 +943,7 @@ export function bootAdmin(config: AdminBootConfig): void {
     const journal = await api("GET", "/requests?limit=100")
     el("journal", HTMLElement).innerHTML = table(
       [
-        { label: "When", cell: (row: JournalRow) => esc(when(Number(row.at))) },
+        { label: "When", cell: (row: JournalRow) => esc(journalWhen(row.at)) },
         {
           label: "Method",
           cell: (row: JournalRow) => `<span class="method">${esc(row.method)}</span>`,
