@@ -676,3 +676,26 @@ export class ReportingReceiver {
     return { status: 200, body: { received: true, applied: channels.length > 0 } }
   }
 }
+
+/** Raw-fetch sender reconciliation client: follows the vendor's next/start cursor. */
+export type CustomerIoOptOutPage = {
+  next?: string
+  optouts: {
+    customer_id: string
+    cio_id: string
+    optouts: { channel: "sms" | "whatsapp"; from: string }[]
+  }[]
+}
+export const readCustomerIoOptOutPage = async (
+  send: Fetch,
+  host: string,
+  key: string,
+  query: { limit?: number; start?: string; from?: string } = {},
+): Promise<CustomerIoOptOutPage> => {
+  const url = new URL("/v1/optouts", host)
+  for (const [name, value] of Object.entries(query))
+    if (value !== undefined) url.searchParams.set(name, String(value))
+  const response = await send(new Request(url, { headers: { authorization: `Bearer ${key}` } }))
+  if (!response.ok) throw new Error(`Customer.io opt-outs HTTP ${response.status}`)
+  return (await response.json()) as CustomerIoOptOutPage
+}

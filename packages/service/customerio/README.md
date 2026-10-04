@@ -5,7 +5,7 @@
 Stateful mock of **Customer.io** for test suites, serving all three hosts our code talks to from
 one process: the Segment-compatible **CDP** (`identify`, `track`, `batch`, exactly as
 `@customerio/cdp-analytics-node` posts them), the **App API** transactional sends (email, SMS,
-inbox message), message catalog, profile attribute reads, and delivery-status reads, and the
+inbox message), message catalog, profile attribute reads, sender opt-out reconciliation, and delivery-status reads, and the
 **link-tracking** click endpoint. Sends land in an outbox a suite asserts on (and reads links out
 of); reporting events (`unsubscribed`, `subscribed`, `spammed`, subscription preferences,
 `clicked`) are posted to our reporting webhook, signed the way Customer.io signs them.
@@ -81,6 +81,8 @@ await cio.close()
 | `GET /v1/transactional` | `{messages: [{id, name, trigger_name, description, send_to_unsubscribed, link_tracking, …}]}`, no pagination (the whole catalog, including hundreds of rows). Seeded with `acme_<key>` for every legacy email key the consumer app has, plus `acme_inbox_message` and `acme_playground_notification` (ids 1–21). `transactionalListKey: "transactional"` renames the array key. |
 | `GET /v1/transactional/{id}` | `{message: {...}}` by id or trigger name (case-insensitive), or 404. |
 | `GET /v1/customers/{customer_id}/attributes?id_type=id\|email\|cio_id` | `{customer: {identifiers: {id, email?, cio_id}, attributes, devices}}`. Unknown `id_type` is 400; an unknown customer is 404. Attributes spread stored traits, then `id`, `cio_id`, `email`, and `unsubscribed` win. |
+| `GET /v1/optouts?limit=&start=&from=` | Workspace sender opt-outs as `{optouts: [{customer_id, cio_id, optouts: [{channel, from}]}], next?}`. `limit` defaults to 100 (1–1000); follow `next` using `start` until it is absent. `from` filters sender/channel entries, omitting people with no matches. Sender values are trimmed and lowercased; E.164 numbers retain their form. |
+| `GET /v1/customers/{customer_id}/optouts?id_type=id\|email\|cio_id` | `{optouts: [{channel, from}]}` for an existing profile, empty if none, 404 for unknown people. Uses the same identity state as CDP identify and profile updates. App API authentication applies to both reads. |
 | `GET /v1/messages/{delivery_id}` | `{message: {id, type, recipient, customer_id, created, state, status, metrics}}`. `type` is `in_app` for inbox. No `message_data`. 404 when the id is missing or still inside `statusVisibleAfterMs`. Failure states add `failure_message`, `rejection_reason`, and `error`. |
 | `POST /click/{linkId}` | Our backend's click report (unauthenticated) → 200, counts the click and posts a `clicked` reporting event. Unknown link: plain-text 404. |
 | `GET /click/{linkId}` | A browser following a tracked link → 302 to the original URL. |
@@ -103,6 +105,7 @@ is the JSON string of subscription preferences. `timestamp` never runs ahead of 
 | `POST /__admin/reporting-events` | `{metric, userId? \| email? \| deliveryId?, objectType?, preferences?: {topics?, channels?}}`: apply it to the profile (`unsubscribed`, `subscribed`, `spammed`, `cio_subscription_preferences_changed`) and post the signed event. Any other metric (`delivered`, `opened`, `bounced`, …) is posted as-is. |
 | `GET /__admin/cdp/events?userId=&type=&event=` | CDP calls received (with `duplicate`). |
 | `GET /__admin/profiles`, `GET /__admin/profiles/:id`, `PUT /__admin/profiles/:id` | Profiles (traits, `cioId`, `unsubscribed`, `channelsOff`, `preferences`). PUT merges `{traits?, email?, unsubscribed?, preferences?}`. |
+| `POST /__admin/optouts` | `{customerId, from, optout: boolean, channel?: "sms"\|"whatsapp"}` scripts STOP (`true`) or START (`false`) for an existing person; unknown people are 404. Only that sender/channel changes. Marketing preferences and reporting webhooks stay independent. State participates in namespaces, snapshots, Timeline, clocks and reset. |
 | `POST /__admin/deliveries/:id` | `{"state": "pending"\|"sent"\|"delivered"\|"bounced"\|"dropped"\|"failed"\|"spammed"\|"undeliverable"\|"suppressed"}`. Stamps `metrics[state]` with unix seconds on the namespace clock. `delivered` is success; the failure states are terminal. |
 | `POST /__admin/namespace-clock` | `{"advance": <ms>}` adds to this namespace's clock offset only. |
 | `GET\|PUT /__admin/transactional` | Read or replace the workspace's transactional messages (`[{id?, name?, trigger_name, link_tracking?, send_to_unsubscribed?}]`). |
@@ -131,6 +134,7 @@ username) or the App API key (Bearer) through `PUT /__admin/credentials {"creden
 
 ### Deliberately not modelled
 
+- Opt-out writes through the public PUT API, phone identifier workspace configuration, Twilio sender identity casing recovery, and automatic carrier STOP callbacks. Use the admin control to script reconciler state; it does not model carrier delivery enforcement.
 - Rendering: templates are not rendered; the outbox holds `message_data`, not HTML.
 - Campaigns, segments, journeys, broadcasts and the Track API (`track.customer.io`).
 - CDP `page`, `screen`, `group` and `alias` calls (our consumers send none).
