@@ -46,8 +46,23 @@ export const DEFAULT_SETTINGS: Settings = {
   recordings: 0,
 }
 
+export type ExperimentRecord = {
+  id: number
+  projectId: string
+  name: string
+  feature_flag_key: string
+  parameters: Record<string, unknown>
+  metrics: unknown[]
+  start_date: string | null
+  end_date: string | null
+  archived: boolean
+  created_at: string
+  updated_at: string
+}
+
 export class PostHogState {
   readonly flags: Collection<FlagRecord>
+  readonly experiments: Collection<ExperimentRecord>
   readonly events: Collection<CapturedEvent>
   readonly settings: Collection<Settings>
   readonly ids: IdSequence
@@ -59,6 +74,7 @@ export class PostHogState {
     private readonly now: () => number,
   ) {
     this.flags = new Collection(sqlite, namespace, "flags")
+    this.experiments = new Collection(sqlite, namespace, "experiments")
     this.events = new Collection(sqlite, namespace, "events")
     this.settings = new Collection(sqlite, namespace, "settings")
     this.ids = new IdSequence(sqlite, namespace, "posthog")
@@ -115,6 +131,7 @@ export class PostHogState {
       default: spec.default,
       payload: spec.payload,
       overrides: spec.overrides,
+      ...(spec.filters ? { filters: spec.filters } : {}),
       version: (existing?.version ?? 0) + 1,
       created_at: existing?.created_at ?? iso,
       updated_at: iso,

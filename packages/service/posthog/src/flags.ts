@@ -30,6 +30,8 @@ export type FlagRecord = {
   /** JSON string sent as `metadata.payload` when the flag is enabled. */
   payload: string | null
   overrides: FlagOverride[]
+  /** Original management filters; evaluation still uses the deterministic model. */
+  filters?: Record<string, unknown>
   version: number
   created_at: string
   updated_at: string
@@ -159,6 +161,7 @@ export const adminView = (flag: FlagRecord) => ({
 
 /** Body of `PUT /__admin/flags/:key`, validated. */
 export type FlagSpec = {
+  filters?: Record<string, unknown>
   name?: string
   active?: boolean
   default: FlagValue | null
@@ -258,7 +261,7 @@ export const restView = (flag: FlagRecord) => {
     created_at: flag.created_at,
     updated_at: flag.updated_at,
     version: flag.version,
-    filters: {
+    filters: flag.filters ?? {
       groups,
       multivariate:
         variants.length > 0
