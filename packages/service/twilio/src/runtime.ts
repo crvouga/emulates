@@ -417,7 +417,8 @@ export const createRuntime = (options: TwilioRuntimeOptions = {}): TwilioRuntime
     webhooks: hub,
     inboundSms,
     voiceWebhook,
-    fetch: async (request: Request) => inner(await acceptRawRecording(await routeByHost(request, options.adminPrefix))),
+    fetch: async (request: Request) =>
+      inner(await acceptRawRecording(await routeByHost(request, options.adminPrefix))),
   })
 }
 

@@ -72,7 +72,9 @@ describe("contract and runtime", () => {
       headers: { "x-mockingbird-namespace": "beta" },
     })
     expect(await beta.json()).toEqual([])
-    const hooks = (await (await call("/__admin/ns/beta/v1/webhooks")).json()) as { signingKey: string }[]
+    const hooks = (await (await call("/__admin/ns/beta/v1/webhooks")).json()) as {
+      signingKey: string
+    }[]
     expect(hooks.map((h) => h.signingKey)).toEqual(["key-1"])
   })
 

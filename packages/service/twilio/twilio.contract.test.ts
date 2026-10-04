@@ -290,7 +290,10 @@ describe("the service contract", () => {
       `${base}/lookups/v2/PhoneNumbers/+1?Fields=x`,
     )
     expect(
-      twilioMockUrl("https://api.sydney.au1.twilio.com/2010-04-01/Accounts.json", `${base}/__admin/ns/w1/`),
+      twilioMockUrl(
+        "https://api.sydney.au1.twilio.com/2010-04-01/Accounts.json",
+        `${base}/__admin/ns/w1/`,
+      ),
     ).toBe(`${base}/__admin/ns/w1/api/2010-04-01/Accounts.json`)
     expect(twilioMockUrl("https://example.com/x", base)).toBe("https://example.com/x")
   })

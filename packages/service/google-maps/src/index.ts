@@ -413,7 +413,9 @@ export class GoogleMapsAPI implements FetchAPI {
     const settings = this.state.current()
     const origin = (settings.publicUrl ?? context.url.origin).replace(/\/$/, "")
     const prefix =
-      this.publicNamespace === "default" ? "" : `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
+      this.publicNamespace === "default"
+        ? ""
+        : `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
     const callback = text(context.query.callback) ?? null
     const safeCallback = callback && /^[A-Za-z_$][\w$.]*$/.test(callback) ? callback : null
     const authFailed = !key || (settings.keys.length > 0 && !settings.keys.includes(key))

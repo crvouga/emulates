@@ -120,7 +120,9 @@ describe("namespace carriers", () => {
     const made = await runtime.fetch(create("hi", {}, "http://mock.local/__admin/ns/w1"))
     expect(made.status).toBe(200)
     expect(made.headers.get("x-mockingbird")).toContain("ns=w1")
-    expect(await (await runtime.fetch(list({}, "http://mock.local/__admin/ns/w1"))).json()).toHaveLength(1)
+    expect(
+      await (await runtime.fetch(list({}, "http://mock.local/__admin/ns/w1"))).json(),
+    ).toHaveLength(1)
     expect(await (await runtime.fetch(list())).json()).toHaveLength(0)
     expect(await (await runtime.fetch(list({ [NAMESPACE_HEADER]: "w1" }))).json()).toHaveLength(1)
   })

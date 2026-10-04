@@ -279,7 +279,10 @@ export const createRuntime = (options: PostHogRuntimeOptions = {}): PostHogRunti
     const path = new URL(request.url).pathname
     if (
       !request.headers.has(NAMESPACE_HEADER) &&
-      !(path === (options.adminPrefix ?? "/__admin") || path.startsWith(`${options.adminPrefix ?? "/__admin"}/`))
+      !(
+        path === (options.adminPrefix ?? "/__admin") ||
+        path.startsWith(`${options.adminPrefix ?? "/__admin"}/`)
+      )
     ) {
       const token = (await requestToken(request, path)) ?? bearerToken(request)
       if (token !== undefined) tokens.set(request, token)

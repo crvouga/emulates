@@ -188,7 +188,8 @@ describe("S25 Payload CMS acceptance: our referral-content client against the mo
     const { runtime, fetchImpl, admin } = harness()
     await admin("/collections/marketing/docs/2?namespace=w1", { cardTitle: "Worker one" }, "PATCH")
     expect(
-      (await new PayloadCmsConsumer(`${API}/__admin/ns/w1`, fetchImpl).getReferralContent()).card.title,
+      (await new PayloadCmsConsumer(`${API}/__admin/ns/w1`, fetchImpl).getReferralContent()).card
+        .title,
     ).toBe("Worker one")
     expect((await new PayloadCmsConsumer(API, fetchImpl).getReferralContent()).card.title).toBe(
       "Give $150, Get Rewarded",

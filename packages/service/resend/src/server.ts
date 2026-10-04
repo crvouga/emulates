@@ -65,7 +65,7 @@ export const serveTarget: ServeTarget = {
             forwardToInbox: {
               url: inbox,
               ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
-      ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
+              ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
             },
           }
         : {}),

@@ -664,7 +664,9 @@ describe("S4.6 hosted page", () => {
       },
       "ns-key",
     )
-    expect(new URL(session.redirect_url).pathname).toBe(`/__admin/ns/b/pay/${session.checkout_session_id}`)
+    expect(new URL(session.redirect_url).pathname).toBe(
+      `/__admin/ns/b/pay/${session.checkout_session_id}`,
+    )
     const paid = await payOnHostedPage((r) => h.runtime.fetch(r), session.redirect_url, HSA)
     expect(paid.response.status).toBe(302)
     expect((await worker.getCheckoutSession(session.checkout_session_id)).status).toBe("complete")

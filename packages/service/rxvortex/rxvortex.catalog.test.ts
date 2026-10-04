@@ -65,8 +65,10 @@ const admin = (
     }),
   )
 const consumerFor = (runtime: Runtime, ns?: string) =>
-  new RxVortexConsumer(ns ? `${API}/__admin/ns/${ns}` : API, { clientId: "acme", clientSecret: "s" }, (r) =>
-    runtime.fetch(r),
+  new RxVortexConsumer(
+    ns ? `${API}/__admin/ns/${ns}` : API,
+    { clientId: "acme", clientSecret: "s" },
+    (r) => runtime.fetch(r),
   )
 const catalogIds = async (runtime: Runtime, ns?: string) => {
   const token = await consumerFor(runtime, ns).getAccessToken()

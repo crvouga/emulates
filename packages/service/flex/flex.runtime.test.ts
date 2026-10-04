@@ -81,7 +81,8 @@ describe("service contract", () => {
     const id = ((await created.json()) as { checkout_session: { checkout_session_id: string } })
       .checkout_session.checkout_session_id
     expect(
-      (await call(runtime, `/__admin/ns/a/v1/checkout/sessions/${id}`, { key: "fsk_test_x" })).status,
+      (await call(runtime, `/__admin/ns/a/v1/checkout/sessions/${id}`, { key: "fsk_test_x" }))
+        .status,
     ).toBe(200)
     expect((await call(runtime, `/v1/checkout/sessions/${id}`, { key: "fsk_test_a" })).status).toBe(
       404,

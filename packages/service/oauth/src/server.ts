@@ -56,7 +56,7 @@ export const serveTarget: ServeTarget = {
         mounts: parsed.mounts,
         ...(common.seed !== undefined ? { seed: common.seed } : {}),
         ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
-      ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
+        ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       }) as unknown as OAuthRuntime
     }
     const provider = values.provider ?? "oidc"

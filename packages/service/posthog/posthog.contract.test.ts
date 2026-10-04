@@ -141,7 +141,9 @@ describe("contract: namespaces", () => {
       ),
     ).toBe("hdr")
     expect(
-      await value(await post("/__admin/ns/prefixed/flags/?v=2", { token: "phc_mapped", distinct_id: "1" })),
+      await value(
+        await post("/__admin/ns/prefixed/flags/?v=2", { token: "phc_mapped", distinct_id: "1" }),
+      ),
     ).toBe("prefixed")
     // The /array/{token}/config path, ?token=, a batch's first event, and a personal key.
     expect((await call("/array/phc_mapped/config")).headers.get("x-mockingbird")).toEndWith(

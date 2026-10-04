@@ -405,7 +405,14 @@ describe("runtime", () => {
     runtime.faults.add({ id: "f", pathPrefix: "/v1/notes/", status: 503 })
     await fc.assert(
       fc.asyncProperty(
-        fc.constantFrom("/v1/notes", "/v1/notes/x", "/nope", "/__admin/health", "/__admin", "/__admin/x"),
+        fc.constantFrom(
+          "/v1/notes",
+          "/v1/notes/x",
+          "/nope",
+          "/__admin/health",
+          "/__admin",
+          "/__admin/x",
+        ),
         fc.constantFrom("default", "w1"),
         fc.boolean(),
         async (path, namespace, keyed) => {

@@ -410,7 +410,9 @@ export class FlexAPI implements FetchAPI {
     const configured = this.state.current().publicUrl
     if (configured) return configured.replace(/\/$/, "")
     const prefix =
-      this.publicNamespace === "default" ? "" : `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
+      this.publicNamespace === "default"
+        ? ""
+        : `${this.adminPrefix}/ns/${encodeURIComponent(this.publicNamespace)}`
     return `${context.url.origin}${prefix}`
   }
 

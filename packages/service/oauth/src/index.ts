@@ -49,7 +49,7 @@ export type OAuthAPIOptions = APIOptions &
     /** Path at which a composed runtime is publicly mounted. */
     mountPath?: string
     adminPrefix?: string
-  publicNamespace?: string
+    publicNamespace?: string
     accounts?: Account[]
     clients?: Client[]
     behavior?: BehaviorInput

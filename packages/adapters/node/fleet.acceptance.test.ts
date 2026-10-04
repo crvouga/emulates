@@ -377,12 +377,13 @@ test("custom prefixes relocate aggregate controls, child APIs and namespace mani
     for (const [name, prefix] of [
       ["fixture", "/_control/mock"],
       ["other", "/_other"],
-    ]) {
-      const child = fleet.manifest.services[name!]
-      expect(child!.adminUrl).toEndWith(prefix!)
-      expect(child!.namespaces.path).toBe(`${prefix}/ns/{name}`)
-      expect((await fetch(child!.healthUrl)).status).toBe(200)
-      expect((await fetch(`${child!.adminUrl}/clock`)).status).toBe(401)
+    ] as const) {
+      const child = fleet.manifest.services[name]
+      if (!child) throw new Error(`missing child ${name}`)
+      expect(child.adminUrl).toEndWith(prefix)
+      expect(child.namespaces.path).toBe(`${prefix}/ns/{name}`)
+      expect((await fetch(child.healthUrl)).status).toBe(200)
+      expect((await fetch(`${child.adminUrl}/clock`)).status).toBe(401)
     }
     expect(
       (
