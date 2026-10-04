@@ -1,4 +1,6 @@
-import { findOrderByLabOrderId, updateOrderStatus } from "../db/ordersRepo.js"
+import { listLabTests } from "../db/labTestsRepo.js"
+import { sampleResults } from "../orders/sampleResults.js"
+import { appendOrderEvent, findOrderByLabOrderId, listOrderItems, updateOrderStatus } from "../db/ordersRepo.js"
 import type { Db } from "../ports/db.js"
 import type { LabTestingClient } from "../ports/labTestingClient.js"
 
@@ -12,7 +14,16 @@ export const handleLabTestingWebhook = async (
   if (event.type !== "order.status_updated") return
 
   const order = await findOrderByLabOrderId(db, event.labOrderId)
-  if (!order) return
+  if (!order || order.status === "cancelled" || order.status === "results_ready" || order.status === event.status) return
 
-  await updateOrderStatus(db, order.id, event.status, event.interpretation)
+  let interpretation = event.interpretation
+  if (event.status === "results_ready") {
+    const tests = new Map((await listLabTests(db)).map((test) => [test.id, test.name]))
+    const items = await listOrderItems(db, order.id)
+    const results = sampleResults(items.map((item) => tests.get(item.lab_test_id) ?? "Unknown test"))
+    interpretation = results.some((panel) => panel.markers.some((marker) => marker.flag !== "normal")) ? "out_of_range" : "normal"
+    await db.query("UPDATE orders SET results_json = $2 WHERE id = $1", [order.id, JSON.stringify(results)])
+  }
+  await updateOrderStatus(db, order.id, event.status, interpretation)
+  await appendOrderEvent(db, order.id, event.status, event.status === "results_ready" ? "Report available. Awaiting clinical review." : "Sample received. Laboratory processing started.", "Laboratory")
 }

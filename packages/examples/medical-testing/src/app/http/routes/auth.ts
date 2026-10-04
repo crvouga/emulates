@@ -6,6 +6,7 @@ import {
   signOut,
   startSessionForProfile,
 } from "../../auth/session.js"
+import { publicUser } from "../../db/usersRepo.js"
 import type { HostedFlowStep } from "../../ports/hostedFlow.js"
 import type { IdentityProfile, IdentityProviderKey } from "../../ports/identityProvider.js"
 import type { AppEnv } from "../appEnv.js"
@@ -44,7 +45,7 @@ const respondToStep = async (c: Context<AppEnv>, result: HostedFlowStep<Identity
   const { token, user } = await startSessionForProfile(c.get("db"), result.result)
   setCookie(c, SESSION_COOKIE, token, { httpOnly: true, sameSite: "Lax", path: "/" })
   c.header(SESSION_HEADER, token)
-  return c.json({ user: toPublicUser(user) })
+  return c.json({ user: publicUser(user) })
 }
 
 authRoutes.post("/sign-out", (c) => {
@@ -58,19 +59,15 @@ authRoutes.post("/sign-out", (c) => {
 authRoutes.get("/me", (c) => {
   const user = c.get("user")
   if (!user) return c.json({ user: null })
-  return c.json({ user: toPublicUser(user) })
+  return c.json({ user: publicUser(user) })
 })
 
-const toPublicUser = (user: {
-  id: string
-  provider: string
-  email: string | null
-  name: string | null
-  picture: string | null
-}) => ({
-  id: user.id,
-  provider: user.provider,
-  email: user.email,
-  name: user.name,
-  picture: user.picture,
+authRoutes.patch("/profile", async (c) => {
+  const user = c.get("user")
+  if (!user) return c.json({ error: "Sign in required" }, 401)
+  const body = await c.req.json<{ name?: unknown; notifications?: unknown }>()
+  if (typeof body.name !== "string" || !body.name.trim() || body.name.length > 80 || typeof body.notifications !== "boolean")
+    return c.json({ error: "Enter a name of 1–80 characters and a notification preference." }, 400)
+  await c.get("db").query("UPDATE users SET name = $2, notifications = $3 WHERE id = $1", [user.id, body.name.trim(), body.notifications])
+  return c.json({ user: publicUser({ ...user, name: body.name.trim(), notifications: body.notifications }) })
 })

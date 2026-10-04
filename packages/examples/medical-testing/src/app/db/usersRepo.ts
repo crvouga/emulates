@@ -1,3 +1,4 @@
+import type { Role, User } from "../model.js"
 import type { Db } from "../ports/db.js"
 
 export type UserRow = {
@@ -7,6 +8,8 @@ export type UserRow = {
   email: string | null
   name: string | null
   picture: string | null
+  role: Role
+  notifications: boolean
   created_at: string
 }
 
@@ -56,3 +59,8 @@ export const upsertUserFromIdentity = async (
   )
   return (await findUserById(db, id)) as UserRow
 }
+
+export const publicUser = (user: UserRow): User => ({
+  id: user.id, provider: user.provider, email: user.email, name: user.name,
+  picture: user.picture, role: user.role, notifications: user.notifications,
+})

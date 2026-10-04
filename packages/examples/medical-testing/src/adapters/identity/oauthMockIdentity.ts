@@ -66,8 +66,10 @@ const createProviderRuntimes = (): Record<IdentityProviderKey, OAuthRuntime> => 
           emailVerified: true,
           givenName: "Ada",
           familyName: "Lovelace",
-          picture: "https://api.dicebear.com/9.x/notionists/svg?seed=ada",
+
         },
+        { id: "clinician", name: "Morgan Chen", email: "clinician@example.test", emailVerified: true },
+        { id: "admin", name: "Alex Morgan", email: "admin@example.test", emailVerified: true },
       ],
       clients: [client("google")],
     }),

@@ -10,6 +10,8 @@ import { type ClientAssets, createApp } from "../app/http/app.js"
 import type { AppEnv } from "../app/http/appEnv.js"
 import type { Db } from "../app/ports/db.js"
 
+import { seedWorkspace } from "./seedWorkspace.js"
+
 export type { MockAdmin }
 
 /** The running app plus the live admin fetch for every mock it is talking to. */
@@ -53,6 +55,7 @@ export const buildDemo = async (assets: ClientAssets): Promise<Demo> => {
 
   await migrate(db)
   await seedCatalog(db, labTesting.client)
+  await seedWorkspace(db, payments.client)
 
   const app = createApp(
     { db, payments: payments.client, labTesting: labTesting.client, identity: identity.client },

@@ -7,6 +7,10 @@ export type OrderRow = {
   checkout_session_id: string
   lab_order_id: string | null
   interpretation: string | null
+  results_json: string
+  reviewed_at: string | null
+  review_note: string | null
+  reviewer: string | null
   created_at: string
 }
 
@@ -25,6 +29,7 @@ export const insertOrder = async (
     `INSERT INTO orders (id, user_id, status, checkout_session_id) VALUES ($1, $2, $3, $4)`,
     [order.id, order.userId, order.status, order.checkoutSessionId],
   )
+  await appendOrderEvent(db, order.id, "pending_payment", "Order placed. Awaiting payment.", "Patient")
 }
 
 export const insertOrderItem = async (
@@ -71,6 +76,7 @@ export const markOrderFulfilled = async (
     orderId,
     labOrderId,
   ])
+  await appendOrderEvent(db, orderId, "fulfilled", "Payment confirmed. Collection kit requested.", "Payments")
 }
 
 export const updateOrderStatus = async (
@@ -84,4 +90,11 @@ export const updateOrderStatus = async (
     status,
     interpretation,
   ])
+}
+
+export const appendOrderEvent = async (db: Db, orderId: string, status: string, detail: string, actor: string): Promise<void> => {
+  await db.query("INSERT INTO order_events (id, order_id, status, detail, actor) VALUES ($1, $2, $3, $4, $5)", [crypto.randomUUID(), orderId, status, detail, actor])
+}
+export const audit = async (db: Db, actor: string, action: string, target: string): Promise<void> => {
+  await db.query("INSERT INTO audit_events (id, actor, action, target) VALUES ($1, $2, $3, $4)", [crypto.randomUUID(), actor, action, target])
 }
