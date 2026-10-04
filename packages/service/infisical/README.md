@@ -16,6 +16,21 @@ bun add @crvouga/mockingbird-service-infisical
 ## Usage
 
 ```ts
+import { createRuntime } from "@crvouga/mockingbird-service-infisical"
+
+const mock = createRuntime()
+const response = await mock.fetch(new Request(
+  "http://mock.local/api/v3/secrets/raw?workspaceId=fixture-project&environment=dev&secretPath=/app",
+  { headers: { authorization: "Bearer fixture-service-token" } },
+))
+const result = await response.json() as { secrets: { secretKey: string; version: number }[] }
+console.log(result.secrets.map((secret) => ({ key: secret.secretKey, version: secret.version })))
+```
+
+For the SDK walkthrough, also install `@infisical/sdk@3.0.91`. The SDK is an optional consumer
+dependency; the mock's runtime does not depend on it.
+
+```js
 import { createServer } from "@crvouga/mockingbird-service-infisical/server"
 import { InfisicalSDK } from "@infisical/sdk"
 
