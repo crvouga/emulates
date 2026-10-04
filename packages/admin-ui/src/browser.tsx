@@ -161,6 +161,7 @@ function Workspace({
   const [view, setView] = useState(location.hash.slice(1) || "overview")
   const [revision, setRevision] = useState(0)
   const [narrow, setNarrow] = useState(host.clientWidth < 760)
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(
     remember("mockingbird-admin-theme") === "dark" ||
@@ -171,11 +172,22 @@ function Workspace({
   const manifest = useResource<Manifest>(api, "/ui/manifest")
   const namespaces = useResource<{ namespaces: string[] }>(api, "/namespaces", revision)
   useEffect(() => {
+    const root = host.getRootNode()
+    const viewport = root instanceof ShadowRoot ? root.host : host
     const observer = new ResizeObserver(([entry]) => {
-      if (entry) setNarrow(entry.contentRect.width < 760)
+      if (!entry || entry.contentRect.width === 0) return
+      setNarrow(entry.contentRect.width < 760)
+      setViewportHeight(root instanceof ShadowRoot ? entry.contentRect.height : window.innerHeight)
     })
-    observer.observe(host)
-    return () => observer.disconnect()
+    observer.observe(viewport)
+    const resize = () => {
+      if (!(root instanceof ShadowRoot)) setViewportHeight(window.innerHeight)
+    }
+    window.addEventListener("resize", resize)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("resize", resize)
+    }
   }, [host])
   useEffect(() => {
     remember("mockingbird-admin-key", key)
@@ -250,7 +262,7 @@ function Workspace({
         notification={{ getContainer: () => popupHost }}
         style={{ minHeight: "100%" }}
       >
-        <Layout style={{ minHeight: "100%" }}>
+        <Layout style={{ minHeight: viewportHeight }}>
           <Layout.Header
             style={{
               height: "auto",
