@@ -1,33 +1,12 @@
-export type LabTest = {
-  id: string
-  name: string
-  description: string
-  category: string
-  priceCents: number
-}
+import type { AdminData, LabTest, Order, Role, User } from "../app/model.js"
+export type { LabTest, Order, Role, User } from "../app/model.js"
 export type OAuthProvider = "google" | "apple"
-export type User = {
-  id: string
-  provider: string
-  email: string | null
-  name: string | null
-  picture: string | null
-}
 export type OAuthStepResponse =
   | { flowId: string; html: string; user?: undefined }
   | { user: User; flowId?: undefined; html?: undefined }
 export type HostedCheckoutStepResponse =
   | { flowId: string; html: string; done?: undefined }
   | { done: true; flowId?: undefined; html?: undefined }
-export type Order = {
-  id: string
-  status: string
-  createdAt: string
-  items: { testName: string; priceCents: number }[]
-  labOrderId: string | null
-  interpretation: string | null
-}
-
 export type Fetcher = (path: string, init?: RequestInit) => Promise<Response>
 
 // Defaults to a real network fetch (the standalone Bun dev server case).
@@ -57,11 +36,12 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
     headers: { "content-type": "application/json", ...init?.headers },
     credentials: "same-origin",
   })
-  const body = (await response.json()) as T & { error?: string }
+  const body = (await response.json().catch(() => ({ error: "The server returned an unreadable response. Try again." }))) as T & { error?: string }
   if (!response.ok) {
     if (response.status === 401) for (const listener of unauthorizedListeners) listener()
     throw new Error(body.error ?? `Request to ${path} failed with ${response.status}`)
   }
+  if (body.error) throw new Error(body.error)
   return body
 }
 
@@ -100,5 +80,18 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ flowId, action, method, body }),
     }),
-  orders: () => request<{ orders: Order[] }>("/api/orders"),
+  orders: (workspace = false) => request<{ orders: Order[] }>(`/api/orders${workspace ? "?scope=workspace" : ""}`),
+  profile: (name: string, notifications: boolean) => request<{ user: User }>("/api/auth/profile", { method: "PATCH", body: JSON.stringify({ name, notifications }) }),
+  admin: () => request<AdminData>("/api/admin"),
+  changeRole: (id: string, role: Role) => request<{ ok: true }>(`/api/admin/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) }),
+  review: (id: string, note: string) => request<{ ok: true }>(`/api/orders/${id}/review`, { method: "POST", body: JSON.stringify({ note }) }),
+  file: async (id: string, kind: "results" | "receipt" | "record") => {
+    const response = await fetcher(`/api/orders/${id}/files/${kind}`, { credentials: "same-origin" })
+    if (!response.ok) {
+      if (response.status === 401) for (const listener of unauthorizedListeners) listener()
+      const body = await response.json() as { error?: string }
+      throw new Error(body.error ?? "Download failed. Please try again.")
+    }
+    return response.blob()
+  },
 }
