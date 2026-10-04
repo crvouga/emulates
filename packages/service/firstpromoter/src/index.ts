@@ -20,6 +20,7 @@ import { Commissions } from "./commissions.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
   type CampaignReward,
+  type CommissionUnit,
   FirstPromoterState,
   type PromoterRecord,
   type ReferralRecord,
@@ -158,6 +159,7 @@ export class FirstPromoterAPI implements FetchAPI {
     this.commissions = new Commissions(this.state, this.now)
     const handlers = defineOperations<SupportedOperationId>({
       TrackSignup: (context) => this.trackSignup(context),
+      TrackSale: (context) => this.trackSale(context),
       ListPromoters: (context) => this.listPromoters(context),
       CreatePromoter: (context) => this.createPromoter(context),
       ArchivePromoters: (context) => this.archivePromoters(context),
@@ -686,6 +688,111 @@ export class FirstPromoterAPI implements FetchAPI {
     )
   }
 
+  private trackSale(context: OperationContext): Response {
+    const body = record(context)
+    if (!Number.isSafeInteger(body.amount) || Number(body.amount) <= 0)
+      return error(400, "Error. Amount blank or invalid.")
+    const invalid = validation(context)
+    if (invalid) return invalid
+    const eventId = String(body.event_id)
+    if (this.state.sales.has(eventId))
+      return error(409, `The 'sale' event with the id '${eventId}' already exists.`)
+    const missing = () =>
+      jsonRes(404, {
+        message:
+          "Referral corresponding to email or uid parameter not found or promoter is banned.",
+        code: "not_found",
+      })
+    const referral = this.state.referrals.list({
+      where: (row) =>
+        typeof body.uid === "string"
+          ? row.uid === body.uid
+          : row.email.toLowerCase() === String(body.email).toLowerCase(),
+    })[0]?.value
+    const promoter =
+      referral?.promoter_id === null || !referral
+        ? undefined
+        : this.state.byId(referral.promoter_id)
+    const enrolment = promoter?.campaigns.find((c) => c.campaign_id === referral?.campaign_id)
+    if (!referral || !promoter || promoter.state === "archived" || !enrolment) return missing()
+    if (typeof body.ref_id === "string" && body.ref_id !== enrolment.ref_token) return missing()
+    if (
+      typeof body.tid === "string" &&
+      this.state.clicks.get(body.tid)?.promoter_id !== promoter.id
+    )
+      return missing()
+    if (
+      typeof body.promo_code === "string" &&
+      this.state.promoCodes.get(body.promo_code)?.promoter_campaign_id !== enrolment.id
+    )
+      return missing()
+    const saleAmount = Number(body.amount)
+    const reward = this.state.campaign(enrolment.campaign_id)?.promoterRewards[0]
+    const earned = reward
+      ? Math.round(
+          reward.per_of_sale !== null
+            ? (saleAmount * reward.per_of_sale) / 100
+            : (reward.amount ?? 0),
+        )
+      : 0
+    const units: CommissionUnit[] = [
+      "cash",
+      "credits",
+      "points",
+      "free_months",
+      "mon_discount",
+      "discount_per",
+    ]
+    const unit: CommissionUnit = units.find((value) => value === reward?.unit) ?? "cash"
+    const sale = this.sqlite.transaction(() => {
+      const commission = reward
+        ? this.commissions.seed({
+            promoter_campaign_id: enrolment.id,
+            referral_id: referral.id,
+            status: "approved",
+            fulfilled: false,
+            is_paid: false,
+            commission_type: "sale",
+            unit,
+            amount: earned,
+            sale_amount: saleAmount,
+            original_sale_currency: typeof body.currency === "string" ? body.currency : null,
+            event_id: eventId,
+            plan_id: typeof body.plan === "string" ? body.plan : null,
+          })
+        : undefined
+      const row = {
+        id: 93_000_000 + this.state.next("sale"),
+        event_id: eventId,
+        referral_id: referral.id,
+        commission_ids: commission ? [commission.id] : [],
+        sale_amount: saleAmount,
+        original_sale_currency: typeof body.currency === "string" ? body.currency : null,
+        plan_id: typeof body.plan === "string" ? body.plan : null,
+        created_at: this.iso(),
+      }
+      this.state.sales.insert(eventId, row)
+      this.convertReferral(referral.id, saleAmount, unit === "cash" ? earned : 0)
+      return row
+    })
+    return jsonRes(200, {
+      id: sale.id,
+      etype: "sale",
+      sale_amount: sale.sale_amount,
+      original_sale_amount: sale.sale_amount,
+      original_sale_currency: sale.original_sale_currency,
+      event_id: sale.event_id,
+      plan_id: sale.plan_id,
+      billing_period: null,
+      created_at: sale.created_at,
+      referral: { id: referral.id, email: referral.email, uid: referral.uid },
+      commissions: sale.commission_ids.flatMap((id) => {
+        const row = this.state.commissions.get(String(id))
+        return row ? [this.commissions.render(row)] : []
+      }),
+    })
+  }
+
   /** A promoter's link was clicked: the `tid` a browser would carry into checkout. */
   click(refToken: string): { tid: string; promoterId: number } | undefined {
     const promoter = this.state.find(refToken, "ref_token")
@@ -706,6 +813,14 @@ export class FirstPromoterAPI implements FetchAPI {
    * promoter reward's percent, or its flat cash amount), and emit `lead_becomes_referral`.
    */
   convert(referralId: number, saleAmount = 0): ReferralRecord | undefined {
+    return this.convertReferral(referralId, saleAmount)
+  }
+
+  private convertReferral(
+    referralId: number,
+    saleAmount: number,
+    credit?: number,
+  ): ReferralRecord | undefined {
     const referral = this.state.referrals.get(String(referralId))
     if (!referral || referral.promoter_id === null) return undefined
     const promoter = this.state.byId(referral.promoter_id)
@@ -729,7 +844,7 @@ export class FirstPromoterAPI implements FetchAPI {
     const updated: PromoterRecord = {
       ...promoter,
       customers: promoter.customers + (first ? 1 : 0),
-      earnings_cash: promoter.earnings_cash + earned,
+      earnings_cash: promoter.earnings_cash + (credit ?? earned),
       updated_at: now,
     }
     this.state.promoters.update(String(promoter.id), updated)

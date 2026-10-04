@@ -97,6 +97,7 @@ is `user:pass`. Non-2xx answers are retried; `GET /__admin/webhooks`, `…/event
 | `GET /__admin/referrals` | Tracked signups. |
 | `POST /__admin/referrals/:id/convert` | `{saleAmount?}`: the lead paid; credits the promoter (percent reward × amount) and posts the webhook. |
 | `POST /__admin/commissions` | Seed a commission against an existing `{promoter_campaign_id, amount, unit?, status?, fulfilled?, is_paid?, referral_id?, sale_amount?, event_id?}`. Defaults: approved, points, unfulfilled/unpaid. A referral must belong to that promoter and campaign. |
+| `POST /__admin/promo-codes` | Seed `{promo_code, promoter_campaign_id}` against an existing promoter campaign for sale attribution tests. |
 | `GET\|PUT /__admin/settings` | `{website?, defaultCampaignId?, autoConvert?, campaigns?}` (campaigns carry `referralRewards` / `promoterRewards` with `coupon`, `amount`, `unit`, `per_of_sale`). The default campaign's referral coupon is `ACME50`. |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /__admin/faults/presets`):
@@ -121,6 +122,19 @@ others. Timing, missing-ID/monetary-item error text, and this preset are synthet
 they are not claims about the vendor's worker timing or exact error messages. Fulfillment is
 stored separately from the vendor's `is_paid` monetary field.
 
+`POST /v2/track/sale` follows the vendor's [sale contract](https://github.com/firstpromoter/docs/blob/d4e9e6f16bf4801c524508d2809a425ea6419d7d/api-reference-v2/api-admin/tracking-api/openapi-v2-tracking.json):
+`{event_id, amount, email|uid, currency?, plan?, promo_code?, ref_id?, tid?, skip_email_notification?}`
+records a positive integer amount in minor units against a tracked referral. The first configured
+campaign reward supplies an approved commission; percent rewards are rounded to the nearest
+minor unit, and flat rewards use their configured amount. Cash rewards also credit the existing
+promoter balance; nonmonetary rewards do not. The response includes the referral, amount and
+linked commissions, visible in the commission collection. Replaying an event ID returns the
+documented 409 without another credit, commission or webhook. Unknown referrals, archived
+promoters and unmatched supplied attribution tokens return the documented 404 `not_found` shape.
+Codes must be seeded through the admin control; tokens must belong to the referral's promoter
+campaign. All validation precedes sale/commission/balance writes; snapshots/reset include event
+deduplication. A successful sale preserves the existing conversion webhook behavior.
+
 ### Namespaces
 
 `x-mockingbird-namespace`, a `/ns/<name>` prefix in `FIRST_PROMOTER_API_URL`, or by API key:
@@ -133,9 +147,14 @@ stored separately from the vendor's `is_paid` monetary field.
   branches on `ok` / 404, which the mock gets right.
 - The v1 API our EMR backend still calls (`/v1/promoters/*`, `/v1/track/signup`,
   `/v1/reports/campaigns`); the catalog scopes this mock to v2.
-- Sales, refunds, commission creation/editing/approval, cash payouts and commission filters
+- Refunds, standalone commission creation/editing/approval, cash payouts and commission filters
   beyond those listed above; fraud checks;
-  promo codes; the hosted affiliate portal behind the iframe token.
+  public promo-code provisioning; the hosted affiliate portal behind the iframe token.
+- Sale tracking requires an existing referral (the vendor's one-step signup bypass is unmodelled).
+  Currency is recorded without foreign-exchange conversion; plan-specific rewards, quantity/MRR
+  calculations, multiple reward tiers, split commissions and notification emails are unmodelled.
+  Commission rounding and immediate approval are deterministic mock policies, not live-verified
+  campaign policy. The default campaign reward remains 10 percent, as before.
 - Referral editing/deletion, username/website profile provisioning, cancelled-date filters and split attribution.
 - Promoter ids are sequential from 4800001 per namespace.
 

@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **15**
-- supported by the mock: **15**
-- parity enabled: **15**
+- operations in spec: **16**
+- supported by the mock: **16**
+- parity enabled: **16**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -23,3 +23,4 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `ListBatchProcesses` | `GET /v2/company/batch_processes` | ✅ supported | ✅ |  |
 | `BatchProcessProgress` | `GET /v2/company/batch_processes/progress` | ✅ supported | ✅ |  |
 | `GetBatchProcess` | `GET /v2/company/batch_processes/{id}` | ✅ supported | ✅ |  |
+| `TrackSale` | `POST /v2/track/sale` | ✅ supported | ⚠️ unsafe (opt-in) |  |

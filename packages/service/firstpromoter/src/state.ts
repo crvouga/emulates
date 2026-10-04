@@ -103,6 +103,16 @@ export type CommissionTask = {
   due_at: number
   fail_id: number | null
 }
+export type SaleRecord = {
+  id: number
+  event_id: string
+  referral_id: number
+  commission_ids: number[]
+  sale_amount: number
+  original_sale_currency: string | null
+  plan_id: string | null
+  created_at: string
+}
 
 /** Per-namespace knobs, set through `PUT /__admin/settings`; cleared on reset. */
 export type Settings = {
@@ -175,6 +185,8 @@ export class FirstPromoterState {
   readonly commissions: Collection<CommissionRecord>
   readonly batches: Collection<CommissionBatch>
   readonly commissionTasks: Collection<CommissionTask>
+  readonly sales: Collection<SaleRecord>
+  readonly promoCodes: Collection<{ promoter_campaign_id: number }>
 
   constructor(
     sqlite: SqliteClient,
@@ -189,6 +201,8 @@ export class FirstPromoterState {
     this.commissions = new Collection(sqlite, namespace, "commissions")
     this.batches = new Collection(sqlite, namespace, "batch_processes")
     this.commissionTasks = new Collection(sqlite, namespace, "commission_tasks")
+    this.sales = new Collection(sqlite, namespace, "sales")
+    this.promoCodes = new Collection(sqlite, namespace, "promo_codes")
     this.ensureSeeded()
   }
 

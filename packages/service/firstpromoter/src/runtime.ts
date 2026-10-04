@@ -118,6 +118,25 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
 const adminRoutes = (runtime: ServiceRuntime<FirstPromoterAPI>): AdminRoutes => ({
+  "POST /promo-codes": ({ body, namespace }) => {
+    if (
+      !isRecord(body) ||
+      typeof body.promo_code !== "string" ||
+      !body.promo_code.trim() ||
+      !Number.isInteger(body.promoter_campaign_id)
+    )
+      return adminError(400, "expected {promo_code, promoter_campaign_id}")
+    const api = runtime.instance(namespace)
+    if (!api.commissions.enrolment(Number(body.promoter_campaign_id)))
+      return adminError(400, "unknown promoter campaign")
+    api.state.promoCodes.insert(body.promo_code, {
+      promoter_campaign_id: Number(body.promoter_campaign_id),
+    })
+    return json(201, {
+      promo_code: body.promo_code,
+      promoter_campaign_id: body.promoter_campaign_id,
+    })
+  },
   "POST /commissions": ({ body, namespace }) => {
     if (
       !isRecord(body) ||

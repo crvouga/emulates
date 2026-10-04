@@ -826,6 +826,104 @@ paths:
             enum:
               - "300001"
               - "999999999"
+  /v2/track/sale:
+    post:
+      operationId: TrackSale
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event_id
+                - amount
+              oneOf:
+                - required:
+                    - email
+                - required:
+                    - uid
+              properties:
+                event_id:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                amount:
+                  type: integer
+                  minimum: 1
+                email:
+                  type: string
+                  format: email
+                  maxLength: 120
+                uid:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                currency:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+                plan:
+                  type: string
+                promo_code:
+                  type: string
+                ref_id:
+                  type: string
+                tid:
+                  type: string
+                skip_email_notification:
+                  type: boolean
+      responses:
+        "200":
+          description: Sale and its commissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "400":
+          description: Invalid amount
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No eligible referral
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - code
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - not_found
+        "409":
+          description: Duplicate sale event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
 components:
   securitySchemes:
     bearerAuth:
@@ -1515,3 +1613,69 @@ components:
         - referral
         - reward
         - split_details
+    Sale:
+      type: object
+      required:
+        - id
+        - etype
+        - sale_amount
+        - original_sale_amount
+        - original_sale_currency
+        - event_id
+        - plan_id
+        - billing_period
+        - created_at
+        - referral
+        - commissions
+      properties:
+        id:
+          type: integer
+          x-mockingbird-volatile:
+            kind: id
+        etype:
+          type: string
+          enum:
+            - sale
+        sale_amount:
+          type: integer
+        original_sale_amount:
+          type: integer
+        original_sale_currency:
+          type:
+            - string
+            - "null"
+        event_id:
+          type: string
+        plan_id:
+          type:
+            - string
+            - "null"
+        billing_period:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        referral:
+          type: object
+          required:
+            - id
+            - email
+            - uid
+          properties:
+            id:
+              type: integer
+              x-mockingbird-volatile:
+                kind: id
+            email:
+              type: string
+            uid:
+              type:
+                - string
+                - "null"
+        commissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Commission"
