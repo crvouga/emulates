@@ -73,7 +73,7 @@ for (const receiving of [false, true]) {
       await create("fixture isolated")
       const path = `/emails${receiving ? "/receiving" : ""}`
       expect((await send(new Request(`http://mock.test${path}`))).status).toBe(401)
-      expect(await listResendEmails(send, "http://mock.test/ns/other", receiving)).toEqual({
+      expect(await listResendEmails(send, "http://mock.test/__admin/ns/other", receiving)).toEqual({
         object: "list",
         has_more: false,
         data: [],

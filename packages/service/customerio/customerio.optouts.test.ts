@@ -156,9 +156,9 @@ describe("sender opt-out reconciliation (#258)", () => {
     await call("/__admin/namespace-clock", { advance: 3600000 })
     expect((await call(`/__admin/snapshots/${snapshot.id}/restore`, {})).status).toBe(200)
     expect(await page()).toEqual(original)
-    expect(await (await call("/ns/other/v1/optouts")).json()).toEqual({ optouts: [] })
-    await call("/ns/other/__admin/profiles/fixture-other", {}, "PUT")
-    await call("/ns/other/__admin/optouts", {
+    expect(await (await call("/__admin/ns/other/v1/optouts")).json()).toEqual({ optouts: [] })
+    await call("/__admin/ns/other/__admin/profiles/fixture-other", {}, "PUT")
+    await call("/__admin/ns/other/__admin/optouts", {
       customerId: "fixture-other",
       from: "+12025550124",
       optout: true,
@@ -177,7 +177,8 @@ describe("sender opt-out reconciliation (#258)", () => {
     await call("/__admin/reset", {})
     expect((await page()).optouts).toEqual([])
     expect(
-      ((await (await call("/ns/other/v1/optouts")).json()) as { optouts: unknown[] }).optouts,
+      ((await (await call("/__admin/ns/other/v1/optouts")).json()) as { optouts: unknown[] })
+        .optouts,
     ).toHaveLength(1)
     await runtime.reset()
   })

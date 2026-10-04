@@ -261,10 +261,11 @@ export const createRuntime = (options: PostHogRuntimeOptions = {}): PostHogRunti
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: (request) => tokens.get(request),
     presets: POSTHOG_PRESETS,
-    create: ({ sqlite, namespace, clock }) =>
+    create: ({ sqlite, namespace, clock, adminPrefix }) =>
       new PostHogAPI({
         sqlite,
         namespace,
+        adminPrefix,
         now: clock.now,
         ...(options.flags ? { flags: options.flags } : {}),
         ...(options.settings ? { settings: options.settings } : {}),

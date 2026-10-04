@@ -117,7 +117,7 @@ describe("room reconciliation (#252)", () => {
     await emr.createRoom({ name: "fixture-room" })
     expect((await runtime.fetch(new Request(`${API}/v1/rooms`))).status).toBe(401)
     const other = await runtime.fetch(
-      new Request(`${API}/ns/other/v1/rooms`, {
+      new Request(`${API}/__admin/ns/other/v1/rooms`, {
         headers: { authorization: `Bearer ${API_KEY}` },
       }),
     )

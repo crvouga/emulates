@@ -80,7 +80,7 @@ for (const collection of ["contacts", "conversations"] as const) {
       expect((await send(new Request(`http://mock.test/${collection}`))).status).toBe(401)
       const other = await listIntercomCollection(
         send,
-        "http://mock.test/ns/other",
+        "http://mock.test/__admin/ns/other",
         "fixture-key",
         collection,
       )

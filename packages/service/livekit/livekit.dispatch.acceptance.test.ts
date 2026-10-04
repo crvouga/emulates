@@ -106,7 +106,11 @@ describe("dispatch control and isolation", () => {
       await rpc("CreateDispatch", { room: "synthetic-room", agentName: "first" })
     ).json()) as Dispatch
     const second = (await (
-      await rpc("CreateDispatch", { room: "synthetic-room", agentName: "second" }, "/ns/other")
+      await rpc(
+        "CreateDispatch",
+        { room: "synthetic-room", agentName: "second" },
+        "/__admin/ns/other",
+      )
     ).json()) as Dispatch
     for (const status of [429, 500]) {
       await call("/__admin/faults", {
@@ -130,7 +134,7 @@ describe("dispatch control and isolation", () => {
       agentDispatches: [],
     })
     expect(
-      await (await rpc("ListDispatch", { room: "synthetic-room" }, "/ns/other")).json(),
+      await (await rpc("ListDispatch", { room: "synthetic-room" }, "/__admin/ns/other")).json(),
     ).toMatchObject({ agentDispatches: [second] })
     expect((await call(`/__admin/dispatches/${second.id}/jobs`, {})).status).toBe(404)
   })

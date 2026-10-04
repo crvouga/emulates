@@ -82,7 +82,7 @@ describe("Message collection reconciliation (#257)", () => {
   test("another account and namespace cannot see the first account's messages", async () => {
     const { create, request } = harness()
     await create("fixture-isolated")
-    for (const path of [base(OTHER), `/ns/other${base()}`]) {
+    for (const path of [base(OTHER), `/__admin/ns/other${base()}`]) {
       const page = (await (await request(path, undefined, OTHER)).json()) as {
         messages: unknown[]
         next_page_uri: string | null

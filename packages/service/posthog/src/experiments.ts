@@ -25,7 +25,11 @@ const legacyVariants = (
       }))
     : undefined
 
-export const experimentOperations = (state: PostHogState, now: () => number) => {
+export const experimentOperations = (
+  state: PostHogState,
+  now: () => number,
+  adminPrefix: string,
+) => {
   const view = (record: ExperimentRecord) => {
     const { projectId: _project, ...body } = record
     const flag = state.flags.get(record.feature_flag_key)
@@ -125,7 +129,7 @@ export const experimentOperations = (state: PostHogState, now: () => number) => 
       const page = (at: number) => {
         const url = new URL(context.url)
         const namespace = context.request.headers.get("x-mockingbird-namespace")
-        url.pathname = `${namespace ? `/ns/${encodeURIComponent(namespace)}` : ""}${context.url.pathname.replace(/\/$/, "")}/`
+        url.pathname = `${namespace ? `${adminPrefix}/ns/${encodeURIComponent(namespace)}` : ""}${context.url.pathname.replace(/\/$/, "")}/`
         url.searchParams.set("limit", String(limit))
         url.searchParams.set("offset", String(at))
         return url.href

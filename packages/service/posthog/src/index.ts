@@ -53,6 +53,7 @@ export type { CapturedEvent, ExperimentRecord, QueryResult, Settings } from "./s
 export const POSTHOG_NAMESPACE = "posthog"
 
 export type PostHogAPIOptions = APIOptions & {
+  adminPrefix?: string
   /** Flags every namespace starts with (and returns to on reset), keyed by flag key. */
   flags?: Record<string, FlagSpec>
   /** Initial per-namespace settings (session recording, canned HogQL results). */
@@ -197,7 +198,7 @@ export class PostHogAPI implements FetchAPI {
         typeof context.query.token === "string" && context.query.token
           ? jsonRes(200, { experiments: [] })
           : invalidApiKey(),
-      ...experimentOperations(this.state, this.now),
+      ...experimentOperations(this.state, this.now, options.adminPrefix ?? "/__admin"),
       GetFeatureFlag: (context) => {
         const flag = this.state.findFlag(context.params.flagId ?? "")
         return flag && !flag.deleted

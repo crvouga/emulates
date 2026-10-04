@@ -17,7 +17,7 @@ test("twilio@5.13.1 lists messages and follows forward/backward links over HTTP 
       ): Promise<never> {
         return super.request({
           ...options,
-          uri: twilioMockUrl(options.uri, `${server.url}/ns/reconciliation-sdk`),
+          uri: twilioMockUrl(options.uri, `${server.url}/__admin/ns/reconciliation-sdk`),
         }) as Promise<never>
       }
     }
@@ -65,7 +65,7 @@ test("twilio@5.13.1 lists messages and follows forward/backward links over HTTP 
         ): Promise<never> {
           return super.request({
             ...options,
-            uri: twilioMockUrl(options.uri, `${server.url}/ns/other-sdk`),
+            uri: twilioMockUrl(options.uri, `${server.url}/__admin/ns/other-sdk`),
           }) as Promise<never>
         }
       })(),

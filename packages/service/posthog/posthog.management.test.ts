@@ -44,6 +44,20 @@ const harness = () => {
 }
 
 describe("project management (#259, #260)", () => {
+  test("pagination preserves a custom admin prefix and namespace", async () => {
+    const runtime = createRuntime({ adminPrefix: "/_control" })
+    const client = new PostHogManagementClient("http://posthog.mock", "fixture-key", (url, init) =>
+      runtime.fetch(new Request(url, init)),
+    )
+    const path = "/_control/ns/custom/api/projects/1/experiments/"
+    for (let i = 0; i < 2; i++)
+      await client.request(path, { name: `Custom ${i}`, feature_flag_key: `custom-${i}` })
+    const page = await client.request<{ next: string }>(`${path}?limit=1`)
+    expect(new URL(page.next).pathname).toBe(path)
+    expect(await client.experiments<Experiment>(`${path}?limit=1`)).toHaveLength(2)
+    expect(await client.experiments<Experiment>("/api/projects/1/experiments/")).toHaveLength(0)
+  })
+
   test("a draft experiment shares its linked flag with management reads", async () => {
     const { client, draft } = harness()
     const created = await draft()
@@ -188,12 +202,14 @@ describe("project management (#259, #260)", () => {
       (url, init) => runtime.fetch(new Request(url, init)),
     )
     for (let i = 0; i < 2; i++)
-      await isolated.request("/ns/other/api/projects/1/experiments/", {
+      await isolated.request("/__admin/ns/other/api/projects/1/experiments/", {
         name: `Synthetic ${i}`,
         feature_flag_key: `isolated-${i}`,
       })
     expect(
-      await isolated.experiments<Experiment>("/ns/other/api/projects/1/experiments/?limit=1"),
+      await isolated.experiments<Experiment>(
+        "/__admin/ns/other/api/projects/1/experiments/?limit=1",
+      ),
     ).toHaveLength(2)
     expect(await client.experiments<Experiment>("/api/projects/1/experiments/")).toHaveLength(1)
     expect(await client.experiments<Experiment>("/api/projects/2/experiments/")).toHaveLength(0)
@@ -218,7 +234,9 @@ describe("project management (#259, #260)", () => {
     await send("/__admin/reset", {})
     expect(await client.experiments<Experiment>("/api/projects/1/experiments/")).toEqual([])
     expect(
-      await isolated.experiments<Experiment>("/ns/other/api/projects/1/experiments/?limit=1"),
+      await isolated.experiments<Experiment>(
+        "/__admin/ns/other/api/projects/1/experiments/?limit=1",
+      ),
     ).toHaveLength(2)
   })
 

@@ -170,7 +170,7 @@ describe("FirstPromoter sale tracking", () => {
     const server = await createServer({ settings: { autoConvert: false } })
     try {
       const post = (path: string, body: unknown) =>
-        fetch(`${server.url}/ns/sales${path}`, {
+        fetch(`${server.url}/__admin/ns/sales${path}`, {
           method: "POST",
           headers: {
             authorization: "Bearer fixture",

@@ -136,8 +136,8 @@ PostHog SDKs cannot add headers. Choose a namespace by:
   `Authorization: Bearer` on the management API.
 - `x-mockingbird-namespace`, for raw clients.
 
-The management API's `next` page URL is built from the request without the `/__admin/ns/` prefix; page
-through it with a credential-mapped personal key instead.
+The management API's `next` page URL preserves the configured admin prefix and namespace.
+Send the personal key in the Authorization header on each page request.
 
 ### Deliberately not modelled
 
