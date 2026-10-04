@@ -89,8 +89,9 @@ export type MedplumRuntimeOptions = Omit<
   clock?: Clock
   /** Seeds generated ids, secrets and fault rates. */
   seed?: number | string
-  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
+  /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
+  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Requests each namespace's journal keeps (`GET /__admin/requests`). Default 1000. */

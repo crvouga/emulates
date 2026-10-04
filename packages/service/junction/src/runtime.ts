@@ -53,8 +53,9 @@ export type JunctionRuntimeOptions = {
   clock?: Clock
   /** Seeds fault rates and webhook retry jitter. */
   seed?: number | string
-  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
+  /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
+  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
 }

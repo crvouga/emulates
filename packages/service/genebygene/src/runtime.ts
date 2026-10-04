@@ -135,8 +135,9 @@ export type GeneByGeneRuntimeOptions = {
   clock?: Clock
   /** Seeds every random choice the runtime makes (fault rates). */
   seed?: number | string
-  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
+  /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
+  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Catalog every namespace starts with. Default: the recorded staging catalog. */

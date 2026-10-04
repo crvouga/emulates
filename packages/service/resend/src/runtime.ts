@@ -130,8 +130,9 @@ export const RESEND_PRESETS: Record<string, FaultPreset> = {
 export type ForwardTarget = {
   /** The Mailosaur mock's base URL, e.g. `http://127.0.0.1:8793`. */
   url: string
-  /** Its `x-mockingbird-admin-key`, when it has one. */
+  /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
+  /** Its `x-mockingbird-admin-key`, when it has one. */
   adminKey?: string
   /** Give up on a forward after this long (the send still succeeds). Default 2000 ms. */
   timeoutMs?: number
