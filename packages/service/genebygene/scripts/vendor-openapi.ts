@@ -715,7 +715,6 @@ paths["/connect/token"] = {
   },
 }
 paths["/__admin/blobs/{key}"] = {
-  "x-mockingbird-internal": true,
   get: {
     tags: ["Mockingbird"],
     summary:
@@ -754,6 +753,8 @@ paths["/__admin/blobs/{key}"] = {
     },
   },
 }
+
+Object.assign(paths["/__admin/blobs/{key}"], { "x-mockingbird-internal": true })
 
 const info = spec.info as Json
 info.title = "Nucleus API v2.0 (Gene by Gene), vendored for Mockingbird"
