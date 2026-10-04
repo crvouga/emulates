@@ -324,13 +324,13 @@ describe("S25 Fullscript acceptance: the EMR's integration against the mock", ()
   test("namespaces by /__admin/ns/ prefix on FULLSCRIPT_API_URL, by header, and by OAuth client; no bodies in the journal", async () => {
     const { runtime, fetchImpl } = harness()
     const a = createClient({
-      apiUrl: `${API}ns/a/`,
+      apiUrl: `${API}__admin/ns/a/`,
       fetch: fetchImpl,
       redirectUri: REDIRECT,
     }).client
     const consent = await runtime.fetch(
       new Request(
-        `${API}ns/a/oauth/authorize?client_id=emr-client&redirect_uri=${encodeURIComponent(REDIRECT)}&response_type=code`,
+        `${API}__admin/ns/a/oauth/authorize?client_id=emr-client&redirect_uri=${encodeURIComponent(REDIRECT)}&response_type=code`,
       ),
     )
     const code = new URL(consent.headers.get("location") as string).searchParams.get(

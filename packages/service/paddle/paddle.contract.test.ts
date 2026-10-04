@@ -94,7 +94,7 @@ describe("the service contract", () => {
       "/__admin/ns/a/customers?per_page=1",
     )
     expect(page.meta.pagination.next).toMatch(
-      /^http:\/\/paddle\.mock\/ns\/a\/customers\?per_page=1&after=ctm_/,
+      /^http:\/\/paddle\.mock\/__admin\/ns\/a\/customers\?per_page=1&after=ctm_/,
     )
   })
 

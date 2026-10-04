@@ -383,6 +383,13 @@ for (const adminPrefix of ["/__admin", "/_control/mock"]) {
     const invalid = new URL(presignedUrl)
     invalid.searchParams.set("X-Amz-Signature", "invalid")
     expect((await runtime.fetch(new Request(invalid))).status).toBe(403)
+    if (adminPrefix !== "/__admin") {
+      const old = new URL(presignedUrl)
+      old.pathname = old.pathname.replace(adminPrefix, "/__admin")
+      const response = await runtime.fetch(new Request(old))
+      expect(response.status).toBe(404)
+      expect(response.headers.get("x-mockingbird")).toContain("genebygene@")
+    }
     expect((await runtime.fetch(new Request("http://mock.local/__blob/old"))).status).not.toBe(200)
   })
 }

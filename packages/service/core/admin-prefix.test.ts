@@ -11,6 +11,7 @@ const make = (adminPrefix?: string, routes?: AdminRoutes) =>
     name: "prefix-probe",
     ...(adminPrefix === undefined ? {} : { adminPrefix }),
     adminKey: "admin-secret",
+    presets: {},
     admin: () => routes ?? { "GET /extension": () => Response.json({ extension: true }) },
     create: ({ publicNamespace }) => ({
       fetch: async (request: Request) =>
@@ -57,6 +58,14 @@ for (const prefix of ["/__admin", "/_control/mock"]) {
           namespace: "default",
         })
       }
+      const missing = await runtime.fetch(
+        new Request(`http://mock.local${prefix}/faults/presets/missing`, {
+          method: "POST",
+          headers: { "x-mockingbird-admin-key": "admin-secret" },
+        }),
+      )
+      expect(missing.status).toBe(404)
+      expect((await missing.json()).error.message).toContain(`GET ${prefix}/faults/presets`)
       const path = `${prefix}/ns/worker/items?namespace=ignored`
       expect(runtime.namespaceOf(new Request(`http://mock.local${path}`))).toBe("worker")
       expect(await (await call(runtime, path)).json()).toMatchObject({

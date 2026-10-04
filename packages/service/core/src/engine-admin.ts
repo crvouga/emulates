@@ -352,6 +352,7 @@ const sqlRoutes = (engine: (namespace: string) => SqlEngine): AdminRoutes => ({
 
 /** Shared `/__admin/health` and `/__admin` surface for the SQL engines. */
 export const createEngineAdmin = (options: EngineAdminOptions): EngineAdmin => {
+  const adminPrefix = resolveAdminPrefix(options.adminPrefix)
   const engines = new Map<string, SqlEngine>()
   const engine = (namespace: string): SqlEngine => {
     const existing = engines.get(namespace)
@@ -366,11 +367,7 @@ export const createEngineAdmin = (options: EngineAdminOptions): EngineAdmin => {
     ...credentialRoutes(createCredentialRegistry()),
     ...stateRoutes(engine),
     ...sqlRoutes(engine),
-    ...adminUiRoutes(
-      options.name,
-      { extensions: [SQL_ADMIN_EXTENSION] },
-      resolveAdminPrefix(options.adminPrefix),
-    ),
+    ...adminUiRoutes(options.name, { extensions: [SQL_ADMIN_EXTENSION] }, adminPrefix),
   }
   const startedAt = Date.now()
   const plane: ControlPlane = createControlPlane({
@@ -403,7 +400,7 @@ export const createEngineAdmin = (options: EngineAdminOptions): EngineAdmin => {
     },
     describe: () => (options.dialect === undefined ? {} : { dialect: options.dialect }),
     routes,
-    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
+    adminPrefix,
     adminKey: options.adminKey,
   })
 

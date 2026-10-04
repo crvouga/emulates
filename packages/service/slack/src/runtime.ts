@@ -361,7 +361,7 @@ export const createRuntime = (options: SlackRuntimeOptions = {}): SlackRuntime =
     ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
-    credential: slackCredential,
+    credential: (request) => slackCredential(request, options.adminPrefix),
     presets: SLACK_PRESETS,
     create: ({ sqlite, namespace, publicNamespace, clock }) =>
       new SlackAPI({

@@ -707,8 +707,8 @@ export const createRuntime = <T extends ServiceInstance>(
         ? `${ADMIN_PREFIX}${internalUrl.pathname.slice(adminPrefix.length)}`
         : ""
       const internal = internalMatch(internalPath)
-      if (adminPrefix !== ADMIN_PREFIX && internalMatch(internalUrl.pathname) && !internal)
-        return adminFail(404, "internal transport is only available under adminPrefix")
+      const obsoleteInternalPath =
+        adminPrefix !== ADMIN_PREFIX && internalMatch(internalUrl.pathname) && !internal
       if (internal) {
         internalUrl.pathname = internalPath
         request = new Request(internalUrl, request)
@@ -738,6 +738,8 @@ export const createRuntime = <T extends ServiceInstance>(
           return copy
         }
       }
+      if (obsoleteInternalPath)
+        return stamp(adminFail(404, "internal transport is only available under adminPrefix"))
       const handled = internal ? undefined : await control.handle(request)
       if (handled) return stamp(handled)
       const started = monotonicNow()
@@ -917,7 +919,7 @@ export const createRuntime = <T extends ServiceInstance>(
       ...(options.admin?.(runtime) ?? {}),
       // Shell routes win a colliding key. Fault presets are one of them: the admin page
       // maps `presets`, and a service route must not replace that list with a record.
-      ...(options.presets ? presetRoutes(options.presets, runtime) : {}),
+      ...(options.presets ? presetRoutes(options.presets, runtime, adminPrefix) : {}),
       ...stateAdminRoutes({
         open: stateScope,
         afterWrite: (namespace) => {
@@ -1011,6 +1013,7 @@ const credentialRoutes = (registry: CredentialRegistry): AdminRoutes => ({
 const presetRoutes = <T extends ServiceInstance>(
   presets: Record<string, FaultPreset>,
   runtime: ServiceRuntime<T>,
+  adminPrefix: string,
 ): AdminRoutes => ({
   "GET /faults/presets": () => {
     const body: FaultPresetList = {
@@ -1021,7 +1024,7 @@ const presetRoutes = <T extends ServiceInstance>(
   "POST /faults/presets/:name": ({ params, body, namespace }) => {
     const name = params.name as string
     if (!presets[name])
-      return adminFail(404, `no fault preset ${name}; GET /__admin/faults/presets`)
+      return adminFail(404, `no fault preset ${name}; GET ${adminPrefix}/faults/presets`)
     const overrides = isObject(body) ? (body as Partial<FaultRule>) : {}
     return adminJson(201, { preset: name, rules: runtime.applyPreset(name, namespace, overrides) })
   },
