@@ -366,7 +366,14 @@ for (const adminPrefix of ["/__admin", "/_control/mock"]) {
     })
     expect(placed.ok).toBe(true)
     const kit = placed.ok ? (placed.kitNumbers[0] ?? "") : ""
-    runtime.completeKit(kit)
+    const done = await runtime.fetch(
+      new Request(`http://mock.local${adminPrefix}/kits/${kit}/transition`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-mockingbird-admin-key": "locked" },
+        body: JSON.stringify({ to: "Completed", fixture: "ancestry" }),
+      }),
+    )
+    expect(done.status).toBe(200)
     const { presignedUrl } = await c.fetchResultPresignedUrl({
       kitNumber: kit,
       resultType: "nutrigenomics_comprehensive_report_json",
