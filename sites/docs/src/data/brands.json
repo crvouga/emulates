@@ -703,6 +703,21 @@
     "logo": "/brands/twilio.svg",
     "logoSource": "simple-icons"
   },
+  "vercel-blob": {
+    "vendor": "Vercel Blob",
+    "website": "https://vercel.com",
+    "docs": "https://vercel.com/docs/vercel-blob/using-blob-sdk",
+    "description": "Vercel Blob provides object storage for uploads and public downloads.",
+    "input": {
+      "website": "https://vercel.com",
+      "docs": "https://vercel.com/docs/vercel-blob/using-blob-sdk",
+      "description": "Vercel Blob provides object storage for uploads and public downloads.",
+      "icon": "vercel"
+    },
+    "color": "#000000",
+    "logo": "/brands/vercel-blob.svg",
+    "logoSource": "simple-icons"
+  },
   "vpi": {
     "vendor": "VPI Compounding",
     "website": "https://www.vpicompounding.net",
