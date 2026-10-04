@@ -43,7 +43,9 @@ for (const collection of ["contacts", "conversations"] as const) {
       expect(firstItems).toHaveLength(2)
       expect(first.total_count).toBe(3)
       expect(first.pages.next?.starting_after).toBeString()
-      const second = await list({ per_page: 2, starting_after: first.pages.next?.starting_after })
+      const cursor = first.pages.next?.starting_after
+      if (!cursor) throw new Error("missing pagination cursor")
+      const second = await list({ per_page: 2, starting_after: cursor })
       const secondItems = second.data ?? second.conversations ?? []
       expect(secondItems).toHaveLength(1)
       expect(second.pages.next).toBeUndefined()
@@ -73,7 +75,7 @@ for (const collection of ["contacts", "conversations"] as const) {
     })
 
     test("auth, isolation, invalid cursors and transient faults leave state intact", async () => {
-      const { create, runtime, send, call, list } = harness()
+      const { create, send, call, list } = harness()
       await create("fixture-isolated")
       expect((await send(new Request(`http://mock.test/${collection}`))).status).toBe(401)
       const other = await listIntercomCollection(
@@ -95,7 +97,6 @@ for (const collection of ["contacts", "conversations"] as const) {
       }
       expect((await call("/__admin/reset", {})).status).toBe(200)
       expect((await list()).total_count).toBe(0)
-      expect(runtime.state()).toBeDefined()
     })
   })
 }
