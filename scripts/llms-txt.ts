@@ -42,7 +42,7 @@ for (const pkg of pkgs) {
   serviceLines.push(
     `- [${pkg.name}](${RAW}/${pkg.relDir}/README.md): ${description} Parity: ${parity}.`,
   )
-  for (const extra of ["SUPPORT.md", "COMPATIBILITY.md"]) {
+  for (const extra of ["DISCOVERY.md", "SUPPORT.md", "COMPATIBILITY.md"]) {
     if (existsSync(join(pkg.dir, extra))) {
       serviceLines.push(`- [${pkg.name} ${extra}](${RAW}/${pkg.relDir}/${extra}): coverage matrix`)
     }

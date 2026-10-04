@@ -12,6 +12,7 @@ packages/service/<name>/
   tsconfig.build.json
   openapi.yaml            # the vendor contract, with x-mockingbird annotations
   SUPPORT.md              # generated (bun run generate)
+  DISCOVERY.md            # generated installed-package index for agents and tooling
   README.md               # the consumer/agent integration guide (see "Docs")
   src/
     generated/openapi.ts  # generated (bun run generate)
@@ -152,6 +153,13 @@ The docs site (`sites/docs`, `bun docs`) is built from the package itself: the R
 service page, the contract gives the operations list and coverage, and the built module runs in
 the page's playground. It reads these fields from the `mockingbird` block of `package.json`, and
 its build fails when they are missing or stale:
+
+Every published service also declares `mockingbird.discovery` in `package.json` and ships every
+file it names. Run `bun run service:discovery` at the repository root after adding or renaming a
+service. It generates `DISCOVERY.md`, records the behavior guide, exact capability evidence,
+contract, public types, oracle command, runtime introspection surfaces, and reporting contract,
+and adds those artifacts to the npm tarball. `bun run check:service-discovery` and `pack:check`
+fail closed if the index is stale, references a missing file, or an artifact is not packed.
 
 | Field | Required | Meaning |
 | --- | --- | --- |

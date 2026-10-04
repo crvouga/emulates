@@ -102,7 +102,7 @@ npx mockingbird-junction serve --config mockingbird.json  # every service in the
 
 ## For coding agents
 
-Every service README doubles as its integration guide and ships inside the npm tarball (`node_modules/<package>/README.md`). [`llms.txt`](llms.txt) indexes them with the parity each service declares, and the docs site publishes the same content as markdown and JSON, rebuilt from the packages on every build. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests.
+Every npm package ships an agent index at `node_modules/<package>/DISCOVERY.md`. It points to the local behavior guide, exact capability matrix, machine-readable contract or compatibility evidence, public types, parity oracle, runtime introspection, and issue-reporting contract. [`llms.txt`](llms.txt) indexes those files with the parity each service declares, and the docs site publishes the same source material as markdown and JSON. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests.
 
 ## Contributing
 

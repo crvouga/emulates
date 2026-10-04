@@ -125,6 +125,17 @@
     "//#check:parity-tiers": {
       "inputs": ["scripts/parity-tiers.ts", "packages/service/*/package.json"]
     },
+    "//#check:service-discovery": {
+      "inputs": [
+        "scripts/service-discovery.ts",
+        "packages/service/*/package.json",
+        "packages/service/*/README.md",
+        "packages/service/*/DISCOVERY.md",
+        "packages/service/*/SUPPORT.md",
+        "packages/service/*/COMPATIBILITY.md",
+        "packages/service/*/openapi.yaml"
+      ]
+    },
     "//#check:llms": {
       "inputs": [
         "llms.txt",

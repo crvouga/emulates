@@ -468,44 +468,49 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
 <div class="app" data-service="${name}" data-mockingbird-admin>
   <header class="top">
     <div class="brand">
-      <div class="brand-id">
-        <strong>${name}</strong>
-        <span>Admin</span>
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7l7 5 7-5v10.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 15.5 12 18l4-2.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="brand-id">
+          <strong>${name}</strong>
+          <span>Mock admin</span>
+        </div>
       </div>
       <div class="vendor" id="vendor" hidden></div>
     </div>
     <div class="controls">
+      <span class="sync-status" id="sync-status" role="status" aria-live="polite">Ready</span>
       <label class="field">Namespace
         <select id="namespace" aria-label="Namespace"></select>
       </label>
       <label class="field">Admin key
         <input id="admin-key" type="password" autocomplete="off" spellcheck="false" aria-label="Admin key">
       </label>
-      <button class="icon-btn" id="theme" type="button" aria-label="Toggle color theme">Theme</button>
-      <button class="btn" id="refresh" type="button">Refresh</button>
+      <button class="icon-btn" id="theme" type="button" aria-label="Use dark theme" title="Use dark theme"></button>
+      <button class="btn" id="refresh" type="button"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.8 7.2A6.2 6.2 0 1 0 16 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12.8 7.2h3v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Refresh</button>
     </div>
   </header>
   <div class="layout">
     <nav class="side" id="nav" aria-label="Admin sections">
-      <button type="button" data-view="overview" aria-current="true">Overview</button>
-      <button type="button" data-view="state">State</button>
-      <button type="button" data-view="clock">Clock</button>
-      <button type="button" data-view="faults">Faults</button>
-      <button type="button" data-view="journal">Journal</button>
-      <button type="button" data-view="routes">Routes</button>
+      <span class="nav-label">Workspace</span>
+      <button type="button" data-view="overview" aria-current="true"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg></span>Overview</button>
+      <button type="button" data-view="state"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="5" rx="6.5" ry="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 5v5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V5M3.5 10v5c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-5" stroke="currentColor" stroke-width="1.5"/></svg></span>State</button>
+      <button type="button" data-view="clock"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 5.8v4.6l3 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Clock</button>
+      <button type="button" data-view="faults"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="m11.2 2.8-6.5 9h5.1l-1 5.4 6.5-9h-5.1l1-5.4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>Faults</button>
+      <button type="button" data-view="journal"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M5 3.5h10a1.5 1.5 0 0 1 1.5 1.5v12l-2.2-1.4-2.2 1.4-2.1-1.4L7.8 17l-2.2-1.4L3.5 17V5A1.5 1.5 0 0 1 5 3.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M6.7 7h6.6M6.7 10h6.6M6.7 13h3.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Journal</button>
+      <button type="button" data-view="routes"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M6.5 4.5h7a2 2 0 0 1 2 2v7M13 11l2.5 2.5L18 11M13.5 15.5h-7a2 2 0 0 1-2-2v-7M7 9 4.5 6.5 2 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Routes</button>
     </nav>
     <main id="views">
-      <p class="banner" id="banner" role="alert"></p>
+      <div class="banner" id="banner" role="alert"><span id="banner-message"></span><button id="banner-dismiss" type="button" aria-label="Dismiss error">×</button></div>
       <section class="view" id="view-overview">
-        <h2>Overview</h2>
-        <p class="lede">Health, clock, and the collections this namespace is holding.</p>
+        <div class="view-head"><div><h2>Overview</h2><p class="lede">Health, clock, and the collections this namespace is holding.</p></div></div>
         <div class="grid" id="overview-cards"></div>
         <h3>Recent requests</h3>
         <div id="overview-requests"></div>
       </section>
       <section class="view" id="view-state" hidden>
-        <h2>State</h2>
-        <p class="lede">Every collection in this namespace. Declared fields stay visible before any row exists; stored rows add whatever else they contain.</p>
+        <div class="view-head"><div><h2>State</h2><p class="lede">Inspect and edit every collection in this namespace.</p></div></div>
         <div class="split">
           <div id="collections"></div>
           <div>
@@ -518,8 +523,7 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
         </div>
       </section>
       <section class="view" id="view-clock" hidden>
-        <h2>Clock</h2>
-        <p class="lede">The clock every timestamp in this mock reads.</p>
+        <div class="view-head"><div><h2>Clock</h2><p class="lede">Control the source of time used by every timestamp in this mock.</p></div></div>
         <div class="card" id="clock-readout"></div>
         <div class="row-actions">
           <button class="btn" type="button" data-advance="60000">+1m</button>
@@ -538,21 +542,22 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
         </form>
       </section>
       <section class="view" id="view-faults" hidden>
-        <h2>Faults</h2>
-        <p class="lede">Inject a response, a delay, or a named preset. Rules apply to this namespace.</p>
+        <div class="view-head"><div><h2>Faults</h2><p class="lede">Test unhappy paths with a response, delay, or named preset scoped to this namespace.</p></div></div>
         <form id="fault-form" class="card stack">
-          <label class="field">Preset
-            <select id="fault-preset"><option value="">Custom rule</option></select>
-          </label>
-          <label class="field">Status
-            <input id="fault-status" inputmode="numeric" placeholder="503">
-          </label>
-          <label class="field">Path prefix
-            <input id="fault-path" placeholder="/v1">
-          </label>
-          <label class="field">Method
-            <input id="fault-method" placeholder="GET">
-          </label>
+          <div class="form-grid">
+            <label class="field wide">Preset
+              <select id="fault-preset"><option value="">Custom rule</option></select>
+            </label>
+            <label class="field">Status
+              <input id="fault-status" inputmode="numeric" placeholder="503">
+            </label>
+            <label class="field wide">Path prefix
+              <input id="fault-path" placeholder="/v1">
+            </label>
+            <label class="field">Method
+              <input id="fault-method" placeholder="GET">
+            </label>
+          </div>
           <div class="dialog-actions">
             <button class="btn-primary" type="submit">Add fault</button>
             <button class="btn-danger" id="fault-clear" type="button">Clear all</button>
@@ -561,18 +566,13 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
         <div id="fault-list"></div>
       </section>
       <section class="view" id="view-journal" hidden>
-        <h2>Journal</h2>
-        <p class="lede">Requests this namespace has seen. Bodies are not stored.</p>
-        <div class="row-actions">
-          <button class="btn-danger" id="journal-clear" type="button">Clear journal</button>
-        </div>
+        <div class="view-head"><div><h2>Journal</h2><p class="lede">Requests this namespace has seen. Bodies are never stored.</p></div><button class="btn-danger" id="journal-clear" type="button">Clear journal</button></div>
         <div id="journal"></div>
       </section>
       <section class="view" id="view-routes" hidden>
-        <h2>Routes</h2>
-        <p class="lede">Shared controls, plus any routes this mock adds. Extra routes are how a bespoke workflow shows up beside the default UI.</p>
+        <div class="view-head"><div><h2>Routes</h2><p class="lede">Explore shared controls and service-specific admin endpoints.</p></div></div>
         <div id="route-list"></div>
-        <form id="route-form" class="card stack">
+        <form id="route-form" class="card stack" style="margin-top: 18px">
           <strong id="route-title">Select a route</strong>
           <label class="field">JSON body
             <div class="json-editor" id="route-editor" hidden>
@@ -584,7 +584,7 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
           <div class="dialog-actions">
             <button class="btn-primary" id="route-send" type="submit" disabled>Send request</button>
           </div>
-          <pre id="route-result">Response will show here.</pre>
+          <pre class="json-view" id="route-result"><code>Response will show here.</code></pre>
         </form>
       </section>
     </main>
@@ -592,12 +592,16 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
 </div>
 <dialog id="editor">
   <form method="dialog" id="editor-form">
-    <strong id="editor-title">Record</strong>
+    <div class="dialog-heading"><div><strong id="editor-title">Record</strong><br><span>Edit the ID and JSON value stored in this collection.</span></div></div>
     <label class="field">Id
       <input id="editor-id" required>
     </label>
     <label class="field">JSON value
-      <textarea id="editor-value"></textarea>
+      <div class="json-editor" id="record-editor">
+        <pre aria-hidden="true"><code id="editor-highlight"></code></pre>
+        <textarea id="editor-value" spellcheck="false" aria-describedby="editor-json-status"></textarea>
+      </div>
+      <span class="editor-meta"><span class="json-status" id="editor-json-status">Valid JSON</span><button class="format-json" type="button" data-format="editor-value">Format JSON</button></span>
     </label>
     <div class="dialog-actions">
       <button class="btn-danger" id="editor-delete" type="button" value="delete">Delete</button>

@@ -41,7 +41,8 @@
     "README.md",
     "LICENSE",
     "compat",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "DISCOVERY.md"
   ],
   "repository": {
     "type": "git",
@@ -145,6 +146,22 @@
     "entries": {
       "socket/index": "node",
       "socket/cli": "node"
+    },
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "COMPATIBILITY.md",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "SQLite via bun:sqlite (version pinned in COMPATIBILITY.md)",
+        "command": "bun run --cwd packages/service/sqlite test:sqlite-compat",
+        "note": "Fail-closed differential contracts compare results, errors, counters and logical state."
+      },
+      "introspection": [
+        "README.md public test controls",
+        "COMPATIBILITY.md compatibility and divergence evidence"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   }
 }

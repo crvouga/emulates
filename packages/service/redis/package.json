@@ -8,7 +8,8 @@
   "files": [
     "dist",
     "README.md",
-    "SUPPORT.md"
+    "SUPPORT.md",
+    "DISCOVERY.md"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -58,7 +59,23 @@
       "color": "#FF4438"
     },
     "parity": "RESP replies, expiration, transactions, and streams",
-    "parityTier": "cold"
+    "parityTier": "cold",
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Redis or Valkey selected by REDIS_URL",
+        "command": "bun run --cwd packages/service/redis parity",
+        "note": "The repository also differentially exercises BullMQ with parity:bullmq."
+      },
+      "introspection": [
+        "README.md public test controls",
+        "SUPPORT.md compatibility and divergence evidence"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
   },
   "scripts": {
     "build": "bun ../../../scripts/bundle-service.ts",
