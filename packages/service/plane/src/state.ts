@@ -80,6 +80,35 @@ export type PlaneLinkRecord = {
   updated_at: string
 }
 
+export type PlaneCycleRecord = {
+  id: string
+  name: string
+  description: string
+  start_date: string | null
+  end_date: string | null
+  owned_by: string | null
+  timezone: string
+  external_source: string | null
+  external_id: string | null
+  project: string
+  workspace: string
+  created_at: string
+  updated_at: string
+  archived_at: string | null
+  deleted_at: string | null
+}
+
+export type PlaneCycleMembership = {
+  id: string
+  cycle: string
+  issue: string
+  project: string
+  workspace: string
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
 /** One project: its workspace slug and the per-project work-item sequence. */
 export type ProjectRecord = {
   id: string
@@ -128,6 +157,8 @@ export class PlaneState {
   readonly items: Collection<PlaneWorkItemRecord>
   readonly comments: Collection<PlaneCommentRecord>
   readonly links: Collection<PlaneLinkRecord>
+  readonly cycles: Collection<PlaneCycleRecord>
+  readonly memberships: Collection<PlaneCycleMembership>
   readonly settings: Collection<Settings>
   readonly rateLimits: Collection<number>
   private readonly ids: IdSequence
@@ -143,6 +174,8 @@ export class PlaneState {
     this.items = new Collection(sqlite, namespace, "work_items")
     this.comments = new Collection(sqlite, namespace, "comments")
     this.links = new Collection(sqlite, namespace, "links")
+    this.cycles = new Collection(sqlite, namespace, "cycles")
+    this.memberships = new Collection(sqlite, namespace, "cycle_memberships")
     this.settings = new Collection(sqlite, namespace, "settings")
     this.rateLimits = new Collection(sqlite, namespace, "rate_limits")
     this.ids = new IdSequence(sqlite, namespace, "plane")

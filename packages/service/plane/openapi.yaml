@@ -337,6 +337,155 @@ paths:
     parameters:
     - $ref: '#/components/parameters/Slug'
     - $ref: '#/components/parameters/ProjectId'
+  /api/v1/workspaces/{slug}/projects/{project_id}/cycles/:
+    parameters:
+      - $ref: "#/components/parameters/Slug"
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      operationId: ListCycles
+      description: Cycles, paginated except cycle_view=current (a bare array).
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Cycle response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CycleList"
+        "400": &a1
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CycleError"
+        "401": &a2
+          $ref: "#/components/responses/Unauthorized"
+        "404": &a3
+          $ref: "#/components/responses/NotFound"
+        "429": &a4
+          $ref: "#/components/responses/Throttled"
+      parameters:
+        - $ref: "#/components/parameters/PerPage"
+        - $ref: "#/components/parameters/Cursor"
+        - name: cycle_view
+          in: query
+          schema:
+            type: string
+            enum:
+              - all
+              - current
+              - upcoming
+              - completed
+              - draft
+              - incomplete
+        - name: order_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - created_at
+              - -created_at
+              - name
+              - -name
+              - start_date
+              - -start_date
+              - end_date
+              - -end_date
+    post:
+      operationId: CreateCycle
+      description: Create a draft or a dated cycle in a UTC project.
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cycle"
+        "400": *a1
+        "401": *a2
+        "404": *a3
+        "409":
+          description: Duplicate external source and id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBody"
+        "429": *a4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCycleBody"
+  /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/:
+    parameters:
+      - $ref: "#/components/parameters/Slug"
+      - $ref: "#/components/parameters/ProjectId"
+      - name: cycle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          x-mockingbird-resource-ref:
+            type: cycle
+            missing: 00000000-0000-4000-8000-000000000000
+    get:
+      operationId: ListCycleWorkItems
+      description: Paginated live work items assigned to the cycle.
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Cycle response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkItemPage"
+        "400": *a1
+        "401": *a2
+        "404": *a3
+        "429": *a4
+      parameters:
+        - $ref: "#/components/parameters/PerPage"
+        - $ref: "#/components/parameters/Cursor"
+    post:
+      operationId: AddCycleWorkItems
+      description: Add or move work items; unknown or foreign item ids are ignored.
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      responses:
+        "200":
+          description: Cycle response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CycleMemberships"
+        "400": *a1
+        "401": *a2
+        "404": *a3
+        "429": *a4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCycleWorkItemsBody"
 components:
   securitySchemes:
     apiKey:
@@ -1012,3 +1161,191 @@ components:
         type: array
         items:
           type: string
+    Cycle:
+      type: object
+      required:
+        - id
+        - name
+        - start_date
+        - end_date
+        - project
+        - workspace
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-mockingbird-resource:
+            type: cycle
+            identity: true
+          x-mockingbird-volatile:
+            kind: id
+        name: &a1
+          type: string
+        description: *a1
+        start_date: &a2
+          type:
+            - string
+            - "null"
+        end_date: *a2
+        owned_by: *a2
+        timezone: *a1
+        external_source: *a2
+        external_id: *a2
+        project: *a1
+        workspace: *a1
+        created_at: &a3
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        updated_at: *a3
+        archived_at: *a2
+        deleted_at: *a2
+        total_issues:
+          type: integer
+        completed_issues:
+          type: integer
+        cancelled_issues:
+          type: integer
+        started_issues:
+          type: integer
+        unstarted_issues:
+          type: integer
+        backlog_issues:
+          type: integer
+    CyclePage:
+      type: object
+      required:
+        - results
+        - next_cursor
+        - prev_cursor
+        - next_page_results
+        - prev_page_results
+        - count
+        - total_count
+        - total_pages
+        - total_results
+      properties:
+        grouped_by:
+          type:
+            - string
+            - "null"
+        sub_grouped_by:
+          type:
+            - string
+            - "null"
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          type:
+            - object
+            - "null"
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Cycle"
+    CycleList:
+      oneOf:
+        - $ref: "#/components/schemas/CyclePage"
+        - type: array
+          items:
+            $ref: "#/components/schemas/Cycle"
+    CreateCycleBody:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description: *a1
+        start_date: *a2
+        end_date: *a2
+        owned_by:
+          type:
+            - string
+            - "null"
+          format: uuid
+        timezone: *a1
+        external_source: *a2
+        external_id: *a2
+    CycleMembership:
+      type: object
+      required:
+        - id
+        - cycle
+        - issue
+        - project
+        - workspace
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-mockingbird-resource:
+            type: cycle_membership
+            identity: true
+          x-mockingbird-volatile:
+            kind: id
+        cycle:
+          type: string
+          format: uuid
+        issue:
+          type: string
+          format: uuid
+        project: *a1
+        workspace: *a1
+        created_at: *a3
+        updated_at: *a3
+        deleted_at: *a2
+    CycleMemberships:
+      type: array
+      items:
+        $ref: "#/components/schemas/CycleMembership"
+    AddCycleWorkItemsBody:
+      type: object
+      properties:
+        issues:
+          type: array
+          items:
+            type: string
+            format: uuid
+            x-mockingbird-resource-ref:
+              type: work_item
+              missing: 00000000-0000-4000-8000-000000000000
+    CycleError:
+      anyOf:
+        - $ref: '#/components/schemas/ValidationError'
+        - type: object
+          required: [error]
+          properties:
+            error:
+              type: string
+            code:
+              type: string
+            id:
+              type: string
+        - type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string

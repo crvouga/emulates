@@ -118,6 +118,8 @@ const PLANE_STATE: readonly StateDeclaration[] = [
   },
   { name: "comments", label: "Comments" },
   { name: "links", label: "Links" },
+  { name: "cycles", label: "Cycles" },
+  { name: "cycle_memberships", label: "Cycle memberships" },
   {
     name: "settings",
     label: "Settings",

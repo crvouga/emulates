@@ -72,6 +72,14 @@ workspace's slug (`acme` in the examples).
 | `GET` / `POST work-items/{id}/links/` | `{url, title?}` → 201 link; the same URL twice is 409 `{error, id}`. |
 | `GET states/` | The project's workflow states (`id`, `name`, `group`, `color`, `sequence`, `default`). |
 | `GET` / `POST labels/` | `{name, color?, description?}` → 201 label; a duplicate name is 409 `{error, id: <existing>}`. |
+| `GET` / `POST cycles/` | Create with `{name, description?, start_date?, end_date?, external_source?, external_id?}`. Both dates must be present or null. Lists use the cursor envelope (default 20 rows); `cycle_view=current` returns a bare array. Other views: `all`, `upcoming`, `completed`, `draft`, `incomplete`. |
+| `GET` / `POST cycles/{id}/cycle-issues/` | POST `{issues: [<work item UUID>]}` adds or moves items and returns membership rows, without duplicates. GET returns paginated work items with their latest fields. Unknown/foreign item IDs are ignored; missing cycles are 404. Completed cycles reject additions with `CYCLE_COMPLETED`. |
+
+Cycle dates use UTC project days and the mock clock, following Plane's
+[cycle endpoint](https://github.com/makeplane/plane/blob/c7a5afee6afd15f16038ebda1ec1489ebd8af67d/apps/api/plane/api/views/cycle.py)
+and [date converter](https://github.com/makeplane/plane/blob/c7a5afee6afd15f16038ebda1ec1489ebd8af67d/apps/api/plane/utils/timezone_converter.py):
+future/past starts are 00:00:01, today's start is the creation time, and ends are 23:59:00.
+The current filter includes both endpoints. Cycle counts follow work-item state changes.
 
 Errors: no key 401 `{"detail": "Authentication credentials were not provided."}`, a key outside
 `apiKeys` 401 `{"detail": "Given API token is not valid"}`, unknown item/project 404
@@ -101,7 +109,7 @@ never retried.
 
 ### Deliberately not modelled
 
-- Plane webhooks (our app polls), cycles, modules, pages, intake, attachments, members,
+- Plane webhooks (our app polls), cycle editing/deletion and non-UTC project timezones, modules, pages, intake, attachments, members,
   estimates, worklogs, and `expand=`.
 - Deleting work items, comments, links or labels; archiving.
 - Rich-text processing: `description_stripped` / `comment_stripped` are tag-stripped text.
