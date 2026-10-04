@@ -48,14 +48,44 @@ export type AsyncResource = {
   input: Record<string, unknown>
   error?: string
 }
+export const JOB_STATUSES = ["JS_PENDING", "JS_RUNNING", "JS_SUCCESS", "JS_FAILED"] as const
+export type JobStatus = (typeof JOB_STATUSES)[number]
+export type AgentJob = {
+  id: string
+  dispatchId: string
+  type: "JT_ROOM"
+  room: Omit<LiveKitRoom, "creationTime"> & { creationTime: string }
+  metadata: string
+  agentName: string
+  state: {
+    status: JobStatus
+    error: string
+    startedAt: string
+    endedAt: string
+    updatedAt: string
+    participantIdentity: string
+    workerId: string
+    agentId: string
+  }
+}
+export type AgentDispatch = {
+  id: string
+  agentName: string
+  room: string
+  metadata: string
+  state: { jobs: AgentJob[]; createdAt: string; deletedAt: string }
+}
+
 export class LiveKitState {
   readonly rooms: Collection<LiveKitRoom>
+  readonly dispatches: Collection<AgentDispatch>
   readonly participants: Collection<LiveKitParticipant & { room: string }>
   readonly inbox: Collection<DataMessage & { participantSid: string }>
   readonly resources: Collection<AsyncResource>
   readonly ids: IdSequence
   constructor(sqlite: SqliteClient, namespace: string) {
     this.rooms = new Collection(sqlite, namespace, "livekit_rooms")
+    this.dispatches = new Collection(sqlite, namespace, "livekit_dispatches")
     this.participants = new Collection(sqlite, namespace, "livekit_participants")
     this.inbox = new Collection(sqlite, namespace, "livekit_inbox")
     this.resources = new Collection(sqlite, namespace, "livekit_resources")

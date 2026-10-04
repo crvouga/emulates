@@ -14,7 +14,7 @@ import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { bodySha256, jwt } from "./crypto.js"
 import { document } from "./generated/openapi.js"
 import { LIVEKIT_NAMESPACE, LiveKitAPI } from "./index.js"
-import type { LiveKitTrack } from "./state.js"
+import { JOB_STATUSES, type JobStatus, type LiveKitTrack } from "./state.js"
 
 export const LIVEKIT_PRESETS: Record<string, FaultPreset> = {
   unavailable: { description: "The next request loses its connection", rules: [{ drop: true }] },
@@ -55,6 +55,18 @@ export type LiveKitRuntime = ServiceRuntime<LiveKitAPI> & { readonly webhooks: W
 const error = (status: number, message: string) =>
   Response.json({ error: { type: "mockingbird_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<LiveKitAPI>): AdminRoutes => ({
+  "POST /dispatches/:id/jobs": ({ namespace, params, body }) => {
+    if (!body || typeof body !== "object" || Array.isArray(body))
+      return error(400, "expected a JSON object")
+    const input = body as Record<string, unknown>
+    if (input.status !== undefined && !JOB_STATUSES.includes(input.status as JobStatus))
+      return error(400, "invalid job status")
+    for (const key of ["workerId", "agentId", "participantIdentity", "error"])
+      if (input[key] !== undefined && typeof input[key] !== "string")
+        return error(400, `${key} must be a string`)
+    const job = runtime.instance(namespace).assignJob(params.id as string, input)
+    return job ? Response.json(job) : error(404, "dispatch not found")
+  },
   "GET /rooms": ({ namespace }) =>
     Response.json({
       rooms: runtime
