@@ -123,7 +123,48 @@ export type Service = FetchAPI & {
   reset(): Promise<void>
 }
 
-const honoPath = (template: string) => template.replace(/\{([^}]+)\}/g, ":$1")
+const escapePattern = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+/** Hono treats `:id:action` as one parameter. Match embedded OpenAPI parameters
+ * with a segment regex, then extract only the template's parameter values. */
+const serviceRoute = (template: string) => {
+  const names: string[] = []
+  let pattern = "",
+    end = 0
+  for (const match of template.matchAll(/\{([^}]+)\}/g)) {
+    pattern += `${escapePattern(template.slice(end, match.index))}([^/]+?)`
+    const name = match[1]
+    if (!name) throw new Error(`Invalid OpenAPI route template: ${template}`)
+    names.push(name)
+    end = match.index + match[0].length
+  }
+  pattern += escapePattern(template.slice(end))
+  const matcher = new RegExp(`^${pattern}$`)
+  const path = template
+    .split("/")
+    .map((segment, index) => {
+      if (!segment.includes("{")) return segment
+      const literal = /^\{([^}]+)\}$/.exec(segment)
+      if (literal) return `:${literal[1]}`
+      let expression = "",
+        offset = 0
+      for (const match of segment.matchAll(/\{[^}]+\}/g)) {
+        expression += `${escapePattern(segment.slice(offset, match.index))}[^/]+?`
+        offset = match.index + match[0].length
+      }
+      expression += escapePattern(segment.slice(offset))
+      return `:mockingbirdSegment${index}{${expression}}`
+    })
+    .join("/")
+  return {
+    path,
+    params: (pathname: string): Record<string, string> => {
+      const values = matcher.exec(pathname)
+      return Object.fromEntries(
+        names.map((name, index) => [name, decodeURIComponent(values?.[index + 1] ?? "")]),
+      )
+    },
+  }
+}
 
 /** Static segments before parameters so `/v1/customers/search` beats `/v1/customers/:id`. */
 const routeOrder = (a: Operation, b: Operation) => {
@@ -166,6 +207,7 @@ export const createService = (options: ServiceOptions): Service => {
   for (const operation of operations) {
     const metadata = operationMetadata(operation.operation)
     const handler = options.handlers[operation.operationId]
+    const registeredRoute = serviceRoute(operation.path)
     const route = async (c: Context) => {
       const request = c.req.raw
       if (!metadata.supported || !handler) {
@@ -177,7 +219,7 @@ export const createService = (options: ServiceOptions): Service => {
       const context: OperationContext = {
         request,
         url,
-        params: c.req.param(),
+        params: registeredRoute.params(url.pathname),
         query: queryOf(url),
         body: await readBody(request),
         sqlite: options.sqlite,
@@ -189,7 +231,7 @@ export const createService = (options: ServiceOptions): Service => {
       const short = await options.before?.(context)
       return withIssues(request, short ?? (await handler(context)))
     }
-    app.on(operation.method.toUpperCase(), honoPath(operation.path), route)
+    app.on(operation.method.toUpperCase(), registeredRoute.path, route)
   }
 
   return {
