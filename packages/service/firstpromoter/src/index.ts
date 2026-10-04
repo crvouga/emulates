@@ -161,6 +161,8 @@ export class FirstPromoterAPI implements FetchAPI {
       GetPromoter: (context) => this.getPromoter(context),
       UpdatePromoter: (context) => this.updatePromoter(context),
       IframeLogin: (context) => this.iframeLogin(context),
+      ListReferrals: (context) => this.listReferrals(context),
+      GetReferral: (context) => this.getReferral(context),
     })
     this.service = createService({
       document,
@@ -196,6 +198,115 @@ export class FirstPromoterAPI implements FetchAPI {
 
   private iso(): string {
     return new Date(this.now()).toISOString()
+  }
+
+  private renderReferral(referral: ReferralRecord) {
+    const promoter =
+      referral.promoter_id === null ? undefined : this.state.byId(referral.promoter_id)
+    const enrolment = promoter?.campaigns.find((c) => c.campaign_id === referral.campaign_id)
+    const campaign =
+      referral.campaign_id === null ? undefined : this.state.campaign(referral.campaign_id)
+    return {
+      id: referral.id,
+      email: referral.email,
+      uid: referral.uid,
+      state: referral.state,
+      metadata: {},
+      entry_source: referral.tid ? "cookie" : "api",
+      created_at: referral.created_at,
+      customer_since: referral.customer_since,
+      promoter_campaign:
+        enrolment && promoter
+          ? {
+              id: enrolment.id,
+              campaign_id: enrolment.campaign_id,
+              promoter_id: promoter.id,
+              created_at: enrolment.created_at,
+              promoter: {
+                id: promoter.id,
+                email: promoter.email,
+                name:
+                  [promoter.first_name, promoter.last_name].filter(Boolean).join(" ") ||
+                  promoter.email,
+              },
+              campaign: campaign
+                ? { id: campaign.id, name: campaign.name, color: campaign.color }
+                : null,
+            }
+          : null,
+      fraud_check: "no_suspicion",
+      created_by_user_email: null,
+      username: null,
+      split_details: [],
+      first_name: null,
+      last_name: null,
+      website: null,
+      comment: null,
+      is_expired: false,
+    }
+  }
+
+  private listReferrals(context: OperationContext): Response {
+    const query = context.url.searchParams
+    const search = query.get("q")?.toLowerCase() ?? ""
+    const selected = query.getAll("ids[]")
+    const promoter = query.get("filters[promoter_id]")
+    const state = query.get("filters[state]")
+    const type = query.get("filters[type]")
+    const withinDates = (value: string | null, field: string) => {
+      const from = query.get(`filters[${field}][from]`)
+      const to = query.get(`filters[${field}][to]`)
+      if (!from && !to) return true
+      if (value === null) return false
+      const day = value.slice(0, 10)
+      return (!from || day >= from) && (!to || day <= to)
+    }
+    const rows = this.state.referrals
+      .list({
+        order: "newest",
+        where: (referral) =>
+          (!search ||
+            [referral.email, referral.uid ?? ""].some((value) =>
+              value.toLowerCase().includes(search),
+            )) &&
+          (selected.length === 0 || selected.includes(String(referral.id))) &&
+          (!promoter || String(referral.promoter_id) === promoter) &&
+          (!state || referral.state === state) &&
+          (!type ||
+            (type === "customer"
+              ? referral.customer_since !== null
+              : type === "lead" && referral.customer_since === null)) &&
+          withinDates(referral.created_at, "created_at") &&
+          withinDates(referral.customer_since, "customer_since"),
+      })
+      .map((row) => row.value)
+    const page = Math.max(1, Math.floor(Number(query.get("page")) || 1))
+    const size = Math.min(100, Math.max(1, Math.floor(Number(query.get("per_page")) || 20)))
+    return jsonRes(
+      200,
+      rows.slice((page - 1) * size, page * size).map((referral) => this.renderReferral(referral)),
+    )
+  }
+
+  private getReferral(context: OperationContext): Response {
+    const value = context.params.id ?? ""
+    const findBy = context.url.searchParams.get("find_by")
+    const referral =
+      findBy === "email" || findBy === "uid"
+        ? this.state.referrals.list({
+            where: (row) =>
+              findBy === "email"
+                ? row.email.toLowerCase() === value.toLowerCase()
+                : row.uid === value,
+          })[0]?.value
+        : /^\d+$/.test(value)
+          ? this.state.referrals.get(String(Number(value)))
+          : undefined
+    return referral
+      ? annotateResponse(jsonRes(200, this.renderReferral(referral)), {
+          ids: { referralId: String(referral.id) },
+        })
+      : error(404, "Referral not found")
   }
 
   /** The promoter as `GET /v2/company/promoters/{id}` renders it (FirstPromoterV2ResponseSchema). */

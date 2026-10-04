@@ -68,6 +68,13 @@ const { tid } = (await (await admin("/clicks", { ref_token: "nate91" })).json())
 | `POST /v2/company/promoters/archive` | `{ids: [..]}` → a completed batch `{id, status, total, selected_total, processed_count, failed_count, action_label, progress, processing_errors, …}`. |
 | `POST /v2/promoters/iframe_login?promoter_id=` | `{access_token, expires_in}`, or 404. |
 | `POST /v2/track/signup` | `{email, tid? \| promoter_id? \| ref_id?, uid?, skip_email_notification?}` → the referral. An unknown `tid`, promoter or ref token is 404; none of them is 400; an email already tracked is 422. With `autoConvert` (default on) the referral becomes a customer at once and `lead_becomes_referral` is posted. |
+| `GET /v2/company/referrals` | A bare array of stored referrals and live promoter/campaign metadata. `q` searches email/uid; `ids[]`, `filters[type]=lead\|customer`, `filters[state]`, `filters[promoter_id]`, and inclusive `filters[created_at\|customer_since][from\|to]` filter before paging. `page` starts at 1; `per_page` defaults to 20 (max 100). Exhausted pages and unmatched searches return `[]`. |
+| `GET /v2/company/referrals/{id}` | The same referral projection as listing. A numeric ID or `find_by=email\|uid` selects it; missing records are 404. |
+
+The [official referral reference](https://docs.firstpromoter.com/api-reference-v2/api-admin/referrals/get-referrals)
+specifies the bare array. Paging parameters and limits follow the official
+[n8n client](https://github.com/firstpromoter/n8n-app/blob/0842d761a3c024e7cf3030e5a108447375f03807/nodes/FirstPromoter/GeneralFunctions.ts)
+and [input definitions](https://github.com/firstpromoter/n8n-app/blob/0842d761a3c024e7cf3030e5a108447375f03807/nodes/FirstPromoter/FirstPromoter.node.ts).
 
 Every call needs `Authorization: Bearer <key>` and an `Account-ID` header (else 401).
 
@@ -111,6 +118,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
   `/v1/reports/campaigns`); the catalog scopes this mock to v2.
 - Sales, refunds, commissions and payouts beyond the single `convert` step; fraud checks;
   promo codes; the hosted affiliate portal behind the iframe token.
+- Referral editing/deletion, username/website profile provisioning, cancelled-date filters and split attribution.
 - Promoter ids are sequential from 4800001 per namespace.
 
 ## API

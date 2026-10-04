@@ -386,6 +386,133 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /v2/company/referrals:
+    get:
+      operationId: ListReferrals
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Referral read
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferralDetail"
+        "401": &a1
+          description: Missing API key or Account-ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404": &a2
+          description: No such promoter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      description: Filtered referral collection, as the vendor's bare array;
+        page/per_page follow the official n8n client.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: ids[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: filters[type]
+          in: query
+          schema:
+            type: string
+            enum:
+              - lead
+              - customer
+        - name: filters[state]
+          in: query
+          schema:
+            type: string
+            enum:
+              - signup
+              - active
+              - cancelled
+              - refunded
+              - denied
+        - name: filters[promoter_id]
+          in: query
+          schema:
+            type: string
+        - name: filters[created_at][from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: filters[created_at][to]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: filters[customer_since][from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: filters[customer_since][to]
+          in: query
+          schema:
+            type: string
+            format: date
+  /v2/company/referrals/{id}:
+    get:
+      operationId: GetReferral
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Referral read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralDetail"
+        "401": *a1
+        "404": *a2
+      description: Retrieve a stored referral by numeric ID, or by email/uid when
+        find_by is set.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["91000001", "999999999"]
+        - name: find_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - email
+              - uid
 components:
   securitySchemes:
     bearerAuth:
@@ -719,3 +846,123 @@ components:
           type: array
           items:
             type: string
+    ReferralDetail:
+      type: object
+      required:
+        - id
+        - email
+        - state
+        - created_at
+      properties:
+        id:
+          type: integer
+          x-mockingbird-volatile:
+            kind: id
+        email:
+          type: string
+        uid:
+          type:
+            - string
+            - "null"
+        state:
+          type: string
+          enum:
+            - signup
+            - active
+            - cancelled
+            - refunded
+            - denied
+        created_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        customer_since:
+          type:
+            - string
+            - "null"
+        promoter_campaign:
+          type:
+            - object
+            - "null"
+          properties:
+            id:
+              type: integer
+              x-mockingbird-volatile:
+                kind: id
+            campaign_id:
+              type: integer
+            promoter_id:
+              type: integer
+              x-mockingbird-volatile:
+                kind: id
+            ref_token:
+              type: string
+            created_at:
+              type: string
+              x-mockingbird-volatile:
+                kind: timestamp
+            promoter:
+              type: object
+              required:
+                - id
+                - email
+                - name
+              properties:
+                id:
+                  type: integer
+                  x-mockingbird-volatile:
+                    kind: id
+                email:
+                  type: string
+                name:
+                  type: string
+            campaign:
+              type:
+                - object
+                - "null"
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                color:
+                  type: string
+        metadata:
+          type: object
+        entry_source:
+          type: string
+          enum:
+            - api
+            - cookie
+        fraud_check:
+          type: string
+        created_by_user_email:
+          type:
+            - string
+            - "null"
+        username:
+          type:
+            - string
+            - "null"
+        split_details:
+          type: array
+          items:
+            type: object
+        first_name:
+          type:
+            - string
+            - "null"
+        last_name:
+          type:
+            - string
+            - "null"
+        website:
+          type:
+            - string
+            - "null"
+        comment:
+          type:
+            - string
+            - "null"
+        is_expired:
+          type: boolean
