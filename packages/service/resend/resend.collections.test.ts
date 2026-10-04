@@ -46,7 +46,7 @@ for (const receiving of [false, true]) {
         seen.push(id)
         after = id
       }
-      expect(seen).toEqual(ids.toReversed())
+      expect(seen).toEqual([...ids].reverse())
       const middle = ids[1]
       if (!middle) throw new Error("missing middle fixture")
       expect((await list({ limit: 1, before: middle })).data[0]?.id).toBe(ids[2])
