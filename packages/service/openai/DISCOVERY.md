@@ -25,7 +25,7 @@ consumer-side workaround.
 - Parity tier: **cold** (the repository controls when live checks run).
 - Oracle: **Official documentation and local SDK oracle**.
 - Repository command: `bun run parity:service -- openai`.
-- Evidence model: Live billed inference is disabled by repository policy. This command exits 2; package tests verify official SDKs locally.
+- Evidence model: Live billed inference is disabled by repository policy. The package parity runner exits 2; tests verify official SDKs locally.
 
 The npm package contains evidence summaries and the exact contract, not credentials or the
 repository-only parity harness. Self-parity/property and acceptance tests run in the Mockingbird
