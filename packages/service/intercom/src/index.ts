@@ -185,6 +185,8 @@ export class IntercomAPI implements FetchAPI {
     })
     this.idempotency = new IdempotencyStore(sqlite, namespace)
     const handlers = defineOperations<SupportedOperationId>({
+      ListContacts: (context) => this.listContacts(context),
+      ListConversations: (context) => this.listConversations(context),
       SearchContacts: (context) => this.searchContacts(context),
       CreateContact: (context) => this.createContact(context),
       GetContact: (context) => {
@@ -372,6 +374,38 @@ export class IntercomAPI implements FetchAPI {
       data: page.items.map((contact) => this.contactBody(contact)),
       total_count: found.length,
       pages: page.pages,
+    })
+  }
+
+  private listContacts(context: OperationContext): Response {
+    const found = this.state.contacts.list({ order: "oldest" }).map((row) => row.value)
+    const pagination = Object.fromEntries(context.url.searchParams)
+    if (pagination.page !== undefined && pagination.starting_after === undefined) {
+      const page = Number(pagination.page)
+      if (!Number.isSafeInteger(page) || page < 1)
+        throw new QueryError("page must be a positive integer")
+      pagination.starting_after = encodeCursor((page - 1) * Number(pagination.per_page ?? 10))
+    }
+    const page = paginate(found, pagination, 10)
+    return jsonRes(200, {
+      type: "list",
+      data: page.items.map((contact) => this.contactBody(contact)),
+      total_count: found.length,
+      pages: { ...page.pages, total_pages: Math.ceil(found.length / page.pages.per_page) },
+    })
+  }
+
+  private listConversations(context: OperationContext): Response {
+    const found = this.state.conversations
+      .list({ order: "newest" })
+      .map((row) => row.value)
+      .sort((a, b) => b.updated_at - a.updated_at || Number(b.id) - Number(a.id))
+    const page = paginate(found, Object.fromEntries(context.url.searchParams), 20)
+    return jsonRes(200, {
+      type: "conversation.list",
+      conversations: page.items.map((conversation) => this.conversationBody(conversation)),
+      total_count: found.length,
+      pages: { ...page.pages, total_pages: Math.ceil(found.length / page.pages.per_page) },
     })
   }
 
