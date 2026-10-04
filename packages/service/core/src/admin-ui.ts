@@ -167,7 +167,7 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
   }
   ::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
   :focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
-  button, input, select, textarea { transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease, color 140ms ease, transform 100ms ease; }
+  button, input, select, textarea { transition: border-color 140ms ease, box-shadow 140ms ease, transform 100ms ease; }
   button:disabled, input:disabled, select:disabled, textarea:disabled { cursor: not-allowed; opacity: 0.55; }
   .app { flex: 1 0 auto; display: flex; flex-direction: column; min-width: 0; width: 100%; }
   header.top {
@@ -395,7 +395,11 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
   }
   .route:first-child { border-radius: var(--radius) var(--radius) 0 0; }
   .route:last-child { border-bottom: 0; border-radius: 0 0 var(--radius) var(--radius); }
-  #route-list { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-xs); }
+  .route-tools { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 12px; }
+  .route-tools .field { flex: 1; }
+  .route-tools input { width: 100%; }
+  .route-count { padding-bottom: 10px; color: var(--faint); font-size: 12px; white-space: nowrap; }
+  #route-list { max-height: 34rem; border: 1px solid var(--line); border-radius: var(--radius); overflow: auto; box-shadow: var(--shadow-xs); }
   .method { width: fit-content; font-family: var(--mono); font-size: 11px; font-weight: 750; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 4px 6px; }
   @keyframes view-in { from { transform: translateY(3px); } to { transform: translateY(0); } }
   @keyframes dialog-in { from { transform: translateY(8px) scale(0.99); } to { transform: translateY(0) scale(1); } }
@@ -571,6 +575,12 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
       </section>
       <section class="view" id="view-routes" hidden>
         <div class="view-head"><div><h2>Routes</h2><p class="lede">Explore shared controls and service-specific admin endpoints.</p></div></div>
+        <div class="route-tools">
+          <label class="field">Filter routes
+            <input id="route-search" type="search" placeholder="Method, path, or extension" autocomplete="off">
+          </label>
+          <span class="route-count" id="route-count"></span>
+        </div>
         <div id="route-list"></div>
         <form id="route-form" class="card stack" style="margin-top: 18px">
           <strong id="route-title">Select a route</strong>

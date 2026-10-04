@@ -463,6 +463,7 @@ export function bootAdmin(config: AdminBootConfig): void {
     collection: string
     shape: StateView | null
     route: string | null
+    routes: string[]
     editing: string | null
   } = {
     namespace: "default",
@@ -475,6 +476,7 @@ export function bootAdmin(config: AdminBootConfig): void {
     collection: "",
     shape: null,
     route: null,
+    routes: [],
     editing: null,
   }
   const standard = new Set(config.standardRoutes)
@@ -953,13 +955,17 @@ export function bootAdmin(config: AdminBootConfig): void {
     )
   }
 
-  const renderRoutes = async (): Promise<void> => {
-    const data = await api("GET", "/")
-    if (!isRecord(data)) throw new Error("Route list was not an object")
-    const routes = requireList(data.routes, "Routes").map((route) => String(route))
-    if (routes.length === 0) {
+  const paintRoutes = (): void => {
+    const query = el("route-search", HTMLInputElement).value.trim().toLocaleLowerCase()
+    const routes = state.routes.filter((route) => route.toLocaleLowerCase().includes(query))
+    el("route-count", HTMLElement).textContent = `${routes.length} of ${state.routes.length}`
+    if (state.routes.length === 0) {
       el("route-list", HTMLElement).innerHTML =
         '<p class="empty">No admin routes are available.</p>'
+      return
+    }
+    if (routes.length === 0) {
+      el("route-list", HTMLElement).innerHTML = '<p class="empty">No routes match this filter.</p>'
       return
     }
     el("route-list", HTMLElement).innerHTML = routes
@@ -968,9 +974,15 @@ export function bootAdmin(config: AdminBootConfig): void {
         const parts = route.split(" ")
         const method = parts[0] ?? ""
         const path = parts.slice(1).join(" ")
-        return `<div class="route"><span class="method">${esc(method)}</span><span>${esc(path)}${extra}</span><button class="btn" type="button" data-route="${esc(route)}">Use</button></div>`
+        return `<div class="route"><span class="method">${esc(method)}</span><span>${esc(path)}${extra}</span><button class="btn" type="button" data-route="${esc(route)}" aria-label="Use ${esc(route)}">Use</button></div>`
       })
       .join("")
+  }
+  const renderRoutes = async (): Promise<void> => {
+    const data = await api("GET", "/")
+    if (!isRecord(data)) throw new Error("Route list was not an object")
+    state.routes = requireList(data.routes, "Routes").map((route) => String(route))
+    paintRoutes()
   }
 
   const renderers: Record<string, () => Promise<void>> = {
@@ -1336,6 +1348,7 @@ export function bootAdmin(config: AdminBootConfig): void {
     )
     syncRouteEditor()
   })
+  el("route-search", HTMLInputElement).addEventListener("input", paintRoutes)
   el("route-form", HTMLFormElement).addEventListener("submit", (event) => {
     event.preventDefault()
     const send = async (): Promise<void> => {
