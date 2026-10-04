@@ -1,6 +1,4 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@crvouga/mockingbird-testing"
-import fc from "fast-check"
 import { createRuntime, KNOWN_STATUSES, PHARMETIKA_PRESETS } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import { isShippedOrLater } from "./src/statuses.js"
@@ -14,7 +12,6 @@ import {
   sampleRequest,
 } from "./test/consumer.js"
 
-const params = fcParameters(process.env)
 const API = "http://pharmetika.mock"
 const SECRET = "pmk-webhook-secret"
 const TOKEN = "pmk-token-dev"
@@ -249,10 +246,11 @@ describe("S12.1 acceptance: our Pharmetika adapter against the mock", () => {
     expect(() => consumer.parseWebhook(forged, delivery.body)).toThrow("Invalid webhook secret")
   })
 
-  test("the status map: every documented workflow status reaches our mapper as the pharmacy spells it", async () => {
-    await fc.assert(
-      fc.asyncProperty(fc.constantFrom(...KNOWN_STATUSES), async (to) => {
-        const { consumer, admin } = harness()
+  test.each([...KNOWN_STATUSES])(
+    "the status map: %s reaches our mapper as the pharmacy spells it",
+    async (to) => {
+      const { runtime, consumer, admin } = harness()
+      try {
         const { pharmacyOrderId } = await consumer.submit(sampleRequest("pay_map"))
         await admin(`/orders/${pharmacyOrderId}/transition`, { to })
         const status = await consumer.getOrderStatus(pharmacyOrderId as string)
@@ -264,10 +262,11 @@ describe("S12.1 acceptance: our Pharmetika adapter against the mock", () => {
             : mapped
         expect(status?.fulfillmentStatus).toBe(expected)
         expect(status?.pharmacyStatus).toBe(to)
-      }),
-      { ...params, numRuns: params.numRuns ?? 25 },
-    )
-  })
+      } finally {
+        runtime.stop?.()
+      }
+    },
+  )
 
   test("cancel through v7 until the order ships; the adapter's strict success === 1 check", async () => {
     const { runtime, consumer, admin } = harness()
