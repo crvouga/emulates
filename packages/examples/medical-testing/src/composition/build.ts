@@ -1,6 +1,7 @@
 import type { Hono } from "hono"
+import type { MockAdmin } from "../adapters/admin.js"
 import { createPostgresMockDb } from "../adapters/db/postgresMockDb.js"
-import { createOAuthMockIdentity, type MockAdmin } from "../adapters/identity/oauthMockIdentity.js"
+import { createOAuthMockIdentity } from "../adapters/identity/oauthMockIdentity.js"
 import { createJunctionMockLabTesting } from "../adapters/labTesting/junctionMockLabTesting.js"
 import { createStripeMockPayments } from "../adapters/payments/stripeMockPayments.js"
 import { seedCatalog } from "../app/catalog/seed.js"
@@ -42,7 +43,8 @@ export const buildDemo = async (assets: ClientAssets): Promise<Demo> => {
     return appRef.current.fetch(request)
   }
 
-  const db = createPostgresMockDb()
+  const database = createPostgresMockDb()
+  const db = database.client
   const identity = createOAuthMockIdentity()
   const labTesting = createJunctionMockLabTesting({
     dispatch,
@@ -55,14 +57,14 @@ export const buildDemo = async (assets: ClientAssets): Promise<Demo> => {
 
   await migrate(db)
   await seedCatalog(db, labTesting.client)
-  await seedWorkspace(db, payments.client)
+  await seedWorkspace(db)
 
   const app = createApp(
     { db, payments: payments.client, labTesting: labTesting.client, identity: identity.client },
     assets,
   )
   appRef.current = app
-  return { app, db, admins: [...identity.admins, payments.admin, labTesting.admin] }
+  return { app, db, admins: [...identity.admins, payments.admin, labTesting.admin, database.admin] }
 }
 
 /** The Hono app alone. Tests and the standalone server do not open the admin tabs. */

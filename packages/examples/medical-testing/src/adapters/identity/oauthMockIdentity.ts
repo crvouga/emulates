@@ -6,6 +6,7 @@ import type {
   IdentityProvider,
   IdentityProviderKey,
 } from "../../app/ports/identityProvider.js"
+import type { MockAdmin } from "../admin.js"
 
 type ClientConfig = { clientId: string; clientSecret: string; issuer: string; scope: string }
 
@@ -47,7 +48,7 @@ const createProviderRuntimes = (): Record<IdentityProviderKey, OAuthRuntime> => 
     const config = CLIENTS[provider]
     return {
       id: config.clientId,
-      name: "Example app",
+      name: "Lab testing",
       secret: config.clientSecret,
       redirectUris: [REDIRECT_URI(provider)],
       requirePkce: true,
@@ -66,9 +67,13 @@ const createProviderRuntimes = (): Record<IdentityProviderKey, OAuthRuntime> => 
           emailVerified: true,
           givenName: "Ada",
           familyName: "Lovelace",
-
         },
-        { id: "clinician", name: "Morgan Chen", email: "clinician@example.test", emailVerified: true },
+        {
+          id: "clinician",
+          name: "Morgan Chen",
+          email: "clinician@example.test",
+          emailVerified: true,
+        },
         { id: "admin", name: "Alex Morgan", email: "admin@example.test", emailVerified: true },
       ],
       clients: [client("google")],
@@ -128,12 +133,6 @@ const decodeHtmlEntities = (value: string): string =>
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
-
-export type MockAdmin = {
-  id: string
-  label: string
-  fetch: (request: Request) => Promise<Response>
-}
 
 /** Implements `IdentityProvider` against Mockingbird's in-process OAuth mock. */
 export const createOAuthMockIdentity = (): { client: IdentityProvider; admins: MockAdmin[] } => {

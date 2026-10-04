@@ -21,6 +21,7 @@ export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => 
   const [pageHtml, setPageHtml] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(true)
+  const [attempt, setAttempt] = useState(0)
   const pageRef = useRef<HTMLDivElement>(null)
   const stepRef = useRef<(action: string, method: string, body: string) => void>(() => {})
   useEscapeKey(onClose)
@@ -46,6 +47,8 @@ export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => 
   useEffect(() => {
     let cancelled = false
     setBusy(true)
+    setError(null)
+    setPageHtml(null)
     api
       .hostedCheckoutStart(checkoutSessionId)
       .then((result) => {
@@ -58,7 +61,7 @@ export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => 
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkoutSessionId])
+  }, [checkoutSessionId, attempt])
 
   const step = useCallback(
     async (action: string, method: string, body: string) => {
@@ -91,19 +94,19 @@ export const CheckoutModal = ({ checkoutSessionId, onDone, onClose }: Props) => 
           <span class="cove-modal-header-text">Checkout</span>
           <button class="cove-modal-close" aria-label="Close" onClick=${onClose}>✕</button>
         </div>
-        <div class="cove-modal-body">
-          ${busy && html`<div class="cove-modal-loading">Loading…</div>`}
+        <div class="cove-modal-body" aria-busy=${busy}>
+          ${busy && html`<div class="cove-modal-loading" role="status">Loading…</div>`}
           ${
             error &&
             html`<div class="cove-modal-error">
-            <p class="cove-alert cove-alert-error">${error}</p>
-            <button class="cove-btn cove-btn-ghost" onClick=${onClose}>Close</button>
+            <p class="cove-alert cove-alert-error" role="alert">${error}</p>
+            <button class="cove-btn cove-btn-primary" onClick=${() => setAttempt((value) => value + 1)}>Try again</button>
           </div>`
           }
           ${
             !error &&
             pageHtml !== null &&
-            html`<div class="hosted-page" ref=${pageRef} role="region" aria-label="Payment"></div>`
+            html`<div class="hosted-page" inert=${busy} ref=${pageRef} role="region" aria-label="Payment"></div>`
           }
         </div>
       </div>

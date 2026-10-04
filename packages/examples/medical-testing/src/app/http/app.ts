@@ -1,6 +1,6 @@
-import { HTTPException } from "hono/http-exception"
 import { Hono } from "hono"
 import { getCookie } from "hono/cookie"
+import { HTTPException } from "hono/http-exception"
 import { SESSION_COOKIE, SESSION_HEADER, userForToken } from "../auth/session.js"
 import type { AppDeps, AppEnv } from "./appEnv.js"
 import { adminRoutes } from "./routes/admin.js"
@@ -43,7 +43,10 @@ export const createApp = (deps: AppDeps, assets: ClientAssets): Hono<AppEnv> => 
     if (error instanceof SyntaxError) return c.json({ error: "Invalid request body." }, 400)
     return c.json({ error: "Something went wrong. Please try again." }, 500)
   })
-  app.use("/api/*", async (c, next) => { c.header("cache-control", "no-store"); await next() })
+  app.use("/api/*", async (c, next) => {
+    c.header("cache-control", "no-store")
+    await next()
+  })
   app.route("/api/admin", adminRoutes)
   app.route("/api/auth", authRoutes)
   app.route("/api", catalogRoutes)

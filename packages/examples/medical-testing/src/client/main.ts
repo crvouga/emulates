@@ -28,25 +28,58 @@ const App = () => {
   const [signingOut, setSigningOut] = useState(false)
   const load = async () => {
     setError(null)
-    try { setUser((await api.me()).user) } catch (error) { setError(message(error)) }
+    try {
+      setUser((await api.me()).user)
+    } catch (error) {
+      setError(message(error))
+    }
   }
-  useEffect(() => { void load() }, [])
-  useEffect(() => onUnauthorized(() => { setUser(null); setCheckoutId(null); setNotice(null) }), [])
-  if (error && user === undefined) return html`<main class="cove-main"><${ErrorState} error=${error} retry=${load}/></main>`
+  useEffect(() => {
+    void load()
+  }, [])
+  useEffect(
+    () =>
+      onUnauthorized(() => {
+        setUser(null)
+        setCheckoutId(null)
+        setNotice(null)
+      }),
+    [],
+  )
+  if (error && user === undefined)
+    return html`<main class="cove-main"><${ErrorState} error=${error} retry=${load}/></main>`
   if (user === undefined) return html`<${Loading}/>`
-  if (!user) return html`<main class="cove-main"><${Landing} onSignedIn=${(user: User) => { setUser(user); setNotice(null); navigate("dashboard") }}/></main>`
+  if (!user)
+    return html`<main class="cove-main"><${Landing} onSignedIn=${(user: User) => {
+      setUser(user)
+      setNotice(null)
+      navigate("dashboard")
+    }}/></main>`
   const signOut = async () => {
-    setSigningOut(true); setError(null)
-    try { await api.signOut(); setUser(null); setCheckoutId(null); setNotice(null); navigate("dashboard") }
-    catch (error) { setError(message(error)) }
-    finally { setSigningOut(false) }
+    setSigningOut(true)
+    setError(null)
+    try {
+      await api.signOut()
+      setUser(null)
+      setCheckoutId(null)
+      setNotice(null)
+      navigate("dashboard")
+    } catch (error) {
+      setError(message(error))
+    } finally {
+      setSigningOut(false)
+    }
   }
-  const startCheckout = (id: string) => { setCheckoutId(id); setNotice(null); navigate("checkout") }
+  const startCheckout = (id: string) => {
+    setCheckoutId(id)
+    setNotice(null)
+    navigate("checkout")
+  }
   return html`
     <div class="cove-shell">
       <aside class="cove-sidebar">
         <button class="cove-wordmark" onClick=${() => navigate("dashboard")}><span class="cove-logo-box" aria-hidden="true">+</span>Lab testing</button>
-        <div class="cove-workspace-label">Personal workspace</div>
+        <div class="cove-workspace-label">${can(user.role, "orders.read") ? "Care workspace" : "Personal workspace"}</div>
         <nav class="cove-nav-links" aria-label="Main navigation">
           ${LINKS.map((link) => html`<button key=${link.route} class="cove-nav-link ${route === link.route ? "is-active" : ""}" aria-current=${route === link.route ? "page" : undefined} onClick=${() => navigate(link.route)}><span aria-hidden="true">${link.symbol}</span>${link.label}</button>`)}
           ${can(user.role, "users.manage") && html`<button class="cove-nav-link ${route === "admin" ? "is-active" : ""}" aria-current=${route === "admin" ? "page" : undefined} onClick=${() => navigate("admin")}><span aria-hidden="true">⚙</span>Administration</button>`}
@@ -60,7 +93,14 @@ const App = () => {
           ${error && html`<${ErrorState} error=${error} retry=${() => setError(null)}/>`}
           ${route === "dashboard" && html`<${Dashboard} user=${user}/>`}
           ${route === "shop" && html`<${Shop} onCheckout=${startCheckout}/>`}
-          ${route === "checkout" && html`<${Checkout} checkoutSessionId=${checkoutId} onPaid=${() => { setCheckoutId(null); setNotice("Payment successful. Your order is being prepared."); navigate("orders") }}/>`}
+          ${
+            route === "checkout" &&
+            html`<${Checkout} checkoutSessionId=${checkoutId} onPaid=${() => {
+              setCheckoutId(null)
+              setNotice("Payment successful. Your order is being prepared.")
+              navigate("orders")
+            }}/>`
+          }
           ${(route === "orders" || route === "results") && html`<${Orders} key=${route} user=${user} resultsOnly=${route === "results"} onCheckout=${startCheckout}/>`}
           ${route === "account" && html`<${Account} user=${user} onUpdated=${setUser} onSignOut=${signOut} signingOut=${signingOut}/>`}
           ${route === "admin" && (can(user.role, "users.manage") ? html`<${Admin} user=${user}/>` : html`<div class="cove-card"><h1>Access restricted</h1><p>Administration requires an administrator role.</p><button class="cove-btn cove-btn-primary" onClick=${() => navigate("dashboard")}>Back to overview</button></div>`)}

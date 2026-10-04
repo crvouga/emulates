@@ -18,10 +18,17 @@ export const createCheckout = async (
   customer: CheckoutCustomer,
   testIds: string[],
 ): Promise<{ orderId: string; checkoutSessionId: string; hostedPageUrl: string }> => {
-  if (!Array.isArray(testIds) || testIds.length === 0 || testIds.length > 20 || testIds.some((id) => typeof id !== "string")) throw new NoTestsSelectedError("Select between 1 and 20 tests")
+  if (
+    !Array.isArray(testIds) ||
+    testIds.length === 0 ||
+    testIds.length > 20 ||
+    testIds.some((id) => typeof id !== "string")
+  )
+    throw new NoTestsSelectedError("Select between 1 and 20 tests")
   const uniqueIds = [...new Set(testIds)]
   const tests = await findLabTestsByIds(db, uniqueIds)
-  if (tests.length !== uniqueIds.length) throw new NoTestsSelectedError("One of the selected tests is unavailable")
+  if (tests.length !== uniqueIds.length)
+    throw new NoTestsSelectedError("One of the selected tests is unavailable")
   if (tests.length === 0) throw new NoTestsSelectedError("Select at least one test")
 
   const [firstName, ...rest] = (customer.name ?? "Patient").split(" ")

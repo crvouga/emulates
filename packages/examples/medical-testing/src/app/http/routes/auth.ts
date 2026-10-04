@@ -66,8 +66,21 @@ authRoutes.patch("/profile", async (c) => {
   const user = c.get("user")
   if (!user) return c.json({ error: "Sign in required" }, 401)
   const body = await c.req.json<{ name?: unknown; notifications?: unknown }>()
-  if (typeof body.name !== "string" || !body.name.trim() || body.name.length > 80 || typeof body.notifications !== "boolean")
+  if (
+    typeof body.name !== "string" ||
+    !body.name.trim() ||
+    body.name.length > 80 ||
+    typeof body.notifications !== "boolean"
+  )
     return c.json({ error: "Enter a name of 1–80 characters and a notification preference." }, 400)
-  await c.get("db").query("UPDATE users SET name = $2, notifications = $3 WHERE id = $1", [user.id, body.name.trim(), body.notifications])
-  return c.json({ user: publicUser({ ...user, name: body.name.trim(), notifications: body.notifications }) })
+  await c
+    .get("db")
+    .query("UPDATE users SET name = $2, notifications = $3 WHERE id = $1", [
+      user.id,
+      body.name.trim(),
+      body.notifications,
+    ])
+  return c.json({
+    user: publicUser({ ...user, name: body.name.trim(), notifications: body.notifications }),
+  })
 })

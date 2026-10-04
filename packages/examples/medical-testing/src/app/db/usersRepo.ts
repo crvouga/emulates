@@ -61,6 +61,11 @@ export const upsertUserFromIdentity = async (
 }
 
 export const publicUser = (user: UserRow): User => ({
-  id: user.id, provider: user.provider, email: user.email, name: user.name,
-  picture: user.picture, role: user.role, notifications: user.notifications,
+  id: user.id,
+  provider: user.provider,
+  email: user.email,
+  name: user.name,
+  picture: user.picture,
+  role: user.role,
+  notifications: user.notifications,
 })

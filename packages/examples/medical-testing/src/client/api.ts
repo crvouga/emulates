@@ -1,4 +1,5 @@
 import type { AdminData, LabTest, Order, Role, User } from "../app/model.js"
+
 export type { LabTest, Order, Role, User } from "../app/model.js"
 export type OAuthProvider = "google" | "apple"
 export type OAuthStepResponse =
@@ -36,7 +37,11 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
     headers: { "content-type": "application/json", ...init?.headers },
     credentials: "same-origin",
   })
-  const body = (await response.json().catch(() => ({ error: "The server returned an unreadable response. Try again." }))) as T & { error?: string }
+  const body = (await response
+    .json()
+    .catch(() => ({ error: "The server returned an unreadable response. Try again." }))) as T & {
+    error?: string
+  }
   if (!response.ok) {
     if (response.status === 401) for (const listener of unauthorizedListeners) listener()
     throw new Error(body.error ?? `Request to ${path} failed with ${response.status}`)
@@ -80,16 +85,31 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ flowId, action, method, body }),
     }),
-  orders: (workspace = false) => request<{ orders: Order[] }>(`/api/orders${workspace ? "?scope=workspace" : ""}`),
-  profile: (name: string, notifications: boolean) => request<{ user: User }>("/api/auth/profile", { method: "PATCH", body: JSON.stringify({ name, notifications }) }),
+  orders: (workspace = false) =>
+    request<{ orders: Order[] }>(`/api/orders${workspace ? "?scope=workspace" : ""}`),
+  profile: (name: string, notifications: boolean) =>
+    request<{ user: User }>("/api/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ name, notifications }),
+    }),
   admin: () => request<AdminData>("/api/admin"),
-  changeRole: (id: string, role: Role) => request<{ ok: true }>(`/api/admin/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) }),
-  review: (id: string, note: string) => request<{ ok: true }>(`/api/orders/${id}/review`, { method: "POST", body: JSON.stringify({ note }) }),
+  changeRole: (id: string, role: Role) =>
+    request<{ ok: true }>(`/api/admin/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ role }),
+    }),
+  review: (id: string, note: string) =>
+    request<{ ok: true }>(`/api/orders/${id}/review`, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
   file: async (id: string, kind: "results" | "receipt" | "record") => {
-    const response = await fetcher(`/api/orders/${id}/files/${kind}`, { credentials: "same-origin" })
+    const response = await fetcher(`/api/orders/${id}/files/${kind}`, {
+      credentials: "same-origin",
+    })
     if (!response.ok) {
       if (response.status === 401) for (const listener of unauthorizedListeners) listener()
-      const body = await response.json() as { error?: string }
+      const body = (await response.json()) as { error?: string }
       throw new Error(body.error ?? "Download failed. Please try again.")
     }
     return response.blob()
