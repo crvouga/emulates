@@ -239,7 +239,11 @@ function Workspace({
   return (
     <ConfigProvider
       getPopupContainer={() => popupHost}
-      theme={{ algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm }}
+      // Embedded browsers can pause animation frames; disposal must remain immediate.
+      theme={{
+        algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: { motion: false },
+      }}
     >
       <App
         message={{ getContainer: () => popupHost }}
@@ -362,7 +366,10 @@ export function mountMembers(host: HTMLElement | null, config: MembersConfig): v
   mountRoot(host, (popupHost) => (
     <ConfigProvider
       getPopupContainer={() => popupHost}
-      theme={{ algorithm: config.dark ? theme.darkAlgorithm : theme.defaultAlgorithm }}
+      theme={{
+        algorithm: config.dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: { motion: false },
+      }}
     >
       <App message={{ getContainer: () => popupHost }}>
         <Members config={config} />
