@@ -161,6 +161,7 @@ export type TwilioRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Initial Verify settings for every namespace (e.g. `{fixedCode: "000000"}`). */
@@ -246,8 +247,8 @@ const clientIdentity = (seed: string) => {
 }
 
 /**
- * The Twilio mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` prefix, or by AccountSid
+ * The Twilio mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` prefix, or by AccountSid
  * (`PUT /__admin/credentials {"credentials": {"<AccountSid>": "<namespace>"}}`), clock
  * control, fault presets, an outbox, and signed inbound SMS and voice webhooks.
  */
@@ -277,6 +278,7 @@ export const createRuntime = (options: TwilioRuntimeOptions = {}): TwilioRuntime
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: (request) => basicAuth(request)?.username,
@@ -415,7 +417,8 @@ export const createRuntime = (options: TwilioRuntimeOptions = {}): TwilioRuntime
     webhooks: hub,
     inboundSms,
     voiceWebhook,
-    fetch: async (request: Request) => inner(await acceptRawRecording(await routeByHost(request))),
+    fetch: async (request: Request) =>
+      inner(await acceptRawRecording(await routeByHost(request, options.adminPrefix))),
   })
 }
 

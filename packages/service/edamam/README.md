@@ -91,7 +91,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `rate_
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the base URL (works for the nutrition adapter
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the base URL (works for the nutrition adapter
 and the Python client, which concatenate paths; the meal adapter resolves paths with
 `new URL(endpoint, base)`, which drops a prefix), or by application id:
 `PUT /__admin/credentials {"credentials": {"<app_id>": "<namespace>"}}`.

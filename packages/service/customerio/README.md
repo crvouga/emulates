@@ -128,7 +128,7 @@ two namespaces do not, including faults and clock offsets. Resetting one namespa
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on a host, or by key: the CDP write key (Basic
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on a host, or by key: the CDP write key (Basic
 username) or the App API key (Bearer) through `PUT /__admin/credentials {"credentials":
 {"<key>": "<namespace>"}}`. The click endpoint carries no credential: use the header or prefix.
 

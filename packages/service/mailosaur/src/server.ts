@@ -211,6 +211,7 @@ export const serveTarget: ServeTarget = {
     }
     const runtime = createRuntime({
       ...(delays ? { settings: { pollDelaysMs: delays.split(",").map(Number) } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -245,6 +246,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Basic base64(<api key>:) — any key; the SDK needs HTTPS (--tls-port)",
     "ingest: POST /__admin/ingest {to, from?, subject?, html?, text?, server?, type?}",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

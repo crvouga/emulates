@@ -97,6 +97,7 @@ export type CareTalkRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   forms?: readonly FullFormDto[]
@@ -180,8 +181,8 @@ const adminRoutes = (runtime: ServiceRuntime<CareTalkAPI>): AdminRoutes => ({
 })
 
 /**
- * The CareTalk mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by credential (the API user a token
+ * The CareTalk mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by credential (the API user a token
  * was issued to, or a static API key), clock control, fault presets and a request journal.
  */
 export const createRuntime = (options: CareTalkRuntimeOptions = {}): CareTalkRuntime =>
@@ -191,6 +192,7 @@ export const createRuntime = (options: CareTalkRuntimeOptions = {}): CareTalkRun
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: tokenCredential,

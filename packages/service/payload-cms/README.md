@@ -85,8 +85,8 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `serve
 
 ### Namespaces
 
-Our backend's `fetch` sends no credential, so use a `/ns/<name>` suffix on
-`PAYLOAD_CMS_API_URL` (e.g. `http://127.0.0.1:8822/ns/worker-1`) or `x-mockingbird-namespace`.
+Our backend's `fetch` sends no credential, so use a `/__admin/ns/<name>` suffix on
+`PAYLOAD_CMS_API_URL` (e.g. `http://127.0.0.1:8822/__admin/ns/worker-1`) or `x-mockingbird-namespace`.
 A request carrying `Authorization: <collection> API-Key <key>` or a bearer token can also be
 mapped with `PUT /__admin/credentials`.
 

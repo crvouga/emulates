@@ -126,6 +126,7 @@ export type PharmetikaRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   templates?: readonly MedicationTemplate[]
@@ -274,8 +275,8 @@ const adminRoutes = (runtime: ServiceRuntime<PharmetikaAPI>): AdminRoutes => ({
 })
 
 /**
- * The Pharmetika mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by credential
+ * The Pharmetika mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by credential
  * (`PUT /__admin/credentials {"credentials": {"<PHARMETIKA_API_TOKEN>": "<namespace>"}}`),
  * clock control, fault presets, status webhooks and a request journal.
  */
@@ -293,6 +294,7 @@ export const createRuntime = (options: PharmetikaRuntimeOptions = {}): Pharmetik
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: tokenCredential,

@@ -474,7 +474,7 @@ describe("S17 contract", () => {
     })
   })
 
-  test("namespaces by bot token, by webhook path, by /ns/ prefix and by header isolate outboxes", async () => {
+  test("namespaces by bot token, by webhook path, by /__admin/ns/ prefix and by header isolate outboxes", async () => {
     const { runtime, fetchImpl, admin, sleep } = harness()
     await admin(
       "/credentials",
@@ -497,7 +497,7 @@ describe("S17 contract", () => {
       },
     )
     await postSlackWebhook(
-      `${HOST}/ns/c/services/T0/B0/xyz`,
+      `${HOST}/__admin/ns/c/services/T0/B0/xyz`,
       { text: "from c" },
       silentLogger(),
       "c",
@@ -612,7 +612,7 @@ describe("served over HTTP", () => {
         messages: SlackMessage[]
       }
       expect(outbox.messages.map((m) => m.text)).toEqual(["over the wire", "api over the wire"])
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^slack@/)
     } finally {
       await server.close()

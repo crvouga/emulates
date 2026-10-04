@@ -35,9 +35,9 @@ const incomplete = (jwt: string) => ({
 })
 
 describe("the Mockingbird service contract", () => {
-  test("/health, the x-mockingbird header, and /__admin lists the VPI routes", async () => {
+  test("/__admin/health, the x-mockingbird header, and /__admin lists the VPI routes", async () => {
     const runtime = createRuntime()
-    const health = await call(runtime, "/health")
+    const health = await call(runtime, "/__admin/health")
     expect(health.status).toBe(200)
     expect(((await health.json()) as { service: string }).service).toBe("vpi")
     expect(health.headers.get("x-mockingbird")).toMatch(/^vpi@.+; ns=default$/)
@@ -72,7 +72,7 @@ describe("the Mockingbird service contract", () => {
     expect((await call(runtime, "/admin/rxOrdering/getShippingStates")).status).toBe(401)
   })
 
-  test("namespaces by header and by /ns/ prefix are isolated; reset restores the seed", async () => {
+  test("namespaces by header and by /__admin/ns/ prefix are isolated; reset restores the seed", async () => {
     const runtime = createRuntime()
     const jwt = await login(runtime)
     const save = await call(runtime, "/__admin/patients", {
@@ -94,12 +94,12 @@ describe("the Mockingbird service contract", () => {
           })
         ).json()) as { patients: unknown[] }
       ).patients.length
-    expect(await roster("/ns/a")).toBe(2)
+    expect(await roster("/__admin/ns/a")).toBe(2)
     expect(await roster("", { "x-mockingbird-namespace": "a" })).toBe(2)
-    expect(await roster("/ns/b")).toBe(1)
+    expect(await roster("/__admin/ns/b")).toBe(1)
     expect(await roster("")).toBe(1)
     await call(runtime, "/__admin/reset?namespace=a", { method: "POST" })
-    expect(await roster("/ns/a")).toBe(1)
+    expect(await roster("/__admin/ns/a")).toBe(1)
     const list = await call(
       runtime,
       "/clinic/rxOrdering/getIncompleteSavedPrescriptionsInClinicLocation",
@@ -137,7 +137,7 @@ describe("the Mockingbird service contract", () => {
     })
     expect(
       (
-        await call(runtime, "/ns/broken/admin/rxOrdering/getShippingStates", {
+        await call(runtime, "/__admin/ns/broken/admin/rxOrdering/getShippingStates", {
           headers: { authorization: `Bearer ${jwt}` },
         })
       ).status,

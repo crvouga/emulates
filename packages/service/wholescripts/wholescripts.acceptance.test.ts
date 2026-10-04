@@ -378,7 +378,7 @@ describe("served over HTTP", () => {
         status = await scheduler.getOrderStatus(placed.vendor_order_id)
       }
       expect(status.status).toBe("shipped")
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^wholescripts@/)
 
       // A dropped submit destroys the socket: plain fetch rejects, the order still exists.

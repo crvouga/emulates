@@ -167,6 +167,7 @@ export type CustomerIoRuntimeOptions = {
   /** Real-time clock for webhook freshness/signing; injectable for deterministic tests. */
   wallClock?: () => number
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   messages?: readonly TransactionalMessage[]
@@ -369,8 +370,8 @@ const adminRoutes = (runtime: ServiceRuntime<CustomerIoAPI>): AdminRoutes => ({
 })
 
 /**
- * The Customer.io mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by key (the CDP write key or the App API
+ * The Customer.io mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by key (the CDP write key or the App API
  * key: `PUT /__admin/credentials {"credentials": {"<key>": "<namespace>"}}`), clock control,
  * fault presets, the transactional outbox, and signed reporting webhooks.
  */
@@ -396,6 +397,7 @@ export const createRuntime = (options: CustomerIoRuntimeOptions = {}): CustomerI
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: customerIoCredential,

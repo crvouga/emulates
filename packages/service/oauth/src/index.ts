@@ -48,6 +48,7 @@ export type OAuthAPIOptions = APIOptions &
     issuer?: string
     /** Path at which a composed runtime is publicly mounted. */
     mountPath?: string
+    adminPrefix?: string
     publicNamespace?: string
     accounts?: Account[]
     clients?: Client[]
@@ -252,7 +253,7 @@ export class OAuthAPI {
   issuer(request: Request): string {
     const prefix =
       this.options.publicNamespace && this.options.publicNamespace !== "default"
-        ? `/ns/${encodeURIComponent(this.options.publicNamespace)}`
+        ? `${this.options.adminPrefix ?? "/__admin"}/ns/${encodeURIComponent(this.options.publicNamespace)}`
         : ""
     return (
       this.options.issuer ??

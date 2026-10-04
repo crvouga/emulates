@@ -145,7 +145,8 @@ export type SeedOrder = {
 export type FullscriptAPIOptions = APIOptions & {
   settings?: Partial<Settings>
   orders?: readonly SeedOrder[]
-  /** The public namespace, so result PDF URLs carry a `/ns/<name>` prefix. */
+  /** The public namespace, so result PDF URLs carry a `/__admin/ns/<name>` prefix. */
+  adminPrefix?: string
   publicNamespace?: string
   /** Called for every event; the runtime signs and delivers it. */
   onEvent?: (event: EventRecord) => void
@@ -207,7 +208,7 @@ export class FullscriptAPI implements FetchAPI {
     this.onEvent = options.onEvent
     this.prefix =
       options.publicNamespace && options.publicNamespace !== "default"
-        ? `/ns/${encodeURIComponent(options.publicNamespace)}`
+        ? `${options.adminPrefix ?? "/__admin"}/ns/${encodeURIComponent(options.publicNamespace)}`
         : ""
     this.state = new FullscriptState(sqlite, namespace, options.settings ?? {})
     const handlers = defineOperations<SupportedOperationId>({

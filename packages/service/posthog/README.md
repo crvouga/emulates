@@ -128,15 +128,15 @@ Each preset adds one rule per route, so `count` applies per route.
 
 PostHog SDKs cannot add headers. Choose a namespace by:
 
-- **host prefix** (primary): `POSTHOG_HOST=http://127.0.0.1:8795/ns/w1`. Every SDK builds
-  `${host}/path`, so `/ns/w1/flags/?v=2` selects `w1`.
+- **host prefix** (primary): `POSTHOG_HOST=http://127.0.0.1:8795/__admin/ns/w1`. Every SDK builds
+  `${host}/path`, so `/__admin/ns/w1/flags/?v=2` selects `w1`.
 - **project token**: `PUT /__admin/credentials {"credentials": {"phc_…": "w1"}}`. The token is
   read from `/array/{token}/…`, `?token=`, the body (`token`, `api_key`, or a batch's first
   event's `properties.token`, after decoding gzip/base64), or a personal key's
   `Authorization: Bearer` on the management API.
 - `x-mockingbird-namespace`, for raw clients.
 
-The management API's `next` page URL is built from the request without the `/ns/` prefix; page
+The management API's `next` page URL is built from the request without the `/__admin/ns/` prefix; page
 through it with a credential-mapped personal key instead.
 
 ### Deliberately not modelled

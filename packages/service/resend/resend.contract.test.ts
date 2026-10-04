@@ -54,7 +54,7 @@ const email = (overrides: Record<string, unknown> = {}) => ({
 describe("the service contract", () => {
   test("health, missing key, unknown email, x-mockingbird", async () => {
     const { call } = harness()
-    expect((await call("/health", { key: "" })).status).toBe(200)
+    expect((await call("/__admin/health", { key: "" })).status).toBe(200)
     const noKey = await call("/emails", { body: email(), key: "" })
     expect(noKey.status).toBe(401)
     expect(((await noKey.json()) as { name: string }).name).toBe("missing_api_key")
@@ -67,7 +67,7 @@ describe("the service contract", () => {
     expect(missing.headers.get("x-mockingbird")).toMatch(/^resend@.+; ns=default$/)
   })
 
-  test("namespaces by header, by /ns/ prefix and by API key are isolated", async () => {
+  test("namespaces by header, by /__admin/ns/ prefix and by API key are isolated", async () => {
     const { call, send } = harness()
     await call("/__admin/credentials", {
       method: "PUT",
@@ -79,7 +79,7 @@ describe("the service contract", () => {
     expect(
       (await call(`/emails/${sent.id}`, { headers: { "x-mockingbird-namespace": "a" } })).status,
     ).toBe(200)
-    expect((await call(`/ns/a/emails/${sent.id}`)).status).toBe(200)
+    expect((await call(`/__admin/ns/a/emails/${sent.id}`)).status).toBe(200)
   })
 
   test("the journal keeps ids and operations, never subjects or bodies", async () => {
@@ -185,7 +185,7 @@ describe("outbox and forwarding", () => {
       target: string
     }
     expect(stats).toMatchObject({ failed: 1, target: "http://127.0.0.1:9" })
-    const health = (await (await call("/health")).json()) as { forwardToInbox: string }
+    const health = (await (await call("/__admin/health")).json()) as { forwardToInbox: string }
     expect(health.forwardToInbox).toBe("http://127.0.0.1:9")
   })
 })
@@ -257,7 +257,7 @@ describe("inbound and webhooks", () => {
       })
     ).json()) as { data: { download_url: string; size: number }[] }
     const url = new URL(listed.data[0]?.download_url as string)
-    expect(url.pathname).toMatch(/^\/ns\/w1\/downloads\/inbound\//)
+    expect(url.pathname).toMatch(/^\/__admin\/ns\/w1\/downloads\/inbound\//)
     const download = await call(`${url.pathname}`, { key: "" })
     expect(download.status).toBe(200)
     expect(download.headers.get("content-type")).toBe("text/plain")
@@ -313,7 +313,7 @@ describe("served over HTTP", () => {
       },
       COMMON,
     )
-    const health = (await (await runtime.fetch(new Request(`${API}/health`))).json()) as {
+    const health = (await (await runtime.fetch(new Request(`${API}/__admin/health`))).json()) as {
       webhooks: string
       forwardToInbox: string
     }

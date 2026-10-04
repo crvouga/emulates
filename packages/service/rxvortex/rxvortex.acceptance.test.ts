@@ -310,7 +310,7 @@ describe("served over HTTP", () => {
         "Fill",
         "Fulfillment Complete",
       ])
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^rxvortex@/)
     } finally {
       await server.close()

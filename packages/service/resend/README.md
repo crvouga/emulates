@@ -81,7 +81,7 @@ await mock.close()
 | `GET /emails/receiving` | Newest-first received email metadata with the same envelope and ID cursors. Without `limit`, returns every received email; an explicit limit must be 1–100. Includes attachment metadata and size. |
 | `GET /emails/receiving/{id}` | A received email: `{object: "email", id, to, from, cc, bcc, reply_to, created_at, subject, html, text, headers, message_id, attachments[{id, filename, content_type, content_disposition, content_id}]}`. |
 | `GET /emails/receiving/{id}/attachments` | `{object: "list", has_more: false, data: [{id, filename, content_type, content_disposition, content_id, size, download_url, expires_at}]}`. |
-| `GET /downloads/inbound/{attachment_id}` | The `download_url`: unauthenticated, the bytes with `content-type` and `content-length`. In a non-default namespace the URL carries `/ns/<name>`. |
+| `GET /downloads/inbound/{attachment_id}` | The `download_url`: unauthenticated, the bytes with `content-type` and `content-length`. In a non-default namespace the URL carries `/__admin/ns/<name>`. |
 
 Auth is `Authorization: Bearer <key>`; any key works; none is 401 `missing_api_key`.
 
@@ -139,7 +139,7 @@ then the connection dies before any response bytes; the same key replays), `rece
 
 `new Resend(key)` cannot add headers, so map API keys to namespaces:
 `PUT /__admin/credentials {"credentials": {"<RESEND_API_KEY>": "<namespace>"}}`. Also
-`x-mockingbird-namespace`, or a `/ns/<name>` prefix on `RESEND_BASE_URL`.
+`x-mockingbird-namespace`, or a `/__admin/ns/<name>` prefix on `RESEND_BASE_URL`.
 
 ### Deliberately not modelled
 

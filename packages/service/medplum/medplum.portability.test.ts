@@ -102,7 +102,7 @@ describe("portability: the published bundle in workerd (no Node APIs)", () => {
 
   test("health, sign-in, FHIR CRUD, search and GraphQL all work", async () => {
     const probe = await call("/__probe")
-    expect((await call("/health")).status).toBe(200)
+    expect((await call("/__admin/health")).status).toBe(200)
     expect((await call("/healthcheck")).body.ok).toBe(true)
 
     const token = await call("/oauth2/token", {

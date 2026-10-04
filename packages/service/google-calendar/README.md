@@ -129,7 +129,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `inval
 
 By account: access tokens carry their email, so
 `PUT /__admin/credentials {"credentials": {"dr.house@example.com": "<namespace>"}}` routes every
-calendar and userinfo call. `x-mockingbird-namespace` works as usual. A `/ns/<name>` prefix
+calendar and userinfo call. `x-mockingbird-namespace` works as usual. A `/__admin/ns/<name>` prefix
 works for the token, revoke and userinfo URLs (they are full URLs) but not for the calendar
 client: googleapis resolves paths against `rootUrl`'s origin and drops a path prefix.
 

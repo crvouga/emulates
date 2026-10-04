@@ -124,6 +124,7 @@ export const serveTarget: ServeTarget = {
             }
           : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -131,6 +132,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: POST /api/v1/generate-access-token {client_id, client_secret}, then Authorization: Bearer <token>",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<client_id>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<client_id>: <ns>}",
   ],
 }

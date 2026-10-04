@@ -91,6 +91,7 @@ export type PlaneRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -252,8 +253,8 @@ const adminRoutes = (runtime: ServiceRuntime<PlaneAPI>): AdminRoutes => ({
 })
 
 /**
- * The Plane mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by API key
+ * The Plane mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PLANE_ACCESS_TOKEN>": "<namespace>"}}`),
  * clock control, fault presets and a request journal.
  */
@@ -264,6 +265,7 @@ export const createRuntime = (options: PlaneRuntimeOptions = {}): PlaneRuntime =
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: apiKeyCredential,

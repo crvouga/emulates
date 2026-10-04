@@ -50,9 +50,9 @@ const setup = () => {
 }
 
 describe("contract and runtime", () => {
-  test("/health, the x-mockingbird header, and ApiKey auth", async () => {
+  test("/__admin/health, the x-mockingbird header, and ApiKey auth", async () => {
     const { runtime, call } = setup()
-    const health = await runtime.fetch(new Request("http://odx.mock/health"))
+    const health = await runtime.fetch(new Request("http://odx.mock/__admin/health"))
     expect(((await health.json()) as { status: string }).status).toBe("ok")
     expect(health.headers.get("x-mockingbird")).toMatch(/^odx@.*; ns=default$/)
     const missing = await runtime.fetch(new Request("http://odx.mock/v1/partner/labs"))
@@ -63,16 +63,18 @@ describe("contract and runtime", () => {
     expect((await call("/v1/partner/labs")).status).toBe(200)
   })
 
-  test("namespaces by header and /ns/ prefix isolate state, and the pre-registered webhook is in each", async () => {
+  test("namespaces by header and /__admin/ns/ prefix isolate state, and the pre-registered webhook is in each", async () => {
     const { call, importTest } = setup()
-    await importTest("/ns/alpha")
-    const alpha = await call(`/ns/alpha/v1/practice/${PRACTICE}/patients`)
+    await importTest("/__admin/ns/alpha")
+    const alpha = await call(`/__admin/ns/alpha/v1/practice/${PRACTICE}/patients`)
     expect(((await alpha.json()) as unknown[]).length).toBe(1)
     const beta = await call(`/v1/practice/${PRACTICE}/patients`, {
       headers: { "x-mockingbird-namespace": "beta" },
     })
     expect(await beta.json()).toEqual([])
-    const hooks = (await (await call("/ns/beta/v1/webhooks")).json()) as { signingKey: string }[]
+    const hooks = (await (await call("/__admin/ns/beta/v1/webhooks")).json()) as {
+      signingKey: string
+    }[]
     expect(hooks.map((h) => h.signingKey)).toEqual(["key-1"])
   })
 

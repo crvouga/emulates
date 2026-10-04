@@ -164,7 +164,7 @@ The request journal (`GET /__admin/requests`) records per call only `modelId`, `
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the endpoint URL, or by credential: the SDKs
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or by credential: the SDKs
 cannot add headers, so map each worker's access key id:
 `PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`.
 

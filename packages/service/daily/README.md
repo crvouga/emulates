@@ -131,7 +131,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `room_
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the base URL, or by API key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
 `PUT /__admin/credentials {"credentials": {"<DAILY_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled

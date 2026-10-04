@@ -105,7 +105,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 ### Namespaces
 
 Our backend's `fetch` cannot add headers, so a namespace can be chosen three ways:
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `RXVORTEX_API_URL`, or by client id:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `RXVORTEX_API_URL`, or by client id:
 `PUT /__admin/credentials {"credentials": {"<RXVORTEX_CLIENT_ID>": "<namespace>"}}` (tokens carry
 the client id they were issued to).
 

@@ -176,7 +176,7 @@ describe("S6.6 acceptance: posthog-node through the backend adapter", () => {
     const b = backend(fetcher, HOST, "phc_worker_b")
     // A third worker picks its namespace by host prefix instead.
     await admin("/flags/shop-coupons?namespace=wc", { default: "variant-c" })
-    const c = backend(fetcher, `${HOST}/ns/wc`, "phc_unmapped")
+    const c = backend(fetcher, `${HOST}/__admin/ns/wc`, "phc_unmapped")
     const [ra, rb, rc] = await Promise.all([
       a.resolveStrictBoolean("shop-coupons", "1"),
       b.resolveStrictBoolean("shop-coupons", "1"),
@@ -699,7 +699,7 @@ describe("admin: import, bulk, bump; tooling and crons", () => {
 })
 
 describe("served over HTTP", () => {
-  test("posthog-node against the node server: /ns/<name> host, gzip batch, and a real 1 s timeout", async () => {
+  test("posthog-node against the node server: /__admin/ns/<name> host, gzip batch, and a real 1 s timeout", async () => {
     const server = await createServer()
     try {
       const admin = (path: string, body: unknown, method = "PUT") =>
@@ -707,11 +707,11 @@ describe("served over HTTP", () => {
       await admin("/flags/shop-coupons?namespace=w1", { default: true })
       const adapter = new PostHogServerAdapter({
         POSTHOG_API_KEY: TOKEN,
-        POSTHOG_HOST: `${server.url}/ns/w1`,
+        POSTHOG_HOST: `${server.url}/__admin/ns/w1`,
       })
       const tracking = new PostHogTrackingService({
         POSTHOG_API_KEY: TOKEN,
-        POSTHOG_HOST: `${server.url}/ns/w1`,
+        POSTHOG_HOST: `${server.url}/__admin/ns/w1`,
       })
       try {
         expect(await adapter.isStrictBooleanEnabled("shop-coupons", "1")).toBe(true)
@@ -728,7 +728,7 @@ describe("served over HTTP", () => {
           status: "unresolved",
           reason: "provider_timeout",
         })
-        const health = await fetch(`${server.url}/health`)
+        const health = await fetch(`${server.url}/__admin/health`)
         expect(health.headers.get("x-mockingbird")).toMatch(/^posthog@/)
       } finally {
         await adapter.onModuleDestroy()

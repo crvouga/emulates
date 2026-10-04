@@ -31,9 +31,9 @@ const gql = (
 const json = async (response: Response) => (await response.json()) as Record<string, any>
 
 describe("the service contract", () => {
-  test("/health, the x-mockingbird header, and every documented preset listed", async () => {
+  test("/__admin/health, the x-mockingbird header, and every documented preset listed", async () => {
     const runtime = createRuntime()
-    const health = await runtime.fetch(new Request(`${HOST}/health`))
+    const health = await runtime.fetch(new Request(`${HOST}/__admin/health`))
     expect(await health.json()).toMatchObject({ status: "ok", service: "healthie" })
     expect(health.headers.get("x-mockingbird")).toMatch(/^healthie@.+; ns=default$/)
     const presets = await json(await runtime.fetch(new Request(`${HOST}/__admin/faults/presets`)))
@@ -41,7 +41,7 @@ describe("the service contract", () => {
     for (const name of Object.keys(HEALTHIE_PRESETS)) expect(names).toContain(name)
   })
 
-  test("namespaces by header, by /ns/ prefix (file URLs keep the prefix), and by API key", async () => {
+  test("namespaces by header, by /__admin/ns/ prefix (file URLs keep the prefix), and by API key", async () => {
     const runtime = createRuntime()
     const update = (headers: Record<string, string>, path?: string) =>
       gql(
@@ -66,11 +66,11 @@ describe("the service contract", () => {
     await update({ "x-mockingbird-namespace": "one" })
     expect(await read({ "x-mockingbird-namespace": "one" })).toBe("ns-marker")
     expect(await read({})).not.toBe("ns-marker")
-    await update({}, "/ns/two/graphql")
-    expect(await read({}, "/ns/two/graphql")).toBe("ns-marker")
+    await update({}, "/__admin/ns/two/graphql")
+    expect(await read({}, "/__admin/ns/two/graphql")).toBe("ns-marker")
     expect(await read({ "x-mockingbird-namespace": "one" })).toBe("ns-marker")
 
-    // A document uploaded under /ns/three comes back with a /ns/three download URL.
+    // A document uploaded under /__admin/ns/three comes back with a /__admin/ns/three download URL.
     const form = new FormData()
     form.append(
       "operations",
@@ -83,7 +83,7 @@ describe("the service contract", () => {
     form.append("0", new File(["hello"], "hello.txt", { type: "text/plain" }))
     const created = await json(
       await runtime.fetch(
-        new Request(`${HOST}/ns/three/graphql`, {
+        new Request(`${HOST}/__admin/ns/three/graphql`, {
           method: "POST",
           headers: { authorization: `Bearer ${ORG_KEY}` },
           body: form,
@@ -94,11 +94,11 @@ describe("the service contract", () => {
     const doc = await json(
       await gql(runtime, `{ document(id: "${id}") { expiring_url display_name } }`, {
         auth: `Bearer ${ORG_KEY}`,
-        path: "/ns/three/graphql",
+        path: "/__admin/ns/three/graphql",
       }),
     )
     expect(doc.data.document.display_name).toBe("hello.txt")
-    expect(doc.data.document.expiring_url).toStartWith(`${HOST}/ns/three/files/`)
+    expect(doc.data.document.expiring_url).toStartWith(`${HOST}/__admin/ns/three/files/`)
     expect(await (await runtime.fetch(new Request(doc.data.document.expiring_url))).text()).toBe(
       "hello",
     )

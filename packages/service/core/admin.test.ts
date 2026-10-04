@@ -3,6 +3,7 @@ import {
   adminClientSource,
   bootAdmin,
   faultPresetList,
+  highlightJsonText,
   isRecord,
   mountAdminBrand,
   mountSqlExplorer,
@@ -194,7 +195,9 @@ describe("admin ui", () => {
         ],
       },
     })
-    const health = (await (await call(runtime, "GET", "/health")).json()) as { adminUi: string }
+    const health = (await (await call(runtime, "GET", "/__admin/health")).json()) as {
+      adminUi: string
+    }
     expect(health.adminUi).toBe("/__admin/ui")
 
     const shell = await call(runtime, "GET", "/__admin/ui")
@@ -259,6 +262,24 @@ describe("admin ui", () => {
     expect(adminClientSource.toString()).toContain("bootAdmin.name")
     expect(bootAdmin.toString()).toContain(`${mountSqlExplorer.name}(`)
     expect(html).toContain(`function ${mountSqlExplorer.name}(`)
+  })
+
+  test("JSON is syntax highlighted without allowing markup through", () => {
+    const highlighted = highlightJsonText(
+      '{"name":"<script>alert(1)</script>","count":42,"ready":true,"empty":null}',
+    )
+    expect(highlighted).toContain('class="json-key"')
+    expect(highlighted).toContain('class="json-string"')
+    expect(highlighted).toContain('class="json-number"')
+    expect(highlighted).toContain('class="json-boolean"')
+    expect(highlighted).toContain('class="json-null"')
+    expect(highlighted).toContain("&lt;script&gt;")
+    expect(highlighted).not.toContain("<script>")
+
+    const html = renderAdminDocument("notes")
+    expect(html).toContain('class="json-editor"')
+    expect(html).toContain("highlightJsonText")
+    expect(html).toContain('aria-live="polite"')
   })
 
   test("clearing an empty journal tells you the click finished", () => {

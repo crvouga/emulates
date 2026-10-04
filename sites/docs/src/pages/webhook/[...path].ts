@@ -6,9 +6,11 @@ import { webhookStore } from "../../lib/webhook-store.js"
 export const ALL: APIRoute = async ({ request }) => {
   const url = new URL(request.url)
   url.pathname = url.pathname.replace(/^\/webhook(?=\/|$)/, "") || "/"
-  return createWebhookCollector(webhookStore(), process.env.WEBHOOK_READ_TOKEN).fetch(
-    new Request(url, request),
-  )
+  return createWebhookCollector(webhookStore(), process.env.WEBHOOK_READ_TOKEN, {
+    ...(process.env.MOCKINGBIRD_ADMIN_PREFIX !== undefined
+      ? { adminPrefix: process.env.MOCKINGBIRD_ADMIN_PREFIX }
+      : {}),
+  }).fetch(new Request(url, request))
 }
 
 export const prerender = false

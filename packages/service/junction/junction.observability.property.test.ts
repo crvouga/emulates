@@ -75,7 +75,7 @@ const anyRequest = fc.constantFrom(
   { method: "GET", path: "/v2/user/not-a-uuid" },
   { method: "GET", path: "/v9/nothing/here" },
   { method: "POST", path: "/v2/user" },
-  { method: "GET", path: "/health" },
+  { method: "GET", path: "/__admin/health" },
   { method: "GET", path: "/__admin/metrics" },
   { method: "GET", path: "/__admin/nope" },
 )

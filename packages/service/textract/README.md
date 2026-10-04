@@ -20,7 +20,7 @@ import { createServer } from "@crvouga/mockingbird-service-textract/server"
 const mock = await createServer({
   corpora: [{ bucket: "fixtures", name: "invoice.pdf", pages: 1, blocks: [] }],
 })
-const health = await fetch(`${mock.url}/health`)
+const health = await fetch(`${mock.url}/__admin/health`)
 ```
 
 Point `TextractClient.endpoint` at `mock.url` with fixture SigV4 credentials. Supported operations are AnalyzeDocument, StartDocumentAnalysis, and GetDocumentAnalysis. Block records retain PAGE, LINE, WORD, KEY_VALUE_SET, TABLE, CELL, and SELECTION_ELEMENT graph fields including Geometry, Confidence, EntityTypes, Text, and Relationships.

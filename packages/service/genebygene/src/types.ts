@@ -132,7 +132,7 @@ export type ResultRecord = {
   resultType: string
   resultTypeName: string
   resultDate: string
-  /** Object key, e.g. `WB3K9Q2X.json`: the `/__blob/<key>` and S3 key. */
+  /** Object key, e.g. `WB3K9Q2X.json`: the `/__admin/blobs/<key>` and S3 key. */
   key: string
   /** `s3://<bucket>/<key>`, what `resultPayload` reports. */
   resultPayload: string

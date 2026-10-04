@@ -106,7 +106,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `wrong
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `OPTIMAL_URL`, or by API key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `OPTIMAL_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<OPTIMAL_API_KEY>": "<namespace>"}}`.
 
 ### Known consumer bugs

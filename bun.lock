@@ -1362,6 +1362,7 @@
       "devDependencies": {
         "@crvouga/mockingbird-adapter-node": "workspace:*",
         "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
         "bullmq": "5.67.1",
         "ioredis": "5.11.1",
         "ioredis-5-9": "npm:ioredis@5.9.2",
@@ -1715,6 +1716,7 @@
       "name": "@crvouga/mockingbird-webhook-collector",
       "version": "0.0.0-development",
       "dependencies": {
+        "@crvouga/mockingbird-service": "workspace:*",
         "hono": "4.11.9",
       },
     },

@@ -480,7 +480,7 @@ describe("served over HTTP", () => {
       const deadline = Date.now() + 3_000
       while (results.length < 1 && Date.now() < deadline) await Bun.sleep(25)
       expect(results).toEqual([{ received: true, applied: true }])
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^customerio@/)
     } finally {
       await server.close()
@@ -490,7 +490,7 @@ describe("served over HTTP", () => {
 })
 
 describe("contract", () => {
-  test("namespaces by header and by /ns/ prefix are isolated; reset clears one namespace", async () => {
+  test("namespaces by header and by /__admin/ns/ prefix are isolated; reset clears one namespace", async () => {
     const runtime = createRuntime()
     const get = (url: string, headers: Record<string, string> = {}) =>
       runtime.fetch(new Request(url, { headers: { authorization: "Bearer k", ...headers } }))
@@ -502,7 +502,7 @@ describe("contract", () => {
     >
     const viaHeader = await get(`${base}/v1/transactional`, { "x-mockingbird-namespace": "a" })
     expect(viaHeader.headers.get("x-mockingbird")).toMatch(/; ns=a$/)
-    const viaPrefix = await get(`${base}/ns/b/v1/transactional`)
+    const viaPrefix = await get(`${base}/__admin/ns/b/v1/transactional`)
     expect(viaPrefix.status).toBe(viaHeader.status)
     expect(viaPrefix.headers.get("x-mockingbird")).toMatch(/; ns=b$/)
     expect(((await viaPrefix.json()) as Record<string, unknown[]>).messages?.length).toBe(
@@ -512,7 +512,7 @@ describe("contract", () => {
       new Request(`${base}/__admin/reset?namespace=a`, { method: "POST" }),
     )
     expect(reset.status).toBeLessThan(300)
-    const health = (await (await runtime.fetch(new Request(`${base}/health`))).json()) as {
+    const health = (await (await runtime.fetch(new Request(`${base}/__admin/health`))).json()) as {
       status: string
     }
     expect(health.status).toBe("ok")

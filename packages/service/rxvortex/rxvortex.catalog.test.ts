@@ -65,13 +65,15 @@ const admin = (
     }),
   )
 const consumerFor = (runtime: Runtime, ns?: string) =>
-  new RxVortexConsumer(ns ? `${API}/ns/${ns}` : API, { clientId: "acme", clientSecret: "s" }, (r) =>
-    runtime.fetch(r),
+  new RxVortexConsumer(
+    ns ? `${API}/__admin/ns/${ns}` : API,
+    { clientId: "acme", clientSecret: "s" },
+    (r) => runtime.fetch(r),
   )
 const catalogIds = async (runtime: Runtime, ns?: string) => {
   const token = await consumerFor(runtime, ns).getAccessToken()
   const response = await runtime.fetch(
-    new Request(`${ns ? `${API}/ns/${ns}` : API}/api/v1/preset-catalog-items`, {
+    new Request(`${ns ? `${API}/__admin/ns/${ns}` : API}/api/v1/preset-catalog-items`, {
       headers: { authorization: `Bearer ${token}` },
     }),
   )
@@ -146,7 +148,7 @@ describe("loading a consumer's preset catalog (#133)", () => {
     const w2 = consumerFor(runtime, "w2")
     const token = await w2.getAccessToken()
     const response = await runtime.fetch(
-      new Request(`${API}/ns/w2/api/v1/orders`, {
+      new Request(`${API}/__admin/ns/w2/api/v1/orders`, {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
         body: JSON.stringify(samplePayload("pay_w2", ACTIVE.catalog_id)),

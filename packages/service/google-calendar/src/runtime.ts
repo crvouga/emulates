@@ -138,6 +138,7 @@ export type GoogleCalendarRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -261,8 +262,8 @@ const adminRoutes = (runtime: ServiceRuntime<GoogleCalendarAPI>): AdminRoutes =>
 }
 
 /**
- * The Google Calendar + OAuth mock with Mockingbird's full service contract: `/health`,
- * `/__admin/*`, namespaces by header, by `/ns/<name>` path prefix, or by account (access
+ * The Google Calendar + OAuth mock with Mockingbird's full service contract: `/__admin/health`,
+ * `/__admin/*`, namespaces by header, by `/__admin/ns/<name>` path prefix, or by account (access
  * tokens carry their email: `PUT /__admin/credentials {"credentials": {"<email>": "<ns>"}}`),
  * clock control, fault presets, push notifications to each channel's address, and a journal.
  */
@@ -281,6 +282,7 @@ export const createRuntime = (
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: accessTokenCredential,

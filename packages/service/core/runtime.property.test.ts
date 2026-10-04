@@ -156,14 +156,14 @@ describe("rng", () => {
 })
 
 describe("runtime", () => {
-  test("GET /health answers without vendor credentials", async () => {
+  test("GET /__admin/health answers without vendor credentials", async () => {
     const runtime = createRuntime({
       name: "notes",
       document,
       create: notesService,
       describe: () => ({ corpus: "v1" }),
     })
-    const res = await runtime.fetch(new Request("http://mock.local/health"))
+    const res = await runtime.fetch(new Request("http://mock.local/__admin/health"))
     expect(res.status).toBe(200)
     const body = (await res.json()) as Record<string, unknown>
     expect(body).toMatchObject({ status: "ok", service: "notes", corpus: "v1" })
@@ -172,7 +172,7 @@ describe("runtime", () => {
     expect(vendor.status).toBe(401)
   })
 
-  test("the admin key gates /__admin but not /health", async () => {
+  test("the admin key gates /__admin but not /__admin/health", async () => {
     const runtime = createRuntime({
       name: "notes",
       document,
@@ -184,7 +184,7 @@ describe("runtime", () => {
       new Request("http://mock.local/__admin/clock", { headers: { [ADMIN_KEY_HEADER]: "secret" } }),
     )
     expect(ok.status).toBe(200)
-    expect((await runtime.fetch(new Request("http://mock.local/health"))).status).toBe(200)
+    expect((await runtime.fetch(new Request("http://mock.local/__admin/health"))).status).toBe(200)
   })
 
   test(
@@ -405,7 +405,14 @@ describe("runtime", () => {
     runtime.faults.add({ id: "f", pathPrefix: "/v1/notes/", status: 503 })
     await fc.assert(
       fc.asyncProperty(
-        fc.constantFrom("/v1/notes", "/v1/notes/x", "/nope", "/health", "/__admin", "/__admin/x"),
+        fc.constantFrom(
+          "/v1/notes",
+          "/v1/notes/x",
+          "/nope",
+          "/__admin/health",
+          "/__admin",
+          "/__admin/x",
+        ),
         fc.constantFrom("default", "w1"),
         fc.boolean(),
         async (path, namespace, keyed) => {

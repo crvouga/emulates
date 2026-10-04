@@ -60,7 +60,7 @@ presigned upload and asset URLs.
 | `POST /users` | Upsert by `token` (`sex`, `region`, `birthDate`, `weight {value, unit kg\|lb}`, `height {value, unit m\|in}`, `researchConsent`, `termsOfService`) → 201 on create, 200 on update, same `id`. |
 | `POST /scans` | `{userToken, deviceConfigName: IPHONE_SCANNER\|ANDROID_SCANNER, bodyfatMethod, assetConfigId?}` → 201 scan `{id, status: "CREATED", weight, height, …}`; unknown user 404. |
 | `GET /scans/{id}?unit-system=metric\|imperial` | Status and the subject's weight/height in that unit system. |
-| `POST /scans/{id}/upload-url` | `{url, expirationTime}`: a presigned PUT to the mock itself (15 minutes on the mock clock; `/ns/<name>` kept in the URL). 409 once the capture is uploaded. |
+| `POST /scans/{id}/upload-url` | `{url, expirationTime}`: a presigned PUT to the mock itself (15 minutes on the mock clock; `/__admin/ns/<name>` kept in the URL). 409 once the capture is uploaded. |
 | `PUT /uploads/{id}?expires&signature` | The capture upload. Moves the scan to `PROCESSING` (`captureData` succeeded, `body` started); an empty body fails it. Expired or tampered URLs are S3-style 403 XML. |
 | `GET /scans/{id}/scan-assets` | `{captureData, body, fittedBody, measurement}` each `started` / `succeeded` / `failed` / `null`, with `…UpdatedAt`. |
 | `GET /scans/{id}/bodyfat` | READY only: `{bodyfatMethod, bodyfatPercentage, leanMass, fatMass, skeletalMuscleMass}`. |
@@ -87,7 +87,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `unaut
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `PRISM_API_URL`, or by API key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `PRISM_API_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<PRISM_API_KEY>": "<namespace>"}}`. Presigned
 upload and asset URLs carry the namespace in their path, since the capture page's PUT has no
 other carrier.

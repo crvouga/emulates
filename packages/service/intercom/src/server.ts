@@ -81,6 +81,7 @@ export const serveTarget: ServeTarget = {
     return createRuntime({
       ...(urls.length > 0 ? { webhooks: { urls, ...(secret ? { secret } : {}) } } : {}),
       ...(token ? { settings: { tokens: [token] } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -88,6 +89,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Bearer <INTERCOM_ACCESS_TOKEN>, Intercom-Version: 2.11",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
   ],
 }

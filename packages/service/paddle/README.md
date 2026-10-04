@@ -183,7 +183,7 @@ answers 500 `internal_error`), `bad_gateway_html` (reads answer a 502 HTML page)
 
 `new Paddle(key)` cannot add a namespace header on its own (it can with `customHeaders`), so
 map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_API_KEY>":
-"<namespace>"}}`. Also `x-mockingbird-namespace`, or a `/ns/<name>` prefix on the base URL
+"<namespace>"}}`. Also `x-mockingbird-namespace`, or a `/__admin/ns/<name>` prefix on the base URL
 (`meta.pagination.next` keeps it).
 
 ### Deliberately not modelled

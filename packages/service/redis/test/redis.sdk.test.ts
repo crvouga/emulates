@@ -10,10 +10,10 @@ afterEach(async () => {
   closeServer = undefined
 })
 
-test("serveTarget answers /health and speaks RESP on the banner port", async () => {
+test("serveTarget answers /__admin/health and speaks RESP on the banner port", async () => {
   const runtime = await serveTarget.create()
   closeServer = () => runtime.close()
-  const health = await runtime.fetch(new Request("http://127.0.0.1/health"))
+  const health = await runtime.fetch(new Request("http://127.0.0.1/__admin/health"))
   expect(health.status).toBe(200)
   expect(await health.json()).toEqual({ status: "ok", service: "redis" })
   const client = new Redis({

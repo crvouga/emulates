@@ -81,7 +81,14 @@ export interface Service {
   /** Origin the playground addresses requests to (the contract's first server). */
   origin: string | null
   contract: { title: string | null; upstream: string | null }
-  links: { npm: string; source: string; readme: string; support: string | null }
+  links: {
+    npm: string
+    source: string
+    readme: string
+    /** Installed-package index for coding agents and tooling. */
+    discovery: string
+    support: string | null
+  }
   readme: { markdown: string; html: string; toc: TocEntry[] }
   /** First TypeScript example in the README that only imports the package's main entry. */
   example: { code: string; html: string } | null

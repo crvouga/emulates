@@ -73,6 +73,7 @@ export const serveTarget: ServeTarget = {
         ...(key ? { orgApiKeys: [key] } : {}),
         ...(signInNamespace ? { namespace: signInNamespace } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -80,6 +81,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "GraphQL: POST /graphql (JSON or multipart), Authorization: Bearer|Basic <api key>, AuthorizationSource: API",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/graphql, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/graphql, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

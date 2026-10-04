@@ -364,7 +364,7 @@ describe("event-stream framing is byte-exact with @smithy/eventstream-codec", ()
 
   test("the same port speaks h2c prior knowledge to a raw HTTP/2 client", async () => {
     const session = connect(server.url)
-    const request = session.request({ ":method": "GET", ":path": "/health" })
+    const request = session.request({ ":method": "GET", ":path": "/__admin/health" })
     const status = await new Promise<number>((resolve) =>
       request.on("response", (headers) => resolve(Number(headers[":status"]))),
     )

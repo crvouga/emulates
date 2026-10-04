@@ -39,7 +39,7 @@ export JUNCTION_WEBHOOK_RECEIVER_URL="https://mockingbird-junction-webhooks.<acc
 bun run webhook:register
 ```
 
-`webhook:register` health-checks the receiver at `/health` and prints the exact webhook URL to register in the Junction sandbox dashboard:
+`webhook:register` health-checks the receiver at `/__admin/health` and prints the exact webhook URL to register in the Junction sandbox dashboard:
 
 ```text
 https://mockingbird-junction-webhooks.<account>.workers.dev/junction/webhooks
@@ -56,7 +56,7 @@ Registration is dashboard-driven and does not require a Junction Management API 
 
 ## Receiver contract
 
-- `GET /health` — readiness probe.
+- `GET /__admin/health` — readiness probe.
 - `POST /junction/webhooks` — receives Junction events. The request must include `x-mockingbird-scope`; the receiver stores the exact JSON payload in arrival order.
 - `GET /events/{runId}` — returns the ordered events for one parity run.
 - `DELETE /events/{runId}` — clears one run's events.
@@ -68,7 +68,7 @@ Run IDs isolate parallel parity processes. The parity runner compares real and m
 Before live parity, verify the Worker:
 
 ```sh
-curl -fsS "$JUNCTION_WEBHOOK_RECEIVER_URL/health"
+curl -fsS "$JUNCTION_WEBHOOK_RECEIVER_URL/__admin/health"
 curl -i -X POST "$JUNCTION_WEBHOOK_RECEIVER_URL/junction/webhooks" \
   -H 'content-type: application/json' \
   -H 'x-mockingbird-scope: smoke-test' \
@@ -86,5 +86,5 @@ JUNCTION_WEBHOOK_RECEIVER_URL="https://mockingbird-junction-webhooks.<account>.w
 ## Troubleshooting
 
 - `junction webhook parity: skipped; configure JUNCTION_WEBHOOK_RECEIVER_URL ...` — the warning parity prints when webhook parity is off. Deploy the receiver, set the URL above, register the webhook URL and event types in the Junction sandbox dashboard, then rerun.
-- `junction webhook receiver returned <status>` — the receiver is configured but unreachable or failing. Check `/health` on the deployed Worker and the Wrangler logs (`bun run webhook:dev` locally, `wrangler tail` for the deployed Worker).
+- `junction webhook receiver returned <status>` — the receiver is configured but unreachable or failing. Check `/__admin/health` on the deployed Worker and the Wrangler logs (`bun run webhook:dev` locally, `wrangler tail` for the deployed Worker).
 - `Junction webhook receiver returned <status>` from `webhook:register` — the receiver health check failed; the Worker is not reachable at `JUNCTION_WEBHOOK_RECEIVER_URL`.

@@ -84,6 +84,7 @@ export type VpiRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Replace the seeded clinic, providers, products or patients. */
@@ -218,8 +219,8 @@ const adminRoutes = (runtime: ServiceRuntime<VpiAPI>): AdminRoutes => ({
 })
 
 /**
- * The VPI mock with Mockingbird's full service contract: `/health`, `/__admin/*`, namespaces
- * by header, by `/ns/<name>` path prefix, or by login email
+ * The VPI mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * by header, by `/__admin/ns/<name>` path prefix, or by login email
  * (`PUT /__admin/credentials {"credentials": {"<VPI_API_EMAIL>": "<namespace>"}}`), clock
  * control, fault presets and a request journal. VPI sends no webhooks: our client polls.
  */
@@ -230,6 +231,7 @@ export const createRuntime = (options: VpiRuntimeOptions = {}): VpiRuntime =>
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: tokenCredential,

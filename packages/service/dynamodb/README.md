@@ -28,7 +28,7 @@ const mock = await createServer({
     },
   ],
 })
-const health = await fetch(`${mock.url}/health`)
+const health = await fetch(`${mock.url}/__admin/health`)
 ```
 
 Supported operations are CreateTable, DescribeTable, GetItem, PutItem, UpdateItem, DeleteItem, Query, Scan, BatchGetItem, BatchWriteItem, TransactGetItems, and TransactWriteItems. The expression subset includes expression name/value aliases, SET/ADD/REMOVE/DELETE, `if_not_exists`, `attribute_exists`, `attribute_not_exists`, `begins_with`, comparisons, BETWEEN, AND/OR, projection, conditions, limits, cursors, index ordering, and return values.
@@ -40,7 +40,7 @@ Supported operations are CreateTable, DescribeTable, GetItem, PutItem, UpdateIte
 - Advance the shared mock clock to expire TTL items without sleeps.
 - Fault presets are `throttled` and one-shot `unavailable`; generic fault rules can model unprocessed batch responses or eventual-read failures.
 
-The shared runtime also provides reset, timeline, request journal, metrics, faults, and namespace isolation through `x-mockingbird-namespace`, `/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime also provides reset, timeline, request journal, metrics, faults, and namespace isolation through `x-mockingbird-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 

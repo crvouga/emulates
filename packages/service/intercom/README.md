@@ -194,7 +194,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`):
 ### Namespaces
 
 - the `x-mockingbird-namespace` header;
-- a `/ns/<name>` prefix on `INTERCOM_API_BASE_URL`;
+- a `/__admin/ns/<name>` prefix on `INTERCOM_API_BASE_URL`;
 - the access token: `PUT /__admin/credentials {"credentials": {"<INTERCOM_ACCESS_TOKEN>": "<namespace>"}}`.
 
 The request journal records operation ids, statuses and contact, conversation and part ids. It

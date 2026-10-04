@@ -59,6 +59,7 @@ export const serveTarget: ServeTarget = {
           : {}),
         ...(key ? { apiKeys: [key] } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -66,6 +67,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: POST /externalapi/Auth/client-login {userName, password}, then Authorization: Bearer <token>",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<userName>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<userName>: <ns>}",
   ],
 }

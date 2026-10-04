@@ -68,6 +68,7 @@ export type OtelRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -238,7 +239,7 @@ const adminRoutes = (runtime: ServiceRuntime<OtelAPI>): AdminRoutes => {
 
 /**
  * The OTLP collector + OpenObserve search mock with Mockingbird's full service contract:
- * `/health`, `/__admin/*` (logs, spans, wait), namespaces by header, by `/ns/<name>` path
+ * `/__admin/health`, `/__admin/*` (logs, spans, wait), namespaces by header, by `/__admin/ns/<name>` path
  * prefix, or by credential (the OTLP bearer token or the O2 Basic username), clock control and
  * fault presets.
  */
@@ -249,6 +250,7 @@ export const createRuntime = (options: OtelRuntimeOptions = {}): OtelRuntime =>
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: otelCredential,

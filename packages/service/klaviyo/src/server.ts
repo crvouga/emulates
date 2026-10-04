@@ -32,13 +32,14 @@ export const serveTarget: ServeTarget = {
   options: {},
   create: (_values, common) =>
     createRuntime({
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
     }),
   banner: () => [
     "events: POST /api/events/ with Authorization: Klaviyo-API-Key <key> and revision: 2024-02-15",
-    "point KLAVIYO_URL at <this url>/api/events/ (or /ns/<name>/api/events/)",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
+    "point KLAVIYO_URL at <this url>/api/events/ (or /__admin/ns/<name>/api/events/)",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
   ],
 }

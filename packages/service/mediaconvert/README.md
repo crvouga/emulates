@@ -20,7 +20,7 @@ import { createServer } from "@crvouga/mockingbird-service-mediaconvert/server"
 const mock = await createServer()
 // Point the discovery MediaConvertClient at mock.url. DescribeEndpoints returns
 // mock.url for constructing the second client used to submit jobs.
-const health = await fetch(`${mock.url}/health`)
+const health = await fetch(`${mock.url}/__admin/health`)
 ```
 
 Supported operations are DescribeEndpoints, CreateJob, GetJob, and CancelJob. CreateJob retains Role, Queue, UserMetadata, and the complete nested Settings structure. A repeated ClientRequestToken returns the original job.

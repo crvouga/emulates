@@ -9,7 +9,10 @@
     "dist",
     "README.md",
     "CHANGELOG.md",
-    "NOTICE"
+    "NOTICE",
+    "DISCOVERY.md",
+    "SUPPORT.md",
+    "openapi.yaml"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -60,7 +63,29 @@
       "description": "Medplum is an open-source, FHIR-native healthcare developer platform: a headless EHR backend, auth and SDKs."
     },
     "parity": "FHIR R4, OAuth, and admin",
-    "parityTier": "cold"
+    "parityTier": "cold",
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "contract": "openapi.yaml",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Pinned self-hosted Medplum",
+        "command": "bun run parity:service -- medplum",
+        "note": "The harness boots its own oracle (or accepts --oracle-url), compares scenarios and random walks, and keeps an oracle recording."
+      },
+      "introspection": [
+        "GET /__admin/health",
+        "GET /__admin",
+        "GET /__admin/state",
+        "GET /__admin/requests",
+        "GET /__admin/metrics",
+        "GET /__admin/faults/presets",
+        "GET /__admin/ui"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
   },
   "scripts": {
     "generate": "bun ../../openapi/codegen/dist/cli.js && bun scripts/generate-definitions.ts",

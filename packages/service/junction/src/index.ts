@@ -217,7 +217,7 @@ export type JunctionAPIOptions = APIOptions & {
   fixtures?: JunctionFixtures
 }
 
-/** What a loaded corpus covers, for `/health` and startup logs. */
+/** What a loaded corpus covers, for `/__admin/health` and startup logs. */
 export type CorpusInfo = {
   label: string
   recordedAt: string

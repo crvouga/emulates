@@ -100,6 +100,7 @@ export type SlackRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -346,8 +347,8 @@ const adminRoutes = (runtime: ServiceRuntime<SlackAPI>): AdminRoutes => ({
 })
 
 /**
- * The Slack mock with Mockingbird's full service contract: `/health`, `/__admin/*`, the outbox
- * (`GET /__admin/outbox?webhook=|channel=`), namespaces by header, by `/ns/<name>` path prefix,
+ * The Slack mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, the outbox
+ * (`GET /__admin/outbox?webhook=|channel=`), namespaces by header, by `/__admin/ns/<name>` path prefix,
  * or by credential (a bot token or a webhook's `T/B/X` path), clock control and fault presets.
  */
 export const createRuntime = (options: SlackRuntimeOptions = {}): SlackRuntime =>
@@ -357,9 +358,10 @@ export const createRuntime = (options: SlackRuntimeOptions = {}): SlackRuntime =
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
-    credential: slackCredential,
+    credential: (request) => slackCredential(request, options.adminPrefix),
     presets: SLACK_PRESETS,
     create: ({ sqlite, namespace, publicNamespace, clock }) =>
       new SlackAPI({

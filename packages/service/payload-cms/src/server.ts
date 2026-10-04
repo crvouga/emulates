@@ -49,6 +49,7 @@ export const serveTarget: ServeTarget = {
     const collections = file ? (JSON.parse(await readFile(file, "utf8")) as Seed) : undefined
     return createRuntime({
       ...(collections ? { collections } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -56,6 +57,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "reads: GET /api/<collection>?where[field][op]=…&limit=&page=&sort=, GET /api/<collection>/<id>",
-    "namespaces: x-mockingbird-namespace, or a /ns/<name> suffix on PAYLOAD_CMS_API_URL",
+    "namespaces: x-mockingbird-namespace, or a /__admin/ns/<name> suffix on PAYLOAD_CMS_API_URL",
   ],
 }

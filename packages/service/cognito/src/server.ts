@@ -23,6 +23,7 @@ export const serveTarget: ServeTarget = {
       ...(typeof values["pool-id"] === "string" ? { poolId: values["pool-id"] } : {}),
       ...(typeof values["client-id"] === "string" ? { clientId: values["client-id"] } : {}),
       ...(typeof values.region === "string" ? { region: values.region } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),

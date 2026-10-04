@@ -108,6 +108,7 @@ export type FormbricksRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   surveys?: readonly Survey[]
@@ -225,8 +226,8 @@ export const formbricksCredential = (request: Request): string | undefined => {
 }
 
 /**
- * The Formbricks mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` prefix on the app URL, or by workspace id / API key
+ * The Formbricks mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` prefix on the app URL, or by workspace id / API key
  * (`PUT /__admin/credentials {"credentials": {"<workspace id or key>": "<namespace>"}}`),
  * clock control, fault presets, and Standard-Webhooks-signed `responseFinished` webhooks.
  */
@@ -254,6 +255,7 @@ export const createRuntime = (options: FormbricksRuntimeOptions = {}): Formbrick
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: formbricksCredential,

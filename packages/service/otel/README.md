@@ -142,7 +142,7 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the endpoint and base URL, or by credential:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the endpoint and base URL, or by credential:
 `PUT /__admin/credentials {"credentials": {"<OTEL_AUTH_TOKEN>": "w1", "<O2 username>": "w1"}}`
 (map both so a worker's exports and searches meet).
 

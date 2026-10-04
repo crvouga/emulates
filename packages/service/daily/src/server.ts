@@ -124,6 +124,7 @@ export const serveTarget: ServeTarget = {
       ...(url ? { webhooks: { url, ...(secret ? { secret } : {}) } } : {}),
       ...(transcripts ? { transcripts } : {}),
       settings,
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -132,6 +133,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Bearer <DAILY_API_KEY>; tokens are HS256 JWTs signed with it",
     "calls: POST /__admin/rooms/<name>/session {participants, durationSec, transcript?} → transcription.stopped",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<DAILY_API_KEY>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<DAILY_API_KEY>: <ns>}",
   ],
 }

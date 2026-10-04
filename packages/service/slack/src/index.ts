@@ -1,5 +1,6 @@
 import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
+  ADMIN_PREFIX,
   type APIOptions,
   annotateResponse,
   bearerToken,
@@ -9,6 +10,7 @@ import {
   faultEffect,
   HttpError,
   jsonRes,
+  matchNamespacePath,
   type OperationContext,
   opaqueToken,
   type Service,
@@ -59,11 +61,14 @@ const WEBHOOK_PATH = /^\/services\/([^/]+\/[^/]+\/[^/]+)\/?$/
  * The credential a Slack request carries, for `PUT /__admin/credentials`: the Web API bearer
  * token, or an incoming webhook's `T…/B…/X…` path (the webhook URL is its own credential).
  */
-export const slackCredential = (request: Request): string | undefined => {
+export const slackCredential = (
+  request: Request,
+  adminPrefix = ADMIN_PREFIX,
+): string | undefined => {
   const token = bearerToken(request)
   if (token) return token
   const path = new URL(request.url).pathname
-  return WEBHOOK_PATH.exec(path.replace(/^\/ns\/[^/]+/, ""))?.[1]
+  return WEBHOOK_PATH.exec(matchNamespacePath(path, adminPrefix)?.[2] ?? path)?.[1]
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
