@@ -95,7 +95,7 @@ string), `management_unauthorized`, `connection_drop`, `duplicate` (the next web
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the app URL, or by credential: the workspace
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the app URL, or by credential: the workspace
 (or legacy environment) id in the client paths (the SDK cannot add headers) or the management
 `x-api-key`, through `PUT /__admin/credentials {"credentials": {"<workspace id or key>":
 "<namespace>"}}`.

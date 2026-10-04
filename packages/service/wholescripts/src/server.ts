@@ -81,6 +81,7 @@ export const serveTarget: ServeTarget = {
             }
           : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -88,6 +89,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Basic <WHOLESCRIPTS_USERNAME:WHOLESCRIPTS_PASSWORD> (any pair unless --username/--password)",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<username>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<username>: <ns>}",
   ],
 }

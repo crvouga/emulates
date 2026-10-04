@@ -184,11 +184,12 @@ describe("S25 Payload CMS acceptance: our referral-content client against the mo
     expect(calls).toEqual([])
   })
 
-  test("namespaces by /ns/ prefix on the base URL and by header isolate workers", async () => {
+  test("namespaces by /__admin/ns/ prefix on the base URL and by header isolate workers", async () => {
     const { runtime, fetchImpl, admin } = harness()
     await admin("/collections/marketing/docs/2?namespace=w1", { cardTitle: "Worker one" }, "PATCH")
     expect(
-      (await new PayloadCmsConsumer(`${API}/ns/w1`, fetchImpl).getReferralContent()).card.title,
+      (await new PayloadCmsConsumer(`${API}/__admin/ns/w1`, fetchImpl).getReferralContent()).card
+        .title,
     ).toBe("Worker one")
     expect((await new PayloadCmsConsumer(API, fetchImpl).getReferralContent()).card.title).toBe(
       "Give $150, Get Rewarded",
@@ -211,7 +212,7 @@ describe("served over HTTP", () => {
     try {
       const consumer = new PayloadCmsConsumer(server.url, (input, init) => fetch(input, init))
       expect((await consumer.getReferralContent()).card.title).toBe("Give $150, Get Rewarded")
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^payload-cms@/)
     } finally {
       await server.close()

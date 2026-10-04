@@ -26,13 +26,19 @@ closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes 
 mockingbird-stripe serve --config mockingbird.json --ready-file ready.json --ready-json
 ```
 
-HTTP namespace selection uses `x-mockingbird-namespace` or `/ns/{name}`. Protocol namespaces
+Set top-level `adminPrefix` (default `/__admin`) to move the aggregate API and all
+HTTP children together. A service entry may override `adminPrefix`. CLI
+`--admin-prefix` and `MOCKINGBIRD_ADMIN_PREFIX` also apply; ready manifests always
+report the actual URLs. Aggregate controls are under `<adminPrefix>/fleet`, and
+readiness is `<adminPrefix>/health`. Old `/__fleet` and `/health` routes are removed.
+
+HTTP namespace selection uses `x-mockingbird-namespace` or `/__admin/ns/{name}`. Protocol namespaces
 must be declared in the config; each gets its own engine and listener. Use the URL from
 `services[name].namespaces.endpoints[namespace]`. This isolates scripts, Pub/Sub, faults and
 clocks as well as records. Within one Redis endpoint, `SELECT` retains Redis's logical-database
 semantics: keys are partitioned, but scripts, Pub/Sub and time belong to the server.
 
-The aggregate `/health` endpoint reports `processReady`, `protocolReady` and `status` per child.
+The aggregate `/__admin/health` endpoint reports `processReady`, `protocolReady` and `status` per child.
 If any child stops, it returns 503. The control listener defaults to a loopback ephemeral port.
 
 ## Endpoint discovery

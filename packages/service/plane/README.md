@@ -96,7 +96,7 @@ never retried.
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the base URL, or by API key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
 `PUT /__admin/credentials {"credentials": {"<PLANE_ACCESS_TOKEN>": "<namespace>"}}`.
 
 ### Deliberately not modelled

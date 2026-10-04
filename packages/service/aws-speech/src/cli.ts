@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /// <reference types="node" />
 import {
   type CliCommand,
@@ -7,6 +8,7 @@ import {
   serveCommand,
 } from "@crvouga/mockingbird-adapter-node"
 import type { RequestLog } from "@crvouga/mockingbird-service"
+import { resolveAdminPrefix } from "@crvouga/mockingbird-service"
 import { listenH2c } from "./h2c.js"
 import { serveTarget } from "./server.js"
 
@@ -40,11 +42,15 @@ const serve: CliCommand = {
       console.error(`--log must be pretty, json or off (got ${format})`)
       return 2
     }
+    const adminPrefix = resolveAdminPrefix(
+      text(values["admin-prefix"]) ?? process.env.MOCKINGBIRD_ADMIN_PREFIX,
+    )
     const adminKey = text(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
     const seed = text(values.seed)
     const port = text(values.port)
     try {
       const runtime = await serveTarget.create(values, {
+        adminPrefix,
         adminKey,
         seed,
         onLog: logger(format),
@@ -54,12 +60,13 @@ const serve: CliCommand = {
         host: text(values.host) ?? "127.0.0.1",
       })
       console.log(`aws-speech mock listening on ${listening.url} (h2c + HTTP/1.1)`)
-      console.log(`aws-speech health: GET ${listening.url}/health`)
+      console.log(`aws-speech health: GET ${listening.url}${adminPrefix}/health`)
       console.log(
-        `aws-speech admin: ${listening.url}/__admin (${adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
+        `aws-speech admin: ${listening.url}${adminPrefix} (${adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
       )
-      console.log(`aws-speech admin ui: ${listening.url}/__admin/ui`)
-      for (const line of serveTarget.banner?.(runtime) ?? []) console.log(`aws-speech ${line}`)
+      console.log(`aws-speech admin ui: ${listening.url}${adminPrefix}/ui`)
+      for (const line of serveTarget.banner?.(runtime) ?? [])
+        console.log(`aws-speech ${line.replaceAll("/__admin", adminPrefix)}`)
       return await new Promise<number>((resolve) => {
         const stop = async () => {
           await listening.close()

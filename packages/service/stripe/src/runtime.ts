@@ -140,6 +140,8 @@ export type StripeRuntimeOptions = {
   clock?: Clock
   /** Seeds every random choice the runtime makes (fault rates). */
   seed?: number | string
+  /** Prefix for all internal HTTP paths. Default /__admin. */
+  adminPrefix?: string
   /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
@@ -220,8 +222,8 @@ const guard = (run: () => Response): Response => {
 }
 
 /**
- * The Stripe mock with Mockingbird's full service contract: `/health`, `/__admin/*`, namespaces
- * by header, by `/ns/<name>` path prefix, or by API key (`PUT /__admin/credentials`), accounts
+ * The Stripe mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * by header, by `/__admin/ns/<name>` path prefix, or by API key (`PUT /__admin/credentials`), accounts
  * by key (`PUT /__admin/accounts`), clock control that drives renewals and expiries, fault
  * presets, and signed webhooks (`Stripe-Signature`) fanned out to every matching endpoint.
  */
@@ -516,6 +518,7 @@ export const createRuntime = (options: StripeRuntimeOptions = {}): StripeRuntime
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     clock,
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: bearerToken,
@@ -526,7 +529,7 @@ export const createRuntime = (options: StripeRuntimeOptions = {}): StripeRuntime
       accounts: accounts.list().map((account) => account.id),
       webhooks: hub.endpoints("default").length > 0 ? "on" : "off",
     }),
-    create: ({ sqlite, namespace, publicNamespace, clock: instanceClock }) =>
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock: instanceClock }) =>
       new StripeAPI({
         sqlite,
         namespace,
@@ -534,6 +537,7 @@ export const createRuntime = (options: StripeRuntimeOptions = {}): StripeRuntime
         accounts,
         corpus,
         publicNamespace,
+        adminPrefix,
         ...(options.publicUrl ? { publicUrl: options.publicUrl } : {}),
         ...(options.webhookApiVersion ? { webhookApiVersion: options.webhookApiVersion } : {}),
         ...(options.lifecycle ? { lifecycle: options.lifecycle } : {}),

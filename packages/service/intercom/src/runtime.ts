@@ -113,6 +113,7 @@ export type IntercomRuntimeOptions = {
   /** Real-time clock for webhook freshness/signing; injectable for deterministic tests. */
   wallClock?: () => number
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   admins?: readonly AdminRecord[]
@@ -267,8 +268,8 @@ const adminRoutes = (runtime: ServiceRuntime<IntercomAPI>): AdminRoutes => {
 }
 
 /**
- * The Intercom mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by access token
+ * The Intercom mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by access token
  * (`PUT /__admin/credentials {"credentials": {"<INTERCOM_ACCESS_TOKEN>": "<namespace>"}}`),
  * clock control, fault presets, `X-Hub-Signature`-signed webhooks and a request journal
  * (metadata only: never message bodies).
@@ -298,6 +299,7 @@ export const createRuntime = (options: IntercomRuntimeOptions = {}): IntercomRun
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: bearerToken,

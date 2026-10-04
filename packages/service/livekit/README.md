@@ -20,7 +20,7 @@ import { createServer } from "@crvouga/mockingbird-service-livekit/server"
 const mock = await createServer({
   keys: { fixture: "fixture-secret-that-is-at-least-32-chars" },
 })
-const health = await fetch(`${mock.url}/health`)
+const health = await fetch(`${mock.url}/__admin/health`)
 ```
 
 Point `RoomServiceClient` at `mock.url`. Supported RoomService calls include CreateRoom, ListRooms, DeleteRoom, UpdateRoomMetadata, ListParticipants, GetParticipant, RemoveParticipant, UpdateParticipant, MutePublishedTrack, and SendData. Room creation is idempotent by name and participant identity is unique within a room.

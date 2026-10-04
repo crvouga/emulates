@@ -1,4 +1,11 @@
-import { type Clock, createClock } from "@crvouga/mockingbird-service"
+import {
+  assertAdminPrefixAvailable,
+  type Clock,
+  createClock,
+  isAdminPath,
+  matchNamespacePath,
+  resolveAdminPrefix,
+} from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { createRuntime, type OAuthRuntime, type OAuthRuntimeOptions } from "./runtime.js"
 import type { Provider } from "./types.js"
@@ -16,6 +23,7 @@ export type OAuthMultiRuntimeOptions = {
   mounts: OAuthMount[]
   clock?: Clock
   sqlite?: SqliteClient
+  adminPrefix?: string
   adminKey?: string
   seed?: number | string
 }
@@ -29,7 +37,6 @@ export type OAuthMultiRuntime = {
 }
 
 const MOUNT_PATTERN = /^\/[A-Za-z0-9](?:[A-Za-z0-9._~-]*)(?:\/[A-Za-z0-9](?:[A-Za-z0-9._~-]*))*$/
-const NS_PREFIX = /^\/ns\/([^/]+)(\/.*)?$/
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "cache-control": "no-store" } })
 
@@ -72,6 +79,14 @@ const withoutMount = (request: Request, namespacePrefix: string, rest: string) =
 
 /** Compose independent provider runtimes behind exact path mounts on one listener. */
 export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMultiRuntime {
+  const adminPrefix = resolveAdminPrefix(options.adminPrefix)
+  assertAdminPrefixAvailable(
+    adminPrefix,
+    options.mounts.map((mount) => mount.path),
+  )
+  for (const mount of options.mounts) {
+    if (isAdminPath(adminPrefix, mount.path)) throw new Error("OAuth mount overlaps adminPrefix")
+  }
   validateMounts(options.mounts)
   const clock = options.clock ?? createClock()
   const runtimes = new Map<string, OAuthRuntime>()
@@ -79,6 +94,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
     const { path, ...runtimeOptions } = mount
     const runtime = createRuntime({
       ...runtimeOptions,
+      adminPrefix,
       clock,
       ...(options.sqlite ? { sqlite: options.sqlite } : {}),
       ...((runtimeOptions.adminKey ?? options.adminKey)
@@ -107,26 +123,29 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
     reset,
     async fetch(request) {
       const url = new URL(request.url)
-      if (request.method === "GET" && url.pathname === "/health") {
+      if (request.method === "GET" && url.pathname === `${adminPrefix}/health`) {
         const health = await Promise.all(
           [...runtimes.entries()].map(async ([path, runtime]) => [
             path,
-            await (await runtime.fetch(new Request(new URL("/health", url), request))).json(),
+            await (
+              await runtime.fetch(new Request(new URL(`${adminPrefix}/health`, url), request))
+            ).json(),
           ]),
         )
         return json({ status: "ok", service: "oauth", mounts: Object.fromEntries(health) })
       }
       if (
-        url.pathname.startsWith("/__admin") &&
+        isAdminPath(url.pathname, adminPrefix) &&
+        !matchNamespacePath(url.pathname, adminPrefix) &&
         options.adminKey !== undefined &&
         request.headers.get("x-mockingbird-admin-key") !== options.adminKey
       )
         return json({ error: { type: "mockingbird_admin", message: "invalid admin key" } }, 401)
-      if (url.pathname === "/__admin/mounts" && request.method === "GET")
+      if (url.pathname === `${adminPrefix}/mounts` && request.method === "GET")
         return json({
           mounts: options.mounts.map(({ path, provider, issuer }) => ({ path, provider, issuer })),
         })
-      if (url.pathname === "/__admin/reset" && request.method === "POST") {
+      if (url.pathname === `${adminPrefix}/reset` && request.method === "POST") {
         const namespace =
           url.searchParams.get("all") === "1"
             ? "*"
@@ -136,7 +155,10 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         await reset(namespace)
         return json({ status: "ok", mounts: [...runtimes.keys()], namespace })
       }
-      if (url.pathname.startsWith("/__admin/")) {
+      if (
+        isAdminPath(url.pathname, adminPrefix) &&
+        !matchNamespacePath(url.pathname, adminPrefix)
+      ) {
         const selected = url.searchParams.get("mount")
         const runtime = selected && runtimes.get(selected)
         if (!runtime)
@@ -145,8 +167,8 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         return runtime.fetch(new Request(url, request))
       }
 
-      const namespace = NS_PREFIX.exec(url.pathname)
-      const namespacePrefix = namespace ? `/ns/${namespace[1]}` : ""
+      const namespace = matchNamespacePath(url.pathname, adminPrefix)
+      const namespacePrefix = namespace ? `${adminPrefix}/ns/${namespace[1]}` : ""
       const path = namespace ? (namespace[2] ?? "/") : url.pathname
       for (const [mount, runtime] of runtimes) {
         if (path !== mount && !path.startsWith(`${mount}/`)) continue

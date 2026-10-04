@@ -99,7 +99,7 @@ event before any audio: our adapter falls back to `SynthesizeSpeech`), `polly_st
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on the endpoint URL, or the SigV4 access key id:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or the SigV4 access key id:
 `PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`. The journal
 records voice, engine, format, character counts and script ids — never text.
 

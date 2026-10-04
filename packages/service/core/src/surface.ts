@@ -17,6 +17,8 @@ export type MockCreateOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  /** All internal HTTP paths live below this prefix. Default /__admin. */
+  adminPrefix?: string
   adminKey?: string
 }
 
@@ -39,7 +41,7 @@ export type MockInstanceSurface = {
  *
  * Assignability is one way: a service may add methods (`tick`, a typed webhook hub,
  * account directories) and narrower property types. Removing or renaming a member
- * fails the typecheck. The HTTP control plane (`/health`, `/__admin/*`) is the same
+ * fails the typecheck. The HTTP control plane (`/__admin/health`, `/__admin/*`) is the same
  * contract on the wire; {@link STANDARD_ADMIN_ROUTES} is that list.
  */
 export type MockSurface = {
@@ -87,6 +89,7 @@ export type MockClockState = ClockState
  */
 export const STANDARD_ADMIN_ROUTES = [
   "GET /",
+  "GET /health",
   "POST /reset",
   "GET /namespaces",
   "GET /clock",

@@ -17,6 +17,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@crvouga/mockingbird-service": "workspace:*",
     "hono": "4.11.9"
   }
 }

@@ -468,7 +468,7 @@ describe("FCM HTTP v1", () => {
   test("createServer answers a send over HTTP", async () => {
     const server = await createServer()
     try {
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.status).toBe(200)
       const result = await sendToFcm(fetch, server.url, FCM_FIXTURE_PROJECT, {
         token: FCM_FIXTURE_TOKEN,

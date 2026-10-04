@@ -77,7 +77,7 @@ export const INQUIRY_ACTIONS: readonly InquiryAction[] = [
 export type PersonaAPIOptions = APIOptions & {
   /** Initial per-namespace settings (accepted API keys, known templates). */
   settings?: Partial<Settings>
-  /** The public namespace, so hosted-flow links carry `/ns/<name>` when it is not the default. */
+  /** The public namespace, so hosted-flow links carry `/__admin/ns/<name>` when it is not the default. */
   publicNamespace?: string
   /** Called for every lifecycle event; the runtime signs and delivers it. */
   onWebhook?: (event: PersonaWebhook) => void
@@ -425,7 +425,7 @@ export class PersonaAPI implements FetchAPI {
     const link = (outcome: InquiryAction, label: string) => {
       const query = new URLSearchParams({ "inquiry-id": id, outcome })
       if (redirect) query.set("redirect-uri", redirect)
-      // Relative to `…/verify`, so an `/ns/<name>` prefix survives.
+      // Relative to `…/verify`, so an `/__admin/ns/<name>` prefix survives.
       return `<li><a data-outcome="${outcome}" href="verify/complete?${escapeHtml(query.toString())}">${label}</a></li>`
     }
     const prefix =

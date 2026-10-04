@@ -99,6 +99,7 @@ export const serveTarget: ServeTarget = {
             }
           : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -106,6 +107,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: x-pmk-authentication-token: <token> (catalog also takes Basic or nothing)",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
   ],
 }

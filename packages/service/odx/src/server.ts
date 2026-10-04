@@ -58,6 +58,7 @@ export const serveTarget: ServeTarget = {
     return createRuntime({
       ...(url ? { webhook: { url, ...(signingKey ? { signingKey } : {}) } } : {}),
       ...(apiKey ? { settings: { apiKeys: [apiKey] } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -65,6 +66,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: header ApiKey: <OPTIMAL_API_KEY>; point OPTIMAL_URL at this server",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<ApiKey>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<ApiKey>: <ns>}",
   ],
 }

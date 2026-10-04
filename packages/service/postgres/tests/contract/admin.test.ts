@@ -88,3 +88,21 @@ describe("postgres admin", () => {
     expect(html).toContain("function mountSqlExplorer");
   });
 });
+
+test("SQL admin uses the configured prefix for health, UI and query routes", async () => {
+  const admin = createAdmin({ adminPrefix: "/_control/mock", adminKey: "locked" });
+  const health = await admin.fetch(request("/_control/mock/health"));
+  expect(health.status).toBe(200);
+  expect(await health.json()).toMatchObject({ adminPrefix: "/_control/mock", adminUi: "/_control/mock/ui" });
+  const ui = await admin.fetch(request("/_control/mock/ui"));
+  expect(ui.status).toBe(200);
+  expect(await ui.text()).toContain('"adminPrefix":"/_control/mock"');
+  expect((await admin.fetch(request("/_control/mock/sql/tables"))).status).toBe(401);
+  const query = await admin.fetch(request("/_control/mock/sql/query", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-mockingbird-admin-key": "locked" },
+    body: JSON.stringify({ sql: "SELECT 1 AS value" }),
+  }));
+  expect(query.status).toBe(200);
+  for (const path of ["/health", "/__admin/health", "/__admin/ui", "/__admin/sql/tables"]) expect((await admin.fetch(request(path))).status).toBe(404);
+});

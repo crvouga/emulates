@@ -15,7 +15,7 @@
  * - schemas for the 200 bodies Swagger leaves undeclared (`eventTypes`, `kitorderlines/kits`,
  *   `results/search`, `presignedUrl`),
  * - every status the mock can answer (401 without a body, 404/422 problem details, 429),
- * - the auth host's `POST /connect/token` and the mock's own `GET /__blob/{key}`.
+ * - the auth host's `POST /connect/token` and the mock's own `GET /__admin/blobs/{key}`.
  *
  *   bun scripts/vendor-openapi.ts <path/to/gxg-openapi.json>
  *   bun run generate
@@ -714,7 +714,7 @@ paths["/connect/token"] = {
     },
   },
 }
-paths["/__blob/{key}"] = {
+paths["/__admin/blobs/{key}"] = {
   get: {
     tags: ["Mockingbird"],
     summary:
@@ -754,13 +754,15 @@ paths["/__blob/{key}"] = {
   },
 }
 
+Object.assign(paths["/__admin/blobs/{key}"], { "x-mockingbird-internal": true })
+
 const info = spec.info as Json
 info.title = "Nucleus API v2.0 (Gene by Gene), vendored for Mockingbird"
 info.description = [
   "Gene by Gene's Nucleus API v2, vendored from the Swagger document our consumer commits",
   "(`GXG/transport/spec/gxg-openapi.json`, source https://demo-api.genebygene.com/swagger/v2/swagger.json)",
   "by `scripts/vendor-openapi.ts`, with operationIds, Mockingbird annotations, the fields the live",
-  "API returns but Swagger omits, the auth host's `/connect/token`, and the mock's `/__blob/{key}`.",
+  "API returns but Swagger omits, the auth host's `/connect/token`, and the mock's `/__admin/blobs/{key}`.",
 ].join("\n")
 info["x-mockingbird-upstream"] = {
   swagger: "https://demo-api.genebygene.com/swagger/v2/swagger.json",

@@ -374,7 +374,7 @@ describe("S25 Edamam acceptance: the Python chat client", () => {
 })
 
 describe("contract", () => {
-  test("namespaces by app_id, header and /ns/ prefix; restricted apps; presets registered", async () => {
+  test("namespaces by app_id, header and /__admin/ns/ prefix; restricted apps; presets registered", async () => {
     const { runtime, admin, fetchImpl } = harness()
     await admin("/credentials", { credentials: { "app-a": "a" } }, "PUT")
     await admin("/recipes?namespace=a", {
@@ -391,10 +391,10 @@ describe("contract", () => {
     )
     expect((await search(MEAL_ENV)).status).toBe("not_found")
     // The meal adapter resolves endpoints with `new URL(endpoint, base)`, which drops a path
-    // prefix: map its app_id instead. The nutrition adapter concatenates, so /ns/ works there.
+    // prefix: map its app_id instead. The nutrition adapter concatenates, so /__admin/ns/ works there.
     await admin("/vision?namespace=a", { foodId: "food_avocado" }, "PUT")
     const photo = await nutritionAdapter(
-      `${API}/ns/a`,
+      `${API}/__admin/ns/a`,
       fetchImpl,
       FOOD_ENV,
     ).adapter.analyzeFoodPhoto({
@@ -443,7 +443,7 @@ describe("served over HTTP", () => {
         MEAL_ENV,
       ).adapter.searchRecipes(USER, criteria({ query: "salmon" }))
       expect(recipes.status === "ok" && recipes.recipes[0]?.label).toBe("Lemon Baked Salmon")
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^edamam@/)
     } finally {
       await server.close()

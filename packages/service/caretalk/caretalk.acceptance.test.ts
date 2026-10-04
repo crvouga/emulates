@@ -323,7 +323,7 @@ describe("S25 CareTalk acceptance: our client against the mock", () => {
     )
   })
 
-  test("namespaces by API user, header and /ns/ prefix; the journal never holds patient data", async () => {
+  test("namespaces by API user, header and /__admin/ns/ prefix; the journal never holds patient data", async () => {
     const { runtime, admin, fetchImpl } = harness()
     await admin("/credentials", { credentials: { "worker-a": "a", "worker-b": "b" } }, "PUT")
     const worker = (userName: string, apiUrl = API) =>
@@ -338,7 +338,7 @@ describe("S25 CareTalk acceptance: our client against the mock", () => {
     }
     expect(await a.searchForPatient(probe)).not.toBe(false)
     expect(await worker("worker-b").searchForPatient(probe)).toBe(false)
-    expect(await worker("someone", `${API}/ns/a`).searchForPatient(probe)).not.toBe(false)
+    expect(await worker("someone", `${API}/__admin/ns/a`).searchForPatient(probe)).not.toBe(false)
     const viaHeader = await runtime.fetch(
       new Request(`${API}/externalapi/States`, {
         headers: { authorization: "Bearer ct-static-key", "x-mockingbird-namespace": "a" },
@@ -363,7 +363,7 @@ describe("served over HTTP", () => {
       expect(consumer.transformFormData(await consumer.getFormByName("health-history")).id).toBe(
         101,
       )
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^caretalk@/)
     } finally {
       await server.close()

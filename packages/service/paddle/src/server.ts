@@ -68,6 +68,7 @@ export const serveTarget: ServeTarget = {
       ...(url ? { webhooks: { url, ...(secret ? { secret } : {}) } } : {}),
       ...(paymentLink ? { paymentLink } : {}),
       ...(values.fixtures === true ? { fixtures: true } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -77,6 +78,6 @@ export const serveTarget: ServeTarget = {
     "auth: Authorization: Bearer pdl_sdbx_apikey_… (any key); new Paddle(key, { environment: <this url> })",
     "checkout: POST /__admin/checkout {email, items: [{price_id}]} pays a transaction and creates its subscription",
     "billing: POST /__admin/transactions/:id/pay, /__admin/subscriptions/:id/renew, …/payment-failed",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

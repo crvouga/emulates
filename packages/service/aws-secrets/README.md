@@ -23,7 +23,7 @@ const mock = await createServer({
   secrets: [{ name: "database/password", value: "fixture-password" }],
   parameters: [{ name: "/app/region", value: "us-east-1" }],
 })
-const health = await fetch(`${mock.url}/health`)
+const health = await fetch(`${mock.url}/__admin/health`)
 ```
 
 Secrets Manager supports CreateSecret, PutSecretValue, GetSecretValue, and DescribeSecret by name or ARN, including VersionId, VersionStage, SecretString, and SecretBinary. SSM supports PutParameter, GetParameter, and GetParameters with String, StringList, SecureString, WithDecryption, versions, ARNs, and data types.
@@ -35,7 +35,7 @@ Secrets Manager supports CreateSecret, PutSecretValue, GetSecretValue, and Descr
 - `PUT /__admin/controls/:name` configures denial, stale-version reads, or decryption failure.
 - Fault presets are `throttled` and `unavailable`.
 
-Values are encoded in durable state so timelines and snapshots do not contain plaintext markers. Request journals never record request or response bodies. The shared runtime also provides reset, clock, timeline, metrics, faults, and namespace isolation through `x-mockingbird-namespace`, `/ns/<name>`, or SigV4 access-key mappings.
+Values are encoded in durable state so timelines and snapshots do not contain plaintext markers. Request journals never record request or response bodies. The shared runtime also provides reset, clock, timeline, metrics, faults, and namespace isolation through `x-mockingbird-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 

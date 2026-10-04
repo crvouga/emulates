@@ -72,6 +72,7 @@ export const serveTarget: ServeTarget = {
     return createRuntime({
       ...(scriptsPath ? { scripts: await loadScripts(scriptsPath) } : {}),
       ...(defaultText !== undefined ? { settings: { defaultText } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -80,7 +81,7 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "point the app at it: AWS_ENDPOINT_URL_BEDROCK_RUNTIME / AWS_ENDPOINT_URL_BEDROCK_AGENTCORE = this URL",
     "protocols: h2c (prior knowledge) and HTTP/1.1 on the same port",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<AWS_ACCESS_KEY_ID>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AWS_ACCESS_KEY_ID>: <ns>}",
     "scripts: PUT /__admin/scripts {scripts: [{id, match, turns}]}",
   ],
 }

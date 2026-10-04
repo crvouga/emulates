@@ -27,7 +27,9 @@ export function watchedFiles({ repoRoot }: CatalogPaths): string[] {
   const dir = join(repoRoot, "packages/service")
   return [
     ...readdirSync(dir).flatMap((name) =>
-      ["package.json", "README.md", "dist/index.js", "examples"].map((f) => join(dir, name, f)),
+      ["package.json", "README.md", "DISCOVERY.md", "dist/index.js", "examples"].map((f) =>
+        join(dir, name, f),
+      ),
     ),
     ...readdirSync(join(repoRoot, "docs"))
       .filter((f) => f.endsWith(".md"))
@@ -201,6 +203,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
           npm: `https://www.npmjs.com/package/${pkg.name}`,
           source: `${repo}/tree/main/packages/service/${name}`,
           readme: `${repo}/blob/main/packages/service/${name}/README.md`,
+          discovery: `${repo}/blob/main/packages/service/${name}/DISCOVERY.md`,
           support: existsSync(join(dir, "SUPPORT.md"))
             ? `${repo}/blob/main/packages/service/${name}/SUPPORT.md`
             : null,

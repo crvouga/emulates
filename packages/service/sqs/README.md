@@ -22,7 +22,7 @@ import { createServer } from "@crvouga/mockingbird-service-sqs/server"
 const mock = await createServer({
   queues: [{ name: "jobs", attributes: { VisibilityTimeout: "30" } }],
 })
-const health = await fetch(`${mock.url}/health`)
+const health = await fetch(`${mock.url}/__admin/health`)
 ```
 
 Supported operations are CreateQueue, GetQueueUrl, GetQueueAttributes, SendMessage, SendMessageBatch, ReceiveMessage, DeleteMessage, ChangeMessageVisibility, and PurgeQueue. Receive honors maximum messages, visibility timeout, system attribute selection, and message attribute selection. The injected shared clock controls visibility expiry and redrive without sleeps.
@@ -34,7 +34,7 @@ Supported operations are CreateQueue, GetQueueUrl, GetQueueAttributes, SendMessa
 - `POST /__admin/queues/:name/drain` atomically empties one queue.
 - Fault presets are `throttled` and one-shot `unavailable`; generic faults can delay or duplicate a receive at the caller level.
 
-The shared runtime supplies reset, clock, journal, timeline, metrics, faults, and namespace isolation. Select a namespace through `x-mockingbird-namespace`, `/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime supplies reset, clock, journal, timeline, metrics, faults, and namespace isolation. Select a namespace through `x-mockingbird-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 

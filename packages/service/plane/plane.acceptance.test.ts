@@ -232,14 +232,14 @@ describe("S25 Plane acceptance: our bug-report client against the mock", () => {
     ).rejects.toThrow(/HTTP 404/)
   })
 
-  test("namespaces by API key, by header and by /ns/ prefix isolate workers", async () => {
+  test("namespaces by API key, by header and by /__admin/ns/ prefix isolate workers", async () => {
     const { runtime, consumer, admin } = harness()
     await admin("/credentials", { credentials: { key_a: "a", key_b: "b" } }, "PUT")
     await consumer({ accessToken: "key_a" }).createWorkItem({ name: "only in a" })
     expect((await consumer({ accessToken: "key_a" }).listWorkItems()).totalCount).toBe(1)
     expect((await consumer({ accessToken: "key_b" }).listWorkItems()).totalCount).toBe(0)
     expect(
-      (await consumer({ accessToken: "other" }, `${API}/ns/a`).listWorkItems()).totalCount,
+      (await consumer({ accessToken: "other" }, `${API}/__admin/ns/a`).listWorkItems()).totalCount,
     ).toBe(1)
     const viaHeader = await runtime.fetch(
       new Request(`${API}/api/v1/workspaces/acme/projects/${PROJECT}/work-items/`, {
@@ -261,7 +261,7 @@ describe("served over HTTP", () => {
       const plane = new PlaneConsumer(server.url, connection, (input, init) => fetch(input, init))
       const item = await plane.createWorkItem({ name: "Over HTTP" })
       expect((await plane.getWorkItem(item.id)).name).toBe("Over HTTP")
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^plane@/)
     } finally {
       await server.close()

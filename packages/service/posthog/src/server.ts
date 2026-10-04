@@ -54,6 +54,7 @@ export const serveTarget: ServeTarget = {
     return createRuntime({
       ...(env ? { flags: specsFromState(ACME_FLAG_STATE, { env }) } : {}),
       ...(values["session-recording"] === true ? { settings: { sessionRecording: true } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -61,6 +62,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "point POSTHOG_HOST / NEXT_PUBLIC_POSTHOG_HOST here; set flags with PUT /__admin/flags/<key>",
-    "namespaces: /ns/<name> host prefix, x-mockingbird-namespace, or PUT /__admin/credentials {<phc_token>: <ns>}",
+    "namespaces: /__admin/ns/<name> host prefix, x-mockingbird-namespace, or PUT /__admin/credentials {<phc_token>: <ns>}",
   ],
 }

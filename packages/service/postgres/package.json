@@ -47,7 +47,8 @@
     "README.md",
     "LICENSE",
     "compat",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "DISCOVERY.md"
   ],
   "repository": {
     "type": "git",
@@ -153,6 +154,22 @@
       "server": "node",
       "wire/fleet": "node",
       "wire/probe": "node"
+    },
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "COMPATIBILITY.md",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "PostgreSQL 18.3 via PGlite",
+        "command": "bun run --cwd packages/service/postgres test:postgres-compat",
+        "note": "Fail-closed differential contracts compare rows, types, errors, row counts and logical state."
+      },
+      "introspection": [
+        "README.md public test controls",
+        "COMPATIBILITY.md compatibility and divergence evidence"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "trustedDependencies": [

@@ -56,6 +56,7 @@ export const serveTarget: ServeTarget = {
     const secret = text(values["webhook-secret"])
     return createRuntime({
       ...(url ? { webhooks: { url, ...(secret ? { secret } : {}) } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -63,6 +64,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Bearer <FIRST_PROMOTER_API_KEY> and Account-ID: <FIRST_PROMOTER_ACCOUNT_ID>",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

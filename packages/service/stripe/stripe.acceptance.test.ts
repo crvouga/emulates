@@ -231,7 +231,7 @@ describe("S1.3 accounts", () => {
       headers: { authorization: "Bearer sk_test_workerOne", "x-mockingbird-namespace": "default" },
     })
     expect(inDefault.status).toBe(404)
-    const inW1 = await fetch(`${base.origin}/ns/w1/v1/customers/${customer.id}`, {
+    const inW1 = await fetch(`${base.origin}/__admin/ns/w1/v1/customers/${customer.id}`, {
       headers: { authorization: "Bearer sk_test_workerOne" },
     })
     expect(inW1.status).toBe(200)

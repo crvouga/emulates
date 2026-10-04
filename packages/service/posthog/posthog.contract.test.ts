@@ -25,9 +25,9 @@ const harness = () => {
 }
 
 describe("contract: health, header, routing", () => {
-  test("/health is open and every response carries x-mockingbird", async () => {
+  test("/__admin/health is open and every response carries x-mockingbird", async () => {
     const { call, post } = harness()
-    const health = await call("/health")
+    const health = await call("/__admin/health")
     expect(health.status).toBe(200)
     expect(((await health.json()) as { service: string }).service).toBe("posthog")
     const flags = await post("/flags/?v=2", { token: "phc_x", distinct_id: "1" })
@@ -113,7 +113,7 @@ describe("contract: health, header, routing", () => {
 })
 
 describe("contract: namespaces", () => {
-  test("by header, by /ns/<name> prefix, and by token in every carrier", async () => {
+  test("by header, by /__admin/ns/<name> prefix, and by token in every carrier", async () => {
     const { call, post, admin } = harness()
     await admin("/credentials", { credentials: { phc_mapped: "mapped", phx_personal: "mapped" } })
     await admin("/flags/k?namespace=mapped", { default: "mapped" })
@@ -141,7 +141,9 @@ describe("contract: namespaces", () => {
       ),
     ).toBe("hdr")
     expect(
-      await value(await post("/ns/prefixed/flags/?v=2", { token: "phc_mapped", distinct_id: "1" })),
+      await value(
+        await post("/__admin/ns/prefixed/flags/?v=2", { token: "phc_mapped", distinct_id: "1" }),
+      ),
     ).toBe("prefixed")
     // The /array/{token}/config path, ?token=, a batch's first event, and a personal key.
     expect((await call("/array/phc_mapped/config")).headers.get("x-mockingbird")).toEndWith(
@@ -161,7 +163,7 @@ describe("contract: namespaces", () => {
       ((await listed.json()) as { results: { key: string }[] }).results.map((f) => f.key),
     ).toEqual(["k"])
     // Admin routes under a prefix reach the same namespace.
-    const viaPrefix = (await (await call("/ns/prefixed/__admin/flags")).json()) as {
+    const viaPrefix = (await (await call("/__admin/ns/prefixed/__admin/flags")).json()) as {
       flags: { default: string }[]
     }
     expect(viaPrefix.flags[0]?.default).toBe("prefixed")

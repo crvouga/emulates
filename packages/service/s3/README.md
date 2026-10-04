@@ -37,7 +37,7 @@ Set an application's S3 endpoint environment variable to the server URL and its 
 - Advance the shared mock clock through `/__admin/clock` to expire a presigned URL.
 - Object writes, copies, multipart completion, and deletes publish S3-shaped notifications. Configure HTTP sinks through runtime `webhooks` options or the shared webhook admin routes; delivery attempts and retries appear under `/__admin/webhooks`.
 
-The shared runtime also provides health, reset, journal, metrics, timeline, and fault routes. Select isolated state with `x-mockingbird-namespace`, `/ns/<name>`, or a SigV4 access-key mapping.
+The shared runtime also provides health, reset, journal, metrics, timeline, and fault routes. Select isolated state with `x-mockingbird-namespace`, `/__admin/ns/<name>`, or a SigV4 access-key mapping.
 
 ### Deliberately not modelled
 

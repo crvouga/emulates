@@ -78,7 +78,7 @@ const api = new StripeAPI({ onWebhook: deliver })
 
 const server = Bun.serve({
   fetch: (request) => {
-    if (new URL(request.url).pathname === "/health") return Response.json({ status: "ok" })
+    if (new URL(request.url).pathname === "/__admin/health") return Response.json({ status: "ok" })
     return api.fetch(request)
   },
   hostname: HOST,

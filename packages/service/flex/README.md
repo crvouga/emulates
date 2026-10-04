@@ -33,7 +33,7 @@ Point the app at the mock:
 
 | Env | Value |
 | --- | --- |
-| `FLEX_API_BASE_URL` | `http://127.0.0.1:8792` (or `…/ns/<namespace>`) |
+| `FLEX_API_BASE_URL` | `http://127.0.0.1:8792` (or `…/__admin/ns/<namespace>`) |
 | `FLEX_API_KEY` | any `fsk_test_…` key (test mode); `fsk_…` is live mode; other formats get 401 |
 | `FLEX_WEBHOOK_SECRET` | the same value as `--webhook-secret`: `fwhsec_<base64>` or `whsec_<base64>` |
 
@@ -129,7 +129,7 @@ the `name`s and placeholders our codecept locators look for (`cardNumber`, `expi
 Success 302s to `success_url` with `{CHECKOUT_SESSION_ID}` substituted (raw and
 `%7BCHECKOUT_SESSION_ID%7D`); `GET /pay/{id}/cancel` (the Cancel link) 302s to `cancel_url`,
 leaving the session open. A contact email on a session without a customer creates one. In a
-namespace the page URL carries `/ns/<name>` (the browser sends no headers); `publicUrl`
+namespace the page URL carries `/__admin/ns/<name>` (the browser sends no headers); `publicUrl`
 overrides the origin.
 
 ### Webhooks
@@ -185,7 +185,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/ns/<name>` prefix on `FLEX_API_BASE_URL`, or by API key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `FLEX_API_BASE_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<FLEX_API_KEY>": "<namespace>"}}`.
 
 ### Corpus

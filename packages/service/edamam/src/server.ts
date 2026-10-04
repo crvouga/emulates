@@ -54,6 +54,7 @@ export const serveTarget: ServeTarget = {
         ...(app ? { apps: [{ appId: app.slice(0, colon), appKey: app.slice(colon + 1) }] } : {}),
         ...(values["require-account-user"] === true ? { requireAccountUser: true } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -61,6 +62,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: ?app_id=&app_key= (plus Basic app_id:app_key on the meal planner and shopping list)",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<app_id>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<app_id>: <ns>}",
   ],
 }

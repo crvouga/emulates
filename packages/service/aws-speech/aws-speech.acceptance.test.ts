@@ -388,8 +388,8 @@ describe("contract", () => {
     expect(JSON.stringify(await admin("/speech?namespace=w1"))).not.toContain("Secret")
   })
 
-  test("/health and every documented preset", async () => {
-    const health = await fetch(`${server.url}/health`)
+  test("/__admin/health and every documented preset", async () => {
+    const health = await fetch(`${server.url}/__admin/health`)
     expect(health.headers.get("x-mockingbird")).toMatch(/^aws-speech@/)
     expect(((await health.json()) as { service: string }).service).toBe("aws-speech")
     const listed = (await admin("/faults/presets")) as { presets: { name: string }[] }

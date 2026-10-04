@@ -1,6 +1,6 @@
 /**
- * The Mockingbird service contract around the Medplum mock: `/health`, the `x-mockingbird`
- * stamp, namespaces (header, `/ns/<name>/` prefix, client credentials), per-namespace reset,
+ * The Mockingbird service contract around the Medplum mock: `/__admin/health`, the `x-mockingbird`
+ * stamp, namespaces (header, `/__admin/ns/<name>/` prefix, client credentials), per-namespace reset,
  * snapshot/restore, the controllable clock, fault presets, the request journal and metrics,
  * and the `/__admin/medplum/*` backdoors.
  */
@@ -74,9 +74,9 @@ const createPatient = (
   })
 
 describe("service contract", () => {
-  test("/health needs no credentials and names the Medplum version", async () => {
+  test("/__admin/health needs no credentials and names the Medplum version", async () => {
     const runtime = createRuntime()
-    const health = await call(runtime, "/health")
+    const health = await call(runtime, "/__admin/health")
     expect(health.status).toBe(200)
     expect(health.body.status).toBe("ok")
     expect(health.body.medplum).toMatch(/^5\.1\.37/)
@@ -106,26 +106,26 @@ describe("service contract", () => {
     expect(crossed.status).toBe(401)
   })
 
-  test("/ns/<name>/ selects a namespace for SDKs that only take a base URL", async () => {
+  test("/__admin/ns/<name>/ selects a namespace for SDKs that only take a base URL", async () => {
     const runtime = createRuntime()
     const token = await signIn(runtime)
     const prefixed = await call(
       runtime,
-      "/ns/p1/oauth2/token",
+      "/__admin/ns/p1/oauth2/token",
       form({
         grant_type: "client_credentials",
         client_id: DEFAULT_CLIENT_ID,
         client_secret: DEFAULT_CLIENT_SECRET,
       }),
     )
-    await call(runtime, "/ns/p1/fhir/R4/Patient", {
+    await call(runtime, "/__admin/ns/p1/fhir/R4/Patient", {
       method: "POST",
       headers: fhir(prefixed.body.access_token),
       body: JSON.stringify({ resourceType: "Patient", name: [{ family: "Prefixed" }] }),
     })
     expect(
       (
-        await call(runtime, "/ns/p1/fhir/R4/Patient?name=prefixed&_total=accurate", {
+        await call(runtime, "/__admin/ns/p1/fhir/R4/Patient?name=prefixed&_total=accurate", {
           headers: fhir(prefixed.body.access_token),
         })
       ).body.total,

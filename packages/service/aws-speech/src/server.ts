@@ -81,6 +81,7 @@ export const serveTarget: ServeTarget = {
       ...(transcriptsPath ? { transcripts: await loadTranscripts(transcriptsPath) } : {}),
       ...(defaultTranscript !== undefined ? { settings: { defaultTranscript } } : {}),
       ...(s3 ? { transcriptStore: { endpoint: s3 } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -89,7 +90,7 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "point the app at it: AWS_ENDPOINT_URL_POLLY / AWS_ENDPOINT_URL_TRANSCRIBE_STREAMING / AWS_ENDPOINT_URL_TRANSCRIBE = this URL",
     "protocols: h2c (prior knowledge) and HTTP/1.1 on the same port",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<AWS_ACCESS_KEY_ID>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AWS_ACCESS_KEY_ID>: <ns>}",
     'transcripts: PUT /__admin/transcripts {match: {sessionIndex} | {any: true}, partials: [...], final: "..."}',
   ],
 }

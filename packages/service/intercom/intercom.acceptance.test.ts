@@ -659,7 +659,7 @@ describe("served over HTTP", () => {
       for (const r of received) {
         expect(r.signature).toBe(`sha1=${createHmac("sha1", SECRET).update(r.body).digest("hex")}`)
       }
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^intercom@/)
     } finally {
       await server.close()

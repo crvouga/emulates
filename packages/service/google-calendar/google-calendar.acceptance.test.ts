@@ -437,7 +437,7 @@ describe("S25 Google Calendar acceptance: sync tokens, paging and failures", () 
 })
 
 describe("contract", () => {
-  test("namespaces by account (access token), header and /ns/ prefix; the journal holds no event text", async () => {
+  test("namespaces by account (access token), header and /__admin/ns/ prefix; the journal holds no event text", async () => {
     const { server, admin, sdk, signIn } = await harness()
     await admin("/credentials", { credentials: { "wilson@example.com": "w" } }, "PUT")
     const wilson = sdk((await signIn("wilson")).accessToken as string)
@@ -453,10 +453,10 @@ describe("contract", () => {
     const inDefault = (await (await admin("/events")).json()) as { events: unknown[] }
     expect(inW.events).toHaveLength(1)
     expect(inDefault.events).toHaveLength(0)
-    // googleapis resolves request paths against rootUrl's origin, dropping a /ns/ prefix, so
+    // googleapis resolves request paths against rootUrl's origin, dropping a /__admin/ns/ prefix, so
     // calendar calls pick their namespace by account. The OAuth endpoints and our userinfo
     // fetch concatenate, so the prefix carries there.
-    const prefixed = await harness((url) => `${url}/ns/team`)
+    const prefixed = await harness((url) => `${url}/__admin/ns/team`)
     await prefixed.admin(
       "/users/chase%40example.com?namespace=team",
       { name: "Robert Chase" },

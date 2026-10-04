@@ -106,6 +106,7 @@ export type PaddleRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /**
@@ -175,8 +176,8 @@ const adminRoutes =
   })
 
 /**
- * The Paddle mock with Mockingbird's full service contract: `/health`, `/__admin/*`,
- * namespaces by header, by `/ns/<name>` path prefix, or by API key
+ * The Paddle mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PADDLE_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets, `Paddle-Signature` webhooks, a request journal, and the
  * admin routes that stand in for the hosted checkout and the billing engine.
@@ -195,16 +196,18 @@ export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: bearerToken,
     presets: PADDLE_PRESETS,
     webhooks: hub,
-    create: ({ sqlite, namespace, publicNamespace, clock }) => {
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) => {
       const api = new PaddleAPI({
         sqlite,
         namespace,
         publicNamespace,
+        adminPrefix,
         now: clock.now,
         ...(options.paymentLink ? { paymentLink: options.paymentLink } : {}),
         // Seeded on first use and again on every reset, without notifications.

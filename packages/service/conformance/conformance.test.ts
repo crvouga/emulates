@@ -42,58 +42,63 @@ const call = async (
     }),
   )
 
-test(
-  "every HTTP mock serves the shared admin API",
-  async () => {
-    const failures: string[] = []
-    for (const name of httpMocks()) {
-      const mod = (await import(`../${name}/src/index.ts`)) as {
-        createRuntime: (options?: { seed?: number }) => {
-          fetch(request: Request): Promise<Response>
-          state(namespace?: string): { collections: unknown[] }
-          stop?: () => void
+for (const adminPrefix of ["/__admin", "/_control/mock"])
+  test(
+    `every HTTP mock serves the shared admin API at ${adminPrefix}`,
+    async () => {
+      const failures: string[] = []
+      for (const name of httpMocks()) {
+        const mod = (await import(`../${name}/src/index.ts`)) as {
+          createRuntime: (options?: { seed?: number; adminPrefix?: string }) => {
+            fetch(request: Request): Promise<Response>
+            state(namespace?: string): { collections: unknown[] }
+            stop?: () => void
+          }
+        }
+        let runtime: ReturnType<typeof mod.createRuntime> | undefined
+        try {
+          runtime = mod.createRuntime({ seed: 1, adminPrefix })
+          const health = await call(runtime, "GET", `${adminPrefix}/health`)
+          if (health.status !== 200) failures.push(`${name}: health ${health.status}`)
+          const healthBody = (await health.json()) as { adminUi?: string }
+          if (healthBody.adminUi !== `${adminPrefix}/ui`) failures.push(`${name}: health.adminUi`)
+
+          const listed = (
+            (await (await call(runtime, "GET", adminPrefix)).json()) as { routes?: string[] }
+          ).routes
+          for (const route of STANDARD_ADMIN_ROUTES) {
+            if (!listed?.includes(route)) failures.push(`${name}: missing ${route}`)
+          }
+
+          const ui = await call(runtime, "GET", `${adminPrefix}/ui`)
+          const html = await ui.text()
+          if (ui.status !== 200 || !html.includes("data-mockingbird-admin")) {
+            failures.push(`${name}: admin ui`)
+          }
+
+          const created = await call(runtime, "POST", `${adminPrefix}/state/conformance_probe`, {
+            id: "probe",
+            value: { ok: true },
+          })
+          if (created.status !== 201) failures.push(`${name}: create ${created.status}`)
+          const page = (await (
+            await call(runtime, "GET", `${adminPrefix}/state/conformance_probe`)
+          ).json()) as { records?: { id: string }[] }
+          if (!page.records?.some((row) => row.id === "probe")) failures.push(`${name}: list`)
+          const removed = await call(
+            runtime,
+            "DELETE",
+            `${adminPrefix}/state/conformance_probe/probe`,
+          )
+          if (removed.status !== 200) failures.push(`${name}: delete ${removed.status}`)
+          if (!Array.isArray(runtime.state().collections)) failures.push(`${name}: state()`)
+        } catch (error) {
+          failures.push(`${name}: ${error instanceof Error ? error.message : String(error)}`)
+        } finally {
+          runtime?.stop?.()
         }
       }
-      let runtime: ReturnType<typeof mod.createRuntime> | undefined
-      try {
-        runtime = mod.createRuntime({ seed: 1 })
-        const health = await call(runtime, "GET", "/health")
-        if (health.status !== 200) failures.push(`${name}: health ${health.status}`)
-        const healthBody = (await health.json()) as { adminUi?: string }
-        if (healthBody.adminUi !== "/__admin/ui") failures.push(`${name}: health.adminUi`)
-
-        const listed = (
-          (await (await call(runtime, "GET", "/__admin")).json()) as { routes?: string[] }
-        ).routes
-        for (const route of STANDARD_ADMIN_ROUTES) {
-          if (!listed?.includes(route)) failures.push(`${name}: missing ${route}`)
-        }
-
-        const ui = await call(runtime, "GET", "/__admin/ui")
-        const html = await ui.text()
-        if (ui.status !== 200 || !html.includes("data-mockingbird-admin")) {
-          failures.push(`${name}: admin ui`)
-        }
-
-        const created = await call(runtime, "POST", "/__admin/state/conformance_probe", {
-          id: "probe",
-          value: { ok: true },
-        })
-        if (created.status !== 201) failures.push(`${name}: create ${created.status}`)
-        const page = (await (
-          await call(runtime, "GET", "/__admin/state/conformance_probe")
-        ).json()) as { records?: { id: string }[] }
-        if (!page.records?.some((row) => row.id === "probe")) failures.push(`${name}: list`)
-        const removed = await call(runtime, "DELETE", "/__admin/state/conformance_probe/probe")
-        if (removed.status !== 200) failures.push(`${name}: delete ${removed.status}`)
-        if (!Array.isArray(runtime.state().collections)) failures.push(`${name}: state()`)
-      } catch (error) {
-        failures.push(`${name}: ${error instanceof Error ? error.message : String(error)}`)
-      } finally {
-        runtime?.stop?.()
-      }
-    }
-    expect(failures).toEqual([])
-  },
-  { timeout: 180_000 },
-)
+      expect(failures).toEqual([])
+    },
+    { timeout: 180_000 },
+  )

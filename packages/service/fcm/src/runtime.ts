@@ -87,6 +87,7 @@ export type FcmRuntimeOptions = {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
+  adminPrefix?: string
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   settings?: Partial<Settings>
@@ -303,7 +304,7 @@ const adminRoutes = (runtime: ServiceRuntime<FcmAPI>): AdminRoutes => ({
 })
 
 /**
- * FCM HTTP v1 mock with `/health`, `/__admin/*`, namespaces, clock, faults, and a journal.
+ * FCM HTTP v1 mock with `/__admin/health`, `/__admin/*`, namespaces, clock, faults, and a journal.
  * Logical message time is the namespace `clockOffsetMs` plus the process-wide runtime clock.
  * `POST /__admin/time` moves one namespace; `POST /__admin/clock` moves every namespace.
  */
@@ -316,6 +317,7 @@ export const createRuntime = (options: FcmRuntimeOptions = {}): FcmRuntime => {
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: (request) => {

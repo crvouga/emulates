@@ -88,6 +88,7 @@ export const serveTarget: ServeTarget = {
         : {}),
       ...(accountSid && authToken ? { accounts: { [accountSid]: authToken } } : {}),
       ...(fixedCode ? { verify: { fixedCode } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -96,6 +97,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "routes: /lookups/v2/…, /verify/v2/…, /api/2010-04-01/… (the Twilio host as a path prefix)",
     "auth: Basic AccountSid:AuthToken; OTP: GET /__admin/verify/<e164>/latest",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<AccountSid>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AccountSid>: <ns>}",
   ],
 }

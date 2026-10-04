@@ -39,7 +39,7 @@ const harness = () => {
 describe("the service contract", () => {
   test("health is unauthenticated and every response carries x-mockingbird", async () => {
     const { call } = harness()
-    const health = await call("/health", { key: "" })
+    const health = await call("/__admin/health", { key: "" })
     expect(health.status).toBe(200)
     expect(((await health.json()) as { status: string }).status).toBe("ok")
     const denied = await call(`/api/messages?server=${SERVER}`, { key: "" })
@@ -51,14 +51,14 @@ describe("the service contract", () => {
     expect(denied.headers.get("x-mockingbird")).toMatch(/^mailosaur@.+; ns=default$/)
   })
 
-  test("namespaces by header, by /ns/ prefix and by API key are isolated", async () => {
+  test("namespaces by header, by /__admin/ns/ prefix and by API key are isolated", async () => {
     const { call, ingest, search } = harness()
     await ingest({ to: `x@${SERVER}.mailosaur.net`, subject: "in a" }, "a")
     const viaHeader = await call(`/api/messages?server=${SERVER}`, {
       headers: { "x-mockingbird-namespace": "a" },
     })
     expect(((await viaHeader.json()) as { items: unknown[] }).items).toHaveLength(1)
-    const viaPrefix = await call(`/ns/a/api/messages?server=${SERVER}`)
+    const viaPrefix = await call(`/__admin/ns/a/api/messages?server=${SERVER}`)
     expect(((await viaPrefix.json()) as { items: unknown[] }).items).toHaveLength(1)
     await call("/__admin/credentials", { method: "PUT", body: { credentials: { "key-a": "a" } } })
     expect((await search({}, "key-a")).items.map((m) => m.subject)).toEqual(["in a"])
@@ -280,7 +280,7 @@ describe("served over HTTP and HTTPS", () => {
       } as RequestInit)
       expect(((await secure.json()) as { items: unknown[] }).items).toHaveLength(1)
       // The secure port also answers plain HTTP.
-      const door = await fetch(`${server.proxyUrl}/health`)
+      const door = await fetch(`${server.proxyUrl}/__admin/health`)
       expect(door.headers.get("x-mockingbird")).toMatch(/^mailosaur@/)
     } finally {
       await server.close()

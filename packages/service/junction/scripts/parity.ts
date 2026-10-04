@@ -112,7 +112,7 @@ const webhookParity =
     : {
         collectReal: async (scope: Scope) => {
           const response = await fetch(
-            `${webhookReceiverUrl}/events/${encodeURIComponent(scope.runId)}?service=junction`,
+            `${webhookReceiverUrl}/__admin/events/${encodeURIComponent(scope.runId)}?service=junction`,
             {
               headers: Bun.env.WEBHOOK_READ_TOKEN
                 ? { authorization: `Bearer ${Bun.env.WEBHOOK_READ_TOKEN}` }

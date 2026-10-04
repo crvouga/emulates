@@ -45,6 +45,7 @@ export const serveTarget: ServeTarget = {
     if (ttl !== undefined && !(Number(ttl) > 0)) throw new Error("--token-ttl must be seconds > 0")
     return createRuntime({
       ...(ttl !== undefined ? { settings: { tokenTtlSeconds: Number(ttl) } } : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -52,7 +53,7 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: POST /accounts/authenticate {email, password, isPatientLogin: false}, then Authorization: Bearer <jwtToken>",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<VPI_API_EMAIL>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<VPI_API_EMAIL>: <ns>}",
     "the app's VPI_API_URL defaults to PRODUCTION (https://api.vpicompounding.net): set it to this mock",
   ],
 }

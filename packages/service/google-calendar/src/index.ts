@@ -107,7 +107,7 @@ export const parseToken = (
 
 /**
  * The Google account an access token was issued to (or the raw bearer): how credentials map
- * to namespaces. Token-endpoint calls carry no bearer and use the header or `/ns/` prefix.
+ * to namespaces. Token-endpoint calls carry no bearer and use the header or `/__admin/ns/` prefix.
  */
 export const accessTokenCredential = (request: Request): string | undefined => {
   const token = bearerToken(request)

@@ -32,6 +32,7 @@ export const OAUTH_PRESETS: Record<string, FaultPreset> = {
 }
 export type OAuthRuntimeOptions = Omit<OAuthAPIOptions, "namespace" | "now" | "publicNamespace"> & {
   clock?: Clock
+  adminPrefix?: string
   adminKey?: string
   seed?: number | string
   sqlite?: SqliteClient
@@ -46,10 +47,11 @@ export function createRuntime(options: OAuthRuntimeOptions = {}): OAuthRuntime {
     presets: OAUTH_PRESETS,
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
     ...(options.clock ? { clock: options.clock } : {}),
+    ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
     ...(options.adminKey !== undefined ? { adminKey: options.adminKey } : {}),
     ...(options.seed !== undefined ? { seed: options.seed } : {}),
-    create: ({ sqlite, namespace, publicNamespace, clock }) =>
-      new OAuthAPI({ ...options, sqlite, namespace, publicNamespace, now: clock.now }),
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) =>
+      new OAuthAPI({ ...options, sqlite, namespace, publicNamespace, adminPrefix, now: clock.now }),
     admin: (runtime) => ({
       "GET /scenarios": () => Response.json(OAUTH_SCENARIOS),
       "GET /behavior": ({ namespace }) =>

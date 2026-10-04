@@ -1,3 +1,4 @@
+import { isAdminPath, matchNamespacePath, resolveAdminPrefix } from "@crvouga/mockingbird-service"
 /**
  * Routing Twilio's per-product hosts onto one mock origin.
  *
@@ -16,7 +17,7 @@ const TWILIO_HOST = /^(api|verify|lookups)(?:\.[a-z0-9-]+)*\.twilio\.com$/i
 /**
  * The mock URL for an upstream Twilio URL: `https://verify.twilio.com/v2/Services/VA…/Verifications`
  * with base `http://127.0.0.1:8798` becomes `http://127.0.0.1:8798/verify/v2/Services/VA…/Verifications`.
- * A base with a path (`http://127.0.0.1:8798/ns/worker-1`) keeps it. Non-Twilio URLs are
+ * A base with a path (`http://127.0.0.1:8798/__admin/ns/worker-1`) keeps it. Non-Twilio URLs are
  * returned unchanged.
  */
 export const twilioMockUrl = (uri: string, mockBaseUrl: string): string => {
@@ -31,19 +32,20 @@ export const twilioMockUrl = (uri: string, mockBaseUrl: string): string => {
 /**
  * A request that reached the mock with the real Twilio host in its `Host` header (DNS or a
  * proxy pointing `*.twilio.com` at it) is routed as if it carried the product prefix. The
- * control plane (`/health`, `/__admin`) and already-prefixed paths are left alone.
+ * control plane (`/__admin/health`, `/__admin`) and already-prefixed paths are left alone.
  */
-export const routeByHost = async (request: Request): Promise<Request> => {
+export const routeByHost = async (
+  request: Request,
+  adminPrefix = resolveAdminPrefix(),
+): Promise<Request> => {
   const url = new URL(request.url)
   const product = TWILIO_HOST.exec(url.hostname)?.[1]?.toLowerCase()
   if (!product) return request
-  const ns = /^(\/ns\/[^/]+)(\/.*)?$/.exec(url.pathname)
-  const prefix = ns?.[1] ?? ""
+  const ns = matchNamespacePath(url.pathname, adminPrefix)
+  const prefix = ns ? `${adminPrefix}/ns/${ns[1]}` : ""
   const rest = ns ? (ns[2] ?? "/") : url.pathname
   if (
-    rest === "/health" ||
-    rest === "/__admin" ||
-    rest.startsWith("/__admin/") ||
+    isAdminPath(rest, adminPrefix) ||
     TWILIO_PRODUCTS.some((p) => rest === `/${p}` || rest.startsWith(`/${p}/`))
   ) {
     return request

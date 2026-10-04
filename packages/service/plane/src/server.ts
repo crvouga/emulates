@@ -52,6 +52,7 @@ export const serveTarget: ServeTarget = {
         ...(key ? { apiKeys: [key] } : {}),
         ...(limit ? { rateLimitPerMinute: Number(limit) } : {}),
       },
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -59,6 +60,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: X-API-Key: <token>; projects are provisioned on first use with Plane's default states",
-    "namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

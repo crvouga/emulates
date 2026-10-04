@@ -407,9 +407,9 @@ describe("S22 acceptance: our EMR's Persona client and receiver against the mock
 })
 
 describe("contract", () => {
-  test("/health, and namespaces by header and by /ns/ prefix are isolated; reset clears them", async () => {
+  test("/__admin/health, and namespaces by header and by /__admin/ns/ prefix are isolated; reset clears them", async () => {
     const runtime = createRuntime()
-    const health = await runtime.fetch(new Request(`${MOCK}/health`))
+    const health = await runtime.fetch(new Request(`${MOCK}/__admin/health`))
     expect(((await health.json()) as { status: string }).status).toBe("ok")
     const create = (url: string, headers: Record<string, string> = {}) =>
       runtime.fetch(
@@ -432,13 +432,13 @@ describe("contract", () => {
         }
       ).data.length
     expect((await create(`${MOCK}/inquiries`, { "x-mockingbird-namespace": "h" })).status).toBe(201)
-    expect((await create(`${MOCK}/ns/p/inquiries`)).status).toBe(201)
-    expect((await create(`${MOCK}/ns/p/inquiries`)).status).toBe(201)
+    expect((await create(`${MOCK}/__admin/ns/p/inquiries`)).status).toBe(201)
+    expect((await create(`${MOCK}/__admin/ns/p/inquiries`)).status).toBe(201)
     expect(await list(`${MOCK}/inquiries`, { "x-mockingbird-namespace": "h" })).toBe(1)
-    expect(await list(`${MOCK}/ns/p/inquiries`)).toBe(2)
+    expect(await list(`${MOCK}/__admin/ns/p/inquiries`)).toBe(2)
     expect(await list(`${MOCK}/inquiries`)).toBe(0)
     await runtime.fetch(new Request(`${MOCK}/__admin/reset?namespace=p`, { method: "POST" }))
-    expect(await list(`${MOCK}/ns/p/inquiries`)).toBe(0)
+    expect(await list(`${MOCK}/__admin/ns/p/inquiries`)).toBe(0)
     // Missing bearer: Persona's 401.
     const anonymous = await runtime.fetch(new Request(`${MOCK}/inquiries`))
     expect(anonymous.status).toBe(401)
@@ -446,7 +446,7 @@ describe("contract", () => {
 })
 
 describe("served over HTTP", () => {
-  test("the consumer works against the node server; the hosted flow under /ns/ redirects; a real sink verifies", async () => {
+  test("the consumer works against the node server; the hosted flow under /__admin/ns/ redirects; a real sink verifies", async () => {
     const received: { status: number; body: unknown }[] = []
     const sink = Bun.serve({
       port: 0,
@@ -463,7 +463,7 @@ describe("served over HTTP", () => {
       },
     })
     try {
-      const base = `${server.url}/ns/worker-1`
+      const base = `${server.url}/__admin/ns/worker-1`
       const consumer = new PersonaConsumer(config(base), (r) => fetch(r))
       const created = await consumer.createInquiry({
         referenceId: "p-http",
@@ -487,7 +487,7 @@ describe("served over HTTP", () => {
         [200, "created"],
         [200, "pending"],
       ])
-      const health = await fetch(`${server.url}/health`)
+      const health = await fetch(`${server.url}/__admin/health`)
       expect(health.headers.get("x-mockingbird")).toMatch(/^persona@/)
     } finally {
       await server.close()

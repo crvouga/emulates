@@ -71,6 +71,7 @@ export const serveTarget: ServeTarget = {
       ...(workspace
         ? { settings: { workspaces: [workspace, ...DEFAULT_SETTINGS.workspaces] } }
         : {}),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),
@@ -78,6 +79,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     `point the SDK's appUrl at this url; workspace ${DEFAULT_SETTINGS.workspaces[0]} (legacy environment ${Object.keys(DEFAULT_SETTINGS.legacyEnvironmentIds)[0]}) serves the survey corpus`,
-    "management API: x-api-key <any>; namespaces: x-mockingbird-namespace, /ns/<name>/…, or PUT /__admin/credentials {<workspace id | api key>: <ns>}",
+    "management API: x-api-key <any>; namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<workspace id | api key>: <ns>}",
   ],
 }
