@@ -92,6 +92,19 @@
     "logo": "/brands/caretalk.png",
     "logoSource": "site"
   },
+  "checkr": {
+    "vendor": "Checkr",
+    "website": "https://checkr.com",
+    "docs": "https://docs.checkr.com/",
+    "description": "The AI-powered verification platform for high-stakes decisions. Fast, accurate background checks at scale.",
+    "input": {
+      "website": "https://checkr.com",
+      "docs": "https://docs.checkr.com/"
+    },
+    "color": null,
+    "logo": "/brands/checkr.svg",
+    "logoSource": "site"
+  },
   "cognito": {
     "vendor": "Amazon Cognito",
     "website": "https://aws.amazon.com/cognito/",

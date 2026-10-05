@@ -1,24 +1,14 @@
 {
-  "name": "@crvouga/mockingbird-service-conformance",
-  "version": "0.0.0-development",
-  "private": true,
-  "description": "Proves every HTTP mock implements the same MockSurface and admin control plane.",
-  "license": "MIT",
-  "type": "module",
-  "sideEffects": false,
-  "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "biome check .",
-    "test": "bun test"
-  },
   "dependencies": {
-    "@crvouga/mockingbird-service-app-store-connect": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-service-aha": "workspace:*",
+    "@crvouga/mockingbird-service-airtable": "workspace:*",
+    "@crvouga/mockingbird-service-app-store-connect": "workspace:*",
     "@crvouga/mockingbird-service-aws-secrets": "workspace:*",
     "@crvouga/mockingbird-service-aws-speech": "workspace:*",
     "@crvouga/mockingbird-service-bedrock": "workspace:*",
     "@crvouga/mockingbird-service-caretalk": "workspace:*",
+    "@crvouga/mockingbird-service-checkr": "workspace:*",
     "@crvouga/mockingbird-service-cognito": "workspace:*",
     "@crvouga/mockingbird-service-customerio": "workspace:*",
     "@crvouga/mockingbird-service-daily": "workspace:*",
@@ -31,6 +21,7 @@
     "@crvouga/mockingbird-service-formbricks": "workspace:*",
     "@crvouga/mockingbird-service-fullscript": "workspace:*",
     "@crvouga/mockingbird-service-genebygene": "workspace:*",
+    "@crvouga/mockingbird-service-google-ads": "workspace:*",
     "@crvouga/mockingbird-service-google-calendar": "workspace:*",
     "@crvouga/mockingbird-service-google-maps": "workspace:*",
     "@crvouga/mockingbird-service-healthie": "workspace:*",
@@ -67,8 +58,18 @@
     "@crvouga/mockingbird-service-twilio": "workspace:*",
     "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
     "@crvouga/mockingbird-service-vpi": "workspace:*",
-    "@crvouga/mockingbird-service-wholescripts": "workspace:*",
-    "@crvouga/mockingbird-service-google-ads": "workspace:*",
-    "@crvouga/mockingbird-service-airtable": "workspace:*"
-  }
+    "@crvouga/mockingbird-service-wholescripts": "workspace:*"
+  },
+  "description": "Proves every HTTP mock implements the same MockSurface and admin control plane.",
+  "license": "MIT",
+  "name": "@crvouga/mockingbird-service-conformance",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.0.0-development"
 }

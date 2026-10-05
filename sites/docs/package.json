@@ -1,16 +1,4 @@
 {
-  "name": "@crvouga/mockingbird-docs",
-  "description": "The Mockingbird documentation site: a static Astro build generated from the service packages.",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "biome check .",
-    "test": "bun test integrations"
-  },
   "dependencies": {
     "@astrojs/node": "^11.1.6",
     "@crvouga/mockingbird-ui": "workspace:*",
@@ -20,14 +8,17 @@
     "marked": "18.0.13",
     "shiki": "4.4.3"
   },
+  "description": "The Mockingbird documentation site: a static Astro build generated from the service packages.",
   "devDependencies": {
-    "@crvouga/mockingbird-service-app-store-connect": "workspace:*",
     "@crvouga/mockingbird-example-medical-testing": "workspace:*",
     "@crvouga/mockingbird-service-aha": "workspace:*",
+    "@crvouga/mockingbird-service-airtable": "workspace:*",
+    "@crvouga/mockingbird-service-app-store-connect": "workspace:*",
     "@crvouga/mockingbird-service-aws-secrets": "workspace:*",
     "@crvouga/mockingbird-service-aws-speech": "workspace:*",
     "@crvouga/mockingbird-service-bedrock": "workspace:*",
     "@crvouga/mockingbird-service-caretalk": "workspace:*",
+    "@crvouga/mockingbird-service-checkr": "workspace:*",
     "@crvouga/mockingbird-service-cognito": "workspace:*",
     "@crvouga/mockingbird-service-customerio": "workspace:*",
     "@crvouga/mockingbird-service-daily": "workspace:*",
@@ -40,6 +31,7 @@
     "@crvouga/mockingbird-service-formbricks": "workspace:*",
     "@crvouga/mockingbird-service-fullscript": "workspace:*",
     "@crvouga/mockingbird-service-genebygene": "workspace:*",
+    "@crvouga/mockingbird-service-google-ads": "workspace:*",
     "@crvouga/mockingbird-service-google-calendar": "workspace:*",
     "@crvouga/mockingbird-service-google-maps": "workspace:*",
     "@crvouga/mockingbird-service-healthie": "workspace:*",
@@ -81,8 +73,17 @@
     "@crvouga/mockingbird-service-vpi": "workspace:*",
     "@crvouga/mockingbird-service-wholescripts": "workspace:*",
     "@types/node": "22.20.1",
-    "typescript": "5.9.3",
-    "@crvouga/mockingbird-service-google-ads": "workspace:*",
-    "@crvouga/mockingbird-service-airtable": "workspace:*"
-  }
+    "typescript": "5.9.3"
+  },
+  "name": "@crvouga/mockingbird-docs",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test integrations"
+  },
+  "type": "module"
 }
