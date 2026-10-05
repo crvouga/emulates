@@ -49,7 +49,7 @@ export const optionalString = (
 }
 
 /** Ruby's `String#strip`: leading and trailing ASCII whitespace and NULs. */
-export const strip = (value: string) => value.replace(/^[\s\0]+|[\s\0]+$/g, "")
+export const strip = (value: string) => value.replace(/^[\t\n\v\f\r \0]+|[\t\n\v\f\r \0]+$/g, "")
 
 /** Optional string that Stripe strips: absent keeps `current`, blank unsets to null. */
 export const strippedString = (

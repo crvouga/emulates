@@ -73,6 +73,27 @@ describe("service contract", () => {
     expect(await stored.json()).toMatchObject({ marketing_features: [{ name: "Useful" }] })
   })
 
+  test("product feature names retain Unicode whitespace while stripping ASCII whitespace", async () => {
+    const { call } = harness()
+    for (const name of ["\u2000", "\u00a0", " \u2000 ", "\t\u2000\n"]) {
+      const created = await call(
+        "/v1/products",
+        form({ name: "a", "marketing_features[0][name]": name }),
+      )
+      expect(created.status).toBe(200)
+      const product = (await created.json()) as { id: string; marketing_features: unknown[] }
+      expect(product.marketing_features).toEqual([
+        { name: name.includes("\u2000") ? "\u2000" : "\u00a0" },
+      ])
+      const updated = await call(
+        `/v1/products/${product.id}`,
+        form({ "marketing_features[0][name]": " \u2000 " }),
+      )
+      expect(updated.status).toBe(200)
+      expect(await updated.json()).toMatchObject({ marketing_features: [{ name: "\u2000" }] })
+    }
+  })
+
   test("/__admin/health names the service and the loaded corpus; every response carries x-mockingbird", async () => {
     const { call } = harness()
     const health = await call("/__admin/health")
