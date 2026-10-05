@@ -17,6 +17,7 @@
     "@crvouga/mockingbird-service-aws-secrets": "workspace:*",
     "@crvouga/mockingbird-service-aws-speech": "workspace:*",
     "@crvouga/mockingbird-service-bedrock": "workspace:*",
+    "@crvouga/mockingbird-service-brevo": "workspace:*",
     "@crvouga/mockingbird-service-caretalk": "workspace:*",
     "@crvouga/mockingbird-service-cognito": "workspace:*",
     "@crvouga/mockingbird-service-customerio": "workspace:*",

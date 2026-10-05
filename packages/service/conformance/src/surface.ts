@@ -3,6 +3,7 @@ import type { createRuntime as createAha } from "@crvouga/mockingbird-service-ah
 import type { createRuntime as createAwsSecrets } from "@crvouga/mockingbird-service-aws-secrets"
 import type { createRuntime as createAwsSpeech } from "@crvouga/mockingbird-service-aws-speech"
 import type { createRuntime as createBedrock } from "@crvouga/mockingbird-service-bedrock"
+import type { createRuntime as createBrevo } from "@crvouga/mockingbird-service-brevo"
 import type { createRuntime as createCaretalk } from "@crvouga/mockingbird-service-caretalk"
 import type { createRuntime as createCognito } from "@crvouga/mockingbird-service-cognito"
 import type { createRuntime as createCustomerio } from "@crvouga/mockingbird-service-customerio"
@@ -68,6 +69,7 @@ export type SurfaceProof = [
   Assert<typeof createAwsSecrets>,
   Assert<typeof createAwsSpeech>,
   Assert<typeof createBedrock>,
+  Assert<typeof createBrevo>,
   Assert<typeof createCaretalk>,
   Assert<typeof createCognito>,
   Assert<typeof createCustomerio>,
