@@ -12,6 +12,7 @@ import {
   TableOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons"
+import type { ThemeConfig } from "antd"
 import {
   App,
   Avatar,
@@ -77,6 +78,96 @@ const remember = (key: string, value?: string): string | null => {
     return sessionStorage.getItem(key)
   } catch {
     return null
+  }
+}
+
+const shellTheme = (dark: boolean): ThemeConfig => {
+  const palette = dark
+    ? {
+        canvas: "#0b0f14",
+        surface: "#11161d",
+        elevated: "#171d26",
+        border: "#252d38",
+        borderStrong: "#343e4c",
+        text: "#edf2f7",
+        textMuted: "#9aa6b5",
+        primary: "#5b9cf6",
+        selected: "rgba(91, 156, 246, 0.16)",
+        hover: "rgba(255, 255, 255, 0.055)",
+      }
+    : {
+        canvas: "#f5f7fa",
+        surface: "#ffffff",
+        elevated: "#ffffff",
+        border: "#e4e8ee",
+        borderStrong: "#d4dae3",
+        text: "#172033",
+        textMuted: "#667085",
+        primary: "#2563d8",
+        selected: "#eaf2ff",
+        hover: "#f3f6fa",
+      }
+
+  return {
+    algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    token: {
+      motion: false,
+      colorPrimary: palette.primary,
+      colorInfo: palette.primary,
+      colorBgBase: palette.canvas,
+      colorBgLayout: palette.canvas,
+      colorBgContainer: palette.surface,
+      colorBgElevated: palette.elevated,
+      colorBorder: palette.borderStrong,
+      colorBorderSecondary: palette.border,
+      colorText: palette.text,
+      colorTextSecondary: palette.textMuted,
+      borderRadius: 8,
+      borderRadiusLG: 12,
+      controlHeight: 38,
+      fontSize: 14,
+      boxShadowSecondary: dark
+        ? "0 18px 48px rgba(0, 0, 0, 0.42)"
+        : "0 18px 48px rgba(16, 24, 40, 0.14)",
+    },
+    components: {
+      Layout: {
+        bodyBg: palette.canvas,
+        headerBg: palette.surface,
+        siderBg: palette.surface,
+        triggerBg: palette.surface,
+        triggerColor: palette.textMuted,
+        lightSiderBg: palette.surface,
+        lightTriggerBg: palette.surface,
+        lightTriggerColor: palette.textMuted,
+      },
+      Menu: {
+        itemBg: palette.surface,
+        itemColor: palette.textMuted,
+        itemHoverBg: palette.hover,
+        itemHoverColor: palette.text,
+        itemSelectedBg: palette.selected,
+        itemSelectedColor: palette.primary,
+        itemBorderRadius: 8,
+        itemHeight: 42,
+        darkItemBg: palette.surface,
+        darkSubMenuItemBg: palette.surface,
+        darkItemColor: palette.textMuted,
+        darkItemHoverBg: palette.hover,
+        darkItemHoverColor: palette.text,
+        darkItemSelectedBg: palette.selected,
+        darkItemSelectedColor: dark ? "#9dc2fa" : palette.primary,
+      },
+      Card: {
+        headerBg: "transparent",
+      },
+      Table: {
+        headerBg: dark ? "#171d25" : "#f7f9fc",
+        headerColor: palette.text,
+        rowHoverBg: palette.hover,
+        borderColor: palette.border,
+      },
+    },
   }
 }
 
@@ -170,6 +261,9 @@ function Workspace({
       (remember("mockingbird-admin-theme") === null &&
         window.matchMedia("(prefers-color-scheme: dark)").matches),
   )
+  const adminTheme = useMemo(() => shellTheme(dark), [dark])
+  const shellBorder = dark ? "#252d38" : "#e4e8ee"
+  const shellSurface = dark ? "#11161d" : "#ffffff"
   const api = useMemo(() => createApi(config, fetch, namespace, key), [config, namespace, key])
   const manifest = useResource<Manifest>(api, "/ui/manifest", 0, false)
   const namespaces = useResource<{ namespaces: string[] }>(api, "/namespaces", revision)
@@ -263,29 +357,29 @@ function Workspace({
     <ConfigProvider
       getPopupContainer={() => popupHost}
       // Embedded browsers can pause animation frames; disposal must remain immediate.
-      theme={{
-        algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: { motion: false },
-      }}
+      theme={adminTheme}
     >
       <App
         message={{ getContainer: () => popupHost }}
         notification={{ getContainer: () => popupHost }}
         style={{ minHeight: "100%" }}
       >
-        <Layout style={{ minHeight: viewportHeight }}>
+        <Layout style={{ minHeight: viewportHeight, background: adminTheme.token?.colorBgLayout }}>
           <Layout.Header
             style={{
               height: "auto",
-              padding: "16px 24px",
+              minHeight: 72,
+              padding: narrow ? "14px 16px" : "16px 24px",
               lineHeight: "normal",
-              background: dark ? "#141414" : "#fff",
+              background: shellSurface,
+              borderBottom: `1px solid ${shellBorder}`,
+              zIndex: 2,
             }}
           >
             <Flex gap="middle" wrap justify="space-between" align="center">
               <Flex vertical gap={4}>
                 <Flex align="center" gap="small">
-                  <Typography.Title level={4} style={{ margin: 0 }}>
+                  <Typography.Title level={4} style={{ margin: 0, textTransform: "capitalize" }}>
                     {config.service}
                   </Typography.Title>
                   <Tag style={{ margin: 0 }}>Admin</Tag>
@@ -345,12 +439,21 @@ function Workspace({
               collapsed={narrow || collapsed}
               collapsible={!narrow}
               onCollapse={setCollapsed}
+              style={{
+                background: shellSurface,
+                borderInlineEnd: `1px solid ${shellBorder}`,
+              }}
             >
               <Menu
                 theme={dark ? "dark" : "light"}
                 mode="inline"
                 selectedKeys={[selected]}
                 items={nav}
+                style={{
+                  background: "transparent",
+                  borderInlineEnd: 0,
+                  padding: narrow || collapsed ? "12px 6px" : "12px 10px",
+                }}
                 onClick={({ key: next }) => {
                   setView(next)
                   const url = new URL(location.href)
@@ -359,8 +462,17 @@ function Workspace({
                 }}
               />
             </Layout.Sider>
-            <Layout.Content style={{ minWidth: 0, padding: narrow ? 12 : 24 }}>
-              <Flex vertical gap="large">
+            <Layout.Content
+              style={{
+                minWidth: 0,
+                padding: narrow ? "20px 12px 36px" : "32px 28px 48px",
+              }}
+            >
+              <Flex
+                vertical
+                gap="large"
+                style={{ width: "100%", maxWidth: 1440, margin: "0 auto" }}
+              >
                 <ErrorNotice
                   error={manifest.error ?? namespaces.error}
                   retry={() => {
