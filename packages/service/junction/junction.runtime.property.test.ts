@@ -93,6 +93,34 @@ const admin = (runtime: JunctionRuntime, method: string, path: string, body?: un
   call(runtime, method, `/__admin${path}`, body !== undefined ? { body } : {})
 
 describe("service contract", () => {
+  test("order addresses default to patient contact details and preserve explicit overrides", async () => {
+    for (const overrides of [{}, { receiver_name: "Grace Hopper", phone_number: "+14155559876" }]) {
+      const runtime = createRuntime({ corpus: defaultCorpus })
+      const userId = await createUser(runtime)
+      const body = orderBody(userId, "CA")
+      const created = await call(runtime, "POST", "/v3/order", {
+        body: { ...body, patient_address: { ...body.patient_address, ...overrides } },
+      })
+      expect(created.status).toBe(200)
+      const order = created.body.order as Json
+      const expected = {
+        ...body.patient_address,
+        receiver_name: "Ada Lovelace",
+        phone_number: "+14155551234",
+        second_line: null,
+        access_notes: null,
+        ...overrides,
+      }
+      expect(order.patient_address).toEqual(expected)
+      const fetched = await call(runtime, "GET", `/v3/order/${order.id}`)
+      expect(fetched.status).toBe(200)
+      expect(fetched.body.patient_address).toEqual(expected)
+      const cancelled = await call(runtime, "POST", `/v3/order/${order.id}/cancel`)
+      expect(cancelled.status).toBe(200)
+      expect((cancelled.body.order as Json).patient_address).toEqual(expected)
+    }
+  })
+
   test("/__admin/health needs no vendor key and names the corpus", async () => {
     const runtime = createRuntime({ corpus: defaultCorpus })
     const res = await runtime.fetch(new Request("http://mock.local/__admin/health"))

@@ -202,8 +202,13 @@ const patientDetails = (input: Record<string, unknown>): Record<string, unknown>
   gender_identity: null,
 })
 
-const patientAddress = (input: Record<string, unknown>): Record<string, unknown> => ({
+const patientAddress = (
+  input: Record<string, unknown>,
+  details: Record<string, unknown>,
+): Record<string, unknown> => ({
   ...input,
+  receiver_name: input.receiver_name ?? `${details.first_name} ${details.last_name}`,
+  phone_number: input.phone_number ?? details.phone_number,
   second_line: null,
   access_notes: null,
 })
@@ -1426,7 +1431,7 @@ export const buildOrderRecord = (
     user_id: userId,
     team_id: state.teamId,
     patient_details: patientDetails(details),
-    patient_address: patientAddress(draft.patientAddress),
+    patient_address: patientAddress(draft.patientAddress, details),
     lab_test: orderLabTest,
     details: METHOD_DETAILS(method, state.testkitIdFor(orderId), nowIso),
     sample_id: null,
