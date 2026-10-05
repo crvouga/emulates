@@ -76,6 +76,7 @@
     "@crvouga/mockingbird-service-vanta": "workspace:*",
     "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
     "@crvouga/mockingbird-service-vpi": "workspace:*",
+    "@crvouga/mockingbird-service-vibe": "workspace:*",
     "@crvouga/mockingbird-service-wholescripts": "workspace:*",
     "@crvouga/mockingbird-service-whoop": "workspace:*",
     "@crvouga/mockingbird-service-workos": "workspace:*",

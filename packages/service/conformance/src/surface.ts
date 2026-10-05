@@ -60,6 +60,7 @@ import type { createRuntime as createTextract } from "@crvouga/mockingbird-servi
 import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service-twilio"
 import type { createRuntime as createVanta } from "@crvouga/mockingbird-service-vanta"
 import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-service-vercel-blob"
+import type { createRuntime as createVibe } from "@crvouga/mockingbird-service-vibe"
 import type { createRuntime as createVpi } from "@crvouga/mockingbird-service-vpi"
 import type { createRuntime as createWholescripts } from "@crvouga/mockingbird-service-wholescripts"
 import type { createRuntime as createWhoop } from "@crvouga/mockingbird-service-whoop"
@@ -139,4 +140,5 @@ export type SurfaceProof = [
   Assert<typeof createWorkos>,
   Assert<typeof createECS>,
   Assert<typeof createEventBridge>,
+  Assert<typeof createVibe>,
 ]
