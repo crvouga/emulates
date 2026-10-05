@@ -200,6 +200,9 @@ export class OuraAPI implements FetchAPI {
       }
       userId = code.userId
       scopes = code.scopes
+      // PKCE hashing yielded: re-check before the synchronous claim to reject a concurrent replay.
+      if (!this.codes.has(code.code) || code.expiresAt <= this.now())
+        return oauthError("invalid_grant", "Authorization code already used or expired.")
       this.codes.delete(code.code)
     } else return oauthError("unsupported_grant_type", "Unsupported grant_type.")
     const token = this.ids.next("mock_access"),

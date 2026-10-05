@@ -129,6 +129,44 @@ test("authorization code is client and redirect bound; Basic credentials work", 
   ).toBe(403)
   expect((await exchange("https://example.invalid/callback")).status).toBe(400)
 })
+test("concurrent PKCE exchanges consume one code exactly once", async () => {
+  const verifier = "a".repeat(43)
+  const digest = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)),
+  )
+  const challenge = btoa(String.fromCharCode(...digest))
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "")
+  const api = new OuraAPI({
+    codes: [
+      {
+        code: "mock_code",
+        clientId: "mock_client",
+        userId: "synthetic-user",
+        scopes: ["daily"],
+        expiresAt: 4102444800000,
+        challenge,
+      },
+    ],
+  })
+  const exchange = () =>
+    api.fetch(
+      new Request(`${base}/oauth/token`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code: "mock_code",
+          code_verifier: verifier,
+          client_id: "mock_client",
+          client_secret: "mock_client_secret",
+        }),
+      }),
+    )
+  const responses = await Promise.all([exchange(), exchange()])
+  expect(responses.map((r) => r.status).sort()).toEqual([200, 400])
+})
 test("namespace reset, admin seeding, clock and journal redact credentials", async () => {
   const runtime = createRuntime({ records, pageSize: 1 })
   const request = (path: string, namespace: string, init: RequestInit = {}) =>
