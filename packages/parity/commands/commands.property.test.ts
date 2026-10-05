@@ -197,6 +197,63 @@ describe("planOperations", () => {
 describe("commandArbitrary", () => {
   const commands = commandArbitrary({ document, plans })
 
+  test("generated path parameters reach their planned route after Fetch URL normalization", () => {
+    const values = [".", "..", "...", ".id", "id.", "%2e", "/", "\\"]
+    const schema = { type: "string", enum: values }
+    const pathDocument = parseOpenAPIDocument({
+      openapi: "3.1.0",
+      info: { title: "path normalization", version: "1" },
+      paths: Object.fromEntries(
+        ["/v1/{id}/insights", "/v1/prefix{id}/insights"].map((path, index) => [
+          path,
+          {
+            post: {
+              operationId: `path.${index}`,
+              parameters: [
+                { name: "id", in: "path", required: true, schema },
+                { name: "query", in: "query", required: true, schema },
+              ],
+              requestBody: {
+                required: true,
+                content: { "application/json": { schema } },
+              },
+              responses: { "200": { description: "ok" } },
+            },
+          },
+        ]),
+      ),
+    })
+    const pathPlans = planOperations(pathDocument, { includeUnsafe: true })
+    const generated = fc.sample(
+      commandArbitrary({
+        document: pathDocument,
+        plans: pathPlans,
+        invalidProbability: 0,
+      }),
+      { seed: 180240427, numRuns: 200 },
+    )
+    const queryValues = new Set<unknown>()
+    const bodyValues = new Set<unknown>()
+    const embeddedValues = new Set<unknown>()
+    for (const command of generated) {
+      const plan = pathPlans.find((entry) => entry.operation.operationId === command.operationId)
+      if (!plan) throw new Error("missing plan")
+      const concrete = concretize(command, plan, new ResourceTable(), "mock", scope)
+      const request = toRequest(concrete, "https://api.example.test/base")
+      expect(new URL(request.url).pathname).toBe(`/base${concrete.path}`)
+      expect(new URL(request.url).searchParams.get("query")).toBe(String(command.parameters.query))
+      expect(JSON.parse(concrete.body?.body ?? "null")).toBe(command.body)
+      queryValues.add(command.parameters.query)
+      bodyValues.add(command.body)
+      if (command.operationId === "path.1") embeddedValues.add(command.parameters.id)
+    }
+    for (const value of values) {
+      expect(queryValues.has(value)).toBe(true)
+      expect(bodyValues.has(value)).toBe(true)
+      expect(embeddedValues.has(value)).toBe(true)
+    }
+  })
+
   test("every command targets a planned operation, never leaks unsupported fields, and valid bodies validate once resolved", () => {
     fc.assert(
       fc.property(commands, (command) => {

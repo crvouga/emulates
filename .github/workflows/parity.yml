@@ -27,6 +27,10 @@ on:
         description: "Services to verify, space-separated (e.g. `stripe junction`), `--all`, or `--tier=<hot|warm|cold>`"
         required: true
         default: junction
+      seed:
+        description: "Optional fast-check seed to replay a failure"
+        required: false
+        type: string
   workflow_call:
     inputs:
       services:
@@ -105,6 +109,7 @@ jobs:
         timeout-minutes: 55
         env:
           PARITY_SERVICES: ${{ needs.plan.outputs.services }}
+          FC_SEED: ${{ inputs.seed || '' }}
           GENEBYGENE_CLIENT_ID: ${{ secrets.GENEBYGENE_CLIENT_ID }}
           GENEBYGENE_CLIENT_SECRET: ${{ secrets.GENEBYGENE_CLIENT_SECRET }}
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}

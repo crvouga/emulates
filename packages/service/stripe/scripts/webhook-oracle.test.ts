@@ -1,12 +1,37 @@
 import { expect, test } from "bun:test"
 import { ResourceTable } from "@crvouga/mockingbird-model"
-import { compareStripeWebhooks } from "./webhook-oracle.js"
+import { compareStripeWebhooks, stripeEventsForRequests } from "./webhook-oracle.js"
 
 const event = (type: string, id: string, status: string) => ({
   id: `evt_${id}`,
   type,
   created: Date.now(),
   data: { object: { object: "customer", id, status, metadata: { source: "parity" } } },
+})
+
+test("isolates delayed cleanup events without hiding unexpected events in the current walk", () => {
+  const current = {
+    ...event("product.created", "prod_current", "active"),
+    request: { id: "req_current" },
+  }
+  const cleanup = {
+    ...event("product.deleted", "prod_previous", "deleted"),
+    request: { id: "req_cleanup" },
+  }
+  const unexpected = {
+    ...event("product.updated", "prod_current", "inactive"),
+    request: "req_current",
+  }
+  const automatic = { ...event("customer.updated", "cus_auto", "active"), request: { id: null } }
+  const invalid = { invalid: true }
+  const selected = stripeEventsForRequests(
+    [cleanup, current, unexpected, automatic, invalid],
+    new Set(["req_current"]),
+  )
+  expect(selected).toEqual([current, unexpected, automatic, invalid])
+  expect(compareStripeWebhooks(selected.slice(0, 2), [current], new ResourceTable())).toContain(
+    "event count",
+  )
 })
 
 test("matches reordered Stripe events across independent IDs and timestamps", () => {

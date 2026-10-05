@@ -56,6 +56,15 @@ describe("sealed corpus fidelity", () => {
     )
   })
 
+  test("the legacy catalog keeps its recorded ordering independently of the paginated catalog", async () => {
+    const api = new JunctionAPI({ corpus })
+    const response = await get(api, "GET /v3/lab_tests")
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(corpus.observations["GET /v3/lab_tests"]?.body)
+    const paginated = await get(api, "GET /v3/lab_test")
+    expect(((await paginated.json()) as { data: unknown[] }).data).toEqual(corpus.catalog.labTests)
+  })
+
   test("a corpus miss falls back to the synthetic model", async () => {
     const api = new JunctionAPI()
     api.installCorpus(corpus)

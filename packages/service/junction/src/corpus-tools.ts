@@ -132,6 +132,8 @@ export const pullCorpus = async (options: PullCorpusOptions): Promise<SealedCorp
       if (cursor === null) break
       await sleep(gap)
     }
+    // Record the legacy bare-array catalog separately from the paginated endpoint.
+    await recordObservation(real, "GET", "/v3/lab_tests", getCache)
     const labs = listOf(await recordObservation(real, "GET", "/v3/lab_tests/labs", getCache))
     const expectedResults: Record<string, ExpectedResult[]> = {}
     for (const test of labTests) {

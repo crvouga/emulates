@@ -12,6 +12,11 @@ on:
   schedule:
     - cron: "17 9 * * *" # daily
   workflow_dispatch:
+    inputs:
+      refresh_corpus:
+        description: "Re-record the sandbox corpus and upload it for review and commit"
+        type: boolean
+        default: false
 
 concurrency:
   group: verify-junction
@@ -31,13 +36,40 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # The verifier runs from source; it needs no build and no turbo cache.
+      # The verifier runs from source, but its workspace imports resolve to dist.
+      # Restore the same build caches as CI and build its dependencies first.
       - uses: ./.github/actions/setup
-        with:
-          turbo-cache: "false"
+
+      - name: Build verifier dependencies
+        timeout-minutes: 10
+        run: bunx turbo run build --filter='@crvouga/mockingbird-service-junction^...' --output-logs=errors-only
+
+      # Manual maintenance only: scheduled verification always checks the committed corpus.
+      - name: Refresh sandbox corpus
+        id: refresh
+        if: inputs.refresh_corpus == true
+        env:
+          JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
+        run: bun run --cwd packages/service/junction corpus:record -- --force
 
       - name: mockingbird-junction verify (shipped corpus, with orders)
         timeout-minutes: 15
         env:
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
-        run: bun run --cwd packages/service/junction verify -- --sample 60 --orders
+        run: bun run --cwd packages/service/junction verify -- --sample 60 --orders --json > "$RUNNER_TEMP/junction-verify.json"
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junction-verify-report
+          path: ${{ runner.temp }}/junction-verify.json
+          if-no-files-found: ignore
+
+      - name: Upload refreshed corpus
+        if: always() && steps.refresh.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: junction-corpus
+          path: packages/service/junction/corpus/sandbox-sealed.json
+          if-no-files-found: error
