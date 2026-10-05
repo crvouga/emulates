@@ -438,6 +438,7 @@
         "@crvouga/mockingbird-service-textract": "workspace:*",
         "@crvouga/mockingbird-service-twilio": "workspace:*",
         "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
+        "@crvouga/mockingbird-service-vibe": "workspace:*",
         "@crvouga/mockingbird-service-vpi": "workspace:*",
         "@crvouga/mockingbird-service-wholescripts": "workspace:*",
       },
@@ -1802,6 +1803,32 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/vibe": {
+      "name": "@crvouga/mockingbird-service-vibe",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-vibe": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-http-codec": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/vpi": {
       "name": "@crvouga/mockingbird-service-vpi",
       "version": "0.0.0-development",
@@ -1958,6 +1985,7 @@
         "@crvouga/mockingbird-service-textract": "workspace:*",
         "@crvouga/mockingbird-service-twilio": "workspace:*",
         "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
+        "@crvouga/mockingbird-service-vibe": "workspace:*",
         "@crvouga/mockingbird-service-vpi": "workspace:*",
         "@crvouga/mockingbird-service-wholescripts": "workspace:*",
         "@types/node": "22.20.1",
@@ -2420,6 +2448,8 @@
     "@crvouga/mockingbird-service-twilio": ["@crvouga/mockingbird-service-twilio@workspace:packages/service/twilio"],
 
     "@crvouga/mockingbird-service-vercel-blob": ["@crvouga/mockingbird-service-vercel-blob@workspace:packages/service/vercel-blob"],
+
+    "@crvouga/mockingbird-service-vibe": ["@crvouga/mockingbird-service-vibe@workspace:packages/service/vibe"],
 
     "@crvouga/mockingbird-service-vpi": ["@crvouga/mockingbird-service-vpi@workspace:packages/service/vpi"],
 

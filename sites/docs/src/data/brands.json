@@ -749,6 +749,20 @@
     "logo": "/brands/vercel-blob.svg",
     "logoSource": "simple-icons"
   },
+  "vibe": {
+    "vendor": "Vibe",
+    "website": "https://www.vibe.co",
+    "docs": "https://developers.vibe.co/docs/getting-started",
+    "description": "Connected TV advertising and reporting.",
+    "input": {
+      "website": "https://www.vibe.co",
+      "docs": "https://developers.vibe.co/docs/getting-started",
+      "description": "Connected TV advertising and reporting."
+    },
+    "color": null,
+    "logo": "/brands/vibe.png",
+    "logoSource": "site"
+  },
   "vpi": {
     "vendor": "VPI Compounding",
     "website": "https://www.vpicompounding.net",
