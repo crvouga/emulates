@@ -471,6 +471,7 @@
         "@crvouga/mockingbird-service-daily": "workspace:*",
         "@crvouga/mockingbird-service-dynamodb": "workspace:*",
         "@crvouga/mockingbird-service-easypost": "workspace:*",
+        "@crvouga/mockingbird-service-ecs": "workspace:*",
         "@crvouga/mockingbird-service-edamam": "workspace:*",
         "@crvouga/mockingbird-service-fcm": "workspace:*",
         "@crvouga/mockingbird-service-firstpromoter": "workspace:*",
@@ -638,6 +639,29 @@
         "@crvouga/mockingbird-parity": "workspace:*",
         "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/ecs": {
+      "name": "@crvouga/mockingbird-service-ecs",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-ecs": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
         "fast-check": "4.9.0",
@@ -2072,6 +2096,7 @@
         "@crvouga/mockingbird-service-daily": "workspace:*",
         "@crvouga/mockingbird-service-dynamodb": "workspace:*",
         "@crvouga/mockingbird-service-easypost": "workspace:*",
+        "@crvouga/mockingbird-service-ecs": "workspace:*",
         "@crvouga/mockingbird-service-edamam": "workspace:*",
         "@crvouga/mockingbird-service-fcm": "workspace:*",
         "@crvouga/mockingbird-service-firstpromoter": "workspace:*",
@@ -2497,6 +2522,8 @@
     "@crvouga/mockingbird-service-dynamodb": ["@crvouga/mockingbird-service-dynamodb@workspace:packages/service/dynamodb"],
 
     "@crvouga/mockingbird-service-easypost": ["@crvouga/mockingbird-service-easypost@workspace:packages/service/easypost"],
+
+    "@crvouga/mockingbird-service-ecs": ["@crvouga/mockingbird-service-ecs@workspace:packages/service/ecs"],
 
     "@crvouga/mockingbird-service-edamam": ["@crvouga/mockingbird-service-edamam@workspace:packages/service/edamam"],
 

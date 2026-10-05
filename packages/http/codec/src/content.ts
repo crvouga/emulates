@@ -11,7 +11,11 @@ export const mediaTypeOf = (contentType: string | null | undefined): string | un
 }
 
 const isJsonMediaType = (mediaType: string) =>
-  mediaType === JSON_MEDIA_TYPE || mediaType.endsWith("+json") || mediaType === "text/json"
+  mediaType === JSON_MEDIA_TYPE ||
+  mediaType.endsWith("+json") ||
+  mediaType === "text/json" ||
+  mediaType === "application/x-amz-json-1.0" ||
+  mediaType === "application/x-amz-json-1.1"
 
 export type DecodedBody =
   | { kind: "empty" }

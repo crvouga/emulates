@@ -171,6 +171,19 @@
     "logo": "/brands/easypost.svg",
     "logoSource": "site"
   },
+  "ecs": {
+    "vendor": "AWS ECS",
+    "website": "https://aws.amazon.com/ecs/",
+    "docs": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html",
+    "description": "Amazon Elastic Container Service (Amazon ECS) provides a fully managed container service solution that’s easy to use, scalable, secure, and reliable.",
+    "input": {
+      "website": "https://aws.amazon.com/ecs/",
+      "docs": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html"
+    },
+    "color": null,
+    "logo": "/brands/ecs.png",
+    "logoSource": "site"
+  },
   "edamam": {
     "vendor": "Edamam",
     "website": "https://www.edamam.com",
