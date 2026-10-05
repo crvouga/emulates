@@ -210,6 +210,8 @@ type Step = {
   name: string
   /** `exact`: bodies must match byte for byte; `shape`: structure and types only. */
   compare: "exact" | "shape"
+  /** Compare a stable subset when the rest contains per-side ids and timestamps. */
+  project?: (body: unknown) => unknown
   skip?: (ctx: Record<Side, Context>) => boolean
   request(ctx: Context): { method: string; path: string; body?: unknown }
   capture?(reply: Reply, ctx: Context): void
@@ -300,6 +302,13 @@ const scenario = (corpus: SealedCorpus, withOrders: boolean): Step[] => {
         compare: "shape",
         skip: (ctx) => !ctx.real.orderId || !ctx.mock.orderId,
         request: (ctx) => ({ method: "GET", path: `/v3/order/${ctx.orderId}` }),
+      },
+      {
+        name: "order.address",
+        compare: "exact",
+        skip: (ctx) => !ctx.real.orderId || !ctx.mock.orderId,
+        request: (ctx) => ({ method: "GET", path: `/v3/order/${ctx.orderId}` }),
+        project: (body) => (body as { patient_address?: unknown } | null)?.patient_address ?? null,
       },
       {
         name: "order.cancel",
@@ -510,22 +519,23 @@ export const verifyAgainstReal = async (options: VerifyOptions): Promise<VerifyR
         step.capture?.(replies[side], ctx[side])
       }
       const { real, mock } = replies
+      const realBody = step.project ? step.project(real.body) : real.body
+      const mockBody = step.project ? step.project(mock.body) : mock.body
       let divergence: Divergence | undefined
       if (real.status !== mock.status) {
         divergence = { check: step.name, kind: "status", real: real.status, mock: mock.status }
       } else if (step.compare === "exact") {
-        const at = firstDifference(real.body, mock.body)
-        if (at)
-          divergence = { check: step.name, kind: "body", at, real: real.body, mock: mock.body }
+        const at = firstDifference(realBody, mockBody)
+        if (at) divergence = { check: step.name, kind: "body", at, real: realBody, mock: mockBody }
       } else {
-        const at = firstDifference(shapeOf(real.body), shapeOf(mock.body))
+        const at = firstDifference(shapeOf(realBody), shapeOf(mockBody))
         if (at) {
           divergence = {
             check: step.name,
             kind: "shape",
             at,
-            real: shapeOf(real.body),
-            mock: shapeOf(mock.body),
+            real: shapeOf(realBody),
+            mock: shapeOf(mockBody),
           }
         }
       }

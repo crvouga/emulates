@@ -83,11 +83,24 @@ export const compareStripeWebhooks = (
 
 type StripeOracle = {
   cursor(): number
-  collect(cursor: number, expected: number): Promise<unknown[]>
+  collect(cursor: number, expected: number, requestIds: ReadonlySet<string>): Promise<unknown[]>
   /** Wait until no event has arrived for `quietMs` (or `maxMs` passes), so late deliveries land before the next walk. */
   settle(quietMs: number, maxMs: number): Promise<void>
   close(): Promise<void>
 }
+
+/** Isolate API-triggered events by request, including late deliveries from earlier cleanup.
+ * Events without an API request still participate in parity (Stripe can generate them itself).
+ */
+export const stripeEventsForRequests = (
+  events: readonly unknown[],
+  requestIds: ReadonlySet<string>,
+): unknown[] =>
+  events.filter((value) => {
+    const request = record(value)?.request
+    const id = typeof request === "string" ? request : record(request)?.id
+    return typeof id !== "string" || requestIds.has(id)
+  })
 
 /** Stripe CLI owns the websocket connection; its HTTP forwarder feeds the shared Hono receiver. */
 export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOracle> => {
@@ -191,20 +204,23 @@ export const startStripeWebhookOracle = async (apiKey: string): Promise<StripeOr
   }
   return {
     cursor: () => rows.length,
-    async collect(cursor, expected) {
+    async collect(cursor, expected, requestIds) {
       const deadline = Date.now() + 10_000
       let previousCount = -1
       let stableSince = Date.now()
       const uniqueEvents = () => {
         const seen = new Set<string>()
-        return rows.slice(cursor).flatMap((row) => {
-          const payload = record(row.payload)
+        return stripeEventsForRequests(
+          rows.slice(cursor).map((row) => row.payload),
+          requestIds,
+        ).flatMap((value) => {
+          const payload = record(value)
           const id = typeof payload?.id === "string" ? payload.id : undefined
           if (id !== undefined) {
             if (seen.has(id)) return []
             seen.add(id)
           }
-          return [row.payload]
+          return [value]
         })
       }
       do {

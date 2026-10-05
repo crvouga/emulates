@@ -208,6 +208,7 @@ if (withHistory.length > 0) {
 
 const webhookOracle = options.webhooks ? await startStripeWebhookOracle(secretKey) : undefined
 let webhookCursor = 0
+const webhookRequestIds = new Set<string>()
 try {
   await parity({
     provider: "stripe",
@@ -238,6 +239,12 @@ try {
     // The mock runs in-process on a busy machine; Stripe's own latency is not what we compare.
     latencyToleranceMs: 1_000,
     real: {
+      fetch: async (request) => {
+        const response = await fetch(request)
+        const id = response.headers.get("request-id")
+        if (id) webhookRequestIds.add(id)
+        return response
+      },
       baseUrl,
       allowedHosts: [STRIPE_HOST],
       headers: () => authHeaders,
@@ -251,10 +258,11 @@ try {
       ? {
           webhooks: {
             beforeWalk: async () => {
+              webhookRequestIds.clear()
               webhookCursor = webhookOracle.cursor()
             },
             collectReal: async (_scope: unknown, mockEvents: readonly unknown[]) =>
-              webhookOracle.collect(webhookCursor, mockEvents.length),
+              webhookOracle.collect(webhookCursor, mockEvents.length, webhookRequestIds),
             collectMock: async (mock: unknown) =>
               (mock as StripeAPI).webhookEvents().map((event) => JSON.parse(event.body) as unknown),
             compare: compareStripeWebhooks,

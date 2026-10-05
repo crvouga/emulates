@@ -846,10 +846,24 @@ export const orderHandlers = (state: JunctionState) => ({
       next_cursor: null,
     }),
 
-  // Deprecated upstream but still what team-catalog readers call: the same records as the
-  // paged `/v3/lab_test`, as a bare array, filtered the way the real endpoint documents.
-  get_lab_tests_for_team_v3_lab_tests_get: async (context: OperationContext) =>
-    jsonRes(200, filterLabTests(state.listLabTests(), context.url.searchParams)),
+  // The legacy endpoint orders the same records differently from the paginated catalog.
+  // Use its recorded order while retaining the current state of each test.
+  get_lab_tests_for_team_v3_lab_tests_get: async (context: OperationContext) => {
+    const recorded = state.getGetCache("GET /v3/lab_tests")?.body
+    const positions = new Map(
+      (Array.isArray(recorded) ? recorded : []).map((test, index) => [
+        typeof test === "object" && test !== null && "id" in test ? String(test.id) : "",
+        index,
+      ]),
+    )
+    const tests = state.listLabTests()
+    if (positions.size > 0) {
+      tests.sort(
+        (a, b) => (positions.get(a.id) ?? positions.size) - (positions.get(b.id) ?? positions.size),
+      )
+    }
+    return jsonRes(200, filterLabTests(tests, context.url.searchParams))
+  },
 
   get_lab_test_for_team_v3_lab_tests__lab_test_id__get: async (context: OperationContext) => {
     const id = context.params.lab_test_id ?? ""

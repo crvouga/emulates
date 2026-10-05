@@ -5,6 +5,7 @@ import fc from "fast-check"
 import { defaultCorpus } from "./src/corpus.js"
 import { diffCorpus, fingerprintCorpus } from "./src/corpus-tools.js"
 import {
+  corpusLabel,
   createRuntime,
   createWebhookDispatcher,
   type JunctionRuntime,
@@ -98,7 +99,7 @@ describe("service contract", () => {
     expect(res.status).toBe(200)
     const body = (await res.json()) as Json
     expect(body).toMatchObject({ status: "ok", service: "junction", geo: "corpus" })
-    expect(String(body.corpus)).toMatch(/^v1-\d{4}-\d{2}-\d{2}-/)
+    expect(body.corpus).toBe(corpusLabel(defaultCorpus))
     const vendor = await runtime.fetch(new Request("http://mock.local/v2/user"))
     expect(vendor.status).toBe(401)
   })
