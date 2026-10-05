@@ -350,11 +350,12 @@ describe("parity runner", () => {
     expect(calls).toEqual(["before", "mock", "real:1", "compare"])
   })
 
-  test("reports a webhook mismatch after a successful API walk", async () => {
+  test("reports a webhook mismatch after an empty successful API walk", async () => {
     const real = referenceServer("R", "none", () => 1_700_000_000_000)
     let difference: string | undefined
-    await expect(
-      parity({
+    let failure: unknown
+    try {
+      await parity({
         provider: "reference",
         spec,
         seed: 3,
@@ -377,8 +378,14 @@ describe("parity runner", () => {
             return difference
           },
         },
-      }),
-    ).rejects.toThrow("parity FAILED")
+      })
+    } catch (error) {
+      failure = error
+    }
+    expect(failure).toBeInstanceOf(ParityError)
+    expect((failure as ParityError).details.kind).toBe("webhook-mismatch")
+    expect((failure as Error).message).toContain("command: webhooks")
+    expect((failure as Error).message).toContain("webhook: event count real=0 mock=1")
     expect(difference).toBe("event count real=0 mock=1")
   })
   test("API failures take precedence over webhook comparison", async () => {
