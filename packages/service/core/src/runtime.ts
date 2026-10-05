@@ -22,8 +22,15 @@ import {
   type FaultRegistry,
   type FaultRule,
 } from "./faults.js"
-import { createJournal, DEFAULT_JOURNAL_SIZE, type Journal, responseNotes } from "./journal.js"
+import {
+  createJournal,
+  DEFAULT_JOURNAL_SIZE,
+  type Journal,
+  type ResponseNotes,
+  responseNotes,
+} from "./journal.js"
 import { createMetrics, type Metrics, type RejectedRequest, type RequestLog } from "./metrics.js"
+import { operationPath } from "./path.js"
 import { createRng, type Rng, seedFrom } from "./rng.js"
 import { bootSqlite } from "./service.js"
 import { type NamespaceSnapshot, restoreNamespace, snapshotNamespace } from "./snapshot.js"
@@ -83,7 +90,9 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   admin?: (runtime: ServiceRuntime<T>) => AdminRoutes
   /** Reserved tree for every internal HTTP endpoint, UI and namespace carrier. Default /__admin. */
   adminPrefix?: string
-  /** Require this value in `x-mockingbird-admin-key` on admin data routes. Omit to leave admin open. */
+  /** Invalidate transient handles before replacing an existing instance's stored state. */
+  beforeRestore?: (instance: T) => void
+  /** Require this value in `x-mockingbird-admin-key` on admin data routes. */
   adminKey?: string
   /** Structured request log sink, called once per request. */
   onLog?: (entry: RequestLog) => void
@@ -190,6 +199,22 @@ const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"])
 
 const effects = new WeakMap<Request, FaultHit["effect"][]>()
 
+const acceptance = new WeakMap<Request, (notes: ResponseNotes) => void>()
+
+/** Notify only after a durable mutation commits. No-op outside an active runtime request. */
+export const markMutationAccepted = (request: Request, notes: ResponseNotes = {}): void => {
+  acceptance.get(request)?.(notes)
+}
+
+/** Preserve request-bound effects and acceptance when a provider must rebuild a Request. */
+export const forwardRequestContext = (source: Request, target: Request): Request => {
+  const fired = effects.get(source)
+  const accepted = acceptance.get(source)
+  if (fired) effects.set(target, fired)
+  if (accepted) acceptance.set(target, accepted)
+  return target
+}
+
 /**
  * Merge two sorted snapshot row arrays, retaining byte-identical old objects. Unlike the previous
  * Map/string-key implementation this is allocation-free apart from the result array and O(n).
@@ -250,14 +275,7 @@ const operationMatcher = (document: OpenAPIDocument) => {
     .map((operation) => ({
       operationId: operation.operationId,
       method: operation.method.toUpperCase(),
-      pattern: new RegExp(
-        `^${operation.path
-          .split("/")
-          .map((segment) =>
-            segment.startsWith("{") ? "[^/]+" : segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-          )
-          .join("/")}/?$`,
-      ),
+      pattern: operationPath(operation).pattern,
       params: (operation.path.match(/\{/g) ?? []).length,
     }))
     .sort((a, b) => a.params - b.params)
@@ -431,6 +449,12 @@ export const createRuntime = <T extends ServiceInstance>(
     return found
   }
 
+  const restoreStorage = (storage: string, snapshot: NamespaceSnapshot): void => {
+    const current = instances.get(storage)
+    if (current) options.beforeRestore?.(current)
+    restoreNamespace(sqlite, storageNamespace(storage), snapshot)
+  }
+
   const physicalBranch = (namespace: string, branch: string): string => {
     if (branch === "main") return namespace
     const mapKey = `${namespace}\0${branch}`
@@ -448,7 +472,7 @@ export const createRuntime = <T extends ServiceInstance>(
     if (branch === "main") {
       if (at !== undefined) {
         const point = history.checkout("main", at)
-        restoreNamespace(sqlite, storageNamespace(namespace), point.value.snapshot)
+        restoreStorage(namespace, point.value.snapshot)
         captured.set(namespace, point.value.snapshot)
         ;(branchRngs.get(namespace) ?? rng).setState(point.value.rngState)
         const selectedClock = namespaceClock(namespace)
@@ -466,7 +490,7 @@ export const createRuntime = <T extends ServiceInstance>(
       const branchRng = createRng(options.seed ?? 0)
       if (point) branchRng.setState(point.value.rngState)
       instanceFor(storage, namespace, branchRng)
-      if (point) restoreNamespace(sqlite, storageNamespace(storage), point.value.snapshot)
+      if (point) restoreStorage(storage, point.value.snapshot)
       if (point) captured.set(storage, point.value.snapshot)
     } else if (at !== undefined && history.head(branch)?.id !== at) {
       const point = history.checkout(branch, at)
@@ -476,7 +500,7 @@ export const createRuntime = <T extends ServiceInstance>(
         instanceFor(storage, namespace, branchRng)
       }
       branchRngs.get(storage)?.setState(point.value.rngState)
-      restoreNamespace(sqlite, storageNamespace(storage), point.value.snapshot)
+      restoreStorage(storage, point.value.snapshot)
       captured.set(storage, point.value.snapshot)
     } else {
       if (!instances.has(storage)) {
@@ -514,7 +538,7 @@ export const createRuntime = <T extends ServiceInstance>(
     const history = timeline(namespace)
     const point = history.checkout(branchName, checkpointId)
     const storage = ensureBranch(namespace, branchName)
-    restoreNamespace(sqlite, storageNamespace(storage), point.value.snapshot)
+    restoreStorage(storage, point.value.snapshot)
     captured.set(storage, point.value.snapshot)
     const selectedClock = namespaceClock(namespace)
     selectedClock.set(point.value.clock.now)
@@ -572,7 +596,7 @@ export const createRuntime = <T extends ServiceInstance>(
 
   const restore = (from: NamespaceSnapshot, name: string = DEFAULT_NAMESPACE): void => {
     instance(name)
-    restoreNamespace(sqlite, storageNamespace(name), from)
+    restoreStorage(name, from)
     captured.set(name, from)
     // Import legacy snapshots into the canonical history instead of creating a second rollback
     // mechanism. The compatibility method stays synchronous and keeps its original return type.
@@ -745,6 +769,8 @@ export const createRuntime = <T extends ServiceInstance>(
       const started = monotonicNow()
       const url = new URL(request.url)
       const operationId = operationIdFor(request, url.pathname)
+      let accepted: ServiceCheckpoint | undefined
+      let acceptedNotes: ResponseNotes | undefined
       // What a rejection records about the body. The runtime never reads the request stream —
       // consuming it would break a streaming request (e.g. a bidirectional model stream) — so the
       // byte count comes from `content-length` when the client sent it, and is null otherwise.
@@ -756,7 +782,7 @@ export const createRuntime = <T extends ServiceInstance>(
         transferEncoding: request.headers.get("transfer-encoding"),
       }
       const log = (status: number, faultId?: string, response?: Response) => {
-        const noted = response ? responseNotes(response) : undefined
+        const noted = { ...acceptedNotes, ...(response ? responseNotes(response) : {}) }
         const rejected = status >= 400 && faultId === undefined
         const entry: RequestLog = {
           service: options.name,
@@ -770,6 +796,7 @@ export const createRuntime = <T extends ServiceInstance>(
           ...(faultId !== undefined ? { faultId } : {}),
           ...(noted?.ids && Object.keys(noted.ids).length > 0 ? { ids: noted.ids } : {}),
           ...(noted?.adopted ? { adopted: true } : {}),
+          ...(accepted ? { accepted: true, checkpoint: accepted.id } : {}),
           ...(rejected ? { request: { ...received } } : {}),
           ...(rejected && noted?.issues && noted.issues.length > 0
             ? { issues: noted.issues.map((issue) => ({ ...issue })) }
@@ -812,7 +839,7 @@ export const createRuntime = <T extends ServiceInstance>(
             instanceFor(storage, namespace, viewRng)
           }
           viewRng.setState(point.value.rngState)
-          restoreNamespace(sqlite, storageNamespace(storage), point.value.snapshot)
+          restoreStorage(storage, point.value.snapshot)
           captured.set(storage, point.value.snapshot)
         } else {
           storage = ensureBranch(namespace, selectedBranch, at)
@@ -842,9 +869,35 @@ export const createRuntime = <T extends ServiceInstance>(
           request,
           fired.map((hit) => hit.effect),
         )
-      let response = await instanceFor(storage, namespace).fetch(request)
-      if (MUTATING_METHODS.has(request.method) && response.status >= 200 && response.status < 400) {
-        const point = timeline(namespace).commit(capture(storage), { branch: selectedBranch })
+      let active = true
+      acceptance.set(request, (notes) => {
+        if (!active || accepted || !MUTATING_METHODS.has(request.method)) return
+        accepted = timeline(namespace).commit(capture(storage), { branch: selectedBranch })
+        acceptedNotes = notes
+      })
+      let response: Response
+      try {
+        response = await instanceFor(storage, namespace).fetch(request)
+      } catch (error) {
+        log(error instanceof DroppedConnectionError ? 0 : 500, fired[0]?.id)
+        throw error
+      } finally {
+        active = false
+        acceptance.delete(request)
+      }
+      const wireStatus = responseNotes(response)?.wireStatus ?? response.status
+      if (MUTATING_METHODS.has(request.method) && wireStatus >= 200 && wireStatus < 400) {
+        const current = capture(storage)
+        const unchanged =
+          accepted &&
+          timeline(namespace).head(selectedBranch)?.id === accepted.id &&
+          current.snapshot.records === accepted.value.snapshot.records &&
+          current.snapshot.sequences === accepted.value.snapshot.sequences &&
+          current.rngState === accepted.value.rngState
+        const point =
+          unchanged && accepted
+            ? accepted
+            : timeline(namespace).commit(current, { branch: selectedBranch })
         response = mutableResponse(response)
         response.headers.set(CHECKPOINT_HEADER, point.id)
       }
@@ -856,7 +909,7 @@ export const createRuntime = <T extends ServiceInstance>(
         response = mutableResponse(response)
         response.headers.set(AT_HEADER, at)
       }
-      log(response.status, fired[0]?.id, response)
+      log(wireStatus, fired[0]?.id, response)
       return stamp(response)
     },
   }

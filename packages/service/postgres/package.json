@@ -1,17 +1,34 @@
 {
-  "name": "@crvouga/mockingbird-service-postgres",
-  "version": "0.0.0-development",
+  "bin": {
+    "mockingbird-postgres": "./dist/wire/cli.js"
+  },
+  "bugs": {
+    "url": "https://github.com/crvouga/mockingbird/issues"
+  },
   "description": "Pure TypeScript in-memory PostgreSQL implementation with zero WASM/native dependencies",
-  "type": "module",
-  "license": "MIT",
-  "sideEffects": [
-    "./src/serialization/codec.ts",
-    "./src/schema/catalog-tables.ts",
-    "./src/executor/triggers-exec.ts"
-  ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@biomejs/biome": "^2.5.14",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
+    "@electric-sql/pglite": "^0.5.8",
+    "@types/bun": "latest",
+    "@types/pg": "^8.23.1",
+    "embedded-postgres": "18.3.0-beta.17",
+    "esbuild": "^0.28.2",
+    "fast-check": "^4.10.2",
+    "pg": "^8.23.0",
+    "publint": "^0.3.24",
+    "rollup": "4.63.4",
+    "rollup-plugin-dts": "6.5.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "bun": ">=1.1.0",
+    "node": ">=20"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -50,18 +67,62 @@
     "CHANGELOG.md",
     "DISCOVERY.md"
   ],
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/postgres#readme",
+  "keywords": [
+    "mockingbird",
+    "postgres",
+    "postgresql",
+    "typescript",
+    "in-memory",
+    "database",
+    "sql"
+  ],
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "mockingbird": {
+    "runtime": "portable",
+    "layer": "service",
+    "category": "databases",
+    "displayName": "PostgreSQL",
+    "vendor": {
+      "website": "https://www.postgresql.org",
+      "docs": "https://www.postgresql.org/docs/current/"
+    },
+    "parity": "In-memory SQL engine",
+    "entries": {
+      "wire/index": "node",
+      "wire/cli": "node",
+      "server": "node",
+      "wire/fleet": "node",
+      "wire/probe": "node"
+    },
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "COMPATIBILITY.md",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "PostgreSQL 18.3 via PGlite",
+        "command": "bun run --cwd packages/service/postgres test:postgres-compat",
+        "note": "Fail-closed differential contracts compare rows, types, errors, row counts and logical state."
+      },
+      "introspection": [
+        "README.md public test controls",
+        "COMPATIBILITY.md compatibility and divergence evidence"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
+  },
+  "module": "./dist/index.js",
+  "name": "@crvouga/mockingbird-service-postgres",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/postgres"
-  },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/postgres#readme",
-  "bugs": {
-    "url": "https://github.com/crvouga/mockingbird/issues"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   },
   "scripts": {
     "build": "bun run scripts/build.ts",
@@ -106,72 +167,11 @@
     "test:postgres-native": "bun run scripts/run-postgres-native-tests.ts",
     "test:server": "bun test tests/server"
   },
-  "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.5",
-    "@biomejs/biome": "^2.5.8",
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-ui": "workspace:*",
-    "@electric-sql/pglite": "^0.5.5",
-    "@types/bun": "latest",
-    "@types/pg": "^8.23.1",
-    "embedded-postgres": "18.3.0-beta.17",
-    "esbuild": "^0.28.2",
-    "fast-check": "^4.1.1",
-    "pg": "^8.23.0",
-    "publint": "^0.3.23",
-    "rollup": "4.63.4",
-    "rollup-plugin-dts": "6.5.1",
-    "typescript": "^5.8.3"
-  },
-  "engines": {
-    "bun": ">=1.1.0",
-    "node": ">=20"
-  },
-  "keywords": [
-    "mockingbird",
-    "postgres",
-    "postgresql",
-    "typescript",
-    "in-memory",
-    "database",
-    "sql"
+  "sideEffects": [
+    "./src/serialization/codec.ts",
+    "./src/schema/catalog-tables.ts",
+    "./src/executor/triggers-exec.ts"
   ],
-  "mockingbird": {
-    "runtime": "portable",
-    "layer": "service",
-    "category": "databases",
-    "displayName": "PostgreSQL",
-    "vendor": {
-      "website": "https://www.postgresql.org",
-      "docs": "https://www.postgresql.org/docs/current/"
-    },
-    "parity": "In-memory SQL engine",
-    "entries": {
-      "wire/index": "node",
-      "wire/cli": "node",
-      "server": "node",
-      "wire/fleet": "node",
-      "wire/probe": "node"
-    },
-    "discovery": {
-      "guide": "DISCOVERY.md",
-      "behavior": "README.md",
-      "capabilities": "COMPATIBILITY.md",
-      "types": "dist/index.d.ts",
-      "oracle": {
-        "kind": "PostgreSQL 18.3 via PGlite",
-        "command": "bun run --cwd packages/service/postgres test:postgres-compat",
-        "note": "Fail-closed differential contracts compare rows, types, errors, row counts and logical state."
-      },
-      "introspection": [
-        "README.md public test controls",
-        "COMPATIBILITY.md compatibility and divergence evidence"
-      ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
-    }
-  },
   "trustedDependencies": [
     "@embedded-postgres/darwin-arm64",
     "@embedded-postgres/darwin-x64",
@@ -182,7 +182,7 @@
     "@embedded-postgres/linux-x64",
     "@embedded-postgres/windows-x64"
   ],
-  "bin": {
-    "mockingbird-postgres": "./dist/wire/cli.js"
-  }
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "version": "0.0.0-development"
 }

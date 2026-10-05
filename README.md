@@ -127,6 +127,7 @@ Building, testing and `bun run check` need no secrets and no accounts. Live pari
 | [Releasing](docs/RELEASING.md) | How packages get from `main` to npm using Trusted Publishing, without a stored npm token. |
 | [Secrets runbook](docs/SECRETS.md) | Where every credential lives, who needs it, and how to run live parity without ever holding a sandbox key: GitHub Actions repo secrets are the only secret store. |
 | [Fleets](docs/FLEETS.md) | One service CLI can supervise installed HTTP mocks, PostgreSQL wire servers and Redis RESP servers. Every listener starts before readiness is published; a boot failure names the service, closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes the whole fleet. |
+| [Infrastructure and orchestration mocks](docs/INFRASTRUCTURE_MOCKS.md) | This document defines the boundaries and planned evidence for the Docker Engine, Hermes peer-run, and GitHub REST packages. |
 
 ## License
 
