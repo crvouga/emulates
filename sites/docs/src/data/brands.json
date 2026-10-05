@@ -175,7 +175,7 @@
     "vendor": "AWS ECS",
     "website": "https://aws.amazon.com/ecs/",
     "docs": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html",
-    "description": "Amazon Elastic Container Service (Amazon ECS) provides a fully managed container service solution that’s easy to use, scalable, secure, and reliable.",
+    "description": "Amazon Elastic Container Service (Amazon ECS) provides a fully managed container service solution that\u2019s easy to use, scalable, secure, and reliable.",
     "input": {
       "website": "https://aws.amazon.com/ecs/",
       "docs": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html"
@@ -853,6 +853,20 @@
     },
     "color": "#F22F46",
     "logo": "/brands/twilio.svg",
+    "logoSource": "simple-icons"
+  },
+  "unsplash": {
+    "vendor": "Unsplash",
+    "website": "https://unsplash.com",
+    "docs": "https://unsplash.com/documentation",
+    "description": "Photo search and attribution.",
+    "input": {
+      "website": "https://unsplash.com",
+      "docs": "https://unsplash.com/documentation",
+      "description": "Photo search and attribution."
+    },
+    "color": "#000000",
+    "logo": "/brands/unsplash.svg",
     "logoSource": "simple-icons"
   },
   "vanta": {

@@ -60,6 +60,7 @@ import type { createRuntime as createTavily } from "@crvouga/mockingbird-service
 import type { createRuntime as createTextract } from "@crvouga/mockingbird-service-textract"
 import type { createRuntime as createTurnstile } from "@crvouga/mockingbird-service-turnstile"
 import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service-twilio"
+import type { createRuntime as createUnsplash } from "@crvouga/mockingbird-service-unsplash"
 import type { createRuntime as createVanta } from "@crvouga/mockingbird-service-vanta"
 import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-service-vercel-blob"
 import type { createRuntime as createVibe } from "@crvouga/mockingbird-service-vibe"
@@ -145,4 +146,5 @@ export type SurfaceProof = [
   Assert<typeof createECS>,
   Assert<typeof createEventBridge>,
   Assert<typeof createVibe>,
+  Assert<typeof createUnsplash>,
 ]

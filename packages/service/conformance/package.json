@@ -62,6 +62,7 @@
     "@crvouga/mockingbird-service-textract": "workspace:*",
     "@crvouga/mockingbird-service-turnstile": "workspace:*",
     "@crvouga/mockingbird-service-twilio": "workspace:*",
+    "@crvouga/mockingbird-service-unsplash": "workspace:*",
     "@crvouga/mockingbird-service-vanta": "workspace:*",
     "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
     "@crvouga/mockingbird-service-vibe": "workspace:*",
