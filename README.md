@@ -126,7 +126,9 @@ Building, testing and `bun run check` need no secrets and no accounts. Live pari
 | [Reporting issues](docs/REPORTING_ISSUES.md) | How coding agents in other projects file a GitHub issue when a mock diverges from its oracle, lacks a feature they call, or breaks, or when they need a service mocked that the catalog does not have yet. Agents in this repository pick the issues up and resolve them. |
 | [Releasing](docs/RELEASING.md) | How packages get from `main` to npm using Trusted Publishing, without a stored npm token. |
 | [Secrets runbook](docs/SECRETS.md) | Where every credential lives, who needs it, and how to run live parity without ever holding a sandbox key: GitHub Actions repo secrets are the only secret store. |
+| [AWS implementation and oracle coverage](docs/AWS_COVERAGE.md) | The LocalStack expansion is work in progress. No new LocalStack or live AWS oracle run was performed during integration. Implemented services have local transport and state tests; scaffold packages explicitly reject vendor operations. `bun run parity` fails when no scenario exists or the local oracle is unavailable. |
 | [Fleets](docs/FLEETS.md) | One service CLI can supervise installed HTTP mocks, PostgreSQL wire servers and Redis RESP servers. Every listener starts before readiness is published; a boot failure names the service, closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes the whole fleet. |
+| [Infrastructure and orchestration mocks](docs/INFRASTRUCTURE_MOCKS.md) | This document defines the boundaries and planned evidence for the Docker Engine, Hermes peer-run, and GitHub REST packages. |
 
 ## License
 

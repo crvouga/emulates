@@ -109,6 +109,7 @@ export const adminUiRoutes = (
     "GET /ui/manifest": () =>
       json({
         service,
+        standardRoutes: STANDARD_ADMIN_ROUTES,
         panels: (ui?.panels ?? []).map((panel) => ({
           id: panel.id,
           title: panel.title,

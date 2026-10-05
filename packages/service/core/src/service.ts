@@ -15,6 +15,7 @@ import {
 } from "@crvouga/mockingbird-sqlite"
 import { type Context, Hono } from "hono"
 import { annotateResponse } from "./journal.js"
+import { operationPath } from "./path.js"
 import { recordedIssues } from "./validation.js"
 
 /** A rejection carries the issues `bodyIssues` found, for the runtime's log entry. */
@@ -205,6 +206,7 @@ export const createService = (options: ServiceOptions): Service => {
 
   const operations = [...listOperations(options.document)].sort(routeOrder)
   for (const operation of operations) {
+    const path = operationPath(operation)
     const metadata = operationMetadata(operation.operation)
     const handler = options.handlers[operation.operationId]
     const registeredRoute = serviceRoute(operation.path)
@@ -219,7 +221,9 @@ export const createService = (options: ServiceOptions): Service => {
       const context: OperationContext = {
         request,
         url,
-        params: registeredRoute.params(url.pathname),
+        params: metadata.path
+          ? { ...(path.emptyParameter ? { [path.emptyParameter]: "" } : {}), ...c.req.param() }
+          : registeredRoute.params(url.pathname),
         query: queryOf(url),
         body: await readBody(request),
         sqlite: options.sqlite,
@@ -231,7 +235,11 @@ export const createService = (options: ServiceOptions): Service => {
       const short = await options.before?.(context)
       return withIssues(request, short ?? (await handler(context)))
     }
-    app.on(operation.method.toUpperCase(), registeredRoute.path, route)
+    app.on(
+      operation.method.toUpperCase(),
+      metadata.path ? path.routes : [registeredRoute.path],
+      route,
+    )
   }
 
   return {

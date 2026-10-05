@@ -7,6 +7,9 @@ export type SqsQueue = {
   arn: string
   attributes: Record<string, string>
   createdAt: number
+  modifiedAt?: number
+  tags?: Record<string, string>
+  sequence?: number
   lastPurgeAt?: number
 }
 export type SqsMessageAttribute = { DataType: string; StringValue?: string; BinaryValue?: string }
@@ -25,7 +28,14 @@ export type SqsMessage = {
   deduplicationId?: string
   sequenceNumber?: string
 }
-export type SqsDeduplication = { queue: string; id: string; messageId: string; expiresAt: number }
+export type SqsDeduplication = {
+  queue: string
+  id: string
+  messageId: string
+  expiresAt: number
+  md5?: string
+  sequenceNumber?: string
+}
 
 export class SqsState {
   readonly queues: Collection<SqsQueue>

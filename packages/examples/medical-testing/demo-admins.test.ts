@@ -22,6 +22,21 @@ describe("live demo admins", () => {
       expect(await ui.text()).toContain("data-mockingbird-admin")
     }
 
+    const combinedUi = await demo.admin.fetch(new Request("https://mock.local/__admin/ui"))
+    expect(combinedUi.status).toBe(200)
+    const combinedHtml = await combinedUi.text()
+    expect(combinedHtml).toContain('"id":"google"')
+    expect(combinedHtml).toContain('"id":"postgres"')
+    const composedState = await demo.admin.fetch(
+      new Request("https://mock.local/__admin/apis/junction/state"),
+    )
+    expect(composedState.status).toBe(200)
+    expect(
+      ((await composedState.json()) as { collections: { count: number }[] }).collections.some(
+        (collection) => collection.count > 0,
+      ),
+    ).toBe(true)
+
     const tables = await demo.db.query<{ table_name: string }>(
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name",
     )
@@ -35,6 +50,20 @@ describe("live demo admins", () => {
     ])
     const tests = await demo.db.query("SELECT * FROM lab_tests ORDER BY 1 LIMIT 50")
     expect(tests.length).toBeGreaterThan(0)
+
+    for (const id of ["junction", "postgres"]) {
+      const admin = demo.admins.find((item) => item.id === id)
+      if (!admin) throw new Error(`Missing ${id} admin`)
+      const response = await admin.fetch(new Request("https://mock.local/__admin/state"))
+      expect(response.status).toBe(200)
+      const state = (await response.json()) as {
+        collections: { name: string; count: number }[]
+      }
+      expect(state.collections.some((collection) => collection.count > 0)).toBe(true)
+      expect(state.collections.reduce((total, collection) => total + collection.count, 0)).toBe(
+        id === "junction" ? 33 : 24,
+      )
+    }
   })
 
   test("Postgres admin browses, changes, and restores the application's live database", async () => {

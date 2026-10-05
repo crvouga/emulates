@@ -165,3 +165,20 @@ describe("example button contrast", () => {
     )
   })
 })
+
+describe("example alignment", () => {
+  test("the success notice centers its message and action", () => {
+    const notice = app({ tag: "div", classes: ["cove-alert", "cove-notice"] })
+    const dismiss = { tag: "button", classes: ["cove-btn", "cove-btn-ghost"], parent: notice }
+    expect(computed(notice, "align-items")).toBe("center")
+    expect(computed(dismiss, "align-self")).toBe("center")
+  })
+
+  test("the application mark uses an optically centered icon box", () => {
+    const mark = app({ tag: "span", classes: ["cove-logo-box"] })
+    expect(computed(mark, "display")).toBe("inline-flex")
+    expect(computed(mark, "align-items")).toBe("center")
+    expect(computed(mark, "justify-content")).toBe("center")
+    expect(computed(mark, "line-height")).toBe("0")
+  })
+})

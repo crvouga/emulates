@@ -6,7 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { Api } from "./model.js"
 import { errorMessage, pretty, text } from "./model.js"
 
-export function useResource<T>(api: Api, path: string, revision = 0) {
+const LIVE_REFRESH_MS = 1_500
+
+/**
+ * Admin reads stay live while their view is mounted. Polling is deliberately
+ * quiet: it preserves the last successful payload and only shows the spinner
+ * for the initial/manual load, so changing mock state never flashes the UI.
+ */
+export function useResource<T>(api: Api, path: string, revision = 0, live = true) {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -15,25 +22,35 @@ export function useResource<T>(api: Api, path: string, revision = 0) {
   useEffect(() => {
     const controller = new AbortController()
     let current = true
-    setLoading(true)
-    setData(null)
-    setError(null)
-    api
-      .get<T>(path, controller.signal)
-      .then((value) => {
-        if (current) setData(value)
-      })
-      .catch((error: unknown) => {
-        if (current) setError(errorMessage(error))
-      })
-      .finally(() => {
-        if (current) setLoading(false)
-      })
+    let pending = false
+    const load = async (foreground: boolean) => {
+      if (pending) return
+      pending = true
+      if (foreground) setLoading(true)
+      try {
+        const value = await api.get<T>(path, controller.signal)
+        if (current) {
+          setData(value)
+          setError(null)
+        }
+      } catch (error) {
+        if (current && !controller.signal.aborted) setError(errorMessage(error))
+      } finally {
+        pending = false
+        if (current && foreground) setLoading(false)
+      }
+    }
+    void load(true)
+    const refresh = () => void load(false)
+    const interval = live ? window.setInterval(refresh, LIVE_REFRESH_MS) : undefined
+    if (live) window.addEventListener("focus", refresh)
     return () => {
       current = false
       controller.abort()
+      if (interval !== undefined) window.clearInterval(interval)
+      if (live) window.removeEventListener("focus", refresh)
     }
-  }, [api, path, revision, retry])
+  }, [api, path, revision, retry, live])
   return { data, error, loading, reload: useCallback(() => setRetry((n) => n + 1), []) }
 }
 

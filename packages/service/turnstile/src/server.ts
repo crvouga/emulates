@@ -1,0 +1,27 @@
+/// <reference types="node" />
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { createRuntime, type TurnstileRuntime, type TurnstileRuntimeOptions } from "./runtime.js"
+export const DEFAULT_PORT = 12126
+export type TurnstileServerOptions = TurnstileRuntimeOptions & { port?: number; host?: string }
+export type TurnstileServer = Listening & { runtime: TurnstileRuntime }
+export const createServer = async (
+  options: TurnstileServerOptions = {},
+): Promise<TurnstileServer> => {
+  const { port, host, ...rest } = options
+  const runtime = createRuntime(rest)
+  const listening = await listen(runtime, { port: port ?? 0, ...(host ? { host } : {}) })
+  return { ...listening, runtime }
+}
+export const serveTarget: ServeTarget = {
+  name: "turnstile",
+  defaultPort: DEFAULT_PORT,
+  options: {},
+  create: (_values, common) =>
+    createRuntime({
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
+      ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
+      ...(common.seed !== undefined ? { seed: common.seed } : {}),
+      ...(common.onLog ? { onLog: common.onLog } : {}),
+    }),
+  banner: () => ["auth: request body secret=mock_secret", "verify: POST /turnstile/v0/siteverify"],
+}

@@ -152,6 +152,68 @@ describe("project management (#259, #260)", () => {
       attr: null,
     })
   })
+
+  test("non-object payload maps cannot mutate an experiment's linked flag (seed 172181039)", async () => {
+    const { client, draft, send } = harness()
+    const experiment = await draft("a", "0")
+    const path = `/api/projects/1/feature_flags/${experiment.feature_flag.id}/`
+    const original = await client.request<Flag>(path)
+    for (const payloads of [[], ["payload"], "payload", 1, false]) {
+      const response = await send(path, { active: true, filters: { payloads } }, "PATCH")
+      expect(response.status).toBe(400)
+      expect(await response.json()).toMatchObject({ type: "validation_error", attr: "filters" })
+      expect(await client.request<Flag>(path)).toEqual(original)
+      expect(
+        await client.request<Experiment>(`/api/projects/1/experiments/${experiment.id}/`),
+      ).toEqual(experiment)
+    }
+    const updated = await client.request<Flag>(
+      path,
+      { filters: { payloads: { control: '{"value":1}' } } },
+      "PATCH",
+    )
+    expect(updated.filters.payloads).toEqual({ control: '{"value":1}' })
+  })
+
+  test("invalid filter groups cannot mutate an experiment flag (seed 178332261)", async () => {
+    const { client, draft, send } = harness()
+    const experiment = await draft("group-validation", "group-validation")
+    const path = `/api/projects/1/feature_flags/${experiment.feature_flag.id}/`
+    const original = await client.request<Flag>(path)
+    for (const groups of [[null, null, null, null], [false], [[]], ["group"], null, {}, "groups"]) {
+      const response = await send(path, { active: false, filters: { groups } }, "PATCH")
+      expect(response.status).toBe(400)
+      expect(await response.json()).toMatchObject({ type: "validation_error", attr: "filters" })
+      expect(await client.request<Flag>(path)).toEqual(original)
+      const created = await send("/api/projects/1/feature_flags/", {
+        key: "bad-groups",
+        filters: { groups },
+      })
+      expect(created.status).toBe(400)
+    }
+    expect(
+      (
+        await send(
+          path,
+          { filters: { groups: [{ properties: [], rollout_percentage: 100 }] } },
+          "PATCH",
+        )
+      ).status,
+    ).toBe(200)
+  })
+
+  test("creating a flag with a non-object payload map fails without storing it", async () => {
+    const { client, send } = harness()
+    const path = "/api/projects/1/feature_flags/"
+    const before = await client.request<{ results: Flag[] }>(path)
+    const response = await send(path, { key: "invalid-payload-map", filters: { payloads: [] } })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ type: "validation_error", attr: "filters" })
+    expect(await client.request<{ results: Flag[] }>(path)).toEqual(before)
+    expect(
+      (await send(path, { key: "invalid-payload-map", filters: { payloads: {} } })).status,
+    ).toBe(201)
+  })
   test("draft variant updates and direct flag edits share one flag state", async () => {
     const { client, draft } = harness()
     const created = await draft()

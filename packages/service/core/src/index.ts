@@ -1,3 +1,15 @@
+export { awsMd5 } from "./aws-md5.js"
+export type { AwsInput, AwsOperation, AwsProtocolOptions } from "./aws-protocol.js"
+export {
+  AwsError,
+  AwsProtocolAPI,
+  awsList,
+  awsPage,
+  awsRecord,
+  awsRequired,
+  decodeAwsQuery,
+} from "./aws-protocol.js"
+export { awsParseXml, awsXml, awsXmlEscape } from "./aws-xml.js"
 export type { Clock, ClockState } from "./clock.js"
 export { createClock } from "./clock.js"
 export type { ListRecordsOptions, Stored } from "./collection.js"
@@ -86,7 +98,9 @@ export {
   DroppedConnectionError,
   faultEffect,
   faultEffects,
+  forwardRequestContext,
   MOCKINGBIRD_HEADER,
+  markMutationAccepted,
 } from "./runtime.js"
 export type { S3Target } from "./s3.js"
 export { putObject, signV4 } from "./s3.js"

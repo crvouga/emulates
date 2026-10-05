@@ -1,12 +1,13 @@
 import { html } from "htm/preact"
 import { useState } from "preact/hooks"
 import type { OAuthProvider, User } from "../api.js"
+import { Logo } from "../components/Logo.js"
 import { AppleButton, GoogleButton } from "../components/OAuthButtons.js"
 import { OAuthModal } from "../components/OAuthModal.js"
 
 export const Landing = ({ onSignedIn }: { onSignedIn: (user: User) => void }) => {
   const [provider, setProvider] = useState<OAuthProvider | null>(null)
-  return html`<div class="cove-signin-layout"><section class="cove-signin-intro"><span class="cove-wordmark"><span class="cove-logo-box" aria-hidden="true">+</span>Lab testing</span><p class="cove-eyebrow">Your testing workspace</p><h1>From your first test<br/>to your next step.</h1><p class="cove-lede">Order lab tests, follow their progress, and explore detailed results in one place.</p><div class="cove-signin-features">${[
+  return html`<div class="cove-signin-layout"><section class="cove-signin-intro"><span class="cove-wordmark"><${Logo}/></span><p class="cove-eyebrow">Your testing workspace</p><h1>From your first test<br/>to your next step.</h1><p class="cove-lede">Order lab tests, follow their progress, and explore detailed results in one place.</p><div class="cove-signin-features">${[
     ["01", "Order with confidence", "Browse tests and review clear, itemized pricing."],
     ["02", "Follow every step", "Track collection, processing, and care team review."],
     ["03", "Keep your records", "Compare measurements and download your reports."],

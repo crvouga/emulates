@@ -1,0 +1,40 @@
+openapi: 3.1.0
+info:
+  title: Amazon Redshift (Mockingbird subset)
+  version: "1.0.0"
+  description: AWS protocol transport; README lists the implemented AWS operations.
+servers:
+  - url: https://redshift.us-east-1.amazonaws.com
+paths:
+  /:
+    post:
+      operationId: AwsRpc
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      responses: { "200": { description: AWS protocol response }, "400": { description: AWS protocol error } }
+    get:
+      operationId: AwsQuery
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      responses: { "200": { description: AWS query response } }
+  /{path}:
+    parameters:
+      - { name: path, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: AwsRestGet
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      responses: { "200": { description: AWS REST response } }
+    put:
+      operationId: AwsRestPut
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      responses: { "200": { description: AWS REST response } }
+    post:
+      operationId: AwsRestPost
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      responses: { "200": { description: AWS REST response } }
+    patch:
+      operationId: AwsRestPatch
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      responses: { "200": { description: AWS REST response } }
+    delete:
+      operationId: AwsRestDelete
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      responses: { "200": { description: AWS REST response } }

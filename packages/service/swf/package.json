@@ -1,0 +1,146 @@
+{
+  "name": "@crvouga/mockingbird-service-swf",
+  "version": "0.0.0-development",
+  "description": "Work-in-progress Amazon Simple Workflow Service transport scaffold; vendor operations are not implemented.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "DISCOVERY.md",
+    "SUPPORT.md",
+    "openapi.yaml"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "bin": {
+    "mockingbird-swf": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/service/swf"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/swf#readme",
+  "keywords": [
+    "mockingbird",
+    "aws",
+    "swf",
+    "mock"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "entries": {
+      "server": "node",
+      "cli": "node"
+    },
+    "layer": "service",
+    "category": "communication",
+    "displayName": "Amazon Simple Workflow Service",
+    "vendor": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Simple Workflow Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "parity": "Scaffold only; no vendor operations implemented or verified",
+    "parityTier": "cold",
+    "aws": {
+      "localstackService": "swf",
+      "plannedOperations": [
+        "RegisterDomain",
+        "DescribeDomain",
+        "ListDomains",
+        "DeprecateDomain",
+        "RegisterWorkflowType",
+        "DescribeWorkflowType",
+        "ListWorkflowTypes",
+        "DeprecateWorkflowType",
+        "RegisterActivityType",
+        "DescribeActivityType",
+        "ListActivityTypes",
+        "DeprecateActivityType",
+        "StartWorkflowExecution",
+        "DescribeWorkflowExecution",
+        "ListOpenWorkflowExecutions",
+        "ListClosedWorkflowExecutions",
+        "GetWorkflowExecutionHistory",
+        "TerminateWorkflowExecution",
+        "RequestCancelWorkflowExecution",
+        "PollForDecisionTask",
+        "PollForActivityTask",
+        "RespondDecisionTaskCompleted",
+        "RespondActivityTaskCompleted",
+        "SignalWorkflowExecution"
+      ],
+      "operations": []
+    },
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "contract": "openapi.yaml",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Live vendor API or sandbox",
+        "command": "bun run parity:service -- swf",
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+      },
+      "introspection": [
+        "GET /__admin/health",
+        "GET /__admin",
+        "GET /__admin/state",
+        "GET /__admin/requests",
+        "GET /__admin/metrics",
+        "GET /__admin/faults/presets",
+        "GET /__admin/ui"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
+  },
+  "scripts": {
+    "generate": "bun ../../openapi/codegen/dist/cli.js",
+    "generate:check": "bun ../../openapi/codegen/dist/cli.js --check",
+    "openapi:check": "bun ../../openapi/codegen/dist/cli.js --validate",
+    "build": "bun ../../../scripts/bundle-service.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test",
+    "parity": "bun scripts/parity.ts",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts"
+  },
+  "dependencies": {
+    "@crvouga/mockingbird-service-sqlite": "workspace:*"
+  },
+  "devDependencies": {
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "fast-check": "4.9.0"
+  }
+}

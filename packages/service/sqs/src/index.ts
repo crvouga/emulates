@@ -1,4 +1,9 @@
-import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@crvouga/mockingbird-service"
+import {
+  type APIOptions,
+  bootSqlite,
+  awsMd5 as md5,
+  sigV4AccessKeyId,
+} from "@crvouga/mockingbird-service"
 import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import { type SqsMessage, type SqsMessageAttribute, type SqsQueue, SqsState } from "./state.js"
@@ -25,60 +30,7 @@ const sha256 = async (value: string) =>
   [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)))]
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("")
-const md5 = (value: string) => {
-  const source = new TextEncoder().encode(value)
-  const length = Math.ceil((source.length + 9) / 64) * 64
-  const bytes = new Uint8Array(length)
-  bytes.set(source)
-  bytes[source.length] = 0x80
-  const view = new DataView(bytes.buffer)
-  const bits = BigInt(source.length) * 8n
-  view.setUint32(length - 8, Number(bits & 0xffffffffn), true)
-  view.setUint32(length - 4, Number(bits >> 32n), true)
-  let a0 = 0x67452301
-  let b0 = 0xefcdab89
-  let c0 = 0x98badcfe
-  let d0 = 0x10325476
-  const shifts = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21]
-  const add = (left: number, right: number) => (left + right) >>> 0
-  for (let offset = 0; offset < length; offset += 64) {
-    let a = a0
-    let b = b0
-    let c = c0
-    let d = d0
-    for (let i = 0; i < 64; i++) {
-      let f: number
-      let g: number
-      if (i < 16) {
-        f = (b & c) | (~b & d)
-        g = i
-      } else if (i < 32) {
-        f = (d & b) | (~d & c)
-        g = (5 * i + 1) % 16
-      } else if (i < 48) {
-        f = b ^ c ^ d
-        g = (3 * i + 5) % 16
-      } else {
-        f = c ^ (b | ~d)
-        g = (7 * i) % 16
-      }
-      const sum = add(
-        add(add(a, f), Math.floor(Math.abs(Math.sin(i + 1)) * 2 ** 32)),
-        view.getUint32(offset + g * 4, true),
-      )
-      const shift = shifts[Math.floor(i / 16) * 4 + (i % 4)] as number
-      ;[a, b, c, d] = [d, add(b, (sum << shift) | (sum >>> (32 - shift))), b, c]
-    }
-    a0 = add(a0, a)
-    b0 = add(b0, b)
-    c0 = add(c0, c)
-    d0 = add(d0, d)
-  }
-  return [a0, b0, c0, d0]
-    .flatMap((word) => [word & 255, (word >>> 8) & 255, (word >>> 16) & 255, (word >>> 24) & 255])
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("")
-}
+
 const stringRecord = (value: unknown): Record<string, string> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
     ? Object.fromEntries(
@@ -130,7 +82,15 @@ export class SqsAPI {
       name,
       url: `${origin.replace(/\/$/, "")}/${this.accountId}/${encodeURIComponent(name)}`,
       arn: `arn:aws:sqs:${this.region}:${this.accountId}:${name}`,
-      attributes,
+      attributes: {
+        VisibilityTimeout: "30",
+        MaximumMessageSize: "1048576",
+        MessageRetentionPeriod: "345600",
+        DelaySeconds: "0",
+        ReceiveMessageWaitTimeSeconds: "0",
+        SqsManagedSseEnabled: "true",
+        ...attributes,
+      },
       createdAt: this.now(),
     }
     this.state.queues.insert(name, queue)
@@ -145,6 +105,7 @@ export class SqsAPI {
     const requested = Array.isArray(names) ? names.map(String) : []
     if (!requested.includes("All") && requested.length === 0) return undefined
     const values: Record<string, string> = {
+      SenderId: this.accountId,
       ApproximateReceiveCount: String(message.receiveCount),
       SentTimestamp: String(message.sentAt),
     }
@@ -159,10 +120,34 @@ export class SqsAPI {
   }
   async enqueue(queue: SqsQueue, input: Input) {
     const body = typeof input.MessageBody === "string" ? input.MessageBody : ""
-    if (new TextEncoder().encode(body).length > 1_048_576)
+    if (!body) throw new TypeError("MessageBody is required")
+    if (
+      [...body].some((character) => {
+        const code = character.codePointAt(0) ?? 0
+        return !(
+          code === 9 ||
+          code === 10 ||
+          code === 13 ||
+          (code >= 0x20 && code <= 0xd7ff) ||
+          (code >= 0xe000 && code <= 0xfffd) ||
+          (code >= 0x10000 && code <= 0x10ffff)
+        )
+      })
+    )
+      throw new TypeError("Invalid characters in MessageBody")
+    const messageAttributes = (input.MessageAttributes ?? {}) as Record<string, SqsMessageAttribute>
+    const attributesMd5 = this.attributeMd5(messageAttributes)
+    if (
+      new TextEncoder().encode(body).length + this.attributeSize(messageAttributes) >
+      Number(queue.attributes.MaximumMessageSize ?? 1048576)
+    )
       throw new RangeError("Message must be shorter than 1 MiB")
     const fifo = queue.name.endsWith(".fifo")
     const groupId = typeof input.MessageGroupId === "string" ? input.MessageGroupId : undefined
+    if (fifo && input.DelaySeconds !== undefined)
+      throw new TypeError("DelaySeconds is not supported for FIFO messages")
+    if (!fifo && input.MessageDeduplicationId !== undefined)
+      throw new TypeError("MessageDeduplicationId is only supported for FIFO queues")
     if (fifo && !groupId) throw new TypeError("MessageGroupId is required for FIFO queues")
     let deduplicationId =
       typeof input.MessageDeduplicationId === "string" ? input.MessageDeduplicationId : undefined
@@ -170,24 +155,27 @@ export class SqsAPI {
       deduplicationId = await sha256(body)
     if (fifo && !deduplicationId)
       throw new TypeError("MessageDeduplicationId is required for FIFO queues")
-    if (deduplicationId) {
-      const key = `${queue.name}:${deduplicationId}`
+    if (deduplicationId && fifo) {
+      const key = `${queue.name}:${queue.attributes.DeduplicationScope === "messageGroup" ? `${groupId}:` : ""}${deduplicationId}`
       const prior = this.state.deduplications.get(key)
       if (prior && prior.expiresAt > this.now()) {
         const message = this.state.messages.get(prior.messageId)
         return {
           MessageId: prior.messageId,
-          MD5OfMessageBody: message?.md5 ?? md5(body),
-          SequenceNumber: message?.sequenceNumber,
+          MD5OfMessageBody: prior.md5 ?? message?.md5 ?? md5(body),
+          SequenceNumber: prior.sequenceNumber ?? message?.sequenceNumber,
+          ...(attributesMd5 ? { MD5OfMessageAttributes: attributesMd5 } : {}),
         }
       }
     }
     const id = this.state.ids.next("msg-", 24)
-    const sequenceNumber = fifo
-      ? `${String(this.now()).padStart(13, "0")}${String(this.state.messages.list().length + 1).padStart(7, "0")}`
-      : undefined
-    const delay =
-      Math.max(0, Number(input.DelaySeconds ?? queue.attributes.DelaySeconds ?? 0)) * 1000
+    const sequence = (this.state.queues.get(queue.name)?.sequence ?? 0) + 1
+    this.state.queues.insert(queue.name, { ...queue, sequence })
+    const sequenceNumber = fifo ? String(sequence).padStart(20, "0") : undefined
+    const delaySeconds = Number(input.DelaySeconds ?? queue.attributes.DelaySeconds ?? 0)
+    if (!Number.isInteger(delaySeconds) || delaySeconds < 0 || delaySeconds > 900)
+      throw new TypeError("DelaySeconds must be between 0 and 900")
+    const delay = delaySeconds * 1000
     const message: SqsMessage = {
       id,
       queue: queue.name,
@@ -196,22 +184,28 @@ export class SqsAPI {
       sentAt: this.now(),
       visibleAt: this.now() + delay,
       receiveCount: 0,
-      messageAttributes: (input.MessageAttributes ?? {}) as Record<string, SqsMessageAttribute>,
+      messageAttributes,
       ...(groupId ? { groupId } : {}),
       ...(deduplicationId ? { deduplicationId } : {}),
       ...(sequenceNumber ? { sequenceNumber } : {}),
     }
     this.state.messages.insert(id, message)
     if (deduplicationId)
-      this.state.deduplications.insert(`${queue.name}:${deduplicationId}`, {
-        queue: queue.name,
-        id: deduplicationId,
-        messageId: id,
-        expiresAt: this.now() + 300_000,
-      })
+      this.state.deduplications.insert(
+        `${queue.name}:${queue.attributes.DeduplicationScope === "messageGroup" ? `${groupId}:` : ""}${deduplicationId}`,
+        {
+          queue: queue.name,
+          id: deduplicationId,
+          messageId: id,
+          expiresAt: this.now() + 300_000,
+          md5: message.md5,
+          ...(sequenceNumber ? { sequenceNumber } : {}),
+        },
+      )
     return {
       MessageId: id,
       MD5OfMessageBody: message.md5,
+      ...(attributesMd5 ? { MD5OfMessageAttributes: attributesMd5 } : {}),
       ...(sequenceNumber ? { SequenceNumber: sequenceNumber } : {}),
     }
   }
@@ -239,21 +233,24 @@ export class SqsAPI {
     const visibility =
       Math.max(0, Number(input.VisibilityTimeout ?? queue.attributes.VisibilityTimeout ?? 30)) *
       1000
+    this.expire(queue)
     const all = this.state.messages
-      .list({ where: (message) => message.queue === queue.name })
+      .list({ where: (message) => message.queue === queue.name, order: "oldest" })
       .map(({ value }) => value)
-      .sort((a, b) => a.sentAt - b.sentAt || a.id.localeCompare(b.id))
     const selected: SqsMessage[] = []
-    for (const message of all) {
+    for (const [index, message] of all.entries()) {
       if (selected.length >= max || message.visibleAt > this.now()) continue
       if (
+        queue.name.endsWith(".fifo") &&
         message.groupId &&
-        all.some(
-          (other) =>
-            other.groupId === message.groupId &&
-            (other.sentAt < message.sentAt ||
-              (other.sentAt === message.sentAt && other.id < message.id)),
-        )
+        all
+          .slice(0, index)
+          .some(
+            (other) =>
+              other.groupId === message.groupId &&
+              this.state.messages.get(other.id)?.queue === queue.name &&
+              !selected.some((picked) => picked.id === other.id),
+          )
       )
         continue
       if (this.moveToDlq(message, queue)) continue
@@ -275,11 +272,17 @@ export class SqsAPI {
         ReceiptHandle: message.receiptHandle,
         MD5OfBody: message.md5,
         Body: message.body,
-        Attributes: this.attributes(message, input.AttributeNames),
-        MessageAttributes:
-          Array.isArray(input.MessageAttributeNames) && input.MessageAttributeNames.length === 0
-            ? undefined
-            : message.messageAttributes,
+        Attributes: this.attributes(
+          message,
+          input.MessageSystemAttributeNames ?? input.AttributeNames,
+        ),
+        MessageAttributes: this.selectedAttributes(
+          message.messageAttributes,
+          input.MessageAttributeNames,
+        ),
+        MD5OfMessageAttributes: this.attributeMd5(
+          this.selectedAttributes(message.messageAttributes, input.MessageAttributeNames) ?? {},
+        ),
       })),
     }
   }
@@ -296,14 +299,49 @@ export class SqsAPI {
     const input = (await request.json().catch(() => ({}))) as Input
     if (target === "CreateQueue") {
       const name = typeof input.QueueName === "string" ? input.QueueName : ""
-      if (!name || (name.endsWith(".fifo") && stringRecord(input.Attributes).FifoQueue !== "true"))
+      const attributes = stringRecord(input.Attributes)
+      if (
+        !/^[a-zA-Z0-9_-]{1,80}(\.fifo)?$/.test(name) ||
+        name.length > 80 ||
+        name.endsWith(".fifo") !== (attributes.FifoQueue === "true")
+      )
         return this.error("InvalidParameterValue", "Invalid queue name or FIFO attributes")
+      const validation = this.validateAttributes(attributes, name)
+      if (validation) return validation
+      const prior = this.state.queues.get(name)
+      if (
+        prior &&
+        Object.entries(attributes).some(([key, value]) => prior.attributes[key] !== value)
+      )
+        return this.error(
+          "QueueNameExists",
+          "A queue already exists with the same name and a different value for attribute",
+        )
+      const queue = this.createQueue(name, attributes, new URL(request.url).origin)
+      if (!prior && input.tags)
+        this.state.queues.insert(name, { ...queue, tags: stringRecord(input.tags) })
+      return this.response({ QueueUrl: queue.url })
+    }
+    if (target === "ListQueues") {
+      const queues = this.state.queues
+        .list({
+          order: "oldest",
+          where: (queue) => queue.name.startsWith(String(input.QueueNamePrefix ?? "")),
+        })
+        .map(({ value }) => value.url)
+      const offset = Number(input.NextToken ?? 0),
+        max = Number(input.MaxResults ?? 1000)
+      if (
+        !Number.isInteger(max) ||
+        max < 1 ||
+        max > 1000 ||
+        !Number.isInteger(offset) ||
+        offset < 0
+      )
+        return this.error("InvalidParameterValue", "Invalid pagination")
       return this.response({
-        QueueUrl: this.createQueue(
-          name,
-          stringRecord(input.Attributes),
-          new URL(request.url).origin,
-        ).url,
+        QueueUrls: queues.slice(offset, offset + max),
+        ...(offset + max < queues.length ? { NextToken: String(offset + max) } : {}),
       })
     }
     if (target === "GetQueueUrl") {
@@ -322,6 +360,67 @@ export class SqsAPI {
         "AWS.SimpleQueueService.NonExistentQueue",
         "The specified queue does not exist.",
       )
+    this.expire(queue)
+    if (target === "DeleteQueue") {
+      for (const row of this.state.messages.list({
+        where: (message) => message.queue === queue.name,
+      }))
+        this.state.messages.delete(row.id)
+      for (const row of this.state.deduplications.list({
+        where: (value) => value.queue === queue.name,
+      }))
+        this.state.deduplications.delete(row.id)
+      this.state.queues.delete(queue.name)
+      return this.response({})
+    }
+    if (target === "SetQueueAttributes") {
+      const attributes = stringRecord(input.Attributes)
+      if ("FifoQueue" in attributes)
+        return this.error("InvalidAttributeName", "FifoQueue cannot be changed")
+      const validation = this.validateAttributes(attributes, queue.name)
+      if (validation) return validation
+      this.state.queues.insert(queue.name, {
+        ...queue,
+        attributes: { ...queue.attributes, ...attributes },
+        modifiedAt: this.now(),
+      })
+      return this.response({})
+    }
+    if (target === "TagQueue") {
+      this.state.queues.insert(queue.name, {
+        ...queue,
+        tags: { ...queue.tags, ...stringRecord(input.Tags) },
+      })
+      return this.response({})
+    }
+    if (target === "UntagQueue") {
+      const keys = Array.isArray(input.TagKeys) ? input.TagKeys : []
+      this.state.queues.insert(queue.name, {
+        ...queue,
+        tags: Object.fromEntries(
+          Object.entries(queue.tags ?? {}).filter(([key]) => !keys.includes(key)),
+        ),
+      })
+      return this.response({})
+    }
+    if (target === "ListQueueTags") return this.response({ Tags: queue.tags ?? {} })
+    if (target === "ListDeadLetterSourceQueues")
+      return this.response({
+        queueUrls: this.state.queues
+          .list({
+            where: (candidate) => {
+              try {
+                return (
+                  JSON.parse(candidate.attributes.RedrivePolicy ?? "{}").deadLetterTargetArn ===
+                  queue.arn
+                )
+              } catch {
+                return false
+              }
+            },
+          })
+          .map(({ value }) => value.url),
+      })
     if (target === "GetQueueAttributes") {
       const names = Array.isArray(input.AttributeNames) ? input.AttributeNames.map(String) : []
       const derived: Record<string, string> = {
@@ -333,11 +432,22 @@ export class SqsAPI {
         ),
         ApproximateNumberOfMessagesNotVisible: String(
           this.state.messages.list({
-            where: (message) => message.queue === queue.name && message.visibleAt > this.now(),
+            where: (message) =>
+              message.queue === queue.name &&
+              message.visibleAt > this.now() &&
+              message.receiveCount > 0,
+          }).length,
+        ),
+        ApproximateNumberOfMessagesDelayed: String(
+          this.state.messages.list({
+            where: (message) =>
+              message.queue === queue.name &&
+              message.receiveCount === 0 &&
+              message.visibleAt > this.now(),
           }).length,
         ),
         CreatedTimestamp: String(Math.floor(queue.createdAt / 1000)),
-        LastModifiedTimestamp: String(Math.floor(queue.createdAt / 1000)),
+        LastModifiedTimestamp: String(Math.floor((queue.modifiedAt ?? queue.createdAt) / 1000)),
         ...queue.attributes,
       }
       return this.response({
@@ -347,6 +457,8 @@ export class SqsAPI {
       })
     }
     if (target === "SendMessage") {
+      if (!input.MessageBody)
+        return this.error("MissingParameter", "The request must contain the parameter MessageBody.")
       try {
         return this.response(await this.enqueue(queue, input))
       } catch (error) {
@@ -356,12 +468,29 @@ export class SqsAPI {
         )
       }
     }
-    if (target === "SendMessageBatch") {
+    if (
+      ["SendMessageBatch", "DeleteMessageBatch", "ChangeMessageVisibilityBatch"].includes(target)
+    ) {
+      const invalid = this.validateBatch(input.Entries)
+      if (invalid) return invalid
       const successful: unknown[] = []
       const failed: unknown[] = []
       for (const entry of Array.isArray(input.Entries) ? (input.Entries as Input[]) : []) {
         try {
-          successful.push({ Id: String(entry.Id), ...(await this.enqueue(queue, entry)) })
+          if (target === "SendMessageBatch")
+            successful.push({ Id: String(entry.Id), ...(await this.enqueue(queue, entry)) })
+          else {
+            const response = this.receiptOperation(queue, entry, target === "DeleteMessageBatch")
+            if (response) {
+              const error = (await response.json()) as { __type: string; message: string }
+              failed.push({
+                Id: String(entry.Id),
+                SenderFault: false,
+                Code: error.__type,
+                Message: error.message,
+              })
+            } else successful.push({ Id: String(entry.Id) })
+          }
         } catch (error) {
           failed.push({
             Id: String(entry.Id),
@@ -373,24 +502,22 @@ export class SqsAPI {
       }
       return this.response({ Successful: successful, Failed: failed })
     }
-    if (target === "ReceiveMessage") return this.response(this.receive(queue, input))
-    if (target === "DeleteMessage") {
-      const message = this.byReceipt(queue, input.ReceiptHandle)
-      if (!message)
-        return this.error("ReceiptHandleIsInvalid", "The input receipt handle is invalid.")
-      this.state.messages.delete(message.id)
-      return this.response({})
+    if (target === "ReceiveMessage") {
+      for (const [name, min, max] of [
+        ["MaxNumberOfMessages", 1, 10],
+        ["VisibilityTimeout", 0, 43200],
+        ["WaitTimeSeconds", 0, 20],
+      ] as const) {
+        if (
+          input[name] !== undefined &&
+          (!Number.isInteger(input[name]) || Number(input[name]) < min || Number(input[name]) > max)
+        )
+          return this.error("InvalidParameterValue", `Invalid ${name}`)
+      }
+      return this.response(this.receive(queue, input))
     }
-    if (target === "ChangeMessageVisibility") {
-      const message = this.byReceipt(queue, input.ReceiptHandle)
-      if (!message)
-        return this.error("ReceiptHandleIsInvalid", "The input receipt handle is invalid.")
-      this.state.messages.insert(message.id, {
-        ...message,
-        visibleAt: this.now() + Math.max(0, Number(input.VisibilityTimeout ?? 0)) * 1000,
-      })
-      return this.response({})
-    }
+    if (target === "DeleteMessage" || target === "ChangeMessageVisibility")
+      return this.receiptOperation(queue, input, target === "DeleteMessage") ?? this.response({})
     if (target === "PurgeQueue") {
       if (queue.lastPurgeAt !== undefined && this.now() - queue.lastPurgeAt < 60_000)
         return this.error(
@@ -405,5 +532,157 @@ export class SqsAPI {
       return this.response({})
     }
     return this.error("InvalidAction", `Unknown operation ${target}`)
+  }
+  private receiptOperation(queue: SqsQueue, input: Input, remove: boolean): Response | undefined {
+    const message = this.byReceipt(queue, input.ReceiptHandle)
+    if (!message)
+      return this.error("ReceiptHandleIsInvalid", "The input receipt handle is invalid.")
+    if (remove) this.state.messages.delete(message.id)
+    else {
+      const visibility = Number(input.VisibilityTimeout)
+      if (!Number.isInteger(visibility) || visibility < 0 || visibility > 43200)
+        return this.error("InvalidParameterValue", "Invalid VisibilityTimeout")
+      if (message.visibleAt <= this.now())
+        return this.error("MessageNotInflight", "Message is not in flight")
+      this.state.messages.insert(message.id, {
+        ...message,
+        visibleAt: this.now() + visibility * 1000,
+      })
+    }
+    return undefined
+  }
+  private expire(queue: SqsQueue) {
+    const cutoff = this.now() - Number(queue.attributes.MessageRetentionPeriod ?? 345600) * 1000
+    for (const row of this.state.messages.list({
+      where: (message) => message.queue === queue.name && message.sentAt < cutoff,
+    }))
+      this.state.messages.delete(row.id)
+  }
+  private validateAttributes(
+    attributes: Record<string, string>,
+    name: string,
+  ): Response | undefined {
+    const ranges: Record<string, [number, number]> = {
+      DelaySeconds: [0, 900],
+      VisibilityTimeout: [0, 43200],
+      MaximumMessageSize: [1024, 1048576],
+      MessageRetentionPeriod: [60, 1209600],
+      ReceiveMessageWaitTimeSeconds: [0, 20],
+      KmsDataKeyReusePeriodSeconds: [60, 86400],
+    }
+    const other = [
+      "Policy",
+      "RedrivePolicy",
+      "RedriveAllowPolicy",
+      "FifoQueue",
+      "ContentBasedDeduplication",
+      "KmsMasterKeyId",
+      "SqsManagedSseEnabled",
+      "DeduplicationScope",
+      "FifoThroughputLimit",
+    ]
+    for (const [key, value] of Object.entries(attributes)) {
+      const range = ranges[key]
+      if (
+        range &&
+        (!Number.isInteger(Number(value)) || Number(value) < range[0] || Number(value) > range[1])
+      )
+        return this.error("InvalidAttributeValue", `Invalid value for ${key}`)
+      if (!range && !other.includes(key))
+        return this.error("InvalidAttributeName", `Unknown attribute ${key}`)
+      if (
+        ["FifoQueue", "ContentBasedDeduplication", "SqsManagedSseEnabled"].includes(key) &&
+        !["true", "false"].includes(value)
+      )
+        return this.error("InvalidAttributeValue", `Invalid value for ${key}`)
+      if (key === "ContentBasedDeduplication" && !name.endsWith(".fifo"))
+        return this.error(
+          "InvalidAttributeName",
+          "ContentBasedDeduplication is only valid for FIFO queues",
+        )
+      if (["Policy", "RedrivePolicy", "RedriveAllowPolicy"].includes(key)) {
+        try {
+          JSON.parse(value)
+        } catch {
+          return this.error("InvalidAttributeValue", `Invalid JSON for ${key}`)
+        }
+      }
+    }
+    return undefined
+  }
+  private validateBatch(entries: unknown): Response | undefined {
+    if (!Array.isArray(entries) || entries.length === 0)
+      return this.error("EmptyBatchRequest", "The batch request doesn't contain any entries")
+    if (entries.length > 10)
+      return this.error(
+        "TooManyEntriesInBatchRequest",
+        "Maximum number of entries per request are 10",
+      )
+    const ids = entries.map((entry) => (entry as Input).Id)
+    if (ids.some((id) => typeof id !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(id)))
+      return this.error("InvalidBatchEntryId", "Invalid batch entry ID")
+    if (new Set(ids).size !== ids.length)
+      return this.error("BatchEntryIdsNotDistinct", "Two or more batch entries have the same Id")
+    return undefined
+  }
+  private attributeSize(attributes: Record<string, SqsMessageAttribute>) {
+    return Object.entries(attributes).reduce(
+      (total, [name, attr]) =>
+        total +
+        new TextEncoder().encode(name + attr.DataType + (attr.StringValue ?? "")).length +
+        (attr.BinaryValue ? atob(attr.BinaryValue).length : 0),
+      0,
+    )
+  }
+  private attributeMd5(attributes: Record<string, SqsMessageAttribute>): string | undefined {
+    const entries = Object.entries(attributes).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    if (entries.length === 0) return undefined
+    if (entries.length > 10) throw new TypeError("Maximum 10 message attributes")
+    const bytes: number[] = []
+    const append = (value: Uint8Array) => {
+      const size = value.length
+      bytes.push((size >>> 24) & 255, (size >>> 16) & 255, (size >>> 8) & 255, size & 255, ...value)
+    }
+    const encoder = new TextEncoder()
+    for (const [name, value] of entries) {
+      if (
+        !/^[a-zA-Z0-9_.-]{1,256}$/.test(name) ||
+        /^(aws|amazon)\./i.test(name) ||
+        name.startsWith(".") ||
+        name.endsWith(".") ||
+        name.includes("..")
+      )
+        throw new TypeError("Invalid message attribute name")
+      const kind = value.DataType?.split(".")[0]
+      if (!["String", "Number", "Binary"].includes(kind ?? ""))
+        throw new TypeError("Invalid message attribute type")
+      const binary = kind === "Binary"
+      if (binary ? !value.BinaryValue : typeof value.StringValue !== "string" || !value.StringValue)
+        throw new TypeError("Message attribute value is required")
+      append(encoder.encode(name))
+      append(encoder.encode(value.DataType))
+      bytes.push(binary ? 2 : 1)
+      append(
+        binary
+          ? Uint8Array.from(atob(value.BinaryValue ?? ""), (char) => char.charCodeAt(0))
+          : encoder.encode(value.StringValue ?? ""),
+      )
+    }
+    return md5(new Uint8Array(bytes))
+  }
+  private selectedAttributes(attributes: Record<string, SqsMessageAttribute>, names: unknown) {
+    const requested = Array.isArray(names) ? names.map(String) : []
+    const result = Object.fromEntries(
+      Object.entries(attributes).filter(([name]) =>
+        requested.some(
+          (pattern) =>
+            pattern === "All" ||
+            pattern === ".*" ||
+            pattern === name ||
+            (pattern.endsWith(".*") && name.startsWith(pattern.slice(0, -1))),
+        ),
+      ),
+    )
+    return Object.keys(result).length ? result : undefined
   }
 }

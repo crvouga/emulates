@@ -1,4 +1,21 @@
 {
+  "acm": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Certificate Manager public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Certificate Manager public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/acm.png",
+    "logoSource": "site"
+  },
   "aha": {
     "vendor": "mobileAHA",
     "website": "https://www.mobileaha.com",
@@ -11,6 +28,50 @@
     },
     "color": null,
     "logo": "/brands/aha.png",
+    "logoSource": "site"
+  },
+  "airtable": {
+    "vendor": "Airtable",
+    "website": "https://airtable.com",
+    "docs": "https://airtable.com/developers/web/api/introduction",
+    "description": "Airtable collaborative database API.",
+    "input": {
+      "website": "https://airtable.com",
+      "docs": "https://airtable.com/developers/web/api/introduction",
+      "description": "Airtable collaborative database API."
+    },
+    "color": "#18BFFF",
+    "logo": "/brands/airtable.svg",
+    "logoSource": "simple-icons"
+  },
+  "apigateway": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "API Gateway REST API public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "API Gateway REST API public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/apigateway.png",
+    "logoSource": "site"
+  },
+  "app-store-connect": {
+    "vendor": "App Store Connect",
+    "website": "https://developer.apple.com/app-store-connect/",
+    "docs": "https://developer.apple.com/documentation/appstoreconnectapi",
+    "description": "Easily upload, submit, and manage your apps on the App Store with App Store Connect on the web or on iOS. This suite of tools also lets you view sales reports, access app analytics, invite users to test your apps with…",
+    "input": {
+      "website": "https://developer.apple.com/app-store-connect/",
+      "docs": "https://developer.apple.com/documentation/appstoreconnectapi"
+    },
+    "color": null,
+    "logo": "/brands/app-store-connect.ico",
     "logoSource": "site"
   },
   "aws-secrets": {
@@ -52,6 +113,20 @@
     "logo": "/brands/bedrock.png",
     "logoSource": "site"
   },
+  "brevo": {
+    "vendor": "Brevo",
+    "website": "https://www.brevo.com",
+    "docs": "https://developers.brevo.com/reference/create-contact",
+    "description": "Brevo contact management and customer identifiers.",
+    "input": {
+      "website": "https://www.brevo.com",
+      "docs": "https://developers.brevo.com/reference/create-contact",
+      "description": "Brevo contact management and customer identifiers."
+    },
+    "color": "#0B996E",
+    "logo": "/brands/brevo.svg",
+    "logoSource": "simple-icons"
+  },
   "caretalk": {
     "vendor": "CareTalk Health",
     "website": "https://caretalkhealth.com",
@@ -65,6 +140,87 @@
     "logo": "/brands/caretalk.png",
     "logoSource": "site"
   },
+  "checkr": {
+    "vendor": "Checkr",
+    "website": "https://checkr.com",
+    "docs": "https://docs.checkr.com/",
+    "description": "The AI-powered verification platform for high-stakes decisions. Fast, accurate background checks at scale.",
+    "input": {
+      "website": "https://checkr.com",
+      "docs": "https://docs.checkr.com/"
+    },
+    "color": null,
+    "logo": "/brands/checkr.svg",
+    "logoSource": "site"
+  },
+  "cloudcontrol": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Cloud Control API public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Cloud Control API public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/cloudcontrol.png",
+    "logoSource": "site"
+  },
+  "cloudformation": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "CloudFormation public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "CloudFormation public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/cloudformation.png",
+    "logoSource": "site"
+  },
+  "cloudwatch": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "CloudWatch Metrics public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "CloudWatch Metrics public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/cloudwatch.png",
+    "logoSource": "site"
+  },
+  "cloudwatch-logs": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "CloudWatch Logs public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "CloudWatch Logs public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/cloudwatch-logs.png",
+    "logoSource": "site"
+  },
   "cognito": {
     "vendor": "Amazon Cognito",
     "website": "https://aws.amazon.com/cognito/",
@@ -76,6 +232,23 @@
     },
     "color": null,
     "logo": "/brands/cognito.png",
+    "logoSource": "site"
+  },
+  "config": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Config public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Config public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/config.png",
     "logoSource": "site"
   },
   "customerio": {
@@ -105,6 +278,22 @@
     "logo": "/brands/daily.png",
     "logoSource": "site"
   },
+  "docker": {
+    "vendor": "Docker",
+    "website": "https://www.docker.com",
+    "docs": "https://docs.docker.com/reference/api/engine/version/v1.52/",
+    "description": "Docker Engine provides a public API for container lifecycle and attached streams.",
+    "input": {
+      "website": "https://www.docker.com",
+      "docs": "https://docs.docker.com/reference/api/engine/version/v1.52/",
+      "description": "Docker Engine provides a public API for container lifecycle and attached streams.",
+      "name": "Docker",
+      "icon": "docker"
+    },
+    "color": "#2496ED",
+    "logo": "/brands/docker.svg",
+    "logoSource": "simple-icons"
+  },
   "dynamodb": {
     "vendor": "Amazon DynamoDB",
     "website": "https://aws.amazon.com/dynamodb/",
@@ -116,6 +305,23 @@
     },
     "color": null,
     "logo": "/brands/dynamodb.png",
+    "logoSource": "site"
+  },
+  "dynamodb-streams": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "DynamoDB Streams public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "DynamoDB Streams public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/dynamodb-streams.png",
     "logoSource": "site"
   },
   "easypost": {
@@ -131,6 +337,36 @@
     "logo": "/brands/easypost.svg",
     "logoSource": "site"
   },
+  "ec2": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Elastic Compute Cloud public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Elastic Compute Cloud public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/ec2.png",
+    "logoSource": "site"
+  },
+  "ecs": {
+    "vendor": "AWS ECS",
+    "website": "https://aws.amazon.com/ecs/",
+    "docs": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html",
+    "description": "Amazon Elastic Container Service (Amazon ECS) provides a fully managed container service solution that’s easy to use, scalable, secure, and reliable.",
+    "input": {
+      "website": "https://aws.amazon.com/ecs/",
+      "docs": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html"
+    },
+    "color": null,
+    "logo": "/brands/ecs.png",
+    "logoSource": "site"
+  },
   "edamam": {
     "vendor": "Edamam",
     "website": "https://www.edamam.com",
@@ -142,6 +378,36 @@
     },
     "color": null,
     "logo": "/brands/edamam.png",
+    "logoSource": "site"
+  },
+  "elasticsearch": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Elasticsearch Service public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Elasticsearch Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/elasticsearch.png",
+    "logoSource": "site"
+  },
+  "eventbridge": {
+    "vendor": "AWS EventBridge",
+    "website": "https://aws.amazon.com/eventbridge/",
+    "docs": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/Welcome.html",
+    "description": "Amazon EventBridge is a serverless event bus that ingests data from your own apps, SaaS apps, and AWS services and routes that data to targets.",
+    "input": {
+      "website": "https://aws.amazon.com/eventbridge/",
+      "docs": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/Welcome.html"
+    },
+    "color": null,
+    "logo": "/brands/eventbridge.png",
     "logoSource": "site"
   },
   "fcm": {
@@ -157,6 +423,23 @@
     "color": "#DD2C00",
     "logo": "/brands/fcm.svg",
     "logoSource": "simple-icons"
+  },
+  "firehose": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Data Firehose public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Data Firehose public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/firehose.png",
+    "logoSource": "site"
   },
   "firstpromoter": {
     "vendor": "FirstPromoter",
@@ -223,6 +506,20 @@
     "logo": "/brands/genebygene.png",
     "logoSource": "site"
   },
+  "github": {
+    "vendor": "GitHub",
+    "website": "https://github.com",
+    "docs": "https://docs.github.com/en/rest",
+    "description": "GitHub provides repository, Git reference and pull-request REST APIs.",
+    "input": {
+      "website": "https://github.com",
+      "docs": "https://docs.github.com/en/rest",
+      "description": "GitHub provides repository, Git reference and pull-request REST APIs."
+    },
+    "color": "#181717",
+    "logo": "/brands/github.svg",
+    "logoSource": "simple-icons"
+  },
   "google-ads": {
     "vendor": "Google Ads",
     "website": "https://ads.google.com",
@@ -276,6 +573,37 @@
     },
     "color": null,
     "logo": "/brands/healthie.png",
+    "logoSource": "site"
+  },
+  "hermes": {
+    "vendor": "Hermes Agent",
+    "website": "https://hermes-agent.nousresearch.com",
+    "docs": "https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/",
+    "description": "Hermes Agent exposes asynchronous public peer-run APIs.",
+    "input": {
+      "website": "https://hermes-agent.nousresearch.com",
+      "docs": "https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/",
+      "description": "Hermes Agent exposes asynchronous public peer-run APIs."
+    },
+    "color": "#0000F2",
+    "logo": "/brands/hermes.ico",
+    "logoSource": "site"
+  },
+  "iam": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Identity and Access Management public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Identity and Access Management public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/iam.png",
     "logoSource": "site"
   },
   "infisical": {
@@ -332,6 +660,23 @@
     "logo": "/brands/kill-bill.png",
     "logoSource": "site"
   },
+  "kinesis": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Kinesis Data Streams public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Kinesis Data Streams public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/kinesis.png",
+    "logoSource": "site"
+  },
   "klaviyo": {
     "vendor": "Klaviyo",
     "website": "https://www.klaviyo.com",
@@ -343,6 +688,40 @@
     },
     "color": null,
     "logo": "/brands/klaviyo.png",
+    "logoSource": "site"
+  },
+  "kms": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Key Management Service public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Key Management Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/kms.png",
+    "logoSource": "site"
+  },
+  "lambda": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Lambda public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Lambda public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/lambda.png",
     "logoSource": "site"
   },
   "livekit": {
@@ -413,6 +792,34 @@
     "logo": "/brands/medplum.png",
     "logoSource": "site"
   },
+  "meta": {
+    "vendor": "Meta",
+    "website": "https://www.meta.com",
+    "docs": "https://developers.facebook.com/docs/marketing-apis/",
+    "description": "Advertising insights and server-side conversion events from Meta.",
+    "input": {
+      "website": "https://www.meta.com",
+      "docs": "https://developers.facebook.com/docs/marketing-apis/",
+      "description": "Advertising insights and server-side conversion events from Meta."
+    },
+    "color": "#0467DF",
+    "logo": "/brands/meta.svg",
+    "logoSource": "simple-icons"
+  },
+  "notion": {
+    "vendor": "Notion",
+    "website": "https://www.notion.com",
+    "docs": "https://developers.notion.com/reference/intro",
+    "description": "Workspace databases and pages.",
+    "input": {
+      "website": "https://www.notion.com",
+      "docs": "https://developers.notion.com/reference/intro",
+      "description": "Workspace databases and pages."
+    },
+    "color": "#000000",
+    "logo": "/brands/notion.svg",
+    "logoSource": "simple-icons"
+  },
   "oauth": {
     "vendor": "OpenID Foundation",
     "website": "https://openid.net",
@@ -456,6 +863,23 @@
     "logo": "/brands/openai.svg",
     "logoSource": "simple-icons"
   },
+  "opensearch": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "OpenSearch Service public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "OpenSearch Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/opensearch.png",
+    "logoSource": "site"
+  },
   "otel": {
     "vendor": "OpenTelemetry",
     "website": "https://opentelemetry.io",
@@ -468,6 +892,20 @@
     "color": "#000000",
     "logo": "/brands/otel.svg",
     "logoSource": "simple-icons"
+  },
+  "oura": {
+    "vendor": "Oura",
+    "website": "https://ouraring.com",
+    "docs": "https://cloud.ouraring.com/v2/docs",
+    "description": "Oura wearable health data API.",
+    "input": {
+      "website": "https://ouraring.com",
+      "docs": "https://cloud.ouraring.com/v2/docs",
+      "description": "Oura wearable health data API."
+    },
+    "color": null,
+    "logo": "/brands/oura.png",
+    "logoSource": "site"
   },
   "paddle": {
     "vendor": "Paddle",
@@ -573,6 +1011,21 @@
     "logo": "/brands/prism.png",
     "logoSource": "site"
   },
+  "recaptcha": {
+    "vendor": "reCAPTCHA",
+    "website": "https://www.google.com/recaptcha/about/",
+    "docs": "https://developers.google.com/recaptcha/docs/v3",
+    "description": "Google reCAPTCHA verifies browser challenges and supplies risk scores.",
+    "input": {
+      "website": "https://www.google.com/recaptcha/about/",
+      "docs": "https://developers.google.com/recaptcha/docs/v3",
+      "description": "Google reCAPTCHA verifies browser challenges and supplies risk scores.",
+      "icon": false
+    },
+    "color": "#039BE5",
+    "logo": "/brands/recaptcha.png",
+    "logoSource": "site"
+  },
   "redis": {
     "vendor": "Redis",
     "website": "https://redis.io",
@@ -588,6 +1041,23 @@
     "logo": "/brands/redis.svg",
     "logoSource": "simple-icons"
   },
+  "redshift": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Redshift public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Redshift public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/redshift.png",
+    "logoSource": "site"
+  },
   "resend": {
     "vendor": "Resend",
     "website": "https://resend.com",
@@ -600,6 +1070,74 @@
     "color": "#000000",
     "logo": "/brands/resend.svg",
     "logoSource": "simple-icons"
+  },
+  "resource-groups": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Resource Groups public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Resource Groups public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/resource-groups.png",
+    "logoSource": "site"
+  },
+  "resource-groups-tagging-api": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Resource Groups Tagging API public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Resource Groups Tagging API public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/resource-groups-tagging-api.png",
+    "logoSource": "site"
+  },
+  "route53": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Route 53 public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Route 53 public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/route53.png",
+    "logoSource": "site"
+  },
+  "route53resolver": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Route 53 Resolver public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Route 53 Resolver public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/route53resolver.png",
+    "logoSource": "site"
   },
   "rxvortex": {
     "vendor": "RxVortex",
@@ -627,6 +1165,40 @@
     "logo": "/brands/s3.png",
     "logoSource": "site"
   },
+  "s3-control": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "S3 Control public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "S3 Control public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/s3-control.png",
+    "logoSource": "site"
+  },
+  "scheduler": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "EventBridge Scheduler public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "EventBridge Scheduler public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/scheduler.png",
+    "logoSource": "site"
+  },
   "sentry": {
     "vendor": "Sentry",
     "website": "https://sentry.io",
@@ -642,6 +1214,23 @@
     "logo": "/brands/sentry.svg",
     "logoSource": "simple-icons"
   },
+  "ses": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Simple Email Service public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Simple Email Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/ses.png",
+    "logoSource": "site"
+  },
   "slack": {
     "vendor": "Slack",
     "website": "https://slack.com",
@@ -654,6 +1243,23 @@
     "color": "#4A154B",
     "logo": "/brands/slack.svg",
     "logoSource": "simple-icons"
+  },
+  "sns": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Simple Notification Service public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Simple Notification Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/sns.png",
+    "logoSource": "site"
   },
   "sqlite": {
     "vendor": "SQLite",
@@ -682,6 +1288,23 @@
     "logo": "/brands/sqs.png",
     "logoSource": "site"
   },
+  "ssm": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Systems Manager Parameter Store public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Systems Manager Parameter Store public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/ssm.png",
+    "logoSource": "site"
+  },
   "step-functions": {
     "vendor": "AWS Step Functions",
     "website": "https://aws.amazon.com/step-functions/",
@@ -708,6 +1331,70 @@
     "logo": "/brands/stripe.svg",
     "logoSource": "simple-icons"
   },
+  "sts": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Security Token Service public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Security Token Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/sts.png",
+    "logoSource": "site"
+  },
+  "support": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Support API public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Support API public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/support.png",
+    "logoSource": "site"
+  },
+  "swf": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/",
+    "docs": "https://docs.aws.amazon.com/",
+    "description": "Simple Workflow Service public AWS API.",
+    "input": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "Simple Workflow Service public AWS API.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/swf.png",
+    "logoSource": "site"
+  },
+  "tavily": {
+    "vendor": "Tavily",
+    "website": "https://tavily.com",
+    "docs": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+    "description": "Tavily is the real‑time search engine for AI agents — Fast and secure APIs for web search and content extraction.",
+    "input": {
+      "website": "https://tavily.com",
+      "docs": "https://docs.tavily.com/documentation/api-reference/endpoint/search"
+    },
+    "color": null,
+    "logo": "/brands/tavily.svg",
+    "logoSource": "site"
+  },
   "textract": {
     "vendor": "Amazon Textract",
     "website": "https://aws.amazon.com/textract/",
@@ -719,6 +1406,20 @@
     },
     "color": null,
     "logo": "/brands/textract.png",
+    "logoSource": "site"
+  },
+  "turnstile": {
+    "vendor": "Cloudflare Turnstile",
+    "website": "https://www.cloudflare.com/products/turnstile/",
+    "docs": "https://developers.cloudflare.com/turnstile/get-started/server-side-validation/",
+    "description": "Server-side challenge token verification.",
+    "input": {
+      "website": "https://www.cloudflare.com/products/turnstile/",
+      "docs": "https://developers.cloudflare.com/turnstile/get-started/server-side-validation/",
+      "description": "Server-side challenge token verification."
+    },
+    "color": null,
+    "logo": "/brands/turnstile.png",
     "logoSource": "site"
   },
   "twilio": {
@@ -734,6 +1435,34 @@
     "logo": "/brands/twilio.svg",
     "logoSource": "simple-icons"
   },
+  "unsplash": {
+    "vendor": "Unsplash",
+    "website": "https://unsplash.com",
+    "docs": "https://unsplash.com/documentation",
+    "description": "Photo search and attribution.",
+    "input": {
+      "website": "https://unsplash.com",
+      "docs": "https://unsplash.com/documentation",
+      "description": "Photo search and attribution."
+    },
+    "color": "#000000",
+    "logo": "/brands/unsplash.svg",
+    "logoSource": "simple-icons"
+  },
+  "vanta": {
+    "vendor": "Vanta",
+    "website": "https://www.vanta.com",
+    "docs": "https://developer.vanta.com/reference/manage-vanta/overview",
+    "description": "Compliance evidence and personnel workflows.",
+    "input": {
+      "website": "https://www.vanta.com",
+      "docs": "https://developer.vanta.com/reference/manage-vanta/overview",
+      "description": "Compliance evidence and personnel workflows."
+    },
+    "color": null,
+    "logo": "/brands/vanta.png",
+    "logoSource": "site"
+  },
   "vercel-blob": {
     "vendor": "Vercel Blob",
     "website": "https://vercel.com",
@@ -748,6 +1477,20 @@
     "color": "#000000",
     "logo": "/brands/vercel-blob.svg",
     "logoSource": "simple-icons"
+  },
+  "vibe": {
+    "vendor": "Vibe",
+    "website": "https://www.vibe.co",
+    "docs": "https://developers.vibe.co/docs/getting-started",
+    "description": "Connected TV advertising and reporting.",
+    "input": {
+      "website": "https://www.vibe.co",
+      "docs": "https://developers.vibe.co/docs/getting-started",
+      "description": "Connected TV advertising and reporting."
+    },
+    "color": null,
+    "logo": "/brands/vibe.png",
+    "logoSource": "site"
   },
   "vpi": {
     "vendor": "VPI Compounding",
@@ -775,6 +1518,33 @@
     },
     "color": null,
     "logo": "/brands/wholescripts.png",
+    "logoSource": "site"
+  },
+  "whoop": {
+    "vendor": "WHOOP",
+    "website": "https://www.whoop.com",
+    "docs": "https://developer.whoop.com/api/",
+    "description": "WHOOP wearable fitness data API.",
+    "input": {
+      "website": "https://www.whoop.com",
+      "docs": "https://developer.whoop.com/api/",
+      "description": "WHOOP wearable fitness data API."
+    },
+    "color": null,
+    "logo": "/brands/whoop.png",
+    "logoSource": "favicon-service"
+  },
+  "workos": {
+    "vendor": "WorkOS",
+    "website": "https://workos.com",
+    "docs": "https://workos.com/docs/reference/authkit/authentication",
+    "description": "Developer APIs/SDKs for Enterprise Ready features like Single Sign-On, Directory Sync, Audit Logging, and more. Get started for free.",
+    "input": {
+      "website": "https://workos.com",
+      "docs": "https://workos.com/docs/reference/authkit/authentication"
+    },
+    "color": null,
+    "logo": "/brands/workos.png",
     "logoSource": "site"
   }
 }

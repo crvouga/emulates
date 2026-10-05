@@ -22,9 +22,6 @@ export function Members({ config }: { config: MembersConfig }) {
         {
           adminPrefix: config.apiPrefix,
           adminKeyHeader: "x-mockingbird-admin-key",
-          service: "workspace",
-          standardRoutes: [],
-          brandsUrl: "",
         },
         fetch,
         "default",

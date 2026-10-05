@@ -14,7 +14,7 @@ describe("FirstPromoterAPI", () => {
     "self-parity: independent instances agree on every random walk and conform to the spec",
     async () => {
       const reference = new FirstPromoterAPI({ now })
-      const report = await parity({
+      const options: Parameters<typeof parity>[0] = {
         provider: "firstpromoter",
         spec: document,
         real: {
@@ -39,7 +39,14 @@ describe("FirstPromoterAPI", () => {
         env: process.env,
         sleep: async () => {},
         log: () => {},
-      })
+      }
+      const report = await parity(options)
+      // Random walks may miss a reachable operation. Supplement coverage with a
+      // reproducible walk without retrying or suppressing any parity mismatch.
+      if (supportedOperationIds.some((id) => !report.exercised[id])) {
+        const coverage = await parity({ ...options, seed: 0, numRuns: 100 })
+        Object.assign(report.exercised, coverage.exercised)
+      }
       expect(report.walks).toBeGreaterThan(0)
       expect(Object.keys(report.exercised).sort()).toEqual([...supportedOperationIds].sort())
     },

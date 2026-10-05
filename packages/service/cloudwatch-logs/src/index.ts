@@ -1,0 +1,236 @@
+import {
+  AwsError,
+  type AwsInput,
+  type AwsOperation,
+  AwsProtocolAPI,
+  type AwsProtocolOptions,
+  awsList,
+  awsMd5,
+  awsPage,
+  awsParseXml,
+  awsRecord,
+  awsRequired,
+  awsXml,
+} from "@crvouga/mockingbird-service"
+import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
+
+export type { Runtime, RuntimeOptions } from "./runtime.js"
+export { createRuntime } from "./runtime.js"
+export { document, operationIds, supportedOperationIds }
+export type APIOptions = AwsProtocolOptions
+export class CloudwatchLogsAPI extends AwsProtocolAPI {
+  constructor(options: APIOptions = {}) {
+    super("cloudwatch-logs", options)
+  }
+  dispatch({ operation, input }: AwsOperation): unknown {
+    if (
+      ![
+        "CreateLogGroup",
+        "DeleteLogGroup",
+        "DescribeLogGroups",
+        "CreateLogStream",
+        "DeleteLogStream",
+        "DescribeLogStreams",
+        "PutLogEvents",
+        "GetLogEvents",
+        "FilterLogEvents",
+        "PutRetentionPolicy",
+        "DeleteRetentionPolicy",
+        "TagLogGroup",
+        "UntagLogGroup",
+        "ListTagsLogGroup",
+      ].includes(operation)
+    )
+      return this.unsupported(operation)
+    const groups = this.collection("groups"),
+      streams = this.collection("streams"),
+      events = this.collection("events")
+    const groupName = String(input.logGroupName ?? ""),
+      streamName = String(input.logStreamName ?? ""),
+      streamId = `${groupName}:${streamName}`
+    if (operation === "CreateLogGroup") {
+      awsRequired(input, "logGroupName")
+      if (groups.has(groupName))
+        throw new AwsError(
+          "ResourceAlreadyExistsException",
+          "The specified log group already exists",
+        )
+      groups.insert(groupName, {
+        logGroupName: groupName,
+        creationTime: this.now(),
+        metricFilterCount: 0,
+        storedBytes: 0,
+        arn: this.arn("log-group:", `${groupName}:*`, "logs"),
+        tags: input.tags ?? {},
+      })
+      return {}
+    }
+    if (operation === "DescribeLogGroups") {
+      const page = awsPage(
+        groups
+          .list({
+            order: "oldest",
+            where: (item) =>
+              String(item.logGroupName).startsWith(String(input.logGroupNamePrefix ?? "")),
+          })
+          .map(({ value }) => value),
+        input,
+        "nextToken",
+        "limit",
+      )
+      return { logGroups: page.items, ...(page.token ? { nextToken: page.token } : {}) }
+    }
+    const group = this.get("groups", groupName)
+    if (operation === "DeleteLogGroup") {
+      groups.delete(groupName)
+      for (const row of streams.list({ where: (item) => item.logGroupName === groupName }))
+        streams.delete(row.id)
+      for (const row of events.list({ where: (item) => item.logGroupName === groupName }))
+        events.delete(row.id)
+      return {}
+    }
+    if (operation === "PutRetentionPolicy") {
+      const days = Number(input.retentionInDays)
+      if (
+        ![
+          1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557,
+          2922, 3288, 3653,
+        ].includes(days)
+      )
+        throw new AwsError("InvalidParameterException", "Invalid retention period")
+      groups.insert(groupName, { ...group, retentionInDays: days })
+      return {}
+    }
+    if (operation === "DeleteRetentionPolicy") {
+      const { retentionInDays: _days, ...rest } = group
+      groups.insert(groupName, rest)
+      return {}
+    }
+    if (operation === "ListTagsLogGroup") return { tags: group.tags ?? {} }
+    if (operation === "TagLogGroup" || operation === "UntagLogGroup") {
+      const tags = { ...awsRecord(group.tags), ...awsRecord(input.tags) }
+      for (const key of awsList(input.tagsToRemove).map(String)) delete tags[key]
+      groups.insert(groupName, { ...group, tags })
+      return {}
+    }
+    if (operation === "CreateLogStream") {
+      awsRequired(input, "logStreamName")
+      if (streams.has(streamId))
+        throw new AwsError(
+          "ResourceAlreadyExistsException",
+          "The specified log stream already exists",
+        )
+      streams.insert(streamId, {
+        logGroupName: groupName,
+        logStreamName: streamName,
+        creationTime: this.now(),
+        arn: this.arn("log-group:", `${groupName}:log-stream:${streamName}`, "logs"),
+        storedBytes: 0,
+        uploadSequenceToken: "0",
+      })
+      return {}
+    }
+    if (operation === "DescribeLogStreams") {
+      const page = awsPage(
+        streams
+          .list({
+            order: "oldest",
+            where: (item) =>
+              item.logGroupName === groupName &&
+              String(item.logStreamName).startsWith(String(input.logStreamNamePrefix ?? "")),
+          })
+          .map(({ value }) => value),
+        input,
+        "nextToken",
+        "limit",
+      )
+      return { logStreams: page.items, ...(page.token ? { nextToken: page.token } : {}) }
+    }
+    if (operation === "FilterLogEvents") {
+      const selected = events
+        .list({
+          order: "oldest",
+          where: (item) =>
+            item.logGroupName === groupName &&
+            (!input.logStreamNames || awsList(input.logStreamNames).includes(item.logStreamName)) &&
+            Number(item.timestamp) >= Number(input.startTime ?? 0) &&
+            Number(item.timestamp) <= Number(input.endTime ?? Infinity) &&
+            (!input.filterPattern ||
+              String(item.message).includes(String(input.filterPattern).replace(/^"|"$/g, ""))),
+        })
+        .map(({ value }) => value)
+      const page = awsPage(selected, input, "nextToken", "limit")
+      return {
+        events: page.items,
+        searchedLogStreams: [],
+        ...(page.token ? { nextToken: page.token } : {}),
+      }
+    }
+    const stream = this.get("streams", streamId)
+    if (operation === "DeleteLogStream") {
+      streams.delete(streamId)
+      for (const row of events.list({
+        where: (item) => item.logGroupName === groupName && item.logStreamName === streamName,
+      }))
+        events.delete(row.id)
+      return {}
+    }
+    if (operation === "PutLogEvents") {
+      const incoming = awsList(input.logEvents).map(awsRecord)
+      if (incoming.length === 0)
+        throw new AwsError("InvalidParameterException", "Log events must not be empty")
+      if (
+        incoming.some(
+          (item, index) =>
+            typeof item.message !== "string" ||
+            !Number.isFinite(item.timestamp) ||
+            (index > 0 && Number(item.timestamp) < Number(incoming[index - 1]?.timestamp)),
+        )
+      )
+        throw new AwsError("InvalidParameterException", "Events must be in chronological order")
+      for (const item of incoming) {
+        const eventId = this.ids.next("", 32)
+        events.insert(eventId, {
+          ...item,
+          logGroupName: groupName,
+          logStreamName: streamName,
+          eventId,
+          ingestionTime: this.now(),
+        })
+      }
+      const token = String(Number(stream.uploadSequenceToken) + 1)
+      streams.insert(streamId, {
+        ...stream,
+        firstEventTimestamp: stream.firstEventTimestamp ?? incoming[0]?.timestamp,
+        lastEventTimestamp: incoming.at(-1)?.timestamp,
+        lastIngestionTime: this.now(),
+        uploadSequenceToken: token,
+      })
+      return { nextSequenceToken: token }
+    }
+    if (operation === "GetLogEvents") {
+      const selected = events
+        .list({
+          order: "oldest",
+          where: (item) =>
+            item.logGroupName === groupName &&
+            item.logStreamName === streamName &&
+            Number(item.timestamp) >= Number(input.startTime ?? 0) &&
+            Number(item.timestamp) <= Number(input.endTime ?? Infinity),
+        })
+        .map(({ value }) => ({
+          timestamp: value.timestamp,
+          message: value.message,
+          ingestionTime: value.ingestionTime,
+        }))
+      const offset = Number(String(input.nextToken ?? "0").replace(/^[bf]\//, "")),
+        max = Number(input.limit ?? 10000)
+      return {
+        events: selected.slice(offset, offset + max),
+        nextForwardToken: `f/${Math.min(selected.length, offset + max)}`,
+        nextBackwardToken: `b/${Math.max(0, offset - max)}`,
+      }
+    }
+    return this.unsupported(operation)
+  }
+}

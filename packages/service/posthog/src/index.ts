@@ -85,6 +85,52 @@ const invalidApiKey = () =>
 const malformed = (detail = "Malformed request data") =>
   error(400, "validation_error", "invalid_payload", detail)
 
+const invalidFlagFilters = (filters: unknown): Response | undefined => {
+  if (isRecord(filters) && filters.groups !== undefined) {
+    const typeName = (value: unknown) =>
+      value === null
+        ? "NoneType"
+        : Array.isArray(value)
+          ? "list"
+          : typeof value === "string"
+            ? "str"
+            : typeof value === "boolean"
+              ? "bool"
+              : typeof value === "number"
+                ? Number.isInteger(value)
+                  ? "int"
+                  : "float"
+                : "dict"
+    if (!Array.isArray(filters.groups))
+      return error(
+        400,
+        "validation_error",
+        "invalid_input",
+        `groups must be a list, got ${typeName(filters.groups)}`,
+        "filters",
+      )
+    const invalid = filters.groups.findIndex((group) => !isRecord(group))
+    if (invalid !== -1)
+      return error(
+        400,
+        "validation_error",
+        "invalid_input",
+        `groups[${invalid}] must be a dictionary, got ${typeName(filters.groups[invalid])}`,
+        "filters",
+      )
+  }
+  if (isRecord(filters) && filters.payloads != null && !isRecord(filters.payloads)) {
+    return error(
+      400,
+      "validation_error",
+      "invalid_input",
+      "Payloads must be passed as a dictionary",
+      "filters",
+    )
+  }
+  return undefined
+}
+
 /** The remote config a project serves (`/array/{token}/config`, `config=true`). */
 const remoteConfig = (token: string, settings: Settings) => ({
   token,
@@ -407,6 +453,8 @@ export class PostHogAPI implements FetchAPI {
   private createFlag(context: OperationContext): Response {
     const body = this.body(context)
     if (!isRecord(body)) return malformed()
+    const payloadError = invalidFlagFilters(body.filters)
+    if (payloadError) return payloadError
     const key = body.key
     if (typeof key !== "string" || !/^[A-Za-z0-9_-]+$/.test(key)) {
       return error(
@@ -440,6 +488,8 @@ export class PostHogAPI implements FetchAPI {
     if (!flag) return error(404, "invalid_request", "not_found", "Not found.")
     const body = this.body(context)
     if (!isRecord(body)) return malformed()
+    const payloadError = invalidFlagFilters(body.filters)
+    if (payloadError) return payloadError
     const patch: Partial<FlagRecord> = {}
     if (typeof body.name === "string") patch.name = body.name
     if (typeof body.active === "boolean") patch.active = body.active

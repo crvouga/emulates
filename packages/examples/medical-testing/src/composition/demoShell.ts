@@ -35,23 +35,29 @@ ${scopeReset(".demo-shell")}
 }
 .demo-tabs {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   flex: none;
   overflow-x: auto;
-  padding: 8px 10px;
+  min-height: 56px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border, #e7e7ea);
   background: var(--bg, #fff);
 }
 .demo-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: none;
   border: 0;
   background: transparent;
   color: var(--fg-muted, #5c5c66);
   border-radius: 999px;
-  min-height: 36px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 14px;
   font: inherit;
   font-size: 13px;
+  line-height: 1;
   cursor: pointer;
 }
 .demo-tabs button:hover { color: var(--fg, #111); }
@@ -81,14 +87,13 @@ const installStyles = (): void => {
 }
 
 /**
- * Every service and data source uses its own shared `/__admin/ui`, fetched
- * and mounted against the same in-process instance the app is using.
+ * One shared UI fronts every independent admin API used by the example.
  */
 export const mountDemoShell = (
   host: HTMLElement,
   options: {
     mountApp: (panel: HTMLElement) => () => void
-    admins: readonly MockAdmin[]
+    admin: Pick<MockAdmin, "fetch">
   },
 ): (() => void) => {
   installStyles()
@@ -112,6 +117,7 @@ export const mountDemoShell = (
   let selected = "app"
   let adminTicket = 0
   let unpaste: (() => void) | undefined
+  let adminLoading: Promise<void> | undefined
 
   const addTab = (id: string, label: string): HTMLElement => {
     const button = document.createElement("button")
@@ -141,7 +147,7 @@ export const mountDemoShell = (
   const appRoot = document.createElement("div")
   appPanel.append(appRoot)
   const unmountApp = options.mountApp(appRoot)
-  for (const admin of options.admins) addTab(admin.id, admin.label)
+  addTab("admin", "Mocks")
 
   const showStatus = (panel: HTMLElement, text: string, isError = false): void => {
     panel.replaceChildren()
@@ -152,45 +158,48 @@ export const mountDemoShell = (
     panel.append(status)
   }
 
-  const showAdmin = async (admin: MockAdmin): Promise<void> => {
-    const panel = panels.get(admin.id)
-    if (!panel) return
+  const showAdmin = (): Promise<void> => {
+    if (unpaste) return Promise.resolve()
+    if (adminLoading) return adminLoading
+    const panel = panels.get("admin")
+    if (!panel) return Promise.resolve()
     const ticket = ++adminTicket
-    unpaste?.()
-    unpaste = undefined
-    showStatus(panel, `Loading ${admin.label} admin…`)
-    try {
-      const response = await admin.fetch(new Request(`${ADMIN_ORIGIN}/__admin/ui`))
-      const html = await response.text()
-      if (ticket !== adminTicket || selected !== admin.id) return
-      if (!response.ok) {
-        throw new Error(`${admin.label} admin returned ${response.status}`)
+    showStatus(panel, "Loading mock administration…")
+    adminLoading = (async () => {
+      try {
+        const response = await options.admin.fetch(new Request(`${ADMIN_ORIGIN}/__admin/ui`))
+        const html = await response.text()
+        if (ticket !== adminTicket) return
+        if (!response.ok) throw new Error(`Mock admin returned ${response.status}`)
+        const frame = document.createElement("div")
+        frame.className = "demo-frame"
+        frame.setAttribute("role", "region")
+        frame.setAttribute("aria-label", "Mock administration")
+        panel.replaceChildren(frame)
+        unpaste = pasteHtml(frame, html, {
+          fetch: adminFetch(options.admin.fetch),
+          location: ADMIN_LOCATION,
+        })
+      } catch (error) {
+        if (ticket !== adminTicket) return
+        showStatus(panel, error instanceof Error ? error.message : String(error), true)
+        const retry = document.createElement("button")
+        retry.type = "button"
+        retry.className = "demo-retry"
+        retry.textContent = "Try again"
+        retry.addEventListener("click", () => {
+          adminLoading = undefined
+          void showAdmin()
+        })
+        panel.append(retry)
+      } finally {
+        adminLoading = undefined
       }
-      const frame = document.createElement("div")
-      frame.className = "demo-frame"
-      frame.setAttribute("role", "region")
-      frame.setAttribute("aria-label", `${admin.label} admin`)
-      panel.replaceChildren(frame)
-      unpaste = pasteHtml(frame, html, {
-        fetch: adminFetch(admin.fetch),
-        location: ADMIN_LOCATION,
-      })
-    } catch (error) {
-      if (ticket !== adminTicket || selected !== admin.id) return
-      showStatus(panel, error instanceof Error ? error.message : String(error), true)
-      const retry = document.createElement("button")
-      retry.type = "button"
-      retry.className = "demo-retry"
-      retry.textContent = "Try again"
-      retry.addEventListener("click", () => void showAdmin(admin))
-      panel.append(retry)
-    }
+    })()
+    return adminLoading
   }
 
   const select = (id: string): void => {
-    adminTicket++
-    unpaste?.()
-    unpaste = undefined
     selected = id
     for (const button of buttons) {
       const on = button.dataset.demoTab === id
@@ -199,8 +208,7 @@ export const mountDemoShell = (
       if (on) button.scrollIntoView({ inline: "nearest", block: "nearest" })
     }
     for (const [panelId, panel] of panels) panel.hidden = panelId !== id
-    const admin = options.admins.find((item) => item.id === id)
-    if (admin) void showAdmin(admin)
+    if (id === "admin") void showAdmin()
   }
 
   tabs.addEventListener("click", (event) => {

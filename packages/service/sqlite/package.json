@@ -1,13 +1,30 @@
 {
-  "name": "@crvouga/mockingbird-service-sqlite",
-  "version": "0.0.0-development",
+  "bin": {
+    "mockingbird-sqlite": "./dist/socket/cli.js"
+  },
+  "bugs": {
+    "url": "https://github.com/crvouga/mockingbird/issues"
+  },
   "description": "Pure TypeScript in-memory SQLite implementation with zero WASM/native dependencies",
-  "type": "module",
-  "license": "MIT",
-  "sideEffects": false,
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@biomejs/biome": "^2.5.14",
+    "@crvouga/mockingbird-admin-ui": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
+    "@types/bun": "latest",
+    "alasql": "^4.19.1",
+    "esbuild": "^0.28.2",
+    "fast-check": "^4.10.2",
+    "publint": "^0.3.24",
+    "sql.js": "^1.14.2",
+    "typescript": "^5.9.3",
+    "wa-sqlite": "^1.0.0"
+  },
+  "engines": {
+    "bun": ">=1.1.0",
+    "node": ">=20"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -30,9 +47,6 @@
       "default": "./dist/socket/index.js"
     }
   },
-  "bin": {
-    "mockingbird-sqlite": "./dist/socket/cli.js"
-  },
   "files": [
     "dist",
     "AGENTS.md",
@@ -44,18 +58,59 @@
     "CHANGELOG.md",
     "DISCOVERY.md"
   ],
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/sqlite#readme",
+  "keywords": [
+    "mockingbird",
+    "sqlite",
+    "typescript",
+    "in-memory",
+    "database",
+    "sql"
+  ],
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "mockingbird": {
+    "runtime": "portable",
+    "layer": "service",
+    "category": "databases",
+    "displayName": "SQLite",
+    "vendor": {
+      "website": "https://sqlite.org",
+      "docs": "https://sqlite.org/docs.html",
+      "description": "SQLite is a small, fast, self-contained, public-domain SQL database engine, the most widely deployed database in the world."
+    },
+    "parity": "In-memory SQL engine",
+    "entries": {
+      "socket/index": "node",
+      "socket/cli": "node"
+    },
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "COMPATIBILITY.md",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "SQLite via bun:sqlite (version pinned in COMPATIBILITY.md)",
+        "command": "bun run --cwd packages/service/sqlite test:sqlite-compat",
+        "note": "Fail-closed differential contracts compare results, errors, counters and logical state."
+      },
+      "introspection": [
+        "README.md public test controls",
+        "COMPATIBILITY.md compatibility and divergence evidence"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
+  },
+  "module": "./dist/index.js",
+  "name": "@crvouga/mockingbird-service-sqlite",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/sqlite"
-  },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/sqlite#readme",
-  "bugs": {
-    "url": "https://github.com/crvouga/mockingbird/issues"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   },
   "scripts": {
     "build": "bun run scripts/build.ts",
@@ -106,63 +161,8 @@
     "example:react-vite": "cd examples/react-vite && bun install && bun run dev",
     "fc": "clear && bun format && bun check:full"
   },
-  "devDependencies": {
-    "@crvouga/mockingbird-admin-ui": "workspace:*",
-    "@arethetypeswrong/cli": "^0.18.5",
-    "@biomejs/biome": "^2.5.8",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-ui": "workspace:*",
-    "@types/bun": "latest",
-    "alasql": "^4.17.3",
-    "esbuild": "^0.28.2",
-    "fast-check": "^4.1.1",
-    "publint": "^0.3.23",
-    "sql.js": "^1.14.2",
-    "typescript": "^5.8.3",
-    "wa-sqlite": "^1.0.0"
-  },
-  "engines": {
-    "bun": ">=1.1.0",
-    "node": ">=20"
-  },
-  "keywords": [
-    "mockingbird",
-    "sqlite",
-    "typescript",
-    "in-memory",
-    "database",
-    "sql"
-  ],
-  "mockingbird": {
-    "runtime": "portable",
-    "layer": "service",
-    "category": "databases",
-    "displayName": "SQLite",
-    "vendor": {
-      "website": "https://sqlite.org",
-      "docs": "https://sqlite.org/docs.html",
-      "description": "SQLite is a small, fast, self-contained, public-domain SQL database engine, the most widely deployed database in the world."
-    },
-    "parity": "In-memory SQL engine",
-    "entries": {
-      "socket/index": "node",
-      "socket/cli": "node"
-    },
-    "discovery": {
-      "guide": "DISCOVERY.md",
-      "behavior": "README.md",
-      "capabilities": "COMPATIBILITY.md",
-      "types": "dist/index.d.ts",
-      "oracle": {
-        "kind": "SQLite via bun:sqlite (version pinned in COMPATIBILITY.md)",
-        "command": "bun run --cwd packages/service/sqlite test:sqlite-compat",
-        "note": "Fail-closed differential contracts compare results, errors, counters and logical state."
-      },
-      "introspection": [
-        "README.md public test controls",
-        "COMPATIBILITY.md compatibility and divergence evidence"
-      ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
-    }
-  }
+  "sideEffects": false,
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "version": "0.0.0-development"
 }

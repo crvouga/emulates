@@ -1,4 +1,4 @@
-# Lab testing workspace — an isomorphic full-stack example
+# Lab ordering workspace — an isomorphic full-stack example
 
 A lab-testing workspace with patient, clinician, and administrator roles. Sign in with Google or
 Apple, build an order, pay through hosted checkout, track fulfillment, inspect biomarker reports,
@@ -77,9 +77,11 @@ intake, provider report ingestion, and persistent infrastructure.
 ## Run it
 
 **In the browser, no server:** visit `/examples/medical-testing` on the docs site and click
-"Launch the app". The fullscreen view has a tab for the example and a tab for each mock it is using: Google,
-Apple, Stripe, Junction, and Postgres all open the shared admin UI against the same in-process
-state the app uses. Every administration screen uses prebuilt Ant Design tables, forms,
+"Launch the app". The fullscreen view has one tab for the example and one shared mock admin. A
+global selector switches that admin between Google, Apple, Stripe, Junction, and Postgres while
+each independent admin API remains directly composable and operates on the same in-process state
+the app uses. The selected mock, admin screen, namespace, and local UI state remain mounted when
+switching between the example and its admin. Every administration screen uses prebuilt Ant Design tables, forms,
 dialogs, navigation, and feedback. Postgres includes the SQL table explorer and query runner alongside state,
 clock, faults, journal, and routes. SQL changes appear in the app immediately; checkpoint and
 restore operate on this same database. New services and data sources join the same admin tab registry.

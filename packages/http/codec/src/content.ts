@@ -11,7 +11,11 @@ export const mediaTypeOf = (contentType: string | null | undefined): string | un
 }
 
 const isJsonMediaType = (mediaType: string) =>
-  mediaType === JSON_MEDIA_TYPE || mediaType.endsWith("+json") || mediaType === "text/json"
+  mediaType === JSON_MEDIA_TYPE ||
+  mediaType.endsWith("+json") ||
+  mediaType === "text/json" ||
+  mediaType === "application/x-amz-json-1.0" ||
+  mediaType === "application/x-amz-json-1.1"
 
 export type DecodedBody =
   | { kind: "empty" }
@@ -57,14 +61,14 @@ export const decodeBody = (
 
 /** Read and decode a Request/Response body. */
 export const readBody = async (message: Request | Response): Promise<DecodedBody> => {
+  // Materialize automatic headers before accessing the body stream. Bun can otherwise
+  // discard the inferred content type of an in-process URLSearchParams request.
+  const contentType = message.headers.get("content-type")
   // An in-process Request's body does not automatically observe its AbortSignal.
   // Cancel the active reader so an incomplete upload cannot strand the caller.
   if (!(message instanceof Request) || !message.body) {
     if (message instanceof Request) message.signal.throwIfAborted()
-    return decodeBody(
-      message.headers.get("content-type"),
-      new Uint8Array(await message.arrayBuffer()),
-    )
+    return decodeBody(contentType, new Uint8Array(await message.arrayBuffer()))
   }
   message.signal.throwIfAborted()
   const reader = message.body.getReader()
@@ -93,7 +97,7 @@ export const readBody = async (message: Request | Response): Promise<DecodedBody
     bytes.set(chunk, offset)
     offset += chunk.byteLength
   }
-  return decodeBody(message.headers.get("content-type"), bytes)
+  return decodeBody(contentType, bytes)
 }
 
 export type EncodedBody = {

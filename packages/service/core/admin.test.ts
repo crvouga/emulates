@@ -213,6 +213,7 @@ describe("admin ui", () => {
     expect(manifest.status).toBe(200)
     expect(await manifest.json()).toMatchObject({
       service: "notes",
+      standardRoutes: STANDARD_ADMIN_ROUTES,
       panels: [{ id: "extra", title: "Extra", html: "<p>panel</p>" }],
     })
     expect((await call(runtime, "GET", "/__admin/state", { headers })).status).toBe(200)

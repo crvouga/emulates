@@ -30,8 +30,11 @@ export function StateExplorer({
 }) {
   const shape = useResource<StateView>(api, "/state", revision)
   const [selection, setSelection] = useState("")
+  const collections = shape.data?.collections ?? []
   const collection =
-    shape.data?.collections.find((item) => item.name === selection) ?? shape.data?.collections[0]
+    collections.find((item) => item.name === selection) ??
+    collections.find((item) => item.count > 0) ??
+    collections[0]
   return (
     <Flex vertical gap="large">
       <Flex gap="middle" wrap align="center" justify="space-between">

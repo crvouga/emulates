@@ -24,6 +24,13 @@ const recording = (await Bun.file(
 // CI runner, past bun's 5 s default.
 const SCENARIO_TIMEOUT_MS = 30_000
 
+// The recorded binary scenario minted its presigned URLs within one second. Replaying
+// against wall time can cross a second boundary on a loaded runner, changing the
+// Expires alias despite identical requests. Freeze the injected provider clock, not
+// the comparison: Medplum's monotonic writeTime still gives each mutation a distinct
+// lastUpdated, and every recorded response field is checked unchanged.
+const REPLAY_NOW = 1_700_000_000_123
+
 const recorded = new Map(recording.scenarios.map((scenario) => [scenario.name, scenario]))
 
 describe(`oracle parity (Medplum ${recording.medplum}, recorded ${recording.recordedAt})`, () => {
@@ -38,7 +45,7 @@ describe(`oracle parity (Medplum ${recording.medplum}, recorded ${recording.reco
         const expected = recorded.get(scenario.name)
         expect(expected).toBeDefined()
         const actual = await runScenario(
-          mockTarget({ baseUrl: "http://mock.medplum.local/" }),
+          mockTarget({ baseUrl: "http://mock.medplum.local/", now: () => REPLAY_NOW }),
           scenario,
         )
         expect(actual.exchanges.map((e) => e.step)).toEqual(
