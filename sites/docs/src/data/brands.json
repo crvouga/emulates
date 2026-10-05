@@ -708,6 +708,19 @@
     "logo": "/brands/stripe.svg",
     "logoSource": "simple-icons"
   },
+  "tavily": {
+    "vendor": "Tavily",
+    "website": "https://tavily.com",
+    "docs": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+    "description": "Tavily is the real‑time search engine for AI agents — Fast and secure APIs for web search and content extraction.",
+    "input": {
+      "website": "https://tavily.com",
+      "docs": "https://docs.tavily.com/documentation/api-reference/endpoint/search"
+    },
+    "color": null,
+    "logo": "/brands/tavily.svg",
+    "logoSource": "site"
+  },
   "textract": {
     "vendor": "Amazon Textract",
     "website": "https://aws.amazon.com/textract/",
