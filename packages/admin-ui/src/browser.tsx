@@ -7,6 +7,7 @@ import {
   FieldTimeOutlined,
   HistoryOutlined,
   MoonOutlined,
+  ReloadOutlined,
   SunOutlined,
   TableOutlined,
   ThunderboltOutlined,
@@ -14,6 +15,7 @@ import {
 import {
   App,
   Avatar,
+  Badge,
   Button,
   Card,
   ConfigProvider,
@@ -169,7 +171,7 @@ function Workspace({
         window.matchMedia("(prefers-color-scheme: dark)").matches),
   )
   const api = useMemo(() => createApi(config, fetch, namespace, key), [config, namespace, key])
-  const manifest = useResource<Manifest>(api, "/ui/manifest")
+  const manifest = useResource<Manifest>(api, "/ui/manifest", 0, false)
   const namespaces = useResource<{ namespaces: string[] }>(api, "/namespaces", revision)
   useEffect(() => {
     const root = host.getRootNode()
@@ -282,9 +284,12 @@ function Workspace({
           >
             <Flex gap="middle" wrap justify="space-between" align="center">
               <Flex vertical gap={4}>
-                <Typography.Title level={4} style={{ margin: 0 }}>
-                  {config.service} <Tag>Admin</Tag>
-                </Typography.Title>
+                <Flex align="center" gap="small">
+                  <Typography.Title level={4} style={{ margin: 0 }}>
+                    {config.service}
+                  </Typography.Title>
+                  <Tag style={{ margin: 0 }}>Admin</Tag>
+                </Flex>
                 <Vendor config={config} />
               </Flex>
               <Flex wrap gap="small" align="center">
@@ -325,7 +330,10 @@ function Workspace({
                     setDark(!dark)
                   }}
                 />
-                <Button onClick={() => setRevision((n) => n + 1)}>Refresh</Button>
+                <Badge status="processing" text="Live" />
+                <Button icon={<ReloadOutlined />} onClick={() => setRevision((n) => n + 1)}>
+                  Refresh
+                </Button>
               </Flex>
             </Flex>
           </Layout.Header>
