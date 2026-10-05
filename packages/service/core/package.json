@@ -45,11 +45,12 @@
   "dependencies": {
     "@crvouga/mockingbird-admin-ui": "workspace:*",
     "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
     "@crvouga/mockingbird-openapi": "workspace:*",
     "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
     "@crvouga/mockingbird-ui": "workspace:*",
+    "fast-xml-parser": "5.11.2",
     "hono": "4.11.9"
   },
   "devDependencies": {

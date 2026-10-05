@@ -10,9 +10,14 @@ export type S3Object = {
   contentType?: string
   cacheControl?: string
   contentDisposition?: string
+  versionId?: string
+  deleteMarker?: boolean
+  storageClass?: string
+  tags?: Record<string, string>
+  checksums?: Record<string, string>
   metadata: Record<string, string>
 }
-export type MultipartUpload = { id: string; bucket: string; key: string; initiated: number }
+export type MultipartUpload = { id: string; bucket: string; key: string; initiated: number; metadata?: Record<string, string>; contentType?: string; cacheControl?: string; contentDisposition?: string }
 export type MultipartPart = { uploadId: string; partNumber: number; bytes: number[]; etag: string }
 export type S3SeedObject = Omit<S3Object, "etag" | "lastModified" | "bytes"> & {
   body: Uint8Array | string
@@ -22,12 +27,16 @@ export type S3SeedObject = Omit<S3Object, "etag" | "lastModified" | "bytes"> & {
 export class S3State {
   readonly buckets: Collection<{ createdAt: number }>
   readonly objects: Collection<S3Object>
+  readonly versions: Collection<S3Object>
+  readonly configurations: Collection<{ body: string }>
   readonly uploads: Collection<MultipartUpload>
   readonly parts: Collection<MultipartPart>
   readonly ids: IdSequence
   constructor(sqlite: SqliteClient, namespace: string) {
     this.buckets = new Collection(sqlite, namespace, "s3_buckets")
     this.objects = new Collection(sqlite, namespace, "s3_objects")
+    this.versions = new Collection(sqlite, namespace, "s3_versions")
+    this.configurations = new Collection(sqlite, namespace, "s3_configurations")
     this.uploads = new Collection(sqlite, namespace, "s3_uploads")
     this.parts = new Collection(sqlite, namespace, "s3_parts")
     this.ids = new IdSequence(sqlite, namespace, "s3")

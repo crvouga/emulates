@@ -1,0 +1,103 @@
+{
+  "name": "@crvouga/mockingbird-service-dynamodb-streams",
+  "version": "0.0.0-development",
+  "description": "Stateful Amazon DynamoDB Streams mock with AWS SDK wire compatibility and deterministic local controls.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "DISCOVERY.md",
+    "SUPPORT.md",
+    "openapi.yaml"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "bin": {
+    "mockingbird-dynamodb-streams": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/service/dynamodb-streams"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/dynamodb-streams#readme",
+  "keywords": [
+    "mockingbird",
+    "aws",
+    "dynamodb-streams",
+    "mock"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "entries": {
+      "server": "node",
+      "cli": "node"
+    },
+    "layer": "service",
+    "category": "storage",
+    "displayName": "Amazon DynamoDB Streams",
+    "vendor": {
+      "website": "https://aws.amazon.com/",
+      "docs": "https://docs.aws.amazon.com/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "DynamoDB Streams public AWS API.",
+      "color": "#FF9900"
+    },
+    "parity": "Documented operations; LocalStack differential scenarios",
+    "parityTier": "cold",
+    "aws": {
+      "localstackService": "dynamodbstreams",
+      "operations": [
+        "ListStreams",
+        "DescribeStream",
+        "GetShardIterator",
+        "GetRecords"
+      ]
+    }
+  },
+  "scripts": {
+    "generate": "bun ../../openapi/codegen/dist/cli.js",
+    "generate:check": "bun ../../openapi/codegen/dist/cli.js --check",
+    "openapi:check": "bun ../../openapi/codegen/dist/cli.js --validate",
+    "build": "bun ../../../scripts/bundle-service.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test",
+    "parity": "bun scripts/parity.ts",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts"
+  },
+  "dependencies": {
+    "@crvouga/mockingbird-service-sqlite": "workspace:*"
+  },
+  "devDependencies": {
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "fast-check": "4.9.0"
+  }
+}
