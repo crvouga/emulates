@@ -4,6 +4,23 @@ import { createServer } from "./src/server.js"
 import { call, enumerate } from "./test/consumer.js"
 
 const origin = "http://checkr.mock"
+test("URLSearchParams candidates use Fetch-inferred form content type", async () => {
+  const runtime = createRuntime()
+  const response = await runtime.fetch(
+    new Request(`${origin}/v1/candidates`, {
+      method: "POST",
+      headers: { authorization: `Basic ${btoa("mock_checkr_key:")}` },
+      body: new URLSearchParams({
+        email: "form@example.test",
+        first_name: "Synthetic",
+        last_name: "Form",
+      }),
+    }),
+  )
+  expect(response.status).toBe(201)
+  expect((await response.json()).email).toBe("form@example.test")
+  expect(runtime.instance().candidates.count()).toBe(1)
+})
 const work_locations = [{ country: "US", state: "AZ", city: "Synthetic City" }]
 test("candidate, package, invitation and report relationships persist", async () => {
   const runtime = createRuntime()
