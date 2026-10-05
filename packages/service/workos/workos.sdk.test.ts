@@ -4,7 +4,7 @@ import { NextRequest } from "next/server.js"
 import { createServer } from "./src/server.js"
 
 test("WorkOS 9.3.1 and AuthKit Next.js 4.1.0 verify and refresh a real signed session", async () => {
-  const server = await createServer({ accessTtlMs: 1000 })
+  const server = await createServer({ accessTtlMs: 60_000 })
   const url = new URL(server.url)
   const cookiePassword = "mock-only-cookie-password-not-for-production"
   const env = {
@@ -59,7 +59,7 @@ test("WorkOS 9.3.1 and AuthKit Next.js 4.1.0 verify and refresh a real signed se
     expect(valid.session.user?.id).toBe("user_mock")
     expect(valid.session.accessToken).toBe(auth.accessToken)
     // Mint an already-expired signed JWT using the mock clock; AuthKit must refresh it.
-    server.runtime.clock.set(Date.now() - 10_000)
+    server.runtime.clock.set(Date.now() - 120_000)
     server.runtime.clock.freeze()
     const renewed = await workos.userManagement.authenticateWithRefreshToken({
       refreshToken: auth.refreshToken,
