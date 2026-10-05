@@ -2,6 +2,8 @@
 import catalog from "virtual:mockingbird/catalog"
 import Icon from "../components/Icon.astro"
 import Install from "../components/Install.astro"
+import BrowserStack from "../components/landing/BrowserStack.astro"
+import MockedServices from "../components/landing/MockedServices.astro"
 import Monogram from "../components/Monogram.astro"
 import Base from "../layouts/Base.astro"
 import {
@@ -64,6 +66,15 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 
   <section class="section container">
     <div class="section-head">
+      <span class="eyebrow">What it does</span>
+      <h2>A stand-in for every service your app calls.</h2>
+      <p>Each third-party API your app depends on gets a faithful mock that runs in your process. Your code and the vendor's SDK stay the same; the requests just never leave.</p>
+    </div>
+    <MockedServices />
+  </section>
+
+  <section class="section container">
+    <div class="section-head">
       <span class="eyebrow">Quick start</span>
       <h2>A call, answered.</h2>
       <p>The README's quick start. The build runs it against the published package.</p>
@@ -76,6 +87,15 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
       </div>
       <Fragment set:html={catalog.quickStart.html} />
     </div>
+  </section>
+
+  <section class="section container fullstack">
+    <div class="section-head">
+      <span class="eyebrow">Full stack, in a browser tab</span>
+      <h2>Build and test a whole app with no server.</h2>
+      <p>Mocks run wherever JavaScript does, so an app's client, its API, and every vendor it calls can share one browser tab.</p>
+    </div>
+    <BrowserStack />
   </section>
 
   <section class="section container">
@@ -174,6 +194,10 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     </div>
   </section>
 </Base>
+
+<script>
+  import "../client/appExamples.ts"
+</script>
 
 <style>
   .hero {
@@ -504,6 +528,10 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     font-style: italic;
     font-size: 16px;
     font-weight: 500;
+  }
+
+  .fullstack .section-head {
+    max-width: 720px;
   }
 
   .contract-note {
