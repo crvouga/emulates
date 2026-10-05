@@ -721,6 +721,20 @@
     "logo": "/brands/textract.png",
     "logoSource": "site"
   },
+  "turnstile": {
+    "vendor": "Cloudflare Turnstile",
+    "website": "https://www.cloudflare.com/products/turnstile/",
+    "docs": "https://developers.cloudflare.com/turnstile/get-started/server-side-validation/",
+    "description": "Server-side challenge token verification.",
+    "input": {
+      "website": "https://www.cloudflare.com/products/turnstile/",
+      "docs": "https://developers.cloudflare.com/turnstile/get-started/server-side-validation/",
+      "description": "Server-side challenge token verification."
+    },
+    "color": null,
+    "logo": "/brands/turnstile.png",
+    "logoSource": "site"
+  },
   "twilio": {
     "vendor": "Twilio",
     "website": "https://www.twilio.com",
