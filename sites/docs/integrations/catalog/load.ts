@@ -60,8 +60,9 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
   const names = new Set(packages.map((p) => p.name))
   const problems: string[] = []
 
-  const loaded = await Promise.all(
-    packages.map(async ({ name, dir, pkg }): Promise<Service | null> => {
+  // Bound package loading so synchronous module/runtime work cannot starve sample deadlines.
+  const loaded = await mapLimited(
+    packages.map(({ name, dir, pkg }) => async (): Promise<Service | null> => {
       const where = `packages/service/${name}/package.json`
       const meta = pkg.mockingbird ?? {}
       if (!isCategory(meta.category ?? "")) {
@@ -127,7 +128,10 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
           : playground.headers
       const origin = document ? serverOrigin(document) : null
       const operations = document ? extractOperations(document, supportedIds, headers) : []
-      if (document && origin) await verifySamples(mod, origin, operations)
+      const sampleFailures =
+        document && origin
+          ? await verifySamples(mod, origin, operations)
+          : new Map<string, string>()
       const defaultOperation = pickDefault(operations, playground.operation)
       if (headers && !operations.some((o) => o.verified)) {
         problems.push(
@@ -138,7 +142,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
         const op = operations.find((o) => o.id === playground.operation)
         if (!op?.verified) {
           problems.push(
-            `${where}: "mockingbird.playground.operation" ${JSON.stringify(playground.operation)} ${op ? "does not succeed with its sample request" : "is not an operation in the contract"}`,
+            `${where}: "mockingbird.playground.operation" ${JSON.stringify(playground.operation)} ${op ? `does not succeed with its sample request (${sampleFailures.get(op.id) ?? "no runnable sample"})` : "is not an operation in the contract"}`,
           )
         }
       }
@@ -350,10 +354,23 @@ async function runQuickStart(
   return null
 }
 
+async function mapLimited<T>(tasks: (() => Promise<T>)[]): Promise<T[]> {
+  const results: T[] = []
+  for (let index = 0; index < tasks.length; index += 4) {
+    results.push(...(await Promise.all(tasks.slice(index, index + 4).map((run) => run()))))
+  }
+  return results
+}
+
 const VERIFY_TIMEOUT_MS = 2_000
 
 /** Send each supported operation's sample, in contract order, to one fresh instance of the mock. */
-async function verifySamples(mod: Json, origin: string, operations: Operation[]): Promise<void> {
+async function verifySamples(
+  mod: Json,
+  origin: string,
+  operations: Operation[],
+): Promise<Map<string, string>> {
+  const failures = new Map<string, string>()
   const runtime = mod.createRuntime()
   for (const op of operations) {
     if (!op.supported || op.bodyNote) continue
@@ -372,13 +389,21 @@ async function verifySamples(mod: Json, origin: string, operations: Operation[])
         }),
       ])
       op.verified = response.status < 400
+      if (!op.verified) failures.set(op.id, `HTTP ${response.status}`)
       await response.body?.cancel()
-    } catch {
+    } catch (error) {
       op.verified = false
+      failures.set(
+        op.id,
+        error instanceof Error && error.message === "timeout"
+          ? `timed out after ${VERIFY_TIMEOUT_MS} ms`
+          : `request threw ${error instanceof Error ? error.name : "an exception"}`,
+      )
     } finally {
       clearTimeout(timer)
     }
   }
+  return failures
 }
 
 /** The declared operation, else a verified one that creates something, else one that reads. */
