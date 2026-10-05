@@ -46,6 +46,7 @@ jobs:
 
       # Manual maintenance only: scheduled verification always checks the committed corpus.
       - name: Refresh sandbox corpus
+        id: refresh
         if: inputs.refresh_corpus == true
         env:
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
@@ -55,10 +56,18 @@ jobs:
         timeout-minutes: 15
         env:
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
-        run: bun run --cwd packages/service/junction verify -- --sample 60 --orders
+        run: bun run --cwd packages/service/junction verify -- --sample 60 --orders --json > "$RUNNER_TEMP/junction-verify.json"
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junction-verify-report
+          path: ${{ runner.temp }}/junction-verify.json
+          if-no-files-found: ignore
 
       - name: Upload refreshed corpus
-        if: always() && inputs.refresh_corpus == true
+        if: always() && steps.refresh.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: junction-corpus
