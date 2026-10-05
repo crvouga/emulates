@@ -1,8 +1,8 @@
-import type { AdminConfig, Api } from "./model.js"
+import type { AdminApiConfig, Api } from "./model.js"
 import { isRecord } from "./model.js"
 
 export const createApi = (
-  config: AdminConfig,
+  config: Pick<AdminApiConfig, "adminPrefix" | "adminKeyHeader">,
   fetcher: typeof fetch,
   namespace: string,
   key: string,

@@ -3,11 +3,14 @@ import {
   ApiOutlined,
   AppstoreOutlined,
   BranchesOutlined,
+  CheckOutlined,
   DatabaseOutlined,
   FieldTimeOutlined,
   HistoryOutlined,
+  MacCommandOutlined,
   MoonOutlined,
   ReloadOutlined,
+  SearchOutlined,
   SunOutlined,
   TableOutlined,
   ThunderboltOutlined,
@@ -25,6 +28,7 @@ import {
   Input,
   Layout,
   Menu,
+  Modal,
   Result,
   Select,
   Space,
@@ -48,7 +52,7 @@ import {
   TimelineView,
 } from "./controls.js"
 import { Members } from "./members.js"
-import type { AdminConfig, Api, Manifest, MembersConfig, Panel } from "./model.js"
+import type { AdminApiConfig, AdminConfig, Api, Manifest, MembersConfig, Panel } from "./model.js"
 import { errorMessage } from "./model.js"
 import { SqlExplorer } from "./sql.js"
 import { StateExplorer } from "./state.js"
@@ -79,6 +83,158 @@ const remember = (key: string, value?: string): string | null => {
   } catch {
     return null
   }
+}
+
+type PaletteCommand = {
+  id: string
+  label: string
+  detail: string
+  keywords: string
+  icon: ReactNode
+  run(): void
+}
+
+function CommandPalette({
+  open,
+  onClose,
+  commands,
+  popupHost,
+  dark,
+}: {
+  open: boolean
+  onClose(): void
+  commands: readonly PaletteCommand[]
+  popupHost: HTMLElement
+  dark: boolean
+}) {
+  const [query, setQuery] = useState("")
+  const [active, setActive] = useState(0)
+  const input = useRef<import("antd").InputRef>(null)
+  const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean)
+  const visible = commands.filter((command) => {
+    const haystack = `${command.label} ${command.detail} ${command.keywords}`.toLocaleLowerCase()
+    return words.every((word) => haystack.includes(word))
+  })
+  const selected = visible[Math.min(active, Math.max(0, visible.length - 1))]
+  const colors = dark
+    ? { surface: "#171d26", border: "#343e4c", selected: "rgba(91,156,246,.16)" }
+    : { surface: "#ffffff", border: "#d4dae3", selected: "#eaf2ff" }
+  useEffect(() => {
+    if (!open) return
+    setQuery("")
+    setActive(0)
+    requestAnimationFrame(() => input.current?.focus())
+  }, [open])
+  const choose = (command: PaletteCommand | undefined) => {
+    if (!command) return
+    command.run()
+    onClose()
+  }
+  return (
+    <Modal
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      closable={false}
+      width={640}
+      centered={false}
+      getContainer={() => popupHost}
+      transitionName=""
+      maskTransitionName=""
+      styles={{
+        body: {
+          padding: 0,
+          overflow: "hidden",
+          background: colors.surface,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 12,
+        },
+      }}
+      afterOpenChange={(isOpen) => isOpen && input.current?.focus()}
+    >
+      <Input
+        ref={input}
+        variant="borderless"
+        size="large"
+        prefix={<SearchOutlined />}
+        suffix={<Typography.Text keyboard>esc</Typography.Text>}
+        aria-label="Admin command palette"
+        placeholder="Jump to a mock or screen…"
+        value={query}
+        onChange={(event) => {
+          setQuery(event.target.value)
+          setActive(0)
+        }}
+        onKeyDown={(event) => {
+          event.stopPropagation()
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault()
+            const delta = event.key === "ArrowDown" ? 1 : -1
+            setActive((index) =>
+              visible.length === 0 ? 0 : (index + delta + visible.length) % visible.length,
+            )
+          } else if (event.key === "Enter") {
+            event.preventDefault()
+            choose(selected)
+          }
+        }}
+        style={{ padding: "16px 18px", fontSize: 16 }}
+      />
+      <div style={{ borderTop: `1px solid ${colors.border}` }}>
+        <div style={{ maxHeight: 440, overflowY: "auto", padding: 8 }} role="listbox">
+          {visible.length === 0 ? (
+            <Result status="info" title="No commands found" subTitle="Try a mock or screen name." />
+          ) : (
+            visible.map((command, index) => (
+              <button
+                key={command.id}
+                type="button"
+                role="option"
+                aria-selected={index === active}
+                onMouseEnter={() => setActive(index)}
+                onClick={() => choose(command)}
+                style={{
+                  width: "100%",
+                  border: 0,
+                  borderRadius: 8,
+                  padding: "11px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  color: "inherit",
+                  background: index === active ? colors.selected : "transparent",
+                }}
+              >
+                <span style={{ color: "var(--ant-color-primary)", fontSize: 17 }}>
+                  {command.icon}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <Typography.Text strong style={{ display: "block" }}>
+                    {command.label}
+                  </Typography.Text>
+                  <Typography.Text type="secondary" ellipsis style={{ display: "block" }}>
+                    {command.detail}
+                  </Typography.Text>
+                </span>
+                {index === active && (
+                  <CheckOutlined style={{ color: "var(--ant-color-primary)" }} />
+                )}
+              </button>
+            ))
+          )}
+        </div>
+        <Flex
+          justify="space-between"
+          style={{ borderTop: `1px solid ${colors.border}`, padding: "9px 14px" }}
+        >
+          <Typography.Text type="secondary">↑↓ Navigate · ↵ Open</Typography.Text>
+          <Typography.Text type="secondary">Mocks and admin screens</Typography.Text>
+        </Flex>
+      </div>
+    </Modal>
+  )
 }
 
 const shellTheme = (dark: boolean): ThemeConfig => {
@@ -171,7 +327,7 @@ const shellTheme = (dark: boolean): ThemeConfig => {
   }
 }
 
-function Vendor({ config }: { config: AdminConfig }) {
+function Vendor({ config, service }: { config: AdminConfig; service: string }) {
   const [brand, setBrand] = useState<ReturnType<typeof brandFor>>(null)
   useEffect(() => {
     const controller = new AbortController()
@@ -180,11 +336,11 @@ function Vendor({ config }: { config: AdminConfig }) {
     })
       .then((response) => (response.ok ? (response.json() as Promise<unknown>) : null))
       .then((catalog: unknown) => {
-        if (!controller.signal.aborted) setBrand(brandFor(config.service, catalog))
+        if (!controller.signal.aborted) setBrand(brandFor(service, catalog))
       })
       .catch(() => {})
     return () => controller.abort()
-  }, [config])
+  }, [config.brandsUrl, service])
   if (!brand) return null
   return (
     <Space wrap size="small">
@@ -248,10 +404,21 @@ function Workspace({
   popupHost: HTMLElement
 }) {
   const params = useMemo(() => new URL(location.href).searchParams, [])
+  const apiConfigs = useMemo<readonly AdminApiConfig[]>(
+    () =>
+      config.apis?.length
+        ? config.apis
+        : [{ ...config, id: config.service, label: config.service }],
+    [config],
+  )
+  const [apiId, setApiId] = useState(params.get("mock") || apiConfigs[0]?.id || config.service)
+  const apiConfig = apiConfigs.find((candidate) => candidate.id === apiId) ??
+    apiConfigs[0] ?? { ...config, id: config.service, label: config.service }
   const [namespace, setNamespace] = useState(params.get("namespace") || "default")
   const [key, setKey] = useState(params.get("admin_key") ?? remember("mockingbird-admin-key") ?? "")
   const [draftKey, setDraftKey] = useState(key)
   const [view, setView] = useState(location.hash.slice(1) || "overview")
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const [revision, setRevision] = useState(0)
   const [narrow, setNarrow] = useState(host.clientWidth < 760)
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
@@ -264,7 +431,10 @@ function Workspace({
   const adminTheme = useMemo(() => shellTheme(dark), [dark])
   const shellBorder = dark ? "#252d38" : "#e4e8ee"
   const shellSurface = dark ? "#11161d" : "#ffffff"
-  const api = useMemo(() => createApi(config, fetch, namespace, key), [config, namespace, key])
+  const api = useMemo(
+    () => createApi(apiConfig, fetch, namespace, key),
+    [apiConfig, namespace, key],
+  )
   const manifest = useResource<Manifest>(api, "/ui/manifest", 0, false)
   const namespaces = useResource<{ namespaces: string[] }>(api, "/namespaces", revision)
   useEffect(() => {
@@ -293,9 +463,23 @@ function Workspace({
       history.replaceState(null, "", url.href)
     }
   }, [key, params])
+  useEffect(() => {
+    const open = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLocaleLowerCase() !== "k") return
+      event.preventDefault()
+      // The docs host has its own command palette. Embedded admins own this shortcut at their
+      // scoped host boundary, so one keypress can never open both palettes.
+      event.stopPropagation()
+      event.stopImmediatePropagation()
+      setPaletteOpen(true)
+    }
+    document.addEventListener("keydown", open)
+    return () => document.removeEventListener("keydown", open)
+  }, [])
   const panelList = [...(manifest.data?.panels ?? []), ...(manifest.data?.extensions ?? [])]
+  const standardRoutes = manifest.data?.standardRoutes ?? apiConfig.standardRoutes
   const hasSql = panelList.some((panel) => panel.kind === "sql")
-  const nav = [
+  const coreNav = [
     { key: "overview", icon: <AppstoreOutlined />, label: "Overview" },
     { key: "state", icon: <DatabaseOutlined />, label: "State" },
     { key: "clock", icon: <FieldTimeOutlined />, label: "Clock" },
@@ -303,10 +487,43 @@ function Workspace({
     { key: "journal", icon: <HistoryOutlined />, label: "Journal" },
     { key: "checkpoints", icon: <BranchesOutlined />, label: "Checkpoints" },
     { key: "routes", icon: <ApiOutlined />, label: "Routes" },
+  ]
+  const nav = [
+    ...coreNav,
     ...panelList.map((panel) => ({
       key: panel.id,
       icon: panel.kind === "sql" ? <TableOutlined /> : <AppstoreOutlined />,
       label: panel.title,
+    })),
+  ]
+  const goTo = (nextApi: string, nextView: string) => {
+    setApiId(nextApi)
+    setView(nextView)
+    const url = new URL(location.href)
+    url.hash = nextView
+    history.replaceState(null, "", url.href)
+  }
+  const paletteCommands: PaletteCommand[] = [
+    ...apiConfigs.flatMap((candidate) =>
+      coreNav.map((screen) => ({
+        id: `${candidate.id}:${screen.key}`,
+        label: `${candidate.label ?? candidate.service} · ${screen.label}`,
+        detail:
+          screen.key === "overview"
+            ? `Switch to ${candidate.label ?? candidate.service}`
+            : `Open ${screen.label.toLocaleLowerCase()} for ${candidate.label ?? candidate.service}`,
+        keywords: `mock service admin ${candidate.id} ${candidate.service} ${screen.key}`,
+        icon: screen.icon,
+        run: () => goTo(candidate.id, screen.key),
+      })),
+    ),
+    ...panelList.map((panel) => ({
+      id: `${apiConfig.id}:${panel.id}`,
+      label: `${apiConfig.label ?? apiConfig.service} · ${panel.title}`,
+      detail: panel.description ?? `Open ${panel.title} for the current mock`,
+      keywords: `extension panel ${apiConfig.id} ${panel.id} ${panel.kind ?? "panel"}`,
+      icon: panel.kind === "sql" ? <TableOutlined /> : <AppstoreOutlined />,
+      run: () => goTo(apiConfig.id, panel.id),
     })),
   ]
   const selected = nav.some((item) => item.key === view) ? view : "overview"
@@ -332,7 +549,7 @@ function Workspace({
       content = <TimelineView {...common} />
       break
     case "routes":
-      content = <RoutesView {...common} standardRoutes={config.standardRoutes} />
+      content = <RoutesView {...common} standardRoutes={standardRoutes} />
       break
     default: {
       const panel = panelList.find((panel) => panel.id === selected)
@@ -342,7 +559,7 @@ function Workspace({
         ) : panel?.kind === "route" ? (
           <RoutesView
             {...common}
-            standardRoutes={config.standardRoutes}
+            standardRoutes={standardRoutes}
             initialRoute={panel.route}
             initialBody={panel.body}
             title={panel.title}
@@ -379,14 +596,39 @@ function Workspace({
             <Flex gap="middle" wrap justify="space-between" align="center">
               <Flex vertical gap={4}>
                 <Flex align="center" gap="small">
-                  <Typography.Title level={4} style={{ margin: 0, textTransform: "capitalize" }}>
-                    {config.service}
-                  </Typography.Title>
+                  {apiConfigs.length > 1 ? (
+                    <Select
+                      aria-label="Mock"
+                      showSearch
+                      optionFilterProp="label"
+                      variant="borderless"
+                      value={apiConfig.id}
+                      onChange={(next) => goTo(next, "overview")}
+                      popupMatchSelectWidth={240}
+                      style={{
+                        minWidth: 190,
+                        fontSize: 20,
+                        fontWeight: 650,
+                        marginInlineStart: -11,
+                      }}
+                      options={apiConfigs.map((candidate) => ({
+                        value: candidate.id,
+                        label: candidate.label ?? candidate.service,
+                      }))}
+                    />
+                  ) : (
+                    <Typography.Title level={4} style={{ margin: 0, textTransform: "capitalize" }}>
+                      {apiConfig.label ?? apiConfig.service}
+                    </Typography.Title>
+                  )}
                   <Tag style={{ margin: 0 }}>Admin</Tag>
                 </Flex>
-                <Vendor config={config} />
+                <Vendor config={config} service={apiConfig.service} />
               </Flex>
               <Flex wrap gap="small" align="center">
+                <Button icon={<MacCommandOutlined />} onClick={() => setPaletteOpen(true)}>
+                  Jump <Typography.Text keyboard>⌘K</Typography.Text>
+                </Button>
                 <Select
                   aria-label="Namespace"
                   showSearch
@@ -455,10 +697,7 @@ function Workspace({
                   padding: narrow || collapsed ? "12px 6px" : "12px 10px",
                 }}
                 onClick={({ key: next }) => {
-                  setView(next)
-                  const url = new URL(location.href)
-                  url.hash = next
-                  history.replaceState(null, "", url.href)
+                  goTo(apiConfig.id, next)
                 }}
               />
             </Layout.Sider>
@@ -491,6 +730,13 @@ function Workspace({
             </Layout.Content>
           </Layout>
         </Layout>
+        <CommandPalette
+          open={paletteOpen}
+          onClose={() => setPaletteOpen(false)}
+          commands={paletteCommands}
+          popupHost={popupHost}
+          dark={dark}
+        />
       </App>
     </ConfigProvider>
   )

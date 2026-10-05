@@ -19,9 +19,9 @@ export type AppExample = {
 export const APP_EXAMPLES: readonly AppExample[] = [
   {
     slug: "medical-testing",
-    title: "Lab testing workspace",
+    title: "Lab ordering workspace",
     description:
-      "A complete lab testing app with patient, clinician, and administrator roles. Order tests, track fulfillment, explore biomarker reports, review results, download records, and manage access. The same full stack runs in your browser or on Bun.",
+      "A complete lab ordering app with patient, clinician, and administrator roles. Order tests, track fulfillment, explore biomarker reports, review results, download records, and manage access. The same full stack runs in your browser or on Bun.",
     servicesUsed: ["oauth", "junction", "stripe", "postgres"],
     packagePath: "packages/examples/medical-testing",
     runCommand: "bunx turbo run dev --filter=@crvouga/mockingbird-example-medical-testing",
