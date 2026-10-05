@@ -101,6 +101,10 @@ Every route answers with and without its trailing slash. Errors use PostHog's
   a property-less group at 100 % is the default (its `variant`, else the largest multivariate
   variant, else `true`); at 0 % or a partial rollout it is `false`; cohort and other property
   groups are ignored (deterministic, no hashing).
+  Create/patch reject array/scalar `filters.payloads` with 400 before changing flag or linked
+  experiment state. The dictionary requirement is verified against
+  [PostHog's serializer regression](https://github.com/PostHog/posthog/blob/282f536aa98f6de6f03d92ec719ba2e25cab0239/products/feature_flags/backend/api/test/test_filters_schema.py#L219)
+  and the local contract; seed `172181039` passes self-parity, not live management parity.
 
 ### Admin (beyond the standard contract)
 

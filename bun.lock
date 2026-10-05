@@ -497,6 +497,7 @@
         "@crvouga/mockingbird-service-odx": "workspace:*",
         "@crvouga/mockingbird-service-openai": "workspace:*",
         "@crvouga/mockingbird-service-otel": "workspace:*",
+        "@crvouga/mockingbird-service-oura": "workspace:*",
         "@crvouga/mockingbird-service-paddle": "workspace:*",
         "@crvouga/mockingbird-service-payload-cms": "workspace:*",
         "@crvouga/mockingbird-service-persona": "workspace:*",
@@ -1353,6 +1354,32 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/oura": {
+      "name": "@crvouga/mockingbird-service-oura",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-oura": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-http-codec": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/paddle": {
       "name": "@crvouga/mockingbird-service-paddle",
       "version": "0.0.0-development",
@@ -2149,6 +2176,7 @@
         "@crvouga/mockingbird-service-odx": "workspace:*",
         "@crvouga/mockingbird-service-openai": "workspace:*",
         "@crvouga/mockingbird-service-otel": "workspace:*",
+        "@crvouga/mockingbird-service-oura": "workspace:*",
         "@crvouga/mockingbird-service-paddle": "workspace:*",
         "@crvouga/mockingbird-service-payload-cms": "workspace:*",
         "@crvouga/mockingbird-service-persona": "workspace:*",
@@ -2602,6 +2630,8 @@
     "@crvouga/mockingbird-service-openai": ["@crvouga/mockingbird-service-openai@workspace:packages/service/openai"],
 
     "@crvouga/mockingbird-service-otel": ["@crvouga/mockingbird-service-otel@workspace:packages/service/otel"],
+
+    "@crvouga/mockingbird-service-oura": ["@crvouga/mockingbird-service-oura@workspace:packages/service/oura"],
 
     "@crvouga/mockingbird-service-paddle": ["@crvouga/mockingbird-service-paddle@workspace:packages/service/paddle"],
 

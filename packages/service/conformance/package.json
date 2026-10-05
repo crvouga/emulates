@@ -40,6 +40,7 @@
     "@crvouga/mockingbird-service-odx": "workspace:*",
     "@crvouga/mockingbird-service-openai": "workspace:*",
     "@crvouga/mockingbird-service-otel": "workspace:*",
+    "@crvouga/mockingbird-service-oura": "workspace:*",
     "@crvouga/mockingbird-service-paddle": "workspace:*",
     "@crvouga/mockingbird-service-payload-cms": "workspace:*",
     "@crvouga/mockingbird-service-persona": "workspace:*",
@@ -58,9 +59,9 @@
     "@crvouga/mockingbird-service-tavily": "workspace:*",
     "@crvouga/mockingbird-service-textract": "workspace:*",
     "@crvouga/mockingbird-service-twilio": "workspace:*",
+    "@crvouga/mockingbird-service-vanta": "workspace:*",
     "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
     "@crvouga/mockingbird-service-vpi": "workspace:*",
-    "@crvouga/mockingbird-service-vanta": "workspace:*",
     "@crvouga/mockingbird-service-wholescripts": "workspace:*",
     "@crvouga/mockingbird-service-whoop": "workspace:*",
     "@crvouga/mockingbird-service-workos": "workspace:*"

@@ -522,6 +522,20 @@
     "logo": "/brands/otel.svg",
     "logoSource": "simple-icons"
   },
+  "oura": {
+    "vendor": "Oura",
+    "website": "https://ouraring.com",
+    "docs": "https://cloud.ouraring.com/v2/docs",
+    "description": "Oura wearable health data API.",
+    "input": {
+      "website": "https://ouraring.com",
+      "docs": "https://cloud.ouraring.com/v2/docs",
+      "description": "Oura wearable health data API."
+    },
+    "color": null,
+    "logo": "/brands/oura.png",
+    "logoSource": "site"
+  },
   "paddle": {
     "vendor": "Paddle",
     "website": "https://www.paddle.com/billing",

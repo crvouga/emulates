@@ -38,6 +38,7 @@ import type { createRuntime as createOauth } from "@crvouga/mockingbird-service-
 import type { createRuntime as createOdx } from "@crvouga/mockingbird-service-odx"
 import type { createRuntime as createOpenAI } from "@crvouga/mockingbird-service-openai"
 import type { createRuntime as createOtel } from "@crvouga/mockingbird-service-otel"
+import type { createRuntime as createOura } from "@crvouga/mockingbird-service-oura"
 import type { createRuntime as createPaddle } from "@crvouga/mockingbird-service-paddle"
 import type { createRuntime as createPayloadCms } from "@crvouga/mockingbird-service-payload-cms"
 import type { createRuntime as createPersona } from "@crvouga/mockingbird-service-persona"
@@ -72,6 +73,7 @@ type Factory = (options?: MockCreateOptions) => MockSurface
 type Assert<T extends Factory> = T
 
 export type SurfaceProof = [
+  Assert<typeof createOura>,
   Assert<typeof createAha>,
   Assert<typeof createTavily>,
   Assert<typeof createAwsSecrets>,

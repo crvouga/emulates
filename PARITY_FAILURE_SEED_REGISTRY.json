@@ -2,6 +2,12 @@
   "description": "Regression registry for parity seeds that have exposed a mock-versus-oracle mismatch. Add every newly discovered failing seed here before fixing it.",
   "entries": [
     {
+      "provider": "posthog",
+      "seed": 172181039,
+      "status": "open",
+      "failure": "Self-parity: CreateExperiment followed by UpdateFeatureFlag filters.payloads=[] returned 200 and persisted an array, violating the object response contract. Locally fixed with pre-mutation validation and passing replay; PostHog serializer source confirms dictionary rejection. Kept open because live management parity is unverified."
+    },
+    {
       "provider": "junction",
       "seed": 8895623,
       "status": "fixed",
