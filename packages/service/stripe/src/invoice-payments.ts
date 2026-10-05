@@ -81,6 +81,10 @@ export const invoicePaymentHandlers = (services: Services): Record<string, Opera
     const record = filter === undefined ? null : stringOf(filter, "payment_record")
     if (filter !== undefined && type === null)
       throw invalidRequest("Missing required param: payment[type].", "payment[type]")
+    if (type === "payment_record" && intent !== null)
+      throw invalidRequest(
+        "You can only specify payment[payment_record] with payment[type]=payment_record",
+      )
     if (status !== null && !STATUSES.includes(status))
       throw invalidRequest(`Invalid status: must be one of ${STATUSES.join(", ")}`, "status")
 

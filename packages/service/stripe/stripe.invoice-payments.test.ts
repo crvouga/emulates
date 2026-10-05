@@ -65,6 +65,26 @@ const harness = async () => {
 }
 
 describe("invoice.payments (basil)", () => {
+  test("rejects a payment intent filter paired with the payment record type", async () => {
+    const h = await harness()
+    const result = await h.get(
+      "/v1/invoice_payments?created=-1000000&payment[type]=payment_record&payment[payment_intent]=pi_mockingbird_missing",
+      BASIL,
+    )
+    expect(result.status).toBe(400)
+    expect(result.body.error).toMatchObject({
+      type: "invalid_request_error",
+      message: "You can only specify payment[payment_record] with payment[type]=payment_record",
+    })
+    expect((result.body.error as Json).param).toBeUndefined()
+    const valid = await h.get(
+      "/v1/invoice_payments?payment[type]=payment_record&payment[payment_record]=pr_mockingbird_missing",
+      BASIL,
+    )
+    expect(valid.status).toBe(200)
+    expect(valid.body.data).toEqual([])
+  })
+
   test("1. a paid subscription invoice expands to one default invoice payment for its PaymentIntent", async () => {
     const h = await harness()
     const { invoiceId } = await h.subscribe()
