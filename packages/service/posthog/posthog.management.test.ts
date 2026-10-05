@@ -175,6 +175,33 @@ describe("project management (#259, #260)", () => {
     expect(updated.filters.payloads).toEqual({ control: '{"value":1}' })
   })
 
+  test("invalid filter groups cannot mutate an experiment flag (seed 178332261)", async () => {
+    const { client, draft, send } = harness()
+    const experiment = await draft("group-validation", "group-validation")
+    const path = `/api/projects/1/feature_flags/${experiment.feature_flag.id}/`
+    const original = await client.request<Flag>(path)
+    for (const groups of [[null, null, null, null], [false], [[]], ["group"], null, {}, "groups"]) {
+      const response = await send(path, { active: false, filters: { groups } }, "PATCH")
+      expect(response.status).toBe(400)
+      expect(await response.json()).toMatchObject({ type: "validation_error", attr: "filters" })
+      expect(await client.request<Flag>(path)).toEqual(original)
+      const created = await send("/api/projects/1/feature_flags/", {
+        key: "bad-groups",
+        filters: { groups },
+      })
+      expect(created.status).toBe(400)
+    }
+    expect(
+      (
+        await send(
+          path,
+          { filters: { groups: [{ properties: [], rollout_percentage: 100 }] } },
+          "PATCH",
+        )
+      ).status,
+    ).toBe(200)
+  })
+
   test("creating a flag with a non-object payload map fails without storing it", async () => {
     const { client, send } = harness()
     const path = "/api/projects/1/feature_flags/"
