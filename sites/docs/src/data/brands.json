@@ -800,6 +800,20 @@
     "logo": "/brands/twilio.svg",
     "logoSource": "simple-icons"
   },
+  "vanta": {
+    "vendor": "Vanta",
+    "website": "https://www.vanta.com",
+    "docs": "https://developer.vanta.com/reference/manage-vanta/overview",
+    "description": "Compliance evidence and personnel workflows.",
+    "input": {
+      "website": "https://www.vanta.com",
+      "docs": "https://developer.vanta.com/reference/manage-vanta/overview",
+      "description": "Compliance evidence and personnel workflows."
+    },
+    "color": null,
+    "logo": "/brands/vanta.png",
+    "logoSource": "site"
+  },
   "vercel-blob": {
     "vendor": "Vercel Blob",
     "website": "https://vercel.com",
