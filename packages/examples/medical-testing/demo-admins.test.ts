@@ -35,6 +35,20 @@ describe("live demo admins", () => {
     ])
     const tests = await demo.db.query("SELECT * FROM lab_tests ORDER BY 1 LIMIT 50")
     expect(tests.length).toBeGreaterThan(0)
+
+    for (const id of ["junction", "postgres"]) {
+      const admin = demo.admins.find((item) => item.id === id)
+      if (!admin) throw new Error(`Missing ${id} admin`)
+      const response = await admin.fetch(new Request("https://mock.local/__admin/state"))
+      expect(response.status).toBe(200)
+      const state = (await response.json()) as {
+        collections: { name: string; count: number }[]
+      }
+      expect(state.collections.some((collection) => collection.count > 0)).toBe(true)
+      expect(state.collections.reduce((total, collection) => total + collection.count, 0)).toBe(
+        id === "junction" ? 33 : 24,
+      )
+    }
   })
 
   test("Postgres admin browses, changes, and restores the application's live database", async () => {

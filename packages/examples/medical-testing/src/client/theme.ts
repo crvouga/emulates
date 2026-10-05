@@ -386,13 +386,15 @@ ${scopeReset(".cove-app")}
 .cove-app :where(h1, h2, h3, h4) { font-family: var(--cove-font); }
 .cove-shell { flex-direction: row; }
 .cove-sidebar { width: 220px; flex: none; display: flex; flex-direction: column; padding: 24px 14px 14px; border-right: 1px solid var(--cove-border); background: var(--cove-surface); min-height: 0; }
-.cove-wordmark { display: flex; align-items: center; gap: 10px; padding: 0 8px; font: inherit; font-size: 16px; font-weight: 650; background: transparent; border: 0; white-space: nowrap; }
-.cove-logo-box { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--cove-border); border-radius: 7px; font-size: 22px; font-weight: 450; }
+.cove-wordmark { display: inline-flex; align-items: center; min-height: 32px; gap: 10px; padding: 0 8px; font: inherit; font-size: 16px; font-weight: 650; line-height: 1; background: transparent; border: 0; white-space: nowrap; }
+.cove-logo-box { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--cove-border); border-radius: 7px; flex: none; line-height: 0; }
+.cove-logo-box svg { display: block; width: 18px; height: 18px; }
 .cove-workspace-label { padding: 32px 10px 10px; color: var(--cove-muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
 .cove-sidebar .cove-nav-links { flex-direction: column; align-items: stretch; gap: 4px; }
 .cove-sidebar .cove-nav-link { display: flex; gap: 12px; align-items: center; border: 0; background: transparent; font-size: 13px; font-weight: 500; text-align: left; padding: 10px 12px; }
 .cove-sidebar .cove-nav-link.is-active { background: var(--cove-panel); color: var(--cove-ink); font-weight: 650; }
-.cove-nav-link > span { width: 18px; font-size: 18px; text-align: center; }
+.cove-nav-link > span { display: inline-flex; align-items: center; justify-content: center; width: 18px; min-height: 18px; font-size: 18px; line-height: 1; text-align: center; }
+.cove-nav-link > span svg { display: block; width: 16px; height: 16px; }
 .cove-sidebar-bottom { margin-top: auto; padding-top: 32px; }
 .cove-sidebar-bottom > p { padding: 0 10px 16px; font-size: 12px; }
 .cove-sidebar .cove-nav-user { width: 100%; border-radius: 8px; max-width: none; padding: 10px 8px; border-top: 1px solid var(--cove-border); }
@@ -433,6 +435,8 @@ ${scopeReset(".cove-app")}
 .cove-toolbar .cove-field { margin: 0; }
 .cove-toolbar .cove-btn { align-self: flex-end; }
 .cove-alert { margin: 0; }
+.cove-notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; margin-bottom: 20px; }
+.cove-notice .cove-btn { align-self: center; flex: none; }
 .cove-alert strong { display: block; margin-bottom: 6px; }
 .cove-alert p { color: inherit; }
 .cove-segment { display: flex; flex-wrap: wrap; align-self: flex-start; padding: 4px; gap: 4px; border: 1px solid var(--cove-border); border-radius: 7px; background: var(--cove-surface); }

@@ -1,8 +1,10 @@
 /**
  * Embedded browsers (IDE panes, in-app webviews) refuse nested frames.
- * Example apps fetch a provider's real HTML and paste it into the page.
- * `:root` / `html` / `body` are rewritten onto an inner `.page` so the
- * document's own sheet does not restyle the host page.
+ * Example apps fetch a provider's real HTML and paste it into ordinary light
+ * DOM. `:root` / `html` / `body` are rewritten onto an inner `.page`, and all
+ * selectors are scoped to the host, so the document's sheet cannot restyle
+ * the surrounding app. Keeping the elements in light DOM lets browser and IDE
+ * inspection tools select and annotate them normally.
  *
  * Width breakpoints are rewritten onto that `.page` as container queries.
  * A viewport query would still see the browser window, so a desktop-width
@@ -38,8 +40,13 @@ type TrackedListener = {
   options?: boolean | AddEventListenerOptions
 }
 
-/** Scope a full document's CSS so it applies inside the pasted shadow tree. */
-export const scopeEmbeddedCss = (css: string): string => {
+let pasteSequence = 0
+
+/** Scope a full document's CSS so it applies only inside one light-DOM host. */
+export const scopeEmbeddedCss = (
+  css: string,
+  scopeSelector = '[data-mockingbird-paste="test"]',
+): string => {
   let out = ""
   let cursor = 0
   while (cursor < css.length) {
@@ -79,9 +86,9 @@ export const scopeEmbeddedCss = (css: string): string => {
       cursor = brace + 1
       continue
     }
-    const rewritten = rewriteSelectorList(selector)
+    const rewritten = rewriteSelectorList(selector, scopeSelector)
     out += `${head}${rewritten}{`
-    if (isDocumentBox(rewritten)) {
+    if (isDocumentBox(rewritten, scopeSelector)) {
       const end = skipBlock(css, brace)
       out += `${loosenDocumentHeight(css.slice(brace + 1, end - 1))}}`
       cursor = end
@@ -92,7 +99,7 @@ export const scopeEmbeddedCss = (css: string): string => {
   const sized = out.replaceAll("100svh", "100%").replaceAll("100vh", "100%")
   // `.page` is the query container. Its inline size is the host's width, not
   // the min-content of a wide layout, so the rewritten queries stack inside a popup.
-  return `:host{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0}.page{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:100%;container-type:inline-size}${sized}`
+  return `${scopeSelector}{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0}${scopeSelector}>.page{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:100%;container-type:inline-size}${sized}`
 }
 
 /**
@@ -141,20 +148,22 @@ export const pasteHtml = (
     .join("\n")
   for (const style of parsed.querySelectorAll("style")) style.remove()
 
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: "open" })
-  shadow.replaceChildren()
+  const pasteId = `p${++pasteSequence}`
+  const scopeSelector = `[data-mockingbird-paste="${pasteId}"]`
+  host.dataset.mockingbirdPaste = pasteId
+  host.replaceChildren()
   const style = owner.createElement("style")
-  style.textContent = scopeEmbeddedCss(css)
+  style.textContent = scopeEmbeddedCss(css, scopeSelector)
   const page = owner.createElement("div")
   page.className = "page"
-  shadow.append(style, page)
+  host.append(style, page)
   for (const node of [...parsed.body.childNodes]) page.append(owner.adoptNode(node))
 
-  const detach = options.onSubmit ? attachFormInterceptor(shadow, options.onSubmit) : () => {}
+  const detach = options.onSubmit ? attachFormInterceptor(host, options.onSubmit) : () => {}
   // Hosted pages call form.submit() to auto-post (Apple's form_post callback).
   // That navigates the surrounding document. Fire a cancelable submit instead,
   // which the interceptor above keeps in-process.
-  for (const form of shadow.querySelectorAll("form")) {
+  for (const form of host.querySelectorAll("form")) {
     Object.defineProperty(form, "submit", {
       configurable: true,
       value: () => form.requestSubmit(),
@@ -162,7 +171,7 @@ export const pasteHtml = (
   }
 
   const windowListeners: TrackedListener[] = []
-  const shadowListeners: TrackedListener[] = []
+  const hostListeners: TrackedListener[] = []
   if (options.scripts !== false) {
     const scopedWindow = new Proxy(window, {
       get(target, prop) {
@@ -194,7 +203,7 @@ export const pasteHtml = (
         return typeof value === "function" ? value.bind(target) : value
       },
     })
-    const documentProxy = scopedDocument(owner, shadow, page, shadowListeners)
+    const documentProxy = scopedDocument(owner, host, page, hostListeners)
     const fetchImpl: PasteFetch = options.fetch ?? ((input, init) => fetch(input, init))
     const locationStub = options.location ?? window.location
     const historyStub = { replaceState() {} }
@@ -236,13 +245,14 @@ export const pasteHtml = (
 
   return () => {
     // Framework clients unmount their roots before their document is detached.
-    shadow.dispatchEvent(new Event("mockingbird:unmount"))
+    host.dispatchEvent(new Event("mockingbird:unmount"))
     detach()
     for (const item of windowListeners)
       window.removeEventListener(item.type, item.listener, item.options)
-    for (const item of shadowListeners)
-      shadow.removeEventListener(item.type, item.listener, item.options)
-    shadow.replaceChildren()
+    for (const item of hostListeners)
+      host.removeEventListener(item.type, item.listener, item.options)
+    host.replaceChildren()
+    delete host.dataset.mockingbirdPaste
   }
 }
 
@@ -288,16 +298,15 @@ const attachFormInterceptor = (
 
 const scopedDocument = (
   owner: Document,
-  shadow: ShadowRoot,
+  host: HTMLElement,
   page: HTMLElement,
   listeners: TrackedListener[],
 ): Document =>
   new Proxy(owner, {
     get(target, prop) {
-      if (prop === "getElementById") return (id: string) => shadow.getElementById(id)
-      if (prop === "querySelector") return (selector: string) => shadow.querySelector(selector)
-      if (prop === "querySelectorAll")
-        return (selector: string) => shadow.querySelectorAll(selector)
+      if (prop === "getElementById") return (id: string) => host.querySelector(`#${CSS.escape(id)}`)
+      if (prop === "querySelector") return (selector: string) => host.querySelector(selector)
+      if (prop === "querySelectorAll") return (selector: string) => host.querySelectorAll(selector)
       if (prop === "createElement")
         return (tag: string, options?: ElementCreationOptions) =>
           options === undefined ? owner.createElement(tag) : owner.createElement(tag, options)
@@ -311,11 +320,11 @@ const scopedDocument = (
           opts?: boolean | AddEventListenerOptions,
         ) => {
           listeners.push({ type, listener, ...(opts !== undefined ? { options: opts } : {}) })
-          shadow.addEventListener(type, listener, opts)
+          host.addEventListener(type, listener, opts)
         }
       if (prop === "removeEventListener")
         return (type: string, listener: EventListener, opts?: boolean | AddEventListenerOptions) =>
-          shadow.removeEventListener(type, listener, opts)
+          host.removeEventListener(type, listener, opts)
       const value: unknown = Reflect.get(target, prop, target)
       return typeof value === "function" ? value.bind(target) : value
     },
@@ -325,10 +334,10 @@ const scopedDocument = (
 const stripComments = (value: string): string => value.replace(/\/\*[\s\S]*?\*\//g, "")
 
 /** True when every selector is the pasted document box (rewritten html/body/:root). */
-const isDocumentBox = (selector: string): boolean =>
-  stripComments(selector)
-    .split(",")
-    .every((part) => part.trim() === ".page")
+const isDocumentBox = (selector: string, scopeSelector: string): boolean =>
+  splitSelectorList(stripComments(selector)).every(
+    (part) => part.trim() === `${scopeSelector}>.page`,
+  )
 
 /**
  * A pasted document has no canvas. `height: 100%` on the document box paints
@@ -338,12 +347,65 @@ const isDocumentBox = (selector: string): boolean =>
 const loosenDocumentHeight = (declarations: string): string =>
   declarations.replace(/(^|;)\s*height(\s*:\s*100%)/g, "$1min-height$2")
 
-const rewriteSelectorList = (selector: string): string => {
+const rewriteSelectorList = (selector: string, scopeSelector: string): string => {
   if (selector.trim() === "") return selector
-  return selector
-    .split(",")
-    .map((part) => part.replace(/:root\b|(?<![.\w-])(?:html|body)\b/g, ".page"))
+  return splitSelectorList(selector)
+    .map((part) => {
+      const leading = part.match(/^(?:\s|\/\*[\s\S]*?\*\/)+/)?.[0] ?? ""
+      const value = replaceDocumentSelectors(part.slice(leading.length)).trimStart()
+      const documentRoot = value.startsWith(".page")
+      return `${leading}${scopeSelector}>.page${documentRoot ? value.slice(".page".length) : ` ${value}`}`
+    })
     .join(",")
+}
+
+/** Rewrite document selectors without changing words inside CSS comments. */
+const replaceDocumentSelectors = (selector: string): string =>
+  selector
+    .split(/(\/\*[\s\S]*?\*\/)/)
+    .map((part, index) =>
+      index % 2 === 0 ? part.replace(/:root\b|(?<![.\w-])(?:html|body)\b/g, ".page") : part,
+    )
+    .join("")
+
+/** Split only top-level commas; functional selectors can contain their own lists. */
+const splitSelectorList = (selector: string): string[] => {
+  const parts: string[] = []
+  let start = 0
+  let round = 0
+  let square = 0
+  let quote = ""
+  let comment = false
+  for (let index = 0; index < selector.length; index++) {
+    const char = selector[index] ?? ""
+    const next = selector[index + 1] ?? ""
+    if (comment) {
+      if (char === "*" && next === "/") {
+        comment = false
+        index++
+      }
+      continue
+    }
+    if (quote) {
+      if (char === "\\") index++
+      else if (char === quote) quote = ""
+      continue
+    }
+    if (char === "/" && next === "*") {
+      comment = true
+      index++
+    } else if (char === '"' || char === "'") quote = char
+    else if (char === "(") round++
+    else if (char === ")") round = Math.max(0, round - 1)
+    else if (char === "[") square++
+    else if (char === "]") square = Math.max(0, square - 1)
+    else if (char === "," && round === 0 && square === 0) {
+      parts.push(selector.slice(start, index))
+      start = index + 1
+    }
+  }
+  parts.push(selector.slice(start))
+  return parts
 }
 
 const skipBlock = (css: string, openBrace: number): number => {
