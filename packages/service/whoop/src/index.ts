@@ -190,7 +190,7 @@ export class WhoopAPI implements FetchAPI {
       }
       userId = code.userId
       scopes = code.scopes
-      if (!this.codes.has(code.code))
+      if (!this.codes.has(code.code) || code.expiresAt <= this.now())
         return oauthError("invalid_grant", "Authorization code already used.")
       this.codes.delete(code.code)
     } else return oauthError("unsupported_grant_type", "Unsupported grant_type.")

@@ -37,7 +37,6 @@ export const refresh = (
   fetcher(
     new Request(`${base}/oauth/oauth2/token`, {
       method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
