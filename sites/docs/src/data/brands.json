@@ -13,11 +13,25 @@
     "logo": "/brands/aha.png",
     "logoSource": "site"
   },
+  "airtable": {
+    "vendor": "Airtable",
+    "website": "https://airtable.com",
+    "docs": "https://airtable.com/developers/web/api/introduction",
+    "description": "Airtable collaborative database API.",
+    "input": {
+      "website": "https://airtable.com",
+      "docs": "https://airtable.com/developers/web/api/introduction",
+      "description": "Airtable collaborative database API."
+    },
+    "color": "#18BFFF",
+    "logo": "/brands/airtable.svg",
+    "logoSource": "simple-icons"
+  },
   "app-store-connect": {
     "vendor": "App Store Connect",
     "website": "https://developer.apple.com/app-store-connect/",
     "docs": "https://developer.apple.com/documentation/appstoreconnectapi",
-    "description": "Easily upload, submit, and manage your apps on the App Store with App Store Connect on the web or on iOS. This suite of tools also lets you view sales reports, access app analytics, invite users to test your apps with…",
+    "description": "Easily upload, submit, and manage your apps on the App Store with App Store Connect on the web or on iOS. This suite of tools also lets you view sales reports, access app analytics, invite users to test your apps with\u2026",
     "input": {
       "website": "https://developer.apple.com/app-store-connect/",
       "docs": "https://developer.apple.com/documentation/appstoreconnectapi"
@@ -161,7 +175,7 @@
     "vendor": "Firebase Cloud Messaging",
     "website": "https://firebase.google.com",
     "docs": "https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send",
-    "description": "Discover Firebase, Google’s mobile and web app development platform that helps developers build apps and games that users will love.",
+    "description": "Discover Firebase, Google\u2019s mobile and web app development platform that helps developers build apps and games that users will love.",
     "input": {
       "website": "https://firebase.google.com",
       "docs": "https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send",
@@ -323,7 +337,7 @@
     "vendor": "Junction",
     "website": "https://www.junction.com",
     "docs": "https://docs.junction.com",
-    "description": "Junction provides seamless lab testing and wearable device data in a single integration to help healthcare providers scale personalized, predictive care. One API, nationwide lab networks, and built-in operational…",
+    "description": "Junction provides seamless lab testing and wearable device data in a single integration to help healthcare providers scale personalized, predictive care. One API, nationwide lab networks, and built-in operational\u2026",
     "input": {
       "website": "https://www.junction.com",
       "docs": "https://docs.junction.com"
@@ -445,7 +459,7 @@
     "vendor": "OptimalDX",
     "website": "https://www.optimaldx.com",
     "docs": null,
-    "description": "Use Optimal DX’s blood chemistry analysis software to identify dysfunction, track change and guide your patients to optimal health.",
+    "description": "Use Optimal DX\u2019s blood chemistry analysis software to identify dysfunction, track change and guide your patients to optimal health.",
     "input": {
       "website": "https://www.optimaldx.com",
       "name": "OptimalDX"
@@ -631,7 +645,7 @@
     "vendor": "Amazon S3",
     "website": "https://aws.amazon.com/s3/",
     "docs": "https://docs.aws.amazon.com/AmazonS3/latest/API/",
-    "description": "Amazon S3 is cloud object storage with industry-leading scalability, data availability, security, and performance. S3 is ideal for data lakes, mobile applications, backup and restore, archival, IoT devices, ML, AI, and…",
+    "description": "Amazon S3 is cloud object storage with industry-leading scalability, data availability, security, and performance. S3 is ideal for data lakes, mobile applications, backup and restore, archival, IoT devices, ML, AI, and\u2026",
     "input": {
       "website": "https://aws.amazon.com/s3/",
       "docs": "https://docs.aws.amazon.com/AmazonS3/latest/API/"
@@ -659,7 +673,7 @@
     "vendor": "Slack",
     "website": "https://slack.com",
     "docs": "https://docs.slack.dev/reference/methods",
-    "description": "Boost productivity and save time with Slack — the AI work platform for managing projects, automating workflows, and connecting teams securely. Start working smarter today.",
+    "description": "Boost productivity and save time with Slack \u2014 the AI work platform for managing projects, automating workflows, and connecting teams securely. Start working smarter today.",
     "input": {
       "website": "https://slack.com",
       "docs": "https://docs.slack.dev/reference/methods"

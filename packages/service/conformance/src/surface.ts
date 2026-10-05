@@ -1,5 +1,6 @@
 import type { MockCreateOptions, MockSurface } from "@crvouga/mockingbird-service"
 import type { createRuntime as createAha } from "@crvouga/mockingbird-service-aha"
+import type { createRuntime as createAirtable } from "@crvouga/mockingbird-service-airtable"
 import type { createRuntime as createAppStoreConnect } from "@crvouga/mockingbird-service-app-store-connect"
 import type { createRuntime as createAwsSecrets } from "@crvouga/mockingbird-service-aws-secrets"
 import type { createRuntime as createAwsSpeech } from "@crvouga/mockingbird-service-aws-speech"
@@ -121,4 +122,5 @@ export type SurfaceProof = [
   Assert<typeof createVpi>,
   Assert<typeof createWholescripts>,
   Assert<typeof createAppStoreConnect>,
+  Assert<typeof createAirtable>,
 ]
