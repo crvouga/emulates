@@ -135,6 +135,7 @@ export type ParityReport = {
 type WalkModel = { table: ResourceTable }
 type WalkReal = ExecutionContext & {
   history: string[]
+  firstCommand?: LogicalCommand
 }
 
 class Step implements fc.AsyncCommand<WalkModel, WalkReal> {
@@ -143,6 +144,7 @@ class Step implements fc.AsyncCommand<WalkModel, WalkReal> {
     return isEligible(this.command, (type) => model.table.count(type))
   }
   async run(_model: WalkModel, context: WalkReal) {
+    context.firstCommand ??= this.command
     await executeCommand(context, this.command)
     const deletionTypes = context.deletionTypes?.[this.command.operationId] ?? []
     if (deletionTypes.length > 0) {
@@ -297,7 +299,7 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
     const scope: Scope = { runId, walkStartUnix: Math.floor(now() / 1000) - clockSkewSeconds }
     const mock = await options.mock.create()
     await options.webhooks?.beforeWalk?.(scope)
-    const context: ExecutionContext = {
+    const context: WalkReal = {
       provider: options.provider,
       document: options.spec,
       plans: planById,
@@ -338,8 +340,13 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
 
     let webhookFailure: ParityError | undefined
     let webhookEvents: WalkWebhookEvents | undefined
-    const firstStep = [...steps][0]
-    const firstCommand = firstStep instanceof Step ? firstStep.command : ({} as LogicalCommand)
+    const firstCommand: LogicalCommand = context.firstCommand ?? {
+      operationId: "webhooks",
+      parameters: {},
+      body: undefined,
+      mediaType: undefined,
+      invalid: undefined,
+    }
     // A request mismatch takes precedence: the mock may have emitted an event for a request
     // Stripe rejected, and comparing that event would hide the original API divergence.
     if (options.webhooks && walkError === undefined) {

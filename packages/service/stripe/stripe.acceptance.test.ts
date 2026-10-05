@@ -842,10 +842,16 @@ describe("S1.9 hosted Checkout page and Stripe.js", () => {
     })
     expect(await stripe.createToken(cardElement)).toEqual({
       error: {
-        type: "card_error",
-        code: "incorrect_number",
-        message: "Your card number is incorrect.",
+        type: "validation_error",
+        code: "invalid_number",
+        message: "Your card number is invalid.",
       },
+    })
+    paymentElement.card = () => ({
+      number: "4242424242424242",
+      exp_month: 9,
+      exp_year: 2035,
+      cvc: "123",
     })
     const result = await stripe.confirmPayment({
       elements,

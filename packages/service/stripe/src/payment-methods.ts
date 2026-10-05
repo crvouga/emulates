@@ -1,5 +1,5 @@
 import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
-import { parameterMissing, resourceMissing, stateError } from "./errors.js"
+import { parameterInvalidEmpty, parameterMissing, resourceMissing, stateError } from "./errors.js"
 import {
   mergeRecordMetadata,
   recordOf,
@@ -36,6 +36,7 @@ export const paymentMethodHandlers = (services: Services): Record<string, Operat
       render: renderPaymentMethod,
     })
     const account = stringOf(params, "customer_account")
+    if (context.query.customer_account === "") throw parameterInvalidEmpty("customer_account")
     if (account !== null && account !== "")
       throw resourceMissing("customer", account, "customer_account", 400)
     return jsonResponse(200, page)

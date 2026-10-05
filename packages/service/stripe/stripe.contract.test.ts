@@ -245,6 +245,17 @@ describe("service contract", () => {
     expect(await account.json()).toMatchObject({ error: { param: "customer_account" } })
   })
 
+  test("listing payment methods refuses an empty customer_account after pagination", async () => {
+    const { call } = harness()
+    const response = await call("/v1/payment_methods?customer_account=", {
+      headers: { authorization: `Bearer ${KEY}` },
+    })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({
+      error: { code: "parameter_invalid_empty", param: "customer_account" },
+    })
+  })
+
   test("listing invoice items names a missing cursor an invoice item", async () => {
     const { call } = harness()
     const response = await call("/v1/invoiceitems?ending_before=ii_missing", {

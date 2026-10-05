@@ -1,4 +1,3 @@
-import { join } from "node:path"
 import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
 import { parity } from "@crvouga/mockingbird-parity"
 import { document, StripeAPI } from "../src/index.js"
