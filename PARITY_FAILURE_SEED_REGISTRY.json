@@ -75,6 +75,12 @@
     },
     {
       "provider": "stripe",
+      "seed": 158606283,
+      "status": "open",
+      "failure": "GetPaymentMethods customer_account empty string: real=400 parameter_invalid_empty, mock=200 empty list; Actions run 37247323827"
+    },
+    {
+      "provider": "stripe",
       "seed": 0,
       "status": "fixed",
       "failure": "no seed (found by probing): every anyOf(object|\"\") and anyOf(array|\"\") body field answered a scalar with 'Invalid <field>: must be one of ' instead of 'Invalid object' / 'Invalid array'; the shared form parser picked the enum-[\"\"] branch"
