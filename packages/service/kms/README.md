@@ -1,6 +1,10 @@
 # @crvouga/mockingbird-service-kms
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Stateful local mock of Amazon Key Management Service. ESM; Node 22+ or Bun 1.2+.
+
+## Usage
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-kms/server"
@@ -19,5 +23,18 @@ production quotas, billing, IAM enforcement, or provider consoles. Service-speci
 oracle evidence are recorded in [the AWS coverage ledger](../../../docs/AWS_COVERAGE.md).
 
 Run `bun run parity` with LocalStack on `http://127.0.0.1:4566`; an unavailable oracle fails the run.
-Current evidence uses legacy Community 4.14.0; the current free Hobby plan is separately identified
-by [LocalStack's plan table](https://docs.localstack.cloud/aws/licensing/).
+No LocalStack run is recorded for this integration. The parity command is a bounded read-only SDK envelope probe, not proof of full vendor equivalence.
+
+## Install
+
+```sh
+bun add @crvouga/mockingbird-service-kms
+```
+
+## API
+
+- `KmsAPI(options?)`: low-level AWS transport instance with `fetch` and `reset`.
+
+- `createRuntime(options?)`: in-process Fetch API and shared state controls.
+- `createServer(options?)` from the `/server` entry: HTTP listener with `url`, `runtime`, and `close()`.
+- `document`, `operationIds`, and `supportedOperationIds`: generated transport contract metadata.

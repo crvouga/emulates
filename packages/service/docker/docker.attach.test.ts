@@ -113,8 +113,12 @@ test("attach uses shared namespace, branch, faults and read-only history", async
       { status: 101, ids: { containerId: id } },
     ])
     expect(
-      (await exchange(server, request(`/ns/other/v1.52/containers/${id}/attach?stream=1&stdout=1`)))
-        .header,
+      (
+        await exchange(
+          server,
+          request(`/__admin/ns/other/v1.52/containers/${id}/attach?stream=1&stdout=1`),
+        )
+      ).header,
     ).toContain("404")
     server.runtime.faults.add({
       id: "attach-fail",

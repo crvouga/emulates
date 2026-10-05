@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-hermes
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Work-in-progress mock for the Hermes Agent public peer-run API pinned to
 `v2026.8.31`. Submission, polling and stop work with explicit synthetic lifecycle observations.
 Events, approval and steer remain unsupported. No agent or inference runs.
@@ -18,7 +20,7 @@ bun add @crvouga/mockingbird-service-hermes
 import { createRuntime } from "@crvouga/mockingbird-service-hermes"
 
 const hermes = createRuntime({ seed: 42 })
-const response = await hermes.fetch(new Request("http://hermes.mock/health"))
+const response = await hermes.fetch(new Request("http://hermes.mock/__admin/health"))
 console.log(await response.json())
 ```
 
@@ -34,7 +36,7 @@ import { createServer } from "@crvouga/mockingbird-service-hermes/server"
 
 const server = await createServer() // ephemeral loopback port
 try {
-  console.log(await (await fetch(`${server.url}/health`)).json())
+  console.log(await (await fetch(`${server.url}/__admin/health`)).json())
 } finally {
   await server.close()
 }
@@ -53,8 +55,8 @@ return a mock-only 501 envelope with `error.type` of
 Missing runs use the pinned `run_not_found` 404 envelope. Unknown paths return
 404. Mock-only errors do not claim real Hermes rejection behavior.
 
-- `GET /health` identifies the `hermes` runtime.
-- Select isolated namespaces with `x-mockingbird-namespace` or `/ns/<name>/…`.
+- `GET /__admin/health` identifies the `hermes` runtime.
+- Select isolated namespaces with `x-mockingbird-namespace` or `/__admin/ns/<name>/…`.
 - `POST /__admin/reset` clears selected provider state and Timeline. Shared clock,
   faults and diagnostic journal retain their standard independent lifetimes.
 - `POST /__admin/clock` controls the shared clock.

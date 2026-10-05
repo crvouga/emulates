@@ -71,7 +71,7 @@ test("submission preserves session and model without using them as run identity"
     model: body.model,
   })
   const response = await runtime.fetch(
-    new Request("http://hermes.mock/ns/a/v1/runs", {
+    new Request("http://hermes.mock/__admin/ns/a/v1/runs", {
       method: "POST",
       headers: { "X-Hermes-Session-Key": "synthetic-memory", "content-type": "text/plain" },
       body: JSON.stringify({ input: "synthetic input" }),
@@ -108,7 +108,7 @@ test("known validation errors use the pinned envelope and do not admit a run", a
     })
   }
   const malformed = await runtime.fetch(
-    new Request("http://hermes.mock/ns/a/v1/runs", { method: "POST", body: "{" }),
+    new Request("http://hermes.mock/__admin/ns/a/v1/runs", { method: "POST", body: "{" }),
   )
   expect(malformed.status).toBe(400)
   expect(await malformed.json()).toEqual({

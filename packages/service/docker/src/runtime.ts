@@ -112,7 +112,7 @@ export const createRuntime = (options: DockerRuntimeOptions = {}): DockerRuntime
     fetch: (request: Request) => {
       if (closed) return Promise.reject(new TypeError("Docker runtime is closed"))
       const url = new URL(request.url)
-      const match = /^(\/ns\/[^/]+)?\/v1\.52(\/.*)$/.exec(url.pathname)
+      const match = /^(\/__admin\/ns\/[^/]+)?\/v1\.52(\/.*)$/.exec(url.pathname)
       // Normalize provider aliases before shared operation matching (faults and journal).
       // Administrative endpoints retain their existing, unversioned routing.
       if (match?.[2] && /^(?:\/(?:_ping|version|info)$|\/containers(?:\/|$))/.test(match[2])) {

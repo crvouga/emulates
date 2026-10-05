@@ -156,5 +156,5 @@ export class EventBridgeAPI {
 }
 
 export { EventbridgeAPI } from "./aws.js"
-export { createRuntime as createAwsRuntime } from "./aws-runtime.js"
 export type { Runtime as AwsRuntime, RuntimeOptions as AwsRuntimeOptions } from "./aws-runtime.js"
+export { createRuntime as createAwsRuntime } from "./aws-runtime.js"

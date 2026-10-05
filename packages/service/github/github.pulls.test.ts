@@ -172,10 +172,12 @@ test("list filters precede pagination and links retain filters and namespace pat
   const filtered = await request(`${root}/pulls?head=SYNTHETIC-ORG:topic-2&base=main`)
   expect((await filtered.json()).map((pr: { number: number }) => pr.number)).toEqual([3])
   expect(filtered.headers.get("link")).toBeNull()
-  const scoped = await runtime.fetch(new Request(`http://github.mock/ns/a${root}/pulls?per_page=1`))
+  const scoped = await runtime.fetch(
+    new Request(`http://github.mock/__admin/ns/a${root}/pulls?per_page=1`),
+  )
   const scopedNext = /<([^>]+)>; rel="next"/.exec(scoped.headers.get("link") ?? "")?.[1]
   if (!scopedNext) throw new Error("Missing namespace next link")
-  expect(new URL(scopedNext).pathname).toStartWith("/ns/a/")
+  expect(new URL(scopedNext).pathname).toStartWith("/__admin/ns/a/")
   expect((await runtime.fetch(new Request(scopedNext))).status).toBe(200)
 })
 

@@ -51,7 +51,7 @@
       "cli": "node"
     },
     "layer": "service",
-    "category": "security",
+    "category": "identity",
     "displayName": "Amazon Key Management Service",
     "vendor": {
       "website": "https://aws.amazon.com/",
@@ -92,6 +92,28 @@
         "UntagResource",
         "ListResourceTags"
       ]
+    },
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "contract": "openapi.yaml",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Live vendor API or sandbox",
+        "command": "bun run parity:service -- kms",
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+      },
+      "introspection": [
+        "GET /__admin/health",
+        "GET /__admin",
+        "GET /__admin/state",
+        "GET /__admin/requests",
+        "GET /__admin/metrics",
+        "GET /__admin/faults/presets",
+        "GET /__admin/ui"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {

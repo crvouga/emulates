@@ -8,7 +8,7 @@ const fixture = { owner: "synthetic-org", name: "example" }
 test("HTTP server exposes repository observations and shared health", async () => {
   const server = await createServer()
   try {
-    expect((await fetch(`${server.url}/health`)).status).toBe(200)
+    expect((await fetch(`${server.url}/__admin/health`)).status).toBe(200)
     expect(
       (
         await fetch(`${server.url}/__admin/github/repositories`, {

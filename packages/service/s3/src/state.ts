@@ -17,7 +17,16 @@ export type S3Object = {
   checksums?: Record<string, string>
   metadata: Record<string, string>
 }
-export type MultipartUpload = { id: string; bucket: string; key: string; initiated: number; metadata?: Record<string, string>; contentType?: string; cacheControl?: string; contentDisposition?: string }
+export type MultipartUpload = {
+  id: string
+  bucket: string
+  key: string
+  initiated: number
+  metadata?: Record<string, string>
+  contentType?: string
+  cacheControl?: string
+  contentDisposition?: string
+}
 export type MultipartPart = { uploadId: string; partNumber: number; bytes: number[]; etag: string }
 export type S3SeedObject = Omit<S3Object, "etag" | "lastModified" | "bytes"> & {
   body: Uint8Array | string

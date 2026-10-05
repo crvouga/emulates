@@ -235,7 +235,11 @@ export const createService = (options: ServiceOptions): Service => {
       const short = await options.before?.(context)
       return withIssues(request, short ?? (await handler(context)))
     }
-    app.on(operation.method.toUpperCase(), metadata.path ? path.routes : registeredRoute.path, route)
+    app.on(
+      operation.method.toUpperCase(),
+      metadata.path ? path.routes : [registeredRoute.path],
+      route,
+    )
   }
 
   return {

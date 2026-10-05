@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-github
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 WIP GitHub REST mock targeting `X-GitHub-Api-Version: 2026-03-10`.
 Repository observations, commit-backed references, and same-repository pull-request
 create/get/list/update are implemented. Unsupported features return mock-only 501.
@@ -74,7 +76,7 @@ already exist in the synthetic commit graph; this is not a Git push.
 
 `createRuntime` adds health, namespaces, clock, scoped faults, redacted request
 journal and shared Timeline. Select a namespace with `x-mockingbird-namespace`
-or `/ns/<name>/...` consistently on seed and provider requests. Reset removes
+or `/__admin/ns/<name>/...` consistently on seed and provider requests. Reset removes
 repository, owner, ancestry and branch state in that namespace; diagnostic history
 and fault settings retain their shared runtime lifetimes. Checkpoints restore
 all stored provider state through the shared Timeline.

@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
-import type { OpenAPIDocument } from "@crvouga/mockingbird-openapi"
+import { listOperations, type OpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import { bootSqlite, createService } from "./src/index.js"
+import { operationPath } from "./src/path.js"
 
 test("OpenAPI embedded parameters preserve literal action and filename suffixes and decode IDs once", async () => {
   const paths: NonNullable<OpenAPIDocument["paths"]> = {}
@@ -20,6 +21,19 @@ test("OpenAPI embedded parameters preserve literal action and filename suffixes 
     paths[path] = { post: { operationId: id, responses: { "200": { description: "ok" } } } }
     handlers[id] = (c) => Response.json({ operation: id, ...c.params })
   }
+  const matchers = listOperations(document).map((operation) => ({
+    id: operation.operationId,
+    pattern: operationPath(operation).pattern,
+  }))
+  expect(
+    matchers
+      .filter(({ pattern }) => pattern.test("/properties/123:batchRunReports"))
+      .map(({ id }) => id),
+  ).toEqual(["batch"])
+  expect(
+    matchers.filter(({ pattern }) => pattern.test("/pairs/prefix-a-b:read")).map(({ id }) => id),
+  ).toEqual(["pair"])
+  expect(matchers.some(({ pattern }) => pattern.test("/files/name.xml"))).toBe(false)
   const service = createService({
     document,
     handlers,

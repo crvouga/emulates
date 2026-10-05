@@ -218,7 +218,7 @@ execution remains necessary to establish observed fidelity.
 
 Excluded modes: TTY/PTY, websocket attach, non-upgrade attach, log replay
 (`logs=true`), exec, standalone logs/events, detach-key processing, image
-pull/build, real networking/volumes/health checks and arbitrary command execution.
+pull/build, real networking/volumes/__admin/health checks and arbitrary command execution.
 Unsupported modes receive explicit mock-only 501 errors before upgrade rather
 than silently different successful behavior. Reset/checkout/shutdown terminate
 owned streams and waiters; handles are never serialized into Timeline state.

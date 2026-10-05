@@ -1,10 +1,19 @@
-import { AwsProtocolAPI, type AwsProtocolOptions } from "@crvouga/mockingbird-service"
+import {
+  type AwsOperation,
+  AwsProtocolAPI,
+  type AwsProtocolOptions,
+} from "@crvouga/mockingbird-service"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
-export { document, operationIds, supportedOperationIds }
+
+export type { Runtime, RuntimeOptions } from "./runtime.js"
 export { createRuntime } from "./runtime.js"
-export type { RuntimeOptions, Runtime } from "./runtime.js"
+export { document, operationIds, supportedOperationIds }
 export type APIOptions = AwsProtocolOptions
 export class S3ControlAPI extends AwsProtocolAPI {
-  constructor(options: APIOptions = {}) { super("s3-control", options) }
-  dispatch(): unknown { return this.unsupported("pending") }
+  constructor(options: APIOptions = {}) {
+    super("s3-control", options)
+  }
+  dispatch({ operation }: AwsOperation): unknown {
+    return this.unsupported(operation)
+  }
 }

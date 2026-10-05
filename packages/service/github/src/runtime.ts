@@ -11,7 +11,14 @@ import { validRef } from "./refs.js"
 import { RefError, record, SeedError } from "./state.js"
 export type GitHubRuntimeOptions = Pick<
   RuntimeOptions<GitHubAPI>,
-  "sqlite" | "clock" | "seed" | "adminKey" | "onLog" | "journalSize" | "maxCheckpoints"
+  | "sqlite"
+  | "clock"
+  | "seed"
+  | "adminPrefix"
+  | "adminKey"
+  | "onLog"
+  | "journalSize"
+  | "maxCheckpoints"
 >
 export type GitHubRuntime = ServiceRuntime<GitHubAPI>
 export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime => {
@@ -82,7 +89,10 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
     const links = response.headers.get("link")
     if (!links) return response
     const source = new URL(request.url)
-    const prefix = /^\/ns\/([^/]+)(?:\/|$)/.exec(source.pathname)
+    const adminPrefix = options.adminPrefix ?? "/__admin"
+    const prefix = source.pathname.startsWith(`${adminPrefix}/ns/`)
+      ? /^([^/]+)(?:\/|$)/.exec(source.pathname.slice(`${adminPrefix}/ns/`.length))
+      : null
     const namespace =
       request.headers.get("x-mockingbird-namespace") ??
       (prefix?.[1] ? decodeURIComponent(prefix[1]) : undefined)
@@ -93,7 +103,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
         const target = new URL(href, source)
         if (target.origin !== source.origin || !target.pathname.startsWith("/repos/"))
           return original
-        target.pathname = `/ns/${encodeURIComponent(namespace)}${target.pathname}`
+        target.pathname = `${adminPrefix}/ns/${encodeURIComponent(namespace)}${target.pathname}`
         return `<${target.href}>`
       }),
     )

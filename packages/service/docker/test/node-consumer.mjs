@@ -16,7 +16,7 @@ const until = async (predicate) => {
 }
 
 for (const transport of ["tcp", "unix"]) {
-  const dir = resolve(import.meta.dirname, "../../../../.mockingbird/docker-sockets")
+  const dir = "/tmp/mockingbird-docker-sockets"
   await mkdir(dir, { recursive: true })
   const socketPath = `${dir}/${crypto.randomUUID().slice(0, 8)}.sock`
   const server = await createServer({

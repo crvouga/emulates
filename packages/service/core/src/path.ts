@@ -14,7 +14,12 @@ export const operationPath = (operation: Operation) => {
     throw new Error(`Invalid path metadata for ${operation.operationId}`)
   const segments = operation.path.split("/")
   const ordinary = (segment: string) =>
-    segment.startsWith("{") ? "[^/]+" : segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    segment
+      .split(/(\{[^}]+\})/)
+      .map((part) =>
+        /^\{[^}]+\}$/.test(part) ? "[^/]+?" : part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      )
+      .join("")
   const hono = operation.path.replace(/\{([^}]+)\}/g, (_, name: string) =>
     name === tail?.parameter ? `:${name}{.+}` : `:${name}`,
   )

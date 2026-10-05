@@ -360,9 +360,8 @@ export const createRuntime = (options: ResendRuntimeOptions = {}): ResendRuntime
       ...(event.emailId ? { ids: { emailId: event.emailId } } : {}),
       outcome: event.outcome,
     }
-    // The runtime never sees the dropped response, so the lost attempt is counted here.
-    // A replay is counted again when the runtime logs the 200 that actually went out.
-    if (event.outcome === "lost") runtime.metrics.record(entry)
+    // Preserve provider outcome detail in the journal. The shared runtime counts
+    // dropped attempts and successful replays once each in request metrics.
     runtime.journal.record({ ...entry, at: new Date(runtime.clock.now()).toISOString() })
     options.onLog?.(entry)
   }

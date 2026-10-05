@@ -61,7 +61,7 @@ test("missing repositories and unsupported routes are explicit; namespace reset 
   expect(missing.status).toBe(404)
   expect(await missing.json()).toMatchObject({ message: "Not Found", status: "404" })
   const path = await runtime.fetch(
-    new Request("http://github.mock/ns/a/repos/synthetic-org/example"),
+    new Request("http://github.mock/__admin/ns/a/repos/synthetic-org/example"),
   )
   expect(path.status).toBe(200)
   expect((await request(runtime, "/repos/synthetic-org/example/pulls")).status).toBe(200)
@@ -141,7 +141,7 @@ test("owner identity is shared and version limitations remain explicit", async (
   )
   expect(unsupported.status).toBe(501)
   expect(await unsupported.json()).toMatchObject({ code: "mockingbird_unsupported" })
-  const health = await request(runtime, "/health")
+  const health = await request(runtime, "/__admin/health")
   expect(health.status).toBe(200)
   expect(await health.json()).toMatchObject({ service: "github" })
 })

@@ -108,7 +108,7 @@ try {
       const url = new URL(next)
       assert.equal(url.origin, server.url)
       assert.equal(url.searchParams.get("base"), "main")
-      assert.match(url.pathname, /^\/ns\/consumer\//)
+      assert.match(url.pathname, /^\/__admin\/ns\/consumer\//)
       path = url.pathname + url.search
     } else path = undefined
   }

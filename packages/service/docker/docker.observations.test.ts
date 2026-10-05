@@ -133,7 +133,7 @@ test("seed is atomic and daemon availability does not change stored execution st
   }
   expect((await call(runtime, "/__admin/docker/daemon", { available: false })).status).toBe(200)
   await expect(call(runtime, "/_ping")).rejects.toThrow()
-  expect((await call(runtime, "/health")).status).toBe(200)
+  expect((await call(runtime, "/__admin/health")).status).toBe(200)
   await call(runtime, "/__admin/docker/daemon", { available: true })
   expect(await (await call(runtime, "/containers/worker/json")).json()).toMatchObject({
     State: { Running: true },
@@ -221,7 +221,9 @@ test("versioned namespaced requests retain fault matching and isolated reset", a
     ).status,
   ).toBe(201)
   await call(runtime, "/__admin/faults", { operationId: "SystemInfo", status: 500, count: 1 })
-  expect((await runtime.fetch(new Request("http://docker.local/ns/a/v1.52/info"))).status).toBe(500)
+  expect(
+    (await runtime.fetch(new Request("http://docker.local/__admin/ns/a/v1.52/info"))).status,
+  ).toBe(500)
   expect((await call(runtime, "/v1.52/info", undefined, "b")).status).toBe(200)
   await call(runtime, "/__admin/reset", {})
   expect(await (await call(runtime, "/info")).json()).toMatchObject({

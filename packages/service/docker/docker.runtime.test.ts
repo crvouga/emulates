@@ -20,7 +20,7 @@ const records = (runtime: DockerRuntime, namespace: string) => {
 
 test("health, namespace carriers, scoped faults and reset use the shared runtime", async () => {
   const runtime = createRuntime()
-  const health = await request(runtime, "/health")
+  const health = await request(runtime, "/__admin/health")
   expect(health.status).toBe(200)
   expect(await health.json()).toMatchObject({ service: "docker" })
   records(runtime, "a").insert("same", { value: "a" })
@@ -32,7 +32,7 @@ test("health, namespace carriers, scoped faults and reset use the shared runtime
   })
   expect(fault.status).toBe(201)
   expect((await request(runtime, "/_ping")).status).toBe(503)
-  const other = await runtime.fetch(new Request("http://docker.local/ns/b/_ping"))
+  const other = await runtime.fetch(new Request("http://docker.local/__admin/ns/b/_ping"))
   expect(other.status).toBe(200)
   expect(other.headers.get("x-mockingbird")).toContain("ns=b")
   expect(runtime.journal.list({ namespace: "a" })).toHaveLength(1)
@@ -40,11 +40,11 @@ test("health, namespace carriers, scoped faults and reset use the shared runtime
   expect((await request(runtime, "/__admin/reset", "a", {})).status).toBe(200)
   expect(records(runtime, "a").get("same")).toBeUndefined()
   expect(records(runtime, "b").get("same")).toEqual({ value: "b" })
-  // Shared reset preserves diagnostic history; DELETE /__admin/requests clears it.
-  expect(runtime.journal.list({ namespace: "a" })).toHaveLength(1)
+  // Shared reset clears this namespace diagnostics and preserves other namespaces.
+  expect(runtime.journal.list({ namespace: "a" })).toHaveLength(0)
   expect(runtime.journal.list({ namespace: "b" })).toHaveLength(1)
-  // Reset clears service state and Timeline, but intentionally retains fault configuration.
-  expect((await request(runtime, "/_ping")).status).toBe(503)
+  // Reset also clears this namespace fault configuration.
+  expect((await request(runtime, "/_ping")).status).toBe(200)
   const cleared = await runtime.fetch(
     new Request("http://docker.local/__admin/faults", { method: "DELETE" }),
   )
@@ -113,7 +113,7 @@ test("Node HTTP entry point serves ping and shared controls", async () => {
   try {
     expect(await (await fetch(`${server.url}/_ping`)).text()).toBe("OK")
     expect((await fetch(`${server.url}/_ping`, { method: "HEAD" })).status).toBe(200)
-    expect((await fetch(`${server.url}/health`)).status).toBe(200)
+    expect((await fetch(`${server.url}/__admin/health`)).status).toBe(200)
     const unsupported = await fetch(`${server.url}/containers/example/attach`, { method: "POST" })
     expect(unsupported.status).toBe(501)
   } finally {

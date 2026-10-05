@@ -1,5 +1,7 @@
 # @crvouga/mockingbird-service-docker
 
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+
 Work-in-progress Docker Engine API 1.52 mock. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
 Mockingbird's shared runtime controls. POST `/containers/create` persists a stopped
@@ -227,8 +229,8 @@ under failure scenarios below.
 
 ## Controls
 
-- `GET /health` reports readiness and service identity.
-- Select independent state with `x-mockingbird-namespace` or `/ns/<name>/…`.
+- `GET /__admin/health` reports readiness and service identity.
+- Select independent state with `x-mockingbird-namespace` or `/__admin/ns/<name>/…`.
 - `POST /__admin/reset` resets the selected namespace's records and Timeline;
   `?all=1` resets all namespaces. It preserves clock, fault configuration and journal.
 - `POST /__admin/clock` accepts shared `set`, `advance`, and `freeze` controls.

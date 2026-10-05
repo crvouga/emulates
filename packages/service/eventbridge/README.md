@@ -68,6 +68,8 @@ EventBridge throttling status.
 
 ## API
 
+- `EventbridgeAPI`, `createAwsRuntime`, and `createAwsServer` (server entry): separate extended AWS operations runtime.
+
 Main exports: EventBridgeAPI, EVENTBRIDGE_NAMESPACE, createRuntime, EVENTBRIDGE_PRESETS,
 document, operationIds, supportedOperationIds.
 Types: Rule, Target, SeedRule, EventBridgeAPIOptions, EventBridgeRuntimeOptions, EventBridgeRuntime.

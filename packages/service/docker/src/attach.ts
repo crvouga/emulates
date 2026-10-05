@@ -132,7 +132,9 @@ export const createAttachHandshake = (
       }
       const target = new URL((req.url ?? "/").replace(/^\/+/, "/"), "http://docker.mock")
       if (
-        !/^(?:\/ns\/[^/]+)?(?:\/v[0-9]+\.[0-9]+)?\/containers\/[^/]+\/attach$/.test(target.pathname)
+        !/^(?:\/__admin\/ns\/[^/]+)?(?:\/v[0-9]+\.[0-9]+)?\/containers\/[^/]+\/attach$/.test(
+          target.pathname,
+        )
       ) {
         await write(
           socket,

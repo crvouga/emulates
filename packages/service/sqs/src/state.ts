@@ -28,7 +28,14 @@ export type SqsMessage = {
   deduplicationId?: string
   sequenceNumber?: string
 }
-export type SqsDeduplication = { queue: string; id: string; messageId: string; expiresAt: number; md5?: string; sequenceNumber?: string }
+export type SqsDeduplication = {
+  queue: string
+  id: string
+  messageId: string
+  expiresAt: number
+  md5?: string
+  sequenceNumber?: string
+}
 
 export class SqsState {
   readonly queues: Collection<SqsQueue>
