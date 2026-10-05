@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { ParityError, parity } from "@crvouga/mockingbird-parity"
+import { ParityError, type ParityOptions, parity } from "@crvouga/mockingbird-parity"
 import { fcParameters } from "@crvouga/mockingbird-testing"
 import { document, SentryAPI, supportedOperationIds } from "./src/index.js"
 
@@ -12,7 +12,7 @@ test(
   "self-parity: independent Sentry instances conform and exercise every enabled operation",
   async () => {
     const reference = new SentryAPI({ now })
-    const report = await parity({
+    const options: ParityOptions = {
       provider: "sentry",
       spec: document,
       includeUnsafe: true,
@@ -24,16 +24,31 @@ test(
       },
       mock: { baseUrl: "https://sentry.fixture", headers, create: () => new SentryAPI({ now }) },
       cleanup: () => reference.reset(),
-      numRuns: params.numRuns ?? 40,
-      maxCommands: 30,
-      ...(params.seed === undefined ? {} : { seed: params.seed }),
       sleep: async () => {},
       log: () => {},
       latencyToleranceMs: 1000,
       env: process.env,
+    }
+    // REST event creation cannot create attachments (envelope ingestion is outside this
+    // walk). Exercise the missing-attachment contract explicitly rather than relying on
+    // the random walk's rare missing reference to make this operation eligible.
+    const attachment = await parity({
+      ...options,
+      only: ["GetEventAttachment"],
+      missingProbability: 1,
+      numRuns: 5,
+      maxCommands: 1,
+      seed: 0,
+    })
+    expect(attachment.exercised.GetEventAttachment).toBeGreaterThan(0)
+    const report = await parity({
+      ...options,
+      numRuns: params.numRuns ?? 40,
+      maxCommands: 30,
+      ...(params.seed === undefined ? {} : { seed: params.seed }),
     })
     expect(report.walks).toBeGreaterThan(0)
-    expect(Object.keys(report.exercised).sort()).toEqual(
+    expect(Object.keys({ ...report.exercised, ...attachment.exercised }).sort()).toEqual(
       supportedOperationIds.filter((id) => !disabled.has(id)).sort(),
     )
   },

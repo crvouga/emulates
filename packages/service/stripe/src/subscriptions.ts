@@ -377,6 +377,7 @@ export const subscriptionHandlers = (services: Services): Record<string, Operati
     GetSubscriptions: async (context) => {
       const scope = requestScope(services, context)
       const params = queryParams(context)
+      if (context.query.customer_account === "") throw parameterInvalidEmpty("customer_account")
       const customer = stringOf(params, "customer")
       if (customer !== null && !scope.account.customers.get(customer))
         throw resourceMissing("customer", customer, "customer", 400)
