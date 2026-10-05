@@ -21,6 +21,7 @@
     "shiki": "4.4.3"
   },
   "devDependencies": {
+    "@crvouga/mockingbird-service-workos": "workspace:*",
     "@crvouga/mockingbird-example-medical-testing": "workspace:*",
     "@crvouga/mockingbird-service-aha": "workspace:*",
     "@crvouga/mockingbird-service-aws-secrets": "workspace:*",

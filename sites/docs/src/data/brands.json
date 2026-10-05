@@ -776,5 +776,18 @@
     "color": null,
     "logo": "/brands/wholescripts.png",
     "logoSource": "site"
+  },
+  "workos": {
+    "vendor": "WorkOS",
+    "website": "https://workos.com",
+    "docs": "https://workos.com/docs/reference/authkit/authentication",
+    "description": "Developer APIs/SDKs for Enterprise Ready features like Single Sign-On, Directory Sync, Audit Logging, and more. Get started for free.",
+    "input": {
+      "website": "https://workos.com",
+      "docs": "https://workos.com/docs/reference/authkit/authentication"
+    },
+    "color": null,
+    "logo": "/brands/workos.png",
+    "logoSource": "site"
   }
 }
