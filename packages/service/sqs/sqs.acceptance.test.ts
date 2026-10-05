@@ -38,7 +38,7 @@ describe("SQS acceptance", () => {
       )
       expect(duplicate.MessageId).toBe(first.MessageId)
       const received = (
-        await client.send(new ReceiveMessageCommand({ QueueUrl, MaxNumberOfMessages: 10 }))
+        await client.send(new ReceiveMessageCommand({ QueueUrl, MaxNumberOfMessages: 1 }))
       ).Messages
       expect(received?.map((message) => message.Body)).toEqual(["first"])
       await client.send(

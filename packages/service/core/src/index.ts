@@ -158,3 +158,8 @@ export type {
   WebhookSigner,
 } from "./webhooks.js"
 export { createWebhookHub, signers, webhookAdminRoutes } from "./webhooks.js"
+
+export { awsMd5 } from "./aws-md5.js"
+export { awsParseXml, awsXmlEscape, awsXml } from "./aws-xml.js"
+export { AwsProtocolAPI, AwsError, awsRecord, awsList, awsRequired, awsPage, decodeAwsQuery } from "./aws-protocol.js"
+export type { AwsInput, AwsOperation, AwsProtocolOptions } from "./aws-protocol.js"

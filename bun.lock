@@ -6,6 +6,38 @@
       "name": "mockingbird-monorepo",
       "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.5",
+        "@aws-sdk/client-acm": "3.1132.0",
+        "@aws-sdk/client-api-gateway": "3.1132.0",
+        "@aws-sdk/client-cloudcontrol": "3.1132.0",
+        "@aws-sdk/client-cloudformation": "3.1132.0",
+        "@aws-sdk/client-cloudwatch": "3.1132.0",
+        "@aws-sdk/client-cloudwatch-logs": "3.1132.0",
+        "@aws-sdk/client-config-service": "3.1132.0",
+        "@aws-sdk/client-dynamodb-streams": "3.1132.0",
+        "@aws-sdk/client-ec2": "3.1132.0",
+        "@aws-sdk/client-elasticsearch-service": "3.1132.0",
+        "@aws-sdk/client-eventbridge": "3.1132.0",
+        "@aws-sdk/client-firehose": "3.1132.0",
+        "@aws-sdk/client-iam": "3.1132.0",
+        "@aws-sdk/client-kinesis": "3.1132.0",
+        "@aws-sdk/client-kms": "3.1132.0",
+        "@aws-sdk/client-lambda": "3.1132.0",
+        "@aws-sdk/client-opensearch": "3.1132.0",
+        "@aws-sdk/client-redshift": "3.1132.0",
+        "@aws-sdk/client-resource-groups": "3.1132.0",
+        "@aws-sdk/client-resource-groups-tagging-api": "3.1132.0",
+        "@aws-sdk/client-route-53": "3.1132.0",
+        "@aws-sdk/client-route53resolver": "3.1132.0",
+        "@aws-sdk/client-s3": "3.1132.0",
+        "@aws-sdk/client-s3-control": "3.1132.0",
+        "@aws-sdk/client-scheduler": "3.1132.0",
+        "@aws-sdk/client-ses": "3.1132.0",
+        "@aws-sdk/client-sns": "3.1132.0",
+        "@aws-sdk/client-sqs": "3.1132.0",
+        "@aws-sdk/client-ssm": "3.1132.0",
+        "@aws-sdk/client-sts": "3.1132.0",
+        "@aws-sdk/client-support": "3.1132.0",
+        "@aws-sdk/client-swf": "3.1132.0",
         "@biomejs/biome": "2.5.12",
         "@commitlint/cli": "19.8.1",
         "@commitlint/config-conventional": "19.8.1",
@@ -214,6 +246,28 @@
         "@crvouga/mockingbird-testing": "workspace:*",
       },
     },
+    "packages/service/acm": {
+      "name": "@crvouga/mockingbird-service-acm",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-acm": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/aha": {
       "name": "@crvouga/mockingbird-service-aha",
       "version": "0.0.0-development",
@@ -263,6 +317,28 @@
         "@crvouga/mockingbird-parity": "workspace:*",
         "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/apigateway": {
+      "name": "@crvouga/mockingbird-service-apigateway",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-apigateway": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
         "fast-check": "4.9.0",
@@ -454,6 +530,94 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/cloudcontrol": {
+      "name": "@crvouga/mockingbird-service-cloudcontrol",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-cloudcontrol": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/cloudformation": {
+      "name": "@crvouga/mockingbird-service-cloudformation",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-cloudformation": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/cloudwatch": {
+      "name": "@crvouga/mockingbird-service-cloudwatch",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-cloudwatch": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/cloudwatch-logs": {
+      "name": "@crvouga/mockingbird-service-cloudwatch-logs",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-cloudwatch-logs": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/cognito": {
       "name": "@crvouga/mockingbird-service-cognito",
       "version": "0.0.0-development",
@@ -476,6 +640,28 @@
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
         "amazon-cognito-identity-js": "6.3.16",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/config": {
+      "name": "@crvouga/mockingbird-service-config",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-config": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
         "fast-check": "4.9.0",
       },
     },
@@ -568,6 +754,7 @@
         "@crvouga/mockingbird-openapi-metadata": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-ui": "workspace:*",
+        "fast-xml-parser": "5.11.2",
         "hono": "4.11.9",
       },
       "devDependencies": {
@@ -653,6 +840,28 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/dynamodb-streams": {
+      "name": "@crvouga/mockingbird-service-dynamodb-streams",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-dynamodb-streams": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/easypost": {
       "name": "@crvouga/mockingbird-service-easypost",
       "version": "0.0.0-development",
@@ -674,6 +883,28 @@
         "@crvouga/mockingbird-parity": "workspace:*",
         "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/ec2": {
+      "name": "@crvouga/mockingbird-service-ec2",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-ec2": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
         "fast-check": "4.9.0",
@@ -729,6 +960,28 @@
         "zod": "3.25.76",
       },
     },
+    "packages/service/elasticsearch": {
+      "name": "@crvouga/mockingbird-service-elasticsearch",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-elasticsearch": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/eventbridge": {
       "name": "@crvouga/mockingbird-service-eventbridge",
       "version": "0.0.0-development",
@@ -779,6 +1032,28 @@
         "fast-check": "4.9.0",
         "firebase-admin": "13.5.0",
         "firebase-admin-12": "npm:firebase-admin@12.7.0",
+      },
+    },
+    "packages/service/firehose": {
+      "name": "@crvouga/mockingbird-service-firehose",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-firehose": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
       },
     },
     "packages/service/firstpromoter": {
@@ -1027,6 +1302,28 @@
         "graphql-request": "7.2.0",
       },
     },
+    "packages/service/iam": {
+      "name": "@crvouga/mockingbird-service-iam",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-iam": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/infisical": {
       "name": "@crvouga/mockingbird-service-infisical",
       "version": "0.0.0-development",
@@ -1133,6 +1430,28 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/kinesis": {
+      "name": "@crvouga/mockingbird-service-kinesis",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-kinesis": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/klaviyo": {
       "name": "@crvouga/mockingbird-service-klaviyo",
       "version": "0.0.0-development",
@@ -1154,6 +1473,50 @@
         "@crvouga/mockingbird-parity": "workspace:*",
         "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/kms": {
+      "name": "@crvouga/mockingbird-service-kms",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-kms": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/lambda": {
+      "name": "@crvouga/mockingbird-service-lambda",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-lambda": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-sqlite": "workspace:*",
         "@crvouga/mockingbird-testing": "workspace:*",
         "fast-check": "4.9.0",
@@ -1399,6 +1762,28 @@
         "ai": "7.0.127",
         "fast-check": "4.9.0",
         "openai": "7.27.0",
+      },
+    },
+    "packages/service/opensearch": {
+      "name": "@crvouga/mockingbird-service-opensearch",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-opensearch": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
       },
     },
     "packages/service/otel": {
@@ -1720,6 +2105,28 @@
         "ioredis-5-9": "npm:ioredis@5.9.2",
       },
     },
+    "packages/service/redshift": {
+      "name": "@crvouga/mockingbird-service-redshift",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-redshift": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/resend": {
       "name": "@crvouga/mockingbird-service-resend",
       "version": "0.0.0-development",
@@ -1749,6 +2156,94 @@
         "resend": "4.8.0",
         "resend-v2": "npm:resend@2.1.0",
         "svix": "1.41.0",
+      },
+    },
+    "packages/service/resource-groups": {
+      "name": "@crvouga/mockingbird-service-resource-groups",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-resource-groups": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/resource-groups-tagging-api": {
+      "name": "@crvouga/mockingbird-service-resource-groups-tagging-api",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-resource-groups-tagging-api": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/route53": {
+      "name": "@crvouga/mockingbird-service-route53",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-route53": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/route53resolver": {
+      "name": "@crvouga/mockingbird-service-route53resolver",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-route53resolver": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
       },
     },
     "packages/service/rxvortex": {
@@ -1802,6 +2297,50 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/s3-control": {
+      "name": "@crvouga/mockingbird-service-s3-control",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-s3-control": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/scheduler": {
+      "name": "@crvouga/mockingbird-service-scheduler",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-scheduler": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/sentry": {
       "name": "@crvouga/mockingbird-service-sentry",
       "version": "0.0.0-development",
@@ -1827,6 +2366,28 @@
         "@crvouga/mockingbird-testing": "workspace:*",
         "@sentry/nextjs": "11.4.0",
         "@sentry/node": "11.4.0",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/ses": {
+      "name": "@crvouga/mockingbird-service-ses",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-ses": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
         "fast-check": "4.9.0",
       },
     },
@@ -1856,6 +2417,28 @@
         "@slack/bolt": "4.4.0",
         "@slack/socket-mode": "2.0.4",
         "@slack/web-api": "7.9.3",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/sns": {
+      "name": "@crvouga/mockingbird-service-sns",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-sns": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
         "fast-check": "4.9.0",
       },
     },
@@ -1892,6 +2475,28 @@
       },
       "devDependencies": {
         "@aws-sdk/client-sqs": "3.1132.0",
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/ssm": {
+      "name": "@crvouga/mockingbird-service-ssm",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-ssm": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
         "@crvouga/mockingbird-adapter-node": "workspace:*",
         "@crvouga/mockingbird-core": "workspace:*",
         "@crvouga/mockingbird-openapi": "workspace:*",
@@ -1960,6 +2565,72 @@
         "stripe": "16.12.0",
         "stripe-v17": "npm:stripe@17.7.0",
         "yaml": "2.9.0",
+      },
+    },
+    "packages/service/sts": {
+      "name": "@crvouga/mockingbird-service-sts",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-sts": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/support": {
+      "name": "@crvouga/mockingbird-service-support",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-support": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
+    "packages/service/swf": {
+      "name": "@crvouga/mockingbird-service-swf",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-swf": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
       },
     },
     "packages/service/tavily": {
@@ -2491,29 +3162,85 @@
 
     "@aws-sdk/checksums": ["@aws-sdk/checksums@3.1001.1", "", { "dependencies": { "@aws-sdk/core": "^3.978.1", "@aws-sdk/types": "^3.974.6", "@smithy/core": "^3.35.0", "@smithy/types": "^4.19.0", "tslib": "^2.6.2" } }, "sha512-x12Q17KYlJAd3nKf8LV5LV0vt8sh8/6YfQLGPtrGnQf/tW4jqxPGq5GPpuVitpQYM3eUR4XB7CbxZf751NMbLw=="],
 
+    "@aws-sdk/client-acm": ["@aws-sdk/client-acm@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-WeoGUCTboIEKDUAT5z4Ap1tKvDdIijERmjqqtTseg4UoieFAIvBnIsKNXNMcs9T8C7v2kCVPqCayfMnJduZXbA=="],
+
+    "@aws-sdk/client-api-gateway": ["@aws-sdk/client-api-gateway@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/middleware-sdk-api-gateway": "^3.972.29", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-pchjcq0SFBSoGRm9wmn7iXy0c0IwXkUUTfoEtyDR58BFwlFVsrrG06YysMiu/qXWOiTSUm/z3kjXSqN1DTNOxA=="],
+
     "@aws-sdk/client-bedrock-agentcore": ["@aws-sdk/client-bedrock-agentcore@3.1074.0", "", { "dependencies": { "@aws-crypto/sha256-browser": "5.2.0", "@aws-crypto/sha256-js": "5.2.0", "@aws-sdk/core": "^3.974.23", "@aws-sdk/credential-provider-node": "^3.972.58", "@aws-sdk/types": "^3.973.13", "@smithy/core": "^3.24.6", "@smithy/fetch-http-handler": "^5.4.6", "@smithy/node-http-handler": "^4.7.6", "@smithy/types": "^4.14.3", "tslib": "^2.6.2" } }, "sha512-2B410MyBEvatk3GDQWONBGXMaguIxRW7uzZl79wYfunTVPGSmJxFJ3D7xHgRYYBvJxrATjkLOFyn8yrAY+HUEA=="],
 
     "@aws-sdk/client-bedrock-runtime": ["@aws-sdk/client-bedrock-runtime@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/eventstream-handler-node": "^3.972.34", "@aws-sdk/middleware-eventstream": "^3.972.29", "@aws-sdk/middleware-websocket": "^3.972.53", "@aws-sdk/token-providers": "3.1132.0", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-xbxKIbFifYulkCj78LamejqE21WF1AH6WqmzcI7UVHDxmGSKa7XFfq/r29ydd+6qGIvSsoi4jJ5JjQFuJVzssw=="],
 
+    "@aws-sdk/client-cloudcontrol": ["@aws-sdk/client-cloudcontrol@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-ikRzycuFgYB22E5+Vm3VI64ikpGtQiQl0gWNzOqQYKrn3DfZ1eauJsQZtbJ3ZEDowC/J7DazYF4MR3cJyzLzMQ=="],
+
+    "@aws-sdk/client-cloudformation": ["@aws-sdk/client-cloudformation@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-t/Ypz165waz4VF2kTlGJle3LdeIwwuDGBh4cpZZqIMGI7ICuez81cgxVL09ppodtdwpAuABSEb079cXNN1RhmA=="],
+
+    "@aws-sdk/client-cloudwatch": ["@aws-sdk/client-cloudwatch@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/middleware-compression": "^4.6.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-ku2UjBJurWBMYKSfQRN0jyFS8l6W37AAiTL78AXE00nDXaPllBljk+TntlGDwRXxqPISOIx6Qf/KnFZh9kaY8w=="],
+
+    "@aws-sdk/client-cloudwatch-logs": ["@aws-sdk/client-cloudwatch-logs@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-Zbv6aupl6H/qKJg63+DvvZMhfZwAytp6Tl4115vmJTwRXZBdYJTMAp6aThn6GkmJpZjnSOfq4PLte5NWUkLXAg=="],
+
     "@aws-sdk/client-cognito-identity-provider": ["@aws-sdk/client-cognito-identity-provider@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-+y9Ey22tk1R0+e1E/YS4n8R/LdLY4I5mp/aqwzdNlKRztlcK0ryRTX8E3kXD4+V79BfGMKpxXfPMpzLiLTiyKA=="],
+
+    "@aws-sdk/client-config-service": ["@aws-sdk/client-config-service@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-umOpuAXrWN9QV/HHbqMpbEv21oTKSksPeImoeX9dvGm9jylGEko/qz47fCjqC2lVJwp+0EOwLOg0UM9sMQuaGw=="],
 
     "@aws-sdk/client-dynamodb": ["@aws-sdk/client-dynamodb@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/dynamodb-codec": "^3.973.45", "@aws-sdk/middleware-endpoint-discovery": "^3.972.30", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-n417UaZ23G3WshCBN3zNm2b8QdcA9RtjVK5r0ZqdUqc/fNl4k/NB5hUcYwVpZ6jN/Mv+cFsiN2TqAK7CKGq5aA=="],
 
+    "@aws-sdk/client-dynamodb-streams": ["@aws-sdk/client-dynamodb-streams@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-QqJXKgLDp4RYt22utHwNvlnUXAWLC36TxA68veWZIPgmPBoWwjRQNGBQELAguKjMAmNRKlcGlT9LPRu7BnlxmA=="],
+
+    "@aws-sdk/client-ec2": ["@aws-sdk/client-ec2@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/middleware-sdk-ec2": "^3.972.59", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-Bdko3prR8gI686hUxORwEmkCPueZyhkt4o+iVk5sAzwkeZdFwkg0m4u7Y3+9JNo9RyLtFivWNlT468WpiBIlLA=="],
+
+    "@aws-sdk/client-elasticsearch-service": ["@aws-sdk/client-elasticsearch-service@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-cbpmPCpA3Tnx+E3Sr2OlRd8dhORvBTZVxFiD/ubDQ4owhA9BYqiwPEXYl7oMn0NjgK11UCXlrxb9ZHNEAuhpTQ=="],
+
     "@aws-sdk/client-eventbridge": ["@aws-sdk/client-eventbridge@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/signature-v4-multi-region": "^3.996.46", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-PK0rU8LlGUki403uaUMxtaxARu67v/dToz9LRUVA7+AS8N/mx5Z+jcYhaOL2pC1P7btuIPCUt/KGdTbP8aTOmQ=="],
+
+    "@aws-sdk/client-firehose": ["@aws-sdk/client-firehose@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-yJ3Dj9EMV4WSVZz4dPNbT17OBQDcPAgaZ+aw0pBOtJ+qqglzmf9ZhZwOgRSDWjRzm6MtBIg9O7MeHraZtPNdDQ=="],
+
+    "@aws-sdk/client-iam": ["@aws-sdk/client-iam@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-drGkXD0zOk+VTALGCmgIPWQleILT2t/xO4oELS04T+DSIR4L+B0chIDaIt1Bf2GZN18J0FbUJydaqNrEfSOpRA=="],
+
+    "@aws-sdk/client-kinesis": ["@aws-sdk/client-kinesis@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-0HrQuGCqZerR1N1NtsvkCceCCp5kXJIy3qyPrT267Tp1OJ16sj5H2Ie+Rpg/KjwoxP5/zlJpTK/DJBvx9X2y8g=="],
+
+    "@aws-sdk/client-kms": ["@aws-sdk/client-kms@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-bJMqHHmSaQXXrczadq5vzXd9Gd8MGw3HDUFsr3h97DjRl9pX8LmX79vWF8tRgyljHQjTHXapj8E8qtP2h3C9bQ=="],
+
+    "@aws-sdk/client-lambda": ["@aws-sdk/client-lambda@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-Uci3uTwuUamwUYRoQsZsNLoxCpN9XVQ70W4voiqArPocKqjPFnSRuip+stYul2Exp9v08hnqQpy75yKZvoG9Zg=="],
 
     "@aws-sdk/client-mediaconvert": ["@aws-sdk/client-mediaconvert@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-xoUKfxi5NGfMrqYgoC+Rzx1zrH+kF9k+yaUNVCeFc8dsCMe0XbSwYb+Otzp1HSZlQHNAeo+2YIqPmcnxfyNlQQ=="],
 
+    "@aws-sdk/client-opensearch": ["@aws-sdk/client-opensearch@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-wBuqbDdgh/i+qnKEe/qY/0VcCS5tyHaTFUdMoFckE/8+KQZSPgYlsMkSCtlG7VLfFjW8XcJRCwGovmTbDrab6w=="],
+
     "@aws-sdk/client-polly": ["@aws-sdk/client-polly@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/eventstream-handler-node": "^3.972.34", "@aws-sdk/middleware-eventstream": "^3.972.29", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-RunK3WifX3l+IksbhqK67TmyvpAYRavBMZ4LjrkL7ff3SIX1oUCgnewSfty//jqeyK3fdslYvNUS050fUeu3rg=="],
+
+    "@aws-sdk/client-redshift": ["@aws-sdk/client-redshift@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-ApAUgapdFfJtaXk1d8OE9CUb3BXjMjGV6hrJgokj2JTOMbaycj5sgmDeM3VMU0xN1N/HvXb+JfUiK+R6JCoPPA=="],
+
+    "@aws-sdk/client-resource-groups": ["@aws-sdk/client-resource-groups@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-jxIvPS/5uR/USyZCbHsBWh2Qg5dpk0KcekL++oLfpn2e6+xDWOo2aqAgSRn4mPxHZVGRErmMTOAgQ9Q1kPFHrw=="],
+
+    "@aws-sdk/client-resource-groups-tagging-api": ["@aws-sdk/client-resource-groups-tagging-api@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-r3NJ5Qe4d/fGeP4UstjkEESnVjdUiQjDiHdLyC5ApBMveIhQ3V+hj7OyaZMiCuwfWH0hkZzOSiEdQGkb7rOMmQ=="],
+
+    "@aws-sdk/client-route-53": ["@aws-sdk/client-route-53@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/middleware-sdk-route53": "^3.972.26", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-QIXTDSRvGrbXQBFknjyPjvaFi5bEhQOKMEvwlb3yucx+oMCuR6xY9Im8oiGDL0IrIZ9ypRaz2C+d+B49pUrCxw=="],
+
+    "@aws-sdk/client-route53resolver": ["@aws-sdk/client-route53resolver@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-FYvollswPYNC65HMAtiupNcmr/yAxIOp2SRQj/r0zgXngYxAJGWzoKUHildFjRPQfpLe1z8OgXhDTtP9sy9ezA=="],
 
     "@aws-sdk/client-s3": ["@aws-sdk/client-s3@3.1132.0", "", { "dependencies": { "@aws-sdk/checksums": "^3.1001.0", "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/middleware-sdk-s3": "^3.972.76", "@aws-sdk/signature-v4-multi-region": "^3.996.46", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-ccS2utR3YpKE1KEkAlo1Oq9kUhzy/IOIbpwHAcENn/JzpzCj9l79I2o6stTzXGOKbL8+XEdH2P7c2Znp8PbBlQ=="],
 
+    "@aws-sdk/client-s3-control": ["@aws-sdk/client-s3-control@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/middleware-sdk-s3": "^3.972.76", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/middleware-apply-body-checksum": "^4.6.3", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-wGMCLXxMdEz2ycN4boktlVeJ/8jdn+1uoWKl6WO4lv9F/TjSYDikuNsxyO7OZ/EIBFPYjvkkMOeCpyGcRAZkbQ=="],
+
+    "@aws-sdk/client-scheduler": ["@aws-sdk/client-scheduler@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-WmIWHjN2c+denHln12SHfbCHwZ8Twdwlb63Qn3E2aQGXUvW2vjOw4mbFiqKUsAo4RqveM8VHczDizGJM8ouRXA=="],
+
     "@aws-sdk/client-secrets-manager": ["@aws-sdk/client-secrets-manager@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-p1llstzbM39PCdApn02xXH0coQqVU+z1dxl9+4yaE/jfS1KVy0wrcvtqB13/bjOCmvIsDssrBvPtfjANMHa0Zg=="],
 
+    "@aws-sdk/client-ses": ["@aws-sdk/client-ses@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-6RutVrk4KtaS96qi4K0kwxBFGmvxmcVL4DVLoX2sTan/3z0yPZVvEGA8c67zMfLPDyPelusBDpcYn4CyC44w8w=="],
+
     "@aws-sdk/client-sfn": ["@aws-sdk/client-sfn@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-TjDA5zETXgX6YXVI94lLjUgjp9hOt6n5l3BMKzQANHA7y3WCd3/sZVBRJP/M5l8bElpS9iZCEUwnDBmQYGhkPA=="],
+
+    "@aws-sdk/client-sns": ["@aws-sdk/client-sns@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-KYgvSgMKI8wwZ2hWlzs+jL3+VE4ACHBkBUUCwq9t4Oktyld0Gx0sIkq+lgQ+q617FryUosvr+g8rEQZS67RcUw=="],
 
     "@aws-sdk/client-sqs": ["@aws-sdk/client-sqs@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/middleware-sdk-sqs": "^3.972.42", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-C9XBAhAlEJlksBYrS4Wsok5Cknr11AvY37TSR3fIYSD+xpSEvyRPIG4EC6vgRFQzvMD7T1CWWOGIZOGKruKjiQ=="],
 
     "@aws-sdk/client-ssm": ["@aws-sdk/client-ssm@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-PLFPGor3lEvrhpgt9QOfFY1KBqIaoR+aSUgZ0EtzfVJ8KamNX5Lg63iXc+PBMJJpDTI7pQ2Ko1VIbcOgGr3K0A=="],
+
+    "@aws-sdk/client-sts": ["@aws-sdk/client-sts@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/signature-v4-multi-region": "^3.996.46", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-Wjk/Hux/sAIcWIepaKhDWULk8dQqhN4+SpzPLFVm+TT0quXT7KiCfgb4t7JgEn6XeOSI4YzR2iyE9XDg+j8NZQ=="],
+
+    "@aws-sdk/client-support": ["@aws-sdk/client-support@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-NGcoZT2uyvGZ1E7sWiuhCFaPepfjPNIsR9SbRgaHokGrJsZXr+iKO/VdkMHVYzv5vFE7RD7TXEXFZfhHe+qAsw=="],
+
+    "@aws-sdk/client-swf": ["@aws-sdk/client-swf@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-rbtCfek4v2eBd6rDTq9hhr6EWrNYh1/5Wqr2ogjtqNOGMLORrRW5w1QM/ed6mfw5T0hEakE1K4jPQtVk8duISQ=="],
 
     "@aws-sdk/client-textract": ["@aws-sdk/client-textract@3.1132.0", "", { "dependencies": { "@aws-sdk/core": "^3.978.0", "@aws-sdk/credential-provider-node": "^3.972.83", "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/fetch-http-handler": "^5.7.2", "@smithy/node-http-handler": "^4.11.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-ubrndmvgpDSItspWDRuinHMekaC3LUJxcttIGrrXBz3BGPcL20ESoUXH+fxyfoDJcLidgl06byyO1LQFSE3wrw=="],
 
@@ -2552,6 +3279,12 @@
     "@aws-sdk/middleware-endpoint-discovery": ["@aws-sdk/middleware-endpoint-discovery@3.972.31", "", { "dependencies": { "@aws-sdk/endpoint-cache": "^3.972.11", "@aws-sdk/types": "^3.974.6", "@smithy/core": "^3.35.0", "@smithy/types": "^4.19.0", "tslib": "^2.6.2" } }, "sha512-JqOIXupzP6cpAmCCmuEaacbXo/bVCcg1NkglCJC6q4wDAvJO09qIs7POf50JNzmhOhWPtfXvzgWxb5nMQl8QiA=="],
 
     "@aws-sdk/middleware-eventstream": ["@aws-sdk/middleware-eventstream@3.972.29", "", { "dependencies": { "@aws-sdk/types": "^3.974.5", "@smithy/core": "^3.33.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-dlRzHCgyB8W6hLuDC5pcT5q+ziPt00n4QGgGBE17ucLVU4zMa6lsbuUdQ2Pm75Z5VA8GF+R/+SgrRcaTdIzSIQ=="],
+
+    "@aws-sdk/middleware-sdk-api-gateway": ["@aws-sdk/middleware-sdk-api-gateway@3.972.30", "", { "dependencies": { "@aws-sdk/types": "^3.974.6", "@smithy/core": "^3.35.0", "@smithy/types": "^4.19.0", "tslib": "^2.6.2" } }, "sha512-V5zWiJGyLQ7pILaNmm9kShAblVl5lbztL95n5EwsszHPA5yrf1iRf32/PA6KxPNqRW7pJrVnCKs9RQI5Ww1kXg=="],
+
+    "@aws-sdk/middleware-sdk-ec2": ["@aws-sdk/middleware-sdk-ec2@3.972.60", "", { "dependencies": { "@aws-sdk/core": "^3.978.1", "@aws-sdk/types": "^3.974.6", "@smithy/core": "^3.35.0", "@smithy/signature-v4": "^5.7.3", "@smithy/types": "^4.19.0", "tslib": "^2.6.2" } }, "sha512-d162hehtR9IJuVUfMpAIfeZhjQdYyXRH/QbQWehD5bffJoIQKJ51o/M2YSMubw6X4k5bDtSzVHIYcsna7GBLpw=="],
+
+    "@aws-sdk/middleware-sdk-route53": ["@aws-sdk/middleware-sdk-route53@3.972.27", "", { "dependencies": { "@aws-sdk/types": "^3.974.6", "@smithy/types": "^4.19.0", "tslib": "^2.6.2" } }, "sha512-/Iu1h3uwK71pmfHkjU+k9A7J0FeCdPUdBXpLXNNaTwwwuytKvKF2F0JBH1sJrEFRHJEccM5Vxmu4tdGoSImH9A=="],
 
     "@aws-sdk/middleware-sdk-s3": ["@aws-sdk/middleware-sdk-s3@3.972.77", "", { "dependencies": { "@aws-sdk/core": "^3.978.1", "@aws-sdk/signature-v4-multi-region": "^3.996.47", "@aws-sdk/types": "^3.974.6", "@smithy/core": "^3.35.0", "@smithy/types": "^4.19.0", "tslib": "^2.6.2" } }, "sha512-E7W2UOeUoc+lg3uIfR/dM7ZwusHwhBQrKMnlkRv4EXRR+C0YtV1pg25xC7GdZIhXH+NAMgZPCbE7o5to2cjFiw=="],
 
@@ -2747,9 +3480,13 @@
 
     "@crvouga/mockingbird-service": ["@crvouga/mockingbird-service@workspace:packages/service/core"],
 
+    "@crvouga/mockingbird-service-acm": ["@crvouga/mockingbird-service-acm@workspace:packages/service/acm"],
+
     "@crvouga/mockingbird-service-aha": ["@crvouga/mockingbird-service-aha@workspace:packages/service/aha"],
 
     "@crvouga/mockingbird-service-airtable": ["@crvouga/mockingbird-service-airtable@workspace:packages/service/airtable"],
+
+    "@crvouga/mockingbird-service-apigateway": ["@crvouga/mockingbird-service-apigateway@workspace:packages/service/apigateway"],
 
     "@crvouga/mockingbird-service-app-store-connect": ["@crvouga/mockingbird-service-app-store-connect@workspace:packages/service/app-store-connect"],
 
@@ -2765,7 +3502,17 @@
 
     "@crvouga/mockingbird-service-checkr": ["@crvouga/mockingbird-service-checkr@workspace:packages/service/checkr"],
 
+    "@crvouga/mockingbird-service-cloudcontrol": ["@crvouga/mockingbird-service-cloudcontrol@workspace:packages/service/cloudcontrol"],
+
+    "@crvouga/mockingbird-service-cloudformation": ["@crvouga/mockingbird-service-cloudformation@workspace:packages/service/cloudformation"],
+
+    "@crvouga/mockingbird-service-cloudwatch": ["@crvouga/mockingbird-service-cloudwatch@workspace:packages/service/cloudwatch"],
+
+    "@crvouga/mockingbird-service-cloudwatch-logs": ["@crvouga/mockingbird-service-cloudwatch-logs@workspace:packages/service/cloudwatch-logs"],
+
     "@crvouga/mockingbird-service-cognito": ["@crvouga/mockingbird-service-cognito@workspace:packages/service/cognito"],
+
+    "@crvouga/mockingbird-service-config": ["@crvouga/mockingbird-service-config@workspace:packages/service/config"],
 
     "@crvouga/mockingbird-service-conformance": ["@crvouga/mockingbird-service-conformance@workspace:packages/service/conformance"],
 
@@ -2775,15 +3522,23 @@
 
     "@crvouga/mockingbird-service-dynamodb": ["@crvouga/mockingbird-service-dynamodb@workspace:packages/service/dynamodb"],
 
+    "@crvouga/mockingbird-service-dynamodb-streams": ["@crvouga/mockingbird-service-dynamodb-streams@workspace:packages/service/dynamodb-streams"],
+
     "@crvouga/mockingbird-service-easypost": ["@crvouga/mockingbird-service-easypost@workspace:packages/service/easypost"],
+
+    "@crvouga/mockingbird-service-ec2": ["@crvouga/mockingbird-service-ec2@workspace:packages/service/ec2"],
 
     "@crvouga/mockingbird-service-ecs": ["@crvouga/mockingbird-service-ecs@workspace:packages/service/ecs"],
 
     "@crvouga/mockingbird-service-edamam": ["@crvouga/mockingbird-service-edamam@workspace:packages/service/edamam"],
 
+    "@crvouga/mockingbird-service-elasticsearch": ["@crvouga/mockingbird-service-elasticsearch@workspace:packages/service/elasticsearch"],
+
     "@crvouga/mockingbird-service-eventbridge": ["@crvouga/mockingbird-service-eventbridge@workspace:packages/service/eventbridge"],
 
     "@crvouga/mockingbird-service-fcm": ["@crvouga/mockingbird-service-fcm@workspace:packages/service/fcm"],
+
+    "@crvouga/mockingbird-service-firehose": ["@crvouga/mockingbird-service-firehose@workspace:packages/service/firehose"],
 
     "@crvouga/mockingbird-service-firstpromoter": ["@crvouga/mockingbird-service-firstpromoter@workspace:packages/service/firstpromoter"],
 
@@ -2803,6 +3558,8 @@
 
     "@crvouga/mockingbird-service-healthie": ["@crvouga/mockingbird-service-healthie@workspace:packages/service/healthie"],
 
+    "@crvouga/mockingbird-service-iam": ["@crvouga/mockingbird-service-iam@workspace:packages/service/iam"],
+
     "@crvouga/mockingbird-service-infisical": ["@crvouga/mockingbird-service-infisical@workspace:packages/service/infisical"],
 
     "@crvouga/mockingbird-service-intercom": ["@crvouga/mockingbird-service-intercom@workspace:packages/service/intercom"],
@@ -2811,7 +3568,13 @@
 
     "@crvouga/mockingbird-service-kill-bill": ["@crvouga/mockingbird-service-kill-bill@workspace:packages/service/kill-bill"],
 
+    "@crvouga/mockingbird-service-kinesis": ["@crvouga/mockingbird-service-kinesis@workspace:packages/service/kinesis"],
+
     "@crvouga/mockingbird-service-klaviyo": ["@crvouga/mockingbird-service-klaviyo@workspace:packages/service/klaviyo"],
+
+    "@crvouga/mockingbird-service-kms": ["@crvouga/mockingbird-service-kms@workspace:packages/service/kms"],
+
+    "@crvouga/mockingbird-service-lambda": ["@crvouga/mockingbird-service-lambda@workspace:packages/service/lambda"],
 
     "@crvouga/mockingbird-service-livekit": ["@crvouga/mockingbird-service-livekit@workspace:packages/service/livekit"],
 
@@ -2830,6 +3593,8 @@
     "@crvouga/mockingbird-service-odx": ["@crvouga/mockingbird-service-odx@workspace:packages/service/odx"],
 
     "@crvouga/mockingbird-service-openai": ["@crvouga/mockingbird-service-openai@workspace:packages/service/openai"],
+
+    "@crvouga/mockingbird-service-opensearch": ["@crvouga/mockingbird-service-opensearch@workspace:packages/service/opensearch"],
 
     "@crvouga/mockingbird-service-otel": ["@crvouga/mockingbird-service-otel@workspace:packages/service/otel"],
 
@@ -2855,23 +3620,49 @@
 
     "@crvouga/mockingbird-service-redis": ["@crvouga/mockingbird-service-redis@workspace:packages/service/redis"],
 
+    "@crvouga/mockingbird-service-redshift": ["@crvouga/mockingbird-service-redshift@workspace:packages/service/redshift"],
+
     "@crvouga/mockingbird-service-resend": ["@crvouga/mockingbird-service-resend@workspace:packages/service/resend"],
+
+    "@crvouga/mockingbird-service-resource-groups": ["@crvouga/mockingbird-service-resource-groups@workspace:packages/service/resource-groups"],
+
+    "@crvouga/mockingbird-service-resource-groups-tagging-api": ["@crvouga/mockingbird-service-resource-groups-tagging-api@workspace:packages/service/resource-groups-tagging-api"],
+
+    "@crvouga/mockingbird-service-route53": ["@crvouga/mockingbird-service-route53@workspace:packages/service/route53"],
+
+    "@crvouga/mockingbird-service-route53resolver": ["@crvouga/mockingbird-service-route53resolver@workspace:packages/service/route53resolver"],
 
     "@crvouga/mockingbird-service-rxvortex": ["@crvouga/mockingbird-service-rxvortex@workspace:packages/service/rxvortex"],
 
     "@crvouga/mockingbird-service-s3": ["@crvouga/mockingbird-service-s3@workspace:packages/service/s3"],
 
+    "@crvouga/mockingbird-service-s3-control": ["@crvouga/mockingbird-service-s3-control@workspace:packages/service/s3-control"],
+
+    "@crvouga/mockingbird-service-scheduler": ["@crvouga/mockingbird-service-scheduler@workspace:packages/service/scheduler"],
+
     "@crvouga/mockingbird-service-sentry": ["@crvouga/mockingbird-service-sentry@workspace:packages/service/sentry"],
 
+    "@crvouga/mockingbird-service-ses": ["@crvouga/mockingbird-service-ses@workspace:packages/service/ses"],
+
     "@crvouga/mockingbird-service-slack": ["@crvouga/mockingbird-service-slack@workspace:packages/service/slack"],
+
+    "@crvouga/mockingbird-service-sns": ["@crvouga/mockingbird-service-sns@workspace:packages/service/sns"],
 
     "@crvouga/mockingbird-service-sqlite": ["@crvouga/mockingbird-service-sqlite@workspace:packages/service/sqlite"],
 
     "@crvouga/mockingbird-service-sqs": ["@crvouga/mockingbird-service-sqs@workspace:packages/service/sqs"],
 
+    "@crvouga/mockingbird-service-ssm": ["@crvouga/mockingbird-service-ssm@workspace:packages/service/ssm"],
+
     "@crvouga/mockingbird-service-step-functions": ["@crvouga/mockingbird-service-step-functions@workspace:packages/service/step-functions"],
 
     "@crvouga/mockingbird-service-stripe": ["@crvouga/mockingbird-service-stripe@workspace:packages/service/stripe"],
+
+    "@crvouga/mockingbird-service-sts": ["@crvouga/mockingbird-service-sts@workspace:packages/service/sts"],
+
+    "@crvouga/mockingbird-service-support": ["@crvouga/mockingbird-service-support@workspace:packages/service/support"],
+
+    "@crvouga/mockingbird-service-swf": ["@crvouga/mockingbird-service-swf@workspace:packages/service/swf"],
 
     "@crvouga/mockingbird-service-tavily": ["@crvouga/mockingbird-service-tavily@workspace:packages/service/tavily"],
 
@@ -3542,6 +4333,10 @@
     "@smithy/fetch-http-handler": ["@smithy/fetch-http-handler@5.8.0", "", { "dependencies": { "@smithy/core": "^3.33.3", "@smithy/types": "^4.18.0", "tslib": "^2.6.2" } }, "sha512-ycSJu3tFAQ4v04CBB0agqFMVsSQ1iG3yw+SpgxRqKfaURpQD4CZ8Wn0zPMmSnOuTpTh65Vz+EA0rMrw089wvkA=="],
 
     "@smithy/is-array-buffer": ["@smithy/is-array-buffer@2.2.0", "", { "dependencies": { "tslib": "^2.6.2" } }, "sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA=="],
+
+    "@smithy/middleware-apply-body-checksum": ["@smithy/middleware-apply-body-checksum@4.6.3", "", { "dependencies": { "@smithy/core": "^3.33.3", "@smithy/types": "^4.17.2", "tslib": "^2.6.2" } }, "sha512-c2WI+satDWRRptxuczkq0ZqHqfWm5F7GP7aMS4wAjbs9MPxFwKcaVOsiFAlAB2wzclxCiumcVeCzluJxw6qmfw=="],
+
+    "@smithy/middleware-compression": ["@smithy/middleware-compression@4.6.2", "", { "dependencies": { "@smithy/core": "^3.33.2", "@smithy/types": "^4.17.2", "fflate": "0.8.3", "tslib": "^2.6.2" } }, "sha512-Q9d+luiRjyHT6kCL/9NyGpdZJgodh4vtvfHC6H8SqoVKrV2k9RoyI9/IloVfdCYks3/2DIi7BsYYLcda5KZS0A=="],
 
     "@smithy/node-http-handler": ["@smithy/node-http-handler@4.12.1", "", { "dependencies": { "@smithy/core": "^3.33.3", "@smithy/types": "^4.18.0", "tslib": "^2.6.2" } }, "sha512-ThMkboGeONWXAelq9FvGsuJC4rOi+qyC4/zhUF58xYpxUg5sQKx2VXZYJmtNjr4dSuBJ1HeJXETQILCz3wOHvw=="],
 
@@ -5432,6 +6227,8 @@
     "@smithy/fetch-http-handler/@smithy/core": ["@smithy/core@3.34.1", "", { "dependencies": { "@smithy/types": "^4.18.0", "tslib": "^2.6.2" } }, "sha512-dLcOUxz8YCv1RZUMKq6GbyUf95pLbrqh34bPvpCZ1+CByFF31BEAFewZjsGCnVsZTKdThNENfGyAgk2TJqVwSw=="],
 
     "@smithy/fetch-http-handler/@smithy/types": ["@smithy/types@4.18.0", "", { "dependencies": { "tslib": "^2.6.2" } }, "sha512-CgB6HHWer/vrKps24ulRIbpcpb7K4xAU7SkZ7YHzBPlwHsvsrCJFEXK421s+cJzX+ZrqtA/TuU5w1HzI7k9N8A=="],
+
+    "@smithy/middleware-compression/fflate": ["fflate@0.8.3", "", {}, "sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA=="],
 
     "@smithy/node-http-handler/@smithy/core": ["@smithy/core@3.34.1", "", { "dependencies": { "@smithy/types": "^4.18.0", "tslib": "^2.6.2" } }, "sha512-dLcOUxz8YCv1RZUMKq6GbyUf95pLbrqh34bPvpCZ1+CByFF31BEAFewZjsGCnVsZTKdThNENfGyAgk2TJqVwSw=="],
 

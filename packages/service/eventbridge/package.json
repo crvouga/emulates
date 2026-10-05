@@ -84,6 +84,28 @@
         "GET /__admin/ui"
       ],
       "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    },
+    "aws": {
+      "localstackService": "events",
+      "operations": [
+        "CreateEventBus",
+        "DescribeEventBus",
+        "ListEventBuses",
+        "DeleteEventBus",
+        "PutRule",
+        "DescribeRule",
+        "ListRules",
+        "DeleteRule",
+        "EnableRule",
+        "DisableRule",
+        "PutTargets",
+        "ListTargetsByRule",
+        "RemoveTargets",
+        "PutEvents",
+        "TagResource",
+        "UntagResource",
+        "ListTagsForResource"
+      ]
     }
   },
   "scripts": {
@@ -96,7 +118,8 @@
     "test": "bun test",
     "parity": "bun scripts/parity.ts",
     "portability": "bun ../../../scripts/portability.ts",
-    "pack:check": "bun ../../../scripts/pack-check.ts"
+    "pack:check": "bun ../../../scripts/pack-check.ts",
+    "parity:localstack": "bun scripts/localstack-parity.ts"
   },
   "dependencies": {
     "@crvouga/mockingbird-service-sqlite": "workspace:*"

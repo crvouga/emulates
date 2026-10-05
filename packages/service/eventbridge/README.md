@@ -73,3 +73,7 @@ document, operationIds, supportedOperationIds.
 Types: Rule, Target, SeedRule, EventBridgeAPIOptions, EventBridgeRuntimeOptions, EventBridgeRuntime.
 Server entry: createServer, DEFAULT_PORT, serveTarget; type EventBridgeServerOptions.
 CLI entry runs the serve command and exports no runtime values.
+
+## Extended AWS operations runtime
+
+`createAwsRuntime` (and `createAwsServer` from the server entry) exposes the additional LocalStack-oriented event bus, rule, target, event ingestion and tagging operations. It has separate state and does not claim the seeded discovery runtime's pagination behavior. The default `createRuntime` retains the documented discovery contract and fixtures. Both modes remain WIP. Run `bun run parity:localstack` for the extended runtime.

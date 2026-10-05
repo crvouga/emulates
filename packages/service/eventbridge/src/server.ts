@@ -27,3 +27,5 @@ export const serveTarget: ServeTarget = {
     "Point boto3 events endpoint_url at this server; seed rules through /__admin/state/rules",
   ],
 }
+
+export { createServer as createAwsServer } from "./aws-server.js"
