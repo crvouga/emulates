@@ -62,6 +62,7 @@
     "@crvouga/mockingbird-service-postgres": "workspace:*",
     "@crvouga/mockingbird-service-posthog": "workspace:*",
     "@crvouga/mockingbird-service-prism": "workspace:*",
+    "@crvouga/mockingbird-service-recaptcha": "workspace:*",
     "@crvouga/mockingbird-service-redis": "workspace:*",
     "@crvouga/mockingbird-service-resend": "workspace:*",
     "@crvouga/mockingbird-service-rxvortex": "workspace:*",

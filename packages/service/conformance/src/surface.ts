@@ -49,6 +49,7 @@ import type { createRuntime as createPharmetika } from "@crvouga/mockingbird-ser
 import type { createRuntime as createPlane } from "@crvouga/mockingbird-service-plane"
 import type { createRuntime as createPosthog } from "@crvouga/mockingbird-service-posthog"
 import type { createRuntime as createPrism } from "@crvouga/mockingbird-service-prism"
+import type { createRuntime as createRecaptcha } from "@crvouga/mockingbird-service-recaptcha"
 import type { createRuntime as createResend } from "@crvouga/mockingbird-service-resend"
 import type { createRuntime as createRxvortex } from "@crvouga/mockingbird-service-rxvortex"
 import type { createRuntime as createS3 } from "@crvouga/mockingbird-service-s3"
@@ -125,6 +126,7 @@ export type SurfaceProof = [
   Assert<typeof createPlane>,
   Assert<typeof createPosthog>,
   Assert<typeof createPrism>,
+  Assert<typeof createRecaptcha>,
   Assert<typeof createResend>,
   Assert<typeof createRxvortex>,
   Assert<typeof createSentry>,

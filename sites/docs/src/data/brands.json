@@ -681,6 +681,21 @@
     "logo": "/brands/prism.png",
     "logoSource": "site"
   },
+  "recaptcha": {
+    "vendor": "reCAPTCHA",
+    "website": "https://www.google.com/recaptcha/about/",
+    "docs": "https://developers.google.com/recaptcha/docs/v3",
+    "description": "Google reCAPTCHA verifies browser challenges and supplies risk scores.",
+    "input": {
+      "website": "https://www.google.com/recaptcha/about/",
+      "docs": "https://developers.google.com/recaptcha/docs/v3",
+      "description": "Google reCAPTCHA verifies browser challenges and supplies risk scores.",
+      "icon": false
+    },
+    "color": "#039BE5",
+    "logo": "/brands/recaptcha.png",
+    "logoSource": "site"
+  },
   "redis": {
     "vendor": "Redis",
     "website": "https://redis.io",

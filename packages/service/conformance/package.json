@@ -51,6 +51,7 @@
     "@crvouga/mockingbird-service-plane": "workspace:*",
     "@crvouga/mockingbird-service-posthog": "workspace:*",
     "@crvouga/mockingbird-service-prism": "workspace:*",
+    "@crvouga/mockingbird-service-recaptcha": "workspace:*",
     "@crvouga/mockingbird-service-resend": "workspace:*",
     "@crvouga/mockingbird-service-rxvortex": "workspace:*",
     "@crvouga/mockingbird-service-s3": "workspace:*",
