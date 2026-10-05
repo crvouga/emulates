@@ -22,6 +22,21 @@ describe("live demo admins", () => {
       expect(await ui.text()).toContain("data-mockingbird-admin")
     }
 
+    const combinedUi = await demo.admin.fetch(new Request("https://mock.local/__admin/ui"))
+    expect(combinedUi.status).toBe(200)
+    const combinedHtml = await combinedUi.text()
+    expect(combinedHtml).toContain('"id":"google"')
+    expect(combinedHtml).toContain('"id":"postgres"')
+    const composedState = await demo.admin.fetch(
+      new Request("https://mock.local/__admin/apis/junction/state"),
+    )
+    expect(composedState.status).toBe(200)
+    expect(
+      ((await composedState.json()) as { collections: { count: number }[] }).collections.some(
+        (collection) => collection.count > 0,
+      ),
+    ).toBe(true)
+
     const tables = await demo.db.query<{ table_name: string }>(
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name",
     )

@@ -147,6 +147,7 @@ const typing = (el: EventTarget | null) =>
   (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
 
 document.addEventListener("keydown", (event) => {
+  if (event.defaultPrevented || document.querySelector("dialog[data-example-modal][open]")) return
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
     event.preventDefault()
     void openPalette()

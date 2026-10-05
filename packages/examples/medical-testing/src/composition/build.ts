@@ -1,5 +1,5 @@
 import type { Hono } from "hono"
-import type { MockAdmin } from "../adapters/admin.js"
+import { composeMockAdmins, type MockAdmin } from "../adapters/admin.js"
 import { createPostgresMockDb } from "../adapters/db/postgresMockDb.js"
 import { createOAuthMockIdentity } from "../adapters/identity/oauthMockIdentity.js"
 import { createJunctionMockLabTesting } from "../adapters/labTesting/junctionMockLabTesting.js"
@@ -20,6 +20,7 @@ export type Demo = {
   app: Hono<AppEnv>
   db: Db
   admins: readonly MockAdmin[]
+  admin: { fetch(request: Request): Promise<Response> }
 }
 
 /**
@@ -64,7 +65,8 @@ export const buildDemo = async (assets: ClientAssets): Promise<Demo> => {
     assets,
   )
   appRef.current = app
-  return { app, db, admins: [...identity.admins, payments.admin, labTesting.admin, database.admin] }
+  const admins = [...identity.admins, payments.admin, labTesting.admin, database.admin]
+  return { app, db, admins, admin: composeMockAdmins(admins) }
 }
 
 /** The Hono app alone. Tests and the standalone server do not open the admin tabs. */

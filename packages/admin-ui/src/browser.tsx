@@ -3,15 +3,19 @@ import {
   ApiOutlined,
   AppstoreOutlined,
   BranchesOutlined,
+  CheckOutlined,
   DatabaseOutlined,
   FieldTimeOutlined,
   HistoryOutlined,
+  MacCommandOutlined,
   MoonOutlined,
   ReloadOutlined,
+  SearchOutlined,
   SunOutlined,
   TableOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons"
+import type { ThemeConfig } from "antd"
 import {
   App,
   Avatar,
@@ -24,6 +28,7 @@ import {
   Input,
   Layout,
   Menu,
+  Modal,
   Result,
   Select,
   Space,
@@ -47,7 +52,7 @@ import {
   TimelineView,
 } from "./controls.js"
 import { Members } from "./members.js"
-import type { AdminConfig, Api, Manifest, MembersConfig, Panel } from "./model.js"
+import type { AdminApiConfig, AdminConfig, Api, Manifest, MembersConfig, Panel } from "./model.js"
 import { errorMessage } from "./model.js"
 import { SqlExplorer } from "./sql.js"
 import { StateExplorer } from "./state.js"
@@ -80,7 +85,249 @@ const remember = (key: string, value?: string): string | null => {
   }
 }
 
-function Vendor({ config }: { config: AdminConfig }) {
+type PaletteCommand = {
+  id: string
+  label: string
+  detail: string
+  keywords: string
+  icon: ReactNode
+  run(): void
+}
+
+function CommandPalette({
+  open,
+  onClose,
+  commands,
+  popupHost,
+  dark,
+}: {
+  open: boolean
+  onClose(): void
+  commands: readonly PaletteCommand[]
+  popupHost: HTMLElement
+  dark: boolean
+}) {
+  const [query, setQuery] = useState("")
+  const [active, setActive] = useState(0)
+  const input = useRef<import("antd").InputRef>(null)
+  const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean)
+  const visible = commands.filter((command) => {
+    const haystack = `${command.label} ${command.detail} ${command.keywords}`.toLocaleLowerCase()
+    return words.every((word) => haystack.includes(word))
+  })
+  const selected = visible[Math.min(active, Math.max(0, visible.length - 1))]
+  const colors = dark
+    ? { surface: "#171d26", border: "#343e4c", selected: "rgba(91,156,246,.16)" }
+    : { surface: "#ffffff", border: "#d4dae3", selected: "#eaf2ff" }
+  useEffect(() => {
+    if (!open) return
+    setQuery("")
+    setActive(0)
+    requestAnimationFrame(() => input.current?.focus())
+  }, [open])
+  const choose = (command: PaletteCommand | undefined) => {
+    if (!command) return
+    command.run()
+    onClose()
+  }
+  return (
+    <Modal
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      closable={false}
+      width={640}
+      centered={false}
+      getContainer={() => popupHost}
+      transitionName=""
+      maskTransitionName=""
+      styles={{
+        body: {
+          padding: 0,
+          overflow: "hidden",
+          background: colors.surface,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 12,
+        },
+      }}
+      afterOpenChange={(isOpen) => isOpen && input.current?.focus()}
+    >
+      <Input
+        ref={input}
+        variant="borderless"
+        size="large"
+        prefix={<SearchOutlined />}
+        suffix={<Typography.Text keyboard>esc</Typography.Text>}
+        aria-label="Admin command palette"
+        placeholder="Jump to a mock or screen…"
+        value={query}
+        onChange={(event) => {
+          setQuery(event.target.value)
+          setActive(0)
+        }}
+        onKeyDown={(event) => {
+          event.stopPropagation()
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault()
+            const delta = event.key === "ArrowDown" ? 1 : -1
+            setActive((index) =>
+              visible.length === 0 ? 0 : (index + delta + visible.length) % visible.length,
+            )
+          } else if (event.key === "Enter") {
+            event.preventDefault()
+            choose(selected)
+          }
+        }}
+        style={{ padding: "16px 18px", fontSize: 16 }}
+      />
+      <div style={{ borderTop: `1px solid ${colors.border}` }}>
+        <div style={{ maxHeight: 440, overflowY: "auto", padding: 8 }} role="listbox">
+          {visible.length === 0 ? (
+            <Result status="info" title="No commands found" subTitle="Try a mock or screen name." />
+          ) : (
+            visible.map((command, index) => (
+              <button
+                key={command.id}
+                type="button"
+                role="option"
+                aria-selected={index === active}
+                onMouseEnter={() => setActive(index)}
+                onClick={() => choose(command)}
+                style={{
+                  width: "100%",
+                  border: 0,
+                  borderRadius: 8,
+                  padding: "11px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  color: "inherit",
+                  background: index === active ? colors.selected : "transparent",
+                }}
+              >
+                <span style={{ color: "var(--ant-color-primary)", fontSize: 17 }}>
+                  {command.icon}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <Typography.Text strong style={{ display: "block" }}>
+                    {command.label}
+                  </Typography.Text>
+                  <Typography.Text type="secondary" ellipsis style={{ display: "block" }}>
+                    {command.detail}
+                  </Typography.Text>
+                </span>
+                {index === active && (
+                  <CheckOutlined style={{ color: "var(--ant-color-primary)" }} />
+                )}
+              </button>
+            ))
+          )}
+        </div>
+        <Flex
+          justify="space-between"
+          style={{ borderTop: `1px solid ${colors.border}`, padding: "9px 14px" }}
+        >
+          <Typography.Text type="secondary">↑↓ Navigate · ↵ Open</Typography.Text>
+          <Typography.Text type="secondary">Mocks and admin screens</Typography.Text>
+        </Flex>
+      </div>
+    </Modal>
+  )
+}
+
+const shellTheme = (dark: boolean): ThemeConfig => {
+  const palette = dark
+    ? {
+        canvas: "#0b0f14",
+        surface: "#11161d",
+        elevated: "#171d26",
+        border: "#252d38",
+        borderStrong: "#343e4c",
+        text: "#edf2f7",
+        textMuted: "#9aa6b5",
+        primary: "#5b9cf6",
+        selected: "rgba(91, 156, 246, 0.16)",
+        hover: "rgba(255, 255, 255, 0.055)",
+      }
+    : {
+        canvas: "#f5f7fa",
+        surface: "#ffffff",
+        elevated: "#ffffff",
+        border: "#e4e8ee",
+        borderStrong: "#d4dae3",
+        text: "#172033",
+        textMuted: "#667085",
+        primary: "#2563d8",
+        selected: "#eaf2ff",
+        hover: "#f3f6fa",
+      }
+
+  return {
+    algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    token: {
+      motion: false,
+      colorPrimary: palette.primary,
+      colorInfo: palette.primary,
+      colorBgBase: palette.canvas,
+      colorBgLayout: palette.canvas,
+      colorBgContainer: palette.surface,
+      colorBgElevated: palette.elevated,
+      colorBorder: palette.borderStrong,
+      colorBorderSecondary: palette.border,
+      colorText: palette.text,
+      colorTextSecondary: palette.textMuted,
+      borderRadius: 8,
+      borderRadiusLG: 12,
+      controlHeight: 38,
+      fontSize: 14,
+      boxShadowSecondary: dark
+        ? "0 18px 48px rgba(0, 0, 0, 0.42)"
+        : "0 18px 48px rgba(16, 24, 40, 0.14)",
+    },
+    components: {
+      Layout: {
+        bodyBg: palette.canvas,
+        headerBg: palette.surface,
+        siderBg: palette.surface,
+        triggerBg: palette.surface,
+        triggerColor: palette.textMuted,
+        lightSiderBg: palette.surface,
+        lightTriggerBg: palette.surface,
+        lightTriggerColor: palette.textMuted,
+      },
+      Menu: {
+        itemBg: palette.surface,
+        itemColor: palette.textMuted,
+        itemHoverBg: palette.hover,
+        itemHoverColor: palette.text,
+        itemSelectedBg: palette.selected,
+        itemSelectedColor: palette.primary,
+        itemBorderRadius: 8,
+        itemHeight: 42,
+        darkItemBg: palette.surface,
+        darkSubMenuItemBg: palette.surface,
+        darkItemColor: palette.textMuted,
+        darkItemHoverBg: palette.hover,
+        darkItemHoverColor: palette.text,
+        darkItemSelectedBg: palette.selected,
+        darkItemSelectedColor: dark ? "#9dc2fa" : palette.primary,
+      },
+      Card: {
+        headerBg: "transparent",
+      },
+      Table: {
+        headerBg: dark ? "#171d25" : "#f7f9fc",
+        headerColor: palette.text,
+        rowHoverBg: palette.hover,
+        borderColor: palette.border,
+      },
+    },
+  }
+}
+
+function Vendor({ config, service }: { config: AdminConfig; service: string }) {
   const [brand, setBrand] = useState<ReturnType<typeof brandFor>>(null)
   useEffect(() => {
     const controller = new AbortController()
@@ -89,11 +336,11 @@ function Vendor({ config }: { config: AdminConfig }) {
     })
       .then((response) => (response.ok ? (response.json() as Promise<unknown>) : null))
       .then((catalog: unknown) => {
-        if (!controller.signal.aborted) setBrand(brandFor(config.service, catalog))
+        if (!controller.signal.aborted) setBrand(brandFor(service, catalog))
       })
       .catch(() => {})
     return () => controller.abort()
-  }, [config])
+  }, [config.brandsUrl, service])
   if (!brand) return null
   return (
     <Space wrap size="small">
@@ -157,10 +404,21 @@ function Workspace({
   popupHost: HTMLElement
 }) {
   const params = useMemo(() => new URL(location.href).searchParams, [])
+  const apiConfigs = useMemo<readonly AdminApiConfig[]>(
+    () =>
+      config.apis?.length
+        ? config.apis
+        : [{ ...config, id: config.service, label: config.service }],
+    [config],
+  )
+  const [apiId, setApiId] = useState(params.get("mock") || apiConfigs[0]?.id || config.service)
+  const apiConfig = apiConfigs.find((candidate) => candidate.id === apiId) ??
+    apiConfigs[0] ?? { ...config, id: config.service, label: config.service }
   const [namespace, setNamespace] = useState(params.get("namespace") || "default")
   const [key, setKey] = useState(params.get("admin_key") ?? remember("mockingbird-admin-key") ?? "")
   const [draftKey, setDraftKey] = useState(key)
   const [view, setView] = useState(location.hash.slice(1) || "overview")
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const [revision, setRevision] = useState(0)
   const [narrow, setNarrow] = useState(host.clientWidth < 760)
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
@@ -170,7 +428,13 @@ function Workspace({
       (remember("mockingbird-admin-theme") === null &&
         window.matchMedia("(prefers-color-scheme: dark)").matches),
   )
-  const api = useMemo(() => createApi(config, fetch, namespace, key), [config, namespace, key])
+  const adminTheme = useMemo(() => shellTheme(dark), [dark])
+  const shellBorder = dark ? "#252d38" : "#e4e8ee"
+  const shellSurface = dark ? "#11161d" : "#ffffff"
+  const api = useMemo(
+    () => createApi(apiConfig, fetch, namespace, key),
+    [apiConfig, namespace, key],
+  )
   const manifest = useResource<Manifest>(api, "/ui/manifest", 0, false)
   const namespaces = useResource<{ namespaces: string[] }>(api, "/namespaces", revision)
   useEffect(() => {
@@ -199,9 +463,23 @@ function Workspace({
       history.replaceState(null, "", url.href)
     }
   }, [key, params])
+  useEffect(() => {
+    const open = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLocaleLowerCase() !== "k") return
+      event.preventDefault()
+      // The docs host has its own command palette. Embedded admins own this shortcut at their
+      // scoped host boundary, so one keypress can never open both palettes.
+      event.stopPropagation()
+      event.stopImmediatePropagation()
+      setPaletteOpen(true)
+    }
+    document.addEventListener("keydown", open)
+    return () => document.removeEventListener("keydown", open)
+  }, [])
   const panelList = [...(manifest.data?.panels ?? []), ...(manifest.data?.extensions ?? [])]
+  const standardRoutes = manifest.data?.standardRoutes ?? apiConfig.standardRoutes
   const hasSql = panelList.some((panel) => panel.kind === "sql")
-  const nav = [
+  const coreNav = [
     { key: "overview", icon: <AppstoreOutlined />, label: "Overview" },
     { key: "state", icon: <DatabaseOutlined />, label: "State" },
     { key: "clock", icon: <FieldTimeOutlined />, label: "Clock" },
@@ -209,10 +487,43 @@ function Workspace({
     { key: "journal", icon: <HistoryOutlined />, label: "Journal" },
     { key: "checkpoints", icon: <BranchesOutlined />, label: "Checkpoints" },
     { key: "routes", icon: <ApiOutlined />, label: "Routes" },
+  ]
+  const nav = [
+    ...coreNav,
     ...panelList.map((panel) => ({
       key: panel.id,
       icon: panel.kind === "sql" ? <TableOutlined /> : <AppstoreOutlined />,
       label: panel.title,
+    })),
+  ]
+  const goTo = (nextApi: string, nextView: string) => {
+    setApiId(nextApi)
+    setView(nextView)
+    const url = new URL(location.href)
+    url.hash = nextView
+    history.replaceState(null, "", url.href)
+  }
+  const paletteCommands: PaletteCommand[] = [
+    ...apiConfigs.flatMap((candidate) =>
+      coreNav.map((screen) => ({
+        id: `${candidate.id}:${screen.key}`,
+        label: `${candidate.label ?? candidate.service} · ${screen.label}`,
+        detail:
+          screen.key === "overview"
+            ? `Switch to ${candidate.label ?? candidate.service}`
+            : `Open ${screen.label.toLocaleLowerCase()} for ${candidate.label ?? candidate.service}`,
+        keywords: `mock service admin ${candidate.id} ${candidate.service} ${screen.key}`,
+        icon: screen.icon,
+        run: () => goTo(candidate.id, screen.key),
+      })),
+    ),
+    ...panelList.map((panel) => ({
+      id: `${apiConfig.id}:${panel.id}`,
+      label: `${apiConfig.label ?? apiConfig.service} · ${panel.title}`,
+      detail: panel.description ?? `Open ${panel.title} for the current mock`,
+      keywords: `extension panel ${apiConfig.id} ${panel.id} ${panel.kind ?? "panel"}`,
+      icon: panel.kind === "sql" ? <TableOutlined /> : <AppstoreOutlined />,
+      run: () => goTo(apiConfig.id, panel.id),
     })),
   ]
   const selected = nav.some((item) => item.key === view) ? view : "overview"
@@ -238,7 +549,7 @@ function Workspace({
       content = <TimelineView {...common} />
       break
     case "routes":
-      content = <RoutesView {...common} standardRoutes={config.standardRoutes} />
+      content = <RoutesView {...common} standardRoutes={standardRoutes} />
       break
     default: {
       const panel = panelList.find((panel) => panel.id === selected)
@@ -248,7 +559,7 @@ function Workspace({
         ) : panel?.kind === "route" ? (
           <RoutesView
             {...common}
-            standardRoutes={config.standardRoutes}
+            standardRoutes={standardRoutes}
             initialRoute={panel.route}
             initialBody={panel.body}
             title={panel.title}
@@ -263,36 +574,61 @@ function Workspace({
     <ConfigProvider
       getPopupContainer={() => popupHost}
       // Embedded browsers can pause animation frames; disposal must remain immediate.
-      theme={{
-        algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: { motion: false },
-      }}
+      theme={adminTheme}
     >
       <App
         message={{ getContainer: () => popupHost }}
         notification={{ getContainer: () => popupHost }}
         style={{ minHeight: "100%" }}
       >
-        <Layout style={{ minHeight: viewportHeight }}>
+        <Layout style={{ minHeight: viewportHeight, background: adminTheme.token?.colorBgLayout }}>
           <Layout.Header
             style={{
               height: "auto",
-              padding: "16px 24px",
+              minHeight: 72,
+              padding: narrow ? "14px 16px" : "16px 24px",
               lineHeight: "normal",
-              background: dark ? "#141414" : "#fff",
+              background: shellSurface,
+              borderBottom: `1px solid ${shellBorder}`,
+              zIndex: 2,
             }}
           >
             <Flex gap="middle" wrap justify="space-between" align="center">
               <Flex vertical gap={4}>
                 <Flex align="center" gap="small">
-                  <Typography.Title level={4} style={{ margin: 0 }}>
-                    {config.service}
-                  </Typography.Title>
+                  {apiConfigs.length > 1 ? (
+                    <Select
+                      aria-label="Mock"
+                      showSearch
+                      optionFilterProp="label"
+                      variant="borderless"
+                      value={apiConfig.id}
+                      onChange={(next) => goTo(next, "overview")}
+                      popupMatchSelectWidth={240}
+                      style={{
+                        minWidth: 190,
+                        fontSize: 20,
+                        fontWeight: 650,
+                        marginInlineStart: -11,
+                      }}
+                      options={apiConfigs.map((candidate) => ({
+                        value: candidate.id,
+                        label: candidate.label ?? candidate.service,
+                      }))}
+                    />
+                  ) : (
+                    <Typography.Title level={4} style={{ margin: 0, textTransform: "capitalize" }}>
+                      {apiConfig.label ?? apiConfig.service}
+                    </Typography.Title>
+                  )}
                   <Tag style={{ margin: 0 }}>Admin</Tag>
                 </Flex>
-                <Vendor config={config} />
+                <Vendor config={config} service={apiConfig.service} />
               </Flex>
               <Flex wrap gap="small" align="center">
+                <Button icon={<MacCommandOutlined />} onClick={() => setPaletteOpen(true)}>
+                  Jump <Typography.Text keyboard>⌘K</Typography.Text>
+                </Button>
                 <Select
                   aria-label="Namespace"
                   showSearch
@@ -345,22 +681,37 @@ function Workspace({
               collapsed={narrow || collapsed}
               collapsible={!narrow}
               onCollapse={setCollapsed}
+              style={{
+                background: shellSurface,
+                borderInlineEnd: `1px solid ${shellBorder}`,
+              }}
             >
               <Menu
                 theme={dark ? "dark" : "light"}
                 mode="inline"
                 selectedKeys={[selected]}
                 items={nav}
+                style={{
+                  background: "transparent",
+                  borderInlineEnd: 0,
+                  padding: narrow || collapsed ? "12px 6px" : "12px 10px",
+                }}
                 onClick={({ key: next }) => {
-                  setView(next)
-                  const url = new URL(location.href)
-                  url.hash = next
-                  history.replaceState(null, "", url.href)
+                  goTo(apiConfig.id, next)
                 }}
               />
             </Layout.Sider>
-            <Layout.Content style={{ minWidth: 0, padding: narrow ? 12 : 24 }}>
-              <Flex vertical gap="large">
+            <Layout.Content
+              style={{
+                minWidth: 0,
+                padding: narrow ? "20px 12px 36px" : "32px 28px 48px",
+              }}
+            >
+              <Flex
+                vertical
+                gap="large"
+                style={{ width: "100%", maxWidth: 1440, margin: "0 auto" }}
+              >
                 <ErrorNotice
                   error={manifest.error ?? namespaces.error}
                   retry={() => {
@@ -379,6 +730,13 @@ function Workspace({
             </Layout.Content>
           </Layout>
         </Layout>
+        <CommandPalette
+          open={paletteOpen}
+          onClose={() => setPaletteOpen(false)}
+          commands={paletteCommands}
+          popupHost={popupHost}
+          dark={dark}
+        />
       </App>
     </ConfigProvider>
   )

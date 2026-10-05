@@ -1,9 +1,21 @@
+export type AdminApiConfig = {
+  /** Stable key used by the global mock selector. */
+  id: string
+  /** Human-readable selector label. Defaults to `service`. */
+  label?: string
+  service: string
+  adminPrefix: string
+  adminKeyHeader: string
+  standardRoutes: readonly string[]
+}
 export type AdminConfig = {
   standardRoutes: readonly string[]
   adminPrefix: string
   adminKeyHeader: string
   brandsUrl: string
   service: string
+  /** Admin APIs presented by this shell. Omit for the service-local API above. */
+  apis?: readonly AdminApiConfig[]
 }
 export type MembersConfig = {
   currentUserId: string
@@ -52,7 +64,11 @@ export type RouteExtension = {
   route: string
   body?: unknown
 }
-export type Manifest = { panels: Panel[]; extensions: (Panel | SqlExtension | RouteExtension)[] }
+export type Manifest = {
+  standardRoutes?: string[]
+  panels: Panel[]
+  extensions: (Panel | SqlExtension | RouteExtension)[]
+}
 export type SqlTable = {
   schema: string
   name: string
