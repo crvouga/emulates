@@ -1,8 +1,10 @@
 import { html } from "htm/preact"
-import { render } from "preact"
+import { type FunctionComponent, render } from "preact"
 import { useEffect, useState } from "preact/hooks"
 import { can } from "../app/model.js"
 import { api, onUnauthorized, type User } from "./api.js"
+import { IconGrid, IconList, IconOrders, IconPlus, IconSettings } from "./components/Icons.js"
+import { Logo } from "./components/Logo.js"
 import { ErrorState, Loading, message } from "./components/States.js"
 import { Account } from "./pages/Account.js"
 import { Admin } from "./pages/Admin.js"
@@ -13,11 +15,11 @@ import { Orders } from "./pages/Orders.js"
 import { Shop } from "./pages/Shop.js"
 import { configureRouter, navigate, type Route, useRoute } from "./router.js"
 
-const LINKS: { route: Route; label: string; symbol: string }[] = [
-  { route: "dashboard", label: "Overview", symbol: "▦" },
-  { route: "shop", label: "Test catalog", symbol: "+" },
-  { route: "orders", label: "Orders", symbol: "□" },
-  { route: "results", label: "Results", symbol: "≡" },
+const LINKS: { route: Route; label: string; icon: FunctionComponent }[] = [
+  { route: "dashboard", label: "Overview", icon: IconGrid },
+  { route: "shop", label: "Test catalog", icon: IconPlus },
+  { route: "orders", label: "Orders", icon: IconOrders },
+  { route: "results", label: "Results", icon: IconList },
 ]
 const App = () => {
   const route = useRoute()
@@ -78,18 +80,18 @@ const App = () => {
   return html`
     <div class="cove-shell">
       <aside class="cove-sidebar">
-        <button class="cove-wordmark" onClick=${() => navigate("dashboard")}><span class="cove-logo-box" aria-hidden="true">+</span>Lab testing</button>
+        <button class="cove-wordmark" onClick=${() => navigate("dashboard")}><${Logo}/></button>
         <div class="cove-workspace-label">${can(user.role, "orders.read") ? "Care workspace" : "Personal workspace"}</div>
         <nav class="cove-nav-links" aria-label="Main navigation">
-          ${LINKS.map((link) => html`<button key=${link.route} class="cove-nav-link ${route === link.route ? "is-active" : ""}" aria-current=${route === link.route ? "page" : undefined} onClick=${() => navigate(link.route)}><span aria-hidden="true">${link.symbol}</span>${link.label}</button>`)}
-          ${can(user.role, "users.manage") && html`<button class="cove-nav-link ${route === "admin" ? "is-active" : ""}" aria-current=${route === "admin" ? "page" : undefined} onClick=${() => navigate("admin")}><span aria-hidden="true">⚙</span>Administration</button>`}
+          ${LINKS.map((link) => html`<button key=${link.route} class="cove-nav-link ${route === link.route ? "is-active" : ""}" aria-current=${route === link.route ? "page" : undefined} onClick=${() => navigate(link.route)}><span aria-hidden="true"><${link.icon}/></span>${link.label}</button>`)}
+          ${can(user.role, "users.manage") && html`<button class="cove-nav-link ${route === "admin" ? "is-active" : ""}" aria-current=${route === "admin" ? "page" : undefined} onClick=${() => navigate("admin")}><span aria-hidden="true"><${IconSettings}/></span>Administration</button>`}
         </nav>
         <div class="cove-sidebar-bottom"><p class="cove-muted">Your orders, reports, and care history in one place.</p><button class="cove-nav-user" onClick=${() => navigate("account")}><span class="cove-avatar">${(user.name?.[0] ?? "?").toUpperCase()}</span><span><strong>${user.name ?? "Account"}</strong><small>${user.role}</small></span><span aria-hidden="true">›</span></button></div>
       </aside>
       <div class="cove-workspace">
         <header class="cove-topbar"><span>${route === "account" ? "Account settings" : route === "checkout" ? "Secure checkout" : route === "admin" ? "Administration" : LINKS.find((link) => link.route === route)?.label}</span><span class="cove-topbar-right"><span class="cove-role">${user.role}</span><button class="cove-btn cove-btn-ghost cove-btn-sm" onClick=${() => navigate("account")}>Account</button></span></header>
         <main class="cove-main" id="cove-content"><div class="cove-container">
-          ${notice && html`<div class="cove-alert cove-alert-success cove-toolbar" role="status"><span>${notice}</span><button class="cove-btn cove-btn-ghost cove-btn-sm" aria-label="Dismiss notification" onClick=${() => setNotice(null)}>Dismiss</button></div>`}
+          ${notice && html`<div class="cove-alert cove-alert-success cove-notice" role="status"><span>${notice}</span><button class="cove-btn cove-btn-ghost cove-btn-sm" aria-label="Dismiss notification" onClick=${() => setNotice(null)}>Dismiss</button></div>`}
           ${error && html`<${ErrorState} error=${error} retry=${() => setError(null)}/>`}
           ${route === "dashboard" && html`<${Dashboard} user=${user}/>`}
           ${route === "shop" && html`<${Shop} onCheckout=${startCheckout}/>`}

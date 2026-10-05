@@ -35,23 +35,29 @@ ${scopeReset(".demo-shell")}
 }
 .demo-tabs {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   flex: none;
   overflow-x: auto;
-  padding: 8px 10px;
+  min-height: 56px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border, #e7e7ea);
   background: var(--bg, #fff);
 }
 .demo-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: none;
   border: 0;
   background: transparent;
   color: var(--fg-muted, #5c5c66);
   border-radius: 999px;
-  min-height: 36px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 14px;
   font: inherit;
   font-size: 13px;
+  line-height: 1;
   cursor: pointer;
 }
 .demo-tabs button:hover { color: var(--fg, #111); }
