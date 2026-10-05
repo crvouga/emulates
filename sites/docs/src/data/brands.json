@@ -13,6 +13,19 @@
     "logo": "/brands/aha.png",
     "logoSource": "site"
   },
+  "app-store-connect": {
+    "vendor": "App Store Connect",
+    "website": "https://developer.apple.com/app-store-connect/",
+    "docs": "https://developer.apple.com/documentation/appstoreconnectapi",
+    "description": "Easily upload, submit, and manage your apps on the App Store with App Store Connect on the web or on iOS. This suite of tools also lets you view sales reports, access app analytics, invite users to test your apps with…",
+    "input": {
+      "website": "https://developer.apple.com/app-store-connect/",
+      "docs": "https://developer.apple.com/documentation/appstoreconnectapi"
+    },
+    "color": null,
+    "logo": "/brands/app-store-connect.ico",
+    "logoSource": "site"
+  },
   "aws-secrets": {
     "vendor": "AWS Secrets Manager & SSM",
     "website": "https://aws.amazon.com/secrets-manager/",
