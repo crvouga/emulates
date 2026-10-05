@@ -9,9 +9,22 @@ import {
   encodeForm,
   type FormObject,
   mediaTypeOf,
+  readBody,
 } from "./src/index.js"
 
 const params = fcParameters(process.env)
+
+test("readBody preserves automatically generated form content types", async () => {
+  const request = new Request("http://localhost/token", {
+    method: "POST",
+    body: new URLSearchParams({ client_id: "synthetic-client", scope: "offline read:sleep" }),
+  })
+  // Do not access headers first: Bun materializes automatic headers lazily.
+  expect(await readBody(request)).toEqual({
+    kind: "form",
+    value: { client_id: "synthetic-client", scope: "offline read:sleep" },
+  })
+})
 
 const key = fc.stringMatching(/^[A-Za-z_][A-Za-z0-9_.-]{0,7}$/)
 
