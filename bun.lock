@@ -427,6 +427,7 @@
         "@crvouga/mockingbird-service-plane": "workspace:*",
         "@crvouga/mockingbird-service-posthog": "workspace:*",
         "@crvouga/mockingbird-service-prism": "workspace:*",
+        "@crvouga/mockingbird-service-recaptcha": "workspace:*",
         "@crvouga/mockingbird-service-resend": "workspace:*",
         "@crvouga/mockingbird-service-rxvortex": "workspace:*",
         "@crvouga/mockingbird-service-s3": "workspace:*",
@@ -1462,6 +1463,32 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/recaptcha": {
+      "name": "@crvouga/mockingbird-service-recaptcha",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-recaptcha": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-http-codec": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/redis": {
       "name": "@crvouga/mockingbird-service-redis",
       "version": "0.0.0-development",
@@ -1945,6 +1972,7 @@
         "@crvouga/mockingbird-service-postgres": "workspace:*",
         "@crvouga/mockingbird-service-posthog": "workspace:*",
         "@crvouga/mockingbird-service-prism": "workspace:*",
+        "@crvouga/mockingbird-service-recaptcha": "workspace:*",
         "@crvouga/mockingbird-service-redis": "workspace:*",
         "@crvouga/mockingbird-service-resend": "workspace:*",
         "@crvouga/mockingbird-service-rxvortex": "workspace:*",
@@ -2394,6 +2422,8 @@
     "@crvouga/mockingbird-service-posthog": ["@crvouga/mockingbird-service-posthog@workspace:packages/service/posthog"],
 
     "@crvouga/mockingbird-service-prism": ["@crvouga/mockingbird-service-prism@workspace:packages/service/prism"],
+
+    "@crvouga/mockingbird-service-recaptcha": ["@crvouga/mockingbird-service-recaptcha@workspace:packages/service/recaptcha"],
 
     "@crvouga/mockingbird-service-redis": ["@crvouga/mockingbird-service-redis@workspace:packages/service/redis"],
 
