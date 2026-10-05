@@ -120,6 +120,31 @@ test("OAuth S256 is mandatory, wrong verifier consumes code and refresh rotates"
     (await c.exchange({ grant_type: "refresh_token", refresh_token: token.refresh_token })).status,
   ).toBe(400)
 })
+test("duplicate OAuth form parameters reject before rotating grants", async () => {
+  const api = new AirtableAPI()
+  const response = await api.fetch(
+    new Request(`${base}/oauth2/v1/token`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        authorization: `Basic ${btoa("mock_client:mock_client_secret")}`,
+      },
+      body: "grant_type=refresh_token&refresh_token=mock_airtable_refresh&grant_type=refresh_token",
+    }),
+  )
+  expect(response.status).toBe(400)
+  expect(await response.json()).toMatchObject({ error: "invalid_request" })
+  expect(api.grants.has("mock_airtable_token")).toBe(true)
+  expect(api.grants.list()).toHaveLength(1)
+  expect(
+    (
+      await client((r) => api.fetch(r), base).exchange({
+        grant_type: "refresh_token",
+        refresh_token: "mock_airtable_refresh",
+      })
+    ).status,
+  ).toBe(200)
+})
 test("namespace reset and journal preserve isolated synthetic state", async () => {
   const runtime = createRuntime(),
     a = client((r) => runtime.fetch(r), `${base}/__admin/ns/a`),

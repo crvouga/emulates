@@ -212,7 +212,22 @@ export class AirtableAPI implements FetchAPI {
     for (const r of this.fixtures.records) this.records.insert(r.id, r)
     this.initialized.insert("seed", { value: true })
   }
-  fetch(r: Request) {
+  async fetch(r: Request): Promise<Response> {
+    // OAuth rejects duplicate flat parameters; the shared bracket-form decoder
+    // intentionally keeps only the last value, so inspect pairs before dispatch.
+    if (
+      r.method === "POST" &&
+      new URL(r.url).pathname === "/oauth2/v1/token" &&
+      r.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() ===
+        "application/x-www-form-urlencoded"
+    ) {
+      const pairs = new URLSearchParams(await r.clone().text())
+      const names = new Set<string>()
+      for (const name of pairs.keys()) {
+        if (names.has(name)) return oauthError("invalid_request")
+        names.add(name)
+      }
+    }
     return this.service.fetch(r)
   }
   async reset() {
@@ -408,8 +423,6 @@ export class AirtableAPI implements FetchAPI {
       (b.has("client_id") && b.get("client_id") !== clientId)
     )
       return oauthError("invalid_client")
-    for (const key of new Set(b.keys()))
-      if (b.getAll(key).length > 1) return oauthError("invalid_request")
     let source: Omit<Grant, "token" | "refreshToken" | "expiresAt" | "refreshExpiresAt">
     if (b.get("grant_type") === "authorization_code") {
       const code = this.codes.get(b.get("code") ?? "")
