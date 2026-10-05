@@ -36,6 +36,7 @@ import type { createRuntime as createLlamacloud } from "@crvouga/mockingbird-ser
 import type { createRuntime as createMailosaur } from "@crvouga/mockingbird-service-mailosaur"
 import type { createRuntime as createMediaconvert } from "@crvouga/mockingbird-service-mediaconvert"
 import type { createRuntime as createMedplum } from "@crvouga/mockingbird-service-medplum"
+import type { createRuntime as createMeta } from "@crvouga/mockingbird-service-meta"
 import type { createRuntime as createNotion } from "@crvouga/mockingbird-service-notion"
 import type { createRuntime as createOauth } from "@crvouga/mockingbird-service-oauth"
 import type { createRuntime as createOdx } from "@crvouga/mockingbird-service-odx"
@@ -151,4 +152,5 @@ export type SurfaceProof = [
   Assert<typeof createEventBridge>,
   Assert<typeof createVibe>,
   Assert<typeof createUnsplash>,
+  Assert<typeof createMeta>,
 ]

@@ -493,6 +493,20 @@
     "logo": "/brands/medplum.png",
     "logoSource": "site"
   },
+  "meta": {
+    "vendor": "Meta",
+    "website": "https://www.meta.com",
+    "docs": "https://developers.facebook.com/docs/marketing-apis/",
+    "description": "Advertising insights and server-side conversion events from Meta.",
+    "input": {
+      "website": "https://www.meta.com",
+      "docs": "https://developers.facebook.com/docs/marketing-apis/",
+      "description": "Advertising insights and server-side conversion events from Meta."
+    },
+    "color": "#0467DF",
+    "logo": "/brands/meta.svg",
+    "logoSource": "simple-icons"
+  },
   "notion": {
     "vendor": "Notion",
     "website": "https://www.notion.com",
