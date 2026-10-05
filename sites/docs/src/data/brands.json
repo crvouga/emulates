@@ -13,6 +13,20 @@
     "logo": "/brands/aha.png",
     "logoSource": "site"
   },
+  "airtable": {
+    "vendor": "Airtable",
+    "website": "https://airtable.com",
+    "docs": "https://airtable.com/developers/web/api/introduction",
+    "description": "Airtable collaborative database API.",
+    "input": {
+      "website": "https://airtable.com",
+      "docs": "https://airtable.com/developers/web/api/introduction",
+      "description": "Airtable collaborative database API."
+    },
+    "color": "#18BFFF",
+    "logo": "/brands/airtable.svg",
+    "logoSource": "simple-icons"
+  },
   "aws-secrets": {
     "vendor": "AWS Secrets Manager & SSM",
     "website": "https://aws.amazon.com/secrets-manager/",

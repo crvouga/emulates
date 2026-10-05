@@ -242,6 +242,32 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/airtable": {
+      "name": "@crvouga/mockingbird-service-airtable",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-airtable": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-http-codec": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/aws-secrets": {
       "name": "@crvouga/mockingbird-service-aws-secrets",
       "version": "0.0.0-development",
@@ -386,6 +412,7 @@
       "dependencies": {
         "@crvouga/mockingbird-service": "workspace:*",
         "@crvouga/mockingbird-service-aha": "workspace:*",
+        "@crvouga/mockingbird-service-airtable": "workspace:*",
         "@crvouga/mockingbird-service-aws-secrets": "workspace:*",
         "@crvouga/mockingbird-service-aws-speech": "workspace:*",
         "@crvouga/mockingbird-service-bedrock": "workspace:*",
@@ -1903,6 +1930,7 @@
       "devDependencies": {
         "@crvouga/mockingbird-example-medical-testing": "workspace:*",
         "@crvouga/mockingbird-service-aha": "workspace:*",
+        "@crvouga/mockingbird-service-airtable": "workspace:*",
         "@crvouga/mockingbird-service-aws-secrets": "workspace:*",
         "@crvouga/mockingbird-service-aws-speech": "workspace:*",
         "@crvouga/mockingbird-service-bedrock": "workspace:*",
@@ -2308,6 +2336,8 @@
     "@crvouga/mockingbird-service": ["@crvouga/mockingbird-service@workspace:packages/service/core"],
 
     "@crvouga/mockingbird-service-aha": ["@crvouga/mockingbird-service-aha@workspace:packages/service/aha"],
+
+    "@crvouga/mockingbird-service-airtable": ["@crvouga/mockingbird-service-airtable@workspace:packages/service/airtable"],
 
     "@crvouga/mockingbird-service-aws-secrets": ["@crvouga/mockingbird-service-aws-secrets@workspace:packages/service/aws-secrets"],
 
