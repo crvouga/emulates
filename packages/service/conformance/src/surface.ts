@@ -58,6 +58,7 @@ import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service
 import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-service-vercel-blob"
 import type { createRuntime as createVpi } from "@crvouga/mockingbird-service-vpi"
 import type { createRuntime as createWholescripts } from "@crvouga/mockingbird-service-wholescripts"
+import type { createRuntime as createWhoop } from "@crvouga/mockingbird-service-whoop"
 
 /**
  * Every HTTP mock is created the same way and returns the same surface.
@@ -127,4 +128,5 @@ export type SurfaceProof = [
   Assert<typeof createAppStoreConnect>,
   Assert<typeof createAirtable>,
   Assert<typeof createCheckr>,
+  Assert<typeof createWhoop>,
 ]

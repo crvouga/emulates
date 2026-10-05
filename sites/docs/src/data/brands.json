@@ -829,5 +829,19 @@
     "color": null,
     "logo": "/brands/wholescripts.png",
     "logoSource": "site"
+  },
+  "whoop": {
+    "vendor": "WHOOP",
+    "website": "https://www.whoop.com",
+    "docs": "https://developer.whoop.com/api/",
+    "description": "WHOOP wearable fitness data API.",
+    "input": {
+      "website": "https://www.whoop.com",
+      "docs": "https://developer.whoop.com/api/",
+      "description": "WHOOP wearable fitness data API."
+    },
+    "color": null,
+    "logo": "/brands/whoop.png",
+    "logoSource": "favicon-service"
   }
 }

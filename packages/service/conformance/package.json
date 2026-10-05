@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@crvouga/mockingbird-service-tavily": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-service-aha": "workspace:*",
     "@crvouga/mockingbird-service-airtable": "workspace:*",
@@ -55,11 +54,13 @@
     "@crvouga/mockingbird-service-sqs": "workspace:*",
     "@crvouga/mockingbird-service-step-functions": "workspace:*",
     "@crvouga/mockingbird-service-stripe": "workspace:*",
+    "@crvouga/mockingbird-service-tavily": "workspace:*",
     "@crvouga/mockingbird-service-textract": "workspace:*",
     "@crvouga/mockingbird-service-twilio": "workspace:*",
     "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
     "@crvouga/mockingbird-service-vpi": "workspace:*",
-    "@crvouga/mockingbird-service-wholescripts": "workspace:*"
+    "@crvouga/mockingbird-service-wholescripts": "workspace:*",
+    "@crvouga/mockingbird-service-whoop": "workspace:*"
   },
   "description": "Proves every HTTP mock implements the same MockSurface and admin control plane.",
   "license": "MIT",
