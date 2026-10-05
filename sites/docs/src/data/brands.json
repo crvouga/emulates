@@ -479,6 +479,20 @@
     "logo": "/brands/medplum.png",
     "logoSource": "site"
   },
+  "notion": {
+    "vendor": "Notion",
+    "website": "https://www.notion.com",
+    "docs": "https://developers.notion.com/reference/intro",
+    "description": "Workspace databases and pages.",
+    "input": {
+      "website": "https://www.notion.com",
+      "docs": "https://developers.notion.com/reference/intro",
+      "description": "Workspace databases and pages."
+    },
+    "color": "#000000",
+    "logo": "/brands/notion.svg",
+    "logoSource": "simple-icons"
+  },
   "oauth": {
     "vendor": "OpenID Foundation",
     "website": "https://openid.net",
