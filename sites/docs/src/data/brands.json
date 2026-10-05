@@ -734,6 +734,20 @@
     "logo": "/brands/twilio.svg",
     "logoSource": "simple-icons"
   },
+  "unsplash": {
+    "vendor": "Unsplash",
+    "website": "https://unsplash.com",
+    "docs": "https://unsplash.com/documentation",
+    "description": "Photo search and attribution.",
+    "input": {
+      "website": "https://unsplash.com",
+      "docs": "https://unsplash.com/documentation",
+      "description": "Photo search and attribution."
+    },
+    "color": "#000000",
+    "logo": "/brands/unsplash.svg",
+    "logoSource": "simple-icons"
+  },
   "vercel-blob": {
     "vendor": "Vercel Blob",
     "website": "https://vercel.com",
