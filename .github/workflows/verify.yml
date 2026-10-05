@@ -12,6 +12,11 @@ on:
   schedule:
     - cron: "17 9 * * *" # daily
   workflow_dispatch:
+    inputs:
+      refresh_corpus:
+        description: "Re-record the sandbox corpus and upload it for review and commit"
+        type: boolean
+        default: false
 
 concurrency:
   group: verify-junction
@@ -39,8 +44,23 @@ jobs:
         timeout-minutes: 10
         run: bunx turbo run build --filter='@crvouga/mockingbird-service-junction^...' --output-logs=errors-only
 
+      # Manual maintenance only: scheduled verification always checks the committed corpus.
+      - name: Refresh sandbox corpus
+        if: inputs.refresh_corpus == true
+        env:
+          JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
+        run: bun run --cwd packages/service/junction corpus:record -- --force
+
       - name: mockingbird-junction verify (shipped corpus, with orders)
         timeout-minutes: 15
         env:
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
         run: bun run --cwd packages/service/junction verify -- --sample 60 --orders
+
+      - name: Upload refreshed corpus
+        if: always() && inputs.refresh_corpus == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: junction-corpus
+          path: packages/service/junction/corpus/sandbox-sealed.json
+          if-no-files-found: error
