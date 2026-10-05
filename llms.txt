@@ -209,3 +209,6 @@ Do not work around a mock in your own project: file a GitHub issue on crvouga/mo
 - [@crvouga/mockingbird-service-whoop](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/whoop/README.md): Stateful WHOOP v2 mock: collections, related-sleep recovery windows, and OAuth refresh. Parity: OAuth refresh and wearable collection windows.
 - [@crvouga/mockingbird-service-whoop DISCOVERY.md](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/whoop/DISCOVERY.md): coverage matrix
 - [@crvouga/mockingbird-service-whoop SUPPORT.md](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/whoop/SUPPORT.md): coverage matrix
+- [@crvouga/mockingbird-service-workos](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/workos/README.md): Stateful WorkOS AuthKit mock with signed sessions, rotating refresh tokens and user pagination. Parity: AuthKit codes, signed sessions, refresh and user pagination.
+- [@crvouga/mockingbird-service-workos DISCOVERY.md](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/workos/DISCOVERY.md): coverage matrix
+- [@crvouga/mockingbird-service-workos SUPPORT.md](https://raw.githubusercontent.com/crvouga/mockingbird/main/packages/service/workos/SUPPORT.md): coverage matrix

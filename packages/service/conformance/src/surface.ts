@@ -59,6 +59,7 @@ import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-ser
 import type { createRuntime as createVpi } from "@crvouga/mockingbird-service-vpi"
 import type { createRuntime as createWholescripts } from "@crvouga/mockingbird-service-wholescripts"
 import type { createRuntime as createWhoop } from "@crvouga/mockingbird-service-whoop"
+import type { createRuntime as createWorkos } from "@crvouga/mockingbird-service-workos"
 
 /**
  * Every HTTP mock is created the same way and returns the same surface.
@@ -129,4 +130,5 @@ export type SurfaceProof = [
   Assert<typeof createAirtable>,
   Assert<typeof createCheckr>,
   Assert<typeof createWhoop>,
+  Assert<typeof createWorkos>,
 ]

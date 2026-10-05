@@ -752,7 +752,7 @@
     "vendor": "Tavily",
     "website": "https://tavily.com",
     "docs": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
-    "description": "Tavily is the real‑time search engine for AI agents — Fast and secure APIs for web search and content extraction.",
+    "description": "Tavily is the real\u2011time search engine for AI agents \u2014 Fast and secure APIs for web search and content extraction.",
     "input": {
       "website": "https://tavily.com",
       "docs": "https://docs.tavily.com/documentation/api-reference/endpoint/search"
@@ -843,5 +843,18 @@
     "color": null,
     "logo": "/brands/whoop.png",
     "logoSource": "favicon-service"
+  },
+  "workos": {
+    "vendor": "WorkOS",
+    "website": "https://workos.com",
+    "docs": "https://workos.com/docs/reference/authkit/authentication",
+    "description": "Developer APIs/SDKs for Enterprise Ready features like Single Sign-On, Directory Sync, Audit Logging, and more. Get started for free.",
+    "input": {
+      "website": "https://workos.com",
+      "docs": "https://workos.com/docs/reference/authkit/authentication"
+    },
+    "color": null,
+    "logo": "/brands/workos.png",
+    "logoSource": "site"
   }
 }
