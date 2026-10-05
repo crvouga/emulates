@@ -168,6 +168,28 @@ test("listing subscriptions with an empty price is refused", async () => {
   expect(error.param).toBe("price")
 })
 
+test("listing subscriptions rejects an empty customer account while allowing omission", async () => {
+  const server = await createServer({
+    accounts: [{ id: "acct_empty_customer_account", keys: [KEY] }],
+  })
+  closers.push(() => server.close())
+  const headers = { authorization: `Bearer ${KEY}` }
+  const response = await fetch(`${server.url}/v1/subscriptions?created=0&customer_account=`, {
+    headers,
+  })
+  expect(response.status).toBe(400)
+  expect(await response.json()).toMatchObject({
+    error: {
+      type: "invalid_request_error",
+      code: "parameter_invalid_empty",
+      param: "customer_account",
+    },
+  })
+  const omitted = await fetch(`${server.url}/v1/subscriptions?created=0`, { headers })
+  expect(omitted.status).toBe(200)
+  expect(await omitted.json()).toMatchObject({ object: "list", data: [] })
+})
+
 // Live parity: an empty custom-field name is refused before a malformed email.
 test("creating a customer with a bad email and an empty custom-field name names the field", async () => {
   const server = await createServer({ accounts: [{ id: "acct_ee6", keys: [KEY] }] })
