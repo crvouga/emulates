@@ -111,6 +111,7 @@
     "@crvouga/mockingbird-sqlite": "workspace:*",
     "@crvouga/mockingbird-testing": "workspace:*",
     "fast-check": "4.9.0",
-    "livekit-server-sdk": "2.19.1"
+    "livekit-server-sdk": "2.19.1",
+    "livekit-reconciliation": "npm:livekit-server-sdk@2.19.0"
   }
 }

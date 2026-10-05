@@ -774,3 +774,38 @@ export class MemberAppFlagsAdapter {
     return undefined
   }
 }
+
+/** Dashboard management client: personal-key JSON requests and next-link pagination. */
+export class PostHogManagementClient {
+  constructor(
+    private readonly host: string,
+    private readonly key: string,
+    private readonly send: Fetcher,
+  ) {}
+  async request<T>(
+    path: string,
+    body?: unknown,
+    method = body === undefined ? "GET" : "POST",
+  ): Promise<T> {
+    const response = await this.send(new URL(path, this.host).href, {
+      method,
+      headers: { authorization: `Bearer ${this.key}`, "content-type": "application/json" },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    })
+    if (!response.ok) throw new Error(`PostHog HTTP ${response.status}`)
+    return (await response.json()) as T
+  }
+  async experiments<T>(path: string): Promise<T[]> {
+    const results: T[] = []
+    const seen = new Set<string>()
+    let next: string | null = path
+    while (next) {
+      if (seen.has(next)) throw new Error("Repeated PostHog page")
+      seen.add(next)
+      const page: { results: T[]; next: string | null } = await this.request(next)
+      results.push(...page.results)
+      next = page.next
+    }
+    return results
+  }
+}

@@ -2,10 +2,85 @@ openapi: 3.1.0
 info:
   title: LiveKit Server API (Mockingbird subset)
   version: "2.19.1"
-  description: Twirp JSON room, participant, egress, and SIP contract.
+  description: Twirp JSON room, participant, agent dispatch, egress, and SIP contract.
 servers:
   - url: https://example.livekit.cloud
 paths:
+  /twirp/livekit.AgentDispatchService/CreateDispatch:
+    post:
+      operationId: CreateDispatch
+      description: Agent dispatch with a signed roomAdmin JWT; protobuf JSON names accept snake_case or camelCase.
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: false }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateDispatchRequest" }
+      responses:
+        "200":
+          description: Protobuf JSON result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AgentDispatch" }
+        "400": { $ref: "#/components/responses/TwirpError" }
+        "401": { $ref: "#/components/responses/TwirpError" }
+        "404": { $ref: "#/components/responses/TwirpError" }
+        "429": { $ref: "#/components/responses/TwirpError" }
+        "500": { $ref: "#/components/responses/TwirpError" }
+  /twirp/livekit.AgentDispatchService/ListDispatch:
+    post:
+      operationId: ListDispatch
+      description: Agent dispatch with a signed roomAdmin JWT; protobuf JSON names accept snake_case or camelCase.
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: true }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ListDispatchRequest" }
+      responses:
+        "200":
+          description: Protobuf JSON result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DispatchPage" }
+        "400": { $ref: "#/components/responses/TwirpError" }
+        "401": { $ref: "#/components/responses/TwirpError" }
+        "404": { $ref: "#/components/responses/TwirpError" }
+        "429": { $ref: "#/components/responses/TwirpError" }
+        "500": { $ref: "#/components/responses/TwirpError" }
+  /twirp/livekit.AgentDispatchService/DeleteDispatch:
+    post:
+      operationId: DeleteDispatch
+      description: Agent dispatch with a signed roomAdmin JWT; protobuf JSON names accept snake_case or camelCase.
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: false }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DeleteDispatchRequest" }
+      responses:
+        "200":
+          description: Protobuf JSON result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AgentDispatch" }
+        "400": { $ref: "#/components/responses/TwirpError" }
+        "401": { $ref: "#/components/responses/TwirpError" }
+        "404": { $ref: "#/components/responses/TwirpError" }
+        "429": { $ref: "#/components/responses/TwirpError" }
+        "500": { $ref: "#/components/responses/TwirpError" }
   /twirp/livekit.RoomService/{method}:
     post:
       operationId: RoomService
@@ -35,3 +110,110 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
       responses:
         "200": { description: Protobuf JSON response, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    TwirpError:
+      description: Twirp error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/TwirpError" }
+  schemas:
+    TwirpError:
+      type: object
+      required: [code, msg, meta]
+      properties:
+        code: { type: string }
+        msg: { type: string }
+        meta: { type: object, additionalProperties: { type: string } }
+    RoomName: { type: string, minLength: 1, maxLength: 128 }
+    CreateDispatchRequest:
+      type: object
+      required: [room]
+      anyOf:
+        - required: [agentName]
+        - required: [agent_name]
+      properties:
+        room: { $ref: "#/components/schemas/RoomName" }
+        agentName: { type: string, minLength: 1, maxLength: 128 }
+        agent_name: { type: string, minLength: 1, maxLength: 128 }
+        metadata: { type: string, maxLength: 1024 }
+    ListDispatchRequest:
+      type: object
+      required: [room]
+      properties:
+        room: { $ref: "#/components/schemas/RoomName" }
+        dispatchId:
+          type: string
+          x-mockingbird-resource-ref: { type: agent_dispatch, missing: AD_missing }
+        dispatch_id:
+          type: string
+          x-mockingbird-resource-ref: { type: agent_dispatch, missing: AD_missing }
+    DeleteDispatchRequest:
+      allOf:
+        - $ref: "#/components/schemas/ListDispatchRequest"
+        - type: object
+          anyOf:
+            - required: [dispatchId]
+            - required: [dispatch_id]
+    AgentDispatch:
+      type: object
+      required: [id, agentName, room, metadata, state]
+      properties:
+        id:
+          type: string
+          x-mockingbird-resource: { type: agent_dispatch, identity: true }
+        agentName: { type: string }
+        room: { type: string }
+        metadata: { type: string }
+        state:
+          type: object
+          required: [jobs, createdAt, deletedAt]
+          properties:
+            createdAt:
+              type: string
+              pattern: "^[0-9]+$"
+              x-mockingbird-volatile: { kind: timestamp }
+            deletedAt:
+              type: string
+              pattern: "^[0-9]+$"
+              x-mockingbird-volatile: { kind: timestamp }
+            jobs:
+              type: array
+              items: { $ref: "#/components/schemas/AgentJob" }
+    AgentJob:
+      type: object
+      required: [id, dispatchId, type, room, metadata, agentName, state]
+      properties:
+        id: { type: string }
+        dispatchId: { type: string }
+        type: { type: string, enum: [JT_ROOM] }
+        room:
+          type: object
+          required: [sid, name, creationTime]
+          properties:
+            sid: { type: string }
+            name: { type: string }
+            creationTime: { type: string }
+        metadata: { type: string }
+        agentName: { type: string }
+        state:
+          type: object
+          required: [status, error, startedAt, endedAt, updatedAt, participantIdentity, workerId, agentId]
+          properties:
+            status: { type: string, enum: [JS_PENDING, JS_RUNNING, JS_SUCCESS, JS_FAILED] }
+            error: { type: string }
+            startedAt: { type: string }
+            endedAt: { type: string }
+            updatedAt: { type: string }
+            participantIdentity: { type: string }
+            workerId: { type: string }
+            agentId: { type: string }
+    DispatchPage:
+      type: object
+      required: [agentDispatches]
+      properties:
+        agentDispatches:
+          type: array
+          items: { $ref: "#/components/schemas/AgentDispatch" }

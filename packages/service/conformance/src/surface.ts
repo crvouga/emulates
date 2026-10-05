@@ -16,9 +16,11 @@ import type { createRuntime as createFlex } from "@crvouga/mockingbird-service-f
 import type { createRuntime as createFormbricks } from "@crvouga/mockingbird-service-formbricks"
 import type { createRuntime as createFullscript } from "@crvouga/mockingbird-service-fullscript"
 import type { createRuntime as createGenebygene } from "@crvouga/mockingbird-service-genebygene"
+import type { createRuntime as createGoogleAds } from "@crvouga/mockingbird-service-google-ads"
 import type { createRuntime as createGoogleCalendar } from "@crvouga/mockingbird-service-google-calendar"
 import type { createRuntime as createGoogleMaps } from "@crvouga/mockingbird-service-google-maps"
 import type { createRuntime as createHealthie } from "@crvouga/mockingbird-service-healthie"
+import type { createRuntime as createInfisical } from "@crvouga/mockingbird-service-infisical"
 import type { createRuntime as createIntercom } from "@crvouga/mockingbird-service-intercom"
 import type { createRuntime as createJunction } from "@crvouga/mockingbird-service-junction"
 import type { createRuntime as createKillBill } from "@crvouga/mockingbird-service-kill-bill"
@@ -30,6 +32,7 @@ import type { createRuntime as createMediaconvert } from "@crvouga/mockingbird-s
 import type { createRuntime as createMedplum } from "@crvouga/mockingbird-service-medplum"
 import type { createRuntime as createOauth } from "@crvouga/mockingbird-service-oauth"
 import type { createRuntime as createOdx } from "@crvouga/mockingbird-service-odx"
+import type { createRuntime as createOpenAI } from "@crvouga/mockingbird-service-openai"
 import type { createRuntime as createOtel } from "@crvouga/mockingbird-service-otel"
 import type { createRuntime as createPaddle } from "@crvouga/mockingbird-service-paddle"
 import type { createRuntime as createPayloadCms } from "@crvouga/mockingbird-service-payload-cms"
@@ -41,12 +44,14 @@ import type { createRuntime as createPrism } from "@crvouga/mockingbird-service-
 import type { createRuntime as createResend } from "@crvouga/mockingbird-service-resend"
 import type { createRuntime as createRxvortex } from "@crvouga/mockingbird-service-rxvortex"
 import type { createRuntime as createS3 } from "@crvouga/mockingbird-service-s3"
+import type { createRuntime as createSentry } from "@crvouga/mockingbird-service-sentry"
 import type { createRuntime as createSlack } from "@crvouga/mockingbird-service-slack"
 import type { createRuntime as createSqs } from "@crvouga/mockingbird-service-sqs"
 import type { createRuntime as createStepFunctions } from "@crvouga/mockingbird-service-step-functions"
 import type { createRuntime as createStripe } from "@crvouga/mockingbird-service-stripe"
 import type { createRuntime as createTextract } from "@crvouga/mockingbird-service-textract"
 import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service-twilio"
+import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-service-vercel-blob"
 import type { createRuntime as createVpi } from "@crvouga/mockingbird-service-vpi"
 import type { createRuntime as createWholescripts } from "@crvouga/mockingbird-service-wholescripts"
 
@@ -79,6 +84,7 @@ export type SurfaceProof = [
   Assert<typeof createGoogleCalendar>,
   Assert<typeof createGoogleMaps>,
   Assert<typeof createHealthie>,
+  Assert<typeof createInfisical>,
   Assert<typeof createIntercom>,
   Assert<typeof createJunction>,
   Assert<typeof createKillBill>,
@@ -89,6 +95,8 @@ export type SurfaceProof = [
   Assert<typeof createMediaconvert>,
   Assert<typeof createMedplum>,
   Assert<typeof createOauth>,
+  Assert<typeof createGoogleAds>,
+  Assert<typeof createOpenAI>,
   Assert<typeof createOdx>,
   Assert<typeof createOtel>,
   Assert<typeof createPaddle>,
@@ -100,6 +108,7 @@ export type SurfaceProof = [
   Assert<typeof createPrism>,
   Assert<typeof createResend>,
   Assert<typeof createRxvortex>,
+  Assert<typeof createSentry>,
   Assert<typeof createS3>,
   Assert<typeof createSlack>,
   Assert<typeof createSqs>,
@@ -107,6 +116,7 @@ export type SurfaceProof = [
   Assert<typeof createStripe>,
   Assert<typeof createTextract>,
   Assert<typeof createTwilio>,
+  Assert<typeof createVercelBlob>,
   Assert<typeof createVpi>,
   Assert<typeof createWholescripts>,
 ]

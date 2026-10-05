@@ -473,3 +473,25 @@ export const receiveInboundWebhook = async (args: {
   }
   return { status: 200, event, hydrated: await args.client.hydrate(event) }
 }
+
+/** Raw reconciliation client from #255/#256, preserving the vendor's after cursor. */
+export const listResendEmails = async (
+  send: (request: Request) => Promise<Response>,
+  baseUrl: string,
+  receiving: boolean,
+  query: { limit?: number; after?: string; before?: string } = {},
+) => {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) params.set(key, String(value))
+  const response = await send(
+    new Request(`${baseUrl}/emails${receiving ? "/receiving" : ""}?${params}`, {
+      headers: { authorization: "Bearer fixture-key" },
+    }),
+  )
+  if (!response.ok) throw new Error(`Resend ${response.status}: ${await response.text()}`)
+  return (await response.json()) as {
+    object: string
+    has_more: boolean
+    data: { id: string; subject: string | null; html?: unknown; text?: unknown }[]
+  }
+}

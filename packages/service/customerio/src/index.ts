@@ -40,9 +40,11 @@ export { document, operationIds, supportedOperationIds } from "./generated/opena
 export type {
   CdpEvent,
   Channel,
+  CustomerOptOuts,
   Delivery,
   DeliveryState,
   Profile,
+  SenderOptOut,
   Settings,
   SubscriptionPreferences,
   TrackedLink,
@@ -111,6 +113,8 @@ const APP_OPERATIONS = new Set([
   "ListTransactionalMessages",
   "GetTransactionalMessage",
   "GetCustomerAttributes",
+  "ListOptOuts",
+  "GetCustomerOptOuts",
   "GetMessage",
 ])
 
@@ -240,6 +244,8 @@ export class CustomerIoAPI implements FetchAPI {
       SendInboxMessage: (context) => this.enqueue(() => this.send(context, "inbox")),
       ListTransactionalMessages: (context) => this.enqueue(() => this.listMessages(context)),
       GetTransactionalMessage: (context) => this.enqueue(() => this.oneMessage(context)),
+      ListOptOuts: (context) => this.enqueue(() => this.listOptOuts(context)),
+      GetCustomerOptOuts: (context) => this.enqueue(() => this.customerOptOuts(context)),
       GetCustomerAttributes: (context) => this.enqueue(() => this.attributes(context)),
       GetMessage: (context) => this.enqueue(() => this.deliveryMessage(context)),
       ReportClick: (context) => this.enqueue(() => this.click(context, "post")),
@@ -505,6 +511,55 @@ export class CustomerIoAPI implements FetchAPI {
   private oneMessage(context: OperationContext): Response {
     const message = this.state.message(context.params.transactional_id ?? "")
     return message ? jsonRes(200, { message }) : appError(404, "not found")
+  }
+
+  private listOptOuts(context: OperationContext): Response {
+    const rawLimit = context.query.limit
+    const limit = rawLimit === undefined ? 100 : Number(rawLimit)
+    if (!Number.isInteger(limit) || limit < 1 || limit > 1000)
+      return appError(400, "limit must be between 1 and 1000")
+    let after = 0
+    if (context.query.start !== undefined) {
+      try {
+        const decoded = atob(String(context.query.start))
+        if (!/^optouts:[1-9]\d*$/.test(decoded)) return appError(400, "invalid start cursor")
+        after = Number(decoded.slice(8))
+        if (!Number.isSafeInteger(after)) return appError(400, "invalid start cursor")
+      } catch {
+        return appError(400, "invalid start cursor")
+      }
+    }
+    const from =
+      typeof context.query.from === "string" ? context.query.from.trim().toLowerCase() : undefined
+    const rows = this.state.optouts.list({ order: "oldest" }).flatMap((row) => {
+      const profile = this.state.profile(row.value.customerId)
+      const optouts = row.value.optouts.filter((item) => from === undefined || item.from === from)
+      return row.seq > after && profile && optouts.length
+        ? [{ seq: row.seq, customer_id: profile.id, cio_id: profile.cioId, optouts }]
+        : []
+    })
+    const page = rows.slice(0, limit)
+    const last = page.at(-1)
+    return jsonRes(200, {
+      ...(rows.length > limit && last ? { next: btoa(`optouts:${last.seq}`) } : {}),
+      optouts: page.map(({ seq: _seq, ...row }) => row),
+    })
+  }
+
+  private customerOptOuts(context: OperationContext): Response {
+    const customerId = context.params.customer_id ?? ""
+    const idType = context.query.id_type ?? "id"
+    const profile =
+      idType === "id"
+        ? this.state.profile(customerId)
+        : idType === "email"
+          ? this.state.profileByEmail(customerId)
+          : idType === "cio_id"
+            ? this.state.profileByCioId(customerId)
+            : undefined
+    if (!["id", "email", "cio_id"].includes(String(idType))) return appError(400, "invalid id_type")
+    if (!profile) return appError(404, "not found")
+    return jsonRes(200, { optouts: this.state.optouts.get(profile.id)?.optouts ?? [] })
   }
 
   private attributes(context: OperationContext): Response {

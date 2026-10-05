@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **10**
-- supported by the mock: **10**
-- parity enabled: **10**
+- operations in spec: **11**
+- supported by the mock: **11**
+- parity enabled: **11**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -13,6 +13,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `FetchVerification` | `GET /verify/v2/Services/{ServiceSid}/Verifications/{Sid}` | ✅ supported | ✅ |  |
 | `UpdateVerification` | `POST /verify/v2/Services/{ServiceSid}/Verifications/{Sid}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `CreateVerificationCheck` | `POST /verify/v2/Services/{ServiceSid}/VerificationCheck` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `ListMessages` | `GET /api/2010-04-01/Accounts/{AccountSid}/Messages.json` | ✅ supported | ✅ |  |
 | `CreateMessage` | `POST /api/2010-04-01/Accounts/{AccountSid}/Messages.json` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `FetchMessage` | `GET /api/2010-04-01/Accounts/{AccountSid}/Messages/{Sid}.json` | ✅ supported | ✅ |  |
 | `FetchRecordingMedia` | `GET /api/2010-04-01/Accounts/{AccountSid}/Recordings/{Sid}.wav` | ✅ supported | ✅ |  |

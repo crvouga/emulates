@@ -106,6 +106,12 @@ function sync(path: string, expected: string): void {
 }
 
 function oracleFor(name: string): Discovery["oracle"] {
+  if (name === "openai")
+    return {
+      kind: "Official documentation and local SDK oracle",
+      command: "bun run parity:service -- openai",
+      note: "Live billed inference is disabled by repository policy. The package parity runner exits 2; tests verify official SDKs locally.",
+    }
   if (name === "postgres")
     return {
       kind: "PostgreSQL 18.3 via PGlite",

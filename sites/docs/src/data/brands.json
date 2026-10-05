@@ -223,6 +223,22 @@
     "logo": "/brands/genebygene.png",
     "logoSource": "site"
   },
+  "google-ads": {
+    "vendor": "Google Ads",
+    "website": "https://ads.google.com",
+    "docs": "https://developers.google.com/google-ads/api/docs/start",
+    "description": "Google Ads campaign reporting and Google Analytics event collection and reporting.",
+    "input": {
+      "name": "Google Ads",
+      "website": "https://ads.google.com",
+      "docs": "https://developers.google.com/google-ads/api/docs/start",
+      "description": "Google Ads campaign reporting and Google Analytics event collection and reporting.",
+      "icon": "googleads"
+    },
+    "color": "#4285F4",
+    "logo": "/brands/google-ads.svg",
+    "logoSource": "simple-icons"
+  },
   "google-calendar": {
     "vendor": "Google Calendar",
     "website": "https://workspace.google.com/products/calendar/",
@@ -260,6 +276,21 @@
     },
     "color": null,
     "logo": "/brands/healthie.png",
+    "logoSource": "site"
+  },
+  "infisical": {
+    "vendor": "Infisical",
+    "website": "https://infisical.com",
+    "docs": "https://infisical.com/docs/api-reference/overview/introduction",
+    "description": "Infisical manages project secrets and machine identity access.",
+    "input": {
+      "website": "https://infisical.com",
+      "docs": "https://infisical.com/docs/api-reference/overview/introduction",
+      "description": "Infisical manages project secrets and machine identity access.",
+      "icon": false
+    },
+    "color": null,
+    "logo": "/brands/infisical.ico",
     "logoSource": "site"
   },
   "intercom": {
@@ -409,6 +440,21 @@
     "color": null,
     "logo": "/brands/odx.jpg",
     "logoSource": "site"
+  },
+  "openai": {
+    "vendor": "OpenAI",
+    "website": "https://openai.com",
+    "docs": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create",
+    "description": "OpenAI provides chat, embeddings and agent APIs; this mock uses local scripts only.",
+    "input": {
+      "website": "https://openai.com",
+      "docs": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create",
+      "description": "OpenAI provides chat, embeddings and agent APIs; this mock uses local scripts only.",
+      "icon": "openai"
+    },
+    "color": "#412991",
+    "logo": "/brands/openai.svg",
+    "logoSource": "simple-icons"
   },
   "otel": {
     "vendor": "OpenTelemetry",
@@ -581,6 +627,21 @@
     "logo": "/brands/s3.png",
     "logoSource": "site"
   },
+  "sentry": {
+    "vendor": "Sentry",
+    "website": "https://sentry.io",
+    "docs": "https://develop.sentry.dev/sdk/foundations/envelopes/",
+    "description": "Sentry provides application error monitoring, performance traces and issue tracking.",
+    "input": {
+      "website": "https://sentry.io",
+      "docs": "https://develop.sentry.dev/sdk/foundations/envelopes/",
+      "description": "Sentry provides application error monitoring, performance traces and issue tracking.",
+      "icon": "sentry"
+    },
+    "color": "#362D59",
+    "logo": "/brands/sentry.svg",
+    "logoSource": "simple-icons"
+  },
   "slack": {
     "vendor": "Slack",
     "website": "https://slack.com",
@@ -671,6 +732,21 @@
     },
     "color": "#F22F46",
     "logo": "/brands/twilio.svg",
+    "logoSource": "simple-icons"
+  },
+  "vercel-blob": {
+    "vendor": "Vercel Blob",
+    "website": "https://vercel.com",
+    "docs": "https://vercel.com/docs/vercel-blob/using-blob-sdk",
+    "description": "Vercel Blob provides object storage for uploads and public downloads.",
+    "input": {
+      "website": "https://vercel.com",
+      "docs": "https://vercel.com/docs/vercel-blob/using-blob-sdk",
+      "description": "Vercel Blob provides object storage for uploads and public downloads.",
+      "icon": "vercel"
+    },
+    "color": "#000000",
+    "logo": "/brands/vercel-blob.svg",
     "logoSource": "simple-icons"
   },
   "vpi": {

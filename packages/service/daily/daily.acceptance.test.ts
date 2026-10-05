@@ -80,6 +80,61 @@ const harness = (settings: Partial<Settings> = {}) => {
   return { runtime, s3, deliveries, emr, backend, admin, room, decode }
 }
 
+describe("room reconciliation (#252)", () => {
+  test("pages newest first by room id, terminates, and supports the reverse cursor", async () => {
+    const { emr } = harness()
+    const oldest = await emr.createRoom({ name: "fixture-oldest" })
+    const newest = await emr.createRoom({ name: "fixture-newest" })
+    const first = await emr.listRooms({ limit: 1 })
+    expect(first.total_count).toBe(2)
+    expect(first.data.map((room) => room.id)).toEqual([newest.id])
+    const second = await emr.listRooms({ limit: 1, ending_before: newest.id })
+    expect(second.data.map((room) => room.id)).toEqual([oldest.id])
+    expect((await emr.listRooms({ ending_before: oldest.id })).data).toEqual([])
+    expect(
+      (await emr.listRooms({ starting_after: oldest.id })).data.map((room) => room.id),
+    ).toEqual([newest.id])
+  })
+
+  test("an empty account returns an empty collection", async () => {
+    const { emr } = harness()
+    expect(await emr.listRooms()).toEqual({ total_count: 0, data: [] })
+  })
+
+  test("deleted rooms disappear and updates are visible", async () => {
+    const { emr } = harness()
+    await emr.createRoom({ name: "fixture-deleted" })
+    await emr.createRoom({ name: "fixture-kept" })
+    await emr.deleteRoom("fixture-deleted")
+    await emr.updateRoom("fixture-kept", { properties: { start_video_off: true } })
+    const page = await emr.listRooms()
+    expect(page.total_count).toBe(1)
+    expect(page.data[0]).toMatchObject({ name: "fixture-kept", config: { start_video_off: true } })
+  })
+
+  test("auth, namespaces, reset and transient faults preserve collection state", async () => {
+    const { emr, runtime, admin } = harness()
+    await emr.createRoom({ name: "fixture-room" })
+    expect((await runtime.fetch(new Request(`${API}/v1/rooms`))).status).toBe(401)
+    const other = await runtime.fetch(
+      new Request(`${API}/__admin/ns/other/v1/rooms`, {
+        headers: { authorization: `Bearer ${API_KEY}` },
+      }),
+    )
+    expect(await other.json()).toEqual({ total_count: 0, data: [] })
+    for (const [preset, status] of [
+      ["rate_limited", 429],
+      ["server_error", 500],
+    ] as const) {
+      expect((await admin("/faults", { preset, count: 1 })).status).toBe(201)
+      await expect(emr.listRooms()).rejects.toThrow(String(status))
+      expect((await emr.listRooms()).total_count).toBe(1)
+    }
+    await admin("/reset", {})
+    expect(await emr.listRooms()).toEqual({ total_count: 0, data: [] })
+  })
+})
+
 describe("S11.6 acceptance: EMR booking, join, reschedule, cancel", () => {
   test("an EMR booking creates a room and a provider token on the mock", async () => {
     const { emr, room, decode } = harness()

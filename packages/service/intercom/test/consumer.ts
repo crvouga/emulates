@@ -933,3 +933,28 @@ export class EmrWebhookReceiver {
     return { statusCode: 200, message: "Webhook processed successfully" }
   }
 }
+
+/** Raw collection client from the reconciliation reports (#253/#254). */
+export const listIntercomCollection = async (
+  send: Fetch,
+  baseUrl: string,
+  token: string,
+  collection: "contacts" | "conversations",
+  query: { per_page?: number; starting_after?: string } = {},
+) => {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) params.set(key, String(value))
+  const response = await send(
+    new Request(`${baseUrl}/${collection}?${params}`, {
+      headers: { authorization: `Bearer ${token}`, "Intercom-Version": "2.11" },
+    }),
+  )
+  if (!response.ok) throw new Error(`Intercom ${response.status}: ${await response.text()}`)
+  return (await response.json()) as {
+    type: string
+    data?: { id: string; name: string | null }[]
+    conversations?: { id: string; title: string | null; conversation_parts?: unknown }[]
+    total_count: number
+    pages: { per_page: number; total_pages: number; next?: { starting_after: string } }
+  }
+}

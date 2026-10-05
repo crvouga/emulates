@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **11**
-- supported by the mock: **11**
-- parity enabled: **11**
+- operations in spec: **16**
+- supported by the mock: **16**
+- parity enabled: **16**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -19,3 +19,8 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `ListStates` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/states/` | ✅ supported | ✅ |  |
 | `ListLabels` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/labels/` | ✅ supported | ✅ |  |
 | `CreateLabel` | `POST /api/v1/workspaces/{slug}/projects/{project_id}/labels/` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `ListCycles` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/cycles/` | ✅ supported | ✅ |  |
+| `CreateCycle` | `POST /api/v1/workspaces/{slug}/projects/{project_id}/cycles/` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `ListCycleWorkItems` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/` | ✅ supported | ✅ |  |
+| `AddCycleWorkItems` | `POST /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `ListWorkItemTypes` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/work-item-types/` | ✅ supported | ✅ |  |

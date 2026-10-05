@@ -25,6 +25,27 @@ The default credentials are Basic auth `admin:password` plus tenant headers `X-K
 
 `POST /1.0/kb/tenants` creates another tenant with Basic auth and `X-Killbill-CreatedBy` only. Accounts created with that tenant's api key stay hidden from other tenants. `POST /1.0/kb/tenants/registerNotificationCallback?cb=` stores one push-notification URL for the tenant; invoice and payment events are POSTed there as Kill Bill notification JSON. The in-process `onEvent` hook still receives those events.
 
+`GET /1.0/kb/accounts/pagination` and `GET /1.0/kb/invoices/pagination` enumerate the authenticated
+tenant's existing billing records as bare arrays. `offset` defaults to 0 and `limit` to 100;
+positive limits use creation order, and negative limits reverse it. Invoice updates retain their
+original position. Responses carry `X-Killbill-Pagination-CurrentOffset`, `TotalNbRecords` and
+`MaxNbRecords`. `NextOffset` and `NextPageUri` are present only when another page exists. Next-page
+URLs retain the selected namespace and configured admin prefix; continue sending Basic auth and
+tenant headers. Empty/exhausted pages return `[]`. A zero limit also returns `[]`, as the real SQL
+pagination does; clients should stop on an empty page. Account balances default to null; use
+`accountWithBalance=true` or `accountWithBalanceAndCBA=true` for the live invoice balance/CBA.
+These reads use the same collections as invoice creation, payment and voiding, and participate in
+the standard namespace, clock, reset, snapshot and fault controls.
+
+The oracle is Kill Bill's [account resource](https://github.com/killbill/killbill/blob/a21c14d61ab93b902ddba2a1c5ecfbc7aca76e07/jaxrs/src/main/java/org/killbill/billing/jaxrs/resources/AccountResource.java),
+[invoice resource](https://github.com/killbill/killbill/blob/a21c14d61ab93b902ddba2a1c5ecfbc7aca76e07/jaxrs/src/main/java/org/killbill/billing/jaxrs/resources/InvoiceResource.java),
+[pagination response](https://github.com/killbill/killbill/blob/a21c14d61ab93b902ddba2a1c5ecfbc7aca76e07/jaxrs/src/main/java/org/killbill/billing/jaxrs/resources/JaxRsResourceBase.java),
+and [ordering implementation](https://github.com/killbill/killbill/blob/a21c14d61ab93b902ddba2a1c5ecfbc7aca76e07/util/src/main/java/org/killbill/billing/util/entity/dao/DefaultPaginationSqlDaoHelper.java).
+Counts are exact for the mock's finite collections; the vendor's large-dataset count heuristic,
+audit projections and search endpoints are unmodelled. Invalid pagination uses the mock's existing
+error envelope; exact live error text remains unverified. Live parity requires an isolated tenant
+and is not enabled by the current runner.
+
 ## Controls
 
 - `POST /__admin/payments/decline-next` and `/pending-next` select the next payment outcome.

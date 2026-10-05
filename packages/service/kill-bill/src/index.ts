@@ -43,6 +43,7 @@ export type KillBillEvent = {
   effectiveDate: string
 }
 export type KillBillAPIOptions = APIOptions & {
+  adminPrefix?: string
   username?: string
   password?: string
   tenantKey?: string
@@ -352,6 +353,72 @@ export class KillBillAPI {
           .reduce((sum, row) => sum + row.value.creditAdj, 0),
       ),
     }
+  }
+
+  private paginate(
+    request: Request,
+    url: URL,
+    resource: "accounts" | "invoices",
+    tenantId: string,
+  ): Response {
+    const integer = (name: string, fallback: number) => {
+      const raw = url.searchParams.get(name)
+      if (raw === null) return fallback
+      if (!/^[+-]?\d+$/.test(raw)) return undefined
+      const value = Number(raw)
+      return Number.isSafeInteger(value) ? value : undefined
+    }
+    const offset = integer("offset", 0)
+    const limit = integer("limit", 100)
+    if (offset === undefined || offset < 0 || limit === undefined)
+      return this.problem(
+        400,
+        "INVALID_PAGINATION",
+        "offset must be a nonnegative integer and limit must be an integer",
+      )
+    const size = Math.abs(limit)
+    const accounts = this.state.accounts
+      .list({ order: "oldest", where: (row) => row.tenantId === tenantId })
+      .map((row) => row.value)
+    const accountIds = new Set(accounts.map((row) => row.accountId))
+    const rows =
+      resource === "accounts"
+        ? accounts
+        : this.state.invoices
+            .list({ where: (row) => accountIds.has(row.accountId) })
+            .map((row) => row.value)
+            .sort((a, b) => Number(a.invoiceNumber) - Number(b.invoiceNumber))
+    if (limit < 0) rows.reverse()
+    const total = rows.length
+    const headers: Record<string, string> = {
+      "x-killbill-pagination-currentoffset": String(offset),
+      "x-killbill-pagination-totalnbrecords": String(total),
+      "x-killbill-pagination-maxnbrecords": String(total),
+    }
+    if (offset + size < total) {
+      const next = new URL(url)
+      const namespace = request.headers.get("x-mockingbird-namespace")
+      if (namespace && namespace !== "default")
+        next.pathname = `${this.options.adminPrefix ?? "/__admin"}/ns/${encodeURIComponent(namespace)}${url.pathname}`
+      next.searchParams.set("offset", String(offset + size))
+      next.searchParams.set("limit", String(limit))
+      headers["x-killbill-pagination-nextoffset"] = String(offset + size)
+      headers["x-killbill-pagination-nextpageuri"] = next.href
+    }
+    const values = rows.slice(offset, offset + size).map((row) => {
+      if (resource === "invoices") return row
+      const account = row as Account
+      const both = url.searchParams.get("accountWithBalanceAndCBA") === "true"
+      const balance = both || url.searchParams.get("accountWithBalance") === "true"
+      const { tenantId: _tenantId, ...stored } = account
+      const publicRow = balance ? this.publicAccount(account) : stored
+      return {
+        ...publicRow,
+        accountBalance: balance ? publicRow.accountBalance : null,
+        accountCBA: both ? publicRow.accountCBA : null,
+      }
+    })
+    return this.json(values, 200, headers)
   }
   private plan(name: string) {
     return this.state.plans.get(name)
@@ -957,6 +1024,13 @@ export class KillBillAPI {
     const path = url.pathname.replace(/^\/1\.0\/kb\/?/, "")
     const parts = path.split("/").filter(Boolean)
     const body = await this.body(request)
+    if (
+      (parts[0] === "accounts" || parts[0] === "invoices") &&
+      parts[1] === "pagination" &&
+      parts.length === 2 &&
+      request.method === "GET"
+    )
+      return this.paginate(request, url, parts[0], tenantId)
     if (parts[0] === "tenants" && parts[1] === "registerNotificationCallback")
       return this.notificationCallback(request, url, tenant)
     if (parts[0] === "test" && parts[1] === "clock") {

@@ -92,6 +92,7 @@ const { code, sid, status } = (await latest.json()) as { code: string; sid: stri
 | `GET` / `POST /verify/v2/Services/{VA}/Verifications/{VE}` | Fetches a verification, or sets `Status=canceled\|approved` on one. |
 | `POST /api/2010-04-01/Accounts/{AC}/Messages.json` | `To`, `Body` or `MediaUrl`, and `From` or `MessagingServiceSid`. Returns 201 with an `SM…` sid (`MM…` with media) and RFC 2822 dates. `MessagingServiceSid` alone is status `accepted`, `from: null`, `num_segments: "0"` (a sender is not chosen yet). `From` alone is status `queued`. Both are kept and the status is `queued` (Twilio queues on a specific sender). There is no idempotency key: the same body creates another sid. Errors: 21604 (no To), 21602 (no Body), 21603 (no From), 21211 (invalid To), 21617 (over 1600 characters). The message is recorded in the outbox. |
 | `GET /api/2010-04-01/Accounts/{AC}/Messages/{SM}.json` | Reads a message back. |
+| `GET /api/2010-04-01/Accounts/{AC}/Messages.json` | Newest-first Message resources for that account. `PageSize` defaults to 50 (1–1000), `PageToken` follows `next_page_uri`/`previous_page_uri`; `Page` is client state. Links keep the vendor path without `/api`, so apply the normal product-prefix rewrite. `To` and `From` filter stored resources. |
 | `GET /api/2010-04-01/Accounts/{AC}/Recordings/{RE}.wav` | The recording as a RIFF WAV. With `RequestedChannels=2` you get both channels. Otherwise a dual-channel recording is mixed down to mono, as Twilio does. |
 | `GET` / `DELETE /api/2010-04-01/Accounts/{AC}/Recordings/{RE}.json` | Metadata, or a delete (204; a second delete is 404, which our consumer tolerates). |
 
@@ -145,6 +146,7 @@ can also come from the `x-mockingbird-namespace` header or a `/__admin/ns/<name>
 
 - Delivery: messages stay `queued`/`accepted`, no status callbacks are sent (our consumer sets no
   `statusCallback`), and no voice calls, conferences or media streams happen.
+- Message collection `DateSent` filters (messages are never sent by the mock).
 - Paid Lookup data packages (`Fields=line_type_intelligence`, `caller_name`, …) are always
   `null`.
 - Verify channels other than SMS are accepted and recorded, but nothing is delivered. Verify

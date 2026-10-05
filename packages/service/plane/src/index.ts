@@ -20,14 +20,17 @@ import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
   DEFAULT_STATES,
   type PlaneCommentRecord,
+  type PlaneCycleRecord,
   type PlaneLabelRecord,
   type PlaneLinkRecord,
   PlaneState,
   type PlaneStateRecord,
   type PlaneWorkItemRecord,
+  type PlaneWorkItemType,
   type ProjectRecord,
   type Settings,
   uuidFrom,
+  type WorkItemTypeSeed,
 } from "./state.js"
 
 export type { FetchAPI } from "@crvouga/mockingbird-core"
@@ -36,13 +39,17 @@ export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type {
   PlaneCommentRecord,
+  PlaneCycleMembership,
+  PlaneCycleRecord,
   PlaneLabelRecord,
   PlaneLinkRecord,
   PlaneStateRecord,
   PlaneWorkItemRecord,
+  PlaneWorkItemType,
   ProjectRecord,
   Settings,
   StateGroup,
+  WorkItemTypeSeed,
 } from "./state.js"
 export { DEFAULT_STATES, uuidFrom } from "./state.js"
 
@@ -130,6 +137,11 @@ export class PlaneAPI implements FetchAPI {
         return this.paginate(context, this.labelsOf(project.id))
       },
       CreateLabel: (context) => this.createLabel(context),
+      ListCycles: (context) => this.listCycles(context),
+      CreateCycle: (context) => this.createCycle(context),
+      ListCycleWorkItems: (context) => this.listCycleWorkItems(context),
+      AddCycleWorkItems: (context) => this.addCycleWorkItems(context),
+      ListWorkItemTypes: (context) => jsonRes(200, this.typesOf(this.project(context).id)),
     })
     this.service = createService({
       document,
@@ -242,14 +254,53 @@ export class PlaneAPI implements FetchAPI {
       .map((r) => r.value)
   }
 
+  typesOf(projectId: string): PlaneWorkItemType[] {
+    return this.state.types
+      .list({
+        order: "oldest",
+        where: (type) => type.project_ids.includes(projectId) && type.deleted_at === null,
+      })
+      .map((row) => row.value)
+  }
+
+  /** Idempotent fixture provisioning; type IDs remain stable when metadata is reseeded. */
+  seedWorkItemTypes(
+    workspace: string,
+    projectId: string,
+    types: WorkItemTypeSeed[],
+  ): PlaneWorkItemType[] | undefined {
+    const project = this.ensureProject(workspace, projectId)
+    if (!project) return undefined
+    const now = this.iso()
+    for (const type of types) {
+      const id = uuidFrom(`${projectId}:type:${type.name}`)
+      const existing = this.state.types.get(id)
+      this.state.types.insert(id, {
+        id,
+        name: type.name,
+        description: type.description ?? existing?.description ?? "",
+        project_ids: [project.id],
+        logo_props: {},
+        is_epic: false,
+        is_default: type.is_default ?? existing?.is_default ?? false,
+        is_active: true,
+        level: 0,
+        created_at: existing?.created_at ?? now,
+        updated_at: now,
+        deleted_at: null,
+      })
+    }
+    return this.typesOf(project.id)
+  }
+
   /** Plane's cursor paginator: `cursor=<per_page>:<page>:<is_prev>`, offset = page × per_page. */
-  private paginate<T>(context: OperationContext, rows: T[]): Response {
+  private paginate<T>(context: OperationContext, rows: T[], defaultSize = PAGE_SIZE): Response {
     const perPageResult =
       context.query.per_page === undefined ? undefined : coerce.integer(context.query.per_page)
     if (perPageResult && !perPageResult.ok) {
       return jsonRes(400, { error: "Invalid per_page parameter." })
     }
-    const perPage = Math.min(PAGE_SIZE, Math.max(1, perPageResult?.value ?? PAGE_SIZE))
+    const perPage = Math.min(PAGE_SIZE, Math.max(1, perPageResult?.value ?? defaultSize))
     let page = 0
     let cursorSize = perPage
     if (context.query.cursor !== undefined) {
@@ -307,18 +358,211 @@ export class PlaneAPI implements FetchAPI {
     return this.paginate(context, rows)
   }
 
+  private cycle(context: OperationContext): PlaneCycleRecord {
+    const project = this.project(context)
+    const cycle = this.state.cycles.get(context.params.cycle_id ?? "")
+    if (!cycle || cycle.project !== project.id) throw new HttpError(404, NOT_FOUND)
+    return cycle
+  }
+
+  private cycleView(cycle: PlaneCycleRecord): Record<string, unknown> {
+    const members = this.state.memberships
+      .list({ where: (m) => m.cycle === cycle.id })
+      .map((row) => this.state.items.get(row.value.issue))
+      .filter((item): item is PlaneWorkItemRecord => !!item && !item.archived_at && !item.is_draft)
+    const count = (group: string) =>
+      members.filter((item) => this.state.states.get(item.state)?.group === group).length
+    return {
+      ...cycle,
+      total_issues: members.length,
+      completed_issues: count("completed"),
+      cancelled_issues: count("cancelled"),
+      started_issues: count("started"),
+      unstarted_issues: count("unstarted"),
+      backlog_issues: count("backlog"),
+    }
+  }
+
+  private listCycles(context: OperationContext): Response {
+    const project = this.project(context)
+    const view = context.query.cycle_view ?? "all"
+    const now = this.now()
+    const rows = this.state.cycles
+      .list({
+        order: "newest",
+        where: (cycle) => {
+          if (cycle.project !== project.id || cycle.archived_at) return false
+          const start = cycle.start_date === null ? null : Date.parse(cycle.start_date)
+          const end = cycle.end_date === null ? null : Date.parse(cycle.end_date)
+          if (view === "current")
+            return start !== null && end !== null && start <= now && end >= now
+          if (view === "upcoming") return start !== null && start > now
+          if (view === "completed") return end !== null && end < now
+          if (view === "draft") return start === null && end === null
+          if (view === "incomplete") return end === null || end >= now
+          return true
+        },
+      })
+      .map((row) => row.value)
+    const orderBy =
+      typeof context.query.order_by === "string" ? context.query.order_by : "-created_at"
+    const descending = orderBy.startsWith("-")
+    const field = (descending ? orderBy.slice(1) : orderBy) as keyof PlaneCycleRecord
+    rows.sort((a, b) => {
+      const x = a[field] ?? ""
+      const y = b[field] ?? ""
+      const order = x < y ? -1 : x > y ? 1 : 0
+      return descending ? -order : order
+    })
+    const results = rows.map((cycle) => this.cycleView(cycle))
+    return view === "current" ? jsonRes(200, results) : this.paginate(context, results, 20)
+  }
+
+  private createCycle(context: OperationContext): Response {
+    const project = this.project(context)
+    const body = this.body(context)
+    const start = body.start_date ?? null
+    const end = body.end_date ?? null
+    if ((start === null) !== (end === null))
+      throw new HttpError(400, {
+        error: "Both start date and end date are either required or are to be null",
+      })
+    const date = (value: unknown, field: string): string | null => {
+      if (value === null) return null
+      const text = String(value)
+      const day = text.slice(0, 10)
+      const instant = Date.parse(text)
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(day) ||
+        !Number.isFinite(instant) ||
+        new Date(Date.parse(day)).toISOString().slice(0, 10) !== day
+      ) {
+        throw new HttpError(400, { [field]: ["Datetime has wrong format."] })
+      }
+      return day
+    }
+    const startDay = date(start, "start_date")
+    const endDay = date(end, "end_date")
+    if (startDay && endDay && startDay > endDay)
+      throw new HttpError(400, {
+        non_field_errors: ["Start date cannot exceed end date"],
+      })
+    const now = this.iso()
+    const existing =
+      body.external_source && body.external_id
+        ? this.state.cycles.list({
+            where: (cycle) =>
+              cycle.project === project.id &&
+              cycle.external_id === body.external_id &&
+              cycle.external_source === body.external_source,
+          })[0]?.value
+        : undefined
+    if (existing)
+      return jsonRes(409, {
+        error: "Cycle with the same external id and external source already exists",
+        id: existing.id,
+      })
+    const cycle: PlaneCycleRecord = {
+      id: this.state.uuid("cycle"),
+      name: String(body.name).trim(),
+      description: typeof body.description === "string" ? body.description : "",
+      start_date: startDay
+        ? startDay === now.slice(0, 10)
+          ? now
+          : `${startDay}T00:00:01.000Z`
+        : null,
+      end_date: endDay ? `${endDay}T23:59:00.000Z` : null,
+      owned_by: typeof body.owned_by === "string" ? body.owned_by : uuidFrom("plane-bot"),
+      timezone: typeof body.timezone === "string" ? body.timezone : "UTC",
+      external_id: typeof body.external_id === "string" ? body.external_id : null,
+      external_source: typeof body.external_source === "string" ? body.external_source : null,
+      project: project.id,
+      workspace: project.workspace,
+      created_at: now,
+      updated_at: now,
+      archived_at: null,
+      deleted_at: null,
+    }
+    this.state.cycles.insert(cycle.id, cycle)
+    return annotateResponse(jsonRes(201, cycle), { ids: { cycleId: cycle.id } })
+  }
+
+  private listCycleWorkItems(context: OperationContext): Response {
+    const project = this.project(context)
+    const rows = this.state.memberships
+      .list({
+        order: "oldest",
+        where: (m) => m.cycle === context.params.cycle_id && m.project === project.id,
+      })
+      .flatMap((row) => {
+        const item = this.state.items.get(row.value.issue)
+        return item && item.project === project.id ? [{ ...item, bridge_id: row.value.id }] : []
+      })
+      .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.sequence_id - b.sequence_id)
+    return this.paginate(context, rows, 20)
+  }
+
+  private addCycleWorkItems(context: OperationContext): Response {
+    const body = this.body(context)
+    const ids = body.issues as string[]
+    if (!ids?.length)
+      throw new HttpError(400, { error: "Work items are required", code: "MISSING_WORK_ITEMS" })
+    const cycle = this.cycle(context)
+    if (cycle.end_date && Date.parse(cycle.end_date) < this.now())
+      throw new HttpError(400, {
+        code: "CYCLE_COMPLETED",
+        message: "The Cycle has already been completed so no new issues can be added",
+      })
+    for (const id of new Set(ids)) {
+      const item = this.state.items.get(id)
+      if (!item || item.project !== cycle.project || item.workspace !== cycle.workspace) continue
+      const membership = this.state.memberships.list({ where: (m) => m.issue === id })[0]?.value
+      if (membership) {
+        if (membership.cycle !== cycle.id)
+          this.state.memberships.update(membership.id, { ...membership, cycle: cycle.id })
+      } else {
+        const membershipId = this.state.uuid("cycle_membership")
+        const now = this.iso()
+        this.state.memberships.insert(membershipId, {
+          id: membershipId,
+          cycle: cycle.id,
+          issue: id,
+          project: cycle.project,
+          workspace: cycle.workspace,
+          created_at: now,
+          updated_at: now,
+          deleted_at: null,
+        })
+      }
+    }
+    const rows = this.state.memberships
+      .list({ order: "newest", where: (m) => m.cycle === cycle.id })
+      .map((row) => row.value)
+    return jsonRes(200, rows)
+  }
+
   private body(context: OperationContext): Record<string, unknown> {
     const issues = bodyIssues(context)
     if (issues.length > 0) throw new HttpError(400, drfErrors(issues))
     return context.body.kind === "json" ? (context.body.value as Record<string, unknown>) : {}
   }
 
-  /** Validate `state` / `labels` references against the project, DRF-style. */
+  /** Validate workflow references before any part of a write is persisted, DRF-style. */
   private references(
     project: ProjectRecord,
     body: Record<string, unknown>,
-  ): { state?: PlaneStateRecord; labels?: string[] } {
-    const out: { state?: PlaneStateRecord; labels?: string[] } = {}
+  ): { state?: PlaneStateRecord; labels?: string[]; typeId?: string | null } {
+    const out: { state?: PlaneStateRecord; labels?: string[]; typeId?: string | null } = {}
+    if (body.type_id === null) out.typeId = null
+    else if (typeof body.type_id === "string") {
+      const type = this.state.types.get(body.type_id)
+      if (!type?.project_ids.includes(project.id) || type.deleted_at !== null) {
+        throw new HttpError(400, {
+          type_id: [`Invalid pk "${body.type_id}" - object does not exist.`],
+        })
+      }
+      out.typeId = type.id
+    }
     if (typeof body.state === "string") {
       const state = this.state.states.get(body.state)
       if (!state || state.project !== project.id) {
@@ -345,6 +589,8 @@ export class PlaneAPI implements FetchAPI {
       refs.state ?? this.statesOf(project.id).find((s) => s.default) ?? this.statesOf(project.id)[0]
     const now = this.iso()
     const html = typeof body.description_html === "string" ? body.description_html : "<p></p>"
+    const typeId =
+      refs.typeId ?? this.typesOf(project.id).find((type) => type.is_default)?.id ?? null
     const item: PlaneWorkItemRecord = {
       id: this.state.uuid("work_item"),
       sequence_id: project.nextSequence,
@@ -353,6 +599,8 @@ export class PlaneAPI implements FetchAPI {
       description_stripped: stripTags(html) || null,
       priority: (body.priority as PlaneWorkItemRecord["priority"]) ?? "none",
       state: state?.id ?? "",
+      type_id: typeId,
+      type: typeId,
       labels: refs.labels ?? [],
       assignees: [],
       parent: null,
@@ -392,6 +640,7 @@ export class PlaneAPI implements FetchAPI {
         : {}),
       ...(refs.labels ? { labels: refs.labels } : {}),
       ...(refs.state ? { state: refs.state.id } : {}),
+      ...(refs.typeId !== undefined ? { type_id: refs.typeId, type: refs.typeId } : {}),
     })
     return annotateResponse(jsonRes(200, next), { ids: { workItemId: next.id } })
   }

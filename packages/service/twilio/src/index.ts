@@ -190,6 +190,7 @@ export class TwilioAPI implements FetchAPI {
       UpdateVerification: (context) => this.updateVerification(context),
       CreateVerificationCheck: (context) => this.createVerificationCheck(context),
       CreateMessage: (context) => this.createMessage(context),
+      ListMessages: (context) => this.listMessages(context),
       FetchMessage: (context) => this.fetchMessage(context),
       FetchRecordingMedia: (context) => this.fetchRecordingMedia(context),
       FetchRecording: (context) => this.fetchRecording(context),
@@ -618,6 +619,63 @@ export class TwilioAPI implements FetchAPI {
       )
     }
     return annotateResponse(jsonRes(200, message), { ids: { messageSid: message.sid } })
+  }
+
+  private listMessages(context: OperationContext): Response {
+    const accountSid = this.requireAccount(context)
+    const query = context.url.searchParams
+    const pageSize = Number(query.get("PageSize") ?? 50)
+    const page = Number(query.get("Page") ?? 0)
+    if (pageSize > 1000) throw fail(400, 20007, "Page size too large")
+    if (
+      !Number.isSafeInteger(pageSize) ||
+      pageSize < 1 ||
+      !Number.isSafeInteger(page) ||
+      page < 0
+    ) {
+      throw fail(400, 400, "Invalid paging parameters")
+    }
+    const records = this.state.messages
+      .list({ order: "newest" })
+      .map((row) => row.value)
+      .filter((message) => message.account_sid === accountSid)
+      .filter(
+        (message) =>
+          (!query.has("To") || message.to === query.get("To")) &&
+          (!query.has("From") || message.from === query.get("From")),
+      )
+    let start = 0
+    const token = query.get("PageToken")
+    if (token !== null) {
+      const match = /^(PA|PB)((?:SM|MM)[0-9a-f]{32})$/i.exec(token)
+      const index = match ? records.findIndex((message) => message.sid === match[2]) : -1
+      if (!match || index < 0) throw fail(400, 21481, "Invalid PageToken")
+      start = match[1]?.toUpperCase() === "PA" ? index + 1 : Math.max(0, index - pageSize)
+    }
+    const messages = records.slice(start, start + pageSize)
+    const path = `/2010-04-01/Accounts/${accountSid}/Messages.json`
+    const uri = (number: number, cursor?: string) => {
+      const params = new URLSearchParams(query)
+      params.set("PageSize", String(pageSize))
+      params.set("Page", String(number))
+      params.delete("PageToken")
+      if (cursor) params.set("PageToken", cursor)
+      return `${path}?${params}`
+    }
+    const last = messages.at(-1)
+    const first = messages[0]
+    return jsonRes(200, {
+      messages,
+      page,
+      page_size: pageSize,
+      start,
+      end: start + messages.length - 1,
+      uri: uri(page, token ?? undefined),
+      first_page_uri: uri(0),
+      next_page_uri:
+        last && start + messages.length < records.length ? uri(page + 1, `PA${last.sid}`) : null,
+      previous_page_uri: first && start > 0 ? uri(Math.max(0, page - 1), `PB${first.sid}`) : null,
+    })
   }
 
   // ---- Recordings ----------------------------------------------------------------------------

@@ -68,6 +68,13 @@ const { tid } = (await (await admin("/clicks", { ref_token: "nate91" })).json())
 | `POST /v2/company/promoters/archive` | `{ids: [..]}` → a completed batch `{id, status, total, selected_total, processed_count, failed_count, action_label, progress, processing_errors, …}`. |
 | `POST /v2/promoters/iframe_login?promoter_id=` | `{access_token, expires_in}`, or 404. |
 | `POST /v2/track/signup` | `{email, tid? \| promoter_id? \| ref_id?, uid?, skip_email_notification?}` → the referral. An unknown `tid`, promoter or ref token is 404; none of them is 400; an email already tracked is 422. With `autoConvert` (default on) the referral becomes a customer at once and `lead_becomes_referral` is posted. |
+| `GET /v2/company/referrals` | A bare array of stored referrals and live promoter/campaign metadata. `q` searches email/uid; `ids[]`, `filters[type]=lead\|customer`, `filters[state]`, `filters[promoter_id]`, and inclusive `filters[created_at\|customer_since][from\|to]` filter before paging. `page` starts at 1; `per_page` defaults to 20 (max 100). Exhausted pages and unmatched searches return `[]`. |
+| `GET /v2/company/referrals/{id}` | The same referral projection as listing. A numeric ID or `find_by=email\|uid` selects it; missing records are 404. |
+
+The [official referral reference](https://docs.firstpromoter.com/api-reference-v2/api-admin/referrals/get-referrals)
+specifies the bare array. Paging parameters and limits follow the official
+[n8n client](https://github.com/firstpromoter/n8n-app/blob/0842d761a3c024e7cf3030e5a108447375f03807/nodes/FirstPromoter/GeneralFunctions.ts)
+and [input definitions](https://github.com/firstpromoter/n8n-app/blob/0842d761a3c024e7cf3030e5a108447375f03807/nodes/FirstPromoter/FirstPromoter.node.ts).
 
 Every call needs `Authorization: Bearer <key>` and an `Account-ID` header (else 401).
 
@@ -89,6 +96,8 @@ is `user:pass`. Non-2xx answers are retried; `GET /__admin/webhooks`, `…/event
 | `POST /__admin/clicks` | `{ref_token}` → `{tid, promoterId}`: a click on the promoter's link. |
 | `GET /__admin/referrals` | Tracked signups. |
 | `POST /__admin/referrals/:id/convert` | `{saleAmount?}`: the lead paid; credits the promoter (percent reward × amount) and posts the webhook. |
+| `POST /__admin/commissions` | Seed a commission against an existing `{promoter_campaign_id, amount, unit?, status?, fulfilled?, is_paid?, referral_id?, sale_amount?, event_id?}`. Defaults: approved, points, unfulfilled/unpaid. A referral must belong to that promoter and campaign. |
+| `POST /__admin/promo-codes` | Seed `{promo_code, promoter_campaign_id}` against an existing promoter campaign for sale attribution tests. |
 | `GET\|PUT /__admin/settings` | `{website?, defaultCampaignId?, autoConvert?, campaigns?}` (campaigns carry `referralRewards` / `promoterRewards` with `coupon`, `amount`, `unit`, `per_of_sale`). The default campaign's referral coupon is `ACME50`. |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /__admin/faults/presets`):
@@ -96,6 +105,35 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 (lookups 503: neither create nor adopt), `no_campaign` (no `promoter_campaigns`: no ref link),
 `unauthorized`, `rate_limited`, `server_error`, `connection_drop`, `webhook_duplicate`,
 `webhook_drop`.
+
+Commission reconciliation follows FirstPromoter's [published contract](https://github.com/firstpromoter/docs/blob/d4e9e6f16bf4801c524508d2809a425ea6419d7d/api-reference-v2/api-admin/commissions/openapi-v2-commissions.json):
+`GET /v2/company/commissions` returns a bare array, newest first, with `q`, repeated `ids[]`,
+`page` / `per_page` (1 / 20 by default, maximum 100), and filters for `status`, nonmonetary
+`fulfilled=yes|no`, monetary `paid=yes|no`, `promoter_id`, `campaign_id`, amount / sale-amount
+ranges and creation-date ranges. `POST …/commissions/mark_fulfilled` fulfills nonmonetary
+commissions; `DELETE …/commissions/destroy` deletes selected commissions. Both take `{ids}`.
+Batches of at most five IDs return 200/completed; larger batches return 202/pending. In the
+mock they move to in_progress after the clock advances and complete at 1,000 ms, on the next
+authenticated API call. The batch collections and pending work participate in reset and snapshots.
+`GET …/batch_processes` and `…/batch_processes/progress` list unfinished work by default
+(`filters[status]` selects another status); `GET …/batch_processes/{id}` returns counts and
+processing errors. `batch_partial_failure` fails the first selected item while processing the
+others. Timing, missing-ID/monetary-item error text, and this preset are synthetic controls;
+they are not claims about the vendor's worker timing or exact error messages. Fulfillment is
+stored separately from the vendor's `is_paid` monetary field.
+
+`POST /v2/track/sale` follows the vendor's [sale contract](https://github.com/firstpromoter/docs/blob/d4e9e6f16bf4801c524508d2809a425ea6419d7d/api-reference-v2/api-admin/tracking-api/openapi-v2-tracking.json):
+`{event_id, amount, email|uid, currency?, plan?, promo_code?, ref_id?, tid?, skip_email_notification?}`
+records a positive integer amount in minor units against a tracked referral. The first configured
+campaign reward supplies an approved commission; percent rewards are rounded to the nearest
+minor unit, and flat rewards use their configured amount. Cash rewards also credit the existing
+promoter balance; nonmonetary rewards do not. The response includes the referral, amount and
+linked commissions, visible in the commission collection. Replaying an event ID returns the
+documented 409 without another credit, commission or webhook. Unknown referrals, archived
+promoters and unmatched supplied attribution tokens return the documented 404 `not_found` shape.
+Codes must be seeded through the admin control; tokens must belong to the referral's promoter
+campaign. All validation precedes sale/commission/balance writes; snapshots/reset include event
+deduplication. A successful sale preserves the existing conversion webhook behavior.
 
 ### Namespaces
 
@@ -109,8 +147,15 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
   branches on `ok` / 404, which the mock gets right.
 - The v1 API our EMR backend still calls (`/v1/promoters/*`, `/v1/track/signup`,
   `/v1/reports/campaigns`); the catalog scopes this mock to v2.
-- Sales, refunds, commissions and payouts beyond the single `convert` step; fraud checks;
-  promo codes; the hosted affiliate portal behind the iframe token.
+- Refunds, standalone commission creation/editing/approval, cash payouts and commission filters
+  beyond those listed above; fraud checks;
+  public promo-code provisioning; the hosted affiliate portal behind the iframe token.
+- Sale tracking requires an existing referral (the vendor's one-step signup bypass is unmodelled).
+  Currency is recorded without foreign-exchange conversion; plan-specific rewards, quantity/MRR
+  calculations, multiple reward tiers, split commissions and notification emails are unmodelled.
+  Commission rounding and immediate approval are deterministic mock policies, not live-verified
+  campaign policy. The default campaign reward remains 10 percent, as before.
+- Referral editing/deletion, username/website profile provisioning, cancelled-date filters and split attribution.
 - Promoter ids are sequential from 4800001 per namespace.
 
 ## API

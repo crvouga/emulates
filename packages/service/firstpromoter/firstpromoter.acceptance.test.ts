@@ -294,6 +294,7 @@ describe("S19 First Promoter acceptance: our consumer's logic against the mock",
   test("every documented preset is registered", () => {
     expect(Object.keys(FIRSTPROMOTER_PRESETS).sort()).toEqual(
       [
+        "batch_partial_failure",
         "connection_drop",
         "created_but_500",
         "lookup_unavailable",

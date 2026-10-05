@@ -17,6 +17,50 @@ security:
   - bearerAuth: []
 paths:
   /v1/rooms:
+    get:
+      operationId: ListRooms
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: ending_before
+          in: query
+          schema:
+            type: string
+        - name: starting_after
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Rooms in reverse creation order, with the account total
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [total_count, data]
+                properties:
+                  total_count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Room"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
     post:
       operationId: CreateRoom
       x-mockingbird:

@@ -15,6 +15,7 @@ import {
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { decodePostHogBody, tokenFromBody } from "./body.js"
+import { experimentOperations } from "./experiments.js"
 import {
   adminView,
   type Evaluation,
@@ -47,11 +48,12 @@ export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { FlagStateFile, ImportOptions } from "./import.js"
 export { specsFromState, valueForState } from "./import.js"
-export type { CapturedEvent, QueryResult, Settings } from "./state.js"
+export type { CapturedEvent, ExperimentRecord, QueryResult, Settings } from "./state.js"
 
 export const POSTHOG_NAMESPACE = "posthog"
 
 export type PostHogAPIOptions = APIOptions & {
+  adminPrefix?: string
   /** Flags every namespace starts with (and returns to on reset), keyed by flag key. */
   flags?: Record<string, FlagSpec>
   /** Initial per-namespace settings (session recording, canned HogQL results). */
@@ -196,6 +198,13 @@ export class PostHogAPI implements FetchAPI {
         typeof context.query.token === "string" && context.query.token
           ? jsonRes(200, { experiments: [] })
           : invalidApiKey(),
+      ...experimentOperations(this.state, this.now, options.adminPrefix ?? "/__admin"),
+      GetFeatureFlag: (context) => {
+        const flag = this.state.findFlag(context.params.flagId ?? "")
+        return flag && !flag.deleted
+          ? jsonRes(200, restView(flag))
+          : error(404, "invalid_request", "not_found", "Not found.")
+      },
       ListFeatureFlags: (context) => this.listFlags(context),
       CreateFeatureFlag: (context) => this.createFlag(context),
       UpdateFeatureFlag: (context) => this.updateFlag(context),
@@ -435,7 +444,14 @@ export class PostHogAPI implements FetchAPI {
     if (typeof body.name === "string") patch.name = body.name
     if (typeof body.active === "boolean") patch.active = body.active
     if (typeof body.deleted === "boolean") patch.deleted = body.deleted
-    if (body.filters !== undefined) Object.assign(patch, fromFilters(body.filters))
+    if (body.filters !== undefined) {
+      Object.assign(patch, fromFilters(body.filters))
+      if (flag.filters && isRecord(body.filters))
+        patch.filters = {
+          ...body.filters,
+          groups: Array.isArray(body.filters.groups) ? body.filters.groups : [],
+        }
+    }
     const updated = this.state.patchFlag(flag.key, patch) ?? flag
     return annotateResponse(jsonRes(200, restView(updated)), { ids: { flag: flag.key } })
   }

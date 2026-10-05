@@ -1,0 +1,687 @@
+openapi: 3.1.0
+info:
+  title: Infisical Universal Auth and v3 raw secrets
+  version: 0.0.0
+  x-mockingbird-upstream: Infisical server
+    70e06365043ae3b6f49ef6c95a8b9997b20f4a34; @infisical/sdk 3.0.91
+servers:
+  - url: https://app.infisical.com
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/universal-auth/login:
+    post:
+      operationId: UniversalAuthLogin
+      summary: Authenticate a fixture machine identity
+      tags:
+        - Infisical
+      parameters: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Auth"
+        "400":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientId:
+                  type: string
+                  example: fixture-machine
+                  default: fixture-machine
+                clientSecret:
+                  type: string
+                  example: fixture-client-secret
+                  default: fixture-client-secret
+                organizationSlug: &a1
+                  type: string
+              required:
+                - clientId
+                - clientSecret
+      x-mockingbird:
+        supported: true
+        parity:
+          safe: false
+      security: []
+  /api/v1/auth/token/renew:
+    post:
+      operationId: RenewAccessToken
+      summary: Renew an existing machine access token
+      tags:
+        - Infisical
+      parameters: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Auth"
+        "400":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accessToken: *a1
+              required:
+                - accessToken
+      x-mockingbird:
+        supported: true
+        parity:
+          safe: false
+      security: []
+  /api/v3/secrets/raw:
+    get:
+      operationId: ListSecrets
+      summary: List scoped raw secrets; v3 has no pagination envelope
+      tags:
+        - Infisical
+      parameters:
+        - &a2
+          name: workspaceId
+          in: query
+          required: false
+          schema:
+            type: string
+            example: fixture-project
+            default: fixture-project
+        - &a3
+          name: workspaceSlug
+          in: query
+          required: false
+          schema: *a1
+        - &a4
+          name: environment
+          in: query
+          required: true
+          schema:
+            type: string
+            example: dev
+            default: dev
+        - &a5
+          name: secretPath
+          in: query
+          required: false
+          schema:
+            type: string
+            example: /
+            default: /
+        - &a6
+          name: viewSecretValue
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - &a7
+          name: expandSecretReferences
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - &a8
+          name: include_imports
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: recursive
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: tagSlugs
+          in: query
+          required: false
+          schema: *a1
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretList"
+        "400":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      x-mockingbird:
+        supported: true
+        parity:
+          safe: true
+  /api/v3/secrets/raw/{secretName}:
+    get:
+      operationId: GetSecret
+      summary: Get a secret or historical version
+      tags:
+        - Infisical
+      parameters:
+        - &a9
+          name: secretName
+          in: path
+          required: true
+          schema:
+            type: string
+            example: ROOT_VALUE
+            default: ROOT_VALUE
+        - *a2
+        - *a3
+        - *a4
+        - *a5
+        - *a6
+        - *a7
+        - *a8
+        - name: version
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 1
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - shared
+              - personal
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretResponse"
+        "400":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      x-mockingbird:
+        supported: true
+        parity:
+          safe: true
+    post:
+      operationId: CreateSecret
+      summary: Create a shared secret at version one
+      tags:
+        - Infisical
+      parameters:
+        - *a9
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretResponse"
+        "400":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId: *a1
+                projectSlug: *a1
+                environment: &a10
+                  type: string
+                  example: dev
+                  default: dev
+                secretPath: &a11
+                  type: string
+                  example: /
+                  default: /
+                secretValue: *a1
+                secretComment: *a1
+                type: &a12
+                  type: string
+                  enum:
+                    - shared
+                    - personal
+                metadata: &a13
+                  type: object
+                  additionalProperties: *a1
+                tagIds: &a14
+                  type: array
+                  items: *a1
+              required:
+                - environment
+                - secretValue
+      x-mockingbird:
+        supported: true
+        parity:
+          safe: false
+    patch:
+      operationId: UpdateSecret
+      summary: Update or rename a shared secret and preserve versions
+      tags:
+        - Infisical
+      parameters:
+        - *a9
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretResponse"
+        "400":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Vendor-shaped error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId: *a1
+                projectSlug: *a1
+                environment: *a10
+                secretPath: *a11
+                secretValue: *a1
+                secretComment: *a1
+                type: *a12
+                metadata: *a13
+                tagIds: *a14
+                newSecretName: *a1
+              required:
+                - environment
+      x-mockingbird:
+        supported: true
+        parity:
+          safe: false
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Error:
+      type: object
+      properties:
+        reqId:
+          type: string
+          x-mockingbird-volatile:
+            kind: id
+        statusCode:
+          type: integer
+        message:
+          oneOf:
+            - *a1
+            - type: array
+              items:
+                type: object
+                additionalProperties: true
+        error: *a1
+      required:
+        - reqId
+        - statusCode
+        - message
+        - error
+    Secret:
+      type: object
+      properties:
+        id:
+          type: string
+          x-mockingbird-resource:
+            type: secret
+            identity: true
+        _id: *a1
+        workspace: *a1
+        environment: *a1
+        secretPath: *a1
+        version:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          enum:
+            - shared
+        secretKey: *a1
+        secretValue: *a1
+        secretComment: *a1
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              id: *a1
+              slug: *a1
+              name: *a1
+              color: *a1
+            required:
+              - id
+              - slug
+              - name
+        metadata:
+          type: object
+          additionalProperties: *a1
+        createdAt:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        updatedAt:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        secretValueHidden:
+          type: boolean
+      required:
+        - id
+        - _id
+        - workspace
+        - environment
+        - secretPath
+        - version
+        - type
+        - secretKey
+        - secretValue
+        - secretComment
+        - tags
+        - metadata
+        - createdAt
+        - updatedAt
+        - secretValueHidden
+    Auth:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          x-mockingbird-volatile:
+            kind: token
+        expiresIn:
+          type: integer
+          minimum: 0
+        accessTokenMaxTTL:
+          type: integer
+          minimum: 0
+        tokenType:
+          type: string
+          enum:
+            - Bearer
+      required:
+        - accessToken
+        - expiresIn
+        - accessTokenMaxTTL
+        - tokenType
+    SecretResponse:
+      type: object
+      properties:
+        secret:
+          $ref: "#/components/schemas/Secret"
+      required:
+        - secret
+    SecretList:
+      type: object
+      properties:
+        secrets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Secret"
+        imports:
+          type: array
+          items:
+            type: object
+            properties:
+              secretPath: *a1
+              environment: *a1
+              folderId: *a1
+              secrets:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Secret"
+            required:
+              - secretPath
+              - environment
+              - folderId
+              - secrets
+      required:
+        - secrets

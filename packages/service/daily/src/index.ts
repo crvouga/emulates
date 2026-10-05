@@ -171,6 +171,7 @@ export class DailyAPI implements FetchAPI {
     this.transcripts = options.transcripts
     this.state = new DailyState(sqlite, namespace, options.settings ?? {})
     const handlers = defineOperations<SupportedOperationId>({
+      ListRooms: (context) => this.listRooms(context),
       CreateRoom: (context) => this.createRoom(context),
       GetRoom: (context) => this.withRoom(context, (room) => jsonRes(200, roomView(room))),
       UpdateRoom: (context) => this.updateRoom(context),
@@ -297,6 +298,25 @@ export class DailyAPI implements FetchAPI {
     return annotateResponse(jsonRes(200, roomView(room)), {
       ids: { roomName: name, ...(warning ? { warning } : {}) },
     })
+  }
+
+  private listRooms(context: OperationContext): Response {
+    const query = context.url.searchParams
+    const rawLimit = query.get("limit")
+    const limit = rawLimit === null ? 100 : Number(rawLimit)
+    if (!Number.isSafeInteger(limit) || limit < 1)
+      return invalid("limit must be a positive integer")
+    const before = query.get("ending_before")
+    const after = query.get("starting_after")
+    if (before !== null && after !== null) return invalid("provide only one room cursor")
+    const rooms = this.state.rooms.list({ order: "newest" }).map((row) => row.value)
+    let selected = rooms
+    const cursor = before ?? after
+    if (cursor !== null) {
+      const index = rooms.findIndex((room) => room.id === cursor)
+      selected = index < 0 ? [] : before !== null ? rooms.slice(index + 1) : rooms.slice(0, index)
+    }
+    return jsonRes(200, { total_count: rooms.length, data: selected.slice(0, limit).map(roomView) })
   }
 
   private updateRoom(context: OperationContext): Response | Promise<Response> {

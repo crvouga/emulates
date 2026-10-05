@@ -386,6 +386,544 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /v2/company/referrals:
+    get:
+      operationId: ListReferrals
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Referral read
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferralDetail"
+        "401": &a1
+          description: Missing API key or Account-ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404": &a2
+          description: No such promoter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      description: Filtered referral collection, as the vendor's bare array;
+        page/per_page follow the official n8n client.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: ids[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: filters[type]
+          in: query
+          schema:
+            type: string
+            enum:
+              - lead
+              - customer
+        - name: filters[state]
+          in: query
+          schema:
+            type: string
+            enum:
+              - signup
+              - active
+              - cancelled
+              - refunded
+              - denied
+        - name: filters[promoter_id]
+          in: query
+          schema:
+            type: string
+        - name: filters[created_at][from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: filters[created_at][to]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: filters[customer_since][from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: filters[customer_since][to]
+          in: query
+          schema:
+            type: string
+            format: date
+  /v2/company/referrals/{id}:
+    get:
+      operationId: GetReferral
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Referral read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralDetail"
+        "401": *a1
+        "404": *a2
+      description: Retrieve a stored referral by numeric ID, or by email/uid when
+        find_by is set.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["91000001", "999999999"]
+        - name: find_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - email
+              - uid
+  /v2/company/commissions:
+    get:
+      operationId: ListCommissions
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Commission"
+        "401":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: ids[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: filters[status]
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - approved
+              - denied
+        - name: filters[paid]
+          in: query
+          schema:
+            type: string
+            enum:
+              - yes
+              - no
+        - name: filters[fulfilled]
+          in: query
+          schema:
+            type: string
+            enum:
+              - yes
+              - no
+        - name: filters[promoter_id]
+          in: query
+          schema:
+            type: integer
+        - name: filters[campaign_id]
+          in: query
+          schema:
+            type: integer
+        - name: filters[amount][from]
+          in: query
+          schema:
+            type: integer
+        - name: filters[amount][to]
+          in: query
+          schema:
+            type: integer
+        - name: filters[sale_amount][from]
+          in: query
+          schema:
+            type: integer
+        - name: filters[sale_amount][to]
+          in: query
+          schema:
+            type: integer
+        - name: filters[created_at][from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: filters[created_at][to]
+          in: query
+          schema:
+            type: string
+            format: date
+  /v2/company/commissions/mark_fulfilled:
+    post:
+      operationId: FulfillCommissions
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchProcess"
+        "202":
+          description: Accepted for asynchronous processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchProcess"
+        "401":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items:
+                    type: integer
+                    minimum: 1
+  /v2/company/commissions/destroy:
+    delete:
+      operationId: DestroyCommissions
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchProcess"
+        "202":
+          description: Accepted for asynchronous processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchProcess"
+        "401":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items:
+                    type: integer
+                    minimum: 1
+  /v2/company/batch_processes:
+    get:
+      operationId: ListBatchProcesses
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BatchProcess"
+        "401":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - &a1
+          name: filters[status]
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - in_progress
+              - completed
+              - failed
+              - stopped
+  /v2/company/batch_processes/progress:
+    get:
+      operationId: BatchProcessProgress
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+        "401":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - *a1
+  /v2/company/batch_processes/{id}:
+    get:
+      operationId: GetBatchProcess
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchProcess"
+        "401":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - "300001"
+              - "999999999"
+  /v2/track/sale:
+    post:
+      operationId: TrackSale
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event_id
+                - amount
+              oneOf:
+                - required:
+                    - email
+                - required:
+                    - uid
+              properties:
+                event_id:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                amount:
+                  type: integer
+                  minimum: 1
+                email:
+                  type: string
+                  format: email
+                  maxLength: 120
+                uid:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                currency:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+                plan:
+                  type: string
+                promo_code:
+                  type: string
+                ref_id:
+                  type: string
+                tid:
+                  type: string
+                skip_email_notification:
+                  type: boolean
+      responses:
+        "200":
+          description: Sale and its commissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "400":
+          description: Invalid amount
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No eligible referral
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - code
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                    enum:
+                      - not_found
+        "409":
+          description: Duplicate sale event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
 components:
   securitySchemes:
     bearerAuth:
@@ -719,3 +1257,425 @@ components:
           type: array
           items:
             type: string
+    ReferralDetail:
+      type: object
+      required:
+        - id
+        - email
+        - state
+        - created_at
+      properties:
+        id:
+          type: integer
+          x-mockingbird-volatile:
+            kind: id
+        email:
+          type: string
+        uid:
+          type:
+            - string
+            - "null"
+        state:
+          type: string
+          enum:
+            - signup
+            - active
+            - cancelled
+            - refunded
+            - denied
+        created_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        customer_since:
+          type:
+            - string
+            - "null"
+        promoter_campaign:
+          type:
+            - object
+            - "null"
+          properties:
+            id:
+              type: integer
+              x-mockingbird-volatile:
+                kind: id
+            campaign_id:
+              type: integer
+            promoter_id:
+              type: integer
+              x-mockingbird-volatile:
+                kind: id
+            ref_token:
+              type: string
+            created_at:
+              type: string
+              x-mockingbird-volatile:
+                kind: timestamp
+            promoter:
+              type: object
+              required:
+                - id
+                - email
+                - name
+              properties:
+                id:
+                  type: integer
+                  x-mockingbird-volatile:
+                    kind: id
+                email:
+                  type: string
+                name:
+                  type: string
+            campaign:
+              type:
+                - object
+                - "null"
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                color:
+                  type: string
+        metadata:
+          type: object
+        entry_source:
+          type: string
+          enum:
+            - api
+            - cookie
+        fraud_check:
+          type: string
+        created_by_user_email:
+          type:
+            - string
+            - "null"
+        username:
+          type:
+            - string
+            - "null"
+        split_details:
+          type: array
+          items:
+            type: object
+        first_name:
+          type:
+            - string
+            - "null"
+        last_name:
+          type:
+            - string
+            - "null"
+        website:
+          type:
+            - string
+            - "null"
+        comment:
+          type:
+            - string
+            - "null"
+        is_expired:
+          type: boolean
+    Commission:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Commission ID
+          x-mockingbird-volatile:
+            kind: id
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - denied
+          description: Current status of the commission
+        metadata:
+          type: object
+          description: Additional metadata about the commission
+        is_self_referral:
+          type:
+            - boolean
+            - "null"
+          description: Whether this is a self-referral
+        commission_type:
+          type: string
+          enum:
+            - sale
+            - custom
+          description: Type of commission
+        created_by_user_email:
+          type:
+            - string
+            - "null"
+          description: Email of the user who created the commission
+        created_by_user_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Timestamp when the user created the commission
+          x-mockingbird-volatile:
+            kind: timestamp
+        sale_amount:
+          type: integer
+          description: Amount of the sale
+        original_sale_amount:
+          type: integer
+          description: Original amount of the sale
+        original_sale_currency:
+          type:
+            - string
+            - "null"
+          description: Currency of the original sale
+        event_id:
+          type:
+            - string
+            - "null"
+          description: ID of the event that generated the commission
+        plan_id:
+          type:
+            - string
+            - "null"
+          description: Plan ID associated with the commission
+        tier:
+          type: integer
+          description: Reward tier
+        internal_note:
+          type:
+            - string
+            - "null"
+          description: Internal note visible only to the team
+        external_note:
+          type:
+            - string
+            - "null"
+          description: External note visible to the promoter
+        unit:
+          type: string
+          enum:
+            - cash
+            - credits
+            - points
+            - free_months
+            - mon_discount
+            - discount_per
+          description: Unit type for the reward
+        fraud_check:
+          type:
+            - string
+            - "null"
+          enum:
+            - no_suspicion
+            - same_ip_suspicion
+            - same_promoter_email
+            - ad_source
+            - null
+          description: Result of fraud check
+        amount:
+          type: integer
+          description: Commission amount
+        is_paid:
+          type: boolean
+          description: Whether the commission has been paid
+        is_split:
+          type: boolean
+          description: Whether the commission is split among multiple promoters
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          x-mockingbird-volatile:
+            kind: timestamp
+        status_updated_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Last status update timestamp
+          x-mockingbird-volatile:
+            kind: timestamp
+        promoter_campaign:
+          type:
+            - object
+            - "null"
+          properties:
+            id:
+              type: integer
+              description: Promoter campaign ID
+              x-mockingbird-volatile:
+                kind: id
+            campaign_id:
+              type: integer
+              description: Campaign ID
+            promoter_id:
+              type: integer
+              description: Promoter ID
+            created_at:
+              type: string
+              format: date-time
+              description: Creation timestamp
+              x-mockingbird-volatile:
+                kind: timestamp
+            promoter:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Promoter ID
+                  x-mockingbird-volatile:
+                    kind: id
+                email:
+                  type: string
+                  description: Promoter email
+                name:
+                  type: string
+                  description: Promoter name
+            campaign:
+              type:
+                - object
+                - "null"
+              properties:
+                id:
+                  type: integer
+                  description: Campaign ID
+                  x-mockingbird-volatile:
+                    kind: id
+                name:
+                  type: string
+                  description: Campaign name
+                color:
+                  type:
+                    - string
+                    - "null"
+                  description: Campaign color
+        referral:
+          type:
+            - object
+            - "null"
+          properties:
+            id:
+              type: integer
+              description: Referral ID
+              x-mockingbird-volatile:
+                kind: id
+            email:
+              type: string
+              description: Referral email
+            uid:
+              type:
+                - string
+                - "null"
+              description: Referral UID
+        reward:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Reward ID
+              x-mockingbird-volatile:
+                kind: id
+            name:
+              type: string
+              description: Reward name
+        split_details:
+          type:
+            - object
+            - "null"
+          description: Commission split details from the associated referral, when the
+            referral is shared between promoters
+      required:
+        - id
+        - status
+        - metadata
+        - is_self_referral
+        - commission_type
+        - created_by_user_email
+        - created_by_user_at
+        - sale_amount
+        - original_sale_amount
+        - original_sale_currency
+        - event_id
+        - plan_id
+        - tier
+        - internal_note
+        - external_note
+        - unit
+        - fraud_check
+        - amount
+        - is_paid
+        - is_split
+        - created_at
+        - status_updated_at
+        - promoter_campaign
+        - referral
+        - reward
+        - split_details
+    Sale:
+      type: object
+      required:
+        - id
+        - etype
+        - sale_amount
+        - original_sale_amount
+        - original_sale_currency
+        - event_id
+        - plan_id
+        - billing_period
+        - created_at
+        - referral
+        - commissions
+      properties:
+        id:
+          type: integer
+          x-mockingbird-volatile:
+            kind: id
+        etype:
+          type: string
+          enum:
+            - sale
+        sale_amount:
+          type: integer
+        original_sale_amount:
+          type: integer
+        original_sale_currency:
+          type:
+            - string
+            - "null"
+        event_id:
+          type: string
+        plan_id:
+          type:
+            - string
+            - "null"
+        billing_period:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        referral:
+          type: object
+          required:
+            - id
+            - email
+            - uid
+          properties:
+            id:
+              type: integer
+              x-mockingbird-volatile:
+                kind: id
+            email:
+              type: string
+            uid:
+              type:
+                - string
+                - "null"
+        commissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Commission"

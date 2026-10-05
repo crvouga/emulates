@@ -122,6 +122,7 @@
     "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-http-codec": "workspace:*",
     "@crvouga/mockingbird-adapter-node": "workspace:*",
-    "twilio": "5.10.0"
+    "twilio": "5.10.0",
+    "twilio-reconciliation": "npm:twilio@5.13.1"
   }
 }

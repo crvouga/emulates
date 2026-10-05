@@ -1,0 +1,131 @@
+{
+  "name": "@crvouga/mockingbird-service-openai",
+  "version": "0.0.0-development",
+  "description": "Local scripted OpenAI mock: chat/tool loops, SSE, embeddings, models, files and staged uploads without billed inference.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "DISCOVERY.md",
+    "SUPPORT.md",
+    "openapi.yaml"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "bin": {
+    "mockingbird-openai": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/service/openai"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/openai#readme",
+  "keywords": [
+    "mockingbird",
+    "service",
+    "openai",
+    "ai",
+    "testing"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "entries": {
+      "server": "node",
+      "cli": "node"
+    },
+    "layer": "service",
+    "category": "ai",
+    "displayName": "OpenAI",
+    "status": "wip",
+    "vendor": {
+      "website": "https://openai.com",
+      "docs": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create",
+      "description": "OpenAI provides chat, embeddings and agent APIs; this mock uses local scripts only.",
+      "icon": "openai"
+    },
+    "parity": "Scripted chat/tool calls, SSE, embeddings, models, files and uploads",
+    "parityTier": "cold",
+    "playground": {
+      "headers": {
+        "authorization": "Bearer fixture-openai-token"
+      },
+      "operation": "ListModels"
+    },
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "contract": "openapi.yaml",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Official documentation and local SDK oracle",
+        "command": "bun run parity:service -- openai",
+        "note": "Live billed inference is disabled by repository policy. The package parity runner exits 2; tests verify official SDKs locally."
+      },
+      "introspection": [
+        "GET /__admin/health",
+        "GET /__admin",
+        "GET /__admin/state",
+        "GET /__admin/requests",
+        "GET /__admin/metrics",
+        "GET /__admin/faults/presets",
+        "GET /__admin/ui"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
+  },
+  "scripts": {
+    "generate": "bun ../../openapi/codegen/dist/cli.js",
+    "generate:check": "bun ../../openapi/codegen/dist/cli.js --check",
+    "openapi:check": "bun ../../openapi/codegen/dist/cli.js --validate",
+    "build": "bun ../../../scripts/bundle-service.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test",
+    "parity": "bun scripts/parity.ts",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts"
+  },
+  "dependencies": {
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "hono": "4.11.9",
+    "@noble/hashes": "2.4.0",
+    "@noble/ciphers": "2.4.0"
+  },
+  "devDependencies": {
+    "fast-check": "4.9.0",
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@ai-sdk/openai": "4.0.83",
+    "ai": "7.0.127",
+    "openai": "7.27.0"
+  }
+}

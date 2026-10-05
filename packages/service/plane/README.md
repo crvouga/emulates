@@ -72,6 +72,21 @@ workspace's slug (`acme` in the examples).
 | `GET` / `POST work-items/{id}/links/` | `{url, title?}` → 201 link; the same URL twice is 409 `{error, id}`. |
 | `GET states/` | The project's workflow states (`id`, `name`, `group`, `color`, `sequence`, `default`). |
 | `GET` / `POST labels/` | `{name, color?, description?}` → 201 label; a duplicate name is 409 `{error, id: <existing>}`. |
+| `GET` / `POST cycles/` | Create with `{name, description?, start_date?, end_date?, external_source?, external_id?}`. Both dates must be present or null. Lists use the cursor envelope (default 20 rows); `cycle_view=current` returns a bare array. Other views: `all`, `upcoming`, `completed`, `draft`, `incomplete`. |
+| `GET` / `POST cycles/{id}/cycle-issues/` | POST `{issues: [<work item UUID>]}` adds or moves items and returns membership rows, without duplicates. GET returns paginated work items with their latest fields. Unknown/foreign item IDs are ignored; missing cycles are 404. Completed cycles reject additions with `CYCLE_COMPLETED`. |
+| `GET work-item-types/` | A bare array of seeded type metadata, including stable UUIDs, names, `project_ids`, default/active flags and timestamps. This endpoint has no cursor pagination. |
+
+Seed types through `POST /__admin/work-item-types`, then send `type_id` on work-item create or
+patch. GET returns both `type_id` and `type`, as Plane's
+[work-item serializer](https://github.com/makeplane/plane/blob/c7a5afee6afd15f16038ebda1ec1489ebd8af67d/apps/api/plane/api/serializers/issue.py)
+does. Unknown IDs fail with a DRF `type_id` error before any field or sequence number changes.
+Creation inherits a seeded default type; an explicit patch `type_id: null` clears it.
+
+Cycle dates use UTC project days and the mock clock, following Plane's
+[cycle endpoint](https://github.com/makeplane/plane/blob/c7a5afee6afd15f16038ebda1ec1489ebd8af67d/apps/api/plane/api/views/cycle.py)
+and [date converter](https://github.com/makeplane/plane/blob/c7a5afee6afd15f16038ebda1ec1489ebd8af67d/apps/api/plane/utils/timezone_converter.py):
+future/past starts are 00:00:01, today's start is the creation time, and ends are 23:59:00.
+The current filter includes both endpoints. Cycle counts follow work-item state changes.
 
 Errors: no key 401 `{"detail": "Authentication credentials were not provided."}`, a key outside
 `apiKeys` 401 `{"detail": "Given API token is not valid"}`, unknown item/project 404
@@ -85,6 +100,7 @@ throttled. Expected available in N seconds."}` with `x-ratelimit-*` headers.
 | `POST /__admin/work-items/:id/state` | `{state: "<id or name>"}`: move an item (e.g. to `Done`) as a teammate would. |
 | `GET /__admin/work-items` | The namespace's work items. |
 | `POST /__admin/projects` | `{workspace, project}`: provision a project now; answers its states and labels. |
+| `POST /__admin/work-item-types` | `{workspace, project, types: [{name, description?, is_default?}]}`: seed project type metadata with stable IDs; repeat calls update metadata and preserve creation time. Types start empty. Invalid batches do not partially write. |
 | `GET/PUT /__admin/settings` | `{apiKeys?, rateLimitPerMinute?: number \| null, projects?: ["<slug>/<uuid>"]}`. `rateLimitPerMinute: 60` reproduces Plane's limit on the mock clock; `projects` pins which projects exist (others 404). |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `rate_limited` (429),
@@ -101,9 +117,10 @@ never retried.
 
 ### Deliberately not modelled
 
-- Plane webhooks (our app polls), cycles, modules, pages, intake, attachments, members,
+- Plane webhooks (our app polls), cycle editing/deletion and non-UTC project timezones, modules, pages, intake, attachments, members,
   estimates, worklogs, and `expand=`.
 - Deleting work items, comments, links or labels; archiving.
+- Vendor work-item type administration, custom type schemas, epics and cross-project type sharing. Seed types with the admin control for this list/assignment surface.
 - Rich-text processing: `description_stripped` / `comment_stripped` are tag-stripped text.
 
 ## API

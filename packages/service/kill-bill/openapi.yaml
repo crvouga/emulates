@@ -2,6 +2,185 @@ openapi: 3.1.0
 info: { title: Kill Bill Billing API (Mockingbird subset), version: "1.0", description: Stateful REST billing contract. }
 servers: [{ url: http://127.0.0.1:8080 }]
 paths:
+  /1.0/kb/accounts/pagination:
+    get:
+      operationId: PaginateAccounts
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: accountWithBalance
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: accountWithBalanceAndCBA
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Tenant-scoped records in insertion order (negative limit reverses
+            order)
+          headers: &a1
+            X-Killbill-Pagination-CurrentOffset:
+              description: Pagination metadata
+              schema:
+                type: string
+            X-Killbill-Pagination-NextOffset:
+              description: Absent on the terminal page
+              schema:
+                type: string
+            X-Killbill-Pagination-TotalNbRecords:
+              description: Pagination metadata
+              schema:
+                type: string
+            X-Killbill-Pagination-MaxNbRecords:
+              description: Pagination metadata
+              schema:
+                type: string
+            X-Killbill-Pagination-NextPageUri:
+              description: Absent on the terminal page
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - accountId
+                    - externalKey
+                    - currency
+                    - timeZone
+                    - referenceTime
+                    - accountBalance
+                    - accountCBA
+                  properties:
+                    accountId:
+                      type: string
+                      x-mockingbird-resource:
+                        type: account
+                        identity: true
+                    externalKey:
+                      type: string
+                    currency:
+                      type: string
+                    timeZone:
+                      type: string
+                    referenceTime:
+                      type: string
+                      x-mockingbird-volatile:
+                        kind: timestamp
+                    accountBalance:
+                      type:
+                        - number
+                        - "null"
+                    accountCBA:
+                      type:
+                        - number
+                        - "null"
+        "400":
+          description: Invalid offset/limit
+        "401":
+          description: Invalid Basic or tenant credentials
+  /1.0/kb/invoices/pagination:
+    get:
+      operationId: PaginateInvoices
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: Tenant-scoped records in insertion order (negative limit reverses
+            order)
+          headers: *a1
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - invoiceId
+                    - accountId
+                    - invoiceNumber
+                    - invoiceDate
+                    - targetDate
+                    - currency
+                    - status
+                    - amount
+                    - balance
+                    - creditAdj
+                    - refundAdj
+                    - items
+                  properties:
+                    invoiceId:
+                      type: string
+                      x-mockingbird-resource:
+                        type: invoice
+                        identity: true
+                    accountId:
+                      type: string
+                    invoiceNumber:
+                      type: string
+                    invoiceDate:
+                      type: string
+                    targetDate:
+                      type: string
+                    currency:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - COMMITTED
+                        - VOID
+                    amount:
+                      type: number
+                    balance:
+                      type: number
+                    creditAdj:
+                      type: number
+                    refundAdj:
+                      type: number
+                    items:
+                      type: array
+                      items:
+                        type: object
+        "400":
+          description: Invalid offset/limit
+        "401":
+          description: Invalid Basic or tenant credentials
+
   /1.0/kb/tenants:
     get:
       operationId: GetTenantByApiKey

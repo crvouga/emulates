@@ -16,9 +16,11 @@ import {
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
+import { Commissions } from "./commissions.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
   type CampaignReward,
+  type CommissionUnit,
   FirstPromoterState,
   type PromoterRecord,
   type ReferralRecord,
@@ -143,6 +145,7 @@ export class FirstPromoterAPI implements FetchAPI {
   readonly app: Hono
   readonly sqlite: SqliteClient
   readonly state: FirstPromoterState
+  readonly commissions: Commissions
   private readonly service: Service
   private readonly now: () => number
   private readonly onWebhook: ((event: LeadBecomesReferralWebhook) => void) | undefined
@@ -153,14 +156,52 @@ export class FirstPromoterAPI implements FetchAPI {
     this.now = options.now ?? (() => Date.now())
     this.onWebhook = options.onWebhook
     this.state = new FirstPromoterState(sqlite, namespace, options.settings ?? {})
+    this.commissions = new Commissions(this.state, this.now)
     const handlers = defineOperations<SupportedOperationId>({
       TrackSignup: (context) => this.trackSignup(context),
+      TrackSale: (context) => this.trackSale(context),
       ListPromoters: (context) => this.listPromoters(context),
       CreatePromoter: (context) => this.createPromoter(context),
       ArchivePromoters: (context) => this.archivePromoters(context),
       GetPromoter: (context) => this.getPromoter(context),
       UpdatePromoter: (context) => this.updatePromoter(context),
       IframeLogin: (context) => this.iframeLogin(context),
+      ListReferrals: (context) => this.listReferrals(context),
+      GetReferral: (context) => this.getReferral(context),
+      ListCommissions: (context) => this.commissions.list(context.url.searchParams),
+      FulfillCommissions: (context) => this.commissionBatch(context, "mark_fulfilled"),
+      DestroyCommissions: (context) => this.commissionBatch(context, "destroy"),
+      ListBatchProcesses: (context) =>
+        jsonRes(
+          200,
+          this.state.batches
+            .list({
+              order: "newest",
+              where: (row) =>
+                context.url.searchParams.has("filters[status]")
+                  ? row.status === context.url.searchParams.get("filters[status]")
+                  : row.status !== "completed",
+            })
+            .map((row) => row.value),
+        ),
+      GetBatchProcess: (context) => {
+        const batch = this.state.batches.get(context.params.id ?? "")
+        return batch ? jsonRes(200, batch) : error(404, "Batch process not found")
+      },
+      BatchProcessProgress: (context) =>
+        jsonRes(
+          200,
+          Object.fromEntries(
+            this.state.batches
+              .list({
+                where: (row) =>
+                  context.url.searchParams.has("filters[status]")
+                    ? row.status === context.url.searchParams.get("filters[status]")
+                    : row.status !== "completed",
+              })
+              .map((row) => [row.value.id, row.value.progress]),
+          ),
+        ),
     })
     this.service = createService({
       document,
@@ -178,6 +219,7 @@ export class FirstPromoterAPI implements FetchAPI {
         if (!context.request.headers.get("account-id")?.trim()) {
           return error(401, "Account-ID header is required")
         }
+        this.commissions.settle()
         return undefined
       },
     })
@@ -196,6 +238,130 @@ export class FirstPromoterAPI implements FetchAPI {
 
   private iso(): string {
     return new Date(this.now()).toISOString()
+  }
+
+  private commissionBatch(
+    context: OperationContext,
+    action: "mark_fulfilled" | "destroy",
+  ): Response {
+    const body = record(context)
+    const invalid = validation(context)
+    if (invalid) return invalid
+    const batch = this.commissions.submit(
+      body.ids as number[],
+      action,
+      faultEffect(context.request, "batch_partial_failure") !== undefined,
+    )
+    return jsonRes(batch.status === "pending" ? 202 : 200, batch)
+  }
+
+  private renderReferral(referral: ReferralRecord) {
+    const promoter =
+      referral.promoter_id === null ? undefined : this.state.byId(referral.promoter_id)
+    const enrolment = promoter?.campaigns.find((c) => c.campaign_id === referral.campaign_id)
+    const campaign =
+      referral.campaign_id === null ? undefined : this.state.campaign(referral.campaign_id)
+    return {
+      id: referral.id,
+      email: referral.email,
+      uid: referral.uid,
+      state: referral.state,
+      metadata: {},
+      entry_source: referral.tid ? "cookie" : "api",
+      created_at: referral.created_at,
+      customer_since: referral.customer_since,
+      promoter_campaign:
+        enrolment && promoter
+          ? {
+              id: enrolment.id,
+              campaign_id: enrolment.campaign_id,
+              promoter_id: promoter.id,
+              created_at: enrolment.created_at,
+              promoter: {
+                id: promoter.id,
+                email: promoter.email,
+                name:
+                  [promoter.first_name, promoter.last_name].filter(Boolean).join(" ") ||
+                  promoter.email,
+              },
+              campaign: campaign
+                ? { id: campaign.id, name: campaign.name, color: campaign.color }
+                : null,
+            }
+          : null,
+      fraud_check: "no_suspicion",
+      created_by_user_email: null,
+      username: null,
+      split_details: [],
+      first_name: null,
+      last_name: null,
+      website: null,
+      comment: null,
+      is_expired: false,
+    }
+  }
+
+  private listReferrals(context: OperationContext): Response {
+    const query = context.url.searchParams
+    const search = query.get("q")?.toLowerCase() ?? ""
+    const selected = query.getAll("ids[]")
+    const promoter = query.get("filters[promoter_id]")
+    const state = query.get("filters[state]")
+    const type = query.get("filters[type]")
+    const withinDates = (value: string | null, field: string) => {
+      const from = query.get(`filters[${field}][from]`)
+      const to = query.get(`filters[${field}][to]`)
+      if (!from && !to) return true
+      if (value === null) return false
+      const day = value.slice(0, 10)
+      return (!from || day >= from) && (!to || day <= to)
+    }
+    const rows = this.state.referrals
+      .list({
+        order: "newest",
+        where: (referral) =>
+          (!search ||
+            [referral.email, referral.uid ?? ""].some((value) =>
+              value.toLowerCase().includes(search),
+            )) &&
+          (selected.length === 0 || selected.includes(String(referral.id))) &&
+          (!promoter || String(referral.promoter_id) === promoter) &&
+          (!state || referral.state === state) &&
+          (!type ||
+            (type === "customer"
+              ? referral.customer_since !== null
+              : type === "lead" && referral.customer_since === null)) &&
+          withinDates(referral.created_at, "created_at") &&
+          withinDates(referral.customer_since, "customer_since"),
+      })
+      .map((row) => row.value)
+    const page = Math.max(1, Math.floor(Number(query.get("page")) || 1))
+    const size = Math.min(100, Math.max(1, Math.floor(Number(query.get("per_page")) || 20)))
+    return jsonRes(
+      200,
+      rows.slice((page - 1) * size, page * size).map((referral) => this.renderReferral(referral)),
+    )
+  }
+
+  private getReferral(context: OperationContext): Response {
+    const value = context.params.id ?? ""
+    const findBy = context.url.searchParams.get("find_by")
+    const referral =
+      findBy === "email" || findBy === "uid"
+        ? this.state.referrals.list({
+            where: (row) =>
+              findBy === "email"
+                ? row.email.toLowerCase() === value.toLowerCase()
+                : row.uid === value,
+          })[0]?.value
+        : /^\d+$/.test(value)
+          ? this.state.referrals.get(String(Number(value)))
+          : undefined
+    return referral
+      ? annotateResponse(jsonRes(200, this.renderReferral(referral)), {
+          ids: { referralId: String(referral.id) },
+        })
+      : error(404, "Referral not found")
   }
 
   /** The promoter as `GET /v2/company/promoters/{id}` renders it (FirstPromoterV2ResponseSchema). */
@@ -522,6 +688,111 @@ export class FirstPromoterAPI implements FetchAPI {
     )
   }
 
+  private trackSale(context: OperationContext): Response {
+    const body = record(context)
+    if (!Number.isSafeInteger(body.amount) || Number(body.amount) <= 0)
+      return error(400, "Error. Amount blank or invalid.")
+    const invalid = validation(context)
+    if (invalid) return invalid
+    const eventId = String(body.event_id)
+    if (this.state.sales.has(eventId))
+      return error(409, `The 'sale' event with the id '${eventId}' already exists.`)
+    const missing = () =>
+      jsonRes(404, {
+        message:
+          "Referral corresponding to email or uid parameter not found or promoter is banned.",
+        code: "not_found",
+      })
+    const referral = this.state.referrals.list({
+      where: (row) =>
+        typeof body.uid === "string"
+          ? row.uid === body.uid
+          : row.email.toLowerCase() === String(body.email).toLowerCase(),
+    })[0]?.value
+    const promoter =
+      referral?.promoter_id === null || !referral
+        ? undefined
+        : this.state.byId(referral.promoter_id)
+    const enrolment = promoter?.campaigns.find((c) => c.campaign_id === referral?.campaign_id)
+    if (!referral || !promoter || promoter.state === "archived" || !enrolment) return missing()
+    if (typeof body.ref_id === "string" && body.ref_id !== enrolment.ref_token) return missing()
+    if (
+      typeof body.tid === "string" &&
+      this.state.clicks.get(body.tid)?.promoter_id !== promoter.id
+    )
+      return missing()
+    if (
+      typeof body.promo_code === "string" &&
+      this.state.promoCodes.get(body.promo_code)?.promoter_campaign_id !== enrolment.id
+    )
+      return missing()
+    const saleAmount = Number(body.amount)
+    const reward = this.state.campaign(enrolment.campaign_id)?.promoterRewards[0]
+    const earned = reward
+      ? Math.round(
+          reward.per_of_sale !== null
+            ? (saleAmount * reward.per_of_sale) / 100
+            : (reward.amount ?? 0),
+        )
+      : 0
+    const units: CommissionUnit[] = [
+      "cash",
+      "credits",
+      "points",
+      "free_months",
+      "mon_discount",
+      "discount_per",
+    ]
+    const unit: CommissionUnit = units.find((value) => value === reward?.unit) ?? "cash"
+    const sale = this.sqlite.transaction(() => {
+      const commission = reward
+        ? this.commissions.seed({
+            promoter_campaign_id: enrolment.id,
+            referral_id: referral.id,
+            status: "approved",
+            fulfilled: false,
+            is_paid: false,
+            commission_type: "sale",
+            unit,
+            amount: earned,
+            sale_amount: saleAmount,
+            original_sale_currency: typeof body.currency === "string" ? body.currency : null,
+            event_id: eventId,
+            plan_id: typeof body.plan === "string" ? body.plan : null,
+          })
+        : undefined
+      const row = {
+        id: 93_000_000 + this.state.next("sale"),
+        event_id: eventId,
+        referral_id: referral.id,
+        commission_ids: commission ? [commission.id] : [],
+        sale_amount: saleAmount,
+        original_sale_currency: typeof body.currency === "string" ? body.currency : null,
+        plan_id: typeof body.plan === "string" ? body.plan : null,
+        created_at: this.iso(),
+      }
+      this.state.sales.insert(eventId, row)
+      this.convertReferral(referral.id, saleAmount, unit === "cash" ? earned : 0)
+      return row
+    })
+    return jsonRes(200, {
+      id: sale.id,
+      etype: "sale",
+      sale_amount: sale.sale_amount,
+      original_sale_amount: sale.sale_amount,
+      original_sale_currency: sale.original_sale_currency,
+      event_id: sale.event_id,
+      plan_id: sale.plan_id,
+      billing_period: null,
+      created_at: sale.created_at,
+      referral: { id: referral.id, email: referral.email, uid: referral.uid },
+      commissions: sale.commission_ids.flatMap((id) => {
+        const row = this.state.commissions.get(String(id))
+        return row ? [this.commissions.render(row)] : []
+      }),
+    })
+  }
+
   /** A promoter's link was clicked: the `tid` a browser would carry into checkout. */
   click(refToken: string): { tid: string; promoterId: number } | undefined {
     const promoter = this.state.find(refToken, "ref_token")
@@ -542,6 +813,14 @@ export class FirstPromoterAPI implements FetchAPI {
    * promoter reward's percent, or its flat cash amount), and emit `lead_becomes_referral`.
    */
   convert(referralId: number, saleAmount = 0): ReferralRecord | undefined {
+    return this.convertReferral(referralId, saleAmount)
+  }
+
+  private convertReferral(
+    referralId: number,
+    saleAmount: number,
+    credit?: number,
+  ): ReferralRecord | undefined {
     const referral = this.state.referrals.get(String(referralId))
     if (!referral || referral.promoter_id === null) return undefined
     const promoter = this.state.byId(referral.promoter_id)
@@ -565,7 +844,7 @@ export class FirstPromoterAPI implements FetchAPI {
     const updated: PromoterRecord = {
       ...promoter,
       customers: promoter.customers + (first ? 1 : 0),
-      earnings_cash: promoter.earnings_cash + earned,
+      earnings_cash: promoter.earnings_cash + (credit ?? earned),
       updated_at: now,
     }
     this.state.promoters.update(String(promoter.id), updated)

@@ -5,7 +5,7 @@ info:
     Stateful mock subset of PostHog: remote flag evaluation (`/flags` v2 and the legacy
     `/decide` shape), remote config, event capture (`/batch/`, `/e/`, `/i/v0/e/`), session
     recording intake, the posthog-js asset and survey endpoints, and the slice of the
-    management API our tooling and crons call (feature-flag list/create/patch, HogQL query).
+    management API our tooling and crons call (feature-flag list/create/read/patch, experiment management, HogQL query).
     Hand-authored from the wire shapes of posthog-node 5.52.2 / @posthog/core 1.54.0,
     posthog-js 1.433.2 and our own raw fetches.
 
@@ -498,6 +498,21 @@ paths:
           x-mockingbird-resource-ref:
             type: feature_flag
             missing: "999999"
+    get:
+      operationId: GetFeatureFlag
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: true }
+      responses:
+        "200":
+          description: Current flag by numeric id (or mock key alias)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FeatureFlag" }
+        "401": { $ref: "#/components/responses/ManagementError" }
+        "404": { $ref: "#/components/responses/ManagementError" }
     patch:
       operationId: UpdateFeatureFlag
       security:
@@ -538,6 +553,115 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorBody"
+  /api/projects/{projectId}/experiments:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      operationId: ListExperiments
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: true }
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 100 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, maximum: 1000, default: 0 }
+      responses:
+        "200":
+          description: Newest experiments first, with limit/offset links
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, next, previous, results]
+                properties:
+                  count: { type: integer }
+                  next:
+                    type: [string, "null"]
+                    x-mockingbird-volatile: { kind: url }
+                  previous:
+                    type: [string, "null"]
+                    x-mockingbird-volatile: { kind: url }
+                  results:
+                    type: array
+                    items: { $ref: "#/components/schemas/Experiment" }
+        "400": { $ref: "#/components/responses/ManagementError" }
+        "401": { $ref: "#/components/responses/ManagementError" }
+    post:
+      operationId: CreateExperiment
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: false }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/ExperimentWrite"
+                - type: object
+                  required: [name, feature_flag_key]
+                  properties:
+                    feature_flag_key: { type: string, pattern: "^[A-Za-z0-9_-]{1,64}$" }
+      responses:
+        "201":
+          description: Experiment with a linked flag; new draft flags are inactive
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Experiment" }
+        "400": { $ref: "#/components/responses/ManagementError" }
+        "401": { $ref: "#/components/responses/ManagementError" }
+  /api/projects/{projectId}/experiments/{experimentId}:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      - name: experimentId
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: "^[0-9]{1,6}$"
+    get:
+      operationId: GetExperiment
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: true }
+      responses:
+        "200":
+          description: Persisted experiment with the current linked flag
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Experiment" }
+        "401": { $ref: "#/components/responses/ManagementError" }
+        "404": { $ref: "#/components/responses/ManagementError" }
+    patch:
+      operationId: UpdateExperiment
+      security:
+        - bearerAuth: []
+      x-mockingbird:
+        supported: true
+        parity: { enabled: true, safe: false }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExperimentWrite" }
+      responses:
+        "200":
+          description: Only provided fields change; setting start_date activates a draft's flag
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Experiment" }
+        "400": { $ref: "#/components/responses/ManagementError" }
+        "401": { $ref: "#/components/responses/ManagementError" }
+        "404": { $ref: "#/components/responses/ManagementError" }
   /api/projects/{projectId}/query:
     parameters:
       - $ref: "#/components/parameters/ProjectId"
@@ -579,6 +703,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorBody"
 components:
+  responses:
+    ManagementError:
+      description: Management API error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
   securitySchemes:
     bearerAuth:
       type: http
@@ -620,6 +750,43 @@ components:
         minimum: 1
         maximum: 999999999
   schemas:
+    ExperimentWrite:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        parameters: { type: object }
+        metrics:
+          type: array
+          maxItems: 5
+          items: { type: object }
+        start_date: { type: [string, "null"], format: date-time }
+        end_date: { type: [string, "null"], format: date-time }
+        archived: { type: boolean }
+    Experiment:
+      type: object
+      required: [id, name, feature_flag_key, feature_flag, parameters, metrics, start_date, end_date, archived, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+        name: { type: string }
+        feature_flag_key: { type: string }
+        feature_flag:
+          oneOf:
+            - $ref: "#/components/schemas/FeatureFlag"
+            - type: "null"
+        parameters: { type: object }
+        metrics:
+          type: array
+          items: { type: object }
+        start_date: { type: [string, "null"] }
+        end_date: { type: [string, "null"] }
+        archived: { type: boolean }
+        created_at:
+          type: string
+          x-mockingbird-volatile: { kind: timestamp }
+        updated_at:
+          type: string
+          x-mockingbird-volatile: { kind: timestamp }
     ErrorBody:
       type: object
       required: [type, code, detail]

@@ -19,6 +19,70 @@ security:
   - bearerAuth: []
 paths:
   /emails:
+    get:
+      operationId: ListEmails
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: after
+          in: query
+          schema:
+            type: string
+        - name: before
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Newest-first email metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [object, has_more, data]
+                properties:
+                  object:
+                    type: string
+                    enum: [list]
+                  has_more:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SentEmailMetadata"
+        "401":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       operationId: SendEmail
       x-mockingbird:
@@ -111,6 +175,71 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Unknown email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /emails/receiving:
+    get:
+      operationId: ListReceivedEmails
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: after
+          in: query
+          schema:
+            type: string
+        - name: before
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Newest-first email metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [object, has_more, data]
+                properties:
+                  object:
+                    type: string
+                    enum: [list]
+                  has_more:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ReceivedEmailMetadata"
+        "401":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request rejected
           content:
             application/json:
               schema:
@@ -331,6 +460,109 @@ components:
               inline_content_id:
                 type: string
                 maxLength: 100
+    SentEmailMetadata:
+      type: object
+      required: [id, to, from, created_at, subject, bcc, cc, reply_to, message_id, last_event, scheduled_at]
+      properties:
+        id:
+          type: string
+          x-mockingbird-resource:
+            type: email
+            identity: true
+          x-mockingbird-volatile:
+            kind: id
+        to:
+          type: array
+          items:
+            type: string
+        from:
+          type: string
+        created_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        subject:
+          type: string
+        message_id:
+          type: string
+          x-mockingbird-volatile:
+            kind: id
+        bcc:
+          type: ["array", "null"]
+          items:
+            type: string
+        cc:
+          type: ["array", "null"]
+          items:
+            type: string
+        reply_to:
+          type: ["array", "null"]
+          items:
+            type: string
+        last_event:
+          type: string
+          enum: [delivered, scheduled]
+        scheduled_at:
+          type: ["string", "null"]
+    ReceivedEmailMetadata:
+      type: object
+      required: [id, to, from, created_at, subject, bcc, cc, reply_to, message_id, attachments]
+      properties:
+        id:
+          type: string
+          x-mockingbird-resource:
+            type: received_email
+            identity: true
+          x-mockingbird-volatile:
+            kind: id
+        to:
+          type: array
+          items:
+            type: string
+        from:
+          type: string
+        created_at:
+          type: string
+          x-mockingbird-volatile:
+            kind: timestamp
+        subject:
+          type: ["string", "null"]
+        message_id:
+          type: string
+          x-mockingbird-volatile:
+            kind: id
+        bcc:
+          type: array
+          items:
+            type: string
+        cc:
+          type: array
+          items:
+            type: string
+        reply_to:
+          type: array
+          items:
+            type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            required: [id, filename, content_type, content_id, content_disposition, size]
+            properties:
+              id:
+                type: string
+                x-mockingbird-volatile:
+                  kind: id
+              filename:
+                type: string
+              content_type:
+                type: string
+              content_id:
+                type: ["string", "null"]
+              content_disposition:
+                type: ["string", "null"]
+              size:
+                type: integer
     Email:
       type: object
       required: [object, id, to, from, created_at, subject, html, text, bcc, cc, reply_to, last_event]

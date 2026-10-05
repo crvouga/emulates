@@ -77,7 +77,8 @@ await admin("/flags/mobile-smart-links?namespace=w1", undefined, "DELETE") // ab
 | `POST /s/` | Session recordings: counted (`GET /__admin/recordings`), never stored. |
 | `GET /static/recorder.js`, `/static/{ver}/recorder.js` | An inert script. |
 | `GET /api/surveys/?token=`, `/api/web_experiments/?token=` | `{surveys: []}`, `{experiments: []}`. |
-| `GET/POST /api/projects/{id}/feature_flags/`, `PATCH …/{flagId}/` | Bearer personal key required. List pages `{count, next, previous, results}` (`limit`/`offset`, what feature-flags-cli follows); flags carry `filters.groups` / `multivariate` / `payloads` derived from the flag model, and create/patch parse `filters` back (see below). `flagId` is the numeric id or the key. |
+| `GET/POST /api/projects/{id}/feature_flags/`, `GET/PATCH …/{flagId}/` | Bearer personal key required. List pages `{count, next, previous, results}` (`limit`/`offset`, what feature-flags-cli follows); flags carry `filters.groups` / `multivariate` / `payloads` derived from the flag model; experiment flags retain their full variant configuration, and create/patch parse `filters` back (see below). `flagId` is the numeric id or the key. |
+| `GET/POST /api/projects/{id}/experiments/`, `GET/PATCH …/{experimentId}/` | Personal-key management of project experiments: name, parameters, metrics, dates, archive state, and a live linked flag. New draft flags have control/test variants and are inactive; setting `start_date` activates them. Setting `end_date` or `archived` preserves flag activity. Lists are newest-first with terminating limit/offset links (including namespace prefixes). Draft legacy variant/rollout/payload parameters update the shared flag; running flag changes use the feature-flag API. |
 | `POST /api/projects/{id}/query/` | HogQL `{query: {kind: "HogQLQuery", query}}` → `{results, columns}` from canned answers (`PUT /__admin/settings {"queryResults": […]}`), `{results: []}` otherwise. |
 
 Every route answers with and without its trailing slash. Errors use PostHog's
@@ -135,14 +136,15 @@ PostHog SDKs cannot add headers. Choose a namespace by:
   `Authorization: Bearer` on the management API.
 - `x-mockingbird-namespace`, for raw clients.
 
-The management API's `next` page URL is built from the request without the `/__admin/ns/` prefix; page
-through it with a credential-mapped personal key instead.
+The management API's `next` page URL preserves the configured admin prefix and namespace.
+Send the personal key in the Authorization header on each page request.
 
 ### Deliberately not modelled
 
 - Percentage rollouts, cohorts, group (organisation) targeting and local evaluation
   (`/api/feature_flag/local_evaluation`): flags evaluate deterministically from explicit
   overrides and a default.
+- Experiment statistics, exposure cohorts, metric execution, special launch/archive/ship endpoints, approval policies, advanced experiment filters, and `feature_flag` configuration writes through experiments. Management flags use the existing namespace-wide project alias model; experiment records additionally filter by project id.
 - Session-recording content, heatmaps, surveys and web experiments (the endpoints answer empty).
 - HogQL execution: queries answer canned results.
 - Person profiles: `$identify` / `$set` events are stored for assertions but do not feed

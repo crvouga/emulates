@@ -79,6 +79,8 @@ Every route needs `Authorization: Bearer <token>`. Any non-empty token is accept
 
 | Route | Behaviour |
 | --- | --- |
+| `GET /contacts` | Contact collection; `per_page` (default 10, max 150), `starting_after` cursor and `page`. Current state from the existing contact API. |
+| `GET /conversations` | Conversation collection; `per_page` (default 20, max 150) and `starting_after` cursor. Lists omit conversation parts; fetch a single conversation for parts. |
 | `POST /contacts/search` | `{query, pagination?}` → `{type: "list", data, total_count, pages}`. See "Search" below. |
 | `POST /contacts` | `{role, external_id?, email?, name?, phone?, signed_up_at?, custom_attributes?}` → the contact, whose `id` is 24 hex characters. A `user` needs an email or external_id. A second `user` with the same `external_id`, or the same email (case-insensitive), answers **409** `conflict`: "A contact matching those details already exists with id=…". The sync adapter then searches and PUTs. Leads never conflict. |
 | `PUT /contacts/{id}` | Partial update. `custom_attributes` are merged. 404 `User Not Found`; 409 if the new identifiers collide. |

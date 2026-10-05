@@ -58,6 +58,62 @@ export type ReferralRecord = {
 /** A click on a promoter's link: the `tid` the browser carries into checkout. */
 export type ClickRecord = { tid: string; promoter_id: number; ref_token: string; at: string }
 
+export type CommissionUnit =
+  | "cash"
+  | "credits"
+  | "points"
+  | "free_months"
+  | "mon_discount"
+  | "discount_per"
+export type CommissionRecord = {
+  id: number
+  promoter_campaign_id: number
+  referral_id: number | null
+  status: "pending" | "approved" | "denied"
+  fulfilled: boolean
+  is_paid: boolean
+  commission_type: "sale" | "custom"
+  unit: CommissionUnit
+  amount: number
+  sale_amount: number
+  original_sale_currency: string | null
+  event_id: string | null
+  plan_id: string | null
+  created_at: string
+}
+export type CommissionBatch = {
+  id: number
+  status: "pending" | "in_progress" | "completed"
+  total: number
+  selected_total: number
+  processed_count: number
+  failed_count: number
+  action_label: string
+  created_at: string
+  updated_at: string
+  meta: Record<string, unknown>
+  progress: number
+  processing_errors: string[]
+}
+export type CommissionTask = {
+  batch_id: number
+  ids: number[]
+  action: "mark_fulfilled" | "destroy"
+  started_at: number
+  due_at: number
+  fail_id: number | null
+}
+export type SaleRecord = {
+  id: number
+  event_id: string
+  referral_id: number
+  commission_ids: number[]
+  sale_amount: number
+  original_sale_currency: string | null
+  plan_id: string | null
+  created_at: string
+}
+
 /** Per-namespace knobs, set through `PUT /__admin/settings`; cleared on reset. */
 export type Settings = {
   /** Where `ref_link` points (the company website). */
@@ -126,6 +182,11 @@ export class FirstPromoterState {
   readonly clicks: Collection<ClickRecord>
   readonly settings: Collection<Settings>
   readonly counters: Collection<{ value: number }>
+  readonly commissions: Collection<CommissionRecord>
+  readonly batches: Collection<CommissionBatch>
+  readonly commissionTasks: Collection<CommissionTask>
+  readonly sales: Collection<SaleRecord>
+  readonly promoCodes: Collection<{ promoter_campaign_id: number }>
 
   constructor(
     sqlite: SqliteClient,
@@ -137,6 +198,11 @@ export class FirstPromoterState {
     this.clicks = new Collection(sqlite, namespace, "clicks")
     this.settings = new Collection(sqlite, namespace, "settings")
     this.counters = new Collection(sqlite, namespace, "counters")
+    this.commissions = new Collection(sqlite, namespace, "commissions")
+    this.batches = new Collection(sqlite, namespace, "batch_processes")
+    this.commissionTasks = new Collection(sqlite, namespace, "commission_tasks")
+    this.sales = new Collection(sqlite, namespace, "sales")
+    this.promoCodes = new Collection(sqlite, namespace, "promo_codes")
     this.ensureSeeded()
   }
 

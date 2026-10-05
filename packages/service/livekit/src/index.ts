@@ -3,8 +3,11 @@ import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { verifyJwt } from "./crypto.js"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
+  type AgentDispatch,
+  type AgentJob,
   type AsyncResource,
   type DataMessage,
+  type JobStatus,
   type LiveKitParticipant,
   type LiveKitRoom,
   LiveKitState,
@@ -14,8 +17,11 @@ import {
 export type { LiveKitRuntime, LiveKitRuntimeOptions } from "./runtime.js"
 export { createRuntime, LIVEKIT_PRESETS } from "./runtime.js"
 export type {
+  AgentDispatch,
+  AgentJob,
   AsyncResource,
   DataMessage,
+  JobStatus,
   LiveKitParticipant,
   LiveKitRoom,
   LiveKitTrack,
@@ -190,6 +196,10 @@ export class LiveKitAPI {
     if (!room) return undefined
     for (const { value } of this.state.participants.list({ where: (p) => p.room === name }))
       this.remove(name, value.identity)
+    for (const { id } of this.state.dispatches.list({
+      where: (dispatch) => dispatch.room === name,
+    }))
+      this.state.dispatches.delete(id)
     this.state.rooms.delete(name)
     this.emit({ event: "room_finished", room: this.publicRoom(room) })
     return room
@@ -246,6 +256,118 @@ export class LiveKitAPI {
     )
     return next
   }
+  /** Script a single room job; workers and media transport are outside the mock. */
+  assignJob(
+    dispatchId: string,
+    input: {
+      status?: JobStatus
+      workerId?: string
+      agentId?: string
+      participantIdentity?: string
+      error?: string
+    },
+  ): AgentJob | undefined {
+    const dispatch = this.state.dispatches.get(dispatchId)
+    const room = dispatch && this.state.rooms.get(dispatch.room)
+    if (!dispatch || !room) return undefined
+    const prior = dispatch.state.jobs[0]
+    const at = String(Math.floor(this.now() / 1000))
+    const status = input.status ?? "JS_RUNNING"
+    const job: AgentJob = {
+      id: prior?.id ?? this.state.ids.next("AJ_", 24),
+      dispatchId,
+      type: "JT_ROOM",
+      room: this.publicRoom(room),
+      metadata: dispatch.metadata,
+      agentName: dispatch.agentName,
+      state: {
+        status,
+        error: input.error ?? prior?.state.error ?? "",
+        startedAt:
+          prior?.state.startedAt && prior.state.startedAt !== "0"
+            ? prior.state.startedAt
+            : status === "JS_PENDING"
+              ? "0"
+              : at,
+        endedAt: status === "JS_SUCCESS" || status === "JS_FAILED" ? at : "0",
+        updatedAt: at,
+        participantIdentity: input.participantIdentity ?? prior?.state.participantIdentity ?? "",
+        workerId: input.workerId ?? prior?.state.workerId ?? "",
+        agentId: input.agentId ?? prior?.state.agentId ?? "",
+      },
+    }
+    this.state.dispatches.update(dispatchId, {
+      ...dispatch,
+      state: { ...dispatch.state, jobs: [job] },
+    })
+    return job
+  }
+
+  private dispatchView(dispatch: AgentDispatch): AgentDispatch {
+    const room = this.state.rooms.get(dispatch.room)
+    return {
+      ...dispatch,
+      state: {
+        ...dispatch.state,
+        jobs: dispatch.state.jobs.map((job) => ({
+          ...job,
+          ...(room ? { room: this.publicRoom(room) } : {}),
+        })),
+      },
+    }
+  }
+
+  private dispatchService(method: string, input: Input): Response {
+    if (typeof input.room !== "string" || !input.room)
+      return this.error("invalid_argument", "room is required")
+    const roomName = input.room
+    const dispatchId = input.dispatchId ?? input.dispatch_id
+    if (dispatchId !== undefined && typeof dispatchId !== "string")
+      return this.error("invalid_argument", "dispatch_id must be a string")
+    if (method === "CreateDispatch") {
+      const agentName = input.agentName ?? input.agent_name
+      if (typeof agentName !== "string" || !agentName)
+        return this.error("invalid_argument", "agent_name is required")
+      if (input.metadata !== undefined && typeof input.metadata !== "string")
+        return this.error("invalid_argument", "metadata must be a string")
+      this.createRoom({ name: roomName })
+      const dispatch: AgentDispatch = {
+        id: this.state.ids.next("AD_", 24),
+        agentName,
+        room: roomName,
+        metadata: typeof input.metadata === "string" ? input.metadata : "",
+        state: { jobs: [], createdAt: String(Math.floor(this.now() / 1000)), deletedAt: "0" },
+      }
+      this.state.dispatches.insert(dispatch.id, dispatch)
+      return this.json(this.dispatchView(dispatch))
+    }
+    if (method === "ListDispatch")
+      return this.json({
+        agentDispatches: this.state.dispatches
+          .list({
+            order: "oldest",
+            where: (dispatch) =>
+              dispatch.room === roomName && (!dispatchId || dispatch.id === dispatchId),
+          })
+          .map(({ value }) => this.dispatchView(value)),
+      })
+    if (method === "DeleteDispatch") {
+      if (typeof dispatchId !== "string" || !dispatchId)
+        return this.error("invalid_argument", "dispatch_id is required")
+      const dispatch = this.state.dispatches.get(dispatchId)
+      if (!dispatch || dispatch.room !== roomName)
+        return this.error("not_found", "dispatch not found", 404)
+      this.state.dispatches.delete(dispatchId)
+      return this.json(
+        this.dispatchView({
+          ...dispatch,
+          state: { ...dispatch.state, deletedAt: String(Math.floor(this.now() / 1000)) },
+        }),
+      )
+    }
+    return this.error("unimplemented", `AgentDispatchService.${method} is not implemented`, 501)
+  }
+
   private async authorize(request: Request, service: string, method: string, input: Input) {
     const raw = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "")
     const claims = raw ? await verifyJwt(raw, this.keys, this.now()) : undefined
@@ -454,16 +576,24 @@ export class LiveKitAPI {
     if (request.method !== "POST")
       return this.error("bad_route", "Twirp endpoints require POST", 404)
     const match = new URL(request.url).pathname.match(
-      /^\/twirp\/livekit\.(RoomService|Egress|SIP)\/([^/]+)$/,
+      /^\/twirp\/livekit\.(RoomService|AgentDispatchService|Egress|SIP)\/([^/]+)$/,
     )
     if (!match) return this.error("bad_route", "unknown Twirp route", 404)
-    const service = match[1] as "RoomService" | "Egress" | "SIP"
+    const service = match[1] as "RoomService" | "AgentDispatchService" | "Egress" | "SIP"
     const method = match[2] as string
-    const input = (await request.json().catch(() => ({}))) as Input
+    const parsed = await request.json().catch(() => ({}))
+    if (
+      service === "AgentDispatchService" &&
+      (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+    )
+      return this.error("invalid_argument", "expected a JSON object")
+    const input = parsed as Input
     if (!(await this.authorize(request, service, method, input)))
       return this.error("unauthenticated", "invalid or insufficient LiveKit token", 401)
     return service === "RoomService"
       ? this.roomService(method, input)
-      : this.asyncService(service, method, input)
+      : service === "AgentDispatchService"
+        ? this.dispatchService(method, input)
+        : this.asyncService(service, method, input)
   }
 }

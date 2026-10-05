@@ -257,6 +257,27 @@ const adminRoutes = (runtime: ServiceRuntime<CustomerIoAPI>): AdminRoutes => ({
     }
     return json(200, runtime.instance(namespace).mergeProfile(params.id as string, patch))
   },
+  "POST /optouts": ({ body, namespace }) => {
+    if (
+      !isRecord(body) ||
+      typeof body.customerId !== "string" ||
+      typeof body.from !== "string" ||
+      !body.from.trim() ||
+      typeof body.optout !== "boolean" ||
+      (body.channel !== undefined && body.channel !== "sms" && body.channel !== "whatsapp")
+    ) {
+      return adminError(400, "expected {customerId, from, optout: boolean, channel?: sms|whatsapp}")
+    }
+    const result = runtime
+      .instance(namespace)
+      .state.setOptOut(
+        body.customerId,
+        body.from,
+        body.channel === "whatsapp" ? "whatsapp" : "sms",
+        body.optout,
+      )
+    return result ? json(200, result) : adminError(404, "unknown customer")
+  },
   "POST /deliveries/:id": ({ params, body, namespace }) => {
     if (!isRecord(body) || typeof body.state !== "string") {
       return adminError(400, `expected {"state": ${DELIVERY_STATES.join("|")}}`)

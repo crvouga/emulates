@@ -463,6 +463,15 @@ export class DailyEmrConsumer {
     return (await response.json()) as DailyRoom
   }
 
+  /** Room reconciliation uses the documented collection GET and room-id cursors. */
+  async listRooms(query: { limit?: number; ending_before?: string; starting_after?: string } = {}) {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(query)) params.set(key, String(value))
+    const response = await this.call(`/rooms?${params}`, "GET")
+    if (!response.ok) return this.fail(response)
+    return (await response.json()) as { total_count: number; data: DailyRoom[] }
+  }
+
   async createToken(config: unknown): Promise<{ token: string }> {
     const response = await this.call("/meeting-tokens", "POST", config)
     if (!response.ok) return this.fail(response)

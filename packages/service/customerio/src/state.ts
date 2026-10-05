@@ -113,6 +113,10 @@ export type Profile = {
   updatedAt: string
 }
 
+/** Sender opt-outs are independent of marketing subscription preferences. */
+export type SenderOptOut = { channel: "sms" | "whatsapp"; from: string }
+export type CustomerOptOuts = { customerId: string; optouts: SenderOptOut[] }
+
 export type TrackedLink = { linkId: string; deliveryId: string; url: string }
 
 /** Per-namespace knobs, set through `PUT /__admin/settings`; cleared on reset. */
@@ -207,6 +211,7 @@ export class CustomerIoState {
   readonly deliveries: OutboxStore<Delivery>
   readonly cdp: Collection<CdpEvent>
   readonly profiles: Collection<Profile>
+  readonly optouts: Collection<CustomerOptOuts>
   readonly messages: Collection<TransactionalMessage>
   readonly links: Collection<TrackedLink>
   readonly settings: Collection<Settings>
@@ -223,6 +228,7 @@ export class CustomerIoState {
     this.deliveries = new OutboxStore<Delivery>(sqlite, namespace, "deliveries")
     this.cdp = new Collection(sqlite, namespace, "cdp")
     this.profiles = new Collection(sqlite, namespace, "profiles")
+    this.optouts = new Collection(sqlite, namespace, "optouts")
     this.messages = new Collection(sqlite, namespace, "transactional")
     this.links = new Collection(sqlite, namespace, "links")
     this.settings = new Collection(sqlite, namespace, "settings")
@@ -261,6 +267,26 @@ export class CustomerIoState {
     if (byId) return byId
     const lower = idOrTrigger.toLowerCase()
     return this.catalog().find((m) => m.trigger_name.toLowerCase() === lower)
+  }
+
+  setOptOut(
+    customerId: string,
+    from: string,
+    channel: SenderOptOut["channel"],
+    optout: boolean,
+  ): CustomerOptOuts | undefined {
+    if (!this.profile(customerId)) return undefined
+    const sender = from.trim().toLowerCase()
+    const current = this.optouts.get(customerId)
+    const optouts = (current?.optouts ?? []).filter(
+      (item) => item.channel !== channel || item.from !== sender,
+    )
+    if (optout) optouts.push({ channel, from: sender })
+    const next = { customerId, optouts }
+    // Keep even an empty row so existing pagination cursors retain their position.
+    if (current) this.optouts.update(customerId, next)
+    else this.optouts.insert(customerId, next)
+    return next
   }
 
   profile(id: string): Profile | undefined {
