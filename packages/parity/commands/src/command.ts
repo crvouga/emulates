@@ -128,8 +128,14 @@ export const planCommandArbitrary = (
   const fields: Record<string, fc.Arbitrary<unknown>> = {}
   for (const parameter of plan.operation.parameters) {
     if (parameter.in === "cookie") continue
-    const arbitrary = parameterArbitrary(document, parameter, missingProbability)
+    let arbitrary = parameterArbitrary(document, parameter, missingProbability)
     if (arbitrary === "omit") continue
+    // Fetch normalizes standalone dot segments, even if percent-encoded. They cannot
+    // denote a path parameter: the request would target a different operation.
+    // Dots embedded in a segment, query parameters and bodies remain ordinary data.
+    if (parameter.in === "path" && plan.operation.path.split("/").includes(`{${parameter.name}}`)) {
+      arbitrary = arbitrary.filter((value) => value !== "." && value !== "..")
+    }
     const always =
       parameter.in === "path" || parameter.required === true || carriesScope(document, parameter)
     // `fc.option` takes the frequency of the nil value, so present-with-p means nil once in 1/(1-p).

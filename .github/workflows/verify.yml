@@ -31,10 +31,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # The verifier runs from source; it needs no build and no turbo cache.
+      # The verifier runs from source, but its workspace imports resolve to dist.
+      # Restore the same build caches as CI and build its dependencies first.
       - uses: ./.github/actions/setup
-        with:
-          turbo-cache: "false"
+
+      - name: Build verifier dependencies
+        timeout-minutes: 10
+        run: bunx turbo run build --filter='@crvouga/mockingbird-service-junction^...' --output-logs=errors-only
 
       - name: mockingbird-junction verify (shipped corpus, with orders)
         timeout-minutes: 15
