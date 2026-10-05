@@ -79,6 +79,20 @@
     "logo": "/brands/bedrock.png",
     "logoSource": "site"
   },
+  "brevo": {
+    "vendor": "Brevo",
+    "website": "https://www.brevo.com",
+    "docs": "https://developers.brevo.com/reference/create-contact",
+    "description": "Brevo contact management and customer identifiers.",
+    "input": {
+      "website": "https://www.brevo.com",
+      "docs": "https://developers.brevo.com/reference/create-contact",
+      "description": "Brevo contact management and customer identifiers."
+    },
+    "color": "#0B996E",
+    "logo": "/brands/brevo.svg",
+    "logoSource": "simple-icons"
+  },
   "caretalk": {
     "vendor": "CareTalk Health",
     "website": "https://caretalkhealth.com",
