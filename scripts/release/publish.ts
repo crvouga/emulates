@@ -96,6 +96,7 @@ for (const pkg of plan.packages) {
 const changelogs: string[] = []
 for (const release of plan.releases) {
   const path = join(release.pkg.dir, "CHANGELOG.md")
+  if (existsSync(path)) originals.set(path, readFileSync(path, "utf8"))
   writeFileSync(path, await changelog(release.pkg, release))
   changelogs.push(path)
 }

@@ -72,7 +72,20 @@ export const compareStripeWebhooks = (
   )
     return "invalid Stripe webhook payload"
   const signatures = (events: readonly unknown[], side: Side) =>
-    events.map((event) => JSON.stringify(stripeEventSignature(event, table, side))).sort()
+    events
+      .map((event) =>
+        JSON.stringify(stripeEventSignature(event, table, side), (_key, value: unknown) => {
+          const object = record(value)
+          return object
+            ? Object.fromEntries(
+                Object.keys(object)
+                  .sort()
+                  .map((key) => [key, object[key]]),
+              )
+            : value
+        }),
+      )
+      .sort()
   const realSignatures = signatures(real, "real")
   const mockSignatures = signatures(mock, "mock")
   if (JSON.stringify(realSignatures) === JSON.stringify(mockSignatures)) return undefined

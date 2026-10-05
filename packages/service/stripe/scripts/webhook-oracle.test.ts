@@ -9,6 +9,20 @@ const event = (type: string, id: string, status: string) => ({
   data: { object: { object: "customer", id, status, metadata: { source: "parity" } } },
 })
 
+test("metadata key order does not change webhook parity, but changed values do", () => {
+  const customer = event("customer.created", "cus_fixture", "active")
+  const withMetadata = (metadata: Record<string, string>) => ({
+    ...customer,
+    data: { object: { ...customer.data.object, metadata } },
+  })
+  const table = new ResourceTable()
+  const real = withMetadata({ aa: "a", a: "a" })
+  expect(compareStripeWebhooks([real], [withMetadata({ a: "a", aa: "a" })], table)).toBeUndefined()
+  expect(compareStripeWebhooks([real], [withMetadata({ a: "a", aa: "b" })], table)).toContain(
+    "event signature differs",
+  )
+})
+
 test("isolates delayed cleanup events without hiding unexpected events in the current walk", () => {
   const current = {
     ...event("product.created", "prod_current", "active"),
