@@ -4,6 +4,7 @@ import type { createRuntime as createAwsSecrets } from "@crvouga/mockingbird-ser
 import type { createRuntime as createAwsSpeech } from "@crvouga/mockingbird-service-aws-speech"
 import type { createRuntime as createBedrock } from "@crvouga/mockingbird-service-bedrock"
 import type { createRuntime as createCaretalk } from "@crvouga/mockingbird-service-caretalk"
+import type { createRuntime as createCheckr } from "@crvouga/mockingbird-service-checkr"
 import type { createRuntime as createCognito } from "@crvouga/mockingbird-service-cognito"
 import type { createRuntime as createCustomerio } from "@crvouga/mockingbird-service-customerio"
 import type { createRuntime as createDaily } from "@crvouga/mockingbird-service-daily"
@@ -119,4 +120,5 @@ export type SurfaceProof = [
   Assert<typeof createVercelBlob>,
   Assert<typeof createVpi>,
   Assert<typeof createWholescripts>,
+  Assert<typeof createCheckr>,
 ]

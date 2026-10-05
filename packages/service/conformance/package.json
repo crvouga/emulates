@@ -12,6 +12,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@crvouga/mockingbird-service-checkr": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-service-aha": "workspace:*",
     "@crvouga/mockingbird-service-aws-secrets": "workspace:*",

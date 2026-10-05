@@ -355,6 +355,29 @@
         "fast-check": "4.9.0",
       },
     },
+    "packages/service/checkr": {
+      "name": "@crvouga/mockingbird-service-checkr",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-checkr": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
+      },
+    },
     "packages/service/cognito": {
       "name": "@crvouga/mockingbird-service-cognito",
       "version": "0.0.0-development",
@@ -390,6 +413,7 @@
         "@crvouga/mockingbird-service-aws-speech": "workspace:*",
         "@crvouga/mockingbird-service-bedrock": "workspace:*",
         "@crvouga/mockingbird-service-caretalk": "workspace:*",
+        "@crvouga/mockingbird-service-checkr": "workspace:*",
         "@crvouga/mockingbird-service-cognito": "workspace:*",
         "@crvouga/mockingbird-service-customerio": "workspace:*",
         "@crvouga/mockingbird-service-daily": "workspace:*",
@@ -1907,6 +1931,7 @@
         "@crvouga/mockingbird-service-aws-speech": "workspace:*",
         "@crvouga/mockingbird-service-bedrock": "workspace:*",
         "@crvouga/mockingbird-service-caretalk": "workspace:*",
+        "@crvouga/mockingbird-service-checkr": "workspace:*",
         "@crvouga/mockingbird-service-cognito": "workspace:*",
         "@crvouga/mockingbird-service-customerio": "workspace:*",
         "@crvouga/mockingbird-service-daily": "workspace:*",
@@ -2316,6 +2341,8 @@
     "@crvouga/mockingbird-service-bedrock": ["@crvouga/mockingbird-service-bedrock@workspace:packages/service/bedrock"],
 
     "@crvouga/mockingbird-service-caretalk": ["@crvouga/mockingbird-service-caretalk@workspace:packages/service/caretalk"],
+
+    "@crvouga/mockingbird-service-checkr": ["@crvouga/mockingbird-service-checkr@workspace:packages/service/checkr"],
 
     "@crvouga/mockingbird-service-cognito": ["@crvouga/mockingbird-service-cognito@workspace:packages/service/cognito"],
 
