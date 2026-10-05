@@ -83,7 +83,7 @@ const productValidators = (
     marketing_features: (params) => {
       if (!Array.isArray(params.marketing_features)) return
       params.marketing_features.forEach((feature: { name?: unknown }, index) => {
-        if (feature?.name === "")
+        if (typeof feature?.name === "string" && feature.name.trim() === "")
           throw parameterInvalidEmpty(`${at("marketing_features")}[${index}][name]`)
       })
     },
