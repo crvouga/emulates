@@ -67,6 +67,7 @@
     "@crvouga/mockingbird-service-vercel-blob": "workspace:*",
     "@crvouga/mockingbird-service-vpi": "workspace:*",
     "@crvouga/mockingbird-service-wholescripts": "workspace:*",
-    "@crvouga/mockingbird-service-google-ads": "workspace:*"
+    "@crvouga/mockingbird-service-google-ads": "workspace:*",
+    "@crvouga/mockingbird-service-oura": "workspace:*"
   }
 }
