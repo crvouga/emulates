@@ -416,6 +416,7 @@
         "@crvouga/mockingbird-service-mailosaur": "workspace:*",
         "@crvouga/mockingbird-service-mediaconvert": "workspace:*",
         "@crvouga/mockingbird-service-medplum": "workspace:*",
+        "@crvouga/mockingbird-service-notion": "workspace:*",
         "@crvouga/mockingbird-service-oauth": "workspace:*",
         "@crvouga/mockingbird-service-odx": "workspace:*",
         "@crvouga/mockingbird-service-openai": "workspace:*",
@@ -1130,6 +1131,32 @@
         "esbuild": "0.28.2",
         "fast-check": "4.9.0",
         "miniflare": "5.20260907.0-alpha",
+      },
+    },
+    "packages/service/notion": {
+      "name": "@crvouga/mockingbird-service-notion",
+      "version": "0.0.0-development",
+      "bin": {
+        "mockingbird-notion": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "hono": "4.11.9",
+      },
+      "devDependencies": {
+        "@crvouga/mockingbird-adapter-node": "workspace:*",
+        "@crvouga/mockingbird-core": "workspace:*",
+        "@crvouga/mockingbird-credentials": "workspace:*",
+        "@crvouga/mockingbird-http-codec": "workspace:*",
+        "@crvouga/mockingbird-openapi": "workspace:*",
+        "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+        "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+        "@crvouga/mockingbird-parity": "workspace:*",
+        "@crvouga/mockingbird-service": "workspace:*",
+        "@crvouga/mockingbird-service-sqlite": "workspace:*",
+        "@crvouga/mockingbird-sqlite": "workspace:*",
+        "@crvouga/mockingbird-testing": "workspace:*",
+        "fast-check": "4.9.0",
       },
     },
     "packages/service/oauth": {
@@ -1933,6 +1960,7 @@
         "@crvouga/mockingbird-service-mailosaur": "workspace:*",
         "@crvouga/mockingbird-service-mediaconvert": "workspace:*",
         "@crvouga/mockingbird-service-medplum": "workspace:*",
+        "@crvouga/mockingbird-service-notion": "workspace:*",
         "@crvouga/mockingbird-service-oauth": "workspace:*",
         "@crvouga/mockingbird-service-odx": "workspace:*",
         "@crvouga/mockingbird-service-openai": "workspace:*",
@@ -2370,6 +2398,8 @@
     "@crvouga/mockingbird-service-mediaconvert": ["@crvouga/mockingbird-service-mediaconvert@workspace:packages/service/mediaconvert"],
 
     "@crvouga/mockingbird-service-medplum": ["@crvouga/mockingbird-service-medplum@workspace:packages/service/medplum"],
+
+    "@crvouga/mockingbird-service-notion": ["@crvouga/mockingbird-service-notion@workspace:packages/service/notion"],
 
     "@crvouga/mockingbird-service-oauth": ["@crvouga/mockingbird-service-oauth@workspace:packages/service/oauth"],
 
