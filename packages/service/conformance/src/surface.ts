@@ -14,6 +14,7 @@ import type { createRuntime as createDynamodb } from "@crvouga/mockingbird-servi
 import type { createRuntime as createEasypost } from "@crvouga/mockingbird-service-easypost"
 import type { createRuntime as createECS } from "@crvouga/mockingbird-service-ecs"
 import type { createRuntime as createEdamam } from "@crvouga/mockingbird-service-edamam"
+import type { createRuntime as createEventBridge } from "@crvouga/mockingbird-service-eventbridge"
 import type { createRuntime as createFcm } from "@crvouga/mockingbird-service-fcm"
 import type { createRuntime as createFirstpromoter } from "@crvouga/mockingbird-service-firstpromoter"
 import type { createRuntime as createFlex } from "@crvouga/mockingbird-service-flex"
@@ -137,4 +138,5 @@ export type SurfaceProof = [
   Assert<typeof createWhoop>,
   Assert<typeof createWorkos>,
   Assert<typeof createECS>,
+  Assert<typeof createEventBridge>,
 ]
