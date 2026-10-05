@@ -54,10 +54,23 @@ const defaultClient: Client = {
 }
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
-const failure = (status: number, type: string, message: string) =>
-  jsonRes(status, {
+const failure = (status: number, type: string, message: string) => {
+  if (status === 401) {
+    const response = jsonRes(401, {
+      error: {
+        type: "token_invalid",
+        message: "Authentication required.",
+        status: 401,
+        request_id: "mock_request",
+      },
+    })
+    response.headers.set("www-authenticate", "Bearer")
+    return response
+  }
+  return jsonRes(status, {
     error: { type, message, status, detail: null, request_id: "mock_request", doc_url: null },
   })
+}
 export class VibeAPI implements FetchAPI {
   readonly app: Hono
   readonly clients: Collection<Client>

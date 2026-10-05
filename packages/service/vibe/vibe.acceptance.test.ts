@@ -133,6 +133,26 @@ test("OAuth scope and expiry enforce permissions without consuming state", async
   ).toBe(401)
   expect(runtime.instance().reports.count()).toBe(1)
 })
+test("missing and invalid bearer tokens match the observed live error envelope", async () => {
+  const { fetchImpl } = setup()
+  for (const token of [undefined, "mock_invalid_token"]) {
+    const response = await fetchImpl(
+      "http://vibe.test/reports/00000000-0000-4000-8000-000000000001",
+      { headers: token ? { authorization: `Bearer ${token}` } : {} },
+    )
+    expect(response.status).toBe(401)
+    expect(response.headers.get("www-authenticate")).toBe("Bearer")
+    const value = await response.json()
+    expect(value).toEqual({
+      error: {
+        type: "token_invalid",
+        message: "Authentication required.",
+        status: 401,
+        request_id: expect.any(String),
+      },
+    })
+  }
+})
 test("custom admin prefix, namespace links, resets and journals stay isolated", async () => {
   const { runtime, clock, fetchImpl, consumer } = setup("/_control/mock")
   const other = client(fetchImpl, "http://vibe.test/_control/mock/ns/other")

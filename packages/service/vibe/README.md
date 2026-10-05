@@ -70,7 +70,10 @@ Acceptance tests exercise all four issue #271 behaviors, OAuth expiry/scope, loc
 expiry/missing files, namespaces/reset/redacted journals and served HTTP. Property tests run
 every parity-enabled operation and detect divergence. `bun scripts/parity.ts` uses
 VIBE_ACCESS_TOKEN and VIBE_REPORT_ID for a read-only existing-report envelope check; live
-parity has not run. The contract is based on Vibe's published revision-pinned OpenAPI reference.
+authenticated parity has not run. `bun scripts/parity.ts --unauthenticated` compares missing/
+invalid synthetic-token errors against the real endpoint. This probe passed and confirms
+`token_invalid` plus `WWW-Authenticate: Bearer`, differing from the documentation's
+`invalid_token` example. The rest of the contract follows the published OpenAPI reference.
 
 ### Deliberately not modelled
 

@@ -1,4 +1,31 @@
 import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { VibeAPI } from "../src/index.js"
+
+if (process.argv.includes("--unauthenticated")) {
+  const mock = new VibeAPI()
+  for (const token of [undefined, "mock_invalid_token"]) {
+    const init = { headers: token ? { authorization: `Bearer ${token}` } : {} }
+    const real = await fetch(
+      "https://api.vibe.co/reports/00000000-0000-4000-8000-000000000001",
+      init,
+    )
+    const local = await mock.fetch(
+      new Request("http://vibe.test/reports/00000000-0000-4000-8000-000000000001", init),
+    )
+    const a = await real.json(),
+      b = await local.json()
+    if (
+      real.status !== local.status ||
+      real.headers.get("www-authenticate") !== local.headers.get("www-authenticate") ||
+      a.error?.type !== b.error?.type ||
+      a.error?.message !== b.error?.message ||
+      a.error?.status !== b.error?.status
+    )
+      throw new Error("Unauthenticated Vibe parity mismatch")
+  }
+  console.log("Vibe missing/invalid-token live parity passed; no credentials used.")
+  process.exit(0)
+}
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>
 try {
