@@ -33,7 +33,17 @@ class FakeElement {
     this.listeners.set(name, listeners)
   }
 
-  focus() {}
+  dispatch(name: string) {
+    for (const listener of this.listeners.get(name) ?? []) listener()
+  }
+
+  focus() {
+    this.dispatch("focus")
+  }
+
+  blur() {
+    this.dispatch("blur")
+  }
 
   querySelector(selector: string): FakeElement | null {
     return this.querySelectorAll(selector)[0] ?? null
@@ -76,10 +86,30 @@ const loadStripeJs = () => {
         ) => {
           mount: (selector: string) => void
           card: () => { number: string; exp_month: number; exp_year: number; cvc: string }
+          on: (name: string, handler: (event: Record<string, unknown>) => void) => void
+          update: (options: Record<string, unknown>) => void
+          focus: () => void
+          blur: () => void
+          clear: () => void
         }
       }
+      createToken: (element: unknown) => Promise<{
+        error?: { code: string }
+        token?: { id: string }
+      }>
     },
   }
+}
+
+const inputOf = (host: FakeElement, name: string) => {
+  const input = host.querySelector(`[name="${name}"]`)
+  if (!input) throw new Error(`input ${name} did not mount`)
+  return input
+}
+
+const enter = (input: FakeElement, value: string) => {
+  input.value = value
+  input.dispatch("input")
 }
 
 describe("Stripe.js card Elements", () => {
@@ -150,5 +180,124 @@ describe("Stripe.js card Elements", () => {
       exp_year: 2035,
       cvc: "987",
     })
+  })
+
+  test("change events track empty, complete, errors, formatting, and card brand", () => {
+    const browser = loadStripeJs()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
+    const host = browser.host("#number")
+    const number = elements.create("cardNumber")
+    const changes: Array<Record<string, unknown>> = []
+    number.on("change", (event) => changes.push(event))
+    number.mount("#number")
+    const input = inputOf(host, "card")
+
+    enter(input, "4")
+    expect(changes.at(-1)).toMatchObject({
+      brand: "visa",
+      complete: false,
+      empty: false,
+      error: { code: "incomplete_number" },
+    })
+
+    enter(input, "4242424242424242")
+    expect(input.value).toBe("4242 4242 4242 4242")
+    expect(changes.at(-1)).toMatchObject({ brand: "visa", complete: true, empty: false })
+    expect(changes.at(-1)).not.toHaveProperty("error")
+
+    enter(input, "5555555555554444")
+    expect(changes.at(-1)).toMatchObject({ brand: "mastercard", complete: true })
+
+    number.clear()
+    expect(input.value).toBe("")
+    expect(changes.at(-1)).toMatchObject({
+      brand: "unknown",
+      complete: false,
+      empty: true,
+      error: { code: "incomplete_number" },
+    })
+  })
+
+  test("expiry and CVC inputs format and validate according to the card brand", () => {
+    const browser = loadStripeJs()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
+    const numberHost = browser.host("#number")
+    const expiryHost = browser.host("#expiry")
+    const cvcHost = browser.host("#cvc")
+    elements.create("cardNumber").mount("#number")
+    const expiry = elements.create("cardExpiry")
+    expiry.mount("#expiry")
+    const cvc = elements.create("cardCvc")
+    cvc.mount("#cvc")
+    const expiryChanges: Array<Record<string, unknown>> = []
+    const cvcChanges: Array<Record<string, unknown>> = []
+    expiry.on("change", (event) => expiryChanges.push(event))
+    cvc.on("change", (event) => cvcChanges.push(event))
+
+    enter(inputOf(expiryHost, "exp"), "1299")
+    expect(inputOf(expiryHost, "exp").value).toBe("12/99")
+    expect(expiryChanges.at(-1)).toMatchObject({ complete: true, empty: false })
+
+    enter(inputOf(numberHost, "card"), "4242424242424242")
+    enter(inputOf(cvcHost, "cvc"), "1234")
+    expect(inputOf(cvcHost, "cvc").value).toBe("123")
+    expect(cvcChanges.at(-1)).toMatchObject({ complete: true })
+
+    enter(inputOf(numberHost, "card"), "378282246310005")
+    enter(inputOf(cvcHost, "cvc"), "123")
+    expect(cvcChanges.at(-1)).toMatchObject({
+      complete: false,
+      error: { code: "incomplete_cvc" },
+    })
+    enter(inputOf(cvcHost, "cvc"), "1234")
+    expect(cvcChanges.at(-1)).toMatchObject({ complete: true })
+  })
+
+  test("createToken rejects missing and invalid split values without substituting defaults", async () => {
+    const browser = loadStripeJs()
+    const stripe = browser.Stripe("pk_test_mockingbird")
+    const elements = stripe.elements()
+    const numberHost = browser.host("#number")
+    const expiryHost = browser.host("#expiry")
+    const cvcHost = browser.host("#cvc")
+    const number = elements.create("cardNumber")
+    number.mount("#number")
+    elements.create("cardExpiry").mount("#expiry")
+    elements.create("cardCvc").mount("#cvc")
+
+    expect(await stripe.createToken(number)).toMatchObject({ error: { code: "incomplete_number" } })
+    enter(inputOf(numberHost, "card"), "4242424242424241")
+    expect(await stripe.createToken(number)).toMatchObject({ error: { code: "invalid_number" } })
+    enter(inputOf(numberHost, "card"), "4242424242424242")
+    enter(inputOf(expiryHost, "exp"), "0120")
+    enter(inputOf(cvcHost, "cvc"), "123")
+    expect(await stripe.createToken(number)).toMatchObject({
+      error: { code: "invalid_expiry_year_past" },
+    })
+    enter(inputOf(expiryHost, "exp"), "1299")
+    enter(inputOf(cvcHost, "cvc"), "12")
+    expect(await stripe.createToken(number)).toMatchObject({ error: { code: "incomplete_cvc" } })
+    enter(inputOf(cvcHost, "cvc"), "123")
+    expect(await stripe.createToken(number)).toMatchObject({ token: { id: "tok_visa" } })
+  })
+
+  test("focus, blur, clear, and update keep Element state events coherent", () => {
+    const browser = loadStripeJs()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
+    const host = browser.host("#number")
+    const number = elements.create("cardNumber")
+    const events: string[] = []
+    number.on("focus", () => events.push("focus"))
+    number.on("blur", () => events.push("blur"))
+    number.on("change", (event) => events.push(`change:${event.empty}`))
+    number.mount("#number")
+
+    number.focus()
+    number.blur()
+    enter(inputOf(host, "card"), "4242424242424242")
+    number.update({})
+    number.clear()
+
+    expect(events).toEqual(["focus", "blur", "change:false", "change:false", "change:true"])
   })
 })

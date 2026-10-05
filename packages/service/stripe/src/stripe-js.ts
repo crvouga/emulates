@@ -51,6 +51,105 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     }
     return FIELDS.filter(function (field) { return names.indexOf(field[0]) !== -1; });
   }
+  function digits(value) { return String(value || "").replace(/\\D/g, ""); }
+  function brandOf(value) {
+    var number = digits(value);
+    if (/^3[47]/.test(number)) return "amex";
+    if (/^(5[1-5]|2[2-7])/.test(number)) return "mastercard";
+    if (/^(6011|65)/.test(number)) return "discover";
+    if (/^4/.test(number)) return "visa";
+    return "unknown";
+  }
+  function luhn(number) {
+    var sum = 0;
+    var alternate = false;
+    for (var index = number.length - 1; index >= 0; index -= 1) {
+      var digit = Number(number[index]);
+      if (alternate) { digit *= 2; if (digit > 9) digit -= 9; }
+      sum += digit;
+      alternate = !alternate;
+    }
+    return number.length > 0 && sum % 10 === 0;
+  }
+  function cardError(code, message) {
+    return { type: "validation_error", code: code, message: message };
+  }
+  function validateField(element, name) {
+    var raw = element.value(name);
+    if (name === "card") {
+      var number = digits(raw);
+      var brand = brandOf(number);
+      var expected = brand === "amex" ? 15 : 16;
+      if (!number || number.length < expected) return cardError("incomplete_number", "Your card number is incomplete.");
+      if (number.length !== expected || !luhn(number)) return cardError("invalid_number", "Your card number is invalid.");
+    }
+    if (name === "exp") {
+      var expiry = digits(raw);
+      if (expiry.length < 4) return cardError("incomplete_expiry", "Your card's expiration date is incomplete.");
+      var month = Number(expiry.slice(0, 2));
+      var year = 2000 + Number(expiry.slice(2, 4));
+      if (month < 1 || month > 12) return cardError("invalid_expiry_month", "Your card's expiration month is invalid.");
+      var now = new Date();
+      if (year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
+        return cardError("invalid_expiry_year_past", "Your card's expiration year is in the past.");
+      }
+    }
+    if (name === "cvc") {
+      var cvc = digits(raw);
+      var cvcLength = brandOf(element.value("card")) === "amex" ? 4 : 3;
+      if (cvc.length < cvcLength) return cardError("incomplete_cvc", "Your card's security code is incomplete.");
+      if (cvc.length !== cvcLength) return cardError("invalid_cvc", "Your card's security code is invalid.");
+    }
+    if (name === "zip" && !String(raw || "").trim()) {
+      return cardError("incomplete_zip", "Your postal code is incomplete.");
+    }
+    return null;
+  }
+  function stateOf(element) {
+    var fields = fieldsFor(element.type, element.options);
+    var empty = fields.every(function (field) { return String(element.value(field[0]) || "") === ""; });
+    var error = null;
+    for (var index = 0; index < fields.length && !error; index += 1) error = validateField(element, fields[index][0]);
+    var event = { complete: !error, empty: empty, elementType: element.type };
+    if (error) event.error = error;
+    if (element.type === "card" || element.type === "cardNumber") event.brand = brandOf(element.value("card"));
+    return event;
+  }
+  function cardValidationOf(element) {
+    var card = element.card();
+    var values = {
+      card: card.number,
+      exp: String(card.exp_month || "").padStart(2, "0") + "/" + String(card.exp_year || "").slice(-2),
+      cvc: card.cvc,
+    };
+    var cardView = { value: function (name) { return values[name] || ""; } };
+    var names = ["card", "exp", "cvc"];
+    for (var index = 0; index < names.length; index += 1) {
+      var error = validateField(cardView, names[index]);
+      if (error) return error;
+    }
+    return null;
+  }
+  function formatInput(element, input) {
+    if (input.name === "card") {
+      var number = digits(input.value).slice(0, 19);
+      var brand = brandOf(number);
+      var sizes = brand === "amex" ? [4, 6, 5] : [4, 4, 4, 4, 3];
+      var groups = [];
+      var offset = 0;
+      sizes.forEach(function (size) {
+        if (offset < number.length) groups.push(number.slice(offset, offset + size));
+        offset += size;
+      });
+      input.value = groups.join(" ");
+    } else if (input.name === "exp") {
+      var expiry = digits(input.value).slice(0, 4);
+      input.value = expiry.length > 2 ? expiry.slice(0, 2) + "/" + expiry.slice(2) : expiry;
+    } else if (input.name === "cvc") {
+      var limit = brandOf(element.value("card")) === "amex" ? 4 : 3;
+      input.value = digits(input.value).slice(0, limit);
+    }
+  }
   function Element(type, options, group) {
     this.type = type;
     this.options = options || {};
@@ -65,12 +164,19 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     root.setAttribute("data-testid", "stripe-mock-element");
     root.setAttribute("data-element-type", this.type);
     var split = this.type === "cardNumber" || this.type === "cardExpiry" || this.type === "cardCvc" || this.type === "postalCode";
+    var self = this;
     fieldsFor(this.type, this.options).forEach(function (field) {
       var input = document.createElement("input");
       input.name = field[0];
       input.setAttribute("data-testid", field[2]);
       input.setAttribute("aria-label", field[1]);
       input.placeholder = field[3];
+      input.addEventListener("input", function () {
+        formatInput(self, input);
+        self.emit("change", stateOf(self));
+      });
+      input.addEventListener("focus", function () { self.emit("focus", { elementType: self.type }); });
+      input.addEventListener("blur", function () { self.emit("blur", { elementType: self.type }); });
       if (split) {
         root.appendChild(input);
       } else {
@@ -82,8 +188,6 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     });
     host.appendChild(root);
     this.node = root;
-    var self = this;
-    root.addEventListener("input", function () { self.emit("change", { complete: true, empty: false, elementType: self.type }); });
     setTimeout(function () { self.emit("ready", { elementType: self.type }); }, 0);
     return this;
   };
@@ -98,23 +202,24 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     return "";
   };
   Element.prototype.card = function () {
-    var exp = (this.value("exp") || "12/34").split("/");
-    var year = Number(exp[1] || "34");
+    var exp = String(this.value("exp") || "").split("/");
+    var year = Number(exp[1] || "0");
     return {
-      number: (this.value("card") || "4242424242424242").replace(/\\s+/g, ""),
-      exp_month: Number(exp[0] || "12"),
+      number: digits(this.value("card")),
+      exp_month: Number(exp[0] || "0"),
       exp_year: year < 100 ? 2000 + year : year,
-      cvc: this.value("cvc") || "123",
+      cvc: digits(this.value("cvc")),
     };
   };
+  Element.prototype.validation = function () { return stateOf(this); };
   Element.prototype.on = function (name, handler) { (this.handlers[name] = this.handlers[name] || []).push(handler); return this; };
   Element.prototype.off = function (name, handler) { this.handlers[name] = (this.handlers[name] || []).filter(function (h) { return h !== handler; }); return this; };
   Element.prototype.once = function (name, handler) { var self = this; var wrapped = function (e) { self.off(name, wrapped); handler(e); }; return this.on(name, wrapped); };
   Element.prototype.emit = function (name, event) { (this.handlers[name] || []).forEach(function (h) { h(event); }); };
-  Element.prototype.update = function (options) { this.options = Object.assign(this.options, options || {}); };
+  Element.prototype.update = function (options) { this.options = Object.assign(this.options, options || {}); if (this.node) this.emit("change", stateOf(this)); };
   Element.prototype.focus = function () { var input = this.node && this.node.querySelector("input"); if (input) input.focus(); };
-  Element.prototype.blur = function () {};
-  Element.prototype.clear = function () { if (this.node) this.node.querySelectorAll("input").forEach(function (i) { i.value = ""; }); };
+  Element.prototype.blur = function () { var input = this.node && this.node.querySelector("input"); if (input && input.blur) input.blur(); };
+  Element.prototype.clear = function () { if (this.node) this.node.querySelectorAll("input").forEach(function (i) { i.value = ""; }); this.emit("change", stateOf(this)); };
   Element.prototype.collapse = function () {};
   Element.prototype.unmount = function () { if (this.node && this.node.parentNode) this.node.parentNode.removeChild(this.node); this.node = null; };
   Element.prototype.destroy = Element.prototype.unmount;
@@ -161,6 +266,13 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     "4000051230000072": "tok_hsa",
   };
   Stripe.prototype.createToken = function (element) {
+    var validation = element && typeof element.validation === "function" ? cardValidationOf(element) : null;
+    if (validation) {
+      return Promise.resolve({ error: validation });
+    }
+    if (!element) {
+      return Promise.resolve({ error: cardError("incomplete_number", "Your card number is incomplete.") });
+    }
     var card = element && typeof element.card === "function" ? element.card() : null;
     var number = card && String(card.number || "").replace(/[\\s-]/g, "");
     var token = number && CARD_TOKENS[number];
