@@ -144,6 +144,19 @@
     "logo": "/brands/edamam.png",
     "logoSource": "site"
   },
+  "eventbridge": {
+    "vendor": "AWS EventBridge",
+    "website": "https://aws.amazon.com/eventbridge/",
+    "docs": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/Welcome.html",
+    "description": "Amazon EventBridge is a serverless event bus that ingests data from your own apps, SaaS apps, and AWS services and routes that data to targets.",
+    "input": {
+      "website": "https://aws.amazon.com/eventbridge/",
+      "docs": "https://docs.aws.amazon.com/eventbridge/latest/APIReference/Welcome.html"
+    },
+    "color": null,
+    "logo": "/brands/eventbridge.png",
+    "logoSource": "site"
+  },
   "fcm": {
     "vendor": "Firebase Cloud Messaging",
     "website": "https://firebase.google.com",

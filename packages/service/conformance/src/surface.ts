@@ -10,6 +10,7 @@ import type { createRuntime as createDaily } from "@crvouga/mockingbird-service-
 import type { createRuntime as createDynamodb } from "@crvouga/mockingbird-service-dynamodb"
 import type { createRuntime as createEasypost } from "@crvouga/mockingbird-service-easypost"
 import type { createRuntime as createEdamam } from "@crvouga/mockingbird-service-edamam"
+import type { createRuntime as createEventBridge } from "@crvouga/mockingbird-service-eventbridge"
 import type { createRuntime as createFcm } from "@crvouga/mockingbird-service-fcm"
 import type { createRuntime as createFirstpromoter } from "@crvouga/mockingbird-service-firstpromoter"
 import type { createRuntime as createFlex } from "@crvouga/mockingbird-service-flex"
@@ -64,6 +65,7 @@ type Factory = (options?: MockCreateOptions) => MockSurface
 type Assert<T extends Factory> = T
 
 export type SurfaceProof = [
+  Assert<typeof createEventBridge>,
   Assert<typeof createAha>,
   Assert<typeof createAwsSecrets>,
   Assert<typeof createAwsSpeech>,
