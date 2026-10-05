@@ -1,0 +1,60 @@
+openapi: 3.1.0
+info: { title: AWS ECS Fargate RunTask, version: "2014-11-13" }
+servers: [{ url: "https://ecs.us-east-1.amazonaws.com" }]
+paths:
+  /:
+    post:
+      operationId: RunTask
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      parameters:
+        - name: X-Amz-Target
+          in: header
+          required: true
+          schema: { type: string, enum: [AmazonEC2ContainerServiceV20141113.RunTask] }
+      requestBody:
+        required: true
+        content:
+          application/x-amz-json-1.1:
+            schema:
+              type: object
+              required: [taskDefinition, launchType, networkConfiguration]
+              example: { taskDefinition: fixture, launchType: FARGATE, networkConfiguration: { awsvpcConfiguration: { subnets: [subnet-fixture] } } }
+              properties:
+                taskDefinition: { type: string, minLength: 1 }
+                cluster: { type: string, minLength: 1 }
+                launchType: { type: string, enum: [FARGATE] }
+                count: { type: integer, minimum: 1, maximum: 10 }
+                clientToken: { type: string, minLength: 1, maxLength: 64 }
+                networkConfiguration: { type: object, additionalProperties: true }
+                overrides: { type: object, additionalProperties: true }
+      responses:
+        "200":
+          description: Accepted tasks and placement failures
+          content:
+            application/x-amz-json-1.1:
+              schema:
+                type: object
+                required: [tasks, failures]
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      required: [taskArn, clusterArn, taskDefinitionArn, overrides]
+                      properties:
+                        taskArn: { type: string }
+                        clusterArn: { type: string }
+                        taskDefinitionArn: { type: string }
+                        createdAt: { type: number, x-mockingbird-volatile: { kind: timestamp } }
+                        overrides: { type: object, additionalProperties: true }
+                  failures: { type: array, items: { type: object, properties: { arn: { type: string }, reason: { type: string }, detail: { type: string } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "500": { $ref: "#/components/responses/Error" }
+components:
+  responses:
+    Error:
+      description: AWS error
+      content:
+        application/x-amz-json-1.1:
+          schema: { type: object, required: [__type, message], properties: { __type: { type: string }, message: { type: string }, resourceIds: { type: array, items: { type: string } } } }

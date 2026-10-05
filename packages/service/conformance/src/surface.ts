@@ -9,6 +9,7 @@ import type { createRuntime as createCustomerio } from "@crvouga/mockingbird-ser
 import type { createRuntime as createDaily } from "@crvouga/mockingbird-service-daily"
 import type { createRuntime as createDynamodb } from "@crvouga/mockingbird-service-dynamodb"
 import type { createRuntime as createEasypost } from "@crvouga/mockingbird-service-easypost"
+import type { createRuntime as createECS } from "@crvouga/mockingbird-service-ecs"
 import type { createRuntime as createEdamam } from "@crvouga/mockingbird-service-edamam"
 import type { createRuntime as createFcm } from "@crvouga/mockingbird-service-fcm"
 import type { createRuntime as createFirstpromoter } from "@crvouga/mockingbird-service-firstpromoter"
@@ -65,6 +66,7 @@ type Assert<T extends Factory> = T
 
 export type SurfaceProof = [
   Assert<typeof createAha>,
+  Assert<typeof createECS>,
   Assert<typeof createAwsSecrets>,
   Assert<typeof createAwsSpeech>,
   Assert<typeof createBedrock>,
