@@ -252,7 +252,10 @@ finalize; a customer credit balance is applied at finalize; `void` works only on
   payment mode, inactive prices, mixed currencies, quantities below 1, `trial_end` under 48 h.
 - `POST /__admin/checkout/sessions/:id/complete {"card": "4242…"}` does the same without a browser;
   `…/expire` and `…/async_payment_succeeded` too.
-- `GET /v3` — the Stripe.js stand-in: `Stripe(pk)`, `elements()` → `create("payment"|"card")`,
+- `GET /v3` — the Stripe.js stand-in: `Stripe(pk)`, `elements()` → combined `create("payment"|"card")`
+  or split `create("cardNumber"|"cardExpiry"|"cardCvc")` inputs. Split inputs share card data
+  within their `Elements` group, add no visible labels, and the combined card honors
+  `hidePostalCode`. It also provides
   `confirmPayment`, `confirmSetup`, `confirmCardPayment`, `confirmCardSetup`,
   `retrievePaymentIntent`, `retrieveSetupIntent`, `createPaymentMethod`, `handleCardAction`. It calls
   `POST /v1/{payment,setup}_intents/:id/confirm` with the publishable key and `client_secret` (the

@@ -1,7 +1,7 @@
 /**
  * A Stripe.js stand-in served at `GET /v3` in place of https://js.stripe.com/v3. It exposes
- * `Stripe(publishableKey)` with `elements()` → `create("payment" | "card")` rendering plain inputs
- * (the same `data-testid`s as the hosted page), and `confirmPayment`, `confirmSetup`,
+ * `Stripe(publishableKey)` with `elements()` → combined or split card inputs (the same
+ * `data-testid`s as the hosted page), and `confirmPayment`, `confirmSetup`,
  * `confirmCardPayment`, `confirmCardSetup`, `retrievePaymentIntent`, `retrieveSetupIntent`,
  * `createPaymentMethod` and `handleCardAction`. Confirmation posts to the mock's
  * `/v1/{payment,setup}_intents/{id}/confirm` with the publishable key and client secret, exactly
@@ -40,9 +40,21 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     ["cvc", "CVC", "stripe-mock-cvc", "123"],
     ["zip", "ZIP", "stripe-mock-zip", "94107"],
   ];
-  function Element(type, options) {
+  function fieldsFor(type, options) {
+    var names = type === "cardNumber" ? ["card"]
+      : type === "cardExpiry" ? ["exp"]
+      : type === "cardCvc" ? ["cvc"]
+      : type === "postalCode" ? ["zip"]
+      : FIELDS.map(function (field) { return field[0]; });
+    if (type === "card" && options && options.hidePostalCode) {
+      names = names.filter(function (name) { return name !== "zip"; });
+    }
+    return FIELDS.filter(function (field) { return names.indexOf(field[0]) !== -1; });
+  }
+  function Element(type, options, group) {
     this.type = type;
     this.options = options || {};
+    this.group = group;
     this.node = null;
     this.handlers = {};
   }
@@ -52,15 +64,21 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     var root = document.createElement("div");
     root.setAttribute("data-testid", "stripe-mock-element");
     root.setAttribute("data-element-type", this.type);
-    FIELDS.forEach(function (field) {
-      var label = document.createElement("label");
-      label.textContent = field[1];
+    var split = this.type === "cardNumber" || this.type === "cardExpiry" || this.type === "cardCvc" || this.type === "postalCode";
+    fieldsFor(this.type, this.options).forEach(function (field) {
       var input = document.createElement("input");
       input.name = field[0];
       input.setAttribute("data-testid", field[2]);
+      input.setAttribute("aria-label", field[1]);
       input.placeholder = field[3];
-      label.appendChild(input);
-      root.appendChild(label);
+      if (split) {
+        root.appendChild(input);
+      } else {
+        var label = document.createElement("label");
+        label.textContent = field[1];
+        label.appendChild(input);
+        root.appendChild(label);
+      }
     });
     host.appendChild(root);
     this.node = root;
@@ -71,7 +89,13 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
   };
   Element.prototype.value = function (name) {
     var input = this.node && this.node.querySelector('[name="' + name + '"]');
-    return input ? input.value : "";
+    if (input) return input.value;
+    for (var index = 0; index < this.group.length; index += 1) {
+      var sibling = this.group[index];
+      var siblingInput = sibling !== this && sibling.node && sibling.node.querySelector('[name="' + name + '"]');
+      if (siblingInput) return siblingInput.value;
+    }
+    return "";
   };
   Element.prototype.card = function () {
     var exp = (this.value("exp") || "12/34").split("/");
@@ -106,7 +130,7 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
     return {
       _clientSecret: clientSecret,
       _elements: created,
-      create: function (type, opts) { var element = new Element(type, opts); created.push(element); return element; },
+      create: function (type, opts) { var element = new Element(type, opts, created); created.push(element); return element; },
       getElement: function (type) {
         var elementType = type && type.__elementType ? type.__elementType : type;
         return created.filter(function (e) { return e.type === elementType || (e.type === "payment" && type && type.type === "payment"); })[0] || null;
