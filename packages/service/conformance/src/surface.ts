@@ -58,6 +58,7 @@ import type { createRuntime as createStepFunctions } from "@crvouga/mockingbird-
 import type { createRuntime as createStripe } from "@crvouga/mockingbird-service-stripe"
 import type { createRuntime as createTavily } from "@crvouga/mockingbird-service-tavily"
 import type { createRuntime as createTextract } from "@crvouga/mockingbird-service-textract"
+import type { createRuntime as createTurnstile } from "@crvouga/mockingbird-service-turnstile"
 import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service-twilio"
 import type { createRuntime as createVanta } from "@crvouga/mockingbird-service-vanta"
 import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-service-vercel-blob"
@@ -131,6 +132,7 @@ export type SurfaceProof = [
   Assert<typeof createStripe>,
   Assert<typeof createTextract>,
   Assert<typeof createTwilio>,
+  Assert<typeof createTurnstile>,
   Assert<typeof createVercelBlob>,
   Assert<typeof createVpi>,
   Assert<typeof createVanta>,
