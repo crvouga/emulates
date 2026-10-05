@@ -52,6 +52,7 @@ import type { createRuntime as createSlack } from "@crvouga/mockingbird-service-
 import type { createRuntime as createSqs } from "@crvouga/mockingbird-service-sqs"
 import type { createRuntime as createStepFunctions } from "@crvouga/mockingbird-service-step-functions"
 import type { createRuntime as createStripe } from "@crvouga/mockingbird-service-stripe"
+import type { createRuntime as createTavily } from "@crvouga/mockingbird-service-tavily"
 import type { createRuntime as createTextract } from "@crvouga/mockingbird-service-textract"
 import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service-twilio"
 import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-service-vercel-blob"
@@ -68,6 +69,7 @@ type Assert<T extends Factory> = T
 
 export type SurfaceProof = [
   Assert<typeof createAha>,
+  Assert<typeof createTavily>,
   Assert<typeof createAwsSecrets>,
   Assert<typeof createAwsSpeech>,
   Assert<typeof createBedrock>,

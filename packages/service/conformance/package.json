@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@crvouga/mockingbird-service-tavily": "workspace:*",
     "@crvouga/mockingbird-service": "workspace:*",
     "@crvouga/mockingbird-service-aha": "workspace:*",
     "@crvouga/mockingbird-service-airtable": "workspace:*",

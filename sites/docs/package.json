@@ -10,6 +10,7 @@
   },
   "description": "The Mockingbird documentation site: a static Astro build generated from the service packages.",
   "devDependencies": {
+    "@crvouga/mockingbird-service-tavily": "workspace:*",
     "@crvouga/mockingbird-example-medical-testing": "workspace:*",
     "@crvouga/mockingbird-service-aha": "workspace:*",
     "@crvouga/mockingbird-service-airtable": "workspace:*",
