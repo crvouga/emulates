@@ -137,9 +137,11 @@ jobs:
         timeout-minutes: 20
         env:
           AFFECTED_PACKAGES: ${{ needs.changes.outputs.packages }}
+        # Each task can spawn compilers or SDK workers. Turbo's default of ten concurrent
+        # tasks starves multipart uploads on hosted runners; keep every check, bound the load.
         run: >-
           bun scripts/ci-plan.ts shard ${{ matrix.shard }}/${{ strategy.job-total }}
-          --output-logs=errors-only --continue=dependencies-successful
+          --concurrency=2 --output-logs=errors-only --continue=dependencies-successful
 
       - if: always()
         uses: ./.github/actions/turbo-cache-save
