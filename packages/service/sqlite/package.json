@@ -11,6 +11,7 @@
     "@biomejs/biome": "^2.5.14",
     "@emulators/admin-ui": "workspace:*",
     "@emulators/core": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
     "@emulators/ui": "workspace:*",
     "@types/bun": "latest",
     "alasql": "^4.19.1",
