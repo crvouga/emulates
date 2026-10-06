@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulators/adapter-node"
+import { runCli, serveCommand } from "@emulates/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulators-redshift",
+    bin: "emulates-redshift",
     description: "Amazon Redshift emulator",
     commands: { serve: serveCommand(serveTarget) },
   },

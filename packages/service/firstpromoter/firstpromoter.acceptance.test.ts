@@ -338,7 +338,7 @@ describe("served over HTTP", () => {
       while (received.length < 1 && Date.now() < deadline) await Bun.sleep(25)
       expect(received).toHaveLength(1)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^firstpromoter@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^firstpromoter@/)
     } finally {
       await server.close()
       sink.stop(true)
@@ -359,11 +359,11 @@ describe("contract", () => {
       string,
       unknown[]
     >
-    const viaHeader = await get(`${base}/v2/company/promoters`, { "x-emulators-namespace": "a" })
-    expect(viaHeader.headers.get("x-emulators")).toMatch(/; ns=a$/)
+    const viaHeader = await get(`${base}/v2/company/promoters`, { "x-emulates-namespace": "a" })
+    expect(viaHeader.headers.get("x-emulates")).toMatch(/; ns=a$/)
     const viaPrefix = await get(`${base}/__admin/ns/b/v2/company/promoters`)
     expect(viaPrefix.status).toBe(viaHeader.status)
-    expect(viaPrefix.headers.get("x-emulators")).toMatch(/; ns=b$/)
+    expect(viaPrefix.headers.get("x-emulates")).toMatch(/; ns=b$/)
     expect(((await viaPrefix.json()) as Record<string, unknown[]>).data?.length).toBe(
       before.data?.length,
     )

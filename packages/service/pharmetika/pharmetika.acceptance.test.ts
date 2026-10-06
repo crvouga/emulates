@@ -488,7 +488,7 @@ describe("contract", () => {
       { apiUrl: API, apiToken: TOKEN, practitionerIdentifier: "p", webhookSecret: null },
       (r) => {
         const request = new Request(r)
-        request.headers.set("x-emulators-namespace", "worker-h")
+        request.headers.set("x-emulates-namespace", "worker-h")
         return runtime.fetch(request)
       },
     )
@@ -543,7 +543,7 @@ describe("served over HTTP", () => {
       expect(statuses.map((s) => s.fulfillmentStatus)).toEqual(["processing", "shipped"])
       expect(statuses[0]?.pharmacyOrderId).toBe(placed.pharmacyOrderId as string)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^pharmetika@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^pharmetika@/)
     } finally {
       await server.close()
       sink.stop(true)

@@ -5,7 +5,7 @@ import {
   type FaultRule,
   jsonRes,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import {
   fixtureErrorMessage,
   IDENTITY_MODES,

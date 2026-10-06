@@ -1,6 +1,6 @@
-# @emulators/notion
+# @emulates/notion
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Notion **2022-06-28** database search, OAuth token exchange and database-parent page creation.
 This is the legacy database API, not the newer data-source API.
@@ -8,13 +8,13 @@ This is the legacy database API, not the newer data-source API.
 ## Install
 
 ```sh
-bun add @emulators/notion
+bun add @emulates/notion
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/notion"
+import { createRuntime } from "@emulates/notion"
 
 const notion = createRuntime()
 const result = await notion.fetch(new Request("http://notion.test/v1/search", {
@@ -30,7 +30,7 @@ const { results } = await result.json()
 console.log(results[0].properties)
 ```
 
-Run `emulators-notion serve --port 12127` and inject `http://localhost:12127` as the
+Run `emulates-notion serve --port 12127` and inject `http://localhost:12127` as the
 consumer's API origin. Keep `/v1` in request paths. No universal vendor environment variable
 exists for this origin override. The reported integration uses raw fetch.
 

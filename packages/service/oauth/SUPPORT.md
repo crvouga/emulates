@@ -1,4 +1,4 @@
-# Emulators OAuth & Social Login — operation support
+# Emulates OAuth & Social Login — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

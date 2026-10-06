@@ -1,6 +1,6 @@
-# @emulators/hermes
+# @emulates/hermes
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Work-in-progress emulator for the Hermes Agent public peer-run API pinned to
 `v2026.8.31`. Submission, polling and stop work with explicit synthetic lifecycle observations.
@@ -11,13 +11,13 @@ Events, approval and steer remain unsupported. No agent or inference runs.
 ## Install
 
 ```sh
-bun add @emulators/hermes
+bun add @emulates/hermes
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/hermes"
+import { createRuntime } from "@emulates/hermes"
 
 const hermes = createRuntime({ seed: 42 })
 const response = await hermes.fetch(new Request("http://hermes.mock/__admin/health"))
@@ -32,7 +32,7 @@ provider account, prompt data, API key, or local service.
 For an HTTP endpoint:
 
 ```ts
-import { createServer } from "@emulators/hermes/server"
+import { createServer } from "@emulates/hermes/server"
 
 const server = await createServer() // ephemeral loopback port
 try {
@@ -42,7 +42,7 @@ try {
 }
 ```
 
-The CLI is `emulators-hermes serve --port 8827`. Point a peer HTTP client's base
+The CLI is `emulates-hermes serve --port 8827`. Point a peer HTTP client's base
 URL at `http://127.0.0.1:8827`; submission returns immediately while execution remains queued until scripted.
 The Node entry is separate from the portable Fetch entry.
 
@@ -56,7 +56,7 @@ Missing runs use the pinned `run_not_found` 404 envelope. Unknown paths return
 404. Emulator-only errors do not claim real Hermes rejection behavior.
 
 - `GET /__admin/health` identifies the `hermes` runtime.
-- Select isolated namespaces with `x-emulators-namespace` or `/__admin/ns/<name>/…`.
+- Select isolated namespaces with `x-emulates-namespace` or `/__admin/ns/<name>/…`.
 - `POST /__admin/reset` clears selected provider state and Timeline. Shared clock,
   faults and diagnostic journal retain their standard independent lifetimes.
 - `POST /__admin/clock` controls the shared clock.
@@ -89,12 +89,12 @@ The Node-only `/server` entry exports:
 
 Types include `HermesAPIOptions`, `HermesRuntime`, `HermesRuntimeOptions`,
 `OperationId`, `SupportedOperationId`, `HermesServer`, and `HermesServerOptions`.
-The executable `emulators-hermes` provides `serve`.
+The executable `emulates-hermes` provides `serve`.
 
 ## Script a run
 
 ```ts
-import { createRuntime } from "@emulators/hermes"
+import { createRuntime } from "@emulates/hermes"
 
 const hermes = createRuntime({ seed: 42 })
 const accepted = await hermes.fetch(new Request("http://hermes.mock/v1/runs", {
@@ -154,7 +154,7 @@ Python cannot UTF-8 encode that fingerprint either.
 
 `POST /__admin/hermes/scope` with `{ "profile": "synthetic-profile",
 "identity": "synthetic-listener" }` selects an explicit synthetic scope within
-the current Emulators namespace. Defaults are `default` and
+the current Emulates namespace. Defaults are `default` and
 `unauthenticated-test-listener`. Use only synthetic labels, never credentials.
 Changing scope isolates reservations and public polling; returning to it restores
 access to its runs. Session IDs and memory keys are not scope selectors, and
@@ -257,7 +257,7 @@ limitations remain explicit. Keep this package WIP until independent Ready requi
 
 ## HTTP replay example
 
-Start `emulators-hermes serve --port 8827`, then submit a synthetic delivery:
+Start `emulates-hermes serve --port 8827`, then submit a synthetic delivery:
 
 ```sh
 curl -sS http://127.0.0.1:8827/v1/runs \

@@ -1,4 +1,4 @@
-import { HttpError, jsonRes, type OperationContext } from "@emulators/service"
+import { HttpError, jsonRes, type OperationContext } from "@emulates/service"
 import { checkUserQuota } from "./limits.js"
 import { missing } from "./not-found.js"
 import type { JunctionState, UserRecord } from "./state.js"

@@ -2,7 +2,7 @@
  * Workspace boundary gate.
  *
  * Runs from the repo root. Guards the intra-workspace dependency graph:
- *   1. every internal `@emulators/*` dependency resolves to an
+ *   1. every internal `@emulates/*` dependency resolves to an
  *      actual workspace package (no dangling refs),
  *   2. the internal dependency graph is acyclic (no runtime cycles),
  *   3. a workspace package never depends on itself,
@@ -11,10 +11,10 @@
  *      for tests / scripts / benchmarks),
  *   5. a published package never needs a private one at runtime (npm consumers
  *      could not install it),
- *   6. every workspace package is named `@emulators/<kebab-case>`, and a service
+ *   6. every workspace package is named `@emulates/<kebab-case>`, and a service
  *      under `packages/service/<id>` is `packageName(id)` from project.ts (hard
  *      rule: one npm naming convention, derived from the stable package id),
- *   7. only services (`@emulators/<id>`) are published; a
+ *   7. only services (`@emulates/<id>`) are published; a
  *      service that imports private helper packages builds with
  *      scripts/bundle-service.ts, which inlines them into its `dist`.
  *      Postgres and SQLite bundle the same way from scripts/build.ts.
@@ -84,15 +84,15 @@ for (const dir of packageDirs) {
     dependencies?: Record<string, string>
     devDependencies?: Record<string, string>
     peerDependencies?: Record<string, string>
-    emulators?: { layer?: string; runtime?: string }
+    emulates?: { layer?: string; runtime?: string }
     scripts?: Record<string, string>
   }
   if (!pkg.name) continue
   packages.set(pkg.name, {
     dir,
     name: pkg.name,
-    layer: pkg.emulators?.layer ?? "unknown",
-    runtime: pkg.emulators?.runtime ?? "portable",
+    layer: pkg.emulates?.layer ?? "unknown",
+    runtime: pkg.emulates?.runtime ?? "portable",
     private: pkg.private === true,
     public: pkg.private !== true && pkg.publishConfig?.access === "public",
     dependencies: new Set(Object.keys(pkg.dependencies ?? {})),
@@ -369,7 +369,7 @@ for (const file of files) {
     )
   }
   if (rel !== "packages/core/src/timeline.ts" && /\bclass\s+Timeline\b/.test(text)) {
-    fail(`${rel} declares a competing Timeline; extend @emulators/core Timeline instead`)
+    fail(`${rel} declares a competing Timeline; extend @emulates/core Timeline instead`)
   }
   if (
     /^packages\/service\/(?!core\/)[^/]+\/src\/runtime\.ts$/.test(rel) &&

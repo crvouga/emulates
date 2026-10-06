@@ -95,7 +95,7 @@ test("cleanup ownership requires exact label, name, immutable image and returned
     Id: intent.id,
     Name: `/${intent.name}`,
     Image: image,
-    Config: { Labels: { "emulators.oracle": runId } },
+    Config: { Labels: { "emulates.oracle": runId } },
   }
   assert.equal(owned(record, intent, options), true)
   for (const change of [
@@ -194,7 +194,7 @@ for (const retainOwnership of [true, false]) {
               Id: id,
               Name: `/${runId}-attach`,
               Image: image,
-              Config: { Labels: { "emulators.oracle": retainOwnership ? runId : "unrelated" } },
+              Config: { Labels: { "emulates.oracle": retainOwnership ? runId : "unrelated" } },
               State: { Status: "created", Running: false, ExitCode: 0 },
             },
           }
@@ -234,7 +234,7 @@ for (const divergent of [false, true]) {
             Id: id,
             Name: `/${url.searchParams.get("name")}`,
             Image: image,
-            Config: { Labels: { "emulators.oracle": runId } },
+            Config: { Labels: { "emulates.oracle": runId } },
             State: { Status: "created", Running: false, ExitCode: 0 },
           })
           return { status: 201, body: { Id: id, Warnings: [] } }

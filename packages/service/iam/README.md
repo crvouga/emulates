@@ -1,13 +1,13 @@
-# @emulators/iam
+# @emulates/iam
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful local emulator of Amazon Identity and Access Management. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/iam/server"
+import { createServer } from "@emulates/iam/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -28,7 +28,7 @@ No LocalStack run is recorded for this integration. The parity command is a boun
 ## Install
 
 ```sh
-bun add @emulators/iam
+bun add @emulates/iam
 ```
 
 ## API

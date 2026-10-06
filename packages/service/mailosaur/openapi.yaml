@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Mailosaur API (Emulators subset)
+  title: Mailosaur API (Emulates subset)
   description: |
     Stateful mock subset of the Mailosaur email/SMS testing API: message search (the SDK's
     client-side long-poll behind `messages.get`), list, get by id, delete, delete-all, create,
@@ -8,7 +8,7 @@ info:
     (the exact requests it sends and the fields its models read) and our consumer's
     `mailosaur-client.ts`.
   version: "1"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Hand-authored from mailosaur@11.1.0 (esm/operations/messages.js, esm/models/*.js) and
       apps/backend/src/modules/dev-tools/lib/mailosaur-client.ts.
@@ -24,7 +24,7 @@ paths:
         Message summaries matching the criteria, newest first. Answers at once; when nothing
         matches, `x-ms-delay` tells the SDK how long to wait before polling again (the mock's
         default is 20 ms, so `messages.get` returns within ~20 ms of a message arriving).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -72,7 +72,7 @@ paths:
         Server-side long-poll: hold the request until a message matching the criteria arrives
         (answering with the full message within milliseconds of its arrival) or `timeout` ms
         pass (404 `search_timeout`).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -115,7 +115,7 @@ paths:
     get:
       operationId: AwaitMessageByQuery
       description: The same long-poll with the criteria as query parameters.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -173,7 +173,7 @@ paths:
   /api/messages:
     get:
       operationId: ListMessages
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -208,7 +208,7 @@ paths:
       description: >-
         `messages.create`: a new message in the server's inbox (the vendor would also send it to
         a verified address when `send` is true; the mock only stores it).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -242,7 +242,7 @@ paths:
                 $ref: "#/components/schemas/ErrorBody"
     delete:
       operationId: DeleteAllMessages
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -271,12 +271,12 @@ paths:
         required: true
         schema:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: message
             missing: 00000000-0000-4000-8000-000000000000
     get:
       operationId: GetMessage
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -302,7 +302,7 @@ paths:
                 $ref: "#/components/schemas/ErrorBody"
     delete:
       operationId: DeleteMessage
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -471,7 +471,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         contentType:
           type: string
@@ -483,7 +483,7 @@ components:
           type: integer
         url:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: url
     Message:
       type: object
@@ -491,10 +491,10 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: message
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         type:
           type: string
@@ -517,7 +517,7 @@ components:
             $ref: "#/components/schemas/MessageAddress"
         received:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         subject:
           type: string
@@ -557,7 +557,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         type:
           type: string
@@ -582,7 +582,7 @@ components:
             $ref: "#/components/schemas/MessageAddress"
         received:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         subject:
           type: string

@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@emulators/sqlite-client"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { Collection } from "./collection.js"
 
 /**

@@ -1,6 +1,6 @@
 # postgres-mem React playground
 
-Client-side SQL playground using [`@emulators/postgres`](../..) in the browser. No WASM, workers, or filesystem.
+Client-side SQL playground using [`@emulates/postgres`](../..) in the browser. No WASM, workers, or filesystem.
 
 ## Run
 
@@ -16,7 +16,7 @@ From the repo root (after the install above):
 bun run example
 ```
 
-Vite aliases `@emulators/postgres` to the library source, so you do not need to `bun run build` first.
+Vite aliases `@emulates/postgres` to the library source, so you do not need to `bun run build` first.
 
 ## What it shows
 

@@ -1,5 +1,5 @@
-import { mediaTypeOf } from "@emulators/http-codec"
-import { deref, resolveSchema, type SchemaObject, validateValue } from "@emulators/openapi"
+import { mediaTypeOf } from "@emulates/http-codec"
+import { deref, resolveSchema, type SchemaObject, validateValue } from "@emulates/openapi"
 import type { OperationContext } from "./service.js"
 
 /**

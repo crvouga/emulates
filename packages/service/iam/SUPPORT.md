@@ -1,4 +1,4 @@
-# Amazon Identity and Access Management (Emulators subset) — operation support
+# Amazon Identity and Access Management (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

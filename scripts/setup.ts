@@ -33,13 +33,13 @@ await run(["bun", "install", "--frozen-lockfile"])
 
 // On a genuinely fresh install, bun only links a workspace package's `bin` if its
 // dist/ file already exists at install time — it doesn't retroactively pick one up.
-// @emulators/openapi-codegen's bin (emulators-codegen) doesn't exist until
+// @emulates/openapi-codegen's bin (emulates-codegen) doesn't exist until
 // it's built, so a first-ever `bun install && bun run build` leaves every service
-// package's `generate` step failing with "emulators-codegen: command not found".
+// package's `generate` step failing with "emulates-codegen: command not found".
 // Fix: build just that package, reinstall to link its now-existing bin, then build
 // everything else. This is idempotent and a no-op once dist/ already exists.
 step("Building the codegen package first (needed to link its CLI bin)")
-await run(["bunx", "turbo", "run", "build", "--filter=@emulators/openapi-codegen"])
+await run(["bunx", "turbo", "run", "build", "--filter=@emulates/openapi-codegen"])
 
 step("Reinstalling to link the codegen CLI bin")
 await run(["bun", "install", "--frozen-lockfile"])

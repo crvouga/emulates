@@ -3,7 +3,7 @@
   "info": {
     "title": "Manage Vanta consumer subset",
     "version": "1.0.0",
-    "x-emulators-upstream": {
+    "x-emulates-upstream": {
       "url": "https://developer.vanta.com/reference/manage-vanta.json",
       "note": "Consumer field projection of official OpenAPI; auth failures confirmed live."
     }
@@ -162,7 +162,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -319,7 +319,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -476,7 +476,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -633,7 +633,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -732,7 +732,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -831,7 +831,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -977,7 +977,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -1119,7 +1119,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": false,
@@ -1203,7 +1203,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -1352,7 +1352,7 @@
             }
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "supported": true,
           "parity": {
             "enabled": true,

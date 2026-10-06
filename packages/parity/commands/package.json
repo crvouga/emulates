@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/commands",
+  "name": "@emulates/commands",
   "version": "0.0.0-development",
   "private": true,
   "description": "Stateful fast-check command generation for OpenAPI-driven random API walks: operation eligibility, symbolic resource references, shrink-friendly commands.",
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/parity/commands#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "parity",
     "commands"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "parity"
   },
@@ -40,14 +40,14 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/openapi": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/openapi-arbitrary": "workspace:*",
-    "@emulators/model": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/openapi-arbitrary": "workspace:*",
+    "@emulates/model": "workspace:*",
     "fast-check": "4.9.0",
-    "@emulators/http-codec": "workspace:*"
+    "@emulates/http-codec": "workspace:*"
   },
   "devDependencies": {
-    "@emulators/testing": "workspace:*"
+    "@emulates/testing": "workspace:*"
   }
 }

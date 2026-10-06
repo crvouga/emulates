@@ -14,7 +14,7 @@ account, or any self-hosted service.
 - **Build cache** — turbo's local cache; CI keeps it in the GitHub Actions cache
   (`.github/actions/setup`). There is no remote cache or token.
 - **Hosting** — the docs site ships as the fleet service `mockingbird-docs` (its pre-rename id, until
-  `crvouga/workspace` renames it to `emulators-docs`): `sites/docs/Dockerfile`
+  `crvouga/workspace` renames it to `emulates-docs`): `sites/docs/Dockerfile`
   (build context = repo root) is built and pushed to GHCR by `.github/workflows/publish.yml` on every
   push to `main`, then deployed by `crvouga/workspace`. Never deploy from Railway or push images by
   hand; the `services.yaml` entry lives in `crvouga/workspace`. Hosting contract:
@@ -29,7 +29,7 @@ Agent commands (`/ci`, `/pr-ready`, `/parity-loop`, `/resolve-issues`) live in `
 see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#agent-commands).
 
 - **Identity** — the project name, npm scope, repository and site live once in `project.ts`;
-  services publish as `packageName(<id>)` = `@emulators/<id>`. Former `@crvouga/mockingbird-*`
+  services publish as `packageName(<id>)` = `@emulates/<id>`. Former `@crvouga/mockingbird-*`
   names appear only at the npm migration boundary (`scripts/release/lib.ts`, `docs/MIGRATING.md`).
 
 Agents in other projects report parity mismatches, missing features and bugs, and request new

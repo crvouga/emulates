@@ -1,6 +1,6 @@
-# @emulators/fcm
+# @emulates/fcm
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Firebase Cloud Messaging HTTP v1** send API (`POST /v1/projects/{project_id}/messages:send`), the call `firebase-admin` makes. Projects, access tokens, and registration tokens are fixtures. There is no FCM sandbox. This package is `status: "wip"`.
 
@@ -10,18 +10,18 @@ Stateful emulator of the **Firebase Cloud Messaging HTTP v1** send API (`POST /v
 ## Install
 
 ```bash
-npm install -D @emulators/fcm
+npm install -D @emulates/fcm
 ```
 
-ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with `npx emulators-fcm serve`, `createServer` from `./server` (Node), or `createRuntime` with any Fetch server.
+ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with `npx emulates-fcm serve`, `createServer` from `./server` (Node), or `createRuntime` with any Fetch server.
 
 ## Usage
 
 `firebase-admin` hardcodes `https://fcm.googleapis.com`. Point it at the emulator with `createAdminTransport` (an `https.Agent` that dials the emulator) and call `enableLegacyHttpTransport()` so multicast sends honor that agent. `send` is already HTTP/1.1. The fixture project is `demo-project`, the fixture device token is `fixture-device-token`, and any bearer is accepted until you turn on `strict`.
 
 ```ts
-import { createServer } from "@emulators/fcm/server"
-import { createAdminTransport } from "@emulators/fcm/admin"
+import { createServer } from "@emulates/fcm/server"
+import { createAdminTransport } from "@emulates/fcm/admin"
 
 const fcm = await createServer()
 const transport = await createAdminTransport({ origin: fcm.url, token: "fixture-token" })
@@ -34,7 +34,7 @@ await fcm.close()
 Without the SDK, `POST` the wire body and read the outbox:
 
 ```ts
-import { createRuntime, FCM_FIXTURE_PROJECT, FCM_FIXTURE_TOKEN } from "@emulators/fcm"
+import { createRuntime, FCM_FIXTURE_PROJECT, FCM_FIXTURE_TOKEN } from "@emulates/fcm"
 
 const fcm = createRuntime()
 const response = await fcm.fetch(
@@ -57,7 +57,7 @@ void outbox
 | Route | Behaviour |
 | --- | --- |
 | `POST /v1/projects/{project_id}/messages:send` | Bearer required. Body `{ message, validate_only? }`. One registration `token` (topic and condition are rejected). Success is `{ name: "projects/{project_id}/messages/{id}" }`. Errors are a Google RPC envelope. `validate_only: true` validates and returns a name without storing anything. |
-| `GET /__admin/health` | Liveness, plus the `x-emulators` header on every response. |
+| `GET /__admin/health` | Liveness, plus the `x-emulates` header on every response. |
 
 ### Admin
 
@@ -100,7 +100,7 @@ Logical message time is `clockOffsetMs` plus the process-wide runtime clock. `PO
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>/` prefix, or `PUT /__admin/credentials` (bearer → namespace). A bearer listed in `settings.credentials` authorizes only that project. `strict: true` rejects bearers that are not listed. Webhooks: none. The device inbox is a test control, not a callback.
+`x-emulates-namespace`, a `/__admin/ns/<name>/` prefix, or `PUT /__admin/credentials` (bearer → namespace). A bearer listed in `settings.credentials` authorizes only that project. `strict: true` rejects bearers that are not listed. Webhooks: none. The device inbox is a test control, not a callback.
 
 ### SDK error codes
 

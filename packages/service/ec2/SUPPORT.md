@@ -1,4 +1,4 @@
-# Amazon Elastic Compute Cloud (Emulators subset) — operation support
+# Amazon Elastic Compute Cloud (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

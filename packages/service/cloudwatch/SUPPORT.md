@@ -1,4 +1,4 @@
-# Amazon CloudWatch Metrics (Emulators subset) — operation support
+# Amazon CloudWatch Metrics (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

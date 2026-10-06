@@ -18,7 +18,7 @@ const OUT = join(root, "llms.txt")
 
 type Manifest = {
   description?: string
-  emulators?: { layer?: string; parity?: unknown }
+  emulates?: { layer?: string; parity?: unknown }
 }
 
 const pkgs = discoverPackages()
@@ -27,9 +27,9 @@ const pkgs = discoverPackages()
 const serviceLines: string[] = []
 for (const pkg of pkgs) {
   const manifest = JSON.parse(readFileSync(pkg.manifestPath, "utf8")) as Manifest
-  const parity = manifest.emulators?.parity
+  const parity = manifest.emulates?.parity
   if (
-    manifest.emulators?.layer !== "service" ||
+    manifest.emulates?.layer !== "service" ||
     typeof parity !== "string" ||
     parity.trim() === "" ||
     parity.length > 80
@@ -53,9 +53,9 @@ for (const pkg of pkgs) {
 const body = [
   `# ${project.slug}`,
   "",
-  `> ${IDENTITY.tagline} ${PITCH} Every HTTP emulator is a Fetch handler (\`createRuntime().fetch(request) → Promise<Response>\`) published to npm as \`@emulators/<name>\`. Every emulator is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers.`,
+  `> ${IDENTITY.tagline} ${PITCH} Every HTTP emulator is a Fetch handler (\`createRuntime().fetch(request) → Promise<Response>\`) published to npm as \`@emulates/<name>\`. Every emulator is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers.`,
   "",
-  "Install emulators as devDependencies; each package is self-contained. Prefer injecting the emulator's `fetch` in-process; when a URL is required, run `npx emulators-<service> serve` (or `createServer` from `./server`); every HTTP service answers `GET /__admin/health`, `/__admin/*` (including `GET /__admin/state` and `GET /__admin/ui`) and `x-emulators-namespace`. All internal paths use the configurable `adminPrefix` (CLI `--admin-prefix`, env `EMULATORS_ADMIN_PREFIX`), including namespace URLs `/__admin/ns/<name>/…`; there are no unprefixed health or namespace aliases. Read the README of each package you use — it is the integration guide for coding agents (also shipped in `node_modules/<package>/README.md`).",
+  "Install Emulates packages as devDependencies; each package is self-contained. Prefer injecting the emulator's `fetch` in-process; when a URL is required, run `npx emulates-<service> serve` (or `createServer` from `./server`); every HTTP service answers `GET /__admin/health`, `/__admin/*` (including `GET /__admin/state` and `GET /__admin/ui`) and `x-emulates-namespace`. All internal paths use the configurable `adminPrefix` (CLI `--admin-prefix`, env `EMULATES_ADMIN_PREFIX`), including namespace URLs `/__admin/ns/<name>/…`; there are no unprefixed health or namespace aliases. Read the README of each package you use — it is the integration guide for coding agents (also shipped in `node_modules/<package>/README.md`).",
   "",
   `The sentence above is the product's identity. The rules for the mark, the colors, and where that sentence has to appear: [Design](${RAW}/docs/DESIGN.md).`,
   "",
@@ -66,9 +66,9 @@ const body = [
   `This project was previously published as Mockingbird. If a codebase depends on \`@crvouga/mockingbird-service-*\`, migrate it with these renames; behavior and APIs are unchanged. The old npm packages stay installable but are deprecated. Full guide with every package: [Migrating from Mockingbird](${RAW}/docs/MIGRATING.md) (also at ${project.site}/docs/migrating).`,
   "",
   `- Packages: \`@crvouga/mockingbird-service-<id>\` → \`${packageName("<id>")}\` (e.g. \`@crvouga/mockingbird-service-stripe\` → \`${packageName("stripe")}\`), in package.json and every import specifier, including subpaths like \`/server\`. Versions continue the old line, so take the latest.`,
-  "- CLIs: `mockingbird-<id>` → `emulators-<id>` (e.g. `npx emulators-stripe serve`); fleet config file `mockingbird.json` → `emulators.json`.",
-  "- HTTP headers and OpenAPI extensions: `x-mockingbird-*` → `x-emulators-*` (e.g. `x-emulators-namespace`, `x-emulators-admin-key`).",
-  "- Environment variables: `MOCKINGBIRD_*` → `EMULATORS_*` (e.g. `EMULATORS_ADMIN_PREFIX`); local state directory `.mockingbird/` → `.emulators/`.",
+  "- CLIs: `mockingbird-<id>` → `emulates-<id>` (e.g. `npx emulates-stripe serve`); fleet config file `mockingbird.json` → `emulates.json`.",
+  "- HTTP headers and OpenAPI extensions: `x-mockingbird-*` → `x-emulates-*` (e.g. `x-emulates-namespace`, `x-emulates-admin-key`).",
+  "- Environment variables: `MOCKINGBIRD_*` → `EMULATES_*` (e.g. `EMULATES_ADMIN_PREFIX`); local state directory `.mockingbird/` → `.emulates/`.",
   `- URLs: github.com/crvouga/mockingbird → ${repositoryUrl} (GitHub redirects the old one); mockingbird.chrisvouga.dev → ${project.site}.`,
   "",
   "## Reporting issues and requesting services",

@@ -6,7 +6,7 @@ import {
   awsList,
   awsRecord,
   awsRequired,
-} from "@emulators/service"
+} from "@emulates/service"
 
 type APIOptions = AwsProtocolOptions
 export class EventbridgeAPI extends AwsProtocolAPI {

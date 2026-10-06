@@ -1,6 +1,6 @@
-# @emulators/payload-cms
+# @emulates/payload-cms
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Payload CMS**'s collection REST API for test suites: `GET /api/<collection>`
 with Payload's paginated envelope (`docs`, `totalDocs`, `limit`, `totalPages`, `page`,
@@ -16,11 +16,11 @@ the admin plane lets a test change it.
 ## Install
 
 ```bash
-npm install -D @emulators/payload-cms
+npm install -D @emulates/payload-cms
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-payload-cms serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-payload-cms serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -31,12 +31,12 @@ Anything that goes wrong (non-2xx, empty docs, bad JSON, a dropped connection) m
 backend fall back to its default referral content, which the presets exercise.
 
 ```bash
-npx emulators-payload-cms serve --port 8822
+npx emulates-payload-cms serve --port 8822
 # or seed your own collections: --collections ./cms-seed.json   ({"marketing": [ … ]})
 ```
 
 ```ts
-import { createRuntime } from "@emulators/payload-cms"
+import { createRuntime } from "@emulates/payload-cms"
 
 const cms = createRuntime()
 await cms.fetch(
@@ -86,7 +86,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `serve
 ### Namespaces
 
 Our backend's `fetch` sends no credential, so use a `/__admin/ns/<name>` suffix on
-`PAYLOAD_CMS_API_URL` (e.g. `http://127.0.0.1:8822/__admin/ns/worker-1`) or `x-emulators-namespace`.
+`PAYLOAD_CMS_API_URL` (e.g. `http://127.0.0.1:8822/__admin/ns/worker-1`) or `x-emulates-namespace`.
 A request carrying `Authorization: <collection> API-Key <key>` or a bearer token can also be
 mapped with `PUT /__admin/credentials`.
 

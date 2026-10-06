@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationContext, type OperationHandler } from "@emulators/service"
+import { jsonResponse, type OperationContext, type OperationHandler } from "@emulates/service"
 import {
   invalidRequest,
   parameterInvalidEmpty,

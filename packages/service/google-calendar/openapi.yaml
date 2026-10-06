@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Google Calendar v3 + Google OAuth (Emulators subset)
+  title: Google Calendar v3 + Google OAuth (Emulates subset)
   description: 'Stateful mock subset of the Google Calendar API v3 (calendarList.list, calendars.insert,
     events list/get/insert/update/delete/watch, channels.stop) and Google OAuth 2.0 (token, revoke, OpenID
     userinfo), as `googleapis` / `@googleapis/calendar` and google-auth-library call them. Trimmed from
@@ -8,7 +8,7 @@ info:
 
     '
   version: v3
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: 'Shapes from https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest and https://developers.google.com/identity/protocols/oauth2;
       consumer (the EMR backend): services/google-calendar-service.ts, business/authorize/authorize.business.ts,
       routers/v1/webhooks/controller.ts.'
@@ -23,7 +23,7 @@ paths:
       description: 'OAuth 2.0 token endpoint (oauth2.googleapis.com/token): authorization_code and refresh_token
         grants, form-encoded as google-auth-library sends them.'
       security: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -58,7 +58,7 @@ paths:
       operationId: OAuthRevoke
       description: Revoke an access or refresh token (oauth2.googleapis.com/revoke?token=).
       security: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -88,7 +88,7 @@ paths:
     get:
       operationId: UserInfo
       description: OpenID userinfo for the token's user (www.googleapis.com/oauth2/v3/userinfo).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -110,7 +110,7 @@ paths:
     get:
       operationId: CalendarListList
       description: The user's calendar list.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -165,7 +165,7 @@ paths:
     post:
       operationId: CalendarsInsert
       description: Create a secondary calendar.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -223,7 +223,7 @@ paths:
       operationId: EventsList
       description: 'Events in a calendar: full lists with timeMin/timeMax/q/orderBy, pagination via pageToken,
         incremental sync via syncToken (410 fullSyncRequired when it is no longer valid).'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -339,7 +339,7 @@ paths:
     post:
       operationId: EventsInsert
       description: Create an event.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -401,13 +401,13 @@ paths:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: event
           missing: 0000000000000000000000mock
     get:
       operationId: EventsGet
       description: One event.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -452,7 +452,7 @@ paths:
     put:
       operationId: EventsUpdate
       description: Replace an event.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -503,7 +503,7 @@ paths:
     delete:
       operationId: EventsDelete
       description: Delete an event (it stays visible as cancelled to incremental sync).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -548,7 +548,7 @@ paths:
       operationId: EventsWatch
       description: Open a push-notification channel on a calendar's events. A `sync` notification follows
         immediately, then `exists` on every change.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -600,7 +600,7 @@ paths:
     post:
       operationId: ChannelsStop
       description: Stop a push-notification channel.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -689,13 +689,13 @@ components:
       properties:
         access_token:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
         expires_in:
           type: integer
         refresh_token:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
         scope:
           type: string
@@ -705,7 +705,7 @@ components:
           - Bearer
         id_token:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
     OAuthError:
       type: object
@@ -806,14 +806,14 @@ components:
           - calendar#calendar
         etag:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: calendar
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         summary:
           type: string
@@ -835,11 +835,11 @@ components:
           - calendar#calendarListEntry
         etag:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque
         id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         summary:
           type: string
@@ -863,11 +863,11 @@ components:
           - calendar#calendarList
         etag:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque
         nextSyncToken:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
         items:
           type: array
@@ -945,24 +945,24 @@ components:
           - calendar#event
         etag:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: event
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         status:
           type: string
         htmlLink:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: url
         created: &id003
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         updated: *id003
         summary:
@@ -987,7 +987,7 @@ components:
         end: *id004
         iCalUID:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         sequence:
           type: integer
@@ -1009,7 +1009,7 @@ components:
           - calendar#events
         etag:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque
         summary:
           type: string
@@ -1022,11 +1022,11 @@ components:
           type: array
         nextPageToken:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
         nextSyncToken:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
         items:
           type: array
@@ -1075,25 +1075,25 @@ components:
           - api#channel
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: channel
             identity: true
         resourceId:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: channel_resource
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         resourceUri:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: url
         token:
           type: string
         expiration:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
     StopRequest:
       type: object
@@ -1103,11 +1103,11 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: channel
             missing: missing-channel
         resourceId:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: channel_resource
             missing: missing-resource

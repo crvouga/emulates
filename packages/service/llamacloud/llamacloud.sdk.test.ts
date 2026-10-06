@@ -4,13 +4,13 @@
  * through that service's real `LlamaCloudClient` file, against the served mock.
  *
  * Python is not part of this repo's toolchain, so the test runs only when
- * `EMULATORS_LLAMACLOUD_PYTHON` points at an interpreter with those packages installed:
+ * `EMULATES_LLAMACLOUD_PYTHON` points at an interpreter with those packages installed:
  *
  *   uv venv /tmp/llama && VIRTUAL_ENV=/tmp/llama uv pip install \
  *     llama-cloud-services==0.6.88 llama-cloud==0.1.45 llama-index-core==0.14.10
- *   EMULATORS_LLAMACLOUD_PYTHON=/tmp/llama/bin/python bun test llamacloud.sdk
+ *   EMULATES_LLAMACLOUD_PYTHON=/tmp/llama/bin/python bun test llamacloud.sdk
  *
- * `EMULATORS_LLAMACLOUD_PY_CLIENT` must also point at that service's `llamacloud_client.py`
+ * `EMULATES_LLAMACLOUD_PY_CLIENT` must also point at that service's `llamacloud_client.py`
  * (the consumer app's own source; it is not in this repo).
  */
 import { describe, expect, test } from "bun:test"
@@ -18,8 +18,8 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createServer } from "./src/server.js"
 
-const PYTHON = process.env.EMULATORS_LLAMACLOUD_PYTHON
-const CLIENT = process.env.EMULATORS_LLAMACLOUD_PY_CLIENT
+const PYTHON = process.env.EMULATES_LLAMACLOUD_PYTHON
+const CLIENT = process.env.EMULATES_LLAMACLOUD_PY_CLIENT
 const enabled =
   PYTHON !== undefined && existsSync(PYTHON) && CLIENT !== undefined && existsSync(CLIENT)
 

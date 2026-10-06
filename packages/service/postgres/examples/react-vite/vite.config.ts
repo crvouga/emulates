@@ -8,7 +8,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { "@emulators/postgres": path.resolve(dir, "../../src/index.ts") },
+    alias: { "@emulates/postgres": path.resolve(dir, "../../src/index.ts") },
   },
   server: { fs: { allow: [path.resolve(dir, "../..")] } },
 });

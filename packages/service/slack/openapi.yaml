@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Slack incoming webhooks and Web API (Emulators subset)
+  title: Slack incoming webhooks and Web API (Emulates subset)
   description: |
     Stateful mock subset of Slack: incoming webhooks (`POST /services/T/B/X`) and the Web API
     methods our apps call. Every message lands in an outbox a suite can assert on. Hand-authored
     from Slack's documented wire shapes and the consumers (backend `postSlackWebhook`, EMR
     `slack-web-api.ts`, request-intake `SlackClient`, release-conductor).
   version: '1'
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: Hand-authored from https://api.slack.com/methods and https://api.slack.com/messaging/webhooks
       (Slack publishes no maintained OpenAPI for these methods).
 servers:
@@ -42,7 +42,7 @@ paths:
       description: Answers `200 ok` (text/plain). Bad payloads get Slack's plain-text error codes (`invalid_payload`,
         `no_text`, `invalid_blocks`); an unregistered hook is `404 no_service` once any hook is registered.
         Also accepts form bodies with a `payload=<json>` field.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -154,7 +154,7 @@ paths:
     post:
       operationId: ChatPostMessage
       summary: 'chat.postMessage: post a message (or a thread reply) to a channel'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -181,7 +181,7 @@ paths:
                 thread_ts:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
               required:
@@ -227,7 +227,7 @@ paths:
                 thread_ts:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 mrkdwn:
@@ -270,7 +270,7 @@ paths:
     post:
       operationId: ChatUpdate
       summary: 'chat.update: edit a message the bot posted'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -290,7 +290,7 @@ paths:
                 ts:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 text:
@@ -311,7 +311,7 @@ paths:
                 ts:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 text:
@@ -380,7 +380,7 @@ paths:
     post:
       operationId: ChatPostEphemeral
       summary: 'chat.postEphemeral: a message only one user sees'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -401,7 +401,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 20
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: user
                     missing: U00MISSING
                 text:
@@ -423,7 +423,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 20
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: user
                     missing: U00MISSING
                 text:
@@ -458,7 +458,7 @@ paths:
                 thread_ts:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
               required:
@@ -498,7 +498,7 @@ paths:
     get:
       operationId: ChatGetPermalinkGet
       summary: chat.getPermalink (query arguments)
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -518,7 +518,7 @@ paths:
         schema:
           type: string
           maxLength: 24
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: message
             missing: '1000000000.000000'
       responses:
@@ -554,7 +554,7 @@ paths:
     post:
       operationId: ChatGetPermalink
       summary: 'chat.getPermalink: the permalink of a message'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -574,7 +574,7 @@ paths:
                 message_ts:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
               required:
@@ -592,7 +592,7 @@ paths:
                 message_ts:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
               required:
@@ -632,7 +632,7 @@ paths:
     post:
       operationId: ReactionsAdd
       summary: 'reactions.add: react to a message'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -652,7 +652,7 @@ paths:
                 timestamp:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 name:
@@ -679,7 +679,7 @@ paths:
                 timestamp:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 name:
@@ -728,7 +728,7 @@ paths:
     post:
       operationId: ReactionsRemove
       summary: 'reactions.remove: take a reaction back'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -748,7 +748,7 @@ paths:
                 timestamp:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 name:
@@ -773,7 +773,7 @@ paths:
                 timestamp:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 name:
@@ -820,7 +820,7 @@ paths:
     get:
       operationId: ReactionsGetGet
       summary: reactions.get (query arguments)
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -840,7 +840,7 @@ paths:
         schema:
           type: string
           maxLength: 24
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: message
             missing: '1000000000.000000'
       - name: full
@@ -884,7 +884,7 @@ paths:
     post:
       operationId: ReactionsGet
       summary: 'reactions.get: a message and its reactions'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -904,7 +904,7 @@ paths:
                 timestamp:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 full:
@@ -927,7 +927,7 @@ paths:
                 timestamp:
                   type: string
                   maxLength: 24
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: message
                     missing: '1000000000.000000'
                 full:
@@ -969,7 +969,7 @@ paths:
     get:
       operationId: AuthTestGet
       summary: auth.test (GET)
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1008,7 +1008,7 @@ paths:
     post:
       operationId: AuthTest
       summary: 'auth.test: who the token belongs to'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1058,7 +1058,7 @@ paths:
     post:
       operationId: ConversationsJoin
       summary: 'conversations.join: the bot joins a public channel'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1122,7 +1122,7 @@ paths:
     get:
       operationId: UsersInfoGet
       summary: users.info (query arguments)
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1135,7 +1135,7 @@ paths:
           type: string
           minLength: 1
           maxLength: 20
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: user
             missing: U00MISSING
       responses:
@@ -1171,7 +1171,7 @@ paths:
     post:
       operationId: UsersInfo
       summary: 'users.info: a user''s profile'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1187,7 +1187,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 20
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: user
                     missing: U00MISSING
               required:
@@ -1200,7 +1200,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 20
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: user
                     missing: U00MISSING
               required:
@@ -1239,7 +1239,7 @@ paths:
     get:
       operationId: UsersLookupByEmailGet
       summary: users.lookupByEmail (query arguments)
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1285,7 +1285,7 @@ paths:
     post:
       operationId: UsersLookupByEmail
       summary: 'users.lookupByEmail: find a user by email'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1347,7 +1347,7 @@ paths:
     get:
       operationId: FilesInfoGet
       summary: files.info (query arguments)
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1360,7 +1360,7 @@ paths:
           type: string
           minLength: 1
           maxLength: 20
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: file
             missing: F00MISSING
       responses:
@@ -1396,7 +1396,7 @@ paths:
     post:
       operationId: FilesInfo
       summary: 'files.info: a file''s metadata and private download URL'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1412,7 +1412,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 20
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: file
                     missing: F00MISSING
               required:
@@ -1425,7 +1425,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 20
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: file
                     missing: F00MISSING
               required:
@@ -1464,7 +1464,7 @@ paths:
     post:
       operationId: ViewsOpen
       summary: 'views.open: open a modal for a trigger'
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1568,7 +1568,7 @@ paths:
         a bot or user token is `not_allowed_token_type`, and a malformed, unknown, or revoked
         app token is `invalid_auth` or `token_revoked`. Logical errors are HTTP 200. The `url`
         is a `ws://` or `wss://` URL on this server (`/link/?ticket=…&app_id=…`).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1681,11 +1681,11 @@ components:
           type: string
         ts:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         thread_ts:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         blocks:
           type: array
@@ -1698,7 +1698,7 @@ components:
               type: string
             ts:
               type: string
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: id
         reactions:
           type: array
@@ -1722,10 +1722,10 @@ components:
             type: string
           ts:
             type: string
-            x-emulators-resource:
+            x-emulates-resource:
               type: message
               identity: true
-            x-emulators-volatile:
+            x-emulates-volatile:
               kind: id
           message:
             $ref: '#/components/schemas/Message'
@@ -1751,7 +1751,7 @@ components:
             type: string
           ts:
             type: string
-            x-emulators-volatile:
+            x-emulates-volatile:
               kind: id
           text:
             type: string
@@ -1764,7 +1764,7 @@ components:
         properties:
           message_ts:
             type: string
-            x-emulators-volatile:
+            x-emulates-volatile:
               kind: id
     PermalinkResponse:
       allOf:
@@ -1775,7 +1775,7 @@ components:
             type: string
           permalink:
             type: string
-            x-emulators-volatile:
+            x-emulates-volatile:
               kind: url
     AuthTestResponse:
       allOf:
@@ -1831,7 +1831,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: user
             identity: true
         team_id:
@@ -1869,7 +1869,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: file
             identity: true
         name:
@@ -1907,7 +1907,7 @@ components:
             properties:
               id:
                 type: string
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: id
               type:
                 type: string
@@ -1917,7 +1917,7 @@ components:
                 type: string
               hash:
                 type: string
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: opaque
               blocks:
                 type: array
@@ -1941,5 +1941,5 @@ components:
           url:
             type: string
             description: One-use Socket Mode WebSocket URL (`ticket` query parameter).
-            x-emulators-volatile:
+            x-emulates-volatile:
               kind: url

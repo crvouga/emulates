@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * `emulators-sqlite serve`: start the length-prefixed JSON socket (see ./index.ts).
+ * `emulates-sqlite serve`: start the length-prefixed JSON socket (see ./index.ts).
  *
- *   emulators-sqlite serve
- *   emulators-sqlite serve sqlite://127.0.0.1:0/app
+ *   emulates-sqlite serve
+ *   emulates-sqlite serve sqlite://127.0.0.1:0/app
  *
  * The stock `sqlite3` CLI cannot attach to this socket. Use `connect()` from
- * `@emulators/sqlite/socket`.
+ * `@emulates/sqlite/socket`.
  */
 import { type SocketServeOptions, serve } from "./index.ts";
 
-const usage = `emulators-sqlite serve [sqlite://URI] [--port <n>] [--host <h>]
+const usage = `emulates-sqlite serve [sqlite://URI] [--port <n>] [--host <h>]
 
-The stock sqlite3 CLI cannot attach. Use connect() from @emulators/sqlite/socket.`;
+The stock sqlite3 CLI cannot attach. Use connect() from @emulates/sqlite/socket.`;
 
 const args = process.argv.slice(2);
 if (args[0] !== "serve") {
@@ -50,8 +50,8 @@ for (let i = 1; i < args.length; i++) {
 }
 
 const server = await serve(options);
-console.log(`emulators-sqlite listening on ${server.url}`);
-console.error("sqlite3 cannot attach to this socket; use @emulators/sqlite/socket connect()");
+console.log(`emulates-sqlite listening on ${server.url}`);
+console.error("sqlite3 cannot attach to this socket; use @emulates/sqlite/socket connect()");
 
 const stop = async () => {
   await server.close();

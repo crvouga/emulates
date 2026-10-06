@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@emulators/sqlite-example-react",
+      "name": "@emulates/sqlite-example-react",
       "dependencies": {
         "react": "^19.2.0",
         "react-dom": "^19.2.0",

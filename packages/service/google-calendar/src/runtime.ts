@@ -8,8 +8,8 @@ import {
   type ServiceRuntime,
   signers,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import {
   accessTokenCredential,
@@ -262,7 +262,7 @@ const adminRoutes = (runtime: ServiceRuntime<GoogleCalendarAPI>): AdminRoutes =>
 }
 
 /**
- * The Google Calendar + OAuth emulator with the full Emulators service contract: `/__admin/health`,
+ * The Google Calendar + OAuth emulator with the full Emulates service contract: `/__admin/health`,
  * `/__admin/*`, namespaces by header, by `/__admin/ns/<name>` path prefix, or by account (access
  * tokens carry their email: `PUT /__admin/credentials {"credentials": {"<email>": "<ns>"}}`),
  * clock control, fault presets, push notifications to each channel's address, and a journal.

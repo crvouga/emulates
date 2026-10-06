@@ -1,4 +1,4 @@
-# Intercom REST API 2.11 (Emulators subset) — operation support
+# Intercom REST API 2.11 (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

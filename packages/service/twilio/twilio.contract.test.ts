@@ -70,11 +70,11 @@ describe("Lookup v2 answers exactly what the live API recorded", () => {
 })
 
 describe("the service contract", () => {
-  test("/__admin/health, the x-emulators header and Twilio-shaped 404s", async () => {
+  test("/__admin/health, the x-emulates header and Twilio-shaped 404s", async () => {
     const runtime = createRuntime()
     const health = await runtime.fetch(new Request(`${MOCK}/__admin/health`))
     expect(await health.json()).toMatchObject({ status: "ok", service: "twilio" })
-    expect(health.headers.get("x-emulators")).toMatch(/^twilio@.*; ns=default$/)
+    expect(health.headers.get("x-emulates")).toMatch(/^twilio@.*; ns=default$/)
     const missing = await send(runtime, "GET", "/api/2010-04-01/Accounts/AC1/Nope.json")
     expect(missing.status).toBe(404)
     expect(await missing.json()).toEqual({
@@ -136,7 +136,7 @@ describe("the service contract", () => {
         { To: "+12025550123", Channel: "sms" },
         headers,
       )
-    await start("", { ...basic(), "x-emulators-namespace": "by-header" })
+    await start("", { ...basic(), "x-emulates-namespace": "by-header" })
     await start("/__admin/ns/by-prefix", basic())
     await start("", basic("AC11111111111111111111111111111111"))
     for (const ns of ["by-header", "by-prefix", "by-sid"]) {

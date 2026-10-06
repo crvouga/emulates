@@ -1,13 +1,13 @@
-# @emulators/livekit
+# @emulates/livekit
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful LiveKit emulator for `livekit-server-sdk`. It serves Twirp JSON room and agent-dispatch APIs, validates genuine HS256 LiveKit grants, models participant/track/data state, exposes deterministic SIP and egress controls, and emits correctly signed lifecycle webhooks.
 
 ## Install
 
 ```bash
-npm install -D @emulators/livekit
+npm install -D @emulates/livekit
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -15,7 +15,7 @@ ESM only. Node 22+ or Bun 1.2+.
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/livekit/server"
+import { createServer } from "@emulates/livekit/server"
 
 const mock = await createServer({
   keys: { fixture: "fixture-secret-that-is-at-least-32-chars" },

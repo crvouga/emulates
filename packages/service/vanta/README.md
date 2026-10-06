@@ -1,19 +1,19 @@
-# @emulators/vanta
+# @emulates/vanta
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Manage Vanta OAuth, paginated compliance records, evidence metadata and offboarding.
 
 ## Install
 
 ```sh
-bun add @emulators/vanta
+bun add @emulates/vanta
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/vanta"
+import { createRuntime } from "@emulates/vanta"
 const vanta = createRuntime()
 const response = await vanta.fetch(new Request("http://vanta.test/v1/people?pageSize=10", {
   headers: { authorization: "Bearer mock_vanta_token" },
@@ -22,7 +22,7 @@ const { results } = await response.json()
 console.log(results.pageInfo)
 ```
 
-Run `emulators-vanta serve --port 12129` and inject `http://localhost:12129` as the
+Run `emulates-vanta serve --port 12129` and inject `http://localhost:12129` as the
 consumer's API origin. There is no universal Vanta SDK environment variable for this override;
 the requested consumer uses raw fetch. Credentials and records are synthetic only.
 

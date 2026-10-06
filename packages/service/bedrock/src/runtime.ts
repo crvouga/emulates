@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, BEDROCK_NAMESPACE, BedrockAPI, clockSleep } from "./index.js"
 import { parseScript, type Script } from "./scripts.js"
@@ -141,7 +141,7 @@ const adminRoutes = (runtime: ServiceRuntime<BedrockAPI>): AdminRoutes => {
 }
 
 /**
- * The Bedrock emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Bedrock emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by SigV4 access key id
  * (`PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`),
  * clock control (script pacing runs on it), fault presets, scripts and a request journal

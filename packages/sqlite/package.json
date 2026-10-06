@@ -1,8 +1,8 @@
 {
-  "name": "@emulators/sqlite-client",
+  "name": "@emulates/sqlite-client",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Owned sync SqliteClient port for Emulators services. Defaults to @emulators/sqlite; accepts any duck-typed SQLite client.",
+  "description": "Owned sync SqliteClient port for Emulates services. Defaults to @emulates/sqlite; accepts any duck-typed SQLite client.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -23,10 +23,10 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/sqlite#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "sqlite"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "sqlite"
   },
@@ -39,10 +39,10 @@
     "pack:check": "bun ../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*"
+    "@emulates/sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@emulators/testing": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

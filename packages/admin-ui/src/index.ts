@@ -6,12 +6,12 @@ export type { AdminApiConfig, AdminConfig } from "./model.js"
 /** Embed the prebuilt browser client without a CDN or framework runtime dependency. */
 export const adminClientSource = (config: AdminConfig): string => {
   const payload = JSON.stringify(config).replace(/</g, "\\u003c")
-  return `<script>\n${ADMIN_BROWSER_BUNDLE}\nEmulatorsAdmin.mount(document.getElementById("admin-root"), ${payload});\n</script>`
+  return `<script>\n${ADMIN_BROWSER_BUNDLE}\nEmulatesAdmin.mount(document.getElementById("admin-root"), ${payload});\n</script>`
 }
 
 export const membersClientSource = (config: MembersConfig): string => {
   const payload = JSON.stringify(config).replace(/</g, "\\u003c")
-  return `<script>\n${ADMIN_BROWSER_BUNDLE}\nEmulatorsAdmin.mountMembers(document.getElementById("admin-root"), ${payload});\n</script>`
+  return `<script>\n${ADMIN_BROWSER_BUNDLE}\nEmulatesAdmin.mountMembers(document.getElementById("admin-root"), ${payload});\n</script>`
 }
 
 export type ComposableAdminApi = AdminApiConfig & {
@@ -54,8 +54,8 @@ export const composeAdminApis = (
       adminPrefix: `${prefix}/apis/${api.id}`,
     })),
   }
-  const title = escapeHtml(options.title ?? "Emulators")
-  const document = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>${title} admin</title><style>html,body{margin:0;min-height:100%}#admin-root{min-height:100%}</style></head><body><main id="admin-root" data-emulators-admin data-admin-ui-library="antd" data-service="${title}"><noscript>Enable JavaScript to use administration.</noscript></main>${adminClientSource(config)}</body></html>`
+  const title = escapeHtml(options.title ?? "Emulates")
+  const document = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>${title} admin</title><style>html,body{margin:0;min-height:100%}#admin-root{min-height:100%}</style></head><body><main id="admin-root" data-emulates-admin data-admin-ui-library="antd" data-service="${title}"><noscript>Enable JavaScript to use administration.</noscript></main>${adminClientSource(config)}</body></html>`
   return {
     async fetch(request) {
       const url = new URL(request.url)

@@ -1,4 +1,4 @@
-# Optimal DX partner API (Emulators subset) — operation support
+# Optimal DX partner API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

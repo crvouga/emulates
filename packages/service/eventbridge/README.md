@@ -1,6 +1,6 @@
-# @emulators/eventbridge
+# @emulates/eventbridge
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP AWS EventBridge control-plane discovery. Seeded rule and target reads use AWS JSON 1.1;
 no containers or infrastructure are executed. Follows the official
@@ -10,12 +10,12 @@ and [common errors](https://docs.aws.amazon.com/eventbridge/latest/APIReference/
 
 ## Install
 
-`bun add @emulators/eventbridge`
+`bun add @emulates/eventbridge`
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/eventbridge/server"
+import { createServer } from "@emulates/eventbridge/server"
 const server = await createServer({
   rules: [{ rule: { Name: "nightly", Arn: "arn:aws:events:us-east-1:000000000000:rule/nightly" }, targets: [] }],
 })
@@ -24,7 +24,7 @@ const server = await createServer({
 await server.close()
 ```
 
-CLI: `emulators-eventbridge serve --port 12128`. Set your client factory's endpoint_url
+CLI: `emulates-eventbridge serve --port 12128`. Set your client factory's endpoint_url
 or AWS_ENDPOINT_URL_EVENTBRIDGE to that URL. The default instance has no rules.
 POST / dispatches X-Amz-Target AWSEvents.ListRules and AWSEvents.ListTargetsByRule.
 NamePrefix filters names; Limit (1–100) and NextToken paginate rules and targets.
@@ -39,7 +39,7 @@ The default bus always exists. Rule.EventBusName defaults to default.
 Target objects, including TaskDefinitionArn and awsvpcConfiguration, round-trip without execution.
 State collections: rules, buses, cursors and initialization marker.
 Shared /__admin provides health, state, reset, Timeline checkpoints, clock, journal, metrics and UI.
-Namespaces work via x-emulators-namespace, /__admin/ns/name and SigV4 access-key mappings
+Namespaces work via x-emulates-namespace, /__admin/ns/name and SigV4 access-key mappings
 set with PUT /__admin/credentials. No cryptographic signature or IAM evaluation is performed.
 The journal records metadata, not request bodies or credentials.
 

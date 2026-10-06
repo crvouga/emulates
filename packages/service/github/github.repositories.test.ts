@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite"
 import { expect, test } from "bun:test"
-import type { SqliteStatement } from "@emulators/sqlite-client"
+import type { SqliteStatement } from "@emulates/sqlite-client"
 import { createRuntime } from "./src/index.js"
 
 const seed = {
@@ -22,7 +22,7 @@ const request = (
   runtime.fetch(
     new Request(`http://github.mock${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
   )
@@ -102,7 +102,7 @@ test("Timeline restores repository and ancestry, journal omits synthetic body an
   await request(runtime, "/__admin/github/repositories", seed)
   await runtime.fetch(
     new Request("http://github.mock/repos/synthetic-org/example?secret=synthetic-query", {
-      headers: { authorization: "Bearer synthetic-key", "x-emulators-namespace": "a" },
+      headers: { authorization: "Bearer synthetic-key", "x-emulates-namespace": "a" },
     }),
   )
   const journal = JSON.stringify(runtime.journal.list({ namespace: "a" }))

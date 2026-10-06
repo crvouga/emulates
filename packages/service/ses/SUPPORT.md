@@ -1,4 +1,4 @@
-# Amazon Simple Email Service (Emulators subset) — operation support
+# Amazon Simple Email Service (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

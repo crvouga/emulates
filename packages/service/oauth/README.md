@@ -1,19 +1,19 @@
-# @emulators/oauth
+# @emulates/oauth
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 A stateful OAuth 2.0 / OpenID Connect identity sandbox. Google, Apple, Microsoft and GitHub wire profiles share a vendor-neutral account chooser, signup and consent UI. Generic OIDC works with other configurable identity clients. Uses real RS256 signatures, discovery, JWKS, authorization codes, S256 PKCE, refresh tokens and revocation.
 
 ## Install
 
 ```sh
-npm install @emulators/oauth
+npm install @emulates/oauth
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/oauth"
+import { createRuntime } from "@emulates/oauth"
 
 const identity = createRuntime({
   provider: "google", // "apple", "microsoft", "github" or "oidc"
@@ -43,7 +43,7 @@ void fetchHandler
 Serve from Node (also works in Bun):
 
 ```ts
-import { createServer } from "@emulators/oauth/server"
+import { createServer } from "@emulates/oauth/server"
 
 const server = await createServer({ port: 8810, provider: "apple" })
 console.log(server.url)
@@ -52,7 +52,7 @@ await server.close()
 ```
 
 ```sh
-npx emulators-oauth serve --provider google --port 8810
+npx emulates-oauth serve --provider google --port 8810
 ```
 
 ### Point an app at the emulator
@@ -78,7 +78,7 @@ The issuer defaults to the incoming origin (and `/__admin/ns/<name>` when used).
 `createMultiRuntime({ mounts })` and `createMultiServer({ mounts })` mount independent providers at exact paths on one origin. Discovery, endpoint URLs, token issuers, signing keys, clients, grants, sessions, faults, journals, and namespace state remain isolated per mount.
 
 ```ts
-import { createMultiServer } from "@emulators/oauth/server"
+import { createMultiServer } from "@emulates/oauth/server"
 
 const accounts = [{ id: "ada", name: "Ada Lovelace", email: "ada@example.test" }]
 const clients = [
@@ -95,7 +95,7 @@ const server = await createMultiServer({
 
 Use `/__admin/ns/<name>/<mount>/…` for URL-selected namespaces. `GET /__admin/health` reports every mount; `POST /__admin/reset?all=1` resets them atomically. Other aggregate admin requests select a runtime with `?mount=/google`, while mount-scoped controls are also available at `/google/__admin/*`. Duplicate or unsafe mount paths, duplicate explicit issuers, and duplicate client/key IDs within a mount fail before the listener starts.
 
-For the CLI, put the same `mounts` array in a JSON file and run `npx emulators-oauth serve --mounts oauth-mounts.json --port 8810`.
+For the CLI, put the same `mounts` array in a JSON file and run `npx emulates-oauth serve --mounts oauth-mounts.json --port 8810`.
 
 ### Accounts and signup
 
@@ -109,7 +109,7 @@ curl http://localhost:8810/__admin/accounts -H 'content-type: application/json' 
 curl http://localhost:8810/__admin/accounts
 ```
 
-Set `adminKey` (CLI `--admin-key`) to require `x-emulators-admin-key`. Programmatically, `runtime.instance().seedAccount(account)` inserts or updates a stable subject; `registerClient(client)` inserts or updates a client. Accounts support `emailVerified`, `picture`, `givenName`, `familyName`, `locale`, `hostedDomain`, `privateEmail`, `relayEmail`, `omitEmail`, `omitName` and `disabled`. Apple fixtures also accept `realUserStatus` (`0`, `1`, or `2`) and `transferSub` for risk and app-transfer claim tests. Microsoft fixtures accept `preferredUsername`, `tenantId`, `objectId`; GitHub fixtures accept `github: { id, login, publicEmail, emails }`. An email-list entry contains `email`, `primary`, `verified` and `visibility` (`public`, `private` or `null`).
+Set `adminKey` (CLI `--admin-key`) to require `x-emulates-admin-key`. Programmatically, `runtime.instance().seedAccount(account)` inserts or updates a stable subject; `registerClient(client)` inserts or updates a client. Accounts support `emailVerified`, `picture`, `givenName`, `familyName`, `locale`, `hostedDomain`, `privateEmail`, `relayEmail`, `omitEmail`, `omitName` and `disabled`. Apple fixtures also accept `realUserStatus` (`0`, `1`, or `2`) and `transferSub` for risk and app-transfer claim tests. Microsoft fixtures accept `preferredUsername`, `tenantId`, `objectId`; GitHub fixtures accept `github: { id, login, publicEmail, emails }`. An email-list entry contains `email`, `primary`, `verified` and `visibility` (`public`, `private` or `null`).
 
 ### Test hooks on the interaction pages
 
@@ -157,7 +157,7 @@ tapping `oauth-mock-form-post-continue`; with scripts, the page submits the form
 Behavioral randomness is **off by default**. Configure exact scenarios or probabilities; these are test frequencies you choose, not estimates of vendor incidence. OAuth credentials, authorization codes and signing keys use cryptographic randomness unless you opt in to [seeded credentials](#seeded-credentials).
 
 ```ts
-import { createRuntime } from "@emulators/oauth"
+import { createRuntime } from "@emulates/oauth"
 
 const identity = createRuntime({
   provider: "apple",
@@ -195,7 +195,7 @@ The complete typed controls are `OAuthBehavior`. `probabilities` accepts `hideEm
 `OAUTH_SCENARIOS` supplies: `apple_private_relay`, `apple_share_email`, `apple_returning_user`, `apple_boolean_claims`, `microsoft_missing_email`, `microsoft_spa_expiry`, `github_unverified_email`, `missing_email`, `missing_name`, `unverified_email`, `google_no_refresh_token`, `google_reauthentication`, `revoked_refresh_token`, `rotating_refresh_tokens`, `short_lived_tokens`, `consent_denied`, `intermittent_token_failure`, `id_token_clock_ahead` (+600 s), `id_token_stale` (-7200 s, expired an hour ago), `id_token_unknown_key`. Explicit fields override the chosen preset's fields. Unknown keys and invalid values fail validation.
 
 ```sh
-npx emulators-oauth serve --provider apple --seed regression-42 --scenario apple_private_relay
+npx emulates-oauth serve --provider apple --seed regression-42 --scenario apple_private_relay
 curl http://localhost:8810/__admin/scenarios
 curl -X PUT http://localhost:8810/__admin/behavior -H 'content-type: application/json' \
   -d '{"preset":"apple_private_relay","probabilities":{"omitName":0.25}}'
@@ -233,7 +233,7 @@ Delivery is awaited by the call that caused it, through `webhooks.fetch` (`creat
 For deterministic simulation tests, opt in so every opaque value the provider mints comes from the seed instead of `crypto`, and the same seed with the same requests replays byte-for-byte. It is **off by default**: without it, codes, tokens, transaction ids, nonces, `kid` and signing keys stay cryptographically random.
 
 ```ts
-import { createRuntime } from "@emulators/oauth"
+import { createRuntime } from "@emulates/oauth"
 
 const runtime = createRuntime({
   seed: "s1",
@@ -250,7 +250,7 @@ const runtime = createRuntime({
 
 ### Shared service controls
 
-The runtime supplies `/__admin/health`, `/__admin/reset`, snapshots, emulator clock, request journal, metrics, fault injection and namespace isolation. Use `x-emulators-namespace` for in-process tests or `/__admin/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
+The runtime supplies `/__admin/health`, `/__admin/reset`, snapshots, emulator clock, request journal, metrics, fault injection and namespace isolation. Use `x-emulates-namespace` for in-process tests or `/__admin/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
 
 `OAUTH_PRESETS` includes `token_unavailable` and `access_denied`. Fault rules can also target a provider-specific path, e.g. `POST /__admin/faults` with `{"pathPrefix":"/auth/token","status":503,"body":{"error":"temporarily_unavailable"}}`. The only outbound requests are the Apple notifications above. Journals contain request metadata, never passwords or request bodies.
 
@@ -292,7 +292,7 @@ Provider references for the edge cases: [Apple first-use profile data](https://d
 
 ## Interactive application example
 
-The [OAuth service page](https://emulators.chrisvouga.dev/services/oauth#example-google-login)
+The [OAuth service page](https://emulates.chrisvouga.dev/services/oauth#example-google-login)
 includes complete in-process Google-style, Apple-style, Microsoft-style, and GitHub-style login
 profiles.
 Launch the example app, select a seeded account or create one, approve consent, and return to
@@ -349,7 +349,7 @@ endpoint and callback validation. The demo uses `prompt=select_account` to force
 For any integrating app, session reuse can also be disabled on the emulator itself:
 
 ```ts
-import { OAuthAPI } from "@emulators/oauth"
+import { OAuthAPI } from "@emulates/oauth"
 
 const api = new OAuthAPI({
   behavior: { session: { reuseLastAccount: false } },

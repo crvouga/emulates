@@ -1,19 +1,19 @@
 # PRD and ordered handoff: Initiative emulator integration and recovery tests
 
 Status: draft requested September 25, 2026. **Owner: Avengers Initiative, not
-Emulators.** This document is staged in Emulators solely because current
+Emulates.** This document is staged in Emulates solely because current
 workspace instructions prohibit writes outside the project directory.
 
 Intended destination:
 `/Users/corysiebler/Repositories/avengers-initiative/tasks/prd-mock-integration-and-recovery.md`.
 Transfer it from an authorized session in that repository after checking for an
 existing target. It has **not** been written there. No story below is included in
-the Emulators [archived plan](archive/infrastructure-orchestration-mocks/PLAN.md), and this handoff is not an active runner task source.
+the Emulates [archived plan](archive/infrastructure-orchestration-mocks/PLAN.md), and this handoff is not an active runner task source.
 
 ## 1. Overview
 
 Extend Initiative's existing consumer contracts, test fixtures, and recovery
-evidence as reusable Emulators Docker, Hermes peer-run, and GitHub REST packages
+evidence as reusable Emulates Docker, Hermes peer-run, and GitHub REST packages
 become available. Preserve Hermes as task/attempt authority and Initiative as owner
 of scheduling, containment decisions, durable intake, and publication policy.
 
@@ -43,7 +43,7 @@ be rechecked before implementation; this document reports no executed tests.
 
 ## 3. Repository ownership and external dependencies
 
-| Initiative owns | Emulators owns |
+| Initiative owns | Emulates owns |
 | --- | --- |
 | Dispatcher/callback/CLI compatibility and consumer fakes | Public Hermes peer-run HTTP behavior |
 | Supervisor, launch identity, fencing, maintenance, fairness accounting | Public Docker lifecycle and attach transport behavior |
@@ -52,7 +52,7 @@ be rechecked before implementation; this document reports no executed tests.
 | Broker approvals, journals, expected-ref transport, real Git | GitHub REST response/state simulation |
 | Real App rules enforcement and SQLite backup/restore evidence | Provider contract/parity/package evidence |
 
-The Emulators deliverables are named Docker, Hermes, and GitHub packages, each with
+The Emulates deliverables are named Docker, Hermes, and GitHub packages, each with
 a version and support matrix. Pin the consumed release and record its contract
 before adoption. A package's WIP/Ready label is not proof of Initiative deployment
 acceptance. Initiative-local work can proceed before those packages are available;
@@ -145,7 +145,7 @@ Depends on: AI-002. PRD mapping: US-010, US-024, US-025.
 As a Docker adapter maintainer, I want the actual consumer exercised over the emulator's
 Unix socket and attach upgrade rather than handler-shaped Python return values.
 
-Depends on: AI-001, AI-002 and a usable pinned Emulators Docker package.
+Depends on: AI-001, AI-002 and a usable pinned Emulates Docker package.
 PRD mapping: US-010, US-025; Docker launch/retirement decision.
 
 - [ ] Add an explicit test-only server fixture with owned socket paths and cleanup.
@@ -159,7 +159,7 @@ PRD mapping: US-010, US-025; Docker launch/retirement decision.
 
 As an intake developer, I want submit/poll/retry behavior tested through real HTTP.
 
-Depends on: AI-001, AI-002 and a usable pinned Emulators Hermes package.
+Depends on: AI-001, AI-002 and a usable pinned Emulates Hermes package.
 PRD mapping: US-006, US-018, US-019, US-020.
 
 - [ ] Exercise `PeerHttpClient` and durable attempt storage through the emulator.
@@ -189,7 +189,7 @@ Depends on: AI-001. PRD mapping: US-015, US-016; FR-54, FR-55.
 
 As a broker developer, I want uncertain remote writes reconciled without duplicates.
 
-Depends on: AI-008 and a usable pinned Emulators GitHub package.
+Depends on: AI-008 and a usable pinned Emulates GitHub package.
 PRD mapping: US-015, US-016.
 
 - [ ] Use GitHub REST emulators for supported API calls and real disposable Git
@@ -252,7 +252,7 @@ Depends on: AI-001 and existing backup/story prerequisites.
 PRD mapping: US-007, US-023, US-026.
 
 - [ ] Keep real SQLite WAL, lock contention, concurrent-process, online-backup, and
-  crash/reopen tests; Emulators SQL result parity cannot replace them.
+  crash/reopen tests; Emulates SQL result parity cannot replace them.
 - [ ] Cover snapshot timestamps, Git objects/refs, intake and publication correlations,
   incomplete backup detection, and non-admitting/non-publishing restore reconciliation.
 - [ ] Obtain required migration/restore authorization and record actual RPO/RTO evidence
@@ -270,8 +270,8 @@ Depends on: AI-005, AI-012. PRD mapping: US-024, US-025.
   signatures, properties, signals, ordering, connection lifetime, and oracle costs.
 - [ ] Record a go/no-go recommendation, compatibility scope, transport design, and
   limits of simulation. Do not invent an HTTP systemd API.
-- [ ] A go decision proposes a separate Emulators PRD; it neither adds a package
-  to the current Emulators plan nor removes native-host tests.
+- [ ] A go decision proposes a separate Emulates PRD; it neither adds a package
+  to the current Emulates plan nor removes native-host tests.
 
 ## 5. Functional requirements and code improvements
 
@@ -325,8 +325,8 @@ safe. Actual Linux/App/restore checks remain incomplete until authorized and run
 | --- | --- | --- |
 | Inventory | AI-001 | Current Initiative working tree and plan inspection |
 | Local fixture improvements | AI-002, AI-003, AI-004, AI-005 | Pinned Hermes environment for real compatibility checks |
-| Docker adoption | AI-006 | Supported Emulators Docker release |
-| Hermes adoption | AI-007 | Supported Emulators Hermes release |
+| Docker adoption | AI-006 | Supported Emulates Docker release |
+| Hermes adoption | AI-007 | Supported Emulates Hermes release |
 | Publication design | AI-008 | Current provider documentation; independent of emulator release |
 | GitHub adoption | AI-009 | Selected publication transport and supported GitHub emulator |
 | Real enforcement | AI-010 | Scoped App-identity/disposable-repository authorization |
@@ -343,7 +343,7 @@ journal, memory file, runner, or branch is created by this document.
 
 1. Which existing Initiative stories already own each acceptance criterion, and
    which are complete in the current dirty tree rather than committed HEAD?
-2. Which exact Emulators release/API subsets satisfy each consumer without changes
+2. Which exact Emulates release/API subsets satisfy each consumer without changes
    to its production trust model?
 3. Which permitted publication transport supplies the required expected-target guard?
 4. Which host/Engine/systemd versions and isolated oracle environments are approved?

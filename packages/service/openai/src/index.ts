@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -9,8 +9,8 @@ import {
   faultEffect,
   type OperationContext,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { md5 } from "@noble/hashes/legacy.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
@@ -272,7 +272,7 @@ export class OpenAIAPI implements FetchAPI {
         this.state.models.insert(m.id, {
           ...m,
           created: m.created ?? Math.floor(this.now() / 1000),
-          owned_by: m.owned_by ?? "emulators",
+          owned_by: m.owned_by ?? "emulates",
         })
       for (const s of scripts) this.queue(s)
       for (const f of this.fixtures.files) this.seedFile(f)

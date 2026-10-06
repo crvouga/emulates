@@ -10,8 +10,8 @@ import {
   type ServiceRuntime,
   signers,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import {
   apiKeyCredential,
@@ -150,7 +150,7 @@ const adminRoutes = (runtime: ServiceRuntime<OdxAPI>): AdminRoutes => ({
 })
 
 /**
- * The ODX emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * The ODX emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, namespaces
  * by header, by `/__admin/ns/<name>` path prefix, or by `ApiKey`
  * (`PUT /__admin/credentials {"credentials": {"<OPTIMAL_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets, signed PatientTest webhooks and a request journal.

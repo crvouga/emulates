@@ -1,4 +1,4 @@
-# Amazon Support API (Emulators subset) — operation support
+# Amazon Support API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

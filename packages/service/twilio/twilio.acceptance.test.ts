@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { createRuntime, TWILIO_PRESETS } from "./src/index.js"
 import {
@@ -354,7 +354,7 @@ const postMessage = (
   const headers: Record<string, string> = {
     "content-type": "application/x-www-form-urlencoded",
     ...(init.token === null ? {} : basic(account, init.token ?? TOKEN)),
-    ...(init.namespace ? { "x-emulators-namespace": init.namespace } : {}),
+    ...(init.namespace ? { "x-emulates-namespace": init.namespace } : {}),
   }
   return runtime.fetch(
     new Request(`${MOCK}/api/2010-04-01/Accounts/${account}/Messages.json`, {

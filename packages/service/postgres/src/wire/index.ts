@@ -13,7 +13,7 @@
  *
  * @example
  * ```ts
- * import { serve } from "@emulators/postgres/wire";
+ * import { serve } from "@emulates/postgres/wire";
  *
  * const server = await serve({ port: 0 });
  * // new pg.Pool({ connectionString: `postgres://postgres@127.0.0.1:${server.port}/db` })

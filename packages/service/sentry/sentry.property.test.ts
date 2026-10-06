@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { ParityError, type ParityOptions, parity } from "@emulators/parity"
-import { fcParameters } from "@emulators/testing"
+import { ParityError, type ParityOptions, parity } from "@emulates/parity"
+import { fcParameters } from "@emulates/testing"
 import { document, SentryAPI, supportedOperationIds } from "./src/index.js"
 
 const params = fcParameters(process.env)

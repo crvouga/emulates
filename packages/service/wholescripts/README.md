@@ -1,6 +1,6 @@
-# @emulators/wholescripts
+# @emulates/wholescripts
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Wholescripts** supplement fulfilment API for test suites: the product
 catalog, the private-label (MedPax) catalog, order submit, status polling and cancel. Orders
@@ -14,11 +14,11 @@ Wholescripts sends no webhooks, so the app sees each change on its next status p
 ## Install
 
 ```bash
-npm install -D @emulators/wholescripts
+npm install -D @emulates/wholescripts
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-wholescripts serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-wholescripts serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -29,11 +29,11 @@ Point `WHOLESCRIPTS_API_URL` at the emulator. It is read by the backend
 pair is accepted unless you pin one with `--username/--password`.
 
 ```bash
-npx emulators-wholescripts serve --port 8803 --auto-advance "2000:Processing,Complete"
+npx emulates-wholescripts serve --port 8803 --auto-advance "2000:Processing,Complete"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/wholescripts"
+import { createRuntime } from "@emulates/wholescripts"
 
 const ws = createRuntime()
 const auth = { authorization: `Basic ${btoa("acme:secret")}`, "content-type": "application/json" }
@@ -98,7 +98,7 @@ connection drops: the scheduler's "order may have been placed" branch), `status_
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `WHOLESCRIPTS_API_URL`, or by Basic
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `WHOLESCRIPTS_API_URL`, or by Basic
 username: `PUT /__admin/credentials {"credentials": {"<WHOLESCRIPTS_USERNAME>": "<namespace>"}}`.
 
 ### Corpus and seed data

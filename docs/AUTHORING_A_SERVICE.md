@@ -7,10 +7,10 @@ How to add a vendor emulator to this repo. The reference implementation is
 
 ```
 packages/service/<name>/
-  package.json            # @emulators/<name>, bin emulators-<name>
+  package.json            # @emulates/<name>, bin emulates-<name>
   tsconfig.json           # includes src, test, *.test.ts
   tsconfig.build.json
-  openapi.yaml            # the vendor contract, with x-emulators annotations
+  openapi.yaml            # the vendor contract, with x-emulates annotations
   SUPPORT.md              # generated (bun run generate)
   DISCOVERY.md            # generated installed-package index for agents and tooling
   README.md               # the consumer/agent integration guide (see "Docs")
@@ -19,7 +19,7 @@ packages/service/<name>/
     index.ts              # <Name>API class (FetchAPI) + public exports
     runtime.ts            # createRuntime: presets, admin routes, webhooks, credential carrier
     server.ts             # createServer, serveTarget, DEFAULT_PORT (Node only)
-    cli.ts                # emulators-<name> serve
+    cli.ts                # emulates-<name> serve
     state.ts, …           # Collections, lifecycle, fixtures
   test/consumer.ts        # port of OUR consumer's client logic (the acceptance oracle)
   scripts/parity.ts       # live parity against the real sandbox (exits 2 without credentials)
@@ -28,13 +28,13 @@ packages/service/<name>/
   <name>.sdk.test.ts        # the vendor's official SDK pointed at the emulator (when one exists)
 ```
 
-## The service contract (what `@emulators/service` gives you)
+## The service contract (what `@emulates/service` gives you)
 
 `createRuntime({ name, document, create, … })` wraps your API class in the standard contract:
 
 Every HTTP path an emulator adds beyond the vendor's lives under one reserved prefix, default `/__admin`.
 Set `adminPrefix` on any emulator's `createRuntime` / `createServer`, or use
-`serve --admin-prefix /_control/mock` (`EMULATORS_ADMIN_PREFIX`). It moves health,
+`serve --admin-prefix /_control/mock` (`EMULATES_ADMIN_PREFIX`). It moves health,
 admin APIs, UI, signed downloads, and namespace base URLs together. Prefixes
 are absolute non-root paths of literal letters, digits, underscores and hyphens,
 without a trailing slash. The runtime rejects declared vendor routes that overlap
@@ -44,17 +44,17 @@ prefix is never a vendor resource name. Change the prefix if a test needs that n
 All other paths belong to the vendor. `/health` and `/ns/<name>` have no compatibility aliases.
 
 Service admin routes are relative (`GET /settings`), never mounted separately.
-Signed transport stand-ins may declare `x-emulators-internal: true` on an OpenAPI
+Signed transport stand-ins may declare `x-emulates-internal: true` on an OpenAPI
 path under `/__admin/blobs/`; the runtime relocates it with the prefix while retaining
 its signature authentication, faults, logging and vendor response shape. Never put
 emulator-specific paths into the vendor contract without that annotation.
 
 | Contract item | How |
 | --- | --- |
-| `GET /__admin/health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-emulators` response header | automatic |
+| `GET /__admin/health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-emulates` response header | automatic |
 | State introspection | automatic. `GET /__admin/state` lists every collection: ones you declare with `state:`, every `Collection` hanging off the instance, and every name already stored. `POST /__admin/state/:collection` with `{ id?, value }` creates a row; `PUT` replaces, `PATCH` shallow-merges an object, `DELETE` removes it. A successful write checkpoints `main`. The same view is `runtime.state(namespace?)`. |
 | Admin UI | automatic at `GET /__admin/ui` (the HTML shell is not behind the admin key; `/__admin/ui/manifest` and the data routes are). Pass `adminUi.panels` to add a view (`id`, `title`, `html`, optional `script` called as `(root, api) => void`). Pass `adminUi.render({ service, defaultHtml })` to replace the document; call `defaultHtml()` to keep the shared shell. [`packages/service/plane`](../packages/service/plane) is the bespoke-panel example. |
-| Namespaces by header | automatic (`x-emulators-namespace`) |
+| Namespaces by header | automatic (`x-emulates-namespace`) |
 | Namespaces by path prefix | automatic: `/__admin/ns/<name>/…` is stripped and selects `<name>` |
 | Namespaces by credential | pass `credential: (request) => string \| undefined` (`bearerToken`, `basicAuth(r)?.username`, `sigV4AccessKeyId`, or your own); suites map credentials with `PUT /__admin/credentials {"credentials": {"<cred>": "<ns>"}}` |
 | Fault injection | automatic (`POST /__admin/faults {operationId?, method?, pathPrefix?, status?, body?, count?, rate?, latencyMs?, drop?, effect?}`) |
@@ -96,11 +96,11 @@ would echo back.
 - Request schemas are both the emulator's validation rules and the parity generator's input: keep
   them as permissive as the real vendor (don't invent tight patterns our consumer would violate),
   but constrained enough that generated bodies are meaningful.
-- Annotate: `x-emulators-resource {type, identity: true}` on ids the API returns,
-  `x-emulators-resource-ref {type, missing}` on ids a request references,
-  `x-emulators-volatile {kind: id|timestamp|token|url|opaque}` on nondeterministic fields,
-  `x-emulators: {parity: {safe: false}}` on operations with real-world side effects (sends,
-  charges), `x-emulators: {supported: false, reason}` for what you deliberately skip.
+- Annotate: `x-emulates-resource {type, identity: true}` on ids the API returns,
+  `x-emulates-resource-ref {type, missing}` on ids a request references,
+  `x-emulates-volatile {kind: id|timestamp|token|url|opaque}` on nondeterministic fields,
+  `x-emulates: {parity: {safe: false}}` on operations with real-world side effects (sends,
+  charges), `x-emulates: {supported: false, reason}` for what you deliberately skip.
 - Non-JSON surfaces (HTML pages, JS shims, event streams, binary audio) are still operations in
   the spec; give them a plain `text/html` / `application/octet-stream` response and, if random
   walks can't meaningfully exercise them, `parity: {enabled: false, reason}`.
@@ -110,7 +110,7 @@ would echo back.
 ## Proof: the tests every service ships
 
 1. **Self-parity** (`<name>.property.test.ts`): two independent instances run the same random
-   OpenAPI-driven walks (`parity()` from `@emulators/parity`, `includeUnsafe: true`) and
+   OpenAPI-driven walks (`parity()` from `@emulates/parity`, `includeUnsafe: true`) and
    must agree after every command, with every emulator response conforming to the spec. Assert that
    the walks exercised **every** parity-enabled operation. Add a "deliberately divergent instance
    is caught" test.
@@ -142,7 +142,7 @@ file under ~60 s.
 
 ## Docs
 
-`README.md` must start `# @emulators/<name>`, then a blank line, then the
+`README.md` must start `# @emulates/<name>`, then a blank line, then the
 shared epigraph `EPIGRAPH` from `sites/docs/src/lib/content.ts` (pack-check prints the exact
 line). It must also contain `## Install`, `## Usage` (with a ```ts example), and `## API`
 listing **every runtime export** of every entry point. Also document: how to point the app at
@@ -154,7 +154,7 @@ service page, the contract gives the operations list and coverage, and the built
 the page's playground. It reads these fields from the `emulators` block of `package.json`, and
 its build fails when they are missing or stale:
 
-Every published service also declares `emulators.discovery` in `package.json` and ships every
+Every published service also declares `emulates.discovery` in `package.json` and ships every
 file it names. Run `bun run service:discovery` at the repository root after adding or renaming a
 service. It generates `DISCOVERY.md`, records the behavior guide, exact capability evidence,
 contract, public types, oracle command, runtime introspection surfaces, and reporting contract,
@@ -205,7 +205,7 @@ A service can attach any number of interactive examples to its docs page through
 
 ```json
 {
-  "emulators": {
+  "emulates": {
     "examples": [{
       "id": "google-login",
       "title": "Try a complete Google login",

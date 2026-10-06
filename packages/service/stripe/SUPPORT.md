@@ -1,4 +1,4 @@
-# Stripe API (Emulators subset) — operation support
+# Stripe API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

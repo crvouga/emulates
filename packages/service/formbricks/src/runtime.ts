@@ -10,8 +10,8 @@ import {
   signSvix,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { FORMBRICKS_NAMESPACE, FormbricksAPI } from "./index.js"
 import type { Settings, Survey } from "./state.js"
@@ -226,7 +226,7 @@ export const formbricksCredential = (request: Request): string | undefined => {
 }
 
 /**
- * The Formbricks emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Formbricks emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` prefix on the app URL, or by workspace id / API key
  * (`PUT /__admin/credentials {"credentials": {"<workspace id or key>": "<namespace>"}}`),
  * clock control, fault presets, and Standard-Webhooks-signed `responseFinished` webhooks.

@@ -1,6 +1,6 @@
-# @emulators/google-maps
+# @emulates/google-maps
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Emulator of the **Google Maps Platform** surface our member app uses for addresses: Places
 Autocomplete, Place Details and Find Place From Text (the JSON web services), the Geocoding API,
@@ -20,11 +20,11 @@ falls back to manual entry) resolves instantly and deterministically.
 ## Install
 
 ```bash
-npm install -D @emulators/google-maps
+npm install -D @emulates/google-maps
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-google-maps serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-google-maps serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -37,11 +37,11 @@ in the stack's web dist (`stack-web-dist.ts`), as for PostHog. `PLACES_KEY` can 
 string unless you restrict keys.
 
 ```bash
-npx emulators-google-maps serve --port 8814 --api-key "$PLACES_KEY"
+npx emulates-google-maps serve --port 8814 --api-key "$PLACES_KEY"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/google-maps"
+import { createRuntime } from "@emulates/google-maps"
 
 const maps = createRuntime()
 const get = async (path: string) =>
@@ -66,7 +66,7 @@ not collide, so one emulator serves both. Point the server-side client's Address
 at the emulator (or at `<mock>/__admin/ns/<namespace>`), with the key as `?key=` (or `X-Goog-Api-Key`).
 
 ```ts
-import { createRuntime } from "@emulators/google-maps"
+import { createRuntime } from "@emulates/google-maps"
 
 const maps = createRuntime()
 const response = await maps.fetch(
@@ -171,7 +171,7 @@ counts `ValidateAddress` on its own.
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the base URL (the JS shim served under a
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL (the JS shim served under a
 prefix calls back through it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<PLACES_KEY>": "<namespace>"}}` (the `key` query
 parameter, or `X-Goog-Api-Key` for Address Validation, is the credential). The request journal

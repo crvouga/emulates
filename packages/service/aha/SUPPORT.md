@@ -1,4 +1,4 @@
-# AHA (Advanced Health Academy) partner API (Emulators subset) — operation support
+# AHA (Advanced Health Academy) partner API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

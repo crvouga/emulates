@@ -1,4 +1,4 @@
-# Nucleus API v2.0 (Gene by Gene), vendored for Emulators — operation support
+# Nucleus API v2.0 (Gene by Gene), vendored for Emulates — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

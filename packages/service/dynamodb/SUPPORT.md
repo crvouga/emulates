@@ -1,4 +1,4 @@
-# Amazon DynamoDB (Emulators subset) — operation support
+# Amazon DynamoDB (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

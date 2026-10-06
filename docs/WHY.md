@@ -1,8 +1,8 @@
-# Why Emulators
+# Why Emulates
 
 Your tests are only as honest as the fakes they run against. Most suites that touch Stripe, Twilio
 or a lab partner either call a shared sandbox or stub the client. Both fail in ways that are
-expensive to notice. Emulators are a third option: in-process stand-ins that behave like the real
+expensive to notice. Emulates are a third option: in-process stand-ins that behave like the real
 API or database, checked against it continuously.
 
 ## The two usual options
@@ -35,7 +35,7 @@ Test doubles sit on a ladder, each rung closer to the real thing:
 4. **Live sandbox.** The vendor's own test environment: real behavior, with the costs above.
 5. **Production.**
 
-Emulators sit on the third rung. They run where a mock runs, in your test process with no network,
+Emulates sit on the third rung. They run where a mock runs, in your test process with no network,
 and are held to the standard of the sandbox.
 
 ## What an emulator does
@@ -74,7 +74,7 @@ property-based tests driven by its contract (details in [TESTING.md](TESTING.md)
 Every service declares its own parity in `package.json` as `emulators.parity`: a short
 statement of the vendor surface it keeps in step. The docs site, `llms.txt` and `catalog.json`
 show that statement, generated from that one field. The current list is the
-[services catalog](https://emulators.chrisvouga.dev/services).
+[services catalog](https://emulates.chrisvouga.dev/services).
 
 ## Docs that cannot drift
 

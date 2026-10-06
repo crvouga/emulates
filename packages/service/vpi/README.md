@@ -1,6 +1,6 @@
-# @emulators/vpi
+# @emulates/vpi
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 > [!WARNING]
 > **Our app's `VPI_API_URL` defaults to PRODUCTION** (`https://api.vpicompounding.net`, see
@@ -23,11 +23,11 @@ transition). VPI sends no webhooks: our backend polls page 1 (limit 5) of each l
 ## Install
 
 ```bash
-npm install -D @emulators/vpi
+npm install -D @emulates/vpi
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-vpi serve`, `createServer` from `./server` (Node), or `createRuntime` with any
+`npx emulates-vpi serve`, `createServer` from `./server` (Node), or `createRuntime` with any
 Fetch server.
 
 ## Usage
@@ -35,7 +35,7 @@ Fetch server.
 Point the app at the emulator and give it any credentials (any pair logs in unless `accounts` is set):
 
 ```bash
-npx emulators-vpi serve --port 8802
+npx emulates-vpi serve --port 8802
 # app env:
 #   VPI_API_URL=http://127.0.0.1:8802           (REQUIRED: the default is production)
 #   VPI_API_EMAIL=clinic@example.com  VPI_API_PASSWORD=anything
@@ -43,7 +43,7 @@ npx emulators-vpi serve --port 8802
 ```
 
 ```ts
-import { createRuntime } from "@emulators/vpi"
+import { createRuntime } from "@emulates/vpi"
 
 const vpi = createRuntime()
 const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
@@ -134,7 +134,7 @@ our zod parse fails closed).
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `VPI_API_URL`, or by login email:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `VPI_API_URL`, or by login email:
 `PUT /__admin/credentials {"credentials": {"<VPI_API_EMAIL>": "<namespace>"}}` (the JWT carries
 the email). Authentication itself lands in the default namespace (or the `/__admin/ns/` one); tokens
 verify in every namespace.

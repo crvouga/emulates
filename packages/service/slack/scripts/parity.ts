@@ -10,8 +10,8 @@
  * so they need `--include-unsafe` (point the token at a throwaway workspace first). Incoming
  * webhooks are never walked live: a webhook URL posts to a real channel.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, SlackAPI, supportedOperationIds } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulators/adapter-node"
+import { runCli, serveCommand } from "@emulates/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulators-s3",
+    bin: "emulates-s3",
     description: "Amazon S3 emulator",
     commands: { serve: serveCommand(serveTarget) },
   },

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { encodeForm } from "@emulators/http-codec"
-import { fcParameters } from "@emulators/testing"
+import { encodeForm } from "@emulates/http-codec"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { StripeAPI } from "./src/index.js"
 

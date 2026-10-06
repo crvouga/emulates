@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { VANTA_NAMESPACE, VantaAPI, type VantaAPIOptions } from "./index.js"
 export const VANTA_PRESETS: Record<string, FaultPreset> = {

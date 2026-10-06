@@ -10,8 +10,8 @@
  * By default only safe operations run (auth, catalog, clinic, patients, status lists);
  * saveNewPrescription creates a real draft in the clinic's queue, so it needs `--include-unsafe`.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, VpiAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

@@ -1,6 +1,6 @@
-# @emulators/edamam
+# @emulates/edamam
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Edamam** APIs our apps call, answering from a built-in food and recipe
 corpus: the Food Database v2 parser (text and UPC), nutrients and image recognition, Nutrition
@@ -18,11 +18,11 @@ tests without Edamam keys, quotas or network.
 ## Install
 
 ```bash
-npm install -D @emulators/edamam
+npm install -D @emulates/edamam
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-edamam serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-edamam serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -33,11 +33,11 @@ any values (`EDAMAM_FOOD_APP_ID/KEY` or `EDAMAM_APP_ID/KEY`, `EDAMAM_MEAL_APP_ID
 client's `edamam_*` settings); without them our adapters report `unavailable` and never call out.
 
 ```bash
-npx emulators-edamam serve --port 8824
+npx emulates-edamam serve --port 8824
 ```
 
 ```ts
-import { createRuntime } from "@emulators/edamam"
+import { createRuntime } from "@emulates/edamam"
 
 const edamam = createRuntime()
 const parsed = await edamam.fetch(
@@ -91,7 +91,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `rate_
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the base URL (works for the nutrition adapter
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL (works for the nutrition adapter
 and the Python client, which concatenate paths; the meal adapter resolves paths with
 `new URL(endpoint, base)`, which drops a prefix), or by application id:
 `PUT /__admin/credentials {"credentials": {"<app_id>": "<namespace>"}}`.

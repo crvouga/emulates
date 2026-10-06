@@ -348,14 +348,14 @@ const targets: Target[] = discoverPackages()
   .filter((p) => p.isPublic && p.relDir.startsWith("packages/service/"))
   .map((p) => {
     const pkg = JSON.parse(readFileSync(p.manifestPath, "utf8"))
-    const vendor = pkg.emulators?.vendor as Vendor | undefined
+    const vendor = pkg.emulates?.vendor as Vendor | undefined
     if (!vendor?.website) {
       console.error(`::error::${p.relDir}/package.json: emulators.vendor.website is required`)
       process.exit(1)
     }
     return {
       name: p.relDir.split("/").pop() ?? "",
-      displayName: pkg.emulators.displayName,
+      displayName: pkg.emulates.displayName,
       vendor,
     }
   })

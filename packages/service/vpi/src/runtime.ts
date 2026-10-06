@@ -6,8 +6,8 @@ import {
   type FaultRule,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document, supportedOperationIds } from "./generated/openapi.js"
 import { type PatientInput, tokenCredential, VPI_NAMESPACE, VpiAPI } from "./index.js"
 import type { Account, Seed, Settings, StatusEnvelope } from "./state.js"
@@ -219,7 +219,7 @@ const adminRoutes = (runtime: ServiceRuntime<VpiAPI>): AdminRoutes => ({
 })
 
 /**
- * The VPI emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * The VPI emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, namespaces
  * by header, by `/__admin/ns/<name>` path prefix, or by login email
  * (`PUT /__admin/credentials {"credentials": {"<VPI_API_EMAIL>": "<namespace>"}}`), clock
  * control, fault presets and a request journal. VPI sends no webhooks: our client polls.

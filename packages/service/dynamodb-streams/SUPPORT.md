@@ -1,4 +1,4 @@
-# Amazon DynamoDB Streams (Emulators subset) — operation support
+# Amazon DynamoDB Streams (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

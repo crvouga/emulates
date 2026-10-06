@@ -13,8 +13,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { type InboundInput, RESEND_NAMESPACE, ResendAPI, type SendOutcomeEvent } from "./index.js"
 import type { SentEmail } from "./state.js"
@@ -132,7 +132,7 @@ export type ForwardTarget = {
   url: string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Its `x-emulators-admin-key`, when it has one. */
+  /** Its `x-emulates-admin-key`, when it has one. */
   adminKey?: string
   /** Give up on a forward after this long (the send still succeeds). Default 2000 ms. */
   timeoutMs?: number
@@ -158,8 +158,8 @@ export const forwardToInbox = async (
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-emulators-namespace": namespace,
-          ...(target.adminKey ? { "x-emulators-admin-key": target.adminKey } : {}),
+          "x-emulates-namespace": namespace,
+          ...(target.adminKey ? { "x-emulates-admin-key": target.adminKey } : {}),
         },
         body: JSON.stringify({
           from: email.from,
@@ -284,7 +284,7 @@ const adminRoutes =
   })
 
 /**
- * The Resend emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Resend emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<RESEND_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets, an outbox, Svix-signed inbound webhooks and a request journal.

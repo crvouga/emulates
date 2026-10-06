@@ -1,4 +1,4 @@
-import { jsonRes } from "@emulators/service"
+import { jsonRes } from "@emulates/service"
 import type {
   CommissionBatch,
   CommissionRecord,

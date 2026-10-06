@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite } from "@emulators/service"
-import { clearNamespace } from "@emulators/sqlite-client"
+import { type APIOptions, bootSqlite } from "@emulates/service"
+import { clearNamespace } from "@emulates/sqlite-client"
 import { verifyJwt } from "./crypto.js"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {

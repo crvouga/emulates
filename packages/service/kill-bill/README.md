@@ -1,13 +1,13 @@
-# @emulators/kill-bill
+# @emulates/kill-bill
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Kill Bill REST emulator for billing integration tests. It models tenant-scoped accounts, payment methods, subscriptions, bundles, invoices, payments, credits, refunds, retries, catalogs, audit metadata, a test clock, account overdue state, and secret-protected lifecycle webhooks.
 
 ## Install
 
 ```bash
-npm install -D @emulators/kill-bill
+npm install -D @emulates/kill-bill
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -15,7 +15,7 @@ ESM only. Node 22+ or Bun 1.2+.
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/kill-bill/server"
+import { createServer } from "@emulates/kill-bill/server"
 
 const mock = await createServer()
 process.env.KILL_BILL_URL = mock.url

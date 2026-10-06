@@ -5,8 +5,8 @@ import {
   bootSqlite,
   Collection,
   IdSequence,
-} from "@emulators/service"
-import { clearNamespace } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import { clearNamespace } from "@emulates/sqlite-client"
 
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { TavilyRuntime, TavilyRuntimeOptions } from "./runtime.js"

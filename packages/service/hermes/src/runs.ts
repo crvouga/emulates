@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdSequence } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 export const runStatuses = [
   "queued",
@@ -52,7 +52,7 @@ export class HermesError extends Error {
 export const unsupported = (message: string): never => {
   throw new HermesError(
     501,
-    `Emulators: ${message}`,
+    `Emulates: ${message}`,
     "operation_not_implemented",
     "emulators_unsupported",
   )

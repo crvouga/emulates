@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler, opaqueToken } from "@emulators/service"
+import { jsonResponse, type OperationHandler, opaqueToken } from "@emulates/service"
 import { parameterMissing, resourceMissing } from "./errors.js"
 import {
   booleanOf,

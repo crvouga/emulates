@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { Collection, createClock } from "@emulators/service"
+import { Collection, createClock } from "@emulates/service"
 import { createRuntime, type DockerRuntime } from "./src/index.js"
 import { createServer } from "./src/server.js"
 
@@ -7,7 +7,7 @@ const request = (runtime: DockerRuntime, path: string, namespace = "a", body?: u
   runtime.fetch(
     new Request(`http://docker.local${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { "x-emulators-namespace": namespace, "content-type": "application/json" },
+      headers: { "x-emulates-namespace": namespace, "content-type": "application/json" },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
   )
@@ -34,7 +34,7 @@ test("health, namespace carriers, scoped faults and reset use the shared runtime
   expect((await request(runtime, "/_ping")).status).toBe(503)
   const other = await runtime.fetch(new Request("http://docker.local/__admin/ns/b/_ping"))
   expect(other.status).toBe(200)
-  expect(other.headers.get("x-emulators")).toContain("ns=b")
+  expect(other.headers.get("x-emulates")).toContain("ns=b")
   expect(runtime.journal.list({ namespace: "a" })).toHaveLength(1)
   expect(runtime.journal.list({ namespace: "b" })).toHaveLength(1)
   expect((await request(runtime, "/__admin/reset", "a", {})).status).toBe(200)
@@ -134,6 +134,6 @@ test("CLI advertises the shared serve command without starting a server", async 
   ])
   expect(exit).toBe(0)
   expect(err).toBe("")
-  expect(out).toContain("emulators-docker")
+  expect(out).toContain("emulates-docker")
   expect(out).toContain("serve")
 })

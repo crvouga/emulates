@@ -105,15 +105,15 @@ describe("publisherGap", () => {
 describe("trustedPublisherReport", () => {
   test("groups the pages that need a click and leaves healthy packages out", () => {
     const report = trustedPublisherReport([
-      { name: "@emulators/ok", published: true, configs: [github()] },
-      { name: "@emulators/fullscript", published: true, configs: [] },
+      { name: "@emulates/ok", published: true, configs: [github()] },
+      { name: "@emulates/fullscript", published: true, configs: [] },
       {
-        name: "@emulators/stripe",
+        name: "@emulates/stripe",
         published: true,
         configs: [github({ permissions: ["createStagedPackage"] })],
       },
-      { name: "@emulators/paddle", published: false },
-      { name: "@emulators/aha", error: "trust lookup HTTP 500" },
+      { name: "@emulates/paddle", published: false },
+      { name: "@emulates/aha", error: "trust lookup HTTP 500" },
     ])
 
     expect(renderHealth([report])).toBe(
@@ -123,16 +123,16 @@ describe("trustedPublisherReport", () => {
         "trusted publisher — 4 to fix",
         "",
         "No GitHub Actions publisher for crvouga/emulators ci.yml. On the access page add one and allow npm publish. Organization crvouga, repository emulators, workflow filename ci.yml, environment empty.",
-        accessUrl("@emulators/fullscript"),
+        accessUrl("@emulates/fullscript"),
         "",
         "GitHub Actions publisher does not allow npm publish (stage only). On the access page, allow npm publish.",
-        accessUrl("@emulators/stripe"),
+        accessUrl("@emulates/stripe"),
         "",
         "Not on npm yet, so there is no access page until the interactive first publish (bun run release:seed).",
-        "@emulators/paddle",
+        "@emulates/paddle",
         "",
         "npm did not return the trusted publisher for these packages.",
-        "@emulators/aha — trust lookup HTTP 500",
+        "@emulates/aha — trust lookup HTTP 500",
         "",
       ].join("\n"),
     )
@@ -140,7 +140,7 @@ describe("trustedPublisherReport", () => {
 
   test("an empty report says the check is ok", () => {
     const report = trustedPublisherReport([
-      { name: "@emulators/ok", published: true, configs: [github()] },
+      { name: "@emulates/ok", published: true, configs: [github()] },
     ])
     expect(renderHealth([report])).toBe("health\n\ntrusted publisher — ok\n")
   })
@@ -232,7 +232,7 @@ describe("readRegistryToken", () => {
 
 describe("registryPackagePath", () => {
   test("escapes the scope slash the way npm's trust endpoint expects", () => {
-    expect(registryPackagePath("@emulators/stripe")).toBe("@emulators%2fstripe")
+    expect(registryPackagePath("@emulates/stripe")).toBe("@emulates%2fstripe")
   })
 })
 
@@ -254,7 +254,7 @@ describe("repositoryMatchesProject", () => {
     expect(
       repositoryMatchesProject({ url: "git+https://github.com/crvouga/postgres-mem.git" }),
     ).toBe(false)
-    expect(repositoryMatchesProject("git+https://github.com/crvouga/emulators-extra.git")).toBe(
+    expect(repositoryMatchesProject("git+https://github.com/crvouga/emulates-extra.git")).toBe(
       false,
     )
     expect(repositoryMatchesProject("https://github.com/other/emulators")).toBe(false)
@@ -270,7 +270,7 @@ describe("selectProjectPackages", () => {
     expect(
       selectProjectPackages({
         account: [
-          { name: "@emulators/core", status: 200, repository: emulators },
+          { name: "@emulates/core", status: 200, repository: emulators },
           {
             name: "@crvouga/postgres-mem",
             status: 200,
@@ -282,31 +282,31 @@ describe("selectProjectPackages", () => {
             status: 200,
             repository: "git+https://github.com/someone/headless-combobox.git",
           },
-          { name: "@emulators/stripe", status: 500 },
+          { name: "@emulates/stripe", status: 500 },
           {
-            name: "@emulators/moved",
+            name: "@emulates/moved",
             status: 200,
             repository: "git+https://github.com/crvouga/somewhere-else.git",
           },
         ],
-        workspacePublic: ["@emulators/paddle", "@emulators/core"],
+        workspacePublic: ["@emulates/paddle", "@emulates/core"],
       }),
-    ).toEqual(["@emulators/core", "@emulators/paddle", "@emulators/stripe"])
+    ).toEqual(["@emulates/core", "@emulates/paddle", "@emulates/stripe"])
   })
 
   test("a public workspace package is included when the account has not published it", () => {
     expect(
       selectProjectPackages({
         account: [],
-        workspacePublic: ["@emulators/paddle"],
+        workspacePublic: ["@emulates/paddle"],
       }),
-    ).toEqual(["@emulators/paddle"])
+    ).toEqual(["@emulates/paddle"])
   })
 })
 
 describe("account package list", () => {
   test("reads package names from the account map", () => {
-    expect(accountPackageNames({ "@emulators/core": "write" })).toEqual(["@emulators/core"])
+    expect(accountPackageNames({ "@emulates/core": "write" })).toEqual(["@emulates/core"])
     expect(accountPackageNames([])).toBeUndefined()
     expect(accountPackageNames(null)).toBeUndefined()
   })
@@ -324,7 +324,7 @@ describe("account package list", () => {
   })
 
   test("project package names are this repo's scope and name", () => {
-    expect(isProjectPackageName("@emulators/stripe")).toBe(true)
+    expect(isProjectPackageName("@emulates/stripe")).toBe(true)
     expect(isProjectPackageName("@crvouga/mockingbird-service-stripe")).toBe(true)
     expect(isProjectPackageName("@crvouga/postgres-mem")).toBe(false)
     expect(isProjectPackageName("headless-combobox")).toBe(false)

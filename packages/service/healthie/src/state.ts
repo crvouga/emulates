@@ -1,5 +1,5 @@
-import { Collection } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /**
  * One Healthie user (patient or provider). Passwords are kept only so `signIn` and the

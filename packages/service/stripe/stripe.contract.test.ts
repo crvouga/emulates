@@ -94,7 +94,7 @@ describe("service contract", () => {
     }
   })
 
-  test("/__admin/health names the service and the loaded corpus; every response carries x-emulators", async () => {
+  test("/__admin/health names the service and the loaded corpus; every response carries x-emulates", async () => {
     const { call } = harness()
     const health = await call("/__admin/health")
     expect(health.status).toBe(200)
@@ -104,7 +104,7 @@ describe("service contract", () => {
       corpus: "acme-2026-09-20",
     })
     const vendor = await call("/v1/customers", { headers: { authorization: `Bearer ${KEY}` } })
-    expect(vendor.headers.get("x-emulators")).toMatch(/^stripe@.+; ns=default$/)
+    expect(vendor.headers.get("x-emulates")).toMatch(/^stripe@.+; ns=default$/)
   })
 
   test("a product image list reports the first bad element, whichever check it fails", async () => {
@@ -128,12 +128,12 @@ describe("service contract", () => {
     const { call, admin } = harness()
     const created = await call(
       "/v1/customers",
-      form({ email: "a@example.com" }, { "x-emulators-namespace": "a" }),
+      form({ email: "a@example.com" }, { "x-emulates-namespace": "a" }),
     )
     const { id } = (await created.json()) as { id: string }
     const read = (path: string, headers: Record<string, string> = {}) =>
       call(path, { headers: { authorization: `Bearer ${KEY}`, ...headers } })
-    expect((await read(`/v1/customers/${id}`, { "x-emulators-namespace": "a" })).status).toBe(200)
+    expect((await read(`/v1/customers/${id}`, { "x-emulates-namespace": "a" })).status).toBe(200)
     expect((await read(`/__admin/ns/a/v1/customers/${id}`)).status).toBe(200)
     expect((await read(`/v1/customers/${id}`)).status).toBe(404)
     expect((await admin("PUT", "/credentials", { credentials: { [KEY]: "a" } })).status).toBe(200)

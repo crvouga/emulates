@@ -5,7 +5,7 @@ import {
   type RequestLog,
   type ServiceRuntime,
   createRuntime as serviceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { TAVILY_NAMESPACE, TavilyAPI, type TavilyAPIOptions } from "./index.js"
 

@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { SentryAPI, type SentryAPIOptions, sentryCredential } from "./index.js"
 import { createCaptureKey, object } from "./protocol.js"

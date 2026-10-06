@@ -1,8 +1,8 @@
 {
-  "name": "@emulators/openapi-metadata",
+  "name": "@emulates/openapi-metadata",
   "version": "0.0.0-development",
   "private": true,
-  "description": "The x-emulators-* OpenAPI extensions: types, readers, semantic validation and schema-guided value annotation (identities, volatile fields).",
+  "description": "The x-emulates-* OpenAPI extensions: types, readers, semantic validation and schema-guided value annotation (identities, volatile fields).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/openapi/metadata#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "openapi",
     "extensions"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "openapi-metadata"
   },
@@ -40,10 +40,10 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/openapi": "workspace:*"
+    "@emulates/openapi": "workspace:*"
   },
   "devDependencies": {
-    "@emulators/testing": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

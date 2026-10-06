@@ -12,11 +12,11 @@ describe("public API exports", () => {
   test("package.json exports ., ./admin, ./unstable, ./wire and ./server", () => {
     const pkg = JSON.parse(readFileSync(join(import.meta.dir, "../../../package.json"), "utf8")) as {
       exports: Record<string, unknown>;
-      emulators?: { entries?: Record<string, string> };
+      emulates?: { entries?: Record<string, string> };
     };
     expect(Object.keys(pkg.exports).sort()).toEqual([".", "./admin", "./server", "./unstable", "./wire"]);
     // The wire server is a Node-only entry, so the main and unstable entries stay portable.
-    expect(pkg.emulators?.entries).toEqual({
+    expect(pkg.emulates?.entries).toEqual({
       "wire/index": "node",
       "wire/cli": "node",
       server: "node",

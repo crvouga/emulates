@@ -1,4 +1,4 @@
-# GitHub REST subset (Emulators) — operation support
+# GitHub REST subset (Emulates) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

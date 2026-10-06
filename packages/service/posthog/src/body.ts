@@ -1,4 +1,4 @@
-import { fromBase64 } from "@emulators/service"
+import { fromBase64 } from "@emulates/service"
 
 /**
  * PostHog clients post the same JSON in several envelopes:

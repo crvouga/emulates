@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Collection, createRuntime } from "@emulators/service"
+import { Collection, createRuntime } from "@emulates/service"
 import type { ServeTarget } from "./src/cli.js"
 import { type FleetTarget, startFleet } from "./src/fleet.js"
 
@@ -57,14 +57,14 @@ const request = (
       method: body === undefined ? "GET" : "POST",
       headers: {
         "content-type": "application/json",
-        ...(key ? { "x-emulators-admin-key": key } : {}),
+        ...(key ? { "x-emulates-admin-key": key } : {}),
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     }),
   )
 
 test("ephemeral fleets publish one complete manifest by rename and remove only their own artifacts", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "emulators-ready-"))
+  const dir = await mkdtemp(join(tmpdir(), "emulates-ready-"))
   const readyFile = join(dir, "ready.json")
   const connectionsFile = join(dir, "private.json")
   const emitted: unknown[] = []
@@ -94,7 +94,7 @@ test("ephemeral fleets publish one complete manifest by rename and remove only t
 })
 
 test("failed boot closes earlier listeners, identifies the child and invalidates stale readiness", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "emulators-failed-"))
+  const dir = await mkdtemp(join(tmpdir(), "emulates-failed-"))
   const readyFile = join(dir, "ready.json")
   await writeFile(readyFile, '{"state":"ready","pid":1}')
   const real = target("first")
@@ -345,7 +345,7 @@ test("a rejecting child rolls back earlier mutations and reports the failed serv
 })
 
 test("two independent fleets have distinct ports and cannot remove a newer process's ready file", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "emulators-concurrent-"))
+  const dir = await mkdtemp(join(tmpdir(), "emulates-concurrent-"))
   const readyFile = join(dir, "ready.json")
   const config = { services: { fixture: { port: 0 } } }
   const first = await startFleet(config, { load: async () => target(), readyFile })
@@ -388,7 +388,7 @@ test("custom prefixes relocate aggregate controls, child APIs and namespace mani
     expect(
       (
         await fetch(`${fleet.manifest.adminBase}/metrics`, {
-          headers: { "x-emulators-admin-key": "locked" },
+          headers: { "x-emulates-admin-key": "locked" },
         })
       ).status,
     ).toBe(200)

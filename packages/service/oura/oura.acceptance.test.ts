@@ -173,7 +173,7 @@ test("namespace reset, admin seeding, clock and journal redact credentials", asy
     runtime.fetch(
       new Request(`${base}${path}`, {
         ...init,
-        headers: { "x-emulators-namespace": namespace, ...init.headers },
+        headers: { "x-emulates-namespace": namespace, ...init.headers },
       }),
     )
   await request("/__admin/state/records", "a", {

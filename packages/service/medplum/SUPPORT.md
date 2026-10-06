@@ -1,4 +1,4 @@
-# Medplum API (Emulators contract) — operation support
+# Medplum API (Emulates contract) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

@@ -1,4 +1,4 @@
-# CareTalk external API (Emulators subset) — operation support
+# CareTalk external API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

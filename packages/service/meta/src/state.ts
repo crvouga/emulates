@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdSequence } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 export type MetaEvent = {
   id: string
@@ -70,7 +70,7 @@ export class MetaState {
       {
         id: "cmp_emulators",
         kind: "campaign",
-        name: "Emulators launch",
+        name: "Emulates launch",
         status: "ACTIVE",
         objective: "OUTCOME_SALES",
       },
@@ -89,7 +89,7 @@ export class MetaState {
           date_start: date,
           date_stop: date,
           campaign_id: "cmp_emulators",
-          campaign_name: "Emulators launch",
+          campaign_name: "Emulates launch",
           impressions: String(day * 100),
           clicks: String(day * 10),
           spend: String(day * 12.5),

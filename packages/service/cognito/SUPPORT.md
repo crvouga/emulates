@@ -1,4 +1,4 @@
-# Amazon Cognito Identity Provider (Emulators subset) — operation support
+# Amazon Cognito Identity Provider (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

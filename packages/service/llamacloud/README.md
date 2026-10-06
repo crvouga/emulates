@@ -1,6 +1,6 @@
-# @emulators/llamacloud
+# @emulates/llamacloud
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **LlamaCloud** platform API (LlamaIndex's managed indexes) for test suites:
 project and pipeline lookup, pipeline documents (list, get, insert, upsert, delete), and
@@ -16,17 +16,17 @@ it with no vendor account, no embeddings and no nondeterminism.
 ## Install
 
 ```bash
-npm install -D @emulators/llamacloud
+npm install -D @emulates/llamacloud
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-llamacloud serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-llamacloud serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
 ```bash
-npx emulators-llamacloud serve --port 8805 --index acme-member-kb-v1 --project Default
+npx emulates-llamacloud serve --port 8805 --index acme-member-kb-v1 --project Default
 ```
 
 Point the app at it:
@@ -37,7 +37,7 @@ Point the app at it:
 | Python chat service (`llama_cloud_services`) | `LLAMA_CLOUD_BASE_URL=http://127.0.0.1:8805` (no `/api/v1`; verified below, no code change needed) |
 
 ```ts
-import { createRuntime } from "@emulators/llamacloud"
+import { createRuntime } from "@emulates/llamacloud"
 
 const llama = createRuntime({ pipelines: [{ name: "acme-member-kb-v1", projectName: "Default" }] })
 const admin = (path: string, body: unknown) =>
@@ -124,8 +124,8 @@ To run the SDK test:
 ```bash
 uv venv /tmp/llama && VIRTUAL_ENV=/tmp/llama uv pip install \
   llama-cloud-services==0.6.88 llama-cloud==0.1.45 llama-index-core==0.14.10
-EMULATORS_LLAMACLOUD_PYTHON=/tmp/llama/bin/python \
-  EMULATORS_LLAMACLOUD_PY_CLIENT=/path/to/llamacloud_client.py bun test llamacloud.sdk
+EMULATES_LLAMACLOUD_PYTHON=/tmp/llama/bin/python \
+  EMULATES_LLAMACLOUD_PY_CLIENT=/path/to/llamacloud_client.py bun test llamacloud.sdk
 ```
 
 ### Admin (beyond the standard contract)
@@ -156,7 +156,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 Neither consumer can add headers, so a namespace can be chosen three ways:
 
-- the `x-emulators-namespace` header;
+- the `x-emulates-namespace` header;
 - a `/__admin/ns/<name>` prefix on the base URL;
 - the API key: `PUT /__admin/credentials {"credentials": {"<LLAMACLOUD_API_KEY>": "<namespace>"}}`.
 

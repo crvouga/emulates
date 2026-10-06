@@ -7,8 +7,8 @@ import {
   outboxAdminRoutes,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { type IngestInput, MAILOSAUR_NAMESPACE, MailosaurAPI } from "./index.js"
 import type { Settings } from "./state.js"
@@ -164,7 +164,7 @@ const adminRoutes = (runtime: ServiceRuntime<MailosaurAPI>): AdminRoutes => ({
 })
 
 /**
- * The Mailosaur emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Mailosaur emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<MAILOSAUR_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets, the ingest route and a request journal.

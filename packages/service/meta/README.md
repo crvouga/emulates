@@ -1,6 +1,6 @@
-# @emulators/meta
+# @emulates/meta
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Meta Graph v26 emulator for server-side Conversions API events and marketing reporting. It
 preserves privacy-safe hashed user fields, event deduplication, ambiguous writes, Graph errors,
@@ -9,10 +9,10 @@ campaign objects, dated insights, breakdowns, and cursor pagination without cont
 ## Install
 
 ```bash
-npm install -D @emulators/meta
+npm install -D @emulates/meta
 ```
 
-ESM only. Node >= 22 or Bun >= 1.2. Serve with `npx emulators-meta serve`, `createServer` from
+ESM only. Node >= 22 or Bun >= 1.2. Serve with `npx emulates-meta serve`, `createServer` from
 `./server`, or mount `createRuntime()` in any Fetch-compatible process.
 
 ## Usage
@@ -21,7 +21,7 @@ Make the Graph origin injectable and point it at the emulator. Any non-empty syn
 `access_token` query value authenticates unless `/__admin/settings` restricts tokens.
 
 ```ts
-import { createRuntime } from "@emulators/meta"
+import { createRuntime } from "@emulates/meta"
 
 const meta = createRuntime()
 const response = await meta.fetch(new Request("http://meta.test/v26.0/pixel_test/events", {
@@ -60,7 +60,7 @@ Presets: `expired_token`, `rate_limited`, `server_error`, `partial_event_accepta
 `accepted_then_drop`, and `slow`. The ambiguous-write preset persists the event before dropping the
 connection; retrying the same `event_id` remains deduplicated.
 
-Namespaces use `x-emulators-namespace`, `/__admin/ns/<name>/…`, or credential mapping through
+Namespaces use `x-emulates-namespace`, `/__admin/ns/<name>/…`, or credential mapping through
 `PUT /__admin/credentials`.
 
 ## API
@@ -68,7 +68,7 @@ Namespaces use `x-emulators-namespace`, `/__admin/ns/<name>/…`, or credential 
 The main entry exports `MetaAPI`, `MetaState`, `createRuntime`, `META_NAMESPACE`, `META_PRESETS`,
 `DEFAULT_SETTINGS`, `accessTokenCredential`, the generated `document`, `operationIds`,
 `supportedOperationIds`, and their public option/state/event/insight types.
-`@emulators/meta/server` exports
+`@emulates/meta/server` exports
 `createServer`, `serveTarget`, `DEFAULT_PORT`, and server option/result types.
 
 ## Deliberately not modelled

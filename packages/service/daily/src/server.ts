@@ -1,10 +1,10 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import type { TranscriptStore } from "./index.js"
 import { createRuntime, type DailyRuntime, type DailyRuntimeOptions } from "./runtime.js"
 import type { Settings } from "./state.js"
 
-/** Port `emulators-daily serve` listens on when none is given. */
+/** Port `emulates-daily serve` listens on when none is given. */
 export const DEFAULT_PORT = 8800
 
 export type DailyServerOptions = DailyRuntimeOptions & {
@@ -133,6 +133,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Bearer <DAILY_API_KEY>; tokens are HS256 JWTs signed with it",
     "calls: POST /__admin/rooms/<name>/session {participants, durationSec, transcript?} → transcription.stopped",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<DAILY_API_KEY>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<DAILY_API_KEY>: <ns>}",
   ],
 }

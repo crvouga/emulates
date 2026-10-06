@@ -1,4 +1,4 @@
-import { jsonRes } from "@emulators/service"
+import { jsonRes } from "@emulates/service"
 import {
   type ContainerRecord,
   DockerInputError,
@@ -22,10 +22,10 @@ export const version = () => ({
   GoVersion: "go1.25.4",
   Os: "linux",
   Arch: "amd64",
-  KernelVersion: "emulators-simulated",
+  KernelVersion: "emulates-simulated",
   BuildTime: "2025-11-14T00:00:00.000000000+00:00",
   Experimental: false,
-  Platform: { Name: "Emulators simulated Docker Engine" },
+  Platform: { Name: "Emulates simulated Docker Engine" },
   Components: [
     { Name: "Engine", Version: "29.1.0", Details: { ApiVersion: "1.52", MinAPIVersion: "1.44" } },
   ],
@@ -33,8 +33,8 @@ export const version = () => ({
 export const info = (state: DockerState, now: () => number) => {
   const containers = state.containers.list().map((c) => c.value)
   return {
-    ID: "emulators-synthetic-daemon",
-    Name: "emulators-docker",
+    ID: "emulates-synthetic-daemon",
+    Name: "emulates-docker",
     ServerVersion: "29.1.0",
     Containers: containers.length,
     ContainersRunning: containers.filter((c) => isRunning(c) && c.status !== "paused").length,
@@ -44,8 +44,8 @@ export const info = (state: DockerState, now: () => number) => {
     Driver: "overlay2",
     OSType: "linux",
     Architecture: "x86_64",
-    OperatingSystem: "Emulators simulation (no host attestation)",
-    KernelVersion: "emulators-simulated",
+    OperatingSystem: "Emulates simulation (no host attestation)",
+    KernelVersion: "emulates-simulated",
     DockerRootDir: state.daemon().rootless
       ? "/home/synthetic/.local/share/docker"
       : "/var/lib/docker",
@@ -53,7 +53,7 @@ export const info = (state: DockerState, now: () => number) => {
     SystemTime: new Date(now()).toISOString(),
     NCPU: 1,
     MemTotal: 1_073_741_824,
-    Labels: ["emulators.simulated=true"],
+    Labels: ["emulates.simulated=true"],
     Warnings: ["Simulated metadata; no host isolation is enforced."],
   }
 }
@@ -108,7 +108,7 @@ const nameMatcher = (value: string) => {
   )
     throw new DockerInputError(
       501,
-      "Emulators: name regex outside supported literal/anchor/single .* subset",
+      "Emulates: name regex outside supported literal/anchor/single .* subset",
     )
   try {
     return new RegExp(value)
@@ -169,7 +169,7 @@ export const list = (state: DockerState, url: URL, now: () => number) => {
   const filters: Record<string, string[]> = {}
   for (const [key, value] of Object.entries(parsed)) {
     if (!["id", "name", "status", "label", "exited"].includes(key))
-      throw new DockerInputError(501, `Emulators: unsupported filter ${key}`)
+      throw new DockerInputError(501, `Emulates: unsupported filter ${key}`)
     // Engine accepts both current boolean sets and legacy string arrays.
     const values =
       value === null

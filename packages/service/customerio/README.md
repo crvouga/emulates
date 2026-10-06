@@ -1,6 +1,6 @@
-# @emulators/customerio
+# @emulates/customerio
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Customer.io** for test suites, serving all three hosts our code talks to from
 one process: the Segment-compatible **CDP** (`identify`, `track`, `batch`, exactly as
@@ -17,11 +17,11 @@ of); reporting events (`unsubscribed`, `subscribed`, `spammed`, subscription pre
 ## Install
 
 ```bash
-npm install -D @emulators/customerio
+npm install -D @emulates/customerio
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-customerio serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-customerio serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -32,14 +32,14 @@ tracking domain at the emulator. Customer.io only runs when `CUSTOMERIO_RUNTIME_
 the stage is in `CUSTOMERIO_ALLOWED_STAGES`.
 
 ```bash
-npx emulators-customerio serve --port 8810 \
+npx emulates-customerio serve --port 8810 \
   --webhook-url http://127.0.0.1:3000/v1/customer-io/reporting-webhook \
   --webhook-secret "$CUSTOMERIO_REPORTING_WEBHOOK_SIGNING_KEY"
 ```
 
 ```js
 import { Analytics } from "@customerio/cdp-analytics-node"
-import { createServer } from "@emulators/customerio/server"
+import { createServer } from "@emulates/customerio/server"
 
 const cio = await createServer({
   webhooks: { url: "http://127.0.0.1:3000/v1/customer-io/reporting-webhook", secret: "k".repeat(32) },
@@ -59,7 +59,7 @@ await fetch(`${cio.url}/__admin/reporting-events`, {
 Without the SDK, drive the emulator directly and read back what the app sent:
 
 ```ts
-import { createServer } from "@emulators/customerio/server"
+import { createServer } from "@emulates/customerio/server"
 
 const cio = await createServer()
 await fetch(`${cio.url}/v1/identify`, {
@@ -128,7 +128,7 @@ two namespaces do not, including faults and clock offsets. Resetting one namespa
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on a host, or by key: the CDP write key (Basic
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on a host, or by key: the CDP write key (Basic
 username) or the App API key (Bearer) through `PUT /__admin/credentials {"credentials":
 {"<key>": "<namespace>"}}`. The click endpoint carries no credential: use the header or prefix.
 

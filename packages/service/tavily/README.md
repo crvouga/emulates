@@ -1,6 +1,6 @@
-# @emulators/tavily
+# @emulates/tavily
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP scripted Tavily search and extraction. No public URLs are fetched. Contract references:
 [Search](https://docs.tavily.com/documentation/api-reference/endpoint/search),
@@ -9,12 +9,12 @@ WIP scripted Tavily search and extraction. No public URLs are fetched. Contract 
 
 ## Install
 
-`bun add @emulators/tavily`
+`bun add @emulates/tavily`
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/tavily/server"
+import { createServer } from "@emulates/tavily/server"
 const server = await createServer({
   searches: [{ query: "fixture", results: [
     { title: "Example", url: "https://example.test", content: "Synthetic", score: 0.9 },
@@ -24,7 +24,7 @@ const server = await createServer({
 await server.close()
 ```
 
-CLI: `emulators-tavily serve --port 12130`. Configure the consumer factory's api_base_url;
+CLI: `emulates-tavily serve --port 12130`. Configure the consumer factory's api_base_url;
 the SDK has no required global endpoint environment variable. If your app reads TAVILY_API_KEY,
 set it to mock_tavily_key in local tests. HTTP authentication is Bearer, exactly as emitted by
 AsyncTavilyClient 0.7.17, not a JSON api_key body field.
@@ -46,7 +46,7 @@ Invalid/missing keys return 401 with detail.error. No real credentials belong in
 Search results may include scripted answer and response_time (numeric seconds, default zero).
 
 The standard /__admin provides state, reset, Timeline, clock, journal, metrics, health and UI.
-Namespaces: x-emulators-namespace, /__admin/ns/name and Bearer credential mapping through
+Namespaces: x-emulates-namespace, /__admin/ns/name and Bearer credential mapping through
 PUT /__admin/credentials. Journals contain metadata only, not query text, content or credentials.
 No webhooks are emitted. Presets: invalid_key, quota_exceeded, plan_limit, payg_limit,
 internal_error, timeout (one-second latency), connection_drop. Generic faults also support

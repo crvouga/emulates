@@ -1,4 +1,4 @@
-# Slack incoming webhooks and Web API (Emulators subset) — operation support
+# Slack incoming webhooks and Web API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

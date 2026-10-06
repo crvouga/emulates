@@ -46,7 +46,7 @@ const rows = SERVICES.map(([name, host], i) => {
         {rows.map((r) => <path class="wire" d={r.path} />)}
       </svg>
 
-      <ul class="emulators">
+      <ul class="emulates">
         {
           rows.map((r) => (
             <li>
@@ -166,7 +166,7 @@ const rows = SERVICES.map(([name, host], i) => {
     vector-effect: non-scaling-stroke;
   }
 
-  .emulators,
+  .emulates,
   .real ul {
     display: grid;
     grid-auto-rows: var(--row);
@@ -175,7 +175,7 @@ const rows = SERVICES.map(([name, host], i) => {
     list-style: none;
   }
 
-  .emulators li {
+  .emulates li {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -301,7 +301,7 @@ const rows = SERVICES.map(([name, host], i) => {
     .wires {
       display: none;
     }
-    .emulators {
+    .emulates {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-auto-rows: auto;
       gap: 16px 12px;

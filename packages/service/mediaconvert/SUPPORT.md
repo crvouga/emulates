@@ -1,4 +1,4 @@
-# AWS Elemental MediaConvert (Emulators subset) — operation support
+# AWS Elemental MediaConvert (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

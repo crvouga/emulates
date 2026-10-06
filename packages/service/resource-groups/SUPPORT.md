@@ -1,4 +1,4 @@
-# Amazon Resource Groups (Emulators subset) — operation support
+# Amazon Resource Groups (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

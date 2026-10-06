@@ -6,10 +6,10 @@ import {
   type OperationPlan,
   planOperations,
   type Scope,
-} from "@emulators/commands"
-import type { FetchAPI } from "@emulators/core"
-import { collectPlaceholders, pickRef, ResourceTable } from "@emulators/model"
-import type { OpenAPIDocument } from "@emulators/openapi"
+} from "@emulates/commands"
+import type { FetchAPI } from "@emulates/core"
+import { collectPlaceholders, pickRef, ResourceTable } from "@emulates/model"
+import type { OpenAPIDocument } from "@emulates/openapi"
 import fc from "fast-check"
 import { DEFAULT_PARITY_STEPS, DEFAULT_PROPERTY_RUNS } from "./defaults.js"
 import { type ExecutionContext, executeCommand, type FetchLike, type Target } from "./execute.js"
@@ -79,9 +79,9 @@ export type ParityOptions = {
   /** Default 30. */
   maxCommands?: number
   seed?: number
-  /** Environment used for FC_SEED / FC_NUM_RUNS / EMULATORS_MAX_COMMANDS / EMULATORS_TRACE. */
+  /** Environment used for FC_SEED / FC_NUM_RUNS / EMULATES_MAX_COMMANDS / EMULATES_TRACE. */
   env?: Record<string, string | undefined>
-  /** Tag threaded through `x-emulators-scope: run-id` values. Default derived from the seed. */
+  /** Tag threaded through `x-emulates-scope: run-id` values. Default derived from the seed. */
   runId?: string
   includeUnsafe?: boolean
   only?: readonly string[]
@@ -226,15 +226,15 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   const seed = options.seed ?? integerEnv(env, "FC_SEED") ?? Date.now() % 0x7fffffff
   const numRuns = options.numRuns ?? integerEnv(env, "FC_NUM_RUNS") ?? DEFAULT_PROPERTY_RUNS
   const maxCommands =
-    options.maxCommands ?? integerEnv(env, "EMULATORS_MAX_COMMANDS") ?? DEFAULT_PARITY_STEPS
-  const trace = env.EMULATORS_TRACE === "1" || env.EMULATORS_TRACE === "true"
+    options.maxCommands ?? integerEnv(env, "EMULATES_MAX_COMMANDS") ?? DEFAULT_PARITY_STEPS
+  const trace = env.EMULATES_TRACE === "1" || env.EMULATES_TRACE === "true"
   const log = options.log ?? ((line: string) => console.log(line))
   const now = options.now ?? (() => Date.now())
   const sleep = options.sleep ?? defaultSleep
   const redact = options.redact ?? ((text: string) => text)
   const clockSkewSeconds = options.clockSkewSeconds ?? 2
   const deletedRefProbability = options.deletedRefProbability ?? 0.15
-  const runId = options.runId ?? `emulators-parity-${seed.toString(16)}`
+  const runId = options.runId ?? `emulates-parity-${seed.toString(16)}`
 
   assertAllowedHost(options.real.baseUrl, options.real.allowedHosts)
 

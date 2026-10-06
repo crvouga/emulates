@@ -8,14 +8,14 @@ import {
   type Socket,
 } from "node:net"
 import { createServer as createTlsServer, type Server as TlsServer } from "node:tls"
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type MailosaurRuntime, type MailosaurRuntimeOptions } from "./runtime.js"
 import { type SelfSignedCertificate, selfSignedCertificate } from "./tls.js"
 
 export type { SelfSignedCertificate } from "./tls.js"
 export { selfSignedCertificate } from "./tls.js"
 
-/** Port `emulators-mailosaur serve` listens on when none is given. */
+/** Port `emulates-mailosaur serve` listens on when none is given. */
 export const DEFAULT_PORT = 8793
 
 export type TlsOptions = {
@@ -246,6 +246,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Basic base64(<api key>:) — any key; the SDK needs HTTPS (--tls-port)",
     "ingest: POST /__admin/ingest {to, from?, subject?, html?, text?, server?, type?}",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

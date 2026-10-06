@@ -1,4 +1,4 @@
-# Amazon Cloud Control API (Emulators subset) — operation support
+# Amazon Cloud Control API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

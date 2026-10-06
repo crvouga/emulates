@@ -21,7 +21,7 @@ export function Members({ config }: { config: MembersConfig }) {
       createApi(
         {
           adminPrefix: config.apiPrefix,
-          adminKeyHeader: "x-emulators-admin-key",
+          adminKeyHeader: "x-emulates-admin-key",
         },
         fetch,
         "default",

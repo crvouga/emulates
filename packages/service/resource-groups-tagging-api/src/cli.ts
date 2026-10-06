@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulators/adapter-node"
+import { runCli, serveCommand } from "@emulates/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulators-resource-groups-tagging-api",
+    bin: "emulates-resource-groups-tagging-api",
     description: "Amazon Resource Groups Tagging API emulator",
     commands: { serve: serveCommand(serveTarget) },
   },

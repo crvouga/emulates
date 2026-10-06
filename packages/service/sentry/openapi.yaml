@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Sentry transport and event API
   version: 0.1.0
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: Hand-authored bounded subset from official Sentry envelope/rate-limit/REST
       docs and Relay c4e9930349068039dd6ecd06cf338c527ee90165; official SDK
       11.4.0 verifies transport.
@@ -46,7 +46,7 @@ paths:
           application/x-sentry-envelope:
             schema:
               type: string
-      x-emulators:
+      x-emulates:
         parity:
           enabled: false
           reason: Envelope byte lengths and mixed binary items require the dedicated
@@ -132,7 +132,7 @@ paths:
               required:
                 - message
               additionalProperties: true
-      x-emulators:
+      x-emulates:
         parity:
           safe: false
       security:
@@ -152,7 +152,7 @@ paths:
             text/plain:
               schema:
                 type: string
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: id
         "400": *a1
         "401": *a1
@@ -169,7 +169,7 @@ paths:
             schema:
               type: string
               format: binary
-      x-emulators:
+      x-emulates:
         parity:
           enabled: false
           reason: Native minidump and multipart bodies require the dedicated served binary
@@ -259,7 +259,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: Event
               missing: "00000000000000000000000000000000"
       responses:
@@ -319,7 +319,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: Issue
               missing: missing-issue
       responses:
@@ -375,7 +375,7 @@ paths:
               required:
                 - status
               additionalProperties: true
-      x-emulators:
+      x-emulates:
         parity:
           safe: false
       security:
@@ -441,7 +441,7 @@ paths:
               required:
                 - status
               additionalProperties: true
-      x-emulators:
+      x-emulates:
         parity:
           safe: false
       security:
@@ -489,7 +489,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: Attachment
               missing: missing-attachment
         - name: download
@@ -537,10 +537,10 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: Event
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
       additionalProperties: false
     Event:
@@ -548,12 +548,12 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: Event
             identity: true
         eventID:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: Event
             identity: true
         groupID:
@@ -564,7 +564,7 @@ components:
           type: string
         dateCreated: &a9
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         dateReceived: *a9
         title:
@@ -613,7 +613,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: Issue
             identity: true
         shortId:
@@ -660,7 +660,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: Attachment
             identity: true
         name:

@@ -8,8 +8,8 @@ import {
   outboxAdminRoutes,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { SLACK_NAMESPACE, SlackAPI, slackCredential } from "./index.js"
 import { disconnectSockets, listSocketConnections } from "./sockets.js"
@@ -347,7 +347,7 @@ const adminRoutes = (runtime: ServiceRuntime<SlackAPI>): AdminRoutes => ({
 })
 
 /**
- * The Slack emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`, the outbox
+ * The Slack emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, the outbox
  * (`GET /__admin/outbox?webhook=|channel=`), namespaces by header, by `/__admin/ns/<name>` path prefix,
  * or by credential (a bot token or a webhook's `T/B/X` path), clock control and fault presets.
  */

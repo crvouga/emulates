@@ -1,4 +1,4 @@
-import type { Collection, Stored } from "@emulators/service"
+import type { Collection, Stored } from "@emulates/service"
 import { invalidRequest, parameterInvalidEmpty, resourceMissing } from "./errors.js"
 import type { Params } from "./params.js"
 

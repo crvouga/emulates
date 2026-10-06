@@ -12,8 +12,8 @@
  * experiments, recorder): capture writes events into the project and the management API needs
  * a personal key, so `--include-unsafe` adds capture only.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, PostHogAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

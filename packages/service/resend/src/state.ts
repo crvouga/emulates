@@ -1,5 +1,5 @@
-import { Collection, IdempotencyStore, IdSequence, OutboxStore } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdempotencyStore, IdSequence, OutboxStore } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /**
  * One email the app "sent" (`POST /emails`): what `GET /__admin/outbox` returns. `to`, `cc` and

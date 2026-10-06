@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { decodeForm } from "@emulators/http-codec"
-import { type OpenAPIDocument, parseOpenAPIDocument } from "@emulators/openapi"
-import { fcParameters } from "@emulators/testing"
+import { decodeForm } from "@emulates/http-codec"
+import { type OpenAPIDocument, parseOpenAPIDocument } from "@emulates/openapi"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { ParityError, parity, seedParity } from "./src/index.js"
 
@@ -11,11 +11,11 @@ const customerSchema = {
   type: "object",
   required: ["id", "object", "name", "email", "created", "metadata"],
   properties: {
-    id: { type: "string", "x-emulators-resource": { type: "customer", identity: true } },
+    id: { type: "string", "x-emulates-resource": { type: "customer", identity: true } },
     object: { const: "customer" },
     name: { type: ["string", "null"] },
     email: { type: ["string", "null"] },
-    created: { type: "integer", "x-emulators-volatile": { kind: "timestamp" } },
+    created: { type: "integer", "x-emulates-volatile": { kind: "timestamp" } },
     metadata: { type: "object", additionalProperties: { type: "string" } },
     deleted: { type: "boolean" },
   },
@@ -31,7 +31,7 @@ const errorSchema = {
 }
 const jsonResponse = (schema: unknown, description = "ok") => ({
   description,
-  headers: { "content-type": { schema: { type: "string" }, "x-emulators-parity-header": true } },
+  headers: { "content-type": { schema: { type: "string" }, "x-emulates-parity-header": true } },
   content: { "application/json": { schema } },
 })
 const customerBody = {
@@ -41,7 +41,7 @@ const customerBody = {
     email: { type: "string", format: "email" },
     metadata: {
       type: "object",
-      properties: { run: { type: "string", "x-emulators-scope": { value: "run-id" } } },
+      properties: { run: { type: "string", "x-emulates-scope": { value: "run-id" } } },
       additionalProperties: { type: "string", maxLength: 8 },
     },
   },
@@ -68,7 +68,7 @@ const spec: OpenAPIDocument = parseOpenAPIDocument({
               type: "object",
               required: ["gte"],
               properties: {
-                gte: { type: "integer", "x-emulators-scope": { value: "walk-start-unix" } },
+                gte: { type: "integer", "x-emulates-scope": { value: "walk-start-unix" } },
               },
             },
           },
@@ -94,7 +94,7 @@ const spec: OpenAPIDocument = parseOpenAPIDocument({
           in: "path",
           required: true,
           schema: { type: "string" },
-          "x-emulators-resource-ref": { type: "customer" },
+          "x-emulates-resource-ref": { type: "customer" },
         },
       ],
       get: {
@@ -121,7 +121,7 @@ const spec: OpenAPIDocument = parseOpenAPIDocument({
             properties: {
               id: {
                 type: "string",
-                "x-emulators-resource": { type: "customer", identity: true },
+                "x-emulates-resource": { type: "customer", identity: true },
               },
               deleted: { const: true },
             },

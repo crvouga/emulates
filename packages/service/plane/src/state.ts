@@ -1,5 +1,5 @@
-import { Collection, IdSequence, opaqueToken } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdSequence, opaqueToken } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 export type StateGroup = "backlog" | "unstarted" | "started" | "completed" | "cancelled" | "triage"
 

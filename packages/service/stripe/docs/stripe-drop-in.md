@@ -36,11 +36,11 @@ environment) walks the safe operations against Stripe test mode; `--include-unsa
 ## Serving it for a suite
 
 ```bash
-npx emulators-stripe serve --accounts accounts.json
+npx emulates-stripe serve --accounts accounts.json
 curl -X PUT localhost:12111/__admin/webhook-endpoints -H 'content-type: application/json' \
   -d '[{"account":"acct_mso","url":"http://127.0.0.1:3100/billing/webhooks/stripe/mso","secret":"whsec_…"},
        {"account":"acct_pc","url":"http://127.0.0.1:3100/billing/webhooks/stripe/pc","secret":"whsec_…"}]'
 ```
 
-`bun run mock:server` (scripts/server.ts, `EMULATORS_STRIPE_WEBHOOK_TARGETS`) remains for
+`bun run mock:server` (scripts/server.ts, `EMULATES_STRIPE_WEBHOOK_TARGETS`) remains for
 contributors. Wiring a consumer onto the emulator is the checklist in [qa-followon.md](./qa-followon.md).

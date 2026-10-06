@@ -1,4 +1,4 @@
-# Paddle Billing API (Emulators subset) — operation support
+# Paddle Billing API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

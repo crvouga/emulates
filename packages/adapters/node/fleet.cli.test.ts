@@ -7,7 +7,7 @@ import type { EndpointManifest } from "./src/fleet.js"
 for (const entry of ["stripe/src/cli.ts", "redis/src/cli.ts", "postgres/src/wire/cli.ts"]) {
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     test(`${entry} serve --config publishes one ready record and shuts down on ${signal}`, async () => {
-      const dir = await mkdtemp(join(tmpdir(), "emulators-cli-"))
+      const dir = await mkdtemp(join(tmpdir(), "emulates-cli-"))
       const readyFile = join(dir, "ready.json")
       const configFile = join(dir, "config.json")
       await writeFile(
@@ -24,7 +24,7 @@ for (const entry of ["stripe/src/cli.ts", "redis/src/cli.ts", "postgres/src/wire
       // Source-backed installed packages keep this acceptance test independent of another
       // CI shard's dist output while exercising consumer-project module discovery.
       for (const name of ["stripe", "postgres", "redis"]) {
-        const packageDir = join(dir, "node_modules", "@emulators", name)
+        const packageDir = join(dir, "node_modules", "@emulates", name)
         await mkdir(packageDir, { recursive: true })
         await writeFile(
           join(packageDir, "package.json"),

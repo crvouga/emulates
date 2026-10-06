@@ -1,6 +1,6 @@
-# @emulators/firstpromoter
+# @emulates/firstpromoter
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **FirstPromoter v2** affiliate API for test suites: promoter create (adopt
 before create by `cust_id`), lookups by id / `cust_id` / `ref_token` / email, list, update,
@@ -16,11 +16,11 @@ of producing a failed job.
 ## Install
 
 ```bash
-npm install -D @emulators/firstpromoter
+npm install -D @emulates/firstpromoter
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-firstpromoter serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-firstpromoter serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -30,13 +30,13 @@ with TLS or relax that rule in the stack), set any `FIRST_PROMOTER_API_KEY` and
 `FIRST_PROMOTER_ACCOUNT_ID`, and pass the webhook Basic-auth pair as `--webhook-secret`.
 
 ```bash
-npx emulators-firstpromoter serve --port 8812 \
+npx emulates-firstpromoter serve --port 8812 \
   --webhook-url http://127.0.0.1:3000/users/webhooks/first-promoter \
   --webhook-secret "$FIRST_PROMOTER_WEBHOOK_AUTH_USERNAME:$FIRST_PROMOTER_WEBHOOK_AUTH_PASSWORD"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/firstpromoter"
+import { createRuntime } from "@emulates/firstpromoter"
 
 const fp = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/users/webhooks/first-promoter", secret: "user:pass" },
@@ -137,7 +137,7 @@ deduplication. A successful sale preserves the existing conversion webhook behav
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix in `FIRST_PROMOTER_API_URL`, or by API key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix in `FIRST_PROMOTER_API_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<FIRST_PROMOTER_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled

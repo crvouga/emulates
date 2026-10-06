@@ -7,7 +7,7 @@
  * 3.0.1). This script keeps every path and schema, and layers on:
  *
  * - an `operationId` per operation (the upstream spec has none),
- * - `x-emulators` support/parity metadata (operations our consumer never calls are
+ * - `x-emulates` support/parity metadata (operations our consumer never calls are
  *   `supported: false` with a reason),
  * - resource / volatile annotations for the parity runner,
  * - the fields the live API returns but Swagger omits (observed in the consumer's recorded
@@ -230,10 +230,10 @@ for (const [path, item] of Object.entries(paths)) {
     operation.operationId = overlay.id
     const responses = operation.responses as Record<string, Json>
     if (overlay.skip) {
-      operation["x-emulators"] = { supported: false, reason: overlay.skip }
+      operation["x-emulates"] = { supported: false, reason: overlay.skip }
       continue
     }
-    operation["x-emulators"] = overlay.unsafe
+    operation["x-emulates"] = overlay.unsafe
       ? { parity: { safe: false, reason: `Unsafe against a real tenant: ${overlay.unsafe}.` } }
       : { parity: { safe: true } }
     if (overlay.ok !== undefined) {
@@ -280,18 +280,18 @@ const parameter = (path: string, method: string, name: string, extension: Json) 
   found.schema = { ...(found.schema as Json), ...extension }
 }
 const refTo = (type: string, missing = MISSING_UUID) => ({
-  "x-emulators-resource-ref": { type, missing },
+  "x-emulates-resource-ref": { type, missing },
 })
 // Staging matches productCode with SQL LIKE (`a` and `%` list every product) against codes no
 // response carries, so the walk cannot know a code; our consumer never filters by it.
 parameter("/api/v2/products", "get", "productCode", {
-  "x-emulators-unsupported": {
+  "x-emulates-unsupported": {
     reason: "Staging matches product codes with SQL LIKE, and no response carries a code.",
   },
 })
 // eventTypes' name is the same kind of LIKE (`ჷ` lists all 12); our consumer never filters.
 parameter("/api/v2/eventTypes", "get", "name", {
-  "x-emulators-unsupported": {
+  "x-emulates-unsupported": {
     reason:
       "Staging matches event-type names with SQL LIKE under a collation that ignores some characters.",
   },
@@ -299,7 +299,7 @@ parameter("/api/v2/eventTypes", "get", "name", {
 // productType is a SQL LIKE too, under a collation that ignores some characters (`㏞` lists
 // every product); our consumer never filters by it.
 parameter("/api/v2/products", "get", "productType", {
-  "x-emulators-unsupported": {
+  "x-emulates-unsupported": {
     reason:
       "Staging matches product types with SQL LIKE under a collation that ignores some characters.",
   },
@@ -342,15 +342,15 @@ const annotate = (name: string, property: string, extension: Json) => {
   all[property] = { ...current, ...extension }
 }
 const identity = (type: string) => ({
-  "x-emulators-resource": { type, identity: true },
-  "x-emulators-volatile": { kind: "id" },
+  "x-emulates-resource": { type, identity: true },
+  "x-emulates-volatile": { kind: "id" },
 })
-const volatile = (kind: string) => ({ "x-emulators-volatile": { kind } })
+const volatile = (kind: string) => ({ "x-emulates-volatile": { kind } })
 
 // Observed in docs/gxg-list-products-*.json.
 props(".ProductDto").preassembly = { type: "boolean" }
 
-// The Emulators schema walker does not follow cycles: break the two recursive schemas one
+// The Emulates schema walker does not follow cycles: break the two recursive schemas one
 // level down with leaf copies (the live API nests exactly one level: component products carry
 // `components: []`, and a kit-order-line's `orderLines` carry no further `orderLines`).
 schemas[".ProductDto.Leaf"] = structuredClone(schemaNamed(".ProductDto"))
@@ -371,7 +371,7 @@ props(".KitOrderLineDto").orderLines = {
   nullable: true,
   items: ref(".KitOrderLineDto.Leaf"),
 }
-annotate(".ProductDto", "id", { "x-emulators-resource": { type: "product", identity: true } })
+annotate(".ProductDto", "id", { "x-emulates-resource": { type: "product", identity: true } })
 
 // Observed in docs/gxg-list-orders-prod.json (placerOrderNumber) and read by
 // GXG/orders/gxg-order-kit-numbers.ts (kitNumbers).
@@ -444,7 +444,7 @@ annotate(
 // `estimatedPrice` is not volatile: the mock's zone table is deterministic, so self-parity
 // compares it. Live parity (scripts/parity.ts) compares code sets, never prices.
 annotate("EditAddressCommand", "id", {
-  "x-emulators-resource-ref": { type: "shipment", missing: MISSING_UUID },
+  "x-emulates-resource-ref": { type: "shipment", missing: MISSING_UUID },
 })
 // The shipment id is how the vendor finds what to edit; our consumer always sends it and the
 // full address (the edit replaces, never merges).
@@ -458,7 +458,7 @@ for (const name of [".ShipmentDto", "EditAddressCommand"]) {
 props(".KitOrderLineStatusesDto").fulfillment = { ...ref(".FulfillmentDto"), nullable: true }
 
 // Request bodies: what our consumer always sends, and the fields it sends that Swagger omits.
-const productRef = { "x-emulators-resource-ref": { type: "product", missing: MISSING_UUID } }
+const productRef = { "x-emulates-resource-ref": { type: "product", missing: MISSING_UUID } }
 annotate(".GetAvailableShippingOptions.Query", "productId", productRef)
 schemaNamed(".GetAvailableShippingOptions.Query").required = ["shippingAddress", "productId"]
 annotate("CreateOrder_Item", "productId", productRef)
@@ -479,7 +479,7 @@ props("CreateOrderForExistingKits_Item").samples = {
 annotate("CreateOrderForExistingKits_Item", "kitNumbers", {
   items: {
     type: "string",
-    "x-emulators-resource-ref": { type: "kit", missing: "WB000000" },
+    "x-emulates-resource-ref": { type: "kit", missing: "WB000000" },
   },
 })
 schemaNamed("CreateOrderForExistingKits_Item").required = ["productId", "kitNumbers"]
@@ -525,7 +525,7 @@ props("CreateOrder_Shipment").courierServiceCode = {
 // (the production split), zone 8, and the structural refusals.
 const corpusAddress = (row: (typeof ADDRESS_CORPUS)[number], isCommercial = false) => ({
   isCommercial,
-  recipientName: "Emulators Test",
+  recipientName: "Emulates Test",
   addressLine1: row.addressLine1,
   addressLine2: null,
   city: row.city,
@@ -683,7 +683,7 @@ paths["/connect/token"] = {
       "OAuth2 client-credentials token (served by the auth host, staging-auth.genebygene.com)",
     operationId: "PostConnectToken",
     security: [],
-    "x-emulators": { parity: { safe: true } },
+    "x-emulates": { parity: { safe: true } },
     requestBody: {
       required: true,
       content: {
@@ -716,12 +716,12 @@ paths["/connect/token"] = {
 }
 paths["/__admin/blobs/{key}"] = {
   get: {
-    tags: ["Emulators"],
+    tags: ["Emulates"],
     summary:
       "Result bytes behind a presignedUrl (the mock's stand-in for the S3 presigned GET; not a GxG endpoint)",
     operationId: "GetResultBlob",
     security: [],
-    "x-emulators": {
+    "x-emulates": {
       parity: {
         enabled: false,
         reason: "Mock-only route; the real presigned URL points at S3, not the API host.",
@@ -754,17 +754,17 @@ paths["/__admin/blobs/{key}"] = {
   },
 }
 
-Object.assign(paths["/__admin/blobs/{key}"], { "x-emulators-internal": true })
+Object.assign(paths["/__admin/blobs/{key}"], { "x-emulates-internal": true })
 
 const info = spec.info as Json
-info.title = "Nucleus API v2.0 (Gene by Gene), vendored for Emulators"
+info.title = "Nucleus API v2.0 (Gene by Gene), vendored for Emulates"
 info.description = [
   "Gene by Gene's Nucleus API v2, vendored from the Swagger document our consumer commits",
   "(`GXG/transport/spec/gxg-openapi.json`, source https://demo-api.genebygene.com/swagger/v2/swagger.json)",
-  "by `scripts/vendor-openapi.ts`, with operationIds, Emulators annotations, the fields the live",
+  "by `scripts/vendor-openapi.ts`, with operationIds, Emulates annotations, the fields the live",
   "API returns but Swagger omits, the auth host's `/connect/token`, and the mock's `/__admin/blobs/{key}`.",
 ].join("\n")
-info["x-emulators-upstream"] = {
+info["x-emulates-upstream"] = {
   swagger: "https://demo-api.genebygene.com/swagger/v2/swagger.json",
   docs: "https://api.genebygene.com/assets/GxG%20API%20Services%20Developer%20Guide%202022.pdf",
   stagingApi: "https://staging-api.genebygene.com",

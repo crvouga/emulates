@@ -1,7 +1,7 @@
 {
-  "name": "@emulators/openapi-codegen",
+  "name": "@emulates/openapi-codegen",
   "version": "0.1.0",
-  "description": "Turns a provider's openapi.yaml into a portable generated TypeScript module plus a SUPPORT.md coverage matrix; validates Emulators metadata.",
+  "description": "Turns a provider's openapi.yaml into a portable generated TypeScript module plus a SUPPORT.md coverage matrix; validates Emulates metadata.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/openapi/codegen#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "openapi",
     "codegen"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "node",
     "layer": "openapi"
   },
@@ -38,16 +38,16 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@emulators/openapi": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
     "yaml": "2.9.0"
   },
   "devDependencies": {
     "@types/node": "22.20.1",
     "fast-check": "4.9.0",
-    "@emulators/testing": "workspace:*"
+    "@emulates/testing": "workspace:*"
   },
   "bin": {
-    "emulators-codegen": "./dist/cli.js"
+    "emulates-codegen": "./dist/cli.js"
   }
 }

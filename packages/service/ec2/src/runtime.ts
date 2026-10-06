@@ -4,8 +4,8 @@ import {
   type ServiceRuntime,
   createRuntime as serviceRuntime,
   sigV4AccessKeyId,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { Ec2API } from "./index.js"
 export type RuntimeOptions = {

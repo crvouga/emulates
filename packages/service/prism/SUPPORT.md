@@ -1,4 +1,4 @@
-# Prism Labs body-scan API (Emulators subset) — operation support
+# Prism Labs body-scan API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

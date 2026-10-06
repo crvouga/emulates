@@ -13,7 +13,7 @@ export const userMirror = async (
       new Request(url, {
         headers: {
           authorization: "Bearer mock_workos_key",
-          ...(namespace ? { "x-emulators-namespace": namespace } : {}),
+          ...(namespace ? { "x-emulates-namespace": namespace } : {}),
         },
       }),
     )
@@ -35,7 +35,7 @@ export const authorize = async (
   const response = await send(
     new Request(
       `${origin}/user_management/authorize?client_id=client_mock&redirect_uri=${encodeURIComponent("http://localhost:3000/callback")}&response_type=code&provider=authkit&state=synthetic-state`,
-      { headers: { "x-emulators-namespace": namespace }, redirect: "manual" },
+      { headers: { "x-emulates-namespace": namespace }, redirect: "manual" },
     ),
   )
   if (response.status !== 302) throw new Error(`Authorization failed (${response.status})`)
@@ -52,7 +52,7 @@ export const authenticate = (
   send(
     new Request(`${origin}/user_management/authenticate`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
       body: JSON.stringify({ client_id: "client_mock", client_secret: "mock_workos_key", ...body }),
     }),
   )

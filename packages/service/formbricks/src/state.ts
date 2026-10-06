@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdSequence } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import corpus from "./corpus/surveys.json" with { type: "json" }
 
 /** A survey definition, passed through as Formbricks serves it (blocks, elements, endings, …). */

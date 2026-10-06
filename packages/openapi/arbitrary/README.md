@@ -1,13 +1,13 @@
-# @emulators/openapi-arbitrary
+# @emulates/openapi-arbitrary
 
-> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
 
-Turns OpenAPI / JSON Schema nodes into [fast-check](https://fast-check.dev/) arbitraries: boundary-weighted values that satisfy a schema, and values that violate exactly one of its constraints (with a description of the violation). Use it for property tests of request/response handling driven by a spec; you do not need it directly for parity testing — [`@emulators/commands`](https://www.npmjs.com/package/@emulators/commands) and [`@emulators/parity`](https://www.npmjs.com/package/@emulators/parity) use it for you.
+Turns OpenAPI / JSON Schema nodes into [fast-check](https://fast-check.dev/) arbitraries: boundary-weighted values that satisfy a schema, and values that violate exactly one of its constraints (with a description of the violation). Use it for property tests of request/response handling driven by a spec; you do not need it directly for parity testing — [`@emulates/commands`](https://www.npmjs.com/package/@emulates/commands) and [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) use it for you.
 
 ## Install
 
 ```bash
-npm install -D @emulators/openapi-arbitrary fast-check
+npm install -D @emulates/openapi-arbitrary fast-check
 ```
 
 `fast-check` 4.x is a dependency (pinned `4.9.0`); install the same major yourself to run properties or pass custom arbitraries to `override`. ESM only, Node >= 22 or Bun >= 1.2.
@@ -15,8 +15,8 @@ npm install -D @emulators/openapi-arbitrary fast-check
 ## Usage
 
 ```ts
-import { parseOpenAPIDocument, type SchemaObject, validateValue } from "@emulators/openapi"
-import { invalidSchemaArbitrary, schemaArbitrary } from "@emulators/openapi-arbitrary"
+import { parseOpenAPIDocument, type SchemaObject, validateValue } from "@emulates/openapi"
+import { invalidSchemaArbitrary, schemaArbitrary } from "@emulates/openapi-arbitrary"
 import fc from "fast-check"
 
 const document = parseOpenAPIDocument({
@@ -83,7 +83,7 @@ Gotcha: when `mutationSites` finds nothing to break (an unconstrained schema suc
 
 ## Related
 
-- [`@emulators/openapi`](https://www.npmjs.com/package/@emulators/openapi) — schema resolution and `validateValue`.
-- [`@emulators/commands`](https://www.npmjs.com/package/@emulators/commands) — builds whole API commands from these arbitraries.
+- [`@emulates/openapi`](https://www.npmjs.com/package/@emulates/openapi) — schema resolution and `validateValue`.
+- [`@emulates/commands`](https://www.npmjs.com/package/@emulates/commands) — builds whole API commands from these arbitraries.
 
 Part of [emulators](https://github.com/crvouga/emulators).

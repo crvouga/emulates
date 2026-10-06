@@ -3,7 +3,7 @@
   "info": {
     "title": "Vercel Blob API",
     "version": "0.1.0",
-    "x-emulators-upstream": {
+    "x-emulates-upstream": {
       "note": "Official @vercel/blob 2.8.0 wire source, Vercel Blob documentation and vercel-labs/emulate e4cd051330282a2ffc615f23d0f03c57bbd65a1e."
     }
   },
@@ -124,7 +124,7 @@
             "storeToken": []
           }
         ],
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": false,
             "enabled": false,
@@ -418,7 +418,7 @@
             "storeToken": []
           }
         ],
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": false
           }
@@ -527,7 +527,7 @@
             "storeToken": []
           }
         ],
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": false
           }
@@ -603,7 +603,7 @@
                         },
                         "uploadId": {
                           "type": "string",
-                          "x-emulators-volatile": {
+                          "x-emulates-volatile": {
                             "kind": "id"
                           }
                         }
@@ -717,7 +717,7 @@
             "storeToken": []
           }
         ],
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": false,
             "enabled": false,
@@ -892,7 +892,7 @@
             "description": "Unchanged object"
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": true,
             "enabled": false,
@@ -1033,7 +1033,7 @@
             "description": "Unchanged object"
           }
         },
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": true,
             "enabled": false,
@@ -1041,7 +1041,7 @@
           }
         }
       },
-      "x-emulators-internal": true
+      "x-emulates-internal": true
     }
   },
   "components": {
@@ -1085,13 +1085,13 @@
           },
           "url": {
             "type": "string",
-            "x-emulators-volatile": {
+            "x-emulates-volatile": {
               "kind": "url"
             }
           },
           "downloadUrl": {
             "type": "string",
-            "x-emulators-volatile": {
+            "x-emulates-volatile": {
               "kind": "url"
             }
           },
@@ -1123,13 +1123,13 @@
           },
           "url": {
             "type": "string",
-            "x-emulators-volatile": {
+            "x-emulates-volatile": {
               "kind": "url"
             }
           },
           "downloadUrl": {
             "type": "string",
-            "x-emulators-volatile": {
+            "x-emulates-volatile": {
               "kind": "url"
             }
           },
@@ -1148,7 +1148,7 @@
           },
           "uploadedAt": {
             "type": "string",
-            "x-emulators-volatile": {
+            "x-emulates-volatile": {
               "kind": "timestamp"
             }
           },
@@ -1179,13 +1179,13 @@
               "properties": {
                 "url": {
                   "type": "string",
-                  "x-emulators-volatile": {
+                  "x-emulates-volatile": {
                     "kind": "url"
                   }
                 },
                 "downloadUrl": {
                   "type": "string",
-                  "x-emulators-volatile": {
+                  "x-emulates-volatile": {
                     "kind": "url"
                   }
                 },
@@ -1198,7 +1198,7 @@
                 },
                 "uploadedAt": {
                   "type": "string",
-                  "x-emulators-volatile": {
+                  "x-emulates-volatile": {
                     "kind": "timestamp"
                   }
                 },

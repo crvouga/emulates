@@ -1,4 +1,4 @@
-# Amazon Bedrock Runtime + AgentCore harness (Emulators subset) — operation support
+# Amazon Bedrock Runtime + AgentCore harness (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

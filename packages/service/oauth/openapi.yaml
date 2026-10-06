@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Emulators OAuth & Social Login",
+    "title": "Emulates OAuth & Social Login",
     "version": "1.0.0"
   },
   "paths": {
@@ -9,7 +9,7 @@
       "get": {
         "operationId": "Discovery",
         "summary": "Discovery",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": true,
             "reason": "Google, Apple and Microsoft discovery metadata is checked against their public live endpoints by scripts/parity.ts."
@@ -100,7 +100,7 @@
       "get": {
         "operationId": "Jwks",
         "summary": "Jwks",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -191,7 +191,7 @@
       "get": {
         "operationId": "Authorize",
         "summary": "Authorize",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -275,7 +275,7 @@
       "get": {
         "operationId": "InteractionPage",
         "summary": "InteractionPage",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests. The pages carry the documented oauth-mock-* data-testid hooks (README, \"Test hooks on the interaction pages\")."
@@ -357,7 +357,7 @@
       "post": {
         "operationId": "Interact",
         "summary": "Interact",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests. The pages carry the documented oauth-mock-* data-testid hooks (README, \"Test hooks on the interaction pages\")."
@@ -441,7 +441,7 @@
       "post": {
         "operationId": "Token",
         "summary": "Token",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -532,7 +532,7 @@
       "get": {
         "operationId": "UserInfo",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -621,7 +621,7 @@
       "post": {
         "operationId": "UserInfoPost",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -712,7 +712,7 @@
       "post": {
         "operationId": "Revoke",
         "summary": "Revoke",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -803,7 +803,7 @@
       "get": {
         "operationId": "GoogleAuthorize",
         "summary": "Authorize",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -887,7 +887,7 @@
       "get": {
         "operationId": "GoogleLegacyAuthorize",
         "summary": "Authorize",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -971,7 +971,7 @@
       "get": {
         "operationId": "AppleAuthorize",
         "summary": "Authorize",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1055,7 +1055,7 @@
       "post": {
         "operationId": "AppleToken",
         "summary": "Token",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1146,7 +1146,7 @@
       "get": {
         "operationId": "AppleKeys",
         "summary": "Jwks",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": true,
             "reason": "Apple's public signing-key contract is checked by scripts/parity.ts."
@@ -1237,7 +1237,7 @@
       "get": {
         "operationId": "GoogleKeys",
         "summary": "Jwks",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": true,
             "reason": "Google's public signing-key contract is checked by scripts/parity.ts."
@@ -1328,7 +1328,7 @@
       "get": {
         "operationId": "GoogleUserInfo",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1417,7 +1417,7 @@
       "post": {
         "operationId": "GoogleUserInfoPost",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1508,7 +1508,7 @@
       "get": {
         "operationId": "GoogleV3UserInfo",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1597,7 +1597,7 @@
       "post": {
         "operationId": "GoogleV3UserInfoPost",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1688,7 +1688,7 @@
       "post": {
         "operationId": "AppleRevoke",
         "summary": "Revoke",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1779,7 +1779,7 @@
       "get": {
         "operationId": "MicrosoftAuthorize",
         "summary": "Authorize",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1863,7 +1863,7 @@
       "post": {
         "operationId": "MicrosoftToken",
         "summary": "Token",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -1954,7 +1954,7 @@
       "get": {
         "operationId": "MicrosoftKeys",
         "summary": "Jwks",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": true,
             "reason": "Microsoft's public signing-key contract is checked by scripts/parity.ts."
@@ -2045,7 +2045,7 @@
       "get": {
         "operationId": "MicrosoftUserInfo",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2134,7 +2134,7 @@
       "post": {
         "operationId": "MicrosoftUserInfoPost",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2225,7 +2225,7 @@
       "get": {
         "operationId": "GitHubAuthorize",
         "summary": "Authorize",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2309,7 +2309,7 @@
       "post": {
         "operationId": "GitHubToken",
         "summary": "Token",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2435,7 +2435,7 @@
       "get": {
         "operationId": "GitHubUser",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2524,7 +2524,7 @@
       "post": {
         "operationId": "GitHubUserPost",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2615,7 +2615,7 @@
       "get": {
         "operationId": "GitHubEmails",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2707,7 +2707,7 @@
       "post": {
         "operationId": "GitHubEmailsPost",
         "summary": "UserInfo",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."
@@ -2801,7 +2801,7 @@
       "get": {
         "operationId": "Welcome",
         "summary": "InteractionPage",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "enabled": false,
             "reason": "Interactive OAuth transactions are exercised by protocol and independent JOSE tests."

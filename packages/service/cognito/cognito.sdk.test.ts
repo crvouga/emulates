@@ -18,7 +18,7 @@ import {
 import { createServer } from "./src/server.js"
 
 const poolId = "us-east-1_emulators"
-const clientId = "emulators-client"
+const clientId = "emulates-client"
 
 describe("official Cognito clients", () => {
   test("AWS SDK admin lifecycle, groups, pagination, JWT auth and revocation", async () => {

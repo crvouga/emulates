@@ -11,8 +11,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import {
   DAILY_NAMESPACE,
@@ -235,7 +235,7 @@ const adminRoutes = (runtime: ServiceRuntime<DailyAPI>): AdminRoutes => ({
 })
 
 /**
- * The Daily emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * The Daily emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, namespaces
  * by header, by `/__admin/ns/<name>` prefix on `DAILY_API_BASE_URL`, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<DAILY_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets, signed webhooks and a request journal.

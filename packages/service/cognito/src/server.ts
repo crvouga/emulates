@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { type CognitoRuntime, type CognitoRuntimeOptions, createRuntime } from "./runtime.js"
 export const DEFAULT_PORT = 8811
 export type CognitoServerOptions = CognitoRuntimeOptions & { port?: number; host?: string }

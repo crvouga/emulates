@@ -1,13 +1,13 @@
-# @emulators/model
+# @emulates/model
 
-> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
 
-Provider-neutral symbolic resource model for differential testing. Generated commands never contain concrete ids: they say "customer #2", and each side of a comparison (`real` and `mock`) binds that handle to its own id in a `ResourceTable`; canonicalization then turns both ids back into `resource:customer:2`. You only need this directly if you are building your own differential runner or command executor — [`@emulators/parity`](https://www.npmjs.com/package/@emulators/parity) uses it for you.
+Provider-neutral symbolic resource model for differential testing. Generated commands never contain concrete ids: they say "customer #2", and each side of a comparison (`real` and `mock`) binds that handle to its own id in a `ResourceTable`; canonicalization then turns both ids back into `resource:customer:2`. You only need this directly if you are building your own differential runner or command executor — [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) uses it for you.
 
 ## Install
 
 ```bash
-npm install -D @emulators/model
+npm install -D @emulates/model
 ```
 
 No dependencies. ESM only, Node >= 22 or Bun >= 1.2.
@@ -22,7 +22,7 @@ import {
   refPlaceholder,
   ResourceTable,
   resolvePlaceholders,
-} from "@emulators/model"
+} from "@emulates/model"
 
 const table = new ResourceTable()
 // Both sides created "the same" customer, with different concrete ids.
@@ -84,8 +84,8 @@ Exported types: `Side` (`"real" | "mock"`), `SymbolicRef` (`{ type; handle }`), 
 
 ## Related
 
-- [`@emulators/commands`](https://www.npmjs.com/package/@emulators/commands) — generates commands containing these placeholders.
-- [`@emulators/canonicalize`](https://www.npmjs.com/package/@emulators/canonicalize) — rewrites ids to canonical tokens using the table.
-- [`@emulators/parity`](https://www.npmjs.com/package/@emulators/parity) — the runner that ties them together.
+- [`@emulates/commands`](https://www.npmjs.com/package/@emulates/commands) — generates commands containing these placeholders.
+- [`@emulates/canonicalize`](https://www.npmjs.com/package/@emulates/canonicalize) — rewrites ids to canonical tokens using the table.
+- [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — the runner that ties them together.
 
 Part of [emulators](https://github.com/crvouga/emulators).

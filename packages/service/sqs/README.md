@@ -1,13 +1,13 @@
-# @emulators/sqs
+# @emulates/sqs
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Amazon SQS emulator for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
 
 ## Install
 
 ```bash
-npm install -D @emulators/sqs
+npm install -D @emulates/sqs
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -17,7 +17,7 @@ ESM only. Node 22+ or Bun 1.2+.
 Point `SQS_ENDPOINT_URL` or the AWS SDK `endpoint` option at the served emulator. Fixture SigV4 credentials are accepted.
 
 ```ts
-import { createServer } from "@emulators/sqs/server"
+import { createServer } from "@emulates/sqs/server"
 
 const mock = await createServer({
   queues: [{ name: "jobs", attributes: { VisibilityTimeout: "30" } }],
@@ -34,7 +34,7 @@ Supported operations are CreateQueue, GetQueueUrl, GetQueueAttributes, SendMessa
 - `POST /__admin/queues/:name/drain` atomically empties one queue.
 - Fault presets are `throttled` and one-shot `unavailable`; generic faults can delay or duplicate a receive at the caller level.
 
-The shared runtime supplies reset, clock, journal, timeline, metrics, faults, and namespace isolation. Select a namespace through `x-emulators-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime supplies reset, clock, journal, timeline, metrics, faults, and namespace isolation. Select a namespace through `x-emulates-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 
@@ -44,7 +44,7 @@ Operations outside the surface listed above, IAM policy evaluation, server-side 
 
 - `SqsAPI`, `SqsAPIOptions`, `SqsSeedQueue`: AWS JSON handler and fixtures.
 - `SqsMessage`, `SqsMessageAttribute`, `SqsQueue`: state types.
-- `createRuntime`, `SqsRuntime`, `SqsRuntimeOptions`: full Emulators runtime.
+- `createRuntime`, `SqsRuntime`, `SqsRuntimeOptions`: full Emulates runtime.
 - `SQS_NAMESPACE`, `SQS_PRESETS`, `accessKeyCredential`: constants and controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
 - `createServer`, `SqsServerOptions`, `DEFAULT_PORT`, `serveTarget` from `./server`: Node HTTP adapter and CLI integration.

@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -12,7 +12,7 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"

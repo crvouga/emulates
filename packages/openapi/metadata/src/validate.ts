@@ -1,5 +1,5 @@
-import type { OpenAPIDocument, SchemaObject } from "@emulators/openapi"
-import { listOperations, resolveSchema, schemaTypes, walkSchema } from "@emulators/openapi"
+import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
+import { listOperations, resolveSchema, schemaTypes, walkSchema } from "@emulates/openapi"
 import { operationMetadata, parameterMetadata, schemaMetadata } from "./read.js"
 import { EXTENSION_KEYS } from "./types.js"
 
@@ -7,7 +7,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
 /**
- * Semantic checks for Emulators extensions:
+ * Semantic checks for Emulates extensions:
  * - malformed extension objects
  * - identities and references must be strings
  * - `supported: false` / `parity.enabled: false` need a reason

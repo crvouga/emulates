@@ -1,7 +1,7 @@
 {
-  "name": "@emulators/paddle",
+  "name": "@emulates/paddle",
   "version": "0.0.0-development",
-  "description": "Stateful emulator of the Paddle Billing API (customers, addresses, businesses, products, prices, transactions with computed totals, subscriptions with pause/resume/cancel and renewals, events) with Paddle-Signature webhooks and admin routes that simulate checkout, renewals and failed payments (Emulators service contract).",
+  "description": "Stateful emulator of the Paddle Billing API (customers, addresses, businesses, products, prices, transactions with computed totals, subscriptions with pause/resume/cancel and renewals, events) with Paddle-Signature webhooks and admin routes that simulate checkout, renewals and failed payments (Emulates service contract).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-paddle": "./dist/cli.js"
+    "emulates-paddle": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/paddle#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "service",
     "paddle",
     "billing",
@@ -48,7 +48,7 @@
     "webhooks",
     "emulator"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -78,7 +78,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- paddle",
-        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -105,22 +105,22 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
-    "@emulators/adapter-node": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/credentials": "workspace:*",
-    "@emulators/http-codec": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/sqlite": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/testing": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/credentials": "workspace:*",
+    "@emulates/http-codec": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "@paddle/paddle-node-sdk": "3.10.0",
     "fast-check": "4.9.0"
   }

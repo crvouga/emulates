@@ -1,6 +1,6 @@
-# @emulators/caretalk
+# @emulates/caretalk
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **CareTalk**'s external API (`/externalapi`) for test suites: client login,
 form definitions (`GetForm`) and saved form rounds (`SavePatientForm`, the form-submission
@@ -15,11 +15,11 @@ the CareTalk paths without the beta environment.
 ## Install
 
 ```bash
-npm install -D @emulators/caretalk
+npm install -D @emulates/caretalk
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-caretalk serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-caretalk serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -30,11 +30,11 @@ for loopback or front the emulator with TLS). `getFormData` hardcodes
 `CARETALK_API_KEY` can be any values unless `--api-user` / `--api-key` pin them.
 
 ```bash
-npx emulators-caretalk serve --port 8823 --api-user "$CARETALK_USERNAME:$CARETALK_PASSWORD" --api-key "$CARETALK_API_KEY"
+npx emulates-caretalk serve --port 8823 --api-user "$CARETALK_USERNAME:$CARETALK_PASSWORD" --api-key "$CARETALK_API_KEY"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/caretalk"
+import { createRuntime } from "@emulates/caretalk"
 
 const caretalk = createRuntime()
 const call = (path: string, init: RequestInit = {}) =>
@@ -94,7 +94,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `login
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `CARETALK_API_URL`, or by credential: tokens
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `CARETALK_API_URL`, or by credential: tokens
 carry the API user they were issued to, so `PUT /__admin/credentials {"credentials":
 {"<CARETALK_USERNAME>": "<ns>", "<CARETALK_API_KEY>": "<ns>"}}` routes both auth styles.
 

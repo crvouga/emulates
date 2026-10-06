@@ -1,6 +1,6 @@
 import { createConnection, createServer, type Server, type Socket } from "node:net"
-import type { ConfigService, FleetChild } from "@emulators/adapter-node"
-import { matchNamespacePath, resolveAdminPrefix } from "@emulators/service"
+import type { ConfigService, FleetChild } from "@emulates/adapter-node"
+import { matchNamespacePath, resolveAdminPrefix } from "@emulates/service"
 import { createRedis, type Redis, RedisConnectionError } from "./engine.ts"
 import { asCommand, encodeReply, type Reply, RespParser } from "./protocol.ts"
 

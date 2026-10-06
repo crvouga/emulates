@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@emulators/credentials"
+import { CredentialError, loadCredentials } from "@emulates/credentials"
 import { WorkOSAPI } from "../src/index.js"
 
 let key: string

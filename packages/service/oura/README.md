@@ -1,24 +1,24 @@
-# @emulators/oura
+# @emulates/oura
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Oura v2 collection and OAuth emulator for synthetic wearable synchronization tests.
 
 ## Install
 
-`bun add @emulators/oura`
+`bun add @emulates/oura`
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/oura"
+import { createRuntime } from "@emulates/oura"
 const runtime = createRuntime({ pageSize: 2 })
 const response = await runtime.fetch(new Request("http://oura.test/v2/usercollection/workout", {
   headers: { authorization: "Bearer mock_oura_token" },
 }))
 ```
 
-Run `emulators-oura serve --port 12128`; inject this origin into the consumer's API and OAuth configuration (the issue's provider strategies otherwise hard-code production). Acceptance tests use a Fetch port. `bun scripts/python-smoke.ts` (requires `uv`) additionally exercises the actual requests 2.32.5 and httpx 0.28.1 libraries over local HTTP, including token refresh and error handling; it does not exercise private consumer source.
+Run `emulates-oura serve --port 12128`; inject this origin into the consumer's API and OAuth configuration (the issue's provider strategies otherwise hard-code production). Acceptance tests use a Fetch port. `bun scripts/python-smoke.ts` (requires `uv`) additionally exercises the actual requests 2.32.5 and httpx 0.28.1 libraries over local HTTP, including token refresh and error handling; it does not exercise private consumer source.
 
 ## Routes and state
 
@@ -30,7 +30,7 @@ Seed `records` rows `{key,userId,collection,data}`. Keys identify storage rows, 
 
 ## Test controls
 
-Standard `/__admin/health`, `/state`, `/reset`, `/requests`, `/clock`, Timeline checkpoints and faults are available under `/__admin` (relocatable via `adminPrefix`). Header `x-emulators-namespace`, `/__admin/ns/<name>` paths and credential mappings isolate data. Journals contain metadata, never OAuth bodies or wearable payloads. Presets: `unauthorized`, `rate_limited`, `server_error`, `connection_drop`; generic faults add latency. Quota and server-error bodies are explicitly scripted fixtures, not live quota simulations. No webhooks in this surface.
+Standard `/__admin/health`, `/state`, `/reset`, `/requests`, `/clock`, Timeline checkpoints and faults are available under `/__admin` (relocatable via `adminPrefix`). Header `x-emulates-namespace`, `/__admin/ns/<name>` paths and credential mappings isolate data. Journals contain metadata, never OAuth bodies or wearable payloads. Presets: `unauthorized`, `rate_limited`, `server_error`, `connection_drop`; generic faults add latency. Quota and server-error bodies are explicitly scripted fixtures, not live quota simulations. No webhooks in this surface.
 
 ## Oracle and tests
 

@@ -1,4 +1,4 @@
-# Amazon Certificate Manager (Emulators subset) — operation support
+# Amazon Certificate Manager (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

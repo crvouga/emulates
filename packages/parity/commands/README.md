@@ -1,13 +1,13 @@
-# @emulators/commands
+# @emulates/commands
 
-> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
 
-Stateful [fast-check](https://fast-check.dev/) command generation for OpenAPI-driven random API walks. It plans which operations are eligible (from `x-emulators-*` annotations), generates shrink-friendly `LogicalCommand`s whose resource ids are symbolic placeholders, and turns a command into a concrete Fetch `Request` for either side of a comparison. You only need this directly if you are building your own walk executor — [`@emulators/parity`](https://www.npmjs.com/package/@emulators/parity) uses it for you.
+Stateful [fast-check](https://fast-check.dev/) command generation for OpenAPI-driven random API walks. It plans which operations are eligible (from `x-emulates-*` annotations), generates shrink-friendly `LogicalCommand`s whose resource ids are symbolic placeholders, and turns a command into a concrete Fetch `Request` for either side of a comparison. You only need this directly if you are building your own walk executor — [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) uses it for you.
 
 ## Install
 
 ```bash
-npm install -D @emulators/commands fast-check
+npm install -D @emulates/commands fast-check
 ```
 
 `fast-check` 4.x is a dependency (pinned `4.9.0`); install the same major to run the arbitraries in your own properties. ESM only, Node >= 22 or Bun >= 1.2.
@@ -22,14 +22,14 @@ import {
   isEligible,
   planOperations,
   toRequest,
-} from "@emulators/commands"
-import { ResourceTable } from "@emulators/model"
-import { parseOpenAPIDocument } from "@emulators/openapi"
+} from "@emulates/commands"
+import { ResourceTable } from "@emulates/model"
+import { parseOpenAPIDocument } from "@emulates/openapi"
 import fc from "fast-check"
 
 const note = {
   type: "object",
-  properties: { id: { type: "string", "x-emulators-resource": { type: "note", identity: true } } },
+  properties: { id: { type: "string", "x-emulates-resource": { type: "note", identity: true } } },
 }
 const ok = { "200": { description: "ok", content: { "application/json": { schema: note } } } }
 const document = parseOpenAPIDocument({
@@ -59,7 +59,7 @@ const document = parseOpenAPIDocument({
             in: "path",
             required: true,
             schema: { type: "string" },
-            "x-emulators-resource-ref": { type: "note" },
+            "x-emulates-resource-ref": { type: "note" },
           },
         ],
         responses: ok,
@@ -95,7 +95,7 @@ Planning and generation:
 | --- | --- | --- |
 | `planOperations` | `(document, options?: PlanOptions) => OperationPlan[]` | Every operation the runner may generate: skips `supported: false`, `parity.enabled: false` and (unless `includeUnsafe`) `parity.safe: false`. `PlanOptions`: `includeUnsafe?`, `only?: string[]`, `forceInclude?: string[]` (include even when `parity.enabled` is false or unsafe). |
 | `commandArbitrary` | `(options: CommandArbitraryOptions) => fc.Arbitrary<LogicalCommand>` | Commands over all plans. Producers with no requirements get weight 2, others 1, unless `weights` overrides. Throws `RangeError` when `plans` is empty. |
-| `planCommandArbitrary` | `(plan, options: CommandArbitraryOptions) => fc.Arbitrary<LogicalCommand>` | Commands for one operation. Path, required and scope-carrying parameters are always present; cookie params and `x-emulators-unsupported` nodes are omitted. JSON and form bodies are preferred. |
+| `planCommandArbitrary` | `(plan, options: CommandArbitraryOptions) => fc.Arbitrary<LogicalCommand>` | Commands for one operation. Path, required and scope-carrying parameters are always present; cookie params and `x-emulates-unsupported` nodes are omitted. JSON and form bodies are preferred. |
 | `referencedTypes` | `(command) => string[]` | Resource types the command references through `ref` placeholders. |
 | `isEligible` | `(command, count: (type) => number) => boolean` | True when every referenced type has at least one instance. Use as the fast-check `check`. |
 | `describeCommand` | `(command) => string` | Short one-line description used in shrunk reproductions. |
@@ -130,8 +130,8 @@ Exported types: `OperationPlan` (`{ operation, metadata, requires, produces, bod
 
 ## Related
 
-- [`@emulators/model`](https://www.npmjs.com/package/@emulators/model) — `ResourceTable` and placeholders.
-- [`@emulators/openapi-arbitrary`](https://www.npmjs.com/package/@emulators/openapi-arbitrary) — the value generators underneath.
-- [`@emulators/parity`](https://www.npmjs.com/package/@emulators/parity) — runs these commands against a real API and an emulator.
+- [`@emulates/model`](https://www.npmjs.com/package/@emulates/model) — `ResourceTable` and placeholders.
+- [`@emulates/openapi-arbitrary`](https://www.npmjs.com/package/@emulates/openapi-arbitrary) — the value generators underneath.
+- [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — runs these commands against a real API and an emulator.
 
 Part of [emulators](https://github.com/crvouga/emulators).

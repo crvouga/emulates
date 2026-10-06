@@ -4,14 +4,14 @@ import type {
   ParameterObject,
   ResponseObject,
   SchemaObject,
-} from "@emulators/openapi"
-import { listOperations, resolveSchema, walkSchema } from "@emulators/openapi"
+} from "@emulates/openapi"
+import { listOperations, resolveSchema, walkSchema } from "@emulates/openapi"
 import {
   type OperationMetadata,
   operationMetadata,
   parameterMetadata,
   schemaMetadata,
-} from "@emulators/openapi-metadata"
+} from "@emulates/openapi-metadata"
 
 export type RequestBodyPlan = { mediaType: string; schema: SchemaObject; required: boolean }
 
@@ -55,7 +55,7 @@ const identityTypes = (document: OpenAPIDocument, schema: SchemaObject): string[
   return [...types].sort()
 }
 
-/** Resource types referenced (via `x-emulators-resource-ref`) from locations that are required. */
+/** Resource types referenced (via `x-emulates-resource-ref`) from locations that are required. */
 const requiredRefs = (
   document: OpenAPIDocument,
   parameters: ParameterObject[],

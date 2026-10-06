@@ -10,7 +10,7 @@ import {
   TransactGetCommand,
   TransactWriteCommand,
 } from "@aws-sdk/lib-dynamodb"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createServer } from "./src/server.js"
 
 const open = (endpoint: string) => {
@@ -168,7 +168,7 @@ describe("DynamoDB acceptance", () => {
         headers: {
           "content-type": "application/x-amz-json-1.0",
           "x-amz-target": "DynamoDB_20120810.GetItem",
-          "x-emulators-namespace": "other",
+          "x-emulates-namespace": "other",
         },
         body: JSON.stringify({ TableName: "sessions", Key: { id: { S: "two" } } }),
       })

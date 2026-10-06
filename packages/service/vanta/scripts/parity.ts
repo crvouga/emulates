@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@emulators/credentials"
+import { CredentialError, loadCredentials } from "@emulates/credentials"
 import { VantaAPI } from "../src/index.js"
 
 if (process.argv.includes("--unauthenticated")) {

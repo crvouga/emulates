@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Amazon Textract (Emulators subset)
+  title: Amazon Textract (Emulates subset)
   version: "2018-06-27"
   description: AWS JSON contract used by the pinned Textract client.
 servers:
@@ -9,7 +9,7 @@ paths:
   /:
     post:
       operationId: TextractRpc
-      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - { name: X-Amz-Target, in: header, required: true, schema: { type: string, pattern: '^Textract\.[A-Za-z]+$' } }
       requestBody:

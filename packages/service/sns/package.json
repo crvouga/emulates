@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/sns",
+  "name": "@emulates/sns",
   "version": "0.0.0-development",
   "description": "Stateful Amazon Simple Notification Service emulator with AWS SDK wire compatibility and deterministic local controls.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-sns": "./dist/cli.js"
+    "emulates-sns": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,12 +39,12 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/sns#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "aws",
     "sns",
     "emulator"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -94,7 +94,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- sns",
-        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -121,18 +121,18 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*"
+    "@emulates/sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@emulators/adapter-node": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/testing": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

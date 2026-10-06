@@ -1,6 +1,6 @@
-# @emulators/persona
+# @emulates/persona
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Persona**'s identity-verification API for test suites: create an inquiry,
 the "reusable inquiry" list lookup, fetch one inquiry, the hosted flow page members are sent
@@ -15,11 +15,11 @@ verification step (flag `rx-id-verification`) runs without a real sandbox or a r
 ## Install
 
 ```bash
-npm install -D @emulators/persona
+npm install -D @emulates/persona
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-persona serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-persona serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -35,13 +35,13 @@ Point the EMR at the emulator (all of these are required in `E/config/env.ts`):
 | `PERSONA_WEBHOOK_SECRET` | the value passed as `--webhook-secret` |
 
 ```bash
-npx emulators-persona serve --port 8815 \
+npx emulates-persona serve --port 8815 \
   --webhook-url http://127.0.0.1:4000/v1/identify-verification/webhook \
   --webhook-secret "$PERSONA_WEBHOOK_SECRET"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/persona"
+import { createRuntime } from "@emulates/persona"
 
 const persona = createRuntime({
   webhooks: { url: "http://127.0.0.1:4000/v1/identify-verification/webhook", secret: "wbhsec_test" },
@@ -114,7 +114,7 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `PERSONA_API_URL` and
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `PERSONA_API_URL` and
 `PERSONA_WEB_INQUIRY_URL` (the hosted page's links keep it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<PERSONA_API_KEY>": "<namespace>"}}`.
 

@@ -33,8 +33,8 @@ const said = async (response: Response) =>
   ((await response.json()) as { output: { message: { content: { text: string }[] } } }).output
     .message.content[0]?.text
 
-describe("the Emulators contract", () => {
-  test("/__admin/health is open and every response carries x-emulators", async () => {
+describe("the Emulates contract", () => {
+  test("/__admin/health is open and every response carries x-emulates", async () => {
     const runtime = createRuntime()
     const health = await runtime.fetch(new Request(`${API}/__admin/health`))
     expect(health.status).toBe(200)
@@ -43,9 +43,9 @@ describe("the Emulators contract", () => {
       service: "bedrock",
       modelCalls: { scripted: 0, unscripted: 0 },
     })
-    expect(health.headers.get("x-emulators")).toMatch(/^bedrock@.+; ns=default$/)
+    expect(health.headers.get("x-emulates")).toMatch(/^bedrock@.+; ns=default$/)
     const vendor = await runtime.fetch(converse("hi"))
-    expect(vendor.headers.get("x-emulators")).toMatch(/^bedrock@/)
+    expect(vendor.headers.get("x-emulates")).toMatch(/^bedrock@/)
     expect(vendor.headers.get("x-amzn-requestid")).toMatch(/^[0-9a-f]{8}-/)
   })
 
@@ -57,7 +57,7 @@ describe("the Emulators contract", () => {
     await runtime.fetch(
       admin("/scripts?namespace=b", { scripts: [{ id: "b", turns: [{ text: "from b" }] }] }, "PUT"),
     )
-    expect(await said(await runtime.fetch(converse("hi", { "x-emulators-namespace": "a" })))).toBe(
+    expect(await said(await runtime.fetch(converse("hi", { "x-emulates-namespace": "a" })))).toBe(
       "from a",
     )
     expect(await said(await runtime.fetch(converse("hi", {}, "/__admin/ns/b")))).toBe("from b")
@@ -81,13 +81,11 @@ describe("the Emulators contract", () => {
     expect(listed.presets.map((p) => p.name).sort()).toEqual(Object.keys(BEDROCK_PRESETS).sort())
     await runtime.fetch(
       admin("/faults", { preset: "throttling", count: 1 }, "POST", {
-        "x-emulators-namespace": "w1",
+        "x-emulates-namespace": "w1",
       }),
     )
-    expect((await runtime.fetch(converse("hi", { "x-emulators-namespace": "w2" }))).status).toBe(
-      200,
-    )
-    const throttled = await runtime.fetch(converse("hi", { "x-emulators-namespace": "w1" }))
+    expect((await runtime.fetch(converse("hi", { "x-emulates-namespace": "w2" }))).status).toBe(200)
+    const throttled = await runtime.fetch(converse("hi", { "x-emulates-namespace": "w1" }))
     expect(throttled.status).toBe(429)
     expect(throttled.headers.get("x-amzn-errortype")).toBe(
       "ThrottlingException:http://internal.amazon.com/coral/com.amazon.bedrock/",
@@ -95,9 +93,7 @@ describe("the Emulators contract", () => {
     expect(await throttled.json()).toEqual({
       message: "Too many requests, please wait before trying again.",
     })
-    expect((await runtime.fetch(converse("hi", { "x-emulators-namespace": "w1" }))).status).toBe(
-      200,
-    )
+    expect((await runtime.fetch(converse("hi", { "x-emulates-namespace": "w1" }))).status).toBe(200)
   })
 
   test("the journal records metadata (model, script, tools, flags, tokens) and never prompt text", async () => {
@@ -178,7 +174,7 @@ describe("served over HTTP", () => {
           body: JSON.stringify({ messages: [{ role: "user", content: [{ text }] }] }),
         })
       const booted = await call("boot please")
-      expect(booted.headers.get("x-emulators")).toMatch(/^bedrock@/)
+      expect(booted.headers.get("x-emulates")).toMatch(/^bedrock@/)
       expect(await said(booted)).toBe("Loaded at boot.")
       const snapshot = (await (
         await fetch(`${server.url}/__admin/snapshots`, { method: "POST" })

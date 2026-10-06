@@ -1,4 +1,4 @@
-# Twilio Verify, Lookup, Messaging and Recordings (Emulators subset) — operation support
+# Twilio Verify, Lookup, Messaging and Recordings (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createRuntime, DEFAULT_CLUSTER, DEFAULT_TASK_DEFINITION } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import { call, input } from "./test/consumer.js"
@@ -79,7 +79,7 @@ test("clientToken replays the result and conflicts do not create more tasks", as
 })
 test("namespace carriers, reset and Timeline isolate accepted tasks; journal omits bodies and credentials", async () => {
   const runtime = createRuntime()
-  await call(runtime.fetch, input, { "x-emulators-namespace": "alpha" })
+  await call(runtime.fetch, input, { "x-emulates-namespace": "alpha" })
   expect(runtime.instance("alpha").tasks.list()).toHaveLength(1)
   expect(runtime.instance().tasks.list()).toHaveLength(0)
   await admin(runtime, "credentials", { credentials: { fixture: "alpha" } }, "PUT")

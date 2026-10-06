@@ -1,6 +1,6 @@
-# @emulators/plane
+# @emulates/plane
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Plane** REST API (v1) for test suites, covering what our bug-report
 dedup and resolution jobs call on one project: work items (Plane's cursor-paginated list, get,
@@ -15,11 +15,11 @@ Progress, Done, Cancelled), so no setup is needed.
 ## Install
 
 ```bash
-npm install -D @emulators/plane
+npm install -D @emulates/plane
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-plane serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-plane serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -30,11 +30,11 @@ env-driven). Point it at the emulator; `PLANE_ACCESS_TOKEN`, `PLANE_WORKSPACE_SL
 validates).
 
 ```bash
-npx emulators-plane serve --port 8821 --rate-limit 60
+npx emulates-plane serve --port 8821 --rate-limit 60
 ```
 
 ```ts
-import { createRuntime } from "@emulators/plane"
+import { createRuntime } from "@emulates/plane"
 
 const plane = createRuntime()
 const base = "http://plane.test/api/v1/workspaces/acme/projects/33333333-3333-4333-8333-333333333333"
@@ -112,7 +112,7 @@ never retried.
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
 `PUT /__admin/credentials {"credentials": {"<PLANE_ACCESS_TOKEN>": "<namespace>"}}`.
 
 ### Deliberately not modelled

@@ -70,7 +70,7 @@ describe("served over HTTP", () => {
         readTranscript((b, k) => s3.get(b, k), "emr-transcripts", meeting.roomId, "s-http"),
       ).toHaveLength(12)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^daily@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^daily@/)
     } finally {
       await server.close()
       sink.stop(true)

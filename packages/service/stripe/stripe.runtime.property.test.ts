@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { createRuntime } from "./src/index.js"
 
 const AUTH = { authorization: "Bearer sk_test_emulators" }
-const at = (namespace: string) => ({ ...AUTH, "x-emulators-namespace": namespace })
+const at = (namespace: string) => ({ ...AUTH, "x-emulates-namespace": namespace })
 
 test("/__admin/health answers without credentials; vendor routes still require them", async () => {
   const runtime = createRuntime()

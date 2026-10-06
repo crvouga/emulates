@@ -11,8 +11,8 @@
  * calls change a real workspace and can message real people, so they need `--include-unsafe`
  * (and a workspace whose messages go nowhere).
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { CustomerIoAPI, document } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

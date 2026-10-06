@@ -1,6 +1,6 @@
-# @emulators/easypost
+# @emulates/easypost
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **EasyPost** trackers API for test suites: `POST /v2/trackers` (create or
 re-use a tracker for a tracking code), `GET /v2/trackers/{id}` and `GET /v2/trackers`. EasyPost's
@@ -14,11 +14,11 @@ admin transitions, so the genomics admin's shipping-leg states can be driven det
 ## Install
 
 ```bash
-npm install -D @emulators/easypost
+npm install -D @emulates/easypost
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-easypost serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-easypost serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -28,11 +28,11 @@ The app hardcodes `https://api.easypost.com/v2/trackers` (seam **G-Y1**: add a b
 (`--api-key` restricts it).
 
 ```bash
-npx emulators-easypost serve --port 8818
+npx emulates-easypost serve --port 8818
 ```
 
 ```ts
-import { createRuntime } from "@emulators/easypost"
+import { createRuntime } from "@emulates/easypost"
 
 const easypost = createRuntime()
 const auth = { authorization: `Basic ${btoa("EZTK_test:")}` }
@@ -88,7 +88,7 @@ records `unknown` and warns), `slow` (5 s).
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
 `PUT /__admin/credentials {"credentials": {"<EASYPOST_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled

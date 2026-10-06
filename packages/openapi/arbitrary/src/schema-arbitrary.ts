@@ -1,5 +1,5 @@
-import type { JsonValue, OpenAPIDocument, SchemaObject, SchemaType } from "@emulators/openapi"
-import { resolveSchema, schemaTypes, validateValue } from "@emulators/openapi"
+import type { JsonValue, OpenAPIDocument, SchemaObject, SchemaType } from "@emulates/openapi"
+import { resolveSchema, schemaTypes, validateValue } from "@emulates/openapi"
 import fc from "fast-check"
 
 /** Where a schema node sits inside the root schema, e.g. `["properties", "address", "properties", "city"]`. */

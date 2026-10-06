@@ -6,7 +6,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { DEFAULT_ADMIN_KEY, OpenAIAPI, type OpenAIAPIOptions } from "./index.js"
 import { object } from "./state.js"

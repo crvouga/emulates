@@ -1,5 +1,5 @@
-import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /** One transactional message (template) in the workspace, as `GET /v1/transactional` lists it. */
 export type TransactionalMessage = {

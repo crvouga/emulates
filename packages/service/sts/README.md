@@ -1,13 +1,13 @@
-# @emulators/sts
+# @emulates/sts
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful local emulator of Amazon Security Token Service. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/sts/server"
+import { createServer } from "@emulates/sts/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -28,7 +28,7 @@ No LocalStack run is recorded for this integration. The parity command is a boun
 ## Install
 
 ```sh
-bun add @emulators/sts
+bun add @emulates/sts
 ```
 
 ## API

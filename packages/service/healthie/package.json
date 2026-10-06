@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/healthie",
+  "name": "@emulates/healthie",
   "version": "0.0.0-development",
   "description": "Stateful emulator of the Healthie GraphQL API (legacy surface): signIn, users, currentUser, updateUser/updateClient (incl. multipart avatar), locations, documents and folders with served downloads, form answers, offerings, billing items, and the IP-allowlisted status webhooks.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-healthie": "./dist/cli.js"
+    "emulates-healthie": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,13 +39,13 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/healthie#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "service",
     "healthie",
     "graphql",
     "ehr"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -69,7 +69,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- healthie",
-        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -96,24 +96,24 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
     "hono": "4.11.9",
     "graphql": "16.11.0"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulators/testing": "workspace:*",
-    "@emulators/sqlite": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/credentials": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/http-codec": "workspace:*",
-    "@emulators/adapter-node": "workspace:*",
+    "@emulates/testing": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/credentials": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/http-codec": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
     "awesome-graphql-client": "0.14.1",
     "graphql-request": "7.2.0"
   }

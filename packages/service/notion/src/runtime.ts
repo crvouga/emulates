@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { NOTION_NAMESPACE, NotionAPI, type NotionAPIOptions } from "./index.js"
 export const NOTION_PRESETS: Record<string, FaultPreset> = {

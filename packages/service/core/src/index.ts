@@ -96,7 +96,7 @@ export {
   createRuntime,
   DEFAULT_NAMESPACE,
   DroppedConnectionError,
-  EMULATORS_HEADER,
+  EMULATES_HEADER,
   faultEffect,
   faultEffects,
   forwardRequestContext,

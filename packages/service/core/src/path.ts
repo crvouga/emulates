@@ -1,5 +1,5 @@
-import type { Operation } from "@emulators/openapi"
-import { operationMetadata } from "@emulators/openapi-metadata"
+import type { Operation } from "@emulates/openapi"
+import { operationMetadata } from "@emulates/openapi-metadata"
 
 /** Compile the same explicit terminal-tail contract for dispatch and observation. */
 export const operationPath = (operation: Operation) => {

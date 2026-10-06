@@ -25,8 +25,8 @@ Availability is **not** recorded: sealed availability bodies carry far-future sl
 single-use `booking_key`s that can never match a live `start_date` cache key. Availability
 stays with the deterministic generator.
 
-The recording is shipped in the package (`@emulators/junction/corpus`) and is
-what `emulators-junction serve` loads by default. Re-record it (requires a sandbox key —
+The recording is shipped in the package (`@emulates/junction/corpus`) and is
+what `emulates-junction serve` loads by default. Re-record it (requires a sandbox key —
 `JUNCTION_API_KEY` in the environment):
 
 ```bash
@@ -34,25 +34,25 @@ cd packages/service/junction
 bun run corpus:record -- --force # rewrites corpus/sandbox-sealed.json via pullCorpus
 ```
 
-A consumer records its own team instead, with `npx emulators-junction corpus pull --out <file>`,
+A consumer records its own team instead, with `npx emulates-junction corpus pull --out <file>`,
 and compares recordings with `corpus diff`.
 
 Serve the emulator with the corpus installed:
 
 ```bash
-npx emulators-junction serve                     # shipped corpus, 127.0.0.1:8787
-npx emulators-junction serve --corpus my-team.json
-bun run mock:serve                                 # same, configured by HOST, PORT, EMULATORS_JUNCTION_CORPUS
+npx emulates-junction serve                     # shipped corpus, 127.0.0.1:8787
+npx emulates-junction serve --corpus my-team.json
+bun run mock:serve                                 # same, configured by HOST, PORT, EMULATES_JUNCTION_CORPUS
 ```
 
 `GET /__admin/health` and `/__admin/*` are served ahead of the `x-vital-api-key` gate; see the
 [service contract](../README.md#the-service-contract). With a corpus, ZIPs it does not cover answer
-`424 EMULATORS_UNKNOWN_ZIP` unless `--geo synthetic`.
+`424 EMULATES_UNKNOWN_ZIP` unless `--geo synthetic`.
 
 Programmatic install (no filesystem, `dist` stays portable):
 
 ```ts
-import { JunctionAPI, parseSealedCorpus } from "@emulators/junction"
+import { JunctionAPI, parseSealedCorpus } from "@emulates/junction"
 
 const api = new JunctionAPI()
 api.installCorpus(parseSealedCorpus(JSON.parse(recording)))

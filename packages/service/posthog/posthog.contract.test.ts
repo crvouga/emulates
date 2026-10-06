@@ -25,13 +25,13 @@ const harness = () => {
 }
 
 describe("contract: health, header, routing", () => {
-  test("/__admin/health is open and every response carries x-emulators", async () => {
+  test("/__admin/health is open and every response carries x-emulates", async () => {
     const { call, post } = harness()
     const health = await call("/__admin/health")
     expect(health.status).toBe(200)
     expect(((await health.json()) as { service: string }).service).toBe("posthog")
     const flags = await post("/flags/?v=2", { token: "phc_x", distinct_id: "1" })
-    expect(flags.headers.get("x-emulators")).toMatch(/^posthog@.+; ns=default$/)
+    expect(flags.headers.get("x-emulates")).toMatch(/^posthog@.+; ns=default$/)
   })
 
   test("/flags/ and /flags answer the same route; unknown paths are 404 JSON and counted", async () => {
@@ -136,7 +136,7 @@ describe("contract: namespaces", () => {
         await post(
           "/flags/?v=2",
           { token: "phc_mapped", distinct_id: "1" },
-          { "x-emulators-namespace": "hdr" },
+          { "x-emulates-namespace": "hdr" },
         ),
       ),
     ).toBe("hdr")
@@ -146,16 +146,16 @@ describe("contract: namespaces", () => {
       ),
     ).toBe("prefixed")
     // The /array/{token}/config path, ?token=, a batch's first event, and a personal key.
-    expect((await call("/array/phc_mapped/config")).headers.get("x-emulators")).toEndWith(
+    expect((await call("/array/phc_mapped/config")).headers.get("x-emulates")).toEndWith(
       "ns=mapped",
     )
-    expect((await call("/api/surveys/?token=phc_mapped")).headers.get("x-emulators")).toEndWith(
+    expect((await call("/api/surveys/?token=phc_mapped")).headers.get("x-emulates")).toEndWith(
       "ns=mapped",
     )
     const batch = await post("/e/", [
       { event: "e", properties: { token: "phc_mapped", distinct_id: "z" } },
     ])
-    expect(batch.headers.get("x-emulators")).toEndWith("ns=mapped")
+    expect(batch.headers.get("x-emulates")).toEndWith("ns=mapped")
     const listed = await call("/api/projects/1/feature_flags/", {
       headers: { authorization: "Bearer phx_personal" },
     })

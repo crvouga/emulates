@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { type CustomerIoRuntime, type CustomerIoRuntimeOptions, createRuntime } from "./runtime.js"
 
-/** Port `emulators-customerio serve` listens on when none is given. */
+/** Port `emulates-customerio serve` listens on when none is given. */
 export const DEFAULT_PORT = 8810
 
 export type CustomerIoServerOptions = CustomerIoRuntimeOptions & {
@@ -75,6 +75,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "CDP: POST /v1/identify|track|batch with Basic <write key>: (the SDK's host)",
     "App API: POST /v1/send/email|sms|inbox_message, GET /v1/transactional, /v1/customers/{id}/attributes, /v1/messages/{id}",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
   ],
 }

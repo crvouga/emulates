@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -16,8 +16,8 @@ import {
   opaqueToken,
   type Service,
   toBase64,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
@@ -30,8 +30,8 @@ import {
   type UserRecord,
 } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type {
@@ -313,7 +313,7 @@ export class GoogleCalendarAPI implements FetchAPI {
 
   private idToken(email: string, clientId: string, nowSeconds: number): string {
     const user = this.user(email)
-    const header = b64u(JSON.stringify({ alg: "RS256", kid: "emulators", typ: "JWT" }))
+    const header = b64u(JSON.stringify({ alg: "RS256", kid: "emulates", typ: "JWT" }))
     const payload = b64u(
       JSON.stringify({
         iss: "https://accounts.google.com",

@@ -1,4 +1,4 @@
-import { CSS_RESET } from "@emulators/ui"
+import { CSS_RESET } from "@emulates/ui"
 import type { Account } from "./types.js"
 export const escapeHtml = (value: string): string =>
   value.replace(

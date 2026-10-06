@@ -1,4 +1,4 @@
-# QA follow-on: point a QA suite at Emulators Junction
+# QA follow-on: point a QA suite at Emulates Junction
 
 **Blocked until** [`drop-in.md`](./drop-in.md) is fully green.
 
@@ -7,7 +7,7 @@ project: the emulator is complete on its own side; this is the checklist for wir
 
 When the monkey suite proves drop-in:
 
-1. Serve the emulator via `@emulators/adapter-node` (or `Bun.serve`) on localhost.
+1. Serve the emulator via `@emulates/adapter-node` (or `Bun.serve`) on localhost.
 2. Allow `127.0.0.1` / `localhost` in the consumer's Vital host allowlist, keeping its
    production and sandbox guards intact.
 3. Point the consumer's Vital API URL at the emulator and use an emulator sandbox key (the `sk_us_*` shape).

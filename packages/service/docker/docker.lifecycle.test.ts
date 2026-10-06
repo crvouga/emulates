@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createRuntime, type DockerRuntime } from "./src/index.js"
 import { createServer } from "./src/server.js"
 
@@ -14,7 +14,7 @@ const call = (
   r.fetch(
     new Request(`http://docker.local${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       ...(signal ? { signal } : {}),
     }),
@@ -42,7 +42,7 @@ const pending = async (r: DockerRuntime, namespace = "default") =>
   (
     await r.fetch(
       new Request("http://docker.local/__admin/docker/waits", {
-        headers: { "x-emulators-namespace": namespace },
+        headers: { "x-emulates-namespace": namespace },
       }),
     )
   ).json()
@@ -218,7 +218,7 @@ test("scripted completion creates a shared checkpoint with inspectable exit stat
   const r = createRuntime()
   await seed(r)
   const started = await call(r, `/containers/${id}/start`)
-  const at = started.headers.get("x-emulators-checkpoint")
+  const at = started.headers.get("x-emulates-checkpoint")
   expect(at).toBeString()
   await complete(r, 42)
   const head = r.timeline().head("main")

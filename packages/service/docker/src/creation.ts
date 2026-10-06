@@ -1,11 +1,11 @@
-import type { IdSequence } from "@emulators/service"
+import type { IdSequence } from "@emulates/service"
 import { DockerInputError, type DockerState, record, zeroTime } from "./state.js"
 
 const fail = (field: string): never => {
   throw new DockerInputError(400, `invalid ${field}`)
 }
 const unsupported = (field: string): never => {
-  throw new DockerInputError(501, `Emulators: unsupported create field ${field}`)
+  throw new DockerInputError(501, `Emulates: unsupported create field ${field}`)
 }
 const arrayFields = ["Cmd", "Entrypoint", "Env"]
 const stringFields = ["Image", "WorkingDir", "User", "StopSignal", "Hostname", "Domainname"]

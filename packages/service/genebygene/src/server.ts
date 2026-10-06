@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type GeneByGeneRuntime, type GeneByGeneRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-genebygene serve` listens on when none is given. */
+/** Port `emulates-genebygene serve` listens on when none is given. */
 export const DEFAULT_PORT = 8788
 
 export type GeneByGeneServerOptions = GeneByGeneRuntimeOptions & {
@@ -120,6 +120,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: POST /connect/token (form: grant_type=client_credentials, client_id, client_secret) on this same port",
     "api:  /api/v2/* with Authorization: Bearer <token>",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/… (API and token URL), or PUT /__admin/credentials {<client_id>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/… (API and token URL), or PUT /__admin/credentials {<client_id>: <ns>}",
   ],
 }

@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdSequence } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 export type Account = Record<string, unknown> & {
   accountId: string
   tenantId: string

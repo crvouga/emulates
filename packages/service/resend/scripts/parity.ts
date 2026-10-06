@@ -8,8 +8,8 @@
  * Only safe operations run (retrieve a sent email, the received-email endpoints, downloads).
  * `POST /emails` is never run live: a random walk would email whatever addresses it generates.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, ResendAPI } from "../src/index.js"
 
 if (process.argv.includes("--include-unsafe")) {

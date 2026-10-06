@@ -6,8 +6,8 @@ import {
   outboxAdminRoutes,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { klaviyoApiKey, klaviyoError } from "./errors.js"
 import { document } from "./generated/openapi.js"
 import { KLAVIYO_NAMESPACE, KlaviyoAPI } from "./index.js"
@@ -118,7 +118,7 @@ const adminRoutes = (runtime: ServiceRuntime<KlaviyoAPI>): AdminRoutes => ({
 })
 
 /**
- * The Klaviyo emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Klaviyo emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix (in `KLAVIYO_URL`), or by private key
  * (`PUT /__admin/credentials {"credentials": {"<KLAVIYO_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets, the event outbox and a request journal.

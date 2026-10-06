@@ -1,4 +1,4 @@
-# AWS Secrets Manager and SSM Parameter Store (Emulators subset) — operation support
+# AWS Secrets Manager and SSM Parameter Store (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

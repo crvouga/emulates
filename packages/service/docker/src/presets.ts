@@ -1,4 +1,4 @@
-import type { FaultPreset } from "@emulators/service"
+import type { FaultPreset } from "@emulates/service"
 
 export const presets: Record<string, FaultPreset> = {}
 for (const [name, operationId] of Object.entries({

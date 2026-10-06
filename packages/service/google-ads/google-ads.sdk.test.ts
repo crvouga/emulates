@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { OAuth2Client } from "google-auth-library"
 import { DEFAULT_CUSTOMER, DEFAULT_TOKEN } from "./src/index.js"
 import { createServer } from "./src/server.js"

@@ -53,7 +53,7 @@ let client: VitalClient
 beforeAll(async () => {
   const child = Bun.spawn(["bun", "scripts/server.ts"], {
     cwd: packageDir,
-    env: { ...process.env, PORT: "0", EMULATORS_JUNCTION_CORPUS: corpusPath },
+    env: { ...process.env, PORT: "0", EMULATES_JUNCTION_CORPUS: corpusPath },
     stdout: "pipe",
     stderr: "pipe",
   })

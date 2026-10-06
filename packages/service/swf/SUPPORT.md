@@ -1,4 +1,4 @@
-# Amazon Simple Workflow Service (Emulators subset) — operation support
+# Amazon Simple Workflow Service (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

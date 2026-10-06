@@ -1,4 +1,4 @@
-import type { ExploreRng, ExploreState, LogicalCommand } from "@emulators/commands"
+import type { ExploreRng, ExploreState, LogicalCommand } from "@emulates/commands"
 import {
   availabilityAddressForZip,
   COVERAGE_ORDER_ADDRESSES,

@@ -1,6 +1,6 @@
-# @emulators/medplum
+# @emulates/medplum
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful, in-process emulator of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
 for test suites. It covers:
@@ -33,7 +33,7 @@ in CI.
 ## Install
 
 ```bash
-npm install -D @emulators/medplum
+npm install -D @emulates/medplum
 ```
 
 ESM only. Requires Node >= 22 or Bun >= 1.2 (any runtime with WebCrypto and
@@ -47,7 +47,7 @@ ESM only. Requires Node >= 22 or Bun >= 1.2 (any runtime with WebCrypto and
 ```ts
 import { MedplumClient } from "@medplum/core"
 import type { Patient } from "@medplum/fhirtypes"
-import { DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET, MedplumAPI } from "@emulators/medplum"
+import { DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET, MedplumAPI } from "@emulates/medplum"
 
 const mock = new MedplumAPI() // answers as http://localhost:8103/
 const medplum = new MedplumClient({
@@ -68,16 +68,16 @@ await mock.reset() // back to the seeded state
 
 Every `MedplumAPI` seeds what a fresh self-hosted server seeds, which is the super admin
 (`admin@example.com` / `medplum_admin`) and the R4 base project. It also seeds a ready project,
-**Emulators** (`DEFAULT_PROJECT_ID`), with a project-admin client application
+**Emulates** (`DEFAULT_PROJECT_ID`), with a project-admin client application
 (`DEFAULT_CLIENT_ID` / `DEFAULT_CLIENT_SECRET`). Pass `project: false` to seed only what the
 server does.
 
-### `emulators-medplum serve`
+### `emulates-medplum serve`
 
 ```bash
-npx emulators-medplum serve                     # http://127.0.0.1:8103
-npx emulators-medplum serve --port 0 --client-id 0b9e4a5c-0000-4000-8000-00000000c1d1 --client-secret local
-npx emulators-medplum serve --help
+npx emulates-medplum serve                     # http://127.0.0.1:8103
+npx emulates-medplum serve --port 0 --client-id 0b9e4a5c-0000-4000-8000-00000000c1d1 --client-secret local
+npx emulates-medplum serve --help
 ```
 
 | Flag | Default | Meaning |
@@ -88,9 +88,9 @@ npx emulators-medplum serve --help
 | `--client-id <uuid>` / `--client-secret <secret>` | `DEFAULT_CLIENT_ID` / `DEFAULT_CLIENT_SECRET` | The default project's client application |
 | `--project-id <uuid>` | `DEFAULT_PROJECT_ID` | The default project's id |
 | `--super-admin-email <email>` / `--super-admin-password <password>` | `admin@example.com` / `medplum_admin` | The seeded super admin |
-| `--admin-key <key>` | open | Require `x-emulators-admin-key` on `/__admin/*` |
+| `--admin-key <key>` | open | Require `x-emulates-admin-key` on `/__admin/*` |
 | `--log <pretty\|json\|off>` | `pretty` | One line per request |
-| `--config <file>` | — | Serve every service in a `emulators.json` (use `"medplum"` as the service name) |
+| `--config <file>` | — | Serve every service in a `emulates.json` (use `"medplum"` as the service name) |
 
 It prints the listening address and the seeded client credentials. Point `MedplumClient`
 (`baseUrl: "http://127.0.0.1:8103/"`) or your backend's Medplum base URL at it.
@@ -99,7 +99,7 @@ It prints the listening address and the seeded client credentials. Point `Medplu
 
 ```ts
 import { MedplumClient } from "@medplum/core"
-import { createServer } from "@emulators/medplum/server"
+import { createServer } from "@emulates/medplum/server"
 
 const server = await createServer() // any free port; the base URL is the listening address
 const medplum = new MedplumClient({ baseUrl: `${server.url}/` })
@@ -117,13 +117,13 @@ includes health, the `/__admin/*` control plane, namespaces, the clock, faults a
 journal. Hand it to `Bun.serve`, a Worker or Deno, or call it directly:
 
 ```ts
-import { createRuntime } from "@emulators/medplum"
+import { createRuntime } from "@emulates/medplum"
 
 const medplum = createRuntime({ baseUrl: "https://medplum.test/" })
 export default { fetch: (request: Request) => medplum.fetch(request) }
 ```
 
-Namespaces isolate data. A request picks one with `x-emulators-namespace: <name>`, with a
+Namespaces isolate data. A request picks one with `x-emulates-namespace: <name>`, with a
 `/__admin/ns/<name>/` base-URL prefix (`new MedplumClient({ baseUrl: "http://localhost:8103/__admin/ns/worker-1/" })`),
 or through its client id (`PUT /__admin/credentials {"credentials": {"<clientId>": "<namespace>"}}`).
 A client is recognized from Basic auth, from a bearer token's `client_id`, or from the
@@ -192,7 +192,7 @@ emulated.
 | Export | Description |
 | --- | --- |
 | `MedplumAPI` | Class. `new MedplumAPI(options?)`; `fetch(request: Request): Promise<Response>` is the Medplum server. |
-| `createRuntime` | `(options?: MedplumRuntimeOptions) => MedplumRuntime` — the served emulator with the Emulators service contract. |
+| `createRuntime` | `(options?: MedplumRuntimeOptions) => MedplumRuntime` — the served emulator with the Emulates service contract. |
 | `MEDPLUM_PRESETS` | The fault presets above, as `Record<string, FaultPreset>`. |
 | `MEDPLUM_NAMESPACE` | `"medplum"` — the service name and default namespace. |
 | `document` | The vendored OpenAPI contract (`openapi.yaml`). |
@@ -229,7 +229,7 @@ type MedplumAPIOptions = {
   now?: () => number        // clock for meta.lastUpdated, token lifetimes; default Date.now
   namespace?: string        // storage namespace; default "medplum"
   seed?: number | string    // seeds generated ids and secrets; default the namespace
-  sqlite?: SqliteClient     // default @emulators/sqlite
+  sqlite?: SqliteClient     // default @emulates/sqlite
   superAdmin?: { email?, password?, clientId?, clientSecret? }
   project?: false | { id?, name?, clientId?, clientSecret?, clientAdmin?, users?: MedplumUserFixture[] }
   maxSearchOffset?: number  // largest _offset accepted; default unlimited, as on the server
@@ -250,12 +250,12 @@ bun run test                          # unit, SDK, auth, runtime, property and r
 bun run portability                   # bundle for the browser platform and run it in workerd
 bun run parity                        # boot a self-hosted Medplum and run every scenario and random walks live
 bun run oracle:record                 # refresh test/fixtures/oracle-recording.json from the oracle
-EMULATORS_MEDPLUM_ORACLE=1 bun test medplum.oracle.test.ts   # the live comparison as a test
-EMULATORS_MEDPLUM_ORACLE_URL=http://127.0.0.1:8103/ bun test medplum.oracle.test.ts
+EMULATES_MEDPLUM_ORACLE=1 bun test medplum.oracle.test.ts   # the live comparison as a test
+EMULATES_MEDPLUM_ORACLE_URL=http://127.0.0.1:8103/ bun test medplum.oracle.test.ts
 ```
 
 The oracle (`oracle/`, dev-only) is the real Medplum server built from the pinned tag
-(`EMULATORS_MEDPLUM_VERSION`, default `v5.1.37`) into `~/.cache/emulators/medplum-server`
+(`EMULATES_MEDPLUM_VERSION`, default `v5.1.37`) into `~/.cache/emulators/medplum-server`
 (`MEDPLUM_MOCK_CACHE_DIR`). It runs on embedded Postgres and a `redis-server` on `PATH`. The
 first boot clones and builds it, which takes several minutes. After changing a scenario, run
 `bun run oracle:record`.

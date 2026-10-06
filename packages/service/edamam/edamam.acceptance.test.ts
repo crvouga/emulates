@@ -123,7 +123,7 @@ describe("S25 Edamam acceptance: the backend's nutrition adapter", () => {
     const bar = await nutrition.adapter.lookupFoodsByBarcode("850000000012")
     expect(bar.status === "ok" && bar.items[0]).toMatchObject({
       name: "Protein Bar",
-      brand: "Emulators Foods",
+      brand: "Emulates Foods",
       barcode: "850000000012",
       confidence: "high",
       calories: 210,
@@ -404,11 +404,11 @@ describe("contract", () => {
     expect(photo.status === "ok" && photo.items[0]?.name).toBe("Avocado")
     const viaHeader = await runtime.fetch(
       new Request(`${API}/api/recipes/v2/only_in_a?type=public&app_id=x&app_key=y`, {
-        headers: { "x-emulators-namespace": "a" },
+        headers: { "x-emulates-namespace": "a" },
       }),
     )
     expect(viaHeader.status).toBe(200)
-    expect(viaHeader.headers.get("x-emulators")).toMatch(/^edamam@.*; ns=a$/)
+    expect(viaHeader.headers.get("x-emulates")).toMatch(/^edamam@.*; ns=a$/)
     await admin("/settings", { apps: [{ appId: "food-app", appKey: "food-key" }] }, "PUT")
     const wrong = await runtime.fetch(
       new Request(`${API}/api/food-database/v2/parser?ingr=egg&app_id=food-app&app_key=nope`),
@@ -444,7 +444,7 @@ describe("served over HTTP", () => {
       ).adapter.searchRecipes(USER, criteria({ query: "salmon" }))
       expect(recipes.status === "ok" && recipes.recipes[0]?.label).toBe("Lemon Baked Salmon")
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^edamam@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^edamam@/)
     } finally {
       await server.close()
     }

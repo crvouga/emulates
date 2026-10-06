@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -14,8 +14,8 @@ import {
   type Service,
   sha,
   sigV4AccessKeyId,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { analyzeAnthropic, analyzeConverse, analyzeHarness, ValidationProblem } from "./analyze.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
@@ -39,8 +39,8 @@ import {
 import { sonicSession } from "./sonic.js"
 import { BedrockState, type ModelStats, type Settings } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type {
   EventStreamMessage,
   HeaderValue,

@@ -1,13 +1,13 @@
-# @emulators/step-functions
+# @emulates/step-functions
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful AWS Step Functions emulator for the official SFN SDK v3 client. It models Standard execution identity, input/output strings, deterministic terminal transitions, callback tokens, stop requests, ordered history, pagination, and shared-clock scripts without contacting AWS.
 
 ## Install
 
 ```bash
-npm install -D @emulators/step-functions
+npm install -D @emulates/step-functions
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -17,7 +17,7 @@ ESM only. Node 22+ or Bun 1.2+.
 Point the SFN client's `endpoint` option at the emulator. Fixture SigV4 credentials are accepted.
 
 ```ts
-import { createServer } from "@emulators/step-functions/server"
+import { createServer } from "@emulates/step-functions/server"
 
 const mock = await createServer({
   stateMachines: [
@@ -41,7 +41,7 @@ Supported operations are StartExecution, DescribeExecution, StopExecution, GetEx
 - Scripted machines transition when the shared clock reaches `afterMs`; no polling sleep is necessary.
 - Fault presets are `throttled` and `unavailable`.
 
-The shared runtime also supplies reset, timeline, journal, metrics, faults, and namespace isolation through `x-emulators-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime also supplies reset, timeline, journal, metrics, faults, and namespace isolation through `x-emulates-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 
@@ -51,7 +51,7 @@ The full Amazon States Language interpreter, real service integrations, Express 
 
 - `StepFunctionsAPI`, `StepFunctionsAPIOptions`, `StateMachineSeed`: handler and fixtures.
 - `Execution`, `ExecutionStatus`, `HistoryEvent`, `StateMachine`: durable workflow state.
-- `createRuntime`, `StepFunctionsRuntime`, `StepFunctionsRuntimeOptions`: full Emulators runtime.
+- `createRuntime`, `StepFunctionsRuntime`, `StepFunctionsRuntimeOptions`: full Emulates runtime.
 - `STEP_FUNCTIONS_NAMESPACE`, `STEP_FUNCTIONS_PRESETS`, `accessKeyCredential`: constants and controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
 - `createServer`, `StepFunctionsServerOptions`, `DEFAULT_PORT`, `serveTarget` from `./server`: Node HTTP adapter and CLI integration.

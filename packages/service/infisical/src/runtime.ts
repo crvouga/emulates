@@ -6,7 +6,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { InfisicalAPI, type InfisicalAPIOptions, object } from "./index.js"
 import { DEFAULT_ADMIN_KEY, type Grant, normalizePath, type ProjectTree } from "./state.js"

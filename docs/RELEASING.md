@@ -7,10 +7,10 @@ Upgrading from the `@crvouga/mockingbird-service-*` packages? See
 
 ## Package names
 
-Every published service is `@emulators/<id>`, where `<id>` is its directory under
+Every published service is `@emulates/<id>`, where `<id>` is its directory under
 `packages/service/`. The name is derived, not chosen: `packageName(id)` in
 [`project.ts`](../project.ts) builds it, and `check:boundaries` fails if a service's
-`package.json` disagrees. Publishing needs the `emulators` npm organization to exist.
+`package.json` disagrees. Publishing needs the `emulates` npm organization to exist.
 
 ## How a release runs
 
@@ -37,23 +37,23 @@ bun run secrets:doctor                 # npm / Trusted Publishing / live parity 
 The project published as Mockingbird before the rename, and npm names are immutable, so the old
 packages stay on npm, deprecated in favor of their successors:
 
-- **Services.** Each `@crvouga/mockingbird-service-<id>` is succeeded by `@emulators/<id>`. The first
-  `@emulators/<id>` release continues the former package's version line (the next patch above its
+- **Services.** Each `@crvouga/mockingbird-service-<id>` is succeeded by `@emulates/<id>`. The first
+  `@emulates/<id>` release continues the former package's version line (the next patch above its
   latest published version) instead of restarting at `0.1.0`. Once the successor is on npm, the seed
-  deprecates the former name with "This package has moved to @emulators/<id>. Install
-  @emulators/<id> instead." A former name is never deprecated before its successor exists.
+  deprecates the former name with "This package has moved to @emulates/<id>. Install
+  @emulates/<id> instead." A former name is never deprecated before its successor exists.
 - **Helpers.** The former helper packages (`@crvouga/mockingbird`, `@crvouga/mockingbird-core`,
   `-service`, `-sqlite`, `-openapi*`, `-http-codec`, `-commands`, `-model`, `-canonicalize`,
   `-parity`, `-adapter-*`, `-openbao`) are bundled into the services and no longer published. Their
-  deprecation messages are re-pointed at `@emulators/*`; the seed re-deprecates any package whose
+  deprecation messages are re-pointed at `@emulates/*`; the seed re-deprecates any package whose
   current message differs.
 - **Archived packages.** `@crvouga/postgres-mem` and `@crvouga/sqlite-mem` continue here as
-  `@emulators/postgres` and `@emulators/sqlite`.
+  `@emulates/postgres` and `@emulates/sqlite`.
 
 After the rename merges, a maintainer runs `bun run rebrand:bootstrap -- --publish` once (add
-`--dry-run` to preview). It requires the npm org `emulators` (create it at
+`--dry-run` to preview). It requires the npm org `emulates` (create it at
 https://www.npmjs.com/org/create; npm cannot create orgs from the CLI), then runs
-`bun run release:seed`, which creates the `@emulators/*` packages, attaches their Trusted
+`bun run release:seed`, which creates the `@emulates/*` packages, attaches their Trusted
 Publishers, and deprecates the former names. OIDC
 only authenticates publish operations, so CI logs pending deprecations for the next local seed
 instead of managing package settings. The full old-to-new mapping is in

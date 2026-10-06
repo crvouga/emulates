@@ -1,6 +1,6 @@
-# @emulators/otel
+# @emulates/otel
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of an **OTLP/HTTP collector** in front of the **OpenObserve (O2) search API**,
 over one store. Local and E2E runs stop exporting to production telemetry infrastructure, and a
@@ -15,11 +15,11 @@ emitted `initial_credit_reconcile_completed` with `granted=1`").
 ## Install
 
 ```bash
-npm install -D @emulators/otel
+npm install -D @emulates/otel
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies, no protobuf library (a minimal
-wire-format decoder is built in). Serve it with `npx emulators-otel serve`, `createServer`
+wire-format decoder is built in). Serve it with `npx emulates-otel serve`, `createServer`
 from `./server` (Node), or `createRuntime` with any Fetch server.
 
 ## Usage
@@ -29,11 +29,11 @@ samples 10% of root spans otherwise). Point `O2_BASE_URL` at the same emulator; 
 any base64 `user:password` unless `--search-auth` is set.
 
 ```bash
-npx emulators-otel serve --port 8809 --ingest-token "$OTEL_AUTH_TOKEN"
+npx emulates-otel serve --port 8809 --ingest-token "$OTEL_AUTH_TOKEN"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/otel"
+import { createRuntime } from "@emulates/otel"
 
 const otel = createRuntime()
 const call = (path: string, init: RequestInit) => otel.fetch(new Request(`http://otel.test${path}`, init))
@@ -142,7 +142,7 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the endpoint and base URL, or by credential:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the endpoint and base URL, or by credential:
 `PUT /__admin/credentials {"credentials": {"<OTEL_AUTH_TOKEN>": "w1", "<O2 username>": "w1"}}`
 (map both so a worker's exports and searches meet).
 

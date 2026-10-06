@@ -1,4 +1,4 @@
-import { type ResultSet, SqliteError } from "@emulators/sqlite";
+import { type ResultSet, SqliteError } from "@emulates/sqlite";
 import { getDb } from "./db.ts";
 
 export type SqlErrorInfo = {

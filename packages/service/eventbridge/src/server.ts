@@ -1,4 +1,4 @@
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import {
   createRuntime,
   type EventBridgeRuntime,

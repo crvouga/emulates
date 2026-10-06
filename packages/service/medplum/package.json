@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/medplum",
+  "name": "@emulates/medplum",
   "version": "0.0.0-development",
   "description": "Stateful emulator of the self-hosted Medplum server (FHIR R4 REST, OAuth2 and admin API), proven at parity with a real self-hosted Medplum used as the oracle.",
   "license": "MIT",
@@ -27,7 +27,7 @@
     }
   },
   "bin": {
-    "emulators-medplum": "./dist/cli.js"
+    "emulates-medplum": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -40,7 +40,7 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/medplum#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "service",
     "medplum",
     "fhir",
@@ -48,7 +48,7 @@
     "ehr",
     "emulator"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -102,23 +102,23 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
     "@medplum/core": "5.1.37",
     "@medplum/fhirtypes": "5.1.37",
     "dataloader": "2.2.3",
     "graphql": "17.0.2"
   },
   "devDependencies": {
-    "@emulators/adapter-node": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/http-codec": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/testing": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/http-codec": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "@medplum/definitions": "5.1.37",
     "@types/bun": "1.4.0",
     "@types/node": "22.20.1",

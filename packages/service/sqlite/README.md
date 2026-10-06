@@ -1,12 +1,12 @@
-# @emulators/sqlite
+# @emulates/sqlite
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Pure TypeScript, completely in-memory SQLite engine aiming for **full SQLite3 SQL dialect parity**
 (same statements, same results). Use it in tests (or the browser) wherever you want real SQLite SQL
 semantics without native bindings: schema + migrations, constraints, transactions, JSON functions,
 FTS, and copy-on-write snapshots for per-test isolation. It is also the default storage engine
-behind every Emulators HTTP emulator (Stripe, Junction, GeneByGene, ...).
+behind every Emulates HTTP emulator (Stripe, Junction, GeneByGene, ...).
 
 > Formerly [`@crvouga/sqlite-mem`](https://www.npmjs.com/package/@crvouga/sqlite-mem)
 > ([archived repo](https://github.com/crvouga/sqlite-mem)). Migrate by replacing the package name;
@@ -40,19 +40,19 @@ Files marked (shipped) are included in the npm package next to this README.
 ## Install
 
 ```bash
-npm install -D @emulators/sqlite
-# or: bun add -d @emulators/sqlite
+npm install -D @emulates/sqlite
+# or: bun add -d @emulates/sqlite
 ```
 
-Requires Node.js >= 20 or Bun >= 1.1 (`engines`); the rest of Emulators targets Node >= 22 /
+Requires Node.js >= 20 or Bun >= 1.1 (`engines`); the rest of Emulates targets Node >= 22 /
 Bun >= 1.2. The package is **ESM only** and has no runtime dependencies. Install it as a regular
-dependency instead of `-D` if you ship it to the browser. The Emulators HTTP emulators already depend
+dependency instead of `-D` if you ship it to the browser. The Emulates HTTP emulators already depend
 on it; install it directly only to use the engine yourself or to pass a shared `Database` to them.
 
 ## Usage
 
 ```ts
-import { Database, Snapshot } from "@emulators/sqlite"
+import { Database, Snapshot } from "@emulates/sqlite"
 
 const db = new Database()
 
@@ -88,7 +88,7 @@ test (microseconds, tables are shared until either side writes):
 
 ```ts
 import { beforeEach, expect, test } from "bun:test"
-import { Database, SqliteError } from "@emulators/sqlite"
+import { Database, SqliteError } from "@emulates/sqlite"
 
 const template = new Database()
 template.exec(`
@@ -120,16 +120,16 @@ test("each test starts from the seed", () => {
 
 ### As the emulators' storage
 
-Every Emulators HTTP emulator accepts a `sqlite` option typed as the `SqliteClient` port bundled
+Every Emulates HTTP emulator accepts a `sqlite` option typed as the `SqliteClient` port bundled
 with each emulator package (`exec`, `prepare(sql).run/all/get`, `transaction`). This package's
 `Database` satisfies it and is what an emulator creates when you omit the option. Pass your own to share
 one database between several emulators (each keeps its records under its own namespace, e.g.
 `"stripe"`, `"junction"`), to inspect what an emulator stored, or to snapshot a warmed-up emulator:
 
 ```js
-import { Database } from "@emulators/sqlite"
-import { StripeAPI } from "@emulators/stripe"
-import { JunctionAPI } from "@emulators/junction"
+import { Database } from "@emulates/sqlite"
+import { StripeAPI } from "@emulates/stripe"
+import { JunctionAPI } from "@emulates/junction"
 
 const sqlite = new Database({ now: "system" })
 const stripe = new StripeAPI({ sqlite })
@@ -148,13 +148,13 @@ wrapped `bun:sqlite`) also satisfies the port.
 ### Socket
 
 SQLite has no client/server protocol, so the stock `sqlite3` CLI cannot attach to this
-engine. `@emulators/sqlite/socket` is a Node entry (it needs `node:net`)
+engine. `@emulates/sqlite/socket` is a Node entry (it needs `node:net`)
 that listens on `sqlite://host:port/name` and speaks a length-prefixed JSON frame. The
 in-package `connect(uri)` client runs statements against it. Portable queries, including
 from a browser, go through the admin API (`POST /__admin/sql/query`) instead.
 
 ```ts
-import { connect, serve } from "@emulators/sqlite/socket"
+import { connect, serve } from "@emulates/sqlite/socket"
 
 const server = await serve("sqlite://127.0.0.1:0/app")
 const db = await connect(server.url)
@@ -163,8 +163,8 @@ await db.close()
 await server.close()
 ```
 
-`emulators-sqlite serve` prints that URI. `createAdmin` from
-`@emulators/sqlite/admin` serves the same `/__admin` surface as every
+`emulates-sqlite serve` prints that URI. `createAdmin` from
+`@emulates/sqlite/admin` serves the same `/__admin` surface as every
 other emulator, including the table explorer.
 
 ### Method semantics
@@ -203,7 +203,7 @@ Supported styles: `?`, `?NNN`, `:name`, `@name`, `$name`.
 - Rejected (`datatype_mismatch`): `undefined`, `Date`, plain objects, `NaN` / `Infinity`.
 
 ```ts
-import { Database } from "@emulators/sqlite"
+import { Database } from "@emulates/sqlite"
 
 const db = new Database()
 console.log(db.query(`SELECT ? AS a, :name AS b`, [1, "Alice"])) // [{ a: 1, b: "Alice" }]
@@ -301,7 +301,7 @@ named `true`/`false` shadows the literal.
 8. **No better-sqlite3 extras**: no `iterate`, `pluck`/`raw`, `safeIntegers` option, `pragma()` helper, `loadExtension`, or SQLite-file `serialize()`.
 9. **Do not bind `Date` objects**: store unixepoch integers or ISO text. Do not bind `DataView` / non-`Uint8Array` typed arrays.
 10. **Do not use `Number.isInteger` for SQL REAL vs INTEGER**: use SQL `typeof()`.
-11. **Do not import `@emulators/sqlite/unstable` in application code** unless you accept breakage in any release.
+11. **Do not import `@emulates/sqlite/unstable` in application code** unless you accept breakage in any release.
 12. **Known issue:** a column-level `UNIQUE` followed by another column constraint (for example
     `email TEXT UNIQUE NOT NULL`, `UNIQUE DEFAULT ...`, `UNIQUE CHECK (...)`) is currently not
     enforced. Put `UNIQUE` last (`email TEXT NOT NULL UNIQUE`), use a table constraint
@@ -313,7 +313,7 @@ Stable runtime exports of the main entry:
 
 | Export | Description |
 | --- | --- |
-| `Database` | Class. `new Database(options?: DatabaseOptions)` — one in-memory SQLite database. Satisfies the Emulators `SqliteClient` port. |
+| `Database` | Class. `new Database(options?: DatabaseOptions)` — one in-memory SQLite database. Satisfies the Emulates `SqliteClient` port. |
 | `Snapshot` | Class. Frozen template from `db.snapshot()` or `Snapshot.decode(bytes)`; `open(options?)` forks a `Database`, `encode()` serializes. |
 | `Statement` | Class returned by `db.prepare(sql)` (not constructed directly): `run`, `all`, `get`, `result`. |
 | `SqliteError` | Error class thrown for SQL and API errors: `category` (`ErrorCategory`), `sqliteCode` / `code` (SQLite result-code name, e.g. `"SQLITE_CONSTRAINT_UNIQUE"`; default `"SQLITE_ERROR"`). |
@@ -400,18 +400,18 @@ declare class SqliteError extends Error {
 
 Stick to `Database`, `Snapshot`, `Statement`, and `SqliteError` in application code. Advanced
 internals (`parse`, `tokenize`, `evalExpr`, snapshot codec pieces, `SqlValue` utilities, `Prng`,
-...) are available only from `@emulators/sqlite/unstable` and are **exempt from
+...) are available only from `@emulates/sqlite/unstable` and are **exempt from
 semver**.
 
 ### Stability policy
 
-The exports of the main entry (`@emulators/sqlite`) are **frozen**:
+The exports of the main entry (`@emulates/sqlite`) are **frozen**:
 
 - **Never** outside a major: removals, renames, signature changes, or changes to documented
   behaviour of the stable surface.
 - **Allowed in minors:** additions (new methods, new optional `DatabaseOptions` fields, new
   `ErrorCategory` values). Consumers that `switch` on `category` must include a default case.
-- **`@emulators/sqlite/unstable`** is exempt from semver and may change or
+- **`@emulates/sqlite/unstable`** is exempt from semver and may change or
   disappear in any release.
 - **Snapshots:** newer library versions restore older blobs; older library versions cannot restore
   newer format versions; the byte-identical guarantee holds only within one library version.
@@ -451,7 +451,7 @@ A React + Vite SQL playground lives in
 [`tests/contract/api/`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite/tests/contract/api)
 and [`tests/contract/parameters/`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite/tests/contract/parameters).
 
-Released automatically from the [Emulators monorepo](https://github.com/crvouga/emulators)
+Released automatically from the [Emulates monorepo](https://github.com/crvouga/emulators)
 (see [Releasing](https://github.com/crvouga/emulators/blob/main/docs/RELEASING.md)). License: MIT ([LICENSE](./LICENSE)).
 
 Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).

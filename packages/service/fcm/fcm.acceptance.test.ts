@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import {
   createRuntime,
   FCM_FIXTURE_PROJECT,
@@ -20,7 +20,7 @@ const admin = async (
   namespace?: string,
 ) => {
   const headers: Record<string, string> = { "content-type": "application/json" }
-  if (namespace) headers["x-emulators-namespace"] = namespace
+  if (namespace) headers["x-emulates-namespace"] = namespace
   const response = await runtime.fetch(
     new Request(`${BASE}/__admin${path}`, {
       method,
@@ -51,7 +51,7 @@ const register = (
   )
 
 describe("FCM HTTP v1", () => {
-  test("accepts a fixture token, delivers the inbox, and stamps x-emulators", async () => {
+  test("accepts a fixture token, delivers the inbox, and stamps x-emulates", async () => {
     const runtime = createRuntime()
     // A past apns-expiration expires the accept before the inbox is written.
     const apnsExpiration = String(Math.floor(Date.now() / 1000) + 7200)
@@ -84,7 +84,7 @@ describe("FCM HTTP v1", () => {
         }),
       }),
     )
-    expect(response.headers.get("x-emulators")).toContain("fcm@")
+    expect(response.headers.get("x-emulates")).toContain("fcm@")
     const body = (await response.json()) as { name: string }
     expect(response.status).toBe(200)
     const messages = await outbox(runtime)
@@ -340,7 +340,7 @@ describe("FCM HTTP v1", () => {
       sendToFcm(runtime.fetch.bind(runtime), BASE, FCM_FIXTURE_PROJECT, {
         token: FCM_FIXTURE_TOKEN,
       }),
-    ).rejects.toMatchObject({ code: "EMULATORS_DROP" })
+    ).rejects.toMatchObject({ code: "EMULATES_DROP" })
     expect(await outbox(runtime)).toHaveLength(0)
     await admin(runtime, "DELETE", "/faults")
     await admin(runtime, "POST", "/faults", { preset: "accepted_then_network_drop" })
@@ -348,7 +348,7 @@ describe("FCM HTTP v1", () => {
       sendToFcm(runtime.fetch.bind(runtime), BASE, FCM_FIXTURE_PROJECT, {
         token: FCM_FIXTURE_TOKEN,
       }),
-    ).rejects.toMatchObject({ code: "EMULATORS_DROP" })
+    ).rejects.toMatchObject({ code: "EMULATES_DROP" })
     const messages = await outbox(runtime)
     expect(messages).toHaveLength(1)
     expect(messages[0]?.state).toBe("delivered")
@@ -392,7 +392,7 @@ describe("FCM HTTP v1", () => {
         token: "same-token",
         android: { ttl: "1s" },
       },
-      { headers: { "x-emulators-namespace": "alpha" } },
+      { headers: { "x-emulates-namespace": "alpha" } },
     )
     await sendToFcm(
       runtime.fetch.bind(runtime),
@@ -402,7 +402,7 @@ describe("FCM HTTP v1", () => {
         token: "same-token",
         android: { ttl: "1s" },
       },
-      { headers: { "x-emulators-namespace": "beta" } },
+      { headers: { "x-emulates-namespace": "beta" } },
     )
     const alpha = await outbox(runtime, "alpha")
     const beta = await outbox(runtime, "beta")
@@ -419,7 +419,7 @@ describe("FCM HTTP v1", () => {
       FCM_FIXTURE_PROJECT,
       { token: "same-token" },
       {
-        headers: { "x-emulators-namespace": "alpha" },
+        headers: { "x-emulates-namespace": "alpha" },
       },
     )
     const open = await sendToFcm(
@@ -428,7 +428,7 @@ describe("FCM HTTP v1", () => {
       FCM_FIXTURE_PROJECT,
       { token: "same-token" },
       {
-        headers: { "x-emulators-namespace": "beta" },
+        headers: { "x-emulates-namespace": "beta" },
       },
     )
     expect(blocked.ok).toBe(false)

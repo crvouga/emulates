@@ -1,5 +1,5 @@
 /**
- * The Node entries: `createServer()` over `node:http`, and the `emulators-medplum serve`
+ * The Node entries: `createServer()` over `node:http`, and the `emulates-medplum serve`
  * CLI from the built `dist/cli.js`, driven over real sockets.
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
@@ -48,7 +48,7 @@ describe("createServer", () => {
 
 const cli = join(import.meta.dir, "dist", "cli.js")
 
-describe.skipIf(!existsSync(cli))("emulators-medplum serve", () => {
+describe.skipIf(!existsSync(cli))("emulates-medplum serve", () => {
   let child: ChildProcess
   let output = ""
   const port = 18000 + Math.floor(Math.random() * 1000)

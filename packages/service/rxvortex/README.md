@@ -1,6 +1,6 @@
-# @emulators/rxvortex
+# @emulates/rxvortex
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **RxVortex (Strive)** compounding-pharmacy API for test suites: the
 client-credentials token, order submit, status, cancel, the recovery lookup by sender order id,
@@ -15,11 +15,11 @@ suite that waited up to 60 s on the real sandbox resolves in milliseconds.
 ## Install
 
 ```bash
-npm install -D @emulators/rxvortex
+npm install -D @emulates/rxvortex
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-rxvortex serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-rxvortex serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -28,7 +28,7 @@ Point `RXVORTEX_API_URL` at the emulator. Set `RXVORTEX_WEBHOOK_SECRET` in the a
 value as `--webhook-secret`.
 
 ```bash
-npx emulators-rxvortex serve --port 8791 \
+npx emulates-rxvortex serve --port 8791 \
   --webhook-url http://127.0.0.1:3000/prescriptions/webhooks/rxvortex \
   --webhook-secret "$RXVORTEX_WEBHOOK_SECRET" \
   --auto-advance "2000:Fill,Shipping,Delivered" \
@@ -41,7 +41,7 @@ response loads as-is. Only `catalog_id` and `medication_name` are required. `POS
 returns to these rows. Pass `--unknown-presets accept` to take any well-formed preset id instead.
 
 ```ts
-import { createRuntime } from "@emulators/rxvortex"
+import { createRuntime } from "@emulates/rxvortex"
 
 const rx = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/prescriptions/webhooks/rxvortex", secret: "whsec-test" },
@@ -105,7 +105,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 ### Namespaces
 
 Our backend's `fetch` cannot add headers, so a namespace can be chosen three ways:
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `RXVORTEX_API_URL`, or by client id:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `RXVORTEX_API_URL`, or by client id:
 `PUT /__admin/credentials {"credentials": {"<RXVORTEX_CLIENT_ID>": "<namespace>"}}` (tokens carry
 the client id they were issued to).
 

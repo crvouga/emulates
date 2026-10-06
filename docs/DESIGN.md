@@ -1,6 +1,6 @@
 # Design
 
-Emulators is a quiet, typographic site: paper, ink, and one action color. The identity is
+Emulates is a quiet, typographic site: paper, ink, and one action color. The identity is
 the name, one sentence, and a simple mark. The site, this file, the GitHub README, llms.txt,
 and every package published to npm use the same sentence and the same mark.
 

@@ -1,24 +1,24 @@
-# @emulators/airtable
+# @emulates/airtable
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Airtable OAuth and forms-integration emulator. Only synthetic fixtures belong here.
 
 ## Install
 
-`bun add @emulators/airtable`
+`bun add @emulates/airtable`
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/airtable"
+import { createRuntime } from "@emulates/airtable"
 const runtime = createRuntime()
 const response = await runtime.fetch(new Request("http://airtable.test/v0/meta/bases", {
   headers: { authorization: "Bearer mock_airtable_token" },
 }))
 ```
 
-Run `emulators-airtable serve --port 12130`. Inject its origin for both the API and OAuth origin in the optional integration; consumer endpoint wiring is separate.
+Run `emulates-airtable serve --port 12130`. Inject its origin for both the API and OAuth origin in the optional integration; consumer endpoint wiring is separate.
 
 ## Surface and state
 

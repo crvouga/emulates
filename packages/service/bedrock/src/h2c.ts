@@ -24,7 +24,7 @@ import {
 } from "node:http2"
 import { type AddressInfo, connect, createServer as createNetServer, type Socket } from "node:net"
 import { Readable } from "node:stream"
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 
 export type H2cListenOptions = {
   /** Default `0`: the OS picks a free port. */
@@ -56,7 +56,7 @@ const CONNECTION_HEADERS = new Set([
 const toWebBody = (stream: Readable): ReadableStream<Uint8Array> =>
   Readable.toWeb(stream) as unknown as ReadableStream<Uint8Array>
 
-const isDrop = (error: unknown) => (error as { code?: string } | null)?.code === "EMULATORS_DROP"
+const isDrop = (error: unknown) => (error as { code?: string } | null)?.code === "EMULATES_DROP"
 
 const internalError = (error: unknown) =>
   JSON.stringify({

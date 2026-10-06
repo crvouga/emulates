@@ -1,4 +1,4 @@
-# Amazon Data Firehose (Emulators subset) — operation support
+# Amazon Data Firehose (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

@@ -1,4 +1,4 @@
-import { fromBase64, opaqueToken, toBase64 } from "@emulators/service"
+import { fromBase64, opaqueToken, toBase64 } from "@emulates/service"
 import { type CorpusAddress, STATE_NAMES } from "./corpus.js"
 
 /**

@@ -1,4 +1,4 @@
-import { createRuntime, type StripeWebhookEvent } from "@emulators/stripe"
+import { createRuntime, type StripeWebhookEvent } from "@emulates/stripe"
 import type { HostedFlowStep } from "../../app/ports/hostedFlow.js"
 import type {
   CreateCheckoutSessionInput,

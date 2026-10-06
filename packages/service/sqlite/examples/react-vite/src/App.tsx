@@ -68,7 +68,7 @@ export function App() {
   return (
     <div className="page">
       <header className="hero">
-        <p className="eyebrow">@emulators/sqlite</p>
+        <p className="eyebrow">@emulates/sqlite</p>
         <h1>SQL playground</h1>
         <p className="lede">
           Pure TypeScript SQLite in the browser. Synchronous API, no WASM, no workers, no filesystem. The whole database

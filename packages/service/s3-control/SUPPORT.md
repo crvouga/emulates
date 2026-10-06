@@ -1,4 +1,4 @@
-# Amazon S3 Control (Emulators subset) — operation support
+# Amazon S3 Control (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

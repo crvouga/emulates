@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/oura",
+  "name": "@emulates/oura",
   "version": "0.0.0-development",
   "description": "Stateful Oura v2 emulator: wearable collections, OAuth refresh and namespace-isolated synthetic data.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-oura": "./dist/cli.js"
+    "emulates-oura": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,11 +39,11 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/oura#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "service",
     "oura"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -75,7 +75,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- oura",
-        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -102,22 +102,22 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulators/testing": "workspace:*",
-    "@emulators/sqlite": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/credentials": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/http-codec": "workspace:*",
-    "@emulators/adapter-node": "workspace:*"
+    "@emulates/testing": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/credentials": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/http-codec": "workspace:*",
+    "@emulates/adapter-node": "workspace:*"
   }
 }

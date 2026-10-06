@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { decodeForm } from "@emulators/http-codec"
-import { collectPlaceholders, ResourceTable } from "@emulators/model"
-import { type OpenAPIDocument, parseOpenAPIDocument, validateValue } from "@emulators/openapi"
-import { fcParameters } from "@emulators/testing"
+import { decodeForm } from "@emulates/http-codec"
+import { collectPlaceholders, ResourceTable } from "@emulates/model"
+import { type OpenAPIDocument, parseOpenAPIDocument, validateValue } from "@emulates/openapi"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import {
   commandArbitrary,
@@ -35,11 +35,11 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
                   metadata: {
                     type: "object",
                     properties: {
-                      run: { type: "string", "x-emulators-scope": { value: "run-id" } },
+                      run: { type: "string", "x-emulates-scope": { value: "run-id" } },
                     },
                     required: ["run"],
                   },
-                  legacy: { type: "string", "x-emulators-unsupported": true },
+                  legacy: { type: "string", "x-emulates-unsupported": true },
                 },
               },
             },
@@ -62,7 +62,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
             schema: {
               type: "object",
               properties: {
-                gte: { type: "integer", "x-emulators-scope": { value: "walk-start-unix" } },
+                gte: { type: "integer", "x-emulates-scope": { value: "walk-start-unix" } },
               },
               required: ["gte"],
             },
@@ -92,7 +92,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
           in: "path",
           required: true,
           schema: { type: "string" },
-          "x-emulators-resource-ref": { type: "customer", missing: "cus_missing" },
+          "x-emulates-resource-ref": { type: "customer", missing: "cus_missing" },
         },
       ],
       get: {
@@ -106,7 +106,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
       },
       delete: {
         operationId: "customers.delete",
-        "x-emulators": { parity: { safe: false, reason: "destructive" } },
+        "x-emulates": { parity: { safe: false, reason: "destructive" } },
         responses: { "200": { description: "ok" } },
       },
     },
@@ -121,7 +121,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
                 type: "object",
                 required: ["customer", "amount"],
                 properties: {
-                  customer: { type: "string", "x-emulators-resource-ref": { type: "customer" } },
+                  customer: { type: "string", "x-emulates-resource-ref": { type: "customer" } },
                   amount: { type: "integer", minimum: 0 },
                 },
               },
@@ -139,7 +139,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
     "/v1/unsupported": {
       get: {
         operationId: "unsupported.get",
-        "x-emulators": { supported: false, reason: "n/a" },
+        "x-emulates": { supported: false, reason: "n/a" },
         responses: { "200": { description: "ok" } },
       },
     },
@@ -149,17 +149,17 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
       customer: {
         type: "object",
         properties: {
-          id: { type: "string", "x-emulators-resource": { type: "customer", identity: true } },
+          id: { type: "string", "x-emulates-resource": { type: "customer", identity: true } },
           name: { type: "string" },
         },
       },
       price: {
         type: "object",
         properties: {
-          id: { type: "string", "x-emulators-resource": { type: "price", identity: true } },
+          id: { type: "string", "x-emulates-resource": { type: "price", identity: true } },
           customer: {
             type: "string",
-            "x-emulators-resource": { type: "customer", identity: true },
+            "x-emulates-resource": { type: "customer", identity: true },
           },
         },
       },

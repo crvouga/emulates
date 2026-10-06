@@ -12,9 +12,9 @@
  * small). `--include-unsafe` adds Transcribe batch, which starts real (billed) jobs. The
  * HTTP/2 duplex streams are covered by the SDK tests, not by random walks.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
-import { signV4 } from "@emulators/service"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
+import { signV4 } from "@emulates/service"
 import { document, SpeechAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

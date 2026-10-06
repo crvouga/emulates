@@ -17,7 +17,7 @@ const installation = (over: Partial<Installation> = {}): Installation => ({
 
 test("a token on this repository alone, with the agents' permissions, passes", () => {
   expect(reachProblems([installation()], [repo], repo)).toEqual([])
-  expect(reachProblems([installation()], ["Owner/Emulators"], repo)).toEqual([])
+  expect(reachProblems([installation()], [repo.toUpperCase()], repo)).toEqual([])
   // Fewer permissions than the app asks for is fine.
   expect(
     reachProblems([installation({ permissions: { metadata: "read" } })], [repo], repo),

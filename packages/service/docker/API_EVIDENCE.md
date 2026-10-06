@@ -92,7 +92,7 @@ Planned emulator policy: support v1.52 and unversioned aliases for the listed su
 Do not claim to emulate all older APIs merely because the real Engine accepts them.
 For numeric versions above 1.52, use the provider's too-new `400` error; versions
 below the default minimum 1.44 use its too-old `400` error. Versions 1.44–1.51
-are **unsupported by this emulator subset**: return an explicitly Emulators-labelled
+are **unsupported by this emulator subset**: return an explicitly Emulates-labelled
 `501` message, not a fictional Engine rejection. Historical compatibility can only
 be expanded with new evidence. Document these emulator-only 501 responses in codegen.
 

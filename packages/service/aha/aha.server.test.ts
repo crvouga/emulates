@@ -53,7 +53,7 @@ describe("served over HTTP", () => {
       expect(typeof received[0]?.scheduleServiceTime).toBe("string")
       expect(received[0]?.scheduleServiceTimeZone).toBe("America/New_York")
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^aha@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^aha@/)
       expect(((await health.json()) as { webhooks: string }).webhooks).toBe("on")
     } finally {
       await server.close()

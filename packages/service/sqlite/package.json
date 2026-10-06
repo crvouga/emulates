@@ -1,6 +1,6 @@
 {
   "bin": {
-    "emulators-sqlite": "./dist/socket/cli.js"
+    "emulates-sqlite": "./dist/socket/cli.js"
   },
   "bugs": {
     "url": "https://github.com/crvouga/emulators/issues"
@@ -9,10 +9,10 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.14",
-    "@emulators/admin-ui": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/ui": "workspace:*",
+    "@emulates/admin-ui": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/ui": "workspace:*",
     "@types/bun": "latest",
     "alasql": "^4.19.1",
     "esbuild": "^0.28.2",
@@ -61,7 +61,7 @@
   ],
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/sqlite#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "sqlite",
     "typescript",
     "in-memory",
@@ -70,7 +70,7 @@
   ],
   "license": "MIT",
   "main": "./dist/index.js",
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "service",
     "category": "databases",
@@ -103,7 +103,7 @@
     }
   },
   "module": "./dist/index.js",
-  "name": "@emulators/sqlite",
+  "name": "@emulates/sqlite",
   "publishConfig": {
     "access": "public",
     "provenance": true

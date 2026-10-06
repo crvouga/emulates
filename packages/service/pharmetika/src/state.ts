@@ -1,5 +1,5 @@
-import { Collection } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import {
   type Clinic,
   DEFAULT_CLINICS,

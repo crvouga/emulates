@@ -2,30 +2,30 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/crvouga/emulators/main/sites/docs/public/identity/emulators.svg" width="88" alt="">
+<img src="https://raw.githubusercontent.com/crvouga/emulators/main/sites/docs/public/identity/emulates.svg" width="88" alt="">
 
-<h1>Emulators</h1>
+<h1>Emulates</h1>
 
 **High-fidelity, in-process emulators for APIs and databases.**
 
 [![CI](https://github.com/crvouga/emulators/actions/workflows/pr.yml/badge.svg)](https://github.com/crvouga/emulators/actions/workflows/pr.yml) [![License](https://img.shields.io/badge/license-MIT-243f34)](#license)
 
-[Quick start](#quick-start) · [Why](docs/WHY.md) · [Design](docs/DESIGN.md) · [Guides](#guides) · [Catalog](https://emulators.chrisvouga.dev/services) · [llms.txt](llms.txt)
+[Quick start](#quick-start) · [Why](docs/WHY.md) · [Design](docs/DESIGN.md) · [Guides](#guides) · [Catalog](https://emulates.chrisvouga.dev/services) · [llms.txt](llms.txt)
 
 </div>
 
 Each emulator speaks a vendor's real API or a database's real wire protocol, keeps state like the real thing, and runs in your process. Point the official SDK or driver at it and most tests run fast, offline and deterministically, without a live vendor sandbox. Differential tests check every emulator against the real implementation.
 
-Each emulator is its own npm package. The catalog — names, parity, and what each one covers — is on the [docs site](https://emulators.chrisvouga.dev/services).
+Each emulator is its own npm package. The catalog — names, parity, and what each one covers — is on the [docs site](https://emulates.chrisvouga.dev/services).
 
 ## Quick start
 
 ```bash
-npm install -D @emulators/stripe
+npm install -D @emulates/stripe
 ```
 
 ```ts
-import { createRuntime } from "@emulators/stripe"
+import { createRuntime } from "@emulates/stripe"
 
 const stripe = createRuntime()
 
@@ -52,9 +52,9 @@ const list = await stripe.fetch(
 console.log((await list.json()).data[0].id === customer.id) // true
 ```
 
-Every package is self-contained ESM with TypeScript types. Every emulator is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers. Browse every emulator, with a live playground, on the [docs site](https://emulators.chrisvouga.dev/services).
+Every package is self-contained ESM with TypeScript types. Every emulator is isomorphic and runs in Node >= 22, Bun >= 1.2, browsers, and Workers. Browse every emulator, with a live playground, on the [docs site](https://emulates.chrisvouga.dev/services).
 
-## Why Emulators
+## Why Emulates
 
 - **Real SDK and API compatibility.** Each emulator answers the provider's own paths, headers, status codes and error envelopes through `fetch(Request) → Response`, and the database emulators speak the real wire protocol. Point the official SDK or driver at it unchanged.
 - **Stateful behavior.** Records persist in an in-memory SQL engine. Created customers can be listed, orders move through their lifecycle, webhooks fire, and reset or snapshot takes one call.
@@ -67,21 +67,21 @@ The full rationale, and when not to use it: [docs/WHY.md](docs/WHY.md).
 
 ## One contract for every HTTP service
 
-Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`EMULATORS_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.
+Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`EMULATES_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.
 
 ```bash
-npx emulators-junction serve --port 8787                # one service
-npx emulators-junction serve --config emulators.json  # every service in the config
+npx emulates-junction serve --port 8787                # one service
+npx emulates-junction serve --config emulates.json  # every service in the config
 ```
 
 | Surface | What it gives you |
 | --- | --- |
-| `createRuntime()` · `createServer()` (`./server`) · `emulators-<service> serve` | The emulator as one runtime-neutral `fetch`, or a listening server from Node or the CLI |
+| `createRuntime()` · `createServer()` (`./server`) · `emulates-<service> serve` | The emulator as one runtime-neutral `fetch`, or a listening server from Node or the CLI |
 | `GET /__admin/health` | Unauthenticated readiness probe, outside the vendor's auth gate |
-| `/__admin/*` (`x-emulators-admin-key` optional) | Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes |
+| `/__admin/*` (`x-emulates-admin-key` optional) | Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes |
 | `GET /__admin/state` | The collections in the selected namespace: declared shape, live `Collection` fields, and stored rows. Create, replace, merge, and delete records through the same paths on every emulator |
 | `GET /__admin/ui` | The shared admin UI. An emulator can add panels or replace the document; the shell still reads the same state API. Its header fetches that service's logo, website, and docs from the docs site when the page opens |
-| `x-emulators-namespace` | Per-request isolation: parallel workers share one process without sharing data |
+| `x-emulates-namespace` | Per-request isolation: parallel workers share one process without sharing data |
 | `--seed`, clock control | Seeded randomness and an injectable clock, so a run replays exactly |
 | `--log json` | One structured line per request: operation id, status, duration, namespace, fault |
 
@@ -96,7 +96,7 @@ npx emulators-junction serve --config emulators.json  # every service in the con
 }
 ```
 
-`emulators.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.
+`emulates.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.
 
 ## For coding agents
 
@@ -116,18 +116,18 @@ Building, testing and `bun run check` need no secrets and no accounts. Live pari
 
 | Guide | |
 | --- | --- |
-| [Why Emulators](docs/WHY.md) | Your tests are only as honest as the fakes they run against. Most suites that touch Stripe, Twilio or a lab partner either call a shared sandbox or stub the client. Both fail in ways that are expensive to notice. Emulators are a third option: in-process stand-ins that behave like the real API or database, checked against it continuously. |
+| [Why Emulates](docs/WHY.md) | Your tests are only as honest as the fakes they run against. Most suites that touch Stripe, Twilio or a lab partner either call a shared sandbox or stub the client. Both fail in ways that are expensive to notice. Emulates are a third option: in-process stand-ins that behave like the real API or database, checked against it continuously. |
 | [Testing and parity](docs/TESTING.md) | How every emulator is proven to behave like its vendor: differential contracts, property-based walks, and live parity against real sandboxes. |
 | [Authoring an emulator](docs/AUTHORING_A_SERVICE.md) | How to add a vendor emulator to this repo. The reference implementation is [`packages/service/rxvortex`](../packages/service/rxvortex): copy its layout and patterns. |
-| [Developing Emulators](docs/DEVELOPMENT.md) | Working on this repo: requirements, how the packages are layered, and the quality gates every change passes. |
-| [Design](docs/DESIGN.md) | Emulators is a quiet, typographic site: paper, ink, and one action color. The identity is the name, one sentence, and a simple mark. The site, this file, the GitHub README, llms.txt, and every package published to npm use the same sentence and the same mark. |
+| [Developing Emulates](docs/DEVELOPMENT.md) | Working on this repo: requirements, how the packages are layered, and the quality gates every change passes. |
+| [Design](docs/DESIGN.md) | Emulates is a quiet, typographic site: paper, ink, and one action color. The identity is the name, one sentence, and a simple mark. The site, this file, the GitHub README, llms.txt, and every package published to npm use the same sentence and the same mark. |
 | [Reporting issues](docs/REPORTING_ISSUES.md) | How coding agents in other projects file a GitHub issue when an emulator diverges from its oracle, lacks a feature they call, or breaks, or when they need a vendor emulated that the catalog does not cover yet. Agents in this repository pick the issues up and resolve them. |
 | [Releasing](docs/RELEASING.md) | How packages get from `main` to npm using Trusted Publishing, without a stored npm token. |
 | [Secrets runbook](docs/SECRETS.md) | Where every credential lives, who needs it, and how to run live parity without ever holding a sandbox key: GitHub Actions repo secrets are the only secret store. |
 | [AWS implementation and oracle coverage](docs/AWS_COVERAGE.md) | The LocalStack expansion is work in progress. No new LocalStack or live AWS oracle run was performed during integration. Implemented services have local transport and state tests; scaffold packages explicitly reject vendor operations. `bun run parity` fails when no scenario exists or the local oracle is unavailable. |
 | [Fleets](docs/FLEETS.md) | One service CLI can supervise installed HTTP emulators, PostgreSQL wire servers and Redis RESP servers. Every listener starts before readiness is published; a boot failure names the service, closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes the whole fleet. |
 | [Infrastructure and orchestration emulators](docs/INFRASTRUCTURE_MOCKS.md) | This document defines the boundaries and planned evidence for the Docker Engine, Hermes peer-run, and GitHub REST packages. |
-| [Migrating from Mockingbird](docs/MIGRATING.md) | Mockingbird has been renamed to Emulators. Packages have moved from their previous names to the corresponding `@emulators/*` packages; the old npm packages remain available but are deprecated. |
+| [Migrating from Mockingbird](docs/MIGRATING.md) | Mockingbird has been renamed to Emulates. Packages have moved from their previous names to the corresponding `@emulates/*` packages; the old npm packages remain available but are deprecated. |
 
 ## License
 

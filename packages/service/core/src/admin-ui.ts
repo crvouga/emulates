@@ -26,7 +26,7 @@ const escapeHtml = (value: string): string =>
  * page opens, so a docs deploy updates every already-published admin.
  * `?brands=` may name a localhost or same-origin copy of that JSON.
  */
-export const ADMIN_BRANDS_URL = "https://emulators.chrisvouga.dev/brands.json"
+export const ADMIN_BRANDS_URL = "https://emulates.chrisvouga.dev/brands.json"
 
 /**
  * The default admin document. It talks only to `/__admin/*`, so every mock can serve it.
@@ -52,7 +52,7 @@ export const renderAdminDocument = (service: string, adminPrefix = ADMIN_PREFIX)
 <style>html,body{margin:0;min-height:100%}#admin-root{min-height:100%}</style>
 </head>
 <body>
-<main id="admin-root" data-emulators-admin data-admin-ui-library="antd" data-service="${name}">
+<main id="admin-root" data-emulates-admin data-admin-ui-library="antd" data-service="${name}">
 <noscript>Enable JavaScript to use administration.</noscript>
 </main>
 ${script}

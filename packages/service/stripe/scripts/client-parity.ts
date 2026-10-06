@@ -7,7 +7,7 @@
  */
 
 import { createHmac } from "node:crypto"
-import { serve } from "@emulators/adapter-bun"
+import { serve } from "@emulates/adapter-bun"
 import Stripe from "stripe"
 import { accountOfKey } from "../src/account.js"
 import { StripeAPI } from "../src/index.js"

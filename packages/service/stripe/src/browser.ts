@@ -1,5 +1,5 @@
-import type { OperationContext, OperationHandler } from "@emulators/service"
-import { CSS_RESET } from "@emulators/ui"
+import type { OperationContext, OperationHandler } from "@emulates/service"
+import { CSS_RESET } from "@emulates/ui"
 import { afterIntentSucceeded } from "./billing.js"
 import { portalChange, runPortalAction } from "./billing-portal.js"
 import {

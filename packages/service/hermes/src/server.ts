@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type HermesRuntime, type HermesRuntimeOptions } from "./runtime.js"
 
 export const DEFAULT_PORT = 8827

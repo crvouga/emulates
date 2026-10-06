@@ -6,7 +6,7 @@ paths:
     post:
       operationId: EventBridgeRpc
       description: Dispatches AWSEvents.ListRules and AWSEvents.ListTargetsByRule.
-      x-emulators: { supported: true, parity: { enabled: true, safe: true } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
       parameters:
         - name: X-Amz-Target
           in: header

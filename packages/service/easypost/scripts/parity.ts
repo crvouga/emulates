@@ -7,8 +7,8 @@
  *
  * Trackers created in test mode are free and never reach a carrier.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, EasyPostAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

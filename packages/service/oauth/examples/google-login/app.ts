@@ -1,4 +1,4 @@
-import { CSS_RESET } from "@emulators/ui"
+import { CSS_RESET } from "@emulates/ui"
 import { type Context, Hono } from "hono"
 import * as oauth from "oauth4webapi"
 import { type BehaviorInput, OAuthAPI, type Provider } from "../../src/index.js"

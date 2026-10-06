@@ -101,7 +101,7 @@ export async function probeBookingLifecycle(call: SimulationProbeCall, runId: st
       const created = await call("POST", "/v3/order", {
         user_id: userId,
         patient_details: {
-          first_name: "Emulators",
+          first_name: "Emulates",
           last_name: `Probe${runId.replace(/[^a-z]/gi, "")}`,
           dob: "1990-01-01",
           gender: "female",

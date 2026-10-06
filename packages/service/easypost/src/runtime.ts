@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { apiKeyCredential, EASYPOST_NAMESPACE, EasyPostAPI, isTrackerStatus } from "./index.js"
 import type { Settings } from "./state.js"
@@ -125,7 +125,7 @@ const adminRoutes = (runtime: ServiceRuntime<EasyPostAPI>): AdminRoutes => ({
 })
 
 /**
- * The EasyPost emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The EasyPost emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<EASYPOST_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets and a request journal.

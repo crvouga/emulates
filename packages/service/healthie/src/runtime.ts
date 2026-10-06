@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import type { HealthieEvent } from "./graph.js"
 import { apiKeyOf, HEALTHIE_NAMESPACE, HealthieAPI, healthieTimestamp } from "./index.js"
@@ -373,7 +373,7 @@ const setActive = (api: HealthieAPI, id: string, active: boolean, at: string) =>
 }
 
 /**
- * The Healthie emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Healthie emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<key>": "<namespace>"}}`), clock control, fault
  * presets, IP-allowlisted status webhooks and a request journal.

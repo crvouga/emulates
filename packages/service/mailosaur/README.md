@@ -1,6 +1,6 @@
-# @emulators/mailosaur
+# @emulates/mailosaur
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Mailosaur** email/SMS testing API for test suites, plus an HTTP ingest so
 anything that "sends" mail (the Resend emulator's `--forward-to-inbox`, the Twilio emulator, Cognito
@@ -15,11 +15,11 @@ and `html.codes` / `text.codes` / `html.links` are parsed the way Mailosaur pars
 ## Install
 
 ```bash
-npm install -D @emulators/mailosaur
+npm install -D @emulates/mailosaur
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-mailosaur serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-mailosaur serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -33,7 +33,7 @@ therefore also acts as an HTTP `CONNECT` proxy that tunnels **every** target int
 to the network). The SDK honours `HTTPS_PROXY`, reading it once, when a client is constructed:
 
 ```bash
-npx emulators-mailosaur serve --port 8793 --tls-port 8794 --tls-cert-out /tmp/mailosaur-mock.pem
+npx emulates-mailosaur serve --port 8793 --tls-port 8794 --tls-cert-out /tmp/mailosaur-mock.pem
 # in the process that constructs the SDK client:
 HTTPS_PROXY=http://127.0.0.1:8794 NODE_EXTRA_CA_CERTS=/tmp/mailosaur-mock.pem
 ```
@@ -46,7 +46,7 @@ emulator too. If the emulator can bind 443, `--tls-port 443` and `new MailosaurC
 "https://127.0.0.1/")` work without the proxy.
 
 ```js
-import { createServer } from "@emulators/mailosaur/server"
+import { createServer } from "@emulates/mailosaur/server"
 import MailosaurClient from "mailosaur"
 
 const inbox = await createServer({ tls: true })
@@ -72,7 +72,7 @@ message.text?.codes?.[0]?.value // "604218"
 The inbox can also be read without the SDK, through the admin routes:
 
 ```ts
-import { createServer } from "@emulators/mailosaur/server"
+import { createServer } from "@emulates/mailosaur/server"
 
 const inbox = await createServer()
 const response = await fetch(`${inbox.url}/__admin/ingest`, {
@@ -129,8 +129,8 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 The SDK cannot add headers, so a namespace can be chosen by API key:
 `PUT /__admin/credentials {"credentials": {"<MAILOSAUR_API_KEY>": "<namespace>"}}`. Also
-`x-emulators-namespace` or a `/__admin/ns/<name>` prefix for raw HTTP callers. Ingest into a namespace
-with `x-emulators-namespace` (the Resend emulator forwards with its own namespace name).
+`x-emulates-namespace` or a `/__admin/ns/<name>` prefix for raw HTTP callers. Ingest into a namespace
+with `x-emulates-namespace` (the Resend emulator forwards with its own namespace name).
 
 ### Deliberately not modelled
 

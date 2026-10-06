@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/redis",
+  "name": "@emulates/redis",
   "version": "0.0.0-development",
   "description": "In-process Redis RESP server for tests: strings, hashes, lists, sets, sorted sets, streams, transactions, pub/sub, and a Lua subset, with an injected clock. Not an HTTP emulator.",
   "license": "MIT",
@@ -24,7 +24,7 @@
     }
   },
   "bin": {
-    "emulators-redis": "./dist/cli.js"
+    "emulates-redis": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -37,12 +37,12 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/redis#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "redis",
     "resp",
     "emulator"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -88,9 +88,9 @@
     "parity:bullmq": "bun scripts/bullmq-parity.ts"
   },
   "devDependencies": {
-    "@emulators/adapter-node": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/credentials": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/credentials": "workspace:*",
     "bullmq": "5.67.1",
     "ioredis": "5.11.1",
     "ioredis-5-9": "npm:ioredis@5.9.2"

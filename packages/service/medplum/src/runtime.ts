@@ -6,8 +6,8 @@ import {
   NAMESPACE_HEADER,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { MEDPLUM_VERSION, tooManyRequests, unauthorized } from "@medplum/core"
 import type { Resource } from "@medplum/fhirtypes"
 import { MedplumAPI, type MedplumAPIOptions, type MedplumUserFixture } from "./api.js"
@@ -91,7 +91,7 @@ export type MedplumRuntimeOptions = Omit<
   seed?: number | string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Require `x-emulators-admin-key` on `/__admin/*`. */
+  /** Require `x-emulates-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Requests each namespace's journal keeps (`GET /__admin/requests`). Default 1000. */
@@ -216,10 +216,10 @@ const adminRoutes = (runtime: ServiceRuntime<MedplumAPI>): AdminRoutes => ({
 })
 
 /**
- * The Medplum emulator with the full Emulators service contract: unauthenticated `/__admin/health`, the
+ * The Medplum emulator with the full Emulates service contract: unauthenticated `/__admin/health`, the
  * `/__admin/*` control plane (reset, snapshot/restore, clock, faults, journal, metrics, plus
  * `/__admin/medplum/*` for clients, users, tokens and seed resources), and per-request
- * namespaces — by `x-emulators-namespace`, by `/__admin/ns/<name>/` base URL prefix, or by client:
+ * namespaces — by `x-emulates-namespace`, by `/__admin/ns/<name>/` base URL prefix, or by client:
  * `PUT /__admin/credentials {"credentials": {"<clientId>": "<namespace>"}}`.
  *
  * Runtime-neutral: serve it with any Fetch-native server (`./server` for Node).

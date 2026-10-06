@@ -1,4 +1,4 @@
-# Meta Marketing and Conversions APIs (Emulators subset) — operation support
+# Meta Marketing and Conversions APIs (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

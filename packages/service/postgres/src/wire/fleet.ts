@@ -1,5 +1,5 @@
-import type { ConfigService, FleetChild } from "@emulators/adapter-node";
-import { createClock, type Clock } from "@emulators/service";
+import type { ConfigService, FleetChild } from "@emulates/adapter-node";
+import { createClock, type Clock } from "@emulates/service";
 import { Database } from "../api/database.ts";
 import type { Snapshot } from "../api/snapshot.ts";
 import type { ServerFaults } from "./connection.ts";

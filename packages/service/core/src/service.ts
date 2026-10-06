@@ -1,13 +1,13 @@
-import type { FetchAPI } from "@emulators/core"
-import { type DecodedBody, decodeFormPairs, type FormObject, readBody } from "@emulators/http-codec"
-import { listOperations, type OpenAPIDocument, type Operation } from "@emulators/openapi"
-import { operationMetadata } from "@emulators/openapi-metadata"
+import type { FetchAPI } from "@emulates/core"
+import { type DecodedBody, decodeFormPairs, type FormObject, readBody } from "@emulates/http-codec"
+import { listOperations, type OpenAPIDocument, type Operation } from "@emulates/openapi"
+import { operationMetadata } from "@emulates/openapi-metadata"
 import {
   clearNamespace,
   migrateCore,
   resolveSqlite,
   type SqliteClient,
-} from "@emulators/sqlite-client"
+} from "@emulates/sqlite-client"
 import { type Context, Hono } from "hono"
 import { annotateResponse } from "./journal.js"
 import { operationPath } from "./path.js"
@@ -21,7 +21,7 @@ const withIssues = (request: Request, response: Response): Response => {
 
 /** Options every provider constructor accepts. */
 export type APIOptions = {
-  /** Sync SQLite client. Defaults to `@emulators/sqlite`. */
+  /** Sync SQLite client. Defaults to `@emulates/sqlite`. */
   sqlite?: SqliteClient
   /** Clock used for `created`-style fields. Default `Date.now`. */
   now?: () => number

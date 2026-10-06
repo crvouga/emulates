@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
-import type { OpenAPIDocument, SchemaObject } from "@emulators/openapi"
-import { validateValue } from "@emulators/openapi"
-import { fcParameters } from "@emulators/testing"
+import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
+import { validateValue } from "@emulates/openapi"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { invalidSchemaArbitrary, mutationSites, schemaArbitrary } from "./src/index.js"
 

@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -14,8 +14,8 @@ import {
   type S3Target,
   type Service,
   sigV4AccessKeyId,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { durationFor, MP3_SAMPLE_RATES, mp3Audio, pcmTone } from "./audio.js"
 import {
@@ -36,8 +36,8 @@ import {
   type TranscriptScript,
 } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export {
   durationFor,
   MP3_SAMPLE_RATES,

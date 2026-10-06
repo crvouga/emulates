@@ -1,4 +1,4 @@
-# Daily.co REST API (Emulators subset) — operation support
+# Daily.co REST API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

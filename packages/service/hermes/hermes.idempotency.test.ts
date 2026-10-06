@@ -225,7 +225,7 @@ test("scope and reservations participate in Timeline checkout and namespace isol
   ).toBe(200)
   expect(await json(await submit(runtime))).toMatchObject({ run_id: first.run_id, replayed: true })
   const other = await json(
-    await submit(runtime, "delivery", undefined, { "x-emulators-namespace": "other" }),
+    await submit(runtime, "delivery", undefined, { "x-emulates-namespace": "other" }),
   )
   expect(other.replayed).toBe(false)
   expect(other.run_id).not.toBe(first.run_id)

@@ -11,8 +11,8 @@
  * seed, so order bodies are expected to differ until a corpus is recorded; envelopes, status
  * codes and error shapes are what this run checks first.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, FullscriptAPI, issueAccessToken } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

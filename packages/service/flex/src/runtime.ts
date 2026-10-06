@@ -11,8 +11,8 @@ import {
   svixSecretBytes,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { FLEX_NAMESPACE, FlexAPI, isNextActionType } from "./index.js"
 import {
@@ -301,7 +301,7 @@ const adminRoutes = (runtime: ServiceRuntime<FlexAPI>): AdminRoutes => {
 }
 
 /**
- * The Flex emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Flex emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<FLEX_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets, Svix-signed webhooks and a request journal.

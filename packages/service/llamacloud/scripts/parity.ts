@@ -10,8 +10,8 @@
  * documents it generates, but it still needs a throwaway pipeline, so by default only the
  * reads run (projects, pipelines, documents, retrieval). `--include-unsafe` adds the writes.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, LlamaCloudAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

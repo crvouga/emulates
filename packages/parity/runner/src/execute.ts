@@ -4,7 +4,7 @@ import {
   discoverIdentities,
   type Exchange,
   structuralDiff,
-} from "@emulators/canonicalize"
+} from "@emulates/canonicalize"
 import {
   type ConcreteRequest,
   concretize,
@@ -12,12 +12,12 @@ import {
   type OperationPlan,
   type Scope,
   toRequest,
-} from "@emulators/commands"
-import { mediaTypeOf, readBody } from "@emulators/http-codec"
-import type { ResourceTable, Side } from "@emulators/model"
-import type { OpenAPIDocument, ResponseObject, SchemaObject } from "@emulators/openapi"
-import { responseForStatus, validateValue } from "@emulators/openapi"
-import { parityHeaders } from "@emulators/openapi-metadata"
+} from "@emulates/commands"
+import { mediaTypeOf, readBody } from "@emulates/http-codec"
+import type { ResourceTable, Side } from "@emulates/model"
+import type { OpenAPIDocument, ResponseObject, SchemaObject } from "@emulates/openapi"
+import { responseForStatus, validateValue } from "@emulates/openapi"
+import { parityHeaders } from "@emulates/openapi-metadata"
 import { type FailureDetails, ParityError, type Redactor } from "./report.js"
 
 export type FetchLike = (request: Request) => Promise<Response>

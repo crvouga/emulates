@@ -105,7 +105,7 @@ export const resultFiles = (
             "Gene by Gene - Comprehensive Wellness Report",
             `Kit ${kitNumber}`,
             `Report date ${reportDate}`,
-            `Fixture: ${name} (Emulators)`,
+            `Fixture: ${name} (Emulates)`,
           ]),
     })
   }

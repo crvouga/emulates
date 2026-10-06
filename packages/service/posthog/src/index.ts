@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -11,8 +11,8 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { decodePostHogBody, tokenFromBody } from "./body.js"
 import { experimentOperations } from "./experiments.js"
@@ -31,8 +31,8 @@ import {
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { type CapturedEvent, PostHogState, type Settings } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export { decodePostHogBody, tokenFromBody } from "./body.js"
 export { ACME_FLAG_STATE } from "./flag-state-fixture.js"
 export type {
@@ -233,9 +233,9 @@ export class PostHogAPI implements FetchAPI {
         this.state.update({ recordings: this.state.current().recordings + 1 })
         return jsonRes(200, { status: 1 })
       },
-      GetRecorderScript: () => script("/* emulators: session recording is not modelled */\n"),
+      GetRecorderScript: () => script("/* emulates: session recording is not modelled */\n"),
       GetVersionedRecorderScript: () =>
-        script("/* emulators: session recording is not modelled */\n"),
+        script("/* emulates: session recording is not modelled */\n"),
       ListSurveys: (context) =>
         typeof context.query.token === "string" && context.query.token
           ? jsonRes(200, { surveys: [] })

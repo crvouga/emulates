@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@emulators/sqlite-client"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -37,7 +37,7 @@ export class IdSequence {
   constructor(
     private readonly sqlite: SqliteClient,
     private readonly namespace: string,
-    private readonly salt = "emulators",
+    private readonly salt = "emulates",
   ) {}
 
   next(prefix: string, length = 14): string {

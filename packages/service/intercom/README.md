@@ -1,6 +1,6 @@
-# @emulators/intercom
+# @emulates/intercom
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Intercom REST API (version 2.11)** for test suites. It serves the calls
 our backend makes:
@@ -23,17 +23,17 @@ replies) send Intercom's `notification_event` webhooks, signed with
 ## Install
 
 ```bash
-npm install -D @emulators/intercom
+npm install -D @emulates/intercom
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-intercom serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-intercom serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
 ```bash
-npx emulators-intercom serve --port 8807 \
+npx emulates-intercom serve --port 8807 \
   --webhook-url http://127.0.0.1:3000/messaging/webhook \
   --emr-webhook-url http://127.0.0.1:4000/v1/webhooks/intercom \
   --webhook-secret "$INTERCOM_WEBHOOK_SECRET"
@@ -50,7 +50,7 @@ default.
 | Both webhook receivers | `INTERCOM_WEBHOOK_SECRET` = `--webhook-secret` |
 
 ```ts
-import { createRuntime } from "@emulators/intercom"
+import { createRuntime } from "@emulates/intercom"
 
 const intercom = createRuntime({
   webhooks: {
@@ -193,7 +193,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`):
 
 ### Namespaces
 
-- the `x-emulators-namespace` header;
+- the `x-emulates-namespace` header;
 - a `/__admin/ns/<name>` prefix on `INTERCOM_API_BASE_URL`;
 - the access token: `PUT /__admin/credentials {"credentials": {"<INTERCOM_ACCESS_TOKEN>": "<namespace>"}}`.
 

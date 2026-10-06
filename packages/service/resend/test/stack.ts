@@ -7,7 +7,7 @@
  * mapping their own API key to their own namespace (`PUT /__admin/credentials`).
  */
 import tls from "node:tls"
-import { createServer as createInbox, type MailosaurServer } from "@emulators/mailosaur/server"
+import { createServer as createInbox, type MailosaurServer } from "@emulates/mailosaur/server"
 import { createServer, type ResendServer } from "../src/server.js"
 
 export type Stack = {
@@ -63,7 +63,7 @@ export const admin = async (path: string, namespace: string, body?: unknown) => 
   const { resend } = await sharedStack()
   return fetch(`${resend.url}/__admin${path}`, {
     method: body === undefined ? "GET" : "POST",
-    headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+    headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   })
 }

@@ -1,4 +1,4 @@
-import { PostgresError, type ResultSet } from "@emulators/postgres";
+import { PostgresError, type ResultSet } from "@emulates/postgres";
 import { getDb } from "./db.ts";
 
 export type SqlErrorInfo = {

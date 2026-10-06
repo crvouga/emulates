@@ -243,10 +243,10 @@ describe("S25 Plane acceptance: our bug-report client against the mock", () => {
     ).toBe(1)
     const viaHeader = await runtime.fetch(
       new Request(`${API}/api/v1/workspaces/acme/projects/${PROJECT}/work-items/`, {
-        headers: { "x-api-key": "other", "x-emulators-namespace": "a" },
+        headers: { "x-api-key": "other", "x-emulates-namespace": "a" },
       }),
     )
-    expect(viaHeader.headers.get("x-emulators")).toMatch(/^plane@.*; ns=a$/)
+    expect(viaHeader.headers.get("x-emulates")).toMatch(/^plane@.*; ns=a$/)
     expect(((await viaHeader.json()) as { total_count: number }).total_count).toBe(1)
     expect(Object.keys(PLANE_PRESETS)).toEqual(
       expect.arrayContaining(["rate_limited", "server_error", "bad_gateway", "network_drop"]),
@@ -262,7 +262,7 @@ describe("served over HTTP", () => {
       const item = await plane.createWorkItem({ name: "Over HTTP" })
       expect((await plane.getWorkItem(item.id)).name).toBe("Over HTTP")
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^plane@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^plane@/)
     } finally {
       await server.close()
     }

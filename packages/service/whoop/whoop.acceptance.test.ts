@@ -155,7 +155,7 @@ test("namespace reset preserves other state and journals do not expose bodies", 
     runtime.fetch(
       new Request(`${base}/__admin/${path}`, {
         method: "POST",
-        headers: { "x-emulators-namespace": ns, "content-type": "application/json" },
+        headers: { "x-emulates-namespace": ns, "content-type": "application/json" },
         body: JSON.stringify(body),
       }),
     )

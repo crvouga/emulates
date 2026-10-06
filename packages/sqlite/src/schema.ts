@@ -2,7 +2,7 @@ import type { SqliteClient } from "./client.js"
 import { type Migration, migrate } from "./migrate.js"
 
 /**
- * Core Emulators service schema: namespaced JSON records and counters.
+ * Core Emulates service schema: namespaced JSON records and counters.
  *
  * Applied on every service boot via {@link migrateCore}.
  */

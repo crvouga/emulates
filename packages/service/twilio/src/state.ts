@@ -1,5 +1,5 @@
-import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { ValidationError } from "./phone.js"
 
 export type VerificationStatus = "pending" | "approved" | "canceled" | "expired"

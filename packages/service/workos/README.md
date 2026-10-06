@@ -1,6 +1,6 @@
-# @emulators/workos
+# @emulates/workos
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP WorkOS AuthKit emulator: authorization redirects, single-use codes, signed JWT sessions,
 rotating refresh tokens, user metadata and pagination. Synthetic fixtures only.
@@ -8,13 +8,13 @@ rotating refresh tokens, user metadata and pagination. Synthetic fixtures only.
 ## Install
 
 ```sh
-bun add -d @emulators/workos
+bun add -d @emulates/workos
 ```
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/workos/server"
+import { createServer } from "@emulates/workos/server"
 const server = await createServer()
 // Set AuthKit WORKOS_API_HOSTNAME/WORKOS_API_PORT from server.url and WORKOS_API_HTTPS=false.
 // WORKOS_API_KEY=mock_workos_key, WORKOS_CLIENT_ID=client_mock.
@@ -46,7 +46,7 @@ tokens, but offline JWT verification has no revocation lookup, just like the SDK
 
 Standard `/__admin` reset, Timeline snapshots/branches, clock, faults and request journal
 are available. Journals store metadata, not client secrets or token request bodies.
-Header (`x-emulators-namespace`), path (`/__admin/ns/<name>/…`) and bearer credential
+Header (`x-emulates-namespace`), path (`/__admin/ns/<name>/…`) and bearer credential
 namespaces isolate durable state. AuthKit applications should use one dedicated server per
 test namespace so the SDK's JWKS URL and issuer remain consistent. Configure `adminPrefix`
 to relocate the reserved tree. Presets: `auth_failure`, `rate_limited`, `server_error`,

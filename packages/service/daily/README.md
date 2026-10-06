@@ -1,6 +1,6 @@
-# @emulators/daily
+# @emulates/daily
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Daily.co** REST API for test suites: rooms (create, get, update,
 delete, presence, eject), meeting tokens (mint and validate), verification of the HS256 meeting
@@ -16,11 +16,11 @@ swallows the error. Against the emulator it is observable and assertable.
 ## Install
 
 ```bash
-npm install -D @emulators/daily
+npm install -D @emulates/daily
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-daily serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-daily serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -37,7 +37,7 @@ Point the apps at the emulator (the G-D1 seams):
 | member-app | `EXPO_PUBLIC_DAILY_BASE_URL` | the same value as `--room-url-base` |
 
 ```bash
-npx emulators-daily serve --port 8800 \
+npx emulates-daily serve --port 8800 \
   --room-url-base https://acme-mock.daily.test/ \
   --domain-id "$DAILY_API_DOMAIN_ID" \
   --webhook-url http://127.0.0.1:4000/v1/webhooks/daily \
@@ -46,7 +46,7 @@ npx emulators-daily serve --port 8800 \
 ```
 
 ```ts
-import { createRuntime } from "@emulators/daily"
+import { createRuntime } from "@emulates/daily"
 
 const daily = createRuntime({
   settings: { roomUrlBase: "https://acme-mock.daily.test/" },
@@ -131,7 +131,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `room_
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
 `PUT /__admin/credentials {"credentials": {"<DAILY_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled

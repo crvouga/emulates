@@ -1,4 +1,4 @@
-# Amazon Config (Emulators subset) — operation support
+# Amazon Config (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

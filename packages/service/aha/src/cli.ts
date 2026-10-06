@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulators/adapter-node"
+import { runCli, serveCommand } from "@emulates/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulators-aha",
+    bin: "emulates-aha",
     description: "AHA at-home phlebotomy partner API emulator",
     commands: { serve: serveCommand(serveTarget) },
   },

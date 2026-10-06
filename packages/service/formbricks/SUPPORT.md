@@ -1,4 +1,4 @@
-# Formbricks client + management API (Emulators subset) — operation support
+# Formbricks client + management API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

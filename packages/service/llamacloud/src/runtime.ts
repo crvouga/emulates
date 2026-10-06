@@ -6,8 +6,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { LLAMACLOUD_NAMESPACE, LlamaCloudAPI } from "./index.js"
 import type { PipelineSeed, RetrievalRule, ScriptedNode, Settings } from "./state.js"
@@ -157,7 +157,7 @@ const adminRoutes = (runtime: ServiceRuntime<LlamaCloudAPI>): AdminRoutes => ({
 })
 
 /**
- * The LlamaCloud emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The LlamaCloud emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<LLAMACLOUD_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets and a request journal (metadata only: never queries or text).

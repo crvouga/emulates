@@ -1,4 +1,4 @@
-# Google Calendar v3 + Google OAuth (Emulators subset) — operation support
+# Google Calendar v3 + Google OAuth (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

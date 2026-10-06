@@ -1,4 +1,4 @@
-# Docker Engine (Emulators) — operation support
+# Docker Engine (Emulates) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { createRuntime, DEFAULT_ORGANIZATIONS, OTEL_PRESETS } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -797,7 +797,7 @@ describe("served over HTTP", () => {
       })
       expect(hits.map((hit) => hit.event)).toEqual(["served"])
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^otel@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^otel@/)
     } finally {
       await server.close()
     }

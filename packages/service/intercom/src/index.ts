@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -15,8 +15,8 @@ import {
   type OperationContext,
   requestFingerprint,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
@@ -41,8 +41,8 @@ import {
   type Settings,
 } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { Query } from "./query.js"
@@ -222,7 +222,7 @@ export class IntercomAPI implements FetchAPI {
         jsonRes(200, {
           type: "admin",
           id: "1000000",
-          name: "Emulators API",
+          name: "Emulates API",
           email: "api@mock.intercom.local",
           email_verified: true,
           has_inbox_seat: false,
@@ -230,7 +230,7 @@ export class IntercomAPI implements FetchAPI {
           app: {
             type: "app",
             id_code: this.state.workspaceId,
-            name: "Emulators",
+            name: "Emulates",
             created_at: 1_600_000_000,
             secure: false,
             identity_verification: false,

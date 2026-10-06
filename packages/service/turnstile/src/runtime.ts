@@ -4,8 +4,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { type Site, type Token, TURNSTILE_NAMESPACE, TurnstileAPI } from "./index.js"
 export const TURNSTILE_PRESETS: Record<string, FaultPreset> = {

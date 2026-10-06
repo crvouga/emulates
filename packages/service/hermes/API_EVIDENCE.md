@@ -12,7 +12,7 @@ Retrieved 2026-09-27. Required release: `v2026.8.31` of
 `6e8f8418e6378eb2617e4de074e13dedd091b8af` to commit
 `29112bef099274229cadff79cdff7bf7b99c4b77`. All pinned links below use that commit.
 Downloaded source copies are retained under the ignored project directory
-`.emulators/hermes-evidence/v2026.8.31/`; they were read, not imported or executed.
+`.emulates/hermes-evidence/v2026.8.31/`; they were read, not imported or executed.
 
 Context7 resolution selected `/nousresearch/hermes-agent`. Its advertised versions
 were `v2026.4.8`, `v2026.4.16`, and `v2026.6.5`; it did not advertise the target.
@@ -156,7 +156,7 @@ empty as absent, caps it at256 characters and rejects CR/LF/NUL. In the real
 adapter a nonempty key without configured API-key support gets403. The two header
 validation400 errors have only `message` and `type`, omitting `param` and `code`:
 `Invalid session key` or `Session key too long`. These facts must not become an
-unsolicited auth implementation in Emulators. The pinned run handler passes the
+unsolicited auth implementation in Emulates. The pinned run handler passes the
 memory key to the agent but does not derive `session_id` from it; the current-main
 Context7 excerpt does. [A `_parse_session_key_header`; R lines546–607.]
 
@@ -393,7 +393,7 @@ lines7190–7208 returns429, rate_limit_error/rate_limit_exceeded and Retry-Afte
 the fixture message uses the pinned default limit10. The explicit presets do not
 implement automatic capacity accounting or gateway lifecycle.
 
-Response loss and poll delay are Emulators transport scenarios, not invented
+Response loss and poll delay are Emulates transport scenarios, not invented
 Hermes error responses. Scripted executor failure uses the existing pinned failed
 observation envelope. The native Node consumer uses literal HTTP contracts and no
 provider state helpers. Eligible self-parity and deliberate lifecycle divergence

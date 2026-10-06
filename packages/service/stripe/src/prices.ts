@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationContext, type OperationHandler } from "@emulators/service"
+import { jsonResponse, type OperationContext, type OperationHandler } from "@emulates/service"
 import { invalidRequest, parameterInvalidEmpty, resourceMissing } from "./errors.js"
 import { applyExpand, type ExpandResolvers } from "./expand.js"
 import { mergeMetadata, optionalBoolean, parseUnitAmountDecimal, strip } from "./fields.js"

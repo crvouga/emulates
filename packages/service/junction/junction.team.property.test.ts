@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import {
   createRuntime,
@@ -106,7 +106,7 @@ let userSeq = 0
 const createUser = async (target: { fetch(request: Request): Promise<Response> }, ns?: string) => {
   const res = await call(target, "POST", "/v2/user", {
     body: { client_user_id: `team-user-${++userSeq}` },
-    ...(ns ? { headers: { "x-emulators-namespace": ns } } : {}),
+    ...(ns ? { headers: { "x-emulates-namespace": ns } } : {}),
   })
   expect(res.status).toBe(200)
   return res.body.user_id as string
@@ -145,7 +145,7 @@ const admin = (
 ) =>
   call(runtime, method, `/__admin${path}`, {
     ...(body !== undefined ? { body } : {}),
-    ...(ns ? { headers: { "x-emulators-namespace": ns } } : {}),
+    ...(ns ? { headers: { "x-emulates-namespace": ns } } : {}),
   })
 
 describe("M1: availability reads resolve lab accounts from the live list", () => {

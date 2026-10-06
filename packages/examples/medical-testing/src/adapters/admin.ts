@@ -1,6 +1,6 @@
-import { type ComposableAdminApi, composeAdminApis } from "@emulators/admin-ui"
+import { type ComposableAdminApi, composeAdminApis } from "@emulates/admin-ui"
 
-const ADMIN_BRANDS_URL = "https://emulators.chrisvouga.dev/brands.json"
+const ADMIN_BRANDS_URL = "https://emulates.chrisvouga.dev/brands.json"
 
 /** One independently usable admin API. Its UI is supplied by the composed facade. */
 export type MockAdmin = {
@@ -17,7 +17,7 @@ export const composeMockAdmins = (admins: readonly MockAdmin[]) =>
         ...admin,
         service: admin.id,
         adminPrefix: "/__admin",
-        adminKeyHeader: "x-emulators-admin-key",
+        adminKeyHeader: "x-emulates-admin-key",
         standardRoutes: [],
       }),
     ),

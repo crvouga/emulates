@@ -7,7 +7,7 @@
 import { defineExampleLauncher } from "./exampleModal.ts"
 
 const appLoaders: Record<string, () => Promise<{ mount: unknown }>> = {
-  "medical-testing": () => import("@emulators/example-medical-testing/browser"),
+  "medical-testing": () => import("@emulates/example-medical-testing/browser"),
 }
 
 defineExampleLauncher("app-example", (key) => appLoaders[key])

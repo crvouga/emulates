@@ -1,4 +1,4 @@
-# Klaviyo events API (Emulators subset) — operation support
+# Klaviyo events API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

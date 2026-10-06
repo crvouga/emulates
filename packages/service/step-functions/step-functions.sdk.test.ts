@@ -9,7 +9,7 @@ import {
   StartExecutionCommand,
   StopExecutionCommand,
 } from "@aws-sdk/client-sfn"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createServer } from "./src/server.js"
 
 const machineArn = "arn:aws:states:us-east-1:000000000000:stateMachine:jobs"

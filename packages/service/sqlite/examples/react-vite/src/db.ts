@@ -1,4 +1,4 @@
-import { Database, Snapshot } from "@emulators/sqlite";
+import { Database, Snapshot } from "@emulates/sqlite";
 
 export const STORAGE_KEY = "sqlite-mem-example-snapshot";
 

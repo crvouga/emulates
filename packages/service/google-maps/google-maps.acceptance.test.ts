@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import {
   createRuntime,
@@ -341,7 +341,7 @@ describe("S21 acceptance: our member app's address flows against the mock", () =
     const { admin, send } = harness()
     await admin("/credentials", { credentials: { "key-worker-a": "a" } }, "PUT")
     const custom = {
-      line1: "77 Emulators Ln",
+      line1: "77 Emulates Ln",
       city: "Tempe",
       state: "AZ",
       zip: "85281",
@@ -351,32 +351,32 @@ describe("S21 acceptance: our member app's address flows against the mock", () =
     expect((await admin("/corpus?namespace=a", { addresses: [custom] }, "PUT")).status).toBe(200)
     const a = new NativeAddressAutocomplete(BASE, "key-worker-a", send)
     const b = new NativeAddressAutocomplete(BASE, "key-worker-b", send)
-    const [found] = await a.fetchPredictions("77 Emulators")
+    const [found] = await a.fetchPredictions("77 Emulates")
     expect(await a.selectPrediction(found as NonNullable<typeof found>)).toEqual({
-      line1: "77 Emulators Ln",
+      line1: "77 Emulates Ln",
       city: "Tempe",
       state: "AZ",
       zip: "85281",
     })
-    expect(await b.fetchPredictions("77 Emulators")).toEqual([])
+    expect(await b.fetchPredictions("77 Emulates")).toEqual([])
 
     // `/__admin/ns/a` on the base URL: the shim it serves calls back through `/__admin/ns/a`.
     const win = fakeWindow(send)
     expect(await loadGoogleMapsScript(win, send, `${BASE}/__admin/ns/a`, "any-key")).toBe("loaded")
     const web = new WebAddressAutocomplete(win)
-    expect((await web.fetchPredictions("77 Emulators"))[0]?.mainText).toBe("77 Emulators Ln")
+    expect((await web.fetchPredictions("77 Emulates"))[0]?.mainText).toBe("77 Emulates Ln")
     const other = fakeWindow(send)
     await loadGoogleMapsScript(other, send, BASE, "any-key")
-    expect(await new WebAddressAutocomplete(other).fetchPredictions("77 Emulators")).toEqual([])
+    expect(await new WebAddressAutocomplete(other).fetchPredictions("77 Emulates")).toEqual([])
 
     expect((await admin("/corpus", { addresses: [{ line1: "x" }] }, "PUT")).status).toBe(400)
   })
 
-  test("contract: /__admin/health, x-emulators header, every documented preset", async () => {
+  test("contract: /__admin/health, x-emulates header, every documented preset", async () => {
     const { runtime } = harness()
     const health = await runtime.fetch(new Request(`${BASE}/__admin/health`))
     expect(((await health.json()) as { service: string }).service).toBe("google-maps")
-    expect(health.headers.get("x-emulators")).toMatch(/^google-maps@/)
+    expect(health.headers.get("x-emulates")).toMatch(/^google-maps@/)
     expect(Object.keys(GOOGLE_MAPS_PRESETS)).toEqual(
       expect.arrayContaining([
         "over_query_limit",
@@ -423,7 +423,7 @@ describe("served over HTTP", () => {
       expect(script.headers.get("content-type")).toMatch(/javascript/)
       expect(await script.text()).toContain(server.url)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^google-maps@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^google-maps@/)
     } finally {
       await server.close()
     }

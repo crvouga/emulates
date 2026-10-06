@@ -5,7 +5,7 @@ export type {
   CliValues,
   CommonServeOptions,
   ConfigService,
-  EmulatorsConfig,
+  EmulatesConfig,
   LogFormat,
   ServeTarget,
 } from "./cli.js"

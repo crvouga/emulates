@@ -1,4 +1,4 @@
-# Healthie GraphQL API (Emulators subset) — operation support
+# Healthie GraphQL API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

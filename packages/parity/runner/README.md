@@ -1,33 +1,33 @@
-# @emulators/parity
+# @emulates/parity
 
-> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
 
 Differential property-based test runner. From an OpenAPI spec it generates random stateful API walks with [fast-check](https://fast-check.dev/), runs every command against a "real" side and a fresh emulator, canonicalizes both responses (ids, timestamps and tokens), and fails with a shrunk, replayable reproduction on the first divergence. Use it to prove an emulator behaves like the real API (**live parity**, needs sandbox credentials) or like an independent instance of itself while conforming to the spec (**self-parity**, runs in CI with no network). This is the entry point of the parity packages; you rarely need the lower-level ones directly.
 
 ## Install
 
 ```bash
-npm install -D @emulators/parity
+npm install -D @emulates/parity
 ```
 
-`fast-check` 4.x ships as a dependency. You also need an emulator to test: anything with `fetch(request: Request): Promise<Response>` — for example a Emulators service such as `@emulators/stripe` (`StripeAPI` + its `document` spec). ESM only, Node >= 22 or Bun >= 1.2; works inside `bun test`, Vitest or a plain script.
+`fast-check` 4.x ships as a dependency. You also need an emulator to test: anything with `fetch(request: Request): Promise<Response>` — for example a Emulates service such as `@emulates/stripe` (`StripeAPI` + its `document` spec). ESM only, Node >= 22 or Bun >= 1.2; works inside `bun test`, Vitest or a plain script.
 
 ## Usage
 
-Self-parity with a tiny inline spec and emulator (swap in `document` and `new StripeAPI()` from a Emulators service to test a real one):
+Self-parity with a tiny inline spec and emulator (swap in `document` and `new StripeAPI()` from a Emulates service to test a real one):
 
 ```ts
-import { parseOpenAPIDocument } from "@emulators/openapi"
-import { parity } from "@emulators/parity"
+import { parseOpenAPIDocument } from "@emulates/openapi"
+import { parity } from "@emulates/parity"
 
-// The contract, annotated with x-emulators-* extensions (see @emulators/openapi-metadata).
+// The contract, annotated with x-emulates-* extensions (see @emulates/openapi-metadata).
 const note = {
   type: "object",
   required: ["id", "text", "created"],
   properties: {
-    id: { type: "string", "x-emulators-resource": { type: "note", identity: true } },
+    id: { type: "string", "x-emulates-resource": { type: "note", identity: true } },
     text: { type: "string" },
-    created: { type: "integer", "x-emulators-volatile": { kind: "timestamp" } },
+    created: { type: "integer", "x-emulates-volatile": { kind: "timestamp" } },
   },
 }
 const json = (schema: object) => ({ description: "response", content: { "application/json": { schema } } })
@@ -63,7 +63,7 @@ const spec = parseOpenAPIDocument({
             in: "path",
             required: true,
             schema: { type: "string" },
-            "x-emulators-resource-ref": { type: "note" },
+            "x-emulates-resource-ref": { type: "note" },
           },
         ],
         responses: { "200": json(note), "404": json({ type: "object" }) },
@@ -110,7 +110,7 @@ const report = await parity({
   },
   mock: { create: () => new NotesAPI() },
   cleanup: async () => reference.reset(), // walks must be independent
-  env: process.env, // honour FC_SEED / FC_NUM_RUNS / EMULATORS_MAX_COMMANDS / EMULATORS_TRACE
+  env: process.env, // honour FC_SEED / FC_NUM_RUNS / EMULATES_MAX_COMMANDS / EMULATES_TRACE
   latencyToleranceMs: 1_000, // both sides are in-process: don't fail on scheduler noise
   sleep: async () => {}, // skip the clock-skew gap between walks (~3 s each) when nothing is remote
   log: () => {},
@@ -128,7 +128,7 @@ real: {
   minIntervalMs: 40,                              // rate-limit spacing
 },
 mock: { create: () => new StripeAPI(), headers: () => ({ authorization: "Bearer sk_test_x" }) },
-redact: createRedactor(credentials.secrets),      // from @emulators/credentials
+redact: createRedactor(credentials.secrets),      // from @emulates/credentials
 cleanup: async ({ table, real }) => { /* delete table.all() real ids via real.fetch */ },
 ```
 
@@ -138,7 +138,7 @@ Replay a failure with the seed printed in the error: `FC_SEED=12345 bun test` (r
 
 1. `planOperations` picks operations that are `supported`, `parity.enabled` and (unless `includeUnsafe`) `parity.safe`, filtered by `only` / extended by `forceInclude`.
 2. fast-check generates up to `maxCommands` commands per walk (`numRuns` walks). References are symbolic (`note #1`) and resolved to each side's own ids; ~15% of bodies are invalid by one constraint.
-3. For each command: send to real, then to emulator. Unless `validateMock: false`, the emulator's status must be declared and its body must validate against the response schema. New ids at `x-emulators-resource` locations are paired. Both exchanges are canonicalized and structurally diffed (status, declared parity headers, body).
+3. For each command: send to real, then to emulator. Unless `validateMock: false`, the emulator's status must be declared and its body must validate against the response schema. New ids at `x-emulates-resource` locations are paired. Both exchanges are canonicalized and structurally diffed (status, declared parity headers, body).
 4. After each walk: optional webhook comparison, then `cleanup`. On failure fast-check shrinks the walk (unless `shrink: false`) and the runner throws.
 
 ## Failures
@@ -164,10 +164,10 @@ Other errors (host not allowed, no parity-enabled operations, bad env integers) 
 | `real` | required | `RealTarget`: `baseUrl`; `allowedHosts` (host incl. port must be listed, and the URL must be `https:` unless the host ends in `.local` or is `localhost` / `127.0.0.1`); `headers?` (sync or async, added to every request); `fetch?` (default global `fetch`); `minIntervalMs?` (default 0). |
 | `mock` | required | `MockTarget`: `create()` returns a fresh `FetchAPI` per walk (sync or async); `baseUrl?` (default `https://mock.<provider>.local`); `headers?`. |
 | `numRuns` | `FC_NUM_RUNS` or `DEFAULT_PROPERTY_RUNS` (25) | Walks. |
-| `maxCommands` | `EMULATORS_MAX_COMMANDS` or `DEFAULT_PARITY_STEPS` (30) | Max commands per walk. |
+| `maxCommands` | `EMULATES_MAX_COMMANDS` or `DEFAULT_PARITY_STEPS` (30) | Max commands per walk. |
 | `seed` | `FC_SEED` or `Date.now()`-based | fast-check seed. |
-| `env` | `{}` | Where the env vars above and `EMULATORS_TRACE=1\|true` (per-request trace) are read. **`process.env` is not read unless you pass it.** Explicit options win over env. |
-| `runId` | derived from seed | Value for `x-emulators-scope: run-id`. |
+| `env` | `{}` | Where the env vars above and `EMULATES_TRACE=1\|true` (per-request trace) are read. **`process.env` is not read unless you pass it.** Explicit options win over env. |
+| `runId` | derived from seed | Value for `x-emulates-scope: run-id`. |
 | `includeUnsafe` | `false` | Also generate `parity.safe: false` operations. |
 | `only` | all | Restrict to these operationIds. |
 | `forceInclude` | none | Include these operationIds even if `parity.enabled: false` or unsafe. |
@@ -192,7 +192,7 @@ Returns `ParityReport`: `{ provider, seed, walks, operations, exercised: Record<
 
 ## `seedParity`
 
-`seedParity(options: SeedParityOptions)` is seed-then-walk parity for APIs whose state cannot be created from scratch on the emulator: per walk it runs `warmupCommands` (default 15) against the real side only, records GET (and area/psc/availability) responses in an observation cache keyed by `observationCacheKey`, calls your `seedMock({ mock, real, table, getCache, history })` to import that state into the fresh emulator, then compares `compareCommands` (default `maxCommands`) commands in lockstep. Extra options on top of `ParityOptions`: `explore` (`"dynamic"` default, re-weights each step with `weightFn`, default `defaultDynamicWeight` from `@emulators/commands`; or `"static"` fast-check commands), `weightFn`, `reshapeCommand(command, state, rng)`, `prefetchObservations({ real, table, getCache, history })`, and the required `seedMock`. The `real` target passed to `seedMock` / `prefetchObservations` is a `Target` whose `fetch` does **not** add auth headers — call `await real.headers()` yourself. In `dynamic` mode the property input is a salt, so failures replay by seed but the walk itself is not shrunk.
+`seedParity(options: SeedParityOptions)` is seed-then-walk parity for APIs whose state cannot be created from scratch on the emulator: per walk it runs `warmupCommands` (default 15) against the real side only, records GET (and area/psc/availability) responses in an observation cache keyed by `observationCacheKey`, calls your `seedMock({ mock, real, table, getCache, history })` to import that state into the fresh emulator, then compares `compareCommands` (default `maxCommands`) commands in lockstep. Extra options on top of `ParityOptions`: `explore` (`"dynamic"` default, re-weights each step with `weightFn`, default `defaultDynamicWeight` from `@emulates/commands`; or `"static"` fast-check commands), `weightFn`, `reshapeCommand(command, state, rng)`, `prefetchObservations({ real, table, getCache, history })`, and the required `seedMock`. The `real` target passed to `seedMock` / `prefetchObservations` is a `Target` whose `fetch` does **not** add auth headers — call `await real.headers()` yourself. In `dynamic` mode the property input is a salt, so failures replay by seed but the walk itself is not shrunk.
 
 ## API
 
@@ -216,8 +216,8 @@ Exported types: `ParityOptions`, `ParityReport`, `RealTarget`, `MockTarget`, `Wa
 
 ## Related
 
-- [`@emulators/openapi-metadata`](https://www.npmjs.com/package/@emulators/openapi-metadata) — the `x-emulators-*` annotations your spec needs.
-- [`@emulators/credentials`](https://github.com/crvouga/emulators/tree/main/packages/auth/credentials) — load sandbox credentials and build `redact`.
-- Lower level: [`@emulators/commands`](https://www.npmjs.com/package/@emulators/commands), [`@emulators/canonicalize`](https://www.npmjs.com/package/@emulators/canonicalize), [`@emulators/model`](https://www.npmjs.com/package/@emulators/model), [`@emulators/openapi`](https://www.npmjs.com/package/@emulators/openapi).
+- [`@emulates/openapi-metadata`](https://www.npmjs.com/package/@emulates/openapi-metadata) — the `x-emulates-*` annotations your spec needs.
+- [`@emulates/credentials`](https://github.com/crvouga/emulators/tree/main/packages/auth/credentials) — load sandbox credentials and build `redact`.
+- Lower level: [`@emulates/commands`](https://www.npmjs.com/package/@emulates/commands), [`@emulates/canonicalize`](https://www.npmjs.com/package/@emulates/canonicalize), [`@emulates/model`](https://www.npmjs.com/package/@emulates/model), [`@emulates/openapi`](https://www.npmjs.com/package/@emulates/openapi).
 
 Part of [emulators](https://github.com/crvouga/emulators).

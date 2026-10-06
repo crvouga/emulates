@@ -1,4 +1,4 @@
-import type { OpenAPIDocument } from "@emulators/openapi"
+import type { OpenAPIDocument } from "@emulates/openapi"
 import fc from "fast-check"
 import {
   type CommandArbitraryOptions,

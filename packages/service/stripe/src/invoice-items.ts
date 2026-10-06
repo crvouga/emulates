@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@emulators/service"
+import { jsonResponse, type OperationHandler } from "@emulates/service"
 import { recomputeInvoice } from "./billing.js"
 import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
 import { optionalString, parseUnitAmountDecimal } from "./fields.js"

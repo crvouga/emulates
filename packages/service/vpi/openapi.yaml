@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: VPI compounding pharmacy API (Emulators subset)
+  title: VPI compounding pharmacy API (Emulates subset)
   description: |
     Stateful mock subset of the VPI (vpicompounding.net) clinic API our backend drives as a
     draft-only eRx rail: JWT authentication, product taxonomy/details/discounts, day supply,
@@ -8,7 +8,7 @@ info:
     duplicate check, saveNewPrescription, and the three paged prescription status lists.
     Hand-derived from the consumer's zod contracts (the vendor publishes no spec).
   version: "1"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Hand-derived from apps/backend/src/modules/erx/clients/vpi-api.contracts.ts and the
       client-local schemas in vpi-api.client.ts (request bodies are exactly what the client
@@ -22,7 +22,7 @@ paths:
     post:
       operationId: Authenticate
       security: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -59,7 +59,7 @@ paths:
   /products/getAllFamiliesAndCategories:
     get:
       operationId: GetAllFamiliesAndCategories
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -86,7 +86,7 @@ paths:
   /products/getProductsByCategory:
     post:
       operationId: GetProductsByCategory
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -151,12 +151,12 @@ paths:
         description: The product's Mongo id (`id`), not its catalog code.
         schema:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: product
             missing: 000000000000000000000000
     get:
       operationId: GetProductDetailsByProductId
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -175,7 +175,7 @@ paths:
   /products/getProductDiscountByProductIds:
     post:
       operationId: GetProductDiscountByProductIds
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -197,7 +197,7 @@ paths:
                   items:
                     type: string
                     minLength: 1
-                    x-emulators-resource-ref:
+                    x-emulates-resource-ref:
                       type: product
                       missing: 000000000000000000000000
       responses:
@@ -218,7 +218,7 @@ paths:
   /products/calculateDaySupply:
     post:
       operationId: CalculateDaySupply
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -234,7 +234,7 @@ paths:
                 productId:
                   type: string
                   minLength: 1
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: product
                     missing: 000000000000000000000000
                 quantity:
@@ -268,7 +268,7 @@ paths:
   /admin/rxOrdering/getShippingStates:
     get:
       operationId: GetShippingStates
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -307,7 +307,7 @@ paths:
   /portal/getShippingRate:
     post:
       operationId: GetShippingRate
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -327,7 +327,7 @@ paths:
                 patientId:
                   type: string
                   minLength: 1
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: patient
                     missing: 000000000000000000000000
                 productIds:
@@ -337,7 +337,7 @@ paths:
                   items:
                     type: string
                     minLength: 1
-                    x-emulators-resource-ref:
+                    x-emulates-resource-ref:
                       type: product
                       missing: 000000000000000000000000
                 shippingState:
@@ -373,7 +373,7 @@ paths:
   /clinic/rxOrdering/checkProviderSignatureNeededDuplicate:
     post:
       operationId: CheckProviderSignatureNeededDuplicate
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -395,7 +395,7 @@ paths:
                   items:
                     type: string
                     minLength: 1
-                    x-emulators-resource-ref:
+                    x-emulates-resource-ref:
                       type: patient
                       missing: 000000000000000000000000
                 productIds:
@@ -405,7 +405,7 @@ paths:
                   items:
                     type: string
                     minLength: 1
-                    x-emulators-resource-ref:
+                    x-emulates-resource-ref:
                       type: product
                       missing: 000000000000000000000000
                 clinicLocationIds:
@@ -434,7 +434,7 @@ paths:
   /clinic/rxOrdering/saveNewPrescription:
     post:
       operationId: SaveNewPrescription
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -458,10 +458,10 @@ paths:
                     type: string
                   prescriptionId:
                     type: string
-                    x-emulators-resource:
+                    x-emulates-resource:
                       type: prescription
                       identity: true
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: id
                   isRefillRequest:
                     type: boolean
@@ -480,7 +480,7 @@ paths:
   /patients/getPatientByPatientId:
     post:
       operationId: GetPatientByPatientId
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -507,7 +507,7 @@ paths:
   /patients/getPatientAddressesByPatientId:
     post:
       operationId: GetPatientAddressesByPatientId
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -540,7 +540,7 @@ paths:
   /patients/getPatientsInClinic:
     post:
       operationId: GetPatientsInClinic
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -604,7 +604,7 @@ paths:
   /staffs/getAllProvidersByClinicLocationId:
     post:
       operationId: GetAllProvidersByClinicLocationId
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -639,7 +639,7 @@ paths:
   /clinicLocations/getClinicLocationByClinicLocationId:
     post:
       operationId: GetClinicLocationByClinicLocationId
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -670,7 +670,7 @@ paths:
   /clinic/rxOrdering/getIncompleteSavedPrescriptionsInClinicLocation:
     post:
       operationId: GetIncompleteSavedPrescriptionsInClinicLocation
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -693,7 +693,7 @@ paths:
   /clinic/rxOrdering/getSubmittedPrescriptionsInClinicLocation:
     post:
       operationId: GetSubmittedPrescriptionsInClinicLocation
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -716,7 +716,7 @@ paths:
   /clinic/rxOrdering/getArchivedPrescriptionsInClinic:
     post:
       operationId: GetArchivedPrescriptionsInClinic
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -840,11 +840,11 @@ components:
           type: string
         jwtToken:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
         refreshToken:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
     ProductSummary:
       type: object
@@ -863,7 +863,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: product
             identity: true
         name:
@@ -989,7 +989,7 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: patient
             identity: true
         firstName:
@@ -1075,7 +1075,7 @@ components:
         patientId:
           type: string
           minLength: 1
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: patient
             missing: 000000000000000000000000
         userId:
@@ -1102,11 +1102,11 @@ components:
       properties:
         prescriptionId:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         prescriptionStatus:
           type: string
@@ -1116,7 +1116,7 @@ components:
           type: string
         createdAt:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
     SavePrescriptionProduct:
       type: object
@@ -1153,7 +1153,7 @@ components:
         id:
           type: string
           minLength: 1
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: product
             missing: 000000000000000000000000
         productId:
@@ -1279,7 +1279,7 @@ components:
           items:
             type: string
             minLength: 1
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: patient
               missing: 000000000000000000000000
         clinicLocationId:

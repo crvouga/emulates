@@ -9,7 +9,7 @@ const repoRoot = fileURLToPath(new URL("../..", import.meta.url))
 // scripts/worktree/run.sh sets this so each worktree keeps the port reserved for it.
 // Astro's server config has no strictPort; Vite's does, and that is what stops
 // the dev server from sliding onto the next workspace's port.
-const reservedDocsPort = Number(process.env.EMULATORS_DOCS_PORT)
+const reservedDocsPort = Number(process.env.EMULATES_DOCS_PORT)
 const pinDocsPort =
   Number.isInteger(reservedDocsPort) && reservedDocsPort > 0 && reservedDocsPort < 65536
 

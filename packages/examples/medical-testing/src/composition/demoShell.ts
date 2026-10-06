@@ -1,4 +1,4 @@
-import { scopeReset } from "@emulators/ui"
+import { scopeReset } from "@emulates/ui"
 import type { MockAdmin } from "../adapters/admin.js"
 import { type PastedLocation, type PasteFetch, pasteHtml } from "../client/pasteHtml.js"
 
@@ -147,7 +147,7 @@ export const mountDemoShell = (
   const appRoot = document.createElement("div")
   appPanel.append(appRoot)
   const unmountApp = options.mountApp(appRoot)
-  addTab("admin", "Emulators")
+  addTab("admin", "Emulates")
 
   const showStatus = (panel: HTMLElement, text: string, isError = false): void => {
     panel.replaceChildren()

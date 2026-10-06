@@ -1,6 +1,6 @@
-# @emulators/genebygene
+# @emulates/genebygene
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Gene by Gene's Nucleus API v2** (and its OAuth auth host) for test suites:
 client-credentials tokens with the credential-blocking failures, both recorded product catalogs,
@@ -12,14 +12,14 @@ notifications. Kits move along the lab's status ladder only when a test says so 
 happy-path scenario runs on the emulator clock), so genomics suites that serialised on one staging
 slot with 15 s sleeps and 300 s waits resolve in milliseconds.
 
-> The catalog calls this package `@emulators/gene-by-gene`; it is published as
-> `@emulators/genebygene` (bin `emulators-genebygene`).
+> The catalog calls this package `@emulates/gene-by-gene`; it is published as
+> `@emulates/genebygene` (bin `emulates-genebygene`).
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/genebygene/SUPPORT.md)
   (30 of the 51 operations; every one our consumer calls).
 - Contract: `openapi.yaml` is the full Nucleus v2 Swagger document our consumer commits
   (`GXG/transport/spec/gxg-openapi.json`, from `demo-api.genebygene.com`), vendored by
-  `scripts/vendor-openapi.ts`. The script adds operationIds and Emulators annotations, the fields
+  `scripts/vendor-openapi.ts`. The script adds operationIds and Emulates annotations, the fields
   the live API returns but Swagger omits (`ProductDto.preassembly`,
   `OrderLineDto.placerOrderNumber`/`kitNumbers`, `CreateOrder_Item.placerOrderNumber`, `null`
   courier objects), schemas for the bodies Swagger leaves out (`eventTypes`,
@@ -34,11 +34,11 @@ slot with 15 s sleeps and 300 s waits resolve in milliseconds.
 ## Install
 
 ```bash
-npm install -D @emulators/genebygene
+npm install -D @emulates/genebygene
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-genebygene serve` (default port 8788), `createServer` from `./server` (Node), or
+`npx emulates-genebygene serve` (default port 8788), `createServer` from `./server` (Node), or
 `createRuntime` with any Fetch server.
 
 ## Usage
@@ -56,13 +56,13 @@ changes:
 (Our backend's non-prod safety gate must allow loopback first: catalog item G-X1.)
 
 ```bash
-npx emulators-genebygene serve --port 8788 \
+npx emulates-genebygene serve --port 8788 \
   --webhook-url http://127.0.0.1:3000/webhooks/gene-by-gene --webhook-secret "$GXG_KV_SECRET" \
   --results-s3-endpoint http://127.0.0.1:4569 --results-s3-bucket acme-gxg-results-dev
 ```
 
 ```ts
-import { createRuntime } from "@emulators/genebygene"
+import { createRuntime } from "@emulates/genebygene"
 
 const gxg = createRuntime({ webhooks: { url: "http://127.0.0.1:3000/webhooks/gene-by-gene", secret: "kv-secret" } })
 const call = (path: string, init: RequestInit = {}) => gxg.fetch(new Request(`http://gxg.test${path}`, init))
@@ -258,7 +258,7 @@ shipped place answers Address Not Found even for a good street), `slow_orders` (
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on both `GENE_BY_GENE_API_URL` and the token
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on both `GENE_BY_GENE_API_URL` and the token
 URL, or by client id: `PUT /__admin/credentials {"credentials": {"<client_id>": "<namespace>"}}`
 (tokens carry the client id they were issued to). Kit numbers and result keys are salted per
 namespace, so parallel workers never collide in the shared results bucket.

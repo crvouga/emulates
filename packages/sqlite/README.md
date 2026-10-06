@@ -1,8 +1,8 @@
-# @emulators/sqlite-client
+# @emulates/sqlite-client
 
-> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
 
-The synchronous `SqliteClient` port every Emulators emulator stores its state in, plus the default
+The synchronous `SqliteClient` port every Emulates emulator stores its state in, plus the default
 client and an idempotent migration runner. Use it to type the optional `sqlite` option you pass to a
 provider emulator (to share one database, or to inspect state), or when building a custom service. You
 do not need it just to use an emulator: omit `sqlite` and each emulator creates its own in-memory database.
@@ -10,11 +10,11 @@ do not need it just to use an emulator: omit `sqlite` and each emulator creates 
 ## Install
 
 ```bash
-npm install @emulators/sqlite-client
+npm install @emulates/sqlite-client
 ```
 
 ESM only, portable (Node >=22, Bun >=1.2, browsers). The default client is the pure-TypeScript
-in-memory `@emulators/sqlite`, installed as a dependency.
+in-memory `@emulates/sqlite`, installed as a dependency.
 
 ## Usage
 
@@ -27,10 +27,10 @@ import {
   migrateCore,
   resolveSqlite,
   type SqliteClient,
-} from "@emulators/sqlite-client"
+} from "@emulates/sqlite-client"
 
 // A fresh in-memory database. Any client with exec/prepare/transaction also works
-// (better-sqlite3, a wrapped bun:sqlite, @emulators/sqlite's Database).
+// (better-sqlite3, a wrapped bun:sqlite, @emulates/sqlite's Database).
 const sqlite: SqliteClient = resolveSqlite(undefined) // same as createDefaultSqlite()
 
 migrateCore(sqlite) // emulators_records + emulators_sequences; mocks do this on boot
@@ -49,7 +49,7 @@ console.log(row?.v) // 1
 
 // Share one client between mocks: each mock keeps its records in its own namespace.
 const shared = createDefaultSqlite()
-void shared // e.g. new StripeAPI({ sqlite: shared }) from @emulators/stripe
+void shared // e.g. new StripeAPI({ sqlite: shared }) from @emulates/stripe
 ```
 
 All methods are synchronous; do not `await` them.
@@ -58,7 +58,7 @@ All methods are synchronous; do not `await` them.
 
 | Export | Signature | Description |
 | --- | --- | --- |
-| `createDefaultSqlite` | `() => SqliteClient` | New in-memory `@emulators/sqlite` `Database`. |
+| `createDefaultSqlite` | `() => SqliteClient` | New in-memory `@emulates/sqlite` `Database`. |
 | `resolveSqlite` | `(sqlite?: SqliteClient) => SqliteClient` | Return the injected client, or `createDefaultSqlite()`. |
 | `migrate` | `(sqlite, migrations: readonly Migration[]) => void` | Apply pending migrations in order, all in one transaction. Idempotent by `id`. |
 | `listAppliedMigrations` | `(sqlite) => string[]` | Applied ids ordered by `applied_at` (whole seconds), then `id`. Migrations applied in the same second come back sorted by id, not in application order. |
@@ -78,7 +78,7 @@ Types:
 
 ## Related
 
-- `@emulators/sqlite`: the default in-memory SQLite engine.
-- `@emulators/service`: `bootSqlite`, `Collection` and `IdSequence` on top of this port.
+- `@emulates/sqlite`: the default in-memory SQLite engine.
+- `@emulates/service`: `bootSqlite`, `Collection` and `IdSequence` on top of this port.
 
 Part of [emulators](https://github.com/crvouga/emulators).

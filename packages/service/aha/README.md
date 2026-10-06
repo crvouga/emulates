@@ -1,6 +1,6 @@
-# @emulators/aha
+# @emulates/aha
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **AHA (Advanced Health Academy) at-home phlebotomy** partner API for test
 suites: HMAC-signed create-order and cancel, and — its main job — the order-status webhooks AHA
@@ -15,11 +15,11 @@ field our handler reads, so the ZIP-routed bloodwork path can finally be tested.
 ## Install
 
 ```bash
-npm install -D @emulators/aha
+npm install -D @emulates/aha
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-aha serve`, `createServer` from `./server` (Node), or `createRuntime` with any
+`npx emulates-aha serve`, `createServer` from `./server` (Node), or `createRuntime` with any
 Fetch server.
 
 ## Usage
@@ -34,7 +34,7 @@ Point the app at the emulator:
 | `AHA_WEBHOOK_SECRET` | the same value as `--webhook-secret` |
 
 ```bash
-npx emulators-aha serve --port 8799 \
+npx emulates-aha serve --port 8799 \
   --webhook-url http://127.0.0.1:3000/bloodwork/aha-webhook \
   --webhook-secret "$AHA_WEBHOOK_SECRET" \
   --api-key "$AHA_API_KEY" --api-secret "$AHA_API_SECRET" \
@@ -42,7 +42,7 @@ npx emulators-aha serve --port 8799 \
 ```
 
 ```ts
-import { createRuntime } from "@emulators/aha"
+import { createRuntime } from "@emulates/aha"
 
 const aha = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/bloodwork/aha-webhook", secret: "aha-webhook-secret" },
@@ -127,7 +127,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `bad_s
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `AHA_API_URL` (the signature still covers
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `AHA_API_URL` (the signature still covers
 only the path after it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<AHA_API_KEY>": "<namespace>"}}`.
 
@@ -136,8 +136,8 @@ only the path after it), or by API key:
 `createAhaSftpServer` from `./sftp` starts a real SSH/SFTP server on an ephemeral port and shares order state with `createRuntime`. It supports password or public-key authentication, host-key verification, `list`/`stat`, binary upload/download, atomic temp-file rename, delete, nested directories, stable POSIX permissions and emulator-clock timestamps. The deterministic Ed25519 host key is stable between runs.
 
 ```ts
-import { createRuntime } from "@emulators/aha"
-import { createAhaSftpServer } from "@emulators/aha/sftp"
+import { createRuntime } from "@emulates/aha"
+import { createAhaSftpServer } from "@emulates/aha/sftp"
 
 const runtime = createRuntime()
 const sftp = await createAhaSftpServer({

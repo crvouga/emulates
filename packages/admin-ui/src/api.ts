@@ -15,7 +15,7 @@ export const createApi = (
   ): Promise<T> => {
     const headers = new Headers({
       accept: "application/json",
-      "x-emulators-namespace": namespace,
+      "x-emulates-namespace": namespace,
     })
     if (key) headers.set(config.adminKeyHeader, key)
     if (body !== undefined) headers.set("content-type", "application/json")

@@ -37,9 +37,9 @@ for (const name of readdirSync(servicesDir).sort()) {
     name?: string
     private?: boolean
     files?: string[]
-    emulators?: Json & { layer?: string; parity?: string; parityTier?: string }
+    emulates?: Json & { layer?: string; parity?: string; parityTier?: string }
   }
-  if (pkg.private || pkg.emulators?.layer !== "service" || !pkg.name) continue
+  if (pkg.private || pkg.emulates?.layer !== "service" || !pkg.name) continue
 
   const http = existsSync(join(dir, "openapi.yaml"))
   const capabilities = existsSync(join(dir, "SUPPORT.md")) ? "SUPPORT.md" : "COMPATIBILITY.md"
@@ -77,12 +77,12 @@ for (const name of readdirSync(servicesDir).sort()) {
       ...(http ? ["openapi.yaml"] : []),
     ]),
   ]
-  pkg.emulators = { ...pkg.emulators, discovery }
+  pkg.emulates = { ...pkg.emulates, discovery }
 
   sync(manifestPath, `${JSON.stringify(pkg, null, 2)}\n`)
   sync(
     join(dir, "DISCOVERY.md"),
-    renderGuide(pkg.name, name, pkg.emulators.parity ?? "", pkg.emulators.parityTier, discovery),
+    renderGuide(pkg.name, name, pkg.emulates.parity ?? "", pkg.emulates.parityTier, discovery),
   )
   count++
 }
@@ -134,7 +134,7 @@ function oracleFor(name: string): Discovery["oracle"] {
   return {
     kind: "Live vendor API or sandbox",
     command: `bun run parity:service -- ${name}`,
-    note: "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2.",
+    note: "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2.",
   }
 }
 
@@ -173,7 +173,7 @@ function renderGuide(
     [
       "Package metadata",
       "package.json",
-      "Runtime/entry-point claims, vendor links, parity scope/tier and `emulators.discovery`.",
+      "Runtime/entry-point claims, vendor links, parity scope/tier and `emulates.discovery`.",
     ],
   ]
   return `# ${packageName} discovery
@@ -201,14 +201,14 @@ ${tier ? `- Parity tier: **${tier}** (the repository controls when live checks r
 - Evidence model: ${discovery.oracle.note}
 
 The npm package contains evidence summaries and the exact contract, not credentials or the
-repository-only parity harness. Self-parity/property and acceptance tests run in the Emulators
+repository-only parity harness. Self-parity/property and acceptance tests run in the Emulates
 repository; live parity is an additional oracle check, not a substitute for the packaged matrix.
 
 ## Runtime introspection
 
 ${discovery.introspection.map((item) => `- \`${item}\``).join("\n")}
 
-For HTTP services, use \`x-emulators-namespace\` (or the documented credential/path carrier) so
+For HTTP services, use \`x-emulates-namespace\` (or the documented credential/path carrier) so
 parallel tests do not share state. Admin state, journal, metrics and fault-preset endpoints are
 designed for assertions and diagnosis by consuming test suites.
 

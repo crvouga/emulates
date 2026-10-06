@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { listOperations, type OpenAPIDocument } from "@emulators/openapi"
-import { fcParameters } from "@emulators/testing"
+import { listOperations, type OpenAPIDocument } from "@emulates/openapi"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { stringify } from "yaml"
 import { generate, loadSpec, renderModule, SpecValidationError } from "./src/index.js"
@@ -29,9 +29,7 @@ const documentArb: fc.Arbitrary<OpenAPIDocument> = fc
       item[row.method as "get" | "post" | "delete"] = {
         operationId: row.id,
         responses: { "200": { description: row.description } },
-        ...(row.supported
-          ? {}
-          : { "x-emulators": { supported: false, reason: "not implemented" } }),
+        ...(row.supported ? {} : { "x-emulates": { supported: false, reason: "not implemented" } }),
       }
     }
     return { openapi: "3.1.0", info: { title: "gen", version: "1" }, paths }
@@ -86,7 +84,7 @@ describe("codegen", () => {
         if (!item) return
         const operation = item.get ?? item.post ?? item.delete
         if (!operation) return
-        operation["x-emulators"] = { supported: false }
+        operation["x-emulates"] = { supported: false }
         expect(() => loadSpec(stringify(broken))).toThrow(SpecValidationError)
       }),
       params,

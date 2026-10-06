@@ -1,5 +1,5 @@
-import { Collection, withNamespaceRollback } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, withNamespaceRollback } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Resource } from "@medplum/fhirtypes"
 
 /** The id of the system "project" server-owned resources live in (`systemResourceProjectId`). */
@@ -28,7 +28,7 @@ export type HistoryRow = {
 }
 
 /**
- * The mock's FHIR storage for one namespace, on the shared Emulators SQLite tables so the
+ * The mock's FHIR storage for one namespace, on the shared Emulates SQLite tables so the
  * runtime's reset, snapshot and restore cover it. Each resource type gets its own collection
  * (like the server's per-type tables); writes move a row to the end of its type's scan order,
  * which is how Postgres's heap order behaves for a searched table without `_sort`.
