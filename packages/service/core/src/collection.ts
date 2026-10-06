@@ -116,9 +116,7 @@ export class Collection<T> {
 
   list(options: ListRecordsOptions<T> = {}): Array<Stored<T> & { id: string }> {
     const rows = this.sqlite
-      .prepare(
-        "SELECT id, seq, value FROM emulates_records WHERE namespace = ? AND collection = ?",
-      )
+      .prepare("SELECT id, seq, value FROM emulates_records WHERE namespace = ? AND collection = ?")
       .all<RecordRow>(this.namespace, this.collectionName)
     const out: Array<Stored<T> & { id: string }> = []
     for (const row of rows) {
