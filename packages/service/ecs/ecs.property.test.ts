@@ -4,8 +4,10 @@ import { fcParameters } from "@emulates/testing"
 import { document, ECSAPI, supportedOperationIds } from "./src/index.js"
 
 const params = fcParameters(process.env)
+// Independent instances must share a clock: epoch seconds can be integers or fractions.
+const now = () => Date.UTC(2026, 0, 1)
 const run = (divergent = false) => {
-  const reference = new ECSAPI()
+  const reference = new ECSAPI({ now })
   return parity({
     provider: "ecs",
     spec: document,
@@ -25,7 +27,7 @@ const run = (divergent = false) => {
                   { headers: { "content-type": "application/x-amz-json-1.1" } },
                 ),
             }
-          : new ECSAPI(),
+          : new ECSAPI({ now }),
     },
     cleanup: () => reference.reset(),
     includeUnsafe: true,
