@@ -1,6 +1,6 @@
-# @emulators/google-ads
+# @emulates/google-ads
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip** portable emulator for Google Ads API v25 and Google Analytics 4. It provides deterministic
 GAQL reporting, campaign-budget mutations, click-conversion uploads, Measurement Protocol event
@@ -9,7 +9,7 @@ collection, and Analytics Data reports using namespaced SQLite state and an inje
 ## Install
 
 ```sh
-bun add @emulators/google-ads
+bun add @emulates/google-ads
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ import {
   createRuntime,
   DEFAULT_CUSTOMER,
   DEFAULT_TOKEN,
-} from "@emulators/google-ads"
+} from "@emulates/google-ads"
 
 const mock = createRuntime()
 const response = await mock.fetch(
@@ -43,7 +43,7 @@ the `measurement_id` and `api_secret` query parameters. The exported defaults ar
 safe for tests. Configure `tokens`, customers, campaigns, budgets, conversion actions, metrics,
 and Analytics properties through `createRuntime` options when a suite needs different fixtures.
 
-For parallel tests, send `x-emulators-namespace`, use the shared `/__admin/ns/{namespace}` path,
+For parallel tests, send `x-emulates-namespace`, use the shared `/__admin/ns/{namespace}` path,
 or register credentials with the shared admin API. State, pagination snapshots, IDs, clocks,
 faults, and resets are isolated by namespace.
 
@@ -65,7 +65,7 @@ support matrix is in [`SUPPORT.md`](SUPPORT.md).
 
 ## Controls and failures
 
-Service-specific controls are protected by the shared `x-emulators-admin-key` guard and live
+Service-specific controls are protected by the shared `x-emulates-admin-key` guard and live
 beside the shared health, state, clock, journal, fault, reset, and Timeline endpoints.
 
 | Control | Purpose |
@@ -93,7 +93,7 @@ The portable root exports `GoogleAdsAPI`, `createRuntime`, `document`, `supporte
 `DEFAULT_CUSTOMER`, `DEFAULT_CUSTOMERS`, `DEFAULT_BUDGETS`, `DEFAULT_CAMPAIGNS`, `DEFAULT_ACTIONS`,
 `DEFAULT_PROPERTY`, `DEFAULT_MEASUREMENT`, `DEFAULT_API_SECRET`, `createVaultKey`, `fingerprint`,
 and the public fixture/runtime option types. The Node `./server` entry exports `createServer`,
-`DEFAULT_PORT`, and server types. `emulators-google-ads serve` starts a listener.
+`DEFAULT_PORT`, and server types. `emulates-google-ads serve` starts a listener.
 
 ## Verification and scope
 

@@ -1,7 +1,7 @@
 /**
  * Build a published service package as a self-contained bundle.
  *
- * Only `@emulators/*` packages ship to npm; the helper workspace
+ * Only `@emulates/*` packages ship to npm; the helper workspace
  * packages they build on (core, service runtime, openapi, commands, …) are private.
  * So each service inlines them: every import that is not a declared `dependency` /
  * `peerDependency` of the service is bundled into its `dist`, JavaScript with esbuild
@@ -29,7 +29,7 @@ const pkg = JSON.parse(await Bun.file(join(pkgDir, "package.json")).text()) as {
   bin?: string | Record<string, string>
   dependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
-  emulators?: { runtime?: string }
+  emulates?: { runtime?: string }
 }
 
 const external = [...Object.keys({ ...pkg.dependencies, ...pkg.peerDependencies })]
@@ -73,13 +73,13 @@ const js = await build({
   bundle: true,
   splitting: entries.length > 1,
   format: "esm",
-  platform: pkg.emulators?.runtime === "node" ? "node" : "neutral",
+  platform: pkg.emulates?.runtime === "node" ? "node" : "neutral",
   mainFields: ["module", "main"],
   target: "es2022",
   sourcemap: true,
   // The unreleased placeholder; `release:publish` rewrites it to the version it publishes
   // (see UNRELEASED_VERSION in packages/service/core/src/version.ts).
-  define: { __EMULATORS_PACKAGE_VERSION__: JSON.stringify(VERSION_PLACEHOLDER) },
+  define: { __EMULATES_PACKAGE_VERSION__: JSON.stringify(VERSION_PLACEHOLDER) },
   external: [...external, "node:*", "bun", "bun:*"],
   logLevel: "warning",
   metafile: true,

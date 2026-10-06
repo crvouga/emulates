@@ -1,4 +1,4 @@
-import { createWebhookCollector } from "@emulators/webhook-collector"
+import { createWebhookCollector } from "@emulates/webhook-collector"
 import type { APIRoute } from "astro"
 import { webhookStore } from "../../lib/webhook-store.js"
 
@@ -7,8 +7,8 @@ export const ALL: APIRoute = async ({ request }) => {
   const url = new URL(request.url)
   url.pathname = url.pathname.replace(/^\/webhook(?=\/|$)/, "") || "/"
   return createWebhookCollector(webhookStore(), process.env.WEBHOOK_READ_TOKEN, {
-    ...(process.env.EMULATORS_ADMIN_PREFIX !== undefined
-      ? { adminPrefix: process.env.EMULATORS_ADMIN_PREFIX }
+    ...(process.env.EMULATES_ADMIN_PREFIX !== undefined
+      ? { adminPrefix: process.env.EMULATES_ADMIN_PREFIX }
       : {}),
   }).fetch(new Request(url, request))
 }

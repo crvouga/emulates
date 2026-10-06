@@ -6,8 +6,8 @@ import {
   jsonRes,
   markMutationAccepted,
   type OperationHandler,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { type GitHubState, type Repository, record } from "./state.js"
 
 type Branch = { label: string; ref: string; sha: string; repo: Repository }
@@ -45,7 +45,7 @@ function invalid(field: string): never {
   throw new PullError(422, "Validation Failed", field)
 }
 function unsupported(feature: string): never {
-  throw new PullError(501, `Emulators does not model ${feature}`)
+  throw new PullError(501, `Emulates does not model ${feature}`)
 }
 const repoKey = (repo: Repository) => repo.full_name.toLowerCase()
 

@@ -1,4 +1,4 @@
-# Firebase Cloud Messaging HTTP v1 (Emulators subset) — operation support
+# Firebase Cloud Messaging HTTP v1 (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulators/adapter-node"
+import { runCli, serveCommand } from "@emulates/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulators-route53resolver",
+    bin: "emulates-route53resolver",
     description: "Amazon Route 53 Resolver emulator",
     commands: { serve: serveCommand(serveTarget) },
   },

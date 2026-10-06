@@ -13,7 +13,7 @@ import {
   type SqlPage,
   type SqlResult,
   type SqlTable,
-} from "@emulators/service/admin";
+} from "@emulates/service/admin";
 import type { BindValue } from "./api/bind.ts";
 import { Database, type DatabaseOptions, type HistoryCheckpoint } from "./api/database.ts";
 

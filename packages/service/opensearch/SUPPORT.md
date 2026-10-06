@@ -1,4 +1,4 @@
-# Amazon OpenSearch Service (Emulators subset) — operation support
+# Amazon OpenSearch Service (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

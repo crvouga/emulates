@@ -1,7 +1,7 @@
-# @emulators/ses discovery
+# @emulates/ses discovery
 
 This is the installed-package index for coding agents and tooling. All relative links resolve
-inside `node_modules/@emulators/ses/`; no repository checkout is needed to discover the emulator's
+inside `node_modules/@emulates/ses/`; no repository checkout is needed to discover the emulator's
 supported surface or documented behavior.
 
 ## Capability and behavior sources
@@ -12,7 +12,7 @@ supported surface or documented behavior.
 | Exact capabilities | [`SUPPORT.md`](SUPPORT.md) | Supported, unsupported and parity-covered operations or commands, including reasons for gaps. |
 | Wire contract | [`openapi.yaml`](openapi.yaml) | Machine-readable paths, methods, schemas, responses and parity annotations. |
 | Public API | [`dist/index.d.ts`](dist/index.d.ts) | The installed package's exact TypeScript exports and signatures. |
-| Package metadata | [`package.json`](package.json) | Runtime/entry-point claims, vendor links, parity scope/tier and `emulators.discovery`. |
+| Package metadata | [`package.json`](package.json) | Runtime/entry-point claims, vendor links, parity scope/tier and `emulates.discovery`. |
 
 Read these together: the contract/capability matrix says *what* is available, while the README
 defines stateful behavior, lifecycle rules, test controls, and intentional oracle differences.
@@ -25,10 +25,10 @@ consumer-side workaround.
 - Parity tier: **cold** (the repository controls when live checks run).
 - Oracle: **Live vendor API or sandbox**.
 - Repository command: `bun run parity:service -- ses`.
-- Evidence model: Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2.
+- Evidence model: Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2.
 
 The npm package contains evidence summaries and the exact contract, not credentials or the
-repository-only parity harness. Self-parity/property and acceptance tests run in the Emulators
+repository-only parity harness. Self-parity/property and acceptance tests run in the Emulates
 repository; live parity is an additional oracle check, not a substitute for the packaged matrix.
 
 ## Runtime introspection
@@ -41,7 +41,7 @@ repository; live parity is an additional oracle check, not a substitute for the 
 - `GET /__admin/faults/presets`
 - `GET /__admin/ui`
 
-For HTTP services, use `x-emulators-namespace` (or the documented credential/path carrier) so
+For HTTP services, use `x-emulates-namespace` (or the documented credential/path carrier) so
 parallel tests do not share state. Admin state, journal, metrics and fault-preset endpoints are
 designed for assertions and diagnosis by consuming test suites.
 

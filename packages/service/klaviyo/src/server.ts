@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type KlaviyoRuntime, type KlaviyoRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-klaviyo serve` listens on when none is given. */
+/** Port `emulates-klaviyo serve` listens on when none is given. */
 export const DEFAULT_PORT = 8811
 
 export type KlaviyoServerOptions = KlaviyoRuntimeOptions & {
@@ -40,6 +40,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "events: POST /api/events/ with Authorization: Klaviyo-API-Key <key> and revision: 2024-02-15",
     "point KLAVIYO_URL at <this url>/api/events/ (or /__admin/ns/<name>/api/events/)",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
   ],
 }

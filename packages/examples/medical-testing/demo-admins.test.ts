@@ -19,7 +19,7 @@ describe("live demo admins", () => {
       const ui = await admin.fetch(new Request("https://mock.local/__admin/ui"))
       expect(ui.status).toBe(200)
       expect(ui.headers.get("content-type")).toContain("text/html")
-      expect(await ui.text()).toContain("data-emulators-admin")
+      expect(await ui.text()).toContain("data-emulates-admin")
     }
 
     const combinedUi = await demo.admin.fetch(new Request("https://mock.local/__admin/ui"))
@@ -110,6 +110,6 @@ describe("live demo admins", () => {
     expect((await catalog()).tests.find((test) => test.id === first.id)?.name).toBe(first.name)
     const ui = await (await request("/ui")).text()
     expect(ui).toContain('data-admin-ui-library="antd"')
-    expect(ui).toContain("data-emulators-admin")
+    expect(ui).toContain("data-emulates-admin")
   })
 })

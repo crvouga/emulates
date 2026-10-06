@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { ParityError, parity } from "@emulators/parity"
-import { fcParameters } from "@emulators/testing"
+import { ParityError, parity } from "@emulates/parity"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { document, FormbricksAPI, supportedOperationIds } from "./src/index.js"
 

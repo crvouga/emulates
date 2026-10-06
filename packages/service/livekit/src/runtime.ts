@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { bodySha256, jwt } from "./crypto.js"
 import { document } from "./generated/openapi.js"
 import { LIVEKIT_NAMESPACE, LiveKitAPI } from "./index.js"

@@ -1,12 +1,12 @@
 /**
  * Live parity against a real, self-hosted Medplum (the oracle): every scenario, then random
  * walks, each run on the oracle and a fresh mock with every exchange compared. Opt in with
- * `EMULATORS_MEDPLUM_ORACLE=1` (boots the pinned server on embedded Postgres and Redis; the
- * first run builds it) or point `EMULATORS_MEDPLUM_ORACLE_URL` at one already running.
+ * `EMULATES_MEDPLUM_ORACLE=1` (boots the pinned server on embedded Postgres and Redis; the
+ * first run builds it) or point `EMULATES_MEDPLUM_ORACLE_URL` at one already running.
  * CI replays the committed recording instead (medplum.oracle-replay.test.ts).
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import { type MedplumOracle, startOracle } from "./oracle/index.js"
 import { diff } from "./test/harness/canonical.js"
 import { runRandomWalks } from "./test/harness/random.js"
@@ -14,8 +14,8 @@ import { runScenario } from "./test/harness/scenario.js"
 import { mockTarget, type Target } from "./test/harness/target.js"
 import { scenarios } from "./test/scenarios/index.js"
 
-const oracleUrl = process.env.EMULATORS_MEDPLUM_ORACLE_URL
-const enabled = process.env.EMULATORS_MEDPLUM_ORACLE === "1" || Boolean(oracleUrl)
+const oracleUrl = process.env.EMULATES_MEDPLUM_ORACLE_URL
+const enabled = process.env.EMULATES_MEDPLUM_ORACLE === "1" || Boolean(oracleUrl)
 const params = fcParameters(process.env)
 
 describe.skipIf(!enabled)("live oracle parity", () => {

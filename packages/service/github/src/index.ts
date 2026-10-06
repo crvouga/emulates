@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   bootSqlite,
@@ -6,8 +6,8 @@ import {
   defineOperations,
   jsonRes,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { GitHubPulls, pullHandlers } from "./pulls.js"
@@ -62,7 +62,7 @@ export class GitHubAPI implements FetchAPI {
       notFound: missing,
       unsupported: (_request, operation) =>
         jsonRes(501, {
-          message: `Emulators: ${operation.operationId} is not implemented`,
+          message: `Emulates: ${operation.operationId} is not implemented`,
           code: "emulators_unsupported",
         }),
     })
@@ -72,7 +72,7 @@ export class GitHubAPI implements FetchAPI {
     const version = request.headers.get("X-GitHub-Api-Version")
     if (version && version !== GITHUB_API_VERSION)
       return jsonRes(501, {
-        message: "Emulators only models GitHub API 2026-03-10",
+        message: "Emulates only models GitHub API 2026-03-10",
         code: "emulators_unsupported",
       })
     const response = await this.service.fetch(request)

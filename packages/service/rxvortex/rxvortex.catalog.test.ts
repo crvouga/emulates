@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { listen } from "@emulators/adapter-node"
+import { listen } from "@emulates/adapter-node"
 import { type CatalogItem, createRuntime, DEFAULT_CATALOG } from "./src/index.js"
 import { loadCatalogFile, serveTarget } from "./src/server.js"
 import { RxVortexConsumer, samplePayload } from "./test/consumer.js"
@@ -59,7 +59,7 @@ const admin = (
       method: init.method ?? (init.body === undefined ? "GET" : "POST"),
       headers: {
         "content-type": "application/json",
-        ...(init.ns ? { "x-emulators-namespace": init.ns } : {}),
+        ...(init.ns ? { "x-emulates-namespace": init.ns } : {}),
       },
       ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
     }),

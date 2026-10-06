@@ -1,4 +1,4 @@
-import type { Exchange } from "@emulators/canonicalize"
+import type { Exchange } from "@emulates/canonicalize"
 import {
   commandArbitrary,
   createExploreRng,
@@ -14,9 +14,9 @@ import {
   resourceTypesOf,
   type Scope,
   sampleGuidedCommand,
-} from "@emulators/commands"
-import type { FetchAPI } from "@emulators/core"
-import { collectPlaceholders, pickRef, ResourceTable } from "@emulators/model"
+} from "@emulates/commands"
+import type { FetchAPI } from "@emulates/core"
+import { collectPlaceholders, pickRef, ResourceTable } from "@emulates/model"
 import fc from "fast-check"
 import { DEFAULT_PARITY_STEPS, DEFAULT_PROPERTY_RUNS } from "./defaults.js"
 import {
@@ -319,18 +319,18 @@ export const seedParity = async (options: SeedParityOptions): Promise<ParityRepo
   const seed = options.seed ?? integerEnv(env, "FC_SEED") ?? Date.now() % 0x7fffffff
   const numRuns = options.numRuns ?? integerEnv(env, "FC_NUM_RUNS") ?? DEFAULT_PROPERTY_RUNS
   const maxCommands =
-    options.maxCommands ?? integerEnv(env, "EMULATORS_MAX_COMMANDS") ?? DEFAULT_PARITY_STEPS
+    options.maxCommands ?? integerEnv(env, "EMULATES_MAX_COMMANDS") ?? DEFAULT_PARITY_STEPS
   const warmupN = options.warmupCommands ?? 15
   const compareCommands = options.compareCommands ?? maxCommands
   const explore = options.explore ?? "dynamic"
-  const trace = env.EMULATORS_TRACE === "1" || env.EMULATORS_TRACE === "true"
+  const trace = env.EMULATES_TRACE === "1" || env.EMULATES_TRACE === "true"
   const log = options.log ?? ((line: string) => console.log(line))
   const now = options.now ?? (() => Date.now())
   const sleep = options.sleep ?? defaultSleep
   const redact = options.redact ?? ((text: string) => text)
   const clockSkewSeconds = options.clockSkewSeconds ?? 2
   const deletedRefProbability = options.deletedRefProbability ?? 0.15
-  const runId = options.runId ?? `emulators-seed-parity-${seed.toString(16)}`
+  const runId = options.runId ?? `emulates-seed-parity-${seed.toString(16)}`
 
   assertAllowedHost(options.real.baseUrl, options.real.allowedHosts)
 

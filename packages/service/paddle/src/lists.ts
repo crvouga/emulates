@@ -1,4 +1,4 @@
-import type { OperationContext } from "@emulators/service"
+import type { OperationContext } from "@emulates/service"
 import { invalidField } from "./errors.js"
 
 export type Page<T> = {

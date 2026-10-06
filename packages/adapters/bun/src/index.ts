@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 
 /** Options for {@link serve}. */
 export type BunServeOptions = {
@@ -9,7 +9,7 @@ export type BunServeOptions = {
 export type BunAdapterServer = ReturnType<typeof Bun.serve>
 
 /**
- * Serve any Emulators {@link FetchAPI} over `Bun.serve`.
+ * Serve any Emulates {@link FetchAPI} over `Bun.serve`.
  * Port defaults to `0`, so the OS assigns an ephemeral port (read from `server.port`).
  */
 export const serve = (api: FetchAPI, options: BunServeOptions = {}): BunAdapterServer => {

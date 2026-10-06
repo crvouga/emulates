@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Brevo contacts subset
   version: v3
-  x-emulators-upstream:
+  x-emulates-upstream:
     url: https://developers.brevo.com/reference/create-contact
 servers:
   - url: https://api.brevo.com
@@ -37,7 +37,7 @@ paths:
         '204': { description: Existing contact updated }
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
-      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
   /v3/contacts/{identifier}:
     parameters:
       - name: identifier
@@ -58,7 +58,7 @@ paths:
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
-      x-emulators: { supported: true, parity: { enabled: true, safe: true } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
     put:
       operationId: UpdateContact
       requestBody:
@@ -71,7 +71,7 @@ paths:
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
-      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
     delete:
       operationId: DeleteContact
       responses:
@@ -79,7 +79,7 @@ paths:
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
-      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
 components:
   securitySchemes:
     apiKey: { type: apiKey, in: header, name: api-key }

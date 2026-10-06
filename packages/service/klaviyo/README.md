@@ -1,6 +1,6 @@
-# @emulators/klaviyo
+# @emulates/klaviyo
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Klaviyo** events API for test suites: the JSON:API create-event endpoint
 our backend posts `Ordered Product` and `Placed Order` to after checkout, the event reads, and an
@@ -14,11 +14,11 @@ our client throws (and logs) is the text the real API would produce.
 ## Install
 
 ```bash
-npm install -D @emulators/klaviyo
+npm install -D @emulates/klaviyo
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-klaviyo serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-klaviyo serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -27,12 +27,12 @@ Point `KLAVIYO_URL` (Joi-required, fully overridable) at the emulator's event en
 `KLAVIYO_API_KEY` works.
 
 ```bash
-npx emulators-klaviyo serve --port 8811
+npx emulates-klaviyo serve --port 8811
 # KLAVIYO_URL=http://127.0.0.1:8811/api/events/
 ```
 
 ```ts
-import { createRuntime } from "@emulators/klaviyo"
+import { createRuntime } from "@emulates/klaviyo"
 
 const klaviyo = createRuntime()
 // …the app posts POST /api/events/ with Authorization: Klaviyo-API-Key <key>, revision: 2024-02-15…
@@ -66,7 +66,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix in `KLAVIYO_URL`, or by private key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix in `KLAVIYO_URL`, or by private key:
 `PUT /__admin/credentials {"credentials": {"<KLAVIYO_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled

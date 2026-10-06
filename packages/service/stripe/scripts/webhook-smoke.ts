@@ -1,4 +1,4 @@
-import { ResourceTable } from "@emulators/model"
+import { ResourceTable } from "@emulates/model"
 import { StripeAPI } from "../src/index.js"
 import { compareStripeWebhooks, startStripeWebhookOracle } from "./webhook-oracle.js"
 

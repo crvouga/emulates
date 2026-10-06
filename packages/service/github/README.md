@@ -1,6 +1,6 @@
-# @emulators/github
+# @emulates/github
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP GitHub REST emulator targeting `X-GitHub-Api-Version: 2026-03-10`.
 Repository observations, commit-backed references, and same-repository pull-request
@@ -11,7 +11,7 @@ runtime verification. [SUPPORT.md](SUPPORT.md) is generated from the contract.
 ## Install
 
 ```sh
-bun add @emulators/github
+bun add @emulates/github
 ```
 
 ## API
@@ -21,12 +21,12 @@ The portable entry exports `GitHubAPI`, `createRuntime`, `GITHUB_NAMESPACE`,
 Types include `GitHubAPIOptions`, `GitHubRuntime`, `GitHubRuntimeOptions`,
 `Repository`, `Commit`, `PullRequest`, `OperationId`, and `SupportedOperationId`.
 The Node-only `/server` entry exports `createServer`, `DEFAULT_PORT`, `serveTarget`,
-`GitHubServerOptions`, and `GitHubServer`. The executable is `emulators-github`.
+`GitHubServerOptions`, and `GitHubServer`. The executable is `emulates-github`.
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/github"
+import { createRuntime } from "@emulates/github"
 
 const github = createRuntime({ seed: 42 })
 await github.fetch(new Request("http://github.mock/__admin/github/repositories", {
@@ -75,16 +75,16 @@ All requests above stay inside the local Fetch runtime. The branch target must
 already exist in the synthetic commit graph; this is not a Git push.
 
 `createRuntime` adds health, namespaces, clock, scoped faults, redacted request
-journal and shared Timeline. Select a namespace with `x-emulators-namespace`
+journal and shared Timeline. Select a namespace with `x-emulates-namespace`
 or `/__admin/ns/<name>/...` consistently on seed and provider requests. Reset removes
 repository, owner, ancestry and branch state in that namespace; diagnostic history
 and fault settings retain their shared runtime lifetimes. Checkpoints restore
 all stored provider state through the shared Timeline.
 
 `GitHubAPI` is the portable provider-only Fetch/Hono entry; `createServer` from
-`@emulators/github/server` exposes Node HTTP and returns a
+`@emulates/github/server` exposes Node HTTP and returns a
 `close` function. Programmatic servers default to an ephemeral loopback port.
-The CLI is `emulators-github serve --port 8828`.
+The CLI is `emulates-github serve --port 8828`.
 
 ## Synthetic setup and boundaries
 
@@ -229,7 +229,7 @@ branches; closed PR history and Git objects remain. The runner is available only
 in the repository checkout; see the
 [oracle guide](https://github.com/crvouga/emulators/tree/main/packages/service/github/oracle).
 It requires a reviewed manifest and explicit writes/notifications/cleanup approval,
-plus `EMULATORS_GITHUB_TOKEN` or explicitly selected authenticated `gh` usage.
+plus `EMULATES_GITHUB_TOKEN` or explicitly selected authenticated `gh` usage.
 Ordinary package tests never invoke it.
 
 This evidence covers selected identity/state/ref/PR fields and two error cases.

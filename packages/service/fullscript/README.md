@@ -1,6 +1,6 @@
-# @emulators/fullscript
+# @emulates/fullscript
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Fullscript** lab-ordering API for test suites: per-practitioner OAuth
 (consent redirect, `authorization_code` and rotating `refresh_token` grants, revoke), the
@@ -17,11 +17,11 @@ so.
 ## Install
 
 ```bash
-npm install -D @emulators/fullscript
+npm install -D @emulates/fullscript
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-fullscript serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-fullscript serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -35,13 +35,13 @@ over https from allowlisted hosts (by default `fullscript.com`, `fullscript.io` 
 set `--results-base-url`.
 
 ```bash
-npx emulators-fullscript serve --port 8819 \
+npx emulates-fullscript serve --port 8819 \
   --webhook-url http://127.0.0.1:4000/v1/fullscript/webhooks \
   --webhook-secret "$FULLSCRIPT_WEBHOOK_SECRET" --webhook-challenge "$FULLSCRIPT_WEBHOOK_CHALLENGE_KEY"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/fullscript"
+import { createRuntime } from "@emulates/fullscript"
 
 const fullscript = createRuntime({
   webhooks: { url: "http://127.0.0.1:4000/v1/fullscript/webhooks", secret: "whsec", challenge: "chal" },
@@ -114,7 +114,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `token
 ### Namespaces
 
 A `/__admin/ns/<name>/` suffix on `FULLSCRIPT_API_URL` (our client resolves relative `api/…` paths, so
-the prefix survives, and PDF URLs keep it), `x-emulators-namespace`, or by OAuth client for
+the prefix survives, and PDF URLs keep it), `x-emulates-namespace`, or by OAuth client for
 API calls (`PUT /__admin/credentials {"credentials": {"<FULLSCRIPT_CLIENT_ID>": "<ns>"}}`;
 tokens carry the client they were issued to). Token requests carry the client only in their
 body, so they need the prefix or the header.

@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type SlackRuntime, type SlackRuntimeOptions } from "./runtime.js"
 import { attachSocketServer } from "./socket-server.js"
 
-/** Port `emulators-slack serve` listens on when none is given. */
+/** Port `emulates-slack serve` listens on when none is given. */
 export const DEFAULT_PORT = 8808
 
 export type SlackServerOptions = SlackRuntimeOptions & {

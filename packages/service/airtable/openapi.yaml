@@ -13,7 +13,7 @@
     "/v0/meta/whoami": {
       "get": {
         "operationId": "Whoami",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": true
           }
@@ -180,7 +180,7 @@
     "/v0/meta/bases": {
       "get": {
         "operationId": "ListBases",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": true
           }
@@ -354,7 +354,7 @@
     "/v0/meta/bases/{baseId}/tables": {
       "get": {
         "operationId": "ListTables",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": true
           }
@@ -527,7 +527,7 @@
     "/v0/meta/bases/{baseId}/tables/{tableId}/fields": {
       "post": {
         "operationId": "CreateField",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": false
           }
@@ -746,7 +746,7 @@
     "/v0/{baseId}/{tableId}": {
       "post": {
         "operationId": "CreateRecords",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": false
           }
@@ -956,7 +956,7 @@
     "/oauth2/v1/token": {
       "post": {
         "operationId": "OAuthToken",
-        "x-emulators": {
+        "x-emulates": {
           "parity": {
             "safe": false
           }
@@ -979,13 +979,13 @@
                   "properties": {
                     "access_token": {
                       "type": "string",
-                      "x-emulators-volatile": {
+                      "x-emulates-volatile": {
                         "kind": "token"
                       }
                     },
                     "refresh_token": {
                       "type": "string",
-                      "x-emulators-volatile": {
+                      "x-emulates-volatile": {
                         "kind": "token"
                       }
                     },

@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { PAYLOAD_CMS_NAMESPACE, PayloadCmsAPI, payloadCredential } from "./index.js"
 import type { PayloadDoc, Seed } from "./state.js"
@@ -145,7 +145,7 @@ const adminRoutes = (runtime: ServiceRuntime<PayloadCmsAPI>): AdminRoutes => ({
 })
 
 /**
- * The Payload CMS emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Payload CMS emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix (on `PAYLOAD_CMS_API_URL`), or by API key
  * / bearer token, clock control, fault presets and a request journal.
  */

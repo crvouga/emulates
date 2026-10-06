@@ -1,24 +1,24 @@
-# @emulators/whoop
+# @emulates/whoop
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP WHOOP v2 emulator for synthetic workout, sleep, recovery and cycle synchronization.
 
 ## Install
 
-`bun add @emulators/whoop`
+`bun add @emulates/whoop`
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/whoop"
+import { createRuntime } from "@emulates/whoop"
 const runtime = createRuntime()
 const response = await runtime.fetch(new Request("http://whoop.test/developer/v2/activity/workout", {
   headers: { authorization: "Bearer mock_whoop_token" },
 }))
 ```
 
-Run `emulators-whoop serve --port 12129`. Inject the local origin plus `/developer` as the consumer API base, and the origin alone as OAuth base. Consumer endpoint wiring is separate from this emulator.
+Run `emulates-whoop serve --port 12129`. Inject the local origin plus `/developer` as the consumer API base, and the origin alone as OAuth base. Consumer endpoint wiring is separate from this emulator.
 
 ## Routes and state
 

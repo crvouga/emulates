@@ -16,8 +16,8 @@
  */
 import { readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { createRuntime, document } from "../src/index.js"
 
 /** `[path segment as sent, CountryCode?]`, all fictional or malformed. */
@@ -163,7 +163,7 @@ for (const parameter of lookupPath?.parameters ?? []) {
   // Never pair an input with a region the table did not: a US 555 number read in another
   // region can be somebody's real number.
   if (parameter.name === "CountryCode") {
-    parameter.schema = { type: "string", "x-emulators-unsupported": { reason: "table only" } }
+    parameter.schema = { type: "string", "x-emulates-unsupported": { reason: "table only" } }
   }
 }
 try {

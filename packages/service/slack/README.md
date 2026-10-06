@@ -1,6 +1,6 @@
-# @emulators/slack
+# @emulates/slack
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Slack** for test suites: incoming webhooks, the Web API methods our apps
 call, and the Socket Mode control plane Bolt needs in order to boot, with an **outbox** of
@@ -16,11 +16,11 @@ retry paths (429 with `retry-after`, 5xx) and the terminal ones (`no_text`, `no_
 ## Install
 
 ```bash
-npm install -D @emulators/slack
+npm install -D @emulates/slack
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-slack serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-slack serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -36,11 +36,11 @@ Bolt in Socket Mode uses that same `clientOptions.slackApiUrl` (Bolt copies it i
 on this process.
 
 ```bash
-npx emulators-slack serve --port 8808
+npx emulates-slack serve --port 8808
 ```
 
 ```ts
-import { createRuntime } from "@emulators/slack"
+import { createRuntime } from "@emulates/slack"
 
 const slack = createRuntime()
 await slack.fetch(
@@ -114,7 +114,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n, "params"?
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the webhook URL or API base, or by
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the webhook URL or API base, or by
 credential: `PUT /__admin/credentials {"credentials": {"xoxb-worker-a": "a", "T000/B000/XXXX": "b"}}`
 maps a bot token or a webhook's `T/B/X` path to a namespace.
 

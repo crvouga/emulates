@@ -1,4 +1,4 @@
-# RxVortex (Strive) pharmacy API (Emulators subset) — operation support
+# RxVortex (Strive) pharmacy API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

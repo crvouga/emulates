@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/example-medical-testing",
+  "name": "@emulates/example-medical-testing",
   "version": "0.0.0-development",
   "private": true,
   "description": "A plain full-stack example. Sign in with a Google or Apple OAuth emulator, shop lab tests, pay with a Stripe Checkout emulator, and the paid order is fulfilled as a Junction lab order, all persisted to an in-process Postgres engine, in one process.",
@@ -16,7 +16,7 @@
       "default": "./dist/browser.js"
     }
   },
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "example"
   },
@@ -28,18 +28,18 @@
     "build": "bun ../../../scripts/bundle-service.ts"
   },
   "dependencies": {
-    "@emulators/junction": "workspace:*",
-    "@emulators/oauth": "workspace:*",
-    "@emulators/postgres": "workspace:*",
-    "@emulators/stripe": "workspace:*",
+    "@emulates/junction": "workspace:*",
+    "@emulates/oauth": "workspace:*",
+    "@emulates/postgres": "workspace:*",
+    "@emulates/stripe": "workspace:*",
     "hono": "4.11.9",
     "htm": "3.1.1",
     "oauth4webapi": "3.8.8",
     "preact": "10.24.3"
   },
   "devDependencies": {
-    "@emulators/admin-ui": "workspace:*",
-    "@emulators/ui": "workspace:*",
+    "@emulates/admin-ui": "workspace:*",
+    "@emulates/ui": "workspace:*",
     "@types/bun": "1.4.0"
   }
 }

@@ -6,12 +6,12 @@
  * Pass `{ random: "os" }` / `{ now: "system" }` for PostgreSQL-like entropy and wall clock.
  * Zero WASM, native bindings, or filesystem.
  *
- * Advanced / internal helpers live under `@emulators/postgres/unstable` and are
+ * Advanced / internal helpers live under `@emulates/postgres/unstable` and are
  * exempt from semver.
  *
  * @example
  * ```ts
- * import { Database } from "@emulators/postgres";
+ * import { Database } from "@emulates/postgres";
  *
  * const db = new Database();
  * db.exec("CREATE TABLE t (id serial PRIMARY KEY, name text)");

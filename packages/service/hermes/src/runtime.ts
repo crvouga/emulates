@@ -3,7 +3,7 @@ import {
   jsonRes,
   type RuntimeOptions,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { HERMES_NAMESPACE, HermesAPI } from "./index.js"
 import { presets } from "./presets.js"

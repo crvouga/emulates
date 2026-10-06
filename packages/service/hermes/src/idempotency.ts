@@ -1,5 +1,5 @@
-import { Collection } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { canonicalFingerprintInput, sha256 } from "./fingerprint.js"
 import { HermesError, type HermesRuns, type RunRecord, record, terminal } from "./runs.js"
 

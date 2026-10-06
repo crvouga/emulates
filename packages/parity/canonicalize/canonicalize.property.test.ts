@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { canonicalToken, ResourceTable } from "@emulators/model"
-import type { OpenAPIDocument, SchemaObject } from "@emulators/openapi"
-import { fcParameters } from "@emulators/testing"
+import { canonicalToken, ResourceTable } from "@emulates/model"
+import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import {
   canonicalizeExchange,
@@ -25,12 +25,12 @@ const document: OpenAPIDocument = {
       customer: {
         type: "object",
         properties: {
-          id: { type: "string", "x-emulators-resource": { type: "customer", identity: true } },
-          created: { type: "integer", "x-emulators-volatile": { kind: "timestamp" } },
+          id: { type: "string", "x-emulates-resource": { type: "customer", identity: true } },
+          created: { type: "integer", "x-emulates-volatile": { kind: "timestamp" } },
           name: { type: ["string", "null"] },
           default_price: {
             type: ["string", "null"],
-            "x-emulators-resource": { type: "price", identity: true },
+            "x-emulates-resource": { type: "price", identity: true },
           },
         },
       } as SchemaObject,

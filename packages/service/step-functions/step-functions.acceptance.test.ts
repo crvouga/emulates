@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { DescribeExecutionCommand, SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createServer } from "./src/server.js"
 
 describe("Step Functions deterministic controls", () => {
@@ -61,7 +61,7 @@ describe("Step Functions deterministic controls", () => {
         headers: {
           "content-type": "application/x-amz-json-1.0",
           "x-amz-target": "AWSStepFunctions.StartExecution",
-          "x-emulators-namespace": "other",
+          "x-emulates-namespace": "other",
         },
         body: JSON.stringify({ stateMachineArn: arn, input: "{}" }),
       })
@@ -74,7 +74,7 @@ describe("Step Functions deterministic controls", () => {
         headers: {
           "content-type": "application/x-amz-json-1.0",
           "x-amz-target": "AWSStepFunctions.DescribeExecution",
-          "x-emulators-namespace": "other",
+          "x-emulates-namespace": "other",
         },
         body: JSON.stringify({ executionArn: one.executionArn }),
       })

@@ -1,6 +1,6 @@
-# @emulators/docs
+# @emulates/docs
 
-The Emulators documentation site: a static [Astro](https://astro.build) build with nothing
+The Emulates documentation site: a static [Astro](https://astro.build) build with nothing
 hand-maintained. Everything a page shows comes from the service packages at build time.
 
 ```bash

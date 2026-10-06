@@ -1,5 +1,5 @@
-import { type BindValue, Database } from "@emulators/postgres"
-import { createAdmin } from "@emulators/postgres/admin"
+import { type BindValue, Database } from "@emulates/postgres"
+import { createAdmin } from "@emulates/postgres/admin"
 import type { Db } from "../../app/ports/db.js"
 import type { MockAdmin } from "../admin.js"
 

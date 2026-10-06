@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, TEXTRACT_NAMESPACE, TextractAPI } from "./index.js"
 import type { TextractCorpus, TextractJobStatus } from "./state.js"

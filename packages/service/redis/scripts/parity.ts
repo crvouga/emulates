@@ -5,7 +5,7 @@
  */
 
 import { connect, type Socket } from "node:net"
-import { CredentialError, loadCredentials } from "@emulators/credentials"
+import { CredentialError, loadCredentials } from "@emulates/credentials"
 import { createRedis } from "../src/index.ts"
 import { asCommand, encodeReply, type Reply, RespParser } from "../src/protocol.ts"
 

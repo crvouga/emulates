@@ -16,7 +16,7 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@emulators/postgres": ["../../src/index.ts"]
+      "@emulates/postgres": ["../../src/index.ts"]
     }
   },
   "include": ["src", "scripts"]

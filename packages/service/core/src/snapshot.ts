@@ -1,5 +1,5 @@
-import { Timeline } from "@emulators/core"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Timeline } from "@emulates/core"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /**
  * A point-in-time copy of everything a service namespace holds.

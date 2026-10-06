@@ -1,4 +1,4 @@
-# OTLP/HTTP collector and OpenObserve search (Emulators subset) — operation support
+# OTLP/HTTP collector and OpenObserve search (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

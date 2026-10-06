@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { ParityError, parity } from "@emulators/parity"
-import { fcParameters } from "@emulators/testing"
+import { ParityError, parity } from "@emulates/parity"
+import { fcParameters } from "@emulates/testing"
 import { DockerAPI, document, supportedOperationIds } from "./src/index.js"
 
 const host = "docker.mock.local"

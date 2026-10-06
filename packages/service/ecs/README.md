@@ -1,25 +1,25 @@
-# @emulators/ecs
+# @emulates/ecs
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP AWS ECS Fargate RunTask control-plane emulator. It records task acceptance; it never starts
 containers. Wire contract follows [RunTask](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html).
 
 ## Install
 
-`bun add @emulators/ecs`
+`bun add @emulates/ecs`
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/ecs/server"
+import { createServer } from "@emulates/ecs/server"
 const server = await createServer()
 // boto3.client("ecs", endpoint_url=server.url, region_name="us-east-1",
 //              aws_access_key_id="fixture", aws_secret_access_key="fixture")
 await server.close()
 ```
 
-CLI: `emulators-ecs serve --port 12129`. Point the application factory's endpoint_url or
+CLI: `emulates-ecs serve --port 12129`. Point the application factory's endpoint_url or
 AWS_ENDPOINT_URL_ECS at the server. POST / with X-Amz-Target
 AmazonEC2ContainerServiceV20141113.RunTask accepts AWS JSON 1.1.
 The default fixtures are cluster default and task definition fixture:1 with container app.
@@ -42,7 +42,7 @@ Identical clientToken retries within a cluster return the same result for 24 hou
 changed parameters return ConflictException with associated resourceIds. Tokens are resettable state.
 
 Shared /__admin provides health, UI, state, reset, Timeline checkpoints, clock, journal and metrics.
-Namespace carriers: x-emulators-namespace, /__admin/ns/name and SigV4 access-key mappings via
+Namespace carriers: x-emulates-namespace, /__admin/ns/name and SigV4 access-key mappings via
 PUT /__admin/credentials. Signature verification and IAM policy evaluation are not performed.
 Journal entries omit bodies and credentials. No webhooks are emitted.
 Presets: access_denied (AWS 400), throttled (400), rate_limited (explicit HTTP 429 test fault),

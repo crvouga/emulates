@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Daily.co REST API (Emulators subset)
+  title: Daily.co REST API (Emulates subset)
   description: |
     Stateful mock subset of the Daily.co REST API: rooms (create, get, update, delete, presence,
     eject) and meeting tokens (create, validate). Trimmed from Daily's documented API to the
     calls our backend and EMR make; request schemas follow the fields our consumers send
     (daily-video.schemas.ts strict zod schemas, EMR RoomConfig / TokenConfig).
   version: "1"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Hand-authored from docs.daily.co/reference/rest-api and our consumers
       (apps/backend daily-video.service.ts + schemas, the consumer app's daily-service.ts).
@@ -19,7 +19,7 @@ paths:
   /v1/rooms:
     get:
       operationId: ListRooms
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -63,7 +63,7 @@ paths:
           $ref: "#/components/responses/ServerError"
     post:
       operationId: CreateRoom
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -94,7 +94,7 @@ paths:
       - $ref: "#/components/parameters/RoomName"
     get:
       operationId: GetRoom
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -116,7 +116,7 @@ paths:
           $ref: "#/components/responses/ServerError"
     post:
       operationId: UpdateRoom
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -146,7 +146,7 @@ paths:
           $ref: "#/components/responses/ServerError"
     delete:
       operationId: DeleteRoom
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -177,7 +177,7 @@ paths:
       - $ref: "#/components/parameters/RoomName"
     get:
       operationId: GetRoomPresence
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -211,7 +211,7 @@ paths:
       - $ref: "#/components/parameters/RoomName"
     post:
       operationId: EjectParticipants
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -263,7 +263,7 @@ paths:
   /v1/meeting-tokens:
     post:
       operationId: CreateMeetingToken
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -290,10 +290,10 @@ paths:
                 properties:
                   token:
                     type: string
-                    x-emulators-resource:
+                    x-emulates-resource:
                       type: meeting_token
                       identity: true
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: token
         "400":
           $ref: "#/components/responses/InvalidRequest"
@@ -311,7 +311,7 @@ paths:
         description: A meeting token, minted by Daily or self-signed (HS256 with the API key).
         schema:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: meeting_token
             missing: eyJhbGciOiJIUzI1NiJ9.e30.bm90LWEtc2lnbmF0dXJl
       - name: ignoreNbf
@@ -321,7 +321,7 @@ paths:
           type: boolean
     get:
       operationId: ValidateMeetingToken
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -353,7 +353,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: room
           missing: no-such-room
   responses:
@@ -617,14 +617,14 @@ components:
       properties:
         id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         name:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: room
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         api_created:
           type: boolean
@@ -633,11 +633,11 @@ components:
           enum: [public, private]
         url:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: url
         created_at:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         config:
           type: object
@@ -665,7 +665,7 @@ components:
         room_name:
           type: string
           maxLength: 128
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: room
             missing: no-such-room
         knocking:

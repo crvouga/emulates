@@ -2,9 +2,9 @@
  * Vendor the supported subset of Stripe's official OpenAPI spec into `openapi.yaml`.
  *
  * Source: https://github.com/stripe/openapi (spec3.json), pinned by commit below. Only the
- * operations Emulators implements are kept, together with the component schemas they
+ * operations Emulates implements are kept, together with the component schemas they
  * transitively reference. Expandable fields are collapsed to their unexpanded (id-only) shape
- * because the mock never expands. Emulators metadata is layered on top so the differential
+ * because the mock never expands. Emulates metadata is layered on top so the differential
  * runner knows identities, references, volatile fields and unsupported parameters.
  *
  * Run with `bun run vendor` inside packages/service/stripe (network access required).
@@ -45,14 +45,14 @@ const fetchUpstream = async (): Promise<Json> => {
 
 // --- metadata helpers -------------------------------------------------------------------------
 
-const identity = (type: string) => ({ "x-emulators-resource": { type, identity: true } })
-const ref = (type: string, missing: string) => ({ "x-emulators-resource-ref": { type, missing } })
+const identity = (type: string) => ({ "x-emulates-resource": { type, identity: true } })
+const ref = (type: string, missing: string) => ({ "x-emulates-resource-ref": { type, missing } })
 const volatile = (kind: "id" | "timestamp" | "token" | "url" | "account" | "opaque") => ({
-  "x-emulators-volatile": { kind },
+  "x-emulates-volatile": { kind },
 })
-const unsupported = (reason: string) => ({ "x-emulators-unsupported": { reason } })
+const unsupported = (reason: string) => ({ "x-emulates-unsupported": { reason } })
 const scope = (value: "run-id" | "walk-start-unix" | "walk-start-iso") => ({
-  "x-emulators-scope": { value },
+  "x-emulates-scope": { value },
 })
 
 const MISSING = {
@@ -1835,7 +1835,7 @@ const applyShape = (schema: Schema, shape: Shape, label: string) => {
       edit !== null &&
       parent &&
       isObject(parent.properties) &&
-      Object.keys(edit).some((k) => !k.startsWith("x-emulators"))
+      Object.keys(edit).some((k) => !k.startsWith("x-emulates"))
     ) {
       holder = parent.properties
       holder[key] = {}
@@ -1850,7 +1850,7 @@ const applyShape = (schema: Schema, shape: Shape, label: string) => {
       continue
     }
     const existing = holder[key] as Schema
-    const replacesSchema = Object.keys(edit).some((k) => !k.startsWith("x-emulators"))
+    const replacesSchema = Object.keys(edit).some((k) => !k.startsWith("x-emulates"))
     holder[key] = replacesSchema ? { ...edit } : { ...existing, ...edit }
   }
 }
@@ -1951,13 +1951,13 @@ const shapeExpand = (operation: Json, operationId: string) => {
   apply(expand)
 }
 
-/** Operation-level Emulators metadata driven by the allowlist entry. */
+/** Operation-level Emulates metadata driven by the allowlist entry. */
 const stampOperation = (operation: Json, config: OperationConfig, label: string) => {
   const supported = config.supported ?? true
   const parity = config.parity ?? supported
   if ((!supported || !parity) && config.reason === undefined)
     throw new Error(`${label}: unsupported/parity-disabled operations need a reason`)
-  operation["x-emulators"] = {
+  operation["x-emulates"] = {
     supported,
     ...(config.reason === undefined ? {} : { reason: config.reason }),
     parity: {
@@ -1989,7 +1989,7 @@ const parityHeaders = (operation: Json) => {
     response.headers = {
       "content-type": {
         schema: { type: "string", enum: ["application/json"] },
-        "x-emulators-parity-header": true,
+        "x-emulates-parity-header": true,
       },
     }
   }
@@ -1999,7 +1999,7 @@ const parityHeaders = (operation: Json) => {
     headers: {
       "content-type": {
         schema: { type: "string", enum: ["text/html"] },
-        "x-emulators-parity-header": true,
+        "x-emulates-parity-header": true,
       },
     },
     content: { "text/html": { schema: { type: "string" } } },
@@ -2383,9 +2383,9 @@ const main = async () => {
   const document = {
     openapi: "3.1.0",
     info: {
-      title: "Stripe API (Emulators subset)",
+      title: "Stripe API (Emulates subset)",
       version: String(info.version),
-      "x-emulators-upstream": { ...UPSTREAM, url: `https://github.com/${UPSTREAM.repository}` },
+      "x-emulates-upstream": { ...UPSTREAM, url: `https://github.com/${UPSTREAM.repository}` },
     },
     servers: [{ url: "https://api.stripe.com/" }],
     security: [{ bearerAuth: [] }],

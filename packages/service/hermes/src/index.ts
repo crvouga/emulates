@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -11,8 +11,8 @@ import {
   jsonRes,
   markMutationAccepted,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { HermesIdempotency, strip } from "./idempotency.js"
@@ -81,7 +81,7 @@ export class HermesAPI implements FetchAPI {
       unsupported: (_request, operation) =>
         jsonRes(501, {
           error: {
-            message: `Emulators: ${operation.operationId} is not implemented`,
+            message: `Emulates: ${operation.operationId} is not implemented`,
             type: "emulators_unsupported",
             param: null,
             code: "operation_not_implemented",

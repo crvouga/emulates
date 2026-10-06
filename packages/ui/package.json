@@ -1,8 +1,8 @@
 {
-  "name": "@emulators/ui",
+  "name": "@emulates/ui",
   "version": "0.0.0-development",
   "private": true,
-  "description": "The cross-browser CSS reset every Emulators HTML surface starts from.",
+  "description": "The cross-browser CSS reset every Emulates HTML surface starts from.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -14,7 +14,7 @@
     },
     "./reset.css": "./src/reset.css"
   },
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "ui"
   },

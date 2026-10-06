@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { OURA_NAMESPACE, OuraAPI, type OuraAPIOptions } from "./index.js"
 export const OURA_PRESETS: Record<string, FaultPreset> = {

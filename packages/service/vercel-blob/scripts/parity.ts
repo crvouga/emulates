@@ -1,6 +1,6 @@
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import type { OperationObject } from "@emulators/openapi"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import type { OperationObject } from "@emulates/openapi"
+import { parity } from "@emulates/parity"
 import { document, VercelBlobAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

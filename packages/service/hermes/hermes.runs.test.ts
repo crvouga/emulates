@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@emulators/openapi"
-import { createClock } from "@emulators/service"
+import { findOperation, responseForStatus, validateValue } from "@emulates/openapi"
+import { createClock } from "@emulates/service"
 import { createRuntime, document, type HermesRuntime } from "./src/index.js"
 
 const send = (runtime: HermesRuntime, path: string, body?: unknown, namespace = "a") =>
   runtime.fetch(
     new Request(`http://hermes.mock${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
   )

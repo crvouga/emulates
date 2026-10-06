@@ -16,7 +16,7 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@emulators/sqlite": ["../../src/index.ts"]
+      "@emulates/sqlite": ["../../src/index.ts"]
     }
   },
   "include": ["src"]

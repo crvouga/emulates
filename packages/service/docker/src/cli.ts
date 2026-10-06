@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulators/adapter-node"
+import { runCli, serveCommand } from "@emulates/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulators-docker",
+    bin: "emulates-docker",
     description: "Docker Engine API emulator (WIP: synthetic observations and shared controls)",
     commands: { serve: serveCommand(serveTarget) },
   },

@@ -9,16 +9,16 @@
  * package id `postgres` is published as `packageName("postgres")`.
  */
 export const project = {
-  name: "Emulators",
-  slug: "emulators",
+  name: "Emulates",
+  slug: "emulates",
   description: "High-fidelity, in-process emulators for APIs and databases.",
-  npmScope: "@emulators",
+  npmScope: "@emulates",
   /** GitHub `owner/name`. */
   repository: "crvouga/emulators",
-  site: "https://emulators.chrisvouga.dev",
+  site: "https://emulates.chrisvouga.dev",
 } as const
 
-/** npm name for a stable package id: `postgres` → `@emulators/postgres`. */
+/** npm name for a stable package id: `postgres` → `@emulates/postgres`. */
 export const packageName = (id: string): string => `${project.npmScope}/${id}`
 
 export const repositoryUrl = `https://github.com/${project.repository}`

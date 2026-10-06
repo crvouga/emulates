@@ -1,4 +1,4 @@
-import { jsonRes } from "@emulators/service"
+import { jsonRes } from "@emulates/service"
 
 /** `details[].@type` for an FCM error code. firebase-admin reads `errorCode` from the first one. */
 export const FCM_ERROR_TYPE = "type.googleapis.com/google.firebase.fcm.v1.FcmError"

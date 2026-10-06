@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -12,8 +12,8 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { logRows, metricCount, type Row, spanRows } from "./otlp.js"
@@ -26,8 +26,8 @@ import {
 import { execute, parseSql, referencedColumns, SqlError } from "./sql.js"
 import { OtelState, type Settings, type StoredRow, type StreamType } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { IngestedRow, Row, Scalar } from "./otlp.js"
@@ -248,7 +248,7 @@ export class OtelAPI implements FetchAPI {
       const key = kind === "traces" ? "rejectedSpans" : "rejectedLogRecords"
       return ok({
         [key]: String(rows.length),
-        errorMessage: String(rejected.message ?? "rejected by Emulators partial_success"),
+        errorMessage: String(rejected.message ?? "rejected by Emulates partial_success"),
       })
     }
     const stream = context.request.headers.get("stream-name")?.trim() || "default"

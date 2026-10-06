@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createRuntime } from "./src/index.js"
 
 test("AWS transport rejects unsupported operations and malformed JSON", async () => {
@@ -33,7 +33,7 @@ test("AWS writes are observable, namespace isolated, and cleared by reset", asyn
         headers: {
           "content-type": "application/x-amz-json-1.1",
           "x-amz-target": `Fixture.${operation}`,
-          "x-emulators-namespace": namespace,
+          "x-emulates-namespace": namespace,
         },
         body: JSON.stringify(input),
       }),

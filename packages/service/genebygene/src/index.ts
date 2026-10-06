@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -18,8 +18,8 @@ import {
   type Service,
   toBase64,
   unsupportedMediaType,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import {
   ATTRIBUTE_DEFINITIONS,
@@ -82,9 +82,9 @@ import {
   type ShippedEntry,
 } from "./webhooks.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { S3Target } from "@emulators/service"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { S3Target } from "@emulates/service"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type { Catalog } from "./corpus.js"
 export {
   ATTRIBUTE_DEFINITIONS,

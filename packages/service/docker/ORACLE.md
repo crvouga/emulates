@@ -18,7 +18,7 @@ No image is pulled,
 built, tagged, or deleted. No volumes, host mounts or published ports are used;
 created containers use `NetworkMode: none`. The harness creates at most three
 containers named `<run-id>-attach`, `<run-id>-stop`, and `<run-id>-kill`, with the
-`emulators.oracle=<run-id>` label. The run ID must be `mb-oracle-` followed by
+`emulates.oracle=<run-id>` label. The run ID must be `mb-oracle-` followed by
 32 lowercase hexadecimal characters; generate a fresh one for each run.
 
 Before creating anything, the harness checks the actual Engine version/OS, image
@@ -59,7 +59,7 @@ Engine version; do not require downgrading the user's host.
 The JSON report records actual Engine/API/platform information, immutable image,
 normalized comparisons, cleanup results and gaps. Exit status is nonzero on a
 comparison, setup or cleanup failure. Preserve that report under the project's
-ignored `.emulators/` directory, then summarize verified evidence in
+ignored `.emulates/` directory, then summarize verified evidence in
 `API_EVIDENCE.md`; do not turn absent execution into a passing result.
 
 Comparisons cover create/start/remove HTTP statuses, inspect execution state,

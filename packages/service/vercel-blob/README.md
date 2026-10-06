@@ -1,6 +1,6 @@
-# @emulators/vercel-blob
+# @emulates/vercel-blob
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip** portable Vercel Blob emulator verified with the unmodified `@vercel/blob` **2.8.0** SDK.
 Blobs, multipart uploads, pending parts and synthetic download grants use SQLite Collections,
@@ -9,13 +9,13 @@ the shared clock, namespaces and Timeline. Fixtures contain synthetic data only.
 ## Install
 
 ```sh
-bun add @emulators/vercel-blob
+bun add @emulates/vercel-blob
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime, DEFAULT_TOKEN } from "@emulators/vercel-blob"
+import { createRuntime, DEFAULT_TOKEN } from "@emulates/vercel-blob"
 
 const mock = createRuntime()
 const uploaded = await mock.fetch(new Request("http://mock.local/api/blob/?pathname=fixture.txt", {
@@ -37,8 +37,8 @@ not a runtime dependency of the emulator.
 
 ```js
 import { put, del } from "@vercel/blob"
-import { createServer } from "@emulators/vercel-blob/server"
-import { DEFAULT_TOKEN } from "@emulators/vercel-blob"
+import { createServer } from "@emulates/vercel-blob/server"
+import { DEFAULT_TOKEN } from "@emulates/vercel-blob"
 
 const server = await createServer()
 process.env.VERCEL_BLOB_API_URL = `${server.url}/api/blob`
@@ -53,7 +53,7 @@ await server.close()
 The SDK's supported endpoint override is `VERCEL_BLOB_API_URL` (or
 `NEXT_PUBLIC_VERCEL_BLOB_API_URL`). An application's `BLOB_STORE_BASE_URL` must be mapped to that
 SDK override by the application. For namespace `suite`, use
-`${server.url}/__admin/ns/suite/api/blob`, an `x-emulators-namespace: suite` header, or register
+`${server.url}/__admin/ns/suite/api/blob`, an `x-emulates-namespace: suite` header, or register
 the fixture token with `PUT /__admin/credentials`. Every namespace starts empty unless
 `fixtures: [{ pathname, bytes: string | number[], contentType?, cacheControlMaxAge?, storeId? }]`
 is supplied. `tokens` maps synthetic Bearer tokens to store IDs; the default `DEFAULT_TOKEN`
@@ -100,7 +100,7 @@ Public URLs use the configured `publicOrigin` or the origin of the upload reques
 an explicit namespace query and point inside the reserved internal byte transport tree. They
 work through plain `fetch` over the served listener or in-process `mock.fetch`. With a custom
 `adminPrefix`, the byte URLs and every control route relocate together. A Timeline branch caller
-must also forward `x-emulators-branch` when fetching its public URL. Conditional public reads
+must also forward `x-emulates-branch` when fetching its public URL. Conditional public reads
 support `If-None-Match` / 304. This local URL transport is a stand-in, not a Vercel CDN hostname.
 The SDK's `get()` validates the production hostname, so use plain `fetch` for local downloads.
 
@@ -108,7 +108,7 @@ The SDK's `get()` validates the production hostname, so use plain `fetch` for lo
 
 All service controls live beside the shared `/__admin/health`, `/__admin/state`, `/__admin/clock`,
 `/__admin/reset`, `/__admin/requests`, fault engine and Timeline controls. `adminKey` uses the
-shared `x-emulators-admin-key` guard when configured. The journal records metadata and touched
+shared `x-emulates-admin-key` guard when configured. The journal records metadata and touched
 IDs, never upload bodies.
 
 | Control | Purpose |
@@ -135,7 +135,7 @@ The portable root exports `VercelBlobAPI`, `createRuntime`, `document`, `support
 `VercelBlobAPI` exposes `fetch`, `reset`, `state`, `metadata`, `seed`, `ensureSeeded`, `app` and
 `sqlite`. `createRuntime` adds the shared MockSurface clock, fault engine, journal, credential
 registry, state, namespaces and Timeline controls. The Node `./server` entry exports
-`createServer`, `DEFAULT_PORT` (8812), `serveTarget` and server types; `emulators-vercel-blob
+`createServer`, `DEFAULT_PORT` (8812), `serveTarget` and server types; `emulates-vercel-blob
 serve` starts a listener.
 
 ## Oracle and verification

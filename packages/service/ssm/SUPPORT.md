@@ -1,4 +1,4 @@
-# Amazon Systems Manager Parameter Store (Emulators subset) — operation support
+# Amazon Systems Manager Parameter Store (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

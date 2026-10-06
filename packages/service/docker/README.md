@@ -1,10 +1,10 @@
-# @emulators/docker
+# @emulates/docker
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Work-in-progress Docker Engine API 1.52 emulator. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
-the shared Emulators runtime controls. POST `/containers/create` persists a stopped
+the shared Emulates runtime controls. POST `/containers/create` persists a stopped
 container. Start, wait, stop, kill, and removal use explicit simulated completion.
 The Node entry supports non-TTY attach and scripted duplex streams. The contract is
 pinned in [API_EVIDENCE.md](API_EVIDENCE.md); [SUPPORT.md](SUPPORT.md) lists operations.
@@ -12,13 +12,13 @@ pinned in [API_EVIDENCE.md](API_EVIDENCE.md); [SUPPORT.md](SUPPORT.md) lists ope
 ## Install
 
 ```sh
-bun add @emulators/docker
+bun add @emulates/docker
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/docker"
+import { createRuntime } from "@emulates/docker"
 
 const docker = createRuntime({ seed: 42 })
 const response = await docker.fetch(new Request("http://docker.mock/_ping"))
@@ -31,7 +31,7 @@ imports a Node server. The Node entry provides `createServer()` with an ephemera
 loopback port by default; close it with `await server.close()` after a test.
 
 ```sh
-emulators-docker serve --port 8826
+emulates-docker serve --port 8826
 ```
 
 HTTP clients can target `http://127.0.0.1:8826`. A Docker client using `DOCKER_HOST`
@@ -49,7 +49,7 @@ Run this with Node against the built package. The server uses an ephemeral
 loopback port and synthetic state; no Docker installation is needed.
 
 ```ts
-import { createServer } from "@emulators/docker/server"
+import { createServer } from "@emulates/docker/server"
 
 const server = await createServer({ seed: 42 })
 try {
@@ -71,7 +71,7 @@ adapter; use `createServer` for Docker's attach and Unix-socket transport.
 namespace. It never downloads an image or starts a process. For example:
 
 ```ts
-import { createRuntime } from "@emulators/docker"
+import { createRuntime } from "@emulates/docker"
 
 const docker = createRuntime({ seed: 42 })
 await docker.fetch(new Request("http://docker.mock/__admin/docker/seed", {
@@ -230,7 +230,7 @@ under failure scenarios below.
 ## Controls
 
 - `GET /__admin/health` reports readiness and service identity.
-- Select independent state with `x-emulators-namespace` or `/__admin/ns/<name>/…`.
+- Select independent state with `x-emulates-namespace` or `/__admin/ns/<name>/…`.
 - `POST /__admin/reset` resets the selected namespace's records and Timeline;
   `?all=1` resets all namespaces. It preserves clock, fault configuration and journal.
 - `POST /__admin/clock` accepts shared `set`, `advance`, and `freeze` controls.
@@ -247,16 +247,16 @@ selection, webhooks and provider credentials are not configured.
 
 ## API
 
-The portable `@emulators/docker` entry exports:
+The portable `@emulates/docker` entry exports:
 
 - `DockerAPI`: provider Fetch handler with `fetch`, `reset`, and `close`.
 - `DOCKER_NAMESPACE`: default storage namespace (`docker`).
-- `createRuntime`: provider plus standard Emulators controls and Timeline.
+- `createRuntime`: provider plus standard Emulates controls and Timeline.
 - `document`: annotated OpenAPI contract.
 - `operationIds`: all inventoried operation IDs, including unsupported routes.
 - `supportedOperationIds`: currently implemented operation IDs.
 
-The Node-only `@emulators/docker/server` entry exports:
+The Node-only `@emulates/docker/server` entry exports:
 
 - `createServer`: HTTP server with `runtime`, `url`, `port`, `host`, `server`,
   `close`, `attachments()`, and optional Unix `socketPath`.
@@ -265,11 +265,11 @@ The Node-only `@emulators/docker/server` entry exports:
 
 Type exports include `DockerAPIOptions`, `DockerRuntime`, `DockerRuntimeOptions`,
 `OperationId`, `SupportedOperationId`, and the Node entry's `DockerServer` and
-`DockerServerOptions`, `AttachStreamOptions`, and `DockerAttachment`. The executable `emulators-docker` provides `serve`.
+`DockerServerOptions`, `AttachStreamOptions`, and `DockerAttachment`. The executable `emulates-docker` provides `serve`.
 
 ## Deliberately not modelled
 
-Fetch attach and unsupported options return Emulators-specific 501 JSON errors;
+Fetch attach and unsupported options return Emulates-specific 501 JSON errors;
 unknown routes return 404. The emulator never starts real containers or executes
 commands. The Node server supports the documented non-TTY attach handshake and
 scripted duplex streams; a Fetch response cannot represent that upgrade.
@@ -330,7 +330,7 @@ return transport-specific 413 or 408 and close the connection without invoking a
 provider operation. Response waits have no artificial execution deadline. Header
 size is limited to 16 KiB, header/request receive time to 30 seconds, idle
 keep-alive to 5 seconds, and simultaneous connections to `maxConnections` (default
-128). These limits are Emulators controls, not Docker Engine parity claims.
+128). These limits are Emulates controls, not Docker Engine parity claims.
 The existing CLI/shared fleet target still uses the shared TCP adapter; Unix
 sockets and these Docker transport limits currently require `createServer`.
 No peer credentials, procfs provenance, host isolation or real Engine access is
@@ -370,7 +370,7 @@ the separately invoked oracle performs the authorized provider comparison.
 restored container or a new execution after its lifetime ends.
 
 ```ts
-import type { DockerServer } from "@emulators/docker/server"
+import type { DockerServer } from "@emulates/docker/server"
 
 // Call after a client attaches to a running container on this server.
 export async function writeAttachedOutput(server: DockerServer) {

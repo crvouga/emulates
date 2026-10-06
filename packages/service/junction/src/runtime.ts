@@ -3,8 +3,8 @@ import {
   createRuntime as createServiceRuntime,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { junctionAdminRoutes, junctionFaultPresets } from "./admin.js"
 import type { IdentityMode, JunctionFixtures } from "./fixtures.js"
 import { document } from "./generated/openapi.js"
@@ -23,7 +23,7 @@ import {
 export type JunctionRuntimeOptions = {
   /**
    * Recorded vendor data every namespace starts from. The served mock loads the corpus
-   * shipped at `@emulators/junction/corpus` unless told otherwise.
+   * shipped at `@emulates/junction/corpus` unless told otherwise.
    */
   corpus?: SealedCorpus
   /** Default: `corpus` when a corpus is loaded, otherwise `synthetic`. */
@@ -55,7 +55,7 @@ export type JunctionRuntimeOptions = {
   seed?: number | string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Require `x-emulators-admin-key` on `/__admin/*`. */
+  /** Require `x-emulates-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
 }
@@ -66,9 +66,9 @@ export type JunctionRuntime = ServiceRuntime<JunctionAPI> & {
 }
 
 /**
- * The Junction emulator with the full Emulators service contract: unauthenticated
+ * The Junction emulator with the full Emulates service contract: unauthenticated
  * `/__admin/health`, the `/__admin/*` control plane, per-request namespaces
- * (`x-emulators-namespace`), clock control, fault injection and request metrics.
+ * (`x-emulates-namespace`), clock control, fault injection and request metrics.
  * Runtime-neutral: serve it with any Fetch-native server, or use `./server` for Node.
  */
 export const createRuntime = (options: JunctionRuntimeOptions = {}): JunctionRuntime => {

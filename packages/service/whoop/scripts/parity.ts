@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@emulators/credentials"
+import { CredentialError, loadCredentials } from "@emulates/credentials"
 
 let token: string
 try {

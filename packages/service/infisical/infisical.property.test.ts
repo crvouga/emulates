@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
-import type { OperationObject } from "@emulators/openapi"
-import { ParityError, parity } from "@emulators/parity"
-import { fcParameters } from "@emulators/testing"
+import type { OperationObject } from "@emulates/openapi"
+import { ParityError, parity } from "@emulates/parity"
+import { fcParameters } from "@emulates/testing"
 import { document, InfisicalAPI, supportedOperationIds } from "./src/index.js"
 
 const headers = () => ({ authorization: "Bearer fixture-service-token" })

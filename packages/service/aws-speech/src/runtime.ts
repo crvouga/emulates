@@ -6,8 +6,8 @@ import {
   type RequestLog,
   type S3Target,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, SPEECH_NAMESPACE, SpeechAPI } from "./index.js"
 import type { Settings, TranscriptScript } from "./state.js"
@@ -226,7 +226,7 @@ const adminRoutes = (runtime: ServiceRuntime<SpeechAPI>): AdminRoutes => {
 }
 
 /**
- * The Polly + Transcribe emulator with the full Emulators service contract: `/__admin/health`,
+ * The Polly + Transcribe emulator with the full Emulates service contract: `/__admin/health`,
  * `/__admin/*`, namespaces by header, by `/__admin/ns/<name>` prefix, or by SigV4 access key id
  * (`PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`), the
  * mock clock (batch jobs complete on it), fault presets and a metadata-only journal.

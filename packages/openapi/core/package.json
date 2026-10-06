@@ -1,8 +1,8 @@
 {
-  "name": "@emulators/openapi",
+  "name": "@emulates/openapi",
   "version": "0.0.0-development",
   "private": true,
-  "description": "OpenAPI 3.1 loading, $ref resolution, operation discovery, schema traversal and instance validation for Emulators. No fast-check, no Hono, no providers.",
+  "description": "OpenAPI 3.1 loading, $ref resolution, operation discovery, schema traversal and instance validation for Emulates. No fast-check, no Hono, no providers.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/openapi/core#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "openapi",
     "json-schema"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "openapi"
   },
@@ -40,7 +40,7 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "devDependencies": {
-    "@emulators/testing": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

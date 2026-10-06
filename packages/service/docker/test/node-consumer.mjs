@@ -16,7 +16,7 @@ const until = async (predicate) => {
 }
 
 for (const transport of ["tcp", "unix"]) {
-  const dir = "/tmp/emulators-docker-sockets"
+  const dir = "/tmp/emulates-docker-sockets"
   await mkdir(dir, { recursive: true })
   const socketPath = `${dir}/${crypto.randomUUID().slice(0, 8)}.sock`
   const server = await createServer({

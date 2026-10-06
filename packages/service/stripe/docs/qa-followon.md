@@ -36,7 +36,7 @@ Run the emulator server and point its webhook targets at the consumer's intake r
 
 ```bash
 PORT=12111 \
-EMULATORS_STRIPE_WEBHOOK_TARGETS='[
+EMULATES_STRIPE_WEBHOOK_TARGETS='[
   {"apiKey":"<primary test key>","url":"http://127.0.0.1:<app port>/<primary webhook path>","secret":"<primary webhook secret>"},
   {"apiKey":"<secondary test key>","url":"http://127.0.0.1:<app port>/<secondary webhook path>","secret":"<secondary webhook secret>"}
 ]' \
@@ -45,7 +45,7 @@ bun run mock:server
 
 Events are matched to a target by the API key that produced them. Without a matching target the
 event is still recorded (and readable through `GET /v1/events`), so a replay sweep keeps working.
-`EMULATORS_STRIPE_WEBHOOK_URL` + `EMULATORS_STRIPE_WEBHOOK_SECRET` configure a single fallback
+`EMULATES_STRIPE_WEBHOOK_URL` + `EMULATES_STRIPE_WEBHOOK_SECRET` configure a single fallback
 target. Any existing env fan-out that distributes one CLI `whsec_` across several webhook-secret
 variables keeps working — point it at the emulator's target secret instead.
 

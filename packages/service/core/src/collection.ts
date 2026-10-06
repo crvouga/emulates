@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@emulators/sqlite-client"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /** Every stored record carries a monotonically increasing sequence for stable ordering. */
 export type Stored<T> = { seq: number; value: T }

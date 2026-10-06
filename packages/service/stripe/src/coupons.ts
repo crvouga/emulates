@@ -3,7 +3,7 @@ import {
   type OperationContext,
   type OperationHandler,
   opaqueToken,
-} from "@emulators/service"
+} from "@emulates/service"
 import { invalidRequest, parameterMissing, StripeError } from "./errors.js"
 import {
   mergeRecordMetadata,

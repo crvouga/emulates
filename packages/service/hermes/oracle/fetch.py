@@ -11,7 +11,7 @@ args = parser.parse_args()
 if not args.fetch:
     parser.error("pass --fetch to download the pinned source files")
 root = Path(__file__).resolve().parents[4]
-destination = root / ".emulators/hermes-evidence/v2026.8.31"
+destination = root / ".emulates/hermes-evidence/v2026.8.31"
 destination.mkdir(parents=True, exist_ok=True)
 for name, entry in LOCK["sources"].items():
     path = destination / name

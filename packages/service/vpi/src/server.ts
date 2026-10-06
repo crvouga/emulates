@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type VpiRuntime, type VpiRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-vpi serve` listens on when none is given. */
+/** Port `emulates-vpi serve` listens on when none is given. */
 export const DEFAULT_PORT = 8802
 
 export type VpiServerOptions = VpiRuntimeOptions & {
@@ -53,7 +53,7 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: POST /accounts/authenticate {email, password, isPatientLogin: false}, then Authorization: Bearer <jwtToken>",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<VPI_API_EMAIL>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<VPI_API_EMAIL>: <ns>}",
     "the app's VPI_API_URL defaults to PRODUCTION (https://api.vpicompounding.net): set it to this emulator",
   ],
 }

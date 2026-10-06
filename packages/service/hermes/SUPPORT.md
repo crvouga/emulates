@@ -1,4 +1,4 @@
-# Hermes Agent peer runs (Emulators) — operation support
+# Hermes Agent peer runs (Emulates) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

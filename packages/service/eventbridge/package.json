@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/eventbridge",
+  "name": "@emulates/eventbridge",
   "version": "0.0.0-development",
   "description": "Seeded AWS EventBridge rule and ECS target discovery with pagination.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-eventbridge": "./dist/cli.js"
+    "emulates-eventbridge": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,12 +39,12 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/eventbridge#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "aws",
     "eventbridge",
     "emulator"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -72,7 +72,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- eventbridge",
-        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -122,20 +122,20 @@
     "parity:localstack": "bun scripts/localstack-parity.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*"
+    "@emulates/sqlite": "workspace:*"
   },
   "devDependencies": {
     "@aws-sdk/client-eventbridge": "3.1132.0",
-    "@emulators/credentials": "workspace:*",
-    "@emulators/adapter-node": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/testing": "workspace:*",
+    "@emulates/credentials": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

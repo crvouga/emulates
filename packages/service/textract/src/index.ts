@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@emulators/service"
-import { clearNamespace } from "@emulators/sqlite-client"
+import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@emulates/service"
+import { clearNamespace } from "@emulates/sqlite-client"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
   type TextractBlock,

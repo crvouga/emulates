@@ -1,6 +1,6 @@
-# @emulators/bedrock
+# @emulates/bedrock
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful, scriptable emulator of **Amazon Bedrock Runtime** for test suites: `Converse`,
 `ConverseStream` (byte-exact `application/vnd.amazon.eventstream` frames), `InvokeModel`
@@ -19,11 +19,11 @@ throttles become deterministic and take milliseconds.
 ## Install
 
 ```bash
-npm install -D @emulators/bedrock
+npm install -D @emulates/bedrock
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-bedrock serve` (h2c + HTTP/1.1 on one port), `createServer` from `./server`,
+`npx emulates-bedrock serve` (h2c + HTTP/1.1 on one port), `createServer` from `./server`,
 or `createRuntime` with any Fetch server (HTTP/1.1 only — see below).
 
 ## Usage
@@ -31,13 +31,13 @@ or `createRuntime` with any Fetch server (HTTP/1.1 only — see below).
 Point the app at it. No code change: every client honours the endpoint variables.
 
 ```bash
-npx emulators-bedrock serve --port 8796
+npx emulates-bedrock serve --port 8796
 export AWS_ENDPOINT_URL_BEDROCK_RUNTIME=http://127.0.0.1:8796    # SDK v3, AI SDK, botocore
 export AWS_ENDPOINT_URL_BEDROCK_AGENTCORE=http://127.0.0.1:8796  # AgentCore InvokeHarness
 ```
 
 ```ts
-import { createServer } from "@emulators/bedrock/server"
+import { createServer } from "@emulates/bedrock/server"
 
 const bedrock = await createServer({ port: 8796 })
 await fetch(`${bedrock.url}/__admin/scripts`, {
@@ -72,7 +72,7 @@ await bedrock.close()
 
 The AWS SDK v3 clients for Bedrock Runtime default to `NodeHttp2Handler`: against an
 `http://` endpoint they speak **h2c** (cleartext HTTP/2 with prior knowledge), and Nova Sonic
-needs HTTP/2 duplex. The AI SDK and AgentCore use HTTP/1.1. `emulators-bedrock serve` and
+needs HTTP/2 duplex. The AI SDK and AgentCore use HTTP/1.1. `emulates-bedrock serve` and
 `createServer` sniff each connection's first bytes and serve both on one port. (`serve
 --config` from another service's CLI, and `createRuntime` behind a plain Fetch server, speak
 HTTP/1.1 only — fine for the AI SDK, not for the SDK v3 Bedrock client.)
@@ -164,7 +164,7 @@ The request journal (`GET /__admin/requests`) records per call only `modelId`, `
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or by credential: the SDKs
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or by credential: the SDKs
 cannot add headers, so map each worker's access key id:
 `PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`.
 

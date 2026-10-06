@@ -1,6 +1,6 @@
-# @emulators/healthie
+# @emulates/healthie
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Healthie GraphQL API**, covering the legacy surface our backend still
 calls:
@@ -30,13 +30,13 @@ Healthie, and the emulator returns only the fields a document asks for.
 ## Install
 
 ```bash
-npm install -D @emulators/healthie
+npm install -D @emulates/healthie
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. The one runtime dependency besides `hono` is the public
 `graphql` package (pinned to 16.11.0, the version our backend uses). See
 [Why `graphql`](#why-graphql-is-a-runtime-dependency). Serve it with
-`npx emulators-healthie serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-healthie serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -47,14 +47,14 @@ the backend's Joi and zod schemas currently accept only the staging or prod URL,
 and pass the same value as `--api-key`.
 
 ```bash
-npx emulators-healthie serve --port 8816 \
+npx emulates-healthie serve --port 8816 \
   --api-key "$HEALTHIE_API_AUTH_TOKEN" \
   --webhook-base-url http://127.0.0.1:3000 \
   --webhook-ip 18.206.70.225
 ```
 
 ```ts
-import { createRuntime, SEED } from "@emulators/healthie"
+import { createRuntime, SEED } from "@emulates/healthie"
 
 const healthie = createRuntime({
   settings: { orgApiKeys: ["gh_sbox_test_org"] },
@@ -194,7 +194,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`):
 
 Choose a namespace in any of three ways:
 
-- the `x-emulators-namespace` header;
+- the `x-emulates-namespace` header;
 - a `/__admin/ns/<name>/graphql` prefix on `HEALTHIE_API_URL` (file URLs keep the prefix);
 - by API key, with `PUT /__admin/credentials {"credentials": {"<key>": "<namespace>"}}`.
 

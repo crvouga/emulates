@@ -1,4 +1,4 @@
-import { opaqueToken } from "@emulators/service"
+import { opaqueToken } from "@emulates/service"
 import { type JunctionWebhookEvent, WEBHOOK_RETRY_DELAYS_MS } from "./state.js"
 
 /**

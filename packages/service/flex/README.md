@@ -1,6 +1,6 @@
-# @emulators/flex
+# @emulates/flex
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Flex** (withflex.com) HSA/FSA payments API for test suites: products
 (answered from a recorded catalog corpus), checkout sessions in `payment` (one-time),
@@ -20,11 +20,11 @@ accepted.
 ## Install
 
 ```bash
-npm install -D @emulators/flex
+npm install -D @emulates/flex
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-flex serve`, `createServer` from `./server` (Node), or `createRuntime` with any
+`npx emulates-flex serve`, `createServer` from `./server` (Node), or `createRuntime` with any
 Fetch server.
 
 ## Usage
@@ -38,13 +38,13 @@ Point the app at the emulator:
 | `FLEX_WEBHOOK_SECRET` | the same value as `--webhook-secret`: `fwhsec_<base64>` or `whsec_<base64>` |
 
 ```bash
-npx emulators-flex serve --port 8792 \
+npx emulates-flex serve --port 8792 \
   --webhook-url http://127.0.0.1:3000/billing/webhooks/flex \
   --webhook-secret "$FLEX_WEBHOOK_SECRET"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/flex"
+import { createRuntime } from "@emulates/flex"
 
 const flex = createRuntime({
   webhooks: {
@@ -79,7 +79,7 @@ await post(`/__admin/sessions/${checkout_session.checkout_session_id}/complete`,
 
 ### Browser E2E suites
 
-Run `npx emulators-flex serve` on a port, point `FLEX_API_BASE_URL` at it, and the browser
+Run `npx emulates-flex serve` on a port, point `FLEX_API_BASE_URL` at it, and the browser
 lands on the emulator's page instead of `checkout.withflex.com`: no network, no shared Flex
 account, and the signed webhook reaches the app as soon as Pay is clicked. The page URL takes
 the emulator's origin, or `--public-url` when given. A suite that finds the Flex tab by host
@@ -185,7 +185,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `FLEX_API_BASE_URL`, or by API key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `FLEX_API_BASE_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<FLEX_API_KEY>": "<namespace>"}}`.
 
 ### Corpus

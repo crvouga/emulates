@@ -10,8 +10,8 @@
  * and upload URLs need `--include-unsafe` and must use synthetic subject tokens only (never a
  * member's). Binary uploads and asset downloads are parity-disabled.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, PrismAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

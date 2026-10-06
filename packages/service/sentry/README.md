@@ -1,6 +1,6 @@
-# @emulators/sentry
+# @emulates/sentry
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 A stateful Sentry SDK transport and event/issue assertion emulator. This initial package is **wip**:
 its bounded surface follows the official envelope protocol and Relay responses, not the entire
@@ -9,13 +9,13 @@ Sentry product. No vendor account, container, secret or outbound call is needed 
 ## Install
 
 ```sh
-bun add -d @emulators/sentry
+bun add -d @emulates/sentry
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime, DEFAULT_PROJECT } from "@emulators/sentry"
+import { createRuntime, DEFAULT_PROJECT } from "@emulates/sentry"
 
 const sentry = createRuntime()
 const response = await sentry.fetch(new Request(
@@ -38,7 +38,7 @@ slug, name and 32-hex public key. The defaults are obviously synthetic. Each nam
 its own constructor fixtures and returns to them on reset.
 
 ```sh
-emulators-sentry serve --port 8810
+emulates-sentry serve --port 8810
 ```
 
 ## Routes and behavior
@@ -85,7 +85,7 @@ approximations. The default payload ceiling is 20 MiB, configurable with `maxPay
 ## Test controls
 
 All internal endpoints move together with `adminPrefix` (default `/__admin`). Namespace carriers:
-`x-emulators-namespace`, `/__admin/ns/<suite>/…`, or DSN query/header credentials and REST tokens
+`x-emulates-namespace`, `/__admin/ns/<suite>/…`, or DSN query/header credentials and REST tokens
 mapped with `PUT /__admin/credentials`. Self-authenticated envelope-only DSNs use header/path
 namespaces; credential mapping cannot inspect a body before the shared runtime selects a namespace.
 Clock, reset, Timeline checkpoints/branches and snapshot aliases, request journal, metrics, admin

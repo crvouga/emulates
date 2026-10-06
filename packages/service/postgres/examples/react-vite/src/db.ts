@@ -1,4 +1,4 @@
-import { Database, Snapshot } from "@emulators/postgres";
+import { Database, Snapshot } from "@emulates/postgres";
 
 export const STORAGE_KEY = "postgres-mem-example-snapshot";
 

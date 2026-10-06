@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@emulators/sqlite-client"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /** 32-bit FNV-1a with an avalanche finish. */
 const mix = (input: string): number => {

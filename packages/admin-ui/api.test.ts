@@ -6,7 +6,7 @@ import type { AdminConfig } from "./src/model.js"
 const config: AdminConfig = {
   service: "notes",
   adminPrefix: "/mock/admin/",
-  adminKeyHeader: "x-emulators-admin-key",
+  adminKeyHeader: "x-emulates-admin-key",
   brandsUrl: "https://docs.example/brands.json",
   standardRoutes: [],
 }
@@ -27,7 +27,7 @@ describe("admin transport", () => {
       "/mock/admin/state/notes/id%201",
     ])
     for (const request of requests) {
-      expect(request.headers.get("x-emulators-namespace")).toBe("parallel-test")
+      expect(request.headers.get("x-emulates-namespace")).toBe("parallel-test")
       expect(request.headers.get(config.adminKeyHeader)).toBe("test-only-admin-key")
     }
     expect(requests[0]?.headers.has("content-type")).toBe(false)

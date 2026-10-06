@@ -1,4 +1,4 @@
-# Wholescripts supplement fulfilment API (Emulators subset) — operation support
+# Wholescripts supplement fulfilment API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

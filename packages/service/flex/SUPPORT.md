@@ -1,4 +1,4 @@
-# Flex HSA/FSA payments API (Emulators subset) — operation support
+# Flex HSA/FSA payments API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

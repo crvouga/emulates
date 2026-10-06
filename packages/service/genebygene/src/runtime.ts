@@ -9,8 +9,8 @@ import {
   type ServiceRuntime,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { CATALOGS, type Catalog, CORPUS_VERSION } from "./corpus.js"
 import { type CustomResults, RESULT_FIXTURES, type ResultFixture } from "./fixtures/index.js"
 import { document } from "./generated/openapi.js"
@@ -137,7 +137,7 @@ export type GeneByGeneRuntimeOptions = {
   seed?: number | string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Require `x-emulators-admin-key` on `/__admin/*`. */
+  /** Require `x-emulates-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Catalog every namespace starts with. Default: the recorded staging catalog. */
@@ -386,7 +386,7 @@ const adminRoutes = (runtime: ServiceRuntime<GeneByGeneAPI>): AdminRoutes => ({
 const SUBSCRIPTION_PREFIX = "gxg_sub_"
 
 /**
- * The Gene by Gene emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Gene by Gene emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix (use it on both the API and the token URL),
  * or by client id (`PUT /__admin/credentials {"credentials": {"<client_id>": "<namespace>"}}`),
  * clock control, fault presets, GxG-signed notifications and a request journal.

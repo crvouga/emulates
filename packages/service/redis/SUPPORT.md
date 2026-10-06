@@ -1,4 +1,4 @@
-# Redis (Emulators subset) — command support
+# Redis (Emulates subset) — command support
 
 Work in progress. Replies are checked against the Redis command reference and local Redis 8.4.0
 spot checks. The server reports `redis_version` 7.2.4 and `redis_mode:standalone`.

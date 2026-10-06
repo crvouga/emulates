@@ -5,7 +5,7 @@ import type { Brand } from "./types.ts"
  * The same URL is the only brand data in the admin shell (`admin-ui.ts` passes it;
  * `admin-client.ts` paints the chip from the fetched catalog).
  */
-export const DOCS_ORIGIN = "https://emulators.chrisvouga.dev"
+export const DOCS_ORIGIN = "https://emulates.chrisvouga.dev"
 
 /** What `GET /brands.json` returns for one service. Absolute URLs, so the admin does not invent the origin. */
 export interface AdminBrand {

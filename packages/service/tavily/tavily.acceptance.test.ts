@@ -157,7 +157,7 @@ test("namespace carriers/reset/Timeline isolate scripts and journal omits query 
           runtime.fetch,
           "/search",
           { query: "fixture" },
-          { "x-emulators-namespace": "alpha" },
+          { "x-emulates-namespace": "alpha" },
         )
       ).json()
     ).results,

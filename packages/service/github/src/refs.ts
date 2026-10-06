@@ -4,7 +4,7 @@ import {
   jsonRes,
   markMutationAccepted,
   type OperationHandler,
-} from "@emulators/service"
+} from "@emulates/service"
 import { type GitHubState, RefError, record } from "./state.js"
 
 export const validRef = (value: string): boolean =>
@@ -47,7 +47,7 @@ export const refHandlers = (
         if (ref.startsWith("refs/pull/"))
           return jsonRes(501, {
             code: "emulators_unsupported",
-            message: "Emulators does not model provider-managed pull refs",
+            message: "Emulates does not model provider-managed pull refs",
           })
         if (kind === "update" && input.force !== undefined && typeof input.force !== "boolean")
           throw new RefError(422, "Invalid request: force must be boolean")

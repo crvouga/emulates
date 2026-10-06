@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { type AirtableRuntime, type AirtableRuntimeOptions, createRuntime } from "./runtime.js"
 export const DEFAULT_PORT = 12130
 export type AirtableServerOptions = AirtableRuntimeOptions & { port?: number; host?: string }

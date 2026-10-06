@@ -1,5 +1,5 @@
 /**
- * The slice of OpenAPI 3.1 (and JSON Schema 2020-12) Emulators understands.
+ * The slice of OpenAPI 3.1 (and JSON Schema 2020-12) Emulates understands.
  * Unknown keys (including `x-*` extensions) are preserved on every object.
  */
 

@@ -1,4 +1,4 @@
-import { opaqueToken } from "@emulators/service"
+import { opaqueToken } from "@emulates/service"
 import { cardError, invalidRequest, resourceMissing, stateError } from "./errors.js"
 import { type RequestScope, requireLiveCustomer } from "./internal.js"
 import { renderCharge, renderDispute, renderPaymentIntent, renderPaymentMethod } from "./render.js"

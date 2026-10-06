@@ -1,20 +1,20 @@
-import { FORM_MEDIA_TYPE } from "@emulators/http-codec"
+import { FORM_MEDIA_TYPE } from "@emulates/http-codec"
 import {
   collectPlaceholders,
   missingPlaceholder,
   refPlaceholder,
   scopePlaceholder,
-} from "@emulators/model"
-import type { OpenAPIDocument, ParameterObject, SchemaObject } from "@emulators/openapi"
-import { resolveSchema, walkSchema } from "@emulators/openapi"
+} from "@emulates/model"
+import type { OpenAPIDocument, ParameterObject, SchemaObject } from "@emulates/openapi"
+import { resolveSchema, walkSchema } from "@emulates/openapi"
 import {
   invalidSchemaArbitrary,
   type Mutation,
   mutationSites,
   type Override,
   schemaArbitrary,
-} from "@emulators/openapi-arbitrary"
-import { parameterMetadata, type SchemaMetadata, schemaMetadata } from "@emulators/openapi-metadata"
+} from "@emulates/openapi-arbitrary"
+import { parameterMetadata, type SchemaMetadata, schemaMetadata } from "@emulates/openapi-metadata"
 import fc from "fast-check"
 import type { OperationPlan } from "./plan.js"
 

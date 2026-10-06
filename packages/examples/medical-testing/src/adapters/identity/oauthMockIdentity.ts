@@ -1,4 +1,4 @@
-import { createRuntime, type OAuthRuntime } from "@emulators/oauth"
+import { createRuntime, type OAuthRuntime } from "@emulates/oauth"
 import * as oauth from "oauth4webapi"
 import type { HostedFlowStep } from "../../app/ports/hostedFlow.js"
 import type {
@@ -19,18 +19,18 @@ const CLIENTS: Record<IdentityProviderKey, ClientConfig> = {
   google: {
     clientId: "cove-web",
     clientSecret: "cove-oauth-demo-secret",
-    issuer: "https://accounts.google.emulators.internal",
+    issuer: "https://accounts.google.emulates.internal",
     scope: "openid email profile",
   },
   apple: {
     clientId: "cove-web",
     clientSecret: "cove-oauth-demo-secret",
-    issuer: "https://appleid.apple.emulators.internal",
+    issuer: "https://appleid.apple.emulates.internal",
     scope: "openid email name",
   },
 }
 const REDIRECT_URI = (provider: IdentityProviderKey) =>
-  `https://cove.emulators.internal/auth/callback/${provider}`
+  `https://cove.emulates.internal/auth/callback/${provider}`
 
 type PendingFlow = {
   provider: IdentityProviderKey

@@ -1,4 +1,4 @@
-# Resend API (Emulators subset) — operation support
+# Resend API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

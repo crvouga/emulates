@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type VibeRuntime, type VibeRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12128
 export type VibeServerOptions = VibeRuntimeOptions & { port?: number; host?: string }

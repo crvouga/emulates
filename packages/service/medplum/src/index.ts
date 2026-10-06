@@ -1,5 +1,5 @@
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type { MedplumAPIOptions, MedplumUserFixture } from "./api.js"
 export {
   DEFAULT_BASE_URL,

@@ -50,11 +50,11 @@ const setup = () => {
 }
 
 describe("contract and runtime", () => {
-  test("/__admin/health, the x-emulators header, and ApiKey auth", async () => {
+  test("/__admin/health, the x-emulates header, and ApiKey auth", async () => {
     const { runtime, call } = setup()
     const health = await runtime.fetch(new Request("http://odx.mock/__admin/health"))
     expect(((await health.json()) as { status: string }).status).toBe("ok")
-    expect(health.headers.get("x-emulators")).toMatch(/^odx@.*; ns=default$/)
+    expect(health.headers.get("x-emulates")).toMatch(/^odx@.*; ns=default$/)
     const missing = await runtime.fetch(new Request("http://odx.mock/v1/partner/labs"))
     expect(missing.status).toBe(401)
     expect(((await missing.json()) as { message: string }).message).toContain(
@@ -69,7 +69,7 @@ describe("contract and runtime", () => {
     const alpha = await call(`/__admin/ns/alpha/v1/practice/${PRACTICE}/patients`)
     expect(((await alpha.json()) as unknown[]).length).toBe(1)
     const beta = await call(`/v1/practice/${PRACTICE}/patients`, {
-      headers: { "x-emulators-namespace": "beta" },
+      headers: { "x-emulates-namespace": "beta" },
     })
     expect(await beta.json()).toEqual([])
     const hooks = (await (await call("/__admin/ns/beta/v1/webhooks")).json()) as {

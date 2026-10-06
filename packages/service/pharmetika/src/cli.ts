@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulators/adapter-node"
+import { runCli, serveCommand } from "@emulates/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulators-pharmetika",
+    bin: "emulates-pharmetika",
     description: "Pharmetika provider-portal pharmacy API emulator",
     commands: { serve: serveCommand(serveTarget) },
   },

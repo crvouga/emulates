@@ -160,7 +160,7 @@ describe("resend@4.8.0 against the mock", () => {
       const { resend } = await sharedStack()
       await fetch(`${resend.url}/__admin/webhook-endpoints`, {
         method: "PUT",
-        headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+        headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
         body: JSON.stringify({
           endpoints: [{ url: `http://127.0.0.1:${sink.port}/messaging/inbound/email`, secret }],
         }),

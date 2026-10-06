@@ -1,19 +1,19 @@
-# @emulators/vibe
+# @emulates/vibe
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Vibe revision **2026-06-01** OAuth and asynchronous campaign-spend reports.
 
 ## Install
 
 ```sh
-bun add @emulators/vibe
+bun add @emulates/vibe
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime, DEFAULT_ADVERTISER } from "@emulators/vibe"
+import { createRuntime, DEFAULT_ADVERTISER } from "@emulates/vibe"
 const vibe = createRuntime({ rows: [{
   advertiser_id: DEFAULT_ADVERTISER, impression_date: "2026-01-01", spend: "12.50",
 }] })
@@ -26,7 +26,7 @@ const report = await response.json()
 console.log(report.id, report.status)
 ```
 
-Run `emulators-vibe serve --port 12128`, then inject `http://localhost:12128` as the
+Run `emulates-vibe serve --port 12128`, then inject `http://localhost:12128` as the
 consumer's API origin. Downloads point at this same origin. There is no universal vendor
 environment variable for that override; keep the consumer's production HTTPS policy intact.
 

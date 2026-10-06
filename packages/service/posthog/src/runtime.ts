@@ -8,8 +8,8 @@ import {
   parseSince,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { requestToken } from "./body.js"
 import { ACME_FLAG_STATE } from "./flag-state-fixture.js"
 import { adminView, type FlagSpec, parseFlagSpec } from "./flags.js"
@@ -241,7 +241,7 @@ const adminRoutes = (runtime: ServiceRuntime<PostHogAPI>): AdminRoutes => {
 }
 
 /**
- * The PostHog emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`, clock,
+ * The PostHog emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, clock,
  * fault presets and a request journal. PostHog SDKs cannot add headers, so a namespace is
  * chosen by the `/__admin/ns/<name>` host prefix (`POSTHOG_HOST=http://127.0.0.1:8795/__admin/ns/w1`), or by
  * project token: `PUT /__admin/credentials {"credentials": {"<phc_token>": "<namespace>"}}`.

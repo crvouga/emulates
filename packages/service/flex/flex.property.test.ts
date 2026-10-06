@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { listOperations } from "@emulators/openapi"
-import { operationMetadata } from "@emulators/openapi-metadata"
-import { ParityError, parity } from "@emulators/parity"
-import { fcParameters } from "@emulators/testing"
+import { listOperations } from "@emulates/openapi"
+import { operationMetadata } from "@emulates/openapi-metadata"
+import { ParityError, parity } from "@emulates/parity"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { document, FlexAPI } from "./src/index.js"
 

@@ -1,7 +1,7 @@
-import type { CanonicalExchange, Difference, Exchange } from "@emulators/canonicalize"
-import { formatDifference } from "@emulators/canonicalize"
-import type { ConcreteRequest, LogicalCommand } from "@emulators/commands"
-import { describeCommand } from "@emulators/commands"
+import type { CanonicalExchange, Difference, Exchange } from "@emulates/canonicalize"
+import { formatDifference } from "@emulates/canonicalize"
+import type { ConcreteRequest, LogicalCommand } from "@emulates/commands"
+import { describeCommand } from "@emulates/commands"
 
 export type Redactor = (text: string) => string
 

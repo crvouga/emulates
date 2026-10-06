@@ -1,4 +1,4 @@
-# Amazon Route 53 Resolver (Emulators subset) — operation support
+# Amazon Route 53 Resolver (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

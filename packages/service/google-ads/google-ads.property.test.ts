@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test"
-import { type JsonValue, listOperations } from "@emulators/openapi"
-import { operationMetadata } from "@emulators/openapi-metadata"
-import { ParityError, parity } from "@emulators/parity"
-import { fcParameters } from "@emulators/testing"
+import { type JsonValue, listOperations } from "@emulates/openapi"
+import { operationMetadata } from "@emulates/openapi-metadata"
+import { ParityError, parity } from "@emulates/parity"
+import { fcParameters } from "@emulates/testing"
 import { DEFAULT_TOKEN, document, GoogleAdsAPI } from "./src/index.js"
 
 const headers = () => ({ authorization: `Bearer ${DEFAULT_TOKEN}` })

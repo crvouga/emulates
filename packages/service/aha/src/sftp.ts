@@ -6,7 +6,7 @@ import ssh2, { type AuthContext, type Connection, type FileEntry } from "ssh2"
 
 const { Server, utils } = ssh2
 const { OPEN_MODE, STATUS_CODE } = utils.sftp
-const seedBytes = createHash("sha256").update("emulators-aha-sftp-host-v1").digest()
+const seedBytes = createHash("sha256").update("emulates-aha-sftp-host-v1").digest()
 const hostKeyObject = createPrivateKey({
   key: Buffer.concat([Buffer.from("302e020100300506032b657004220420", "hex"), seedBytes]),
   format: "der",
@@ -31,7 +31,7 @@ let privateBlock = Buffer.concat([
   sshString("ssh-ed25519"),
   sshString(publicBytes),
   sshString(Buffer.concat([seedBytes, publicBytes])),
-  sshString("emulators-aha"),
+  sshString("emulates-aha"),
 ])
 const padding = 8 - (privateBlock.length % 8)
 privateBlock = Buffer.concat([
@@ -142,7 +142,7 @@ const directoryAttrs = (time: number) => ({
 /** Start an actual SSH/SFTP endpoint sharing order state with an AHA HTTP runtime. */
 export async function createAhaSftpServer(options: AhaSftpServerOptions): Promise<AhaSftpServer> {
   const now = options.now ?? options.runtime.clock.now
-  const accounts = options.accounts ?? [{ username: "aha", password: "emulators" }]
+  const accounts = options.accounts ?? [{ username: "aha", password: "emulates" }]
   if (accounts.length === 0) throw new Error("at least one SFTP account is required")
   const files = new Map<string, Map<string, FileRecord>>()
   const directories = new Map<string, Set<string>>()
@@ -359,7 +359,7 @@ export async function createAhaSftpServer(options: AhaSftpServerOptions): Promis
   const server = new Server(
     {
       hostKeys: [HOST_KEY],
-      ident: "SSH-2.0-Emulators_AHA",
+      ident: "SSH-2.0-Emulates_AHA",
       algorithms: { serverHostKey: ["ssh-ed25519"] },
     },
     (client) => {

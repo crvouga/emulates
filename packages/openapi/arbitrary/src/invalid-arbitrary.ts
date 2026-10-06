@@ -1,5 +1,5 @@
-import type { OpenAPIDocument, SchemaObject } from "@emulators/openapi"
-import { resolveSchema, schemaTypes, validateValue } from "@emulators/openapi"
+import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
+import { resolveSchema, schemaTypes, validateValue } from "@emulates/openapi"
 import fc from "fast-check"
 import {
   type SchemaArbitraryOptions,

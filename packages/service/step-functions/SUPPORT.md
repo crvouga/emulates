@@ -1,4 +1,4 @@
-# AWS Step Functions (Emulators subset) — operation support
+# AWS Step Functions (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

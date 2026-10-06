@@ -1,5 +1,5 @@
 /**
- * Generates the repo README.md: the overview of Emulators. The catalog of emulators, including
+ * Generates the repo README.md: the overview of Emulates. The catalog of emulators, including
  * each service's parity, lives on the docs site and in llms.txt. Every word comes from the
  * shared copy (sites/docs/src/lib/content.ts), the published packages' license, and the guides
  * in docs/. Edit those, never README.md.

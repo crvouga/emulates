@@ -1,4 +1,4 @@
-import { CSS_RESET, scopeReset } from "@emulators/ui"
+import { CSS_RESET, scopeReset } from "@emulates/ui"
 import type { BehaviorInput } from "../../src/index.js"
 import { APP, createExample, type ExampleProvider, IDENTITY, type Trace } from "./app.js"
 import { pasteDocument } from "./paste.js"

@@ -1,5 +1,5 @@
-import { Collection, seedFrom } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, seedFrom } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 export type EdgeCase =
   | "hideEmail"

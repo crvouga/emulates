@@ -1,6 +1,6 @@
-# @emulators/resend
+# @emulates/resend
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Resend** email API for test suites. Every send lands in an **outbox**
 that tests read (`GET /__admin/outbox`, and the links in each email). `Idempotency-Key` replays
@@ -16,11 +16,11 @@ attachments. With `--forward-to-inbox`, every sent email is also copied into the
 ## Install
 
 ```bash
-npm install -D @emulators/resend
+npm install -D @emulates/resend
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-resend serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-resend serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -30,7 +30,7 @@ the app's environment (or before the first `import("resend")` in a test). Set th
 `RESEND_INBOUND_WEBHOOK_SECRET` and pass the same `whsec_…` value as `--webhook-secret`.
 
 ```bash
-npx emulators-resend serve --port 8794 \
+npx emulates-resend serve --port 8794 \
   --webhook-url http://127.0.0.1:3000/messaging/inbound/email \
   --webhook-secret "$RESEND_INBOUND_WEBHOOK_SECRET" \
   --forward-to-inbox http://127.0.0.1:8793
@@ -38,7 +38,7 @@ RESEND_BASE_URL=http://127.0.0.1:8794 node app.js
 ```
 
 ```js
-import { createServer } from "@emulators/resend/server"
+import { createServer } from "@emulates/resend/server"
 
 const mock = await createServer()
 process.env.RESEND_BASE_URL = mock.url
@@ -59,7 +59,7 @@ const { links } = await (await fetch(`${mock.url}/__admin/outbox/${messages[0].i
 Whatever sends the mail (the SDK above, or raw HTTP), the outbox is the assertion surface:
 
 ```ts
-import { createServer } from "@emulators/resend/server"
+import { createServer } from "@emulates/resend/server"
 
 const mock = await createServer()
 await fetch(`${mock.url}/emails`, {
@@ -139,7 +139,7 @@ then the connection dies before any response bytes; the same key replays), `rece
 
 `new Resend(key)` cannot add headers, so map API keys to namespaces:
 `PUT /__admin/credentials {"credentials": {"<RESEND_API_KEY>": "<namespace>"}}`. Also
-`x-emulators-namespace`, or a `/__admin/ns/<name>` prefix on `RESEND_BASE_URL`.
+`x-emulates-namespace`, or a `/__admin/ns/<name>` prefix on `RESEND_BASE_URL`.
 
 ### Deliberately not modelled
 

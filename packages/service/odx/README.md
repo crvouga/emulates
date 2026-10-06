@@ -1,6 +1,6 @@
-# @emulators/odx
+# @emulates/odx
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Optimal DX (ODX)** partner API for test suites: partner labs and their
 biomarker elements, practice patients (create, update, delete, partner link, search), lab
@@ -10,7 +10,7 @@ webhook registrations, and the signed `PatientTest` webhooks ODX posts back.
 > **The vendor was retired 2026-07-22.** Our queue paths are gated only by the
 > `acme-pdf-enabled` flag (default `false`), so a local stack with no PostHog still calls ODX.
 > The cheaper fix is to turn that flag on through the PostHog emulator
-> (`@emulators/posthog`); use this emulator when a suite must exercise the ODX
+> (`@emulates/posthog`); use this emulator when a suite must exercise the ODX
 > path itself (bio-age webhooks, the Healthie PDF upload, migrations).
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/odx/SUPPORT.md)
@@ -20,11 +20,11 @@ webhook registrations, and the signed `PatientTest` webhooks ODX posts back.
 ## Install
 
 ```bash
-npm install -D @emulators/odx
+npm install -D @emulates/odx
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-odx serve`, `createServer` from `./server` (Node), or `createRuntime` with any
+`npx emulates-odx serve`, `createServer` from `./server` (Node), or `createRuntime` with any
 Fetch server.
 
 ## Usage
@@ -36,12 +36,12 @@ Point `OPTIMAL_URL` at the emulator (it is overridable; no path prefix is needed
 `manageWebhooks` register it through `POST /v1/webhook` as it does in production:
 
 ```bash
-npx emulators-odx serve --port 8817 \
+npx emulates-odx serve --port 8817 \
   --webhook-url http://127.0.0.1:3000/odx/webhook   # must equal SYSTEM_API_DEPLOYMENT_URL/odx/webhook
 ```
 
 ```ts
-import { createRuntime } from "@emulators/odx"
+import { createRuntime } from "@emulates/odx"
 
 const odx = createRuntime({ webhook: { url: "http://127.0.0.1:3000/odx/webhook" } })
 const call = (path: string, body?: unknown) =>
@@ -106,7 +106,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `wrong
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `OPTIMAL_URL`, or by API key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `OPTIMAL_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<OPTIMAL_API_KEY>": "<namespace>"}}`.
 
 ### Known consumer bugs

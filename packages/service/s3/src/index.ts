@@ -6,8 +6,8 @@ import {
   bootSqlite,
   faultEffect,
   sigV4AccessKeyId,
-} from "@emulators/service"
-import { clearNamespace } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import { clearNamespace } from "@emulates/sqlite-client"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import { type S3Object, type S3SeedObject, S3State } from "./state.js"
 
@@ -128,9 +128,9 @@ export class S3API {
   private error(code: string, message: string, status: number, resource: string) {
     const id = requestId()
     return xml(
-      `<Error><Code>${code}</Code><Message>${xmlEscape(message)}</Message><Resource>${xmlEscape(resource)}</Resource><RequestId>${id}</RequestId><HostId>emulators</HostId></Error>`,
+      `<Error><Code>${code}</Code><Message>${xmlEscape(message)}</Message><Resource>${xmlEscape(resource)}</Resource><RequestId>${id}</RequestId><HostId>emulates</HostId></Error>`,
       status,
-      { "x-amz-request-id": id, "x-amz-id-2": "emulators" },
+      { "x-amz-request-id": id, "x-amz-id-2": "emulates" },
     )
   }
   private notify(
@@ -261,7 +261,7 @@ export class S3API {
     if (!bucket) {
       if (request.method === "GET")
         return xml(
-          `<ListAllMyBucketsResult><Owner><ID>000000000000</ID><DisplayName>emulators</DisplayName></Owner><Buckets>${this.state.buckets
+          `<ListAllMyBucketsResult><Owner><ID>000000000000</ID><DisplayName>emulates</DisplayName></Owner><Buckets>${this.state.buckets
             .list()
             .map(
               ({ id, value }) =>
@@ -464,7 +464,7 @@ export class S3API {
       const bytes = all.slice(0, Math.floor(all.length / 2))
       const headers = this.objectHeaders(object)
       headers.set("content-length", String(bytes.length))
-      headers.set("x-emulators-truncated", "true")
+      headers.set("x-emulates-truncated", "true")
       return new Response(bytes, { status: 200, headers })
     }
     const range = request.headers.get("range")

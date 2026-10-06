@@ -11,8 +11,8 @@
  * the download route (signature checks) is compared. Healthie is legacy for us (catalog S23):
  * check whether a live run is worth it before wiring credentials.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { DEFAULT_SETTINGS, document, HealthieAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

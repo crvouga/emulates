@@ -1,6 +1,6 @@
-# @emulators/formbricks
+# @emulates/formbricks
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of open-source **[Formbricks](https://github.com/formbricks/formbricks)** (6.x) for
 test suites: the client environment state the JS SDK loads surveys from, response creation with
@@ -17,11 +17,11 @@ survey and a paused survey; invented content).
 ## Install
 
 ```bash
-npm install -D @emulators/formbricks
+npm install -D @emulates/formbricks
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-formbricks serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulates-formbricks serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -31,13 +31,13 @@ Point the SDK's `appUrl` (and your management API base URL) at the emulator, use
 SDKs send), and any management API key.
 
 ```bash
-npx emulators-formbricks serve --port 8813 \
+npx emulates-formbricks serve --port 8813 \
   --webhook-url http://127.0.0.1:3000/webhooks/formbricks \
   --webhook-secret "whsec_…"
 ```
 
 ```ts
-import { createRuntime, WORKSPACE_ID } from "@emulators/formbricks"
+import { createRuntime, WORKSPACE_ID } from "@emulates/formbricks"
 
 const formbricks = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/webhooks/formbricks", secret: "whsec_…" },
@@ -95,7 +95,7 @@ string), `management_unauthorized`, `connection_drop`, `duplicate` (the next web
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the app URL, or by credential: the workspace
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the app URL, or by credential: the workspace
 (or legacy environment) id in the client paths (the SDK cannot add headers) or the management
 `x-api-key`, through `PUT /__admin/credentials {"credentials": {"<workspace id or key>":
 "<namespace>"}}`.

@@ -1,6 +1,6 @@
-# @emulators/twilio
+# @emulates/twilio
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Twilio** for test suites: Lookup v2 phone validation, Verify v2 phone OTP
 (with the real state machine: wrong codes, attempt limits, 10-minute expiry on the emulator clock),
@@ -16,17 +16,17 @@ OTP from the admin plane instead of bypassing verification (`E2E_OTP_BYPASS_*`).
 ## Install
 
 ```bash
-npm install -D @emulators/twilio
+npm install -D @emulates/twilio
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. Lookup validation uses `libphonenumber-js` (Twilio's
-Lookup is libphonenumber). Serve it with `npx emulators-twilio serve`, with `createServer`
+Lookup is libphonenumber). Serve it with `npx emulates-twilio serve`, with `createServer`
 from `./server` (Node), or with `createRuntime` in any Fetch server.
 
 ## Usage
 
 ```bash
-npx emulators-twilio serve --port 8798 \
+npx emulates-twilio serve --port 8798 \
   --app-url http://127.0.0.1:3000 \
   --public-base-url "$TWILIO_VOICE_WEBHOOK_BASE_URL" \
   --account-sid "$TWILIO_ACCOUNT_SID" --auth-token "$TWILIO_AUTH_TOKEN" \
@@ -42,7 +42,7 @@ twilio-node builds a host for each product (`api.twilio.com`, `verify.twilio.com
 
 ```js
 import { RequestClient, Twilio } from "twilio"
-import { twilioMockUrl } from "@emulators/twilio"
+import { twilioMockUrl } from "@emulates/twilio"
 
 /** https://verify.twilio.com/v2/Services/VA…/Verifications → {base}/verify/v2/Services/VA…/Verifications */
 class MockRequestClient extends RequestClient {
@@ -73,7 +73,7 @@ adapter's raw `fetch` of `https://api.twilio.com/2010-04-01/…` becomes
 ### Reading the OTP in a test
 
 ```ts
-import { createRuntime } from "@emulators/twilio"
+import { createRuntime } from "@emulates/twilio"
 
 const twilio = createRuntime()
 // …the app calls verify.v2.services(VA).verifications.create({ to, channel: "sms" })…
@@ -139,7 +139,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n, "latencyM
 
 The Twilio SDK cannot add headers, so a suite picks a namespace by **AccountSid**:
 `PUT /__admin/credentials {"credentials": {"<TWILIO_ACCOUNT_SID>": "<namespace>"}}`. A namespace
-can also come from the `x-emulators-namespace` header or a `/__admin/ns/<name>` prefix on the base URL
+can also come from the `x-emulates-namespace` header or a `/__admin/ns/<name>` prefix on the base URL
 (`twilioMockUrl` keeps the prefix).
 
 ### Deliberately not modelled

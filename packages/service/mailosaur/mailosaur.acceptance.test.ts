@@ -9,7 +9,7 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import tls from "node:tls"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { createServer, type MailosaurServer } from "./src/server.js"
 import {
@@ -45,7 +45,7 @@ const client = (apiKey = "qa-api-key") => {
 const deliver = async (body: Record<string, unknown>, namespace = "default") => {
   const response = await fetch(`${server.url}/__admin/ingest`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+    headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
     body: JSON.stringify(body),
   })
   expect(response.status).toBe(201)

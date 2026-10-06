@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type OtelRuntime, type OtelRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-otel serve` listens on when none is given. */
+/** Port `emulates-otel serve` listens on when none is given. */
 export const DEFAULT_PORT = 8809
 
 export type OtelServerOptions = OtelRuntimeOptions & {

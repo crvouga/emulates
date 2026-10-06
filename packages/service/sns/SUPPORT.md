@@ -1,4 +1,4 @@
-# Amazon Simple Notification Service (Emulators subset) — operation support
+# Amazon Simple Notification Service (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

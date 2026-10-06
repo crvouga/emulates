@@ -29,7 +29,7 @@ export type ErrorCategory =
  *
  * @example
  * ```ts
- * import { Database, SqliteError } from "@emulators/sqlite";
+ * import { Database, SqliteError } from "@emulates/sqlite";
  *
  * const db = new Database();
  * try {

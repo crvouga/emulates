@@ -1,4 +1,4 @@
-# Amazon Key Management Service (Emulators subset) — operation support
+# Amazon Key Management Service (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

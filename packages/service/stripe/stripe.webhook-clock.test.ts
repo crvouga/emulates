@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import Stripe from "stripe"
 import { createRuntime } from "./src/index.js"
 

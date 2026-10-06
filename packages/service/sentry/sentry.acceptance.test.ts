@@ -358,7 +358,7 @@ test("served HTTP accepts raw and multipart minidumps, credential namespaces and
     form.set("sentry", JSON.stringify(data(40)))
     const response = await fetch(
       `${server.url}/api/1/minidump/?sentry_key=${DEFAULT_PROJECT.publicKey}`,
-      { method: "POST", headers: { "x-emulators-namespace": "served" }, body: form },
+      { method: "POST", headers: { "x-emulates-namespace": "served" }, body: form },
     )
     expect(response.status).toBe(200)
     expect(await response.text()).toBe("00000000-0000-0000-0000-000000000028")

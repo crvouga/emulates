@@ -1,4 +1,4 @@
-# Amazon Lambda (Emulators subset) — operation support
+# Amazon Lambda (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

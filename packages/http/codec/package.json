@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/http-codec",
+  "name": "@emulates/http-codec",
   "version": "0.0.0-development",
   "private": true,
   "description": "Content-type codecs shared by the emulator servers and differential runner: JSON and bracket-notation form encoding.",
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/http/codec#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "form-urlencoded",
     "codec"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "http-codec"
   },
@@ -40,7 +40,7 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "devDependencies": {
-    "@emulators/testing": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

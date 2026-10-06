@@ -1,7 +1,7 @@
 # PRD: infrastructure and orchestration emulators
 
 Status: requirements and implementation-plan draft requested September 25, 2026.
-Scope: changes within Emulators only. This document authorizes no execution,
+Scope: changes within Emulates only. This document authorizes no execution,
 installation, publication, deployment, or changes to another repository.
 
 ## 1. Overview
@@ -15,15 +15,15 @@ The consumer use cases come from Avengers Initiative, but these packages model
 public third-party interfaces, not Initiative's private control services or policy.
 Initiative-owned implementation, host tests, and adoption are tracked separately
 in the [Initiative handoff](avengers-initiative-mock-integration-handoff.md).
-No Initiative task is part of [the archived Emulators plan](archive/infrastructure-orchestration-mocks/PLAN.md).
+No Initiative task is part of [the archived Emulates plan](archive/infrastructure-orchestration-mocks/PLAN.md).
 
 ### Planned packages
 
 | Delivery | Package | Boundary |
 | --- | --- | --- |
-| 1 | `@emulators/docker` | Engine HTTP observations and lifecycle, Unix sockets, attach upgrade/streams |
-| 2 | `@emulators/hermes` | Public tracked peer runs, idempotency, stopping, interruption, retention |
-| 3 | `@emulators/github` | Repository/ref observations, supported ref mutations, pull requests, response-loss scenarios |
+| 1 | `@emulates/docker` | Engine HTTP observations and lifecycle, Unix sockets, attach upgrade/streams |
+| 2 | `@emulates/hermes` | Public tracked peer runs, idempotency, stopping, interruption, retention |
+| 3 | `@emulates/github` | Repository/ref observations, supported ref mutations, pull requests, response-loss scenarios |
 
 All packages begin as `wip`. Names and API coverage are requirements; unverified
 provider semantics and exact Engine/GitHub version choices remain open questions.
@@ -77,7 +77,7 @@ No parity or installed-version verification was performed during drafting.
 ## 4. Individual deliverables and user stories
 
 Each `US-*` below maps one-to-one to `PLAN.md`. Dependencies refer only to
-Emulators deliverables; delivery order is Docker, Hermes, GitHub. Every story
+Emulates deliverables; delivery order is Docker, Hermes, GitHub. Every story
 requires **Typecheck passes**. Every story with testable behavior also requires
 **Tests pass**, using focused meaningful checks. Those criteria are explicit in
 the task plan. Documentation-only stories require link/source consistency checks,
@@ -206,7 +206,7 @@ As a consumer, I want failures caught independently of handler implementation.
 
 - [ ] Add eligible OpenAPI self-parity walks, operation-coverage assertions, and
   deliberate divergence detection.
-- [ ] Add Emulators-owned socket consumer fixtures for retained HTTP and attach,
+- [ ] Add Emulates-owned socket consumer fixtures for retained HTTP and attach,
   including accepted operation followed by lost response and re-inspection.
 - [ ] Use an actual pinned SDK where the declared consumer uses one; raw protocol
   fixtures are required for the observed raw-socket consumer.
@@ -302,7 +302,7 @@ As a peer client, I want realistic uncertainty and protocol evidence.
 - [ ] Add accepted-run/response-loss, timeout, throttle, and scripted provider-error
   scenarios; labels/statuses follow the pinned contract.
 - [ ] Add self-parity coverage and deliberate divergence detection.
-- [ ] Exercise submit/poll/stop through an Emulators-owned HTTP consumer fixture,
+- [ ] Exercise submit/poll/stop through an Emulates-owned HTTP consumer fixture,
   checking response loss, replay, and expiry without importing Initiative.
 - [ ] Scripted denied responses do not claim to implement real credential enforcement.
 
@@ -386,7 +386,7 @@ As a client developer, I want independent checks of the supported REST behavior.
 
 - [ ] Add OpenAPI self-parity with operation-coverage assertions and a deliberate
   divergent-instance test.
-- [ ] Add Emulators-owned consumer scenarios for lost PR-create responses, ref
+- [ ] Add Emulates-owned consumer scenarios for lost PR-create responses, ref
   movement, duplicate creation, pagination, and retry-after handling.
 - [ ] Verify no fictional compare-and-swap or universal idempotency semantics appear
   in fixtures; full broker recovery and Git transport remain external consumer tests.
@@ -415,7 +415,7 @@ As a consumer, I want installable REST emulators with honest publication guarant
 
 ## 5. Functional requirements
 
-- **FR-1:** All implementation stories modify Emulators only. Source references
+- **FR-1:** All implementation stories modify Emulates only. Source references
   to another repository are evidence, not dependencies on executing its code.
 - **FR-2:** Each provider must perform Context7 research before API implementation
   and maintain version-aware API evidence as defined in section 3.
@@ -524,10 +524,10 @@ bounded reusable review knowledge belongs in `memory.json`. Drafting creates nei
 
 ### Inspection provenance
 
-Emulators was clean at `accea1e9` before these planning files. Initiative source
+Emulates was clean at `accea1e9` before these planning files. Initiative source
 was sampled at HEAD `e3583b9` with substantial uncommitted/untracked work; that SHA
 does not represent the inspected working tree. Relevant sampled consumers included
 `docker_attach_handshake.py`, `docker_read_session.py`, `docker_endpoint.py`,
 `maria_systemd_bus.py`, and `integrations/hermes/peer_http.py`. Their policy and
-host-trust behavior is outside Emulators implementation scope. No claim is made
+host-trust behavior is outside Emulates implementation scope. No claim is made
 that those implementations or the new packages have passed runtime verification.

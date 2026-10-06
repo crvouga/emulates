@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { WHOOP_NAMESPACE, WhoopAPI, type WhoopAPIOptions } from "./index.js"
 export const WHOOP_PRESETS: Record<string, FaultPreset> = {

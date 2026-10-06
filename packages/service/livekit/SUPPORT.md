@@ -1,4 +1,4 @@
-# LiveKit Server API (Emulators subset) — operation support
+# LiveKit Server API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

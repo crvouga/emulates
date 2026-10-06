@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import {
   AccessToken,
   DataPacket_Kind,
@@ -182,7 +182,7 @@ describe("livekit-server-sdk against LiveKit mock", () => {
         headers: {
           authorization: `Bearer ${await token.toJwt()}`,
           "content-type": "application/json",
-          "x-emulators-namespace": "other",
+          "x-emulates-namespace": "other",
         },
         body: "{}",
       })

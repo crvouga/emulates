@@ -5,7 +5,7 @@ import {
   type ServiceRuntime,
   createRuntime as serviceRuntime,
   sigV4AccessKeyId,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { ECS_NAMESPACE, ECSAPI, type ECSAPIOptions } from "./index.js"
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { operationMetadata } from "@emulators/openapi-metadata"
-import { ParityError, parity } from "@emulators/parity"
-import { fcParameters } from "@emulators/testing"
+import { operationMetadata } from "@emulates/openapi-metadata"
+import { ParityError, parity } from "@emulates/parity"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { document, PaddleAPI } from "./src/index.js"
 

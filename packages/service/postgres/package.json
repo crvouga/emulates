@@ -1,6 +1,6 @@
 {
   "bin": {
-    "emulators-postgres": "./dist/wire/cli.js"
+    "emulates-postgres": "./dist/wire/cli.js"
   },
   "bugs": {
     "url": "https://github.com/crvouga/emulators/issues"
@@ -9,10 +9,10 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.14",
-    "@emulators/adapter-node": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/ui": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/ui": "workspace:*",
     "@electric-sql/pglite": "^0.5.8",
     "@types/bun": "latest",
     "@types/pg": "^8.23.1",
@@ -69,7 +69,7 @@
   ],
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/postgres#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "postgres",
     "postgresql",
     "typescript",
@@ -79,7 +79,7 @@
   ],
   "license": "MIT",
   "main": "./dist/index.js",
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "service",
     "category": "databases",
@@ -114,7 +114,7 @@
     }
   },
   "module": "./dist/index.js",
-  "name": "@emulators/postgres",
+  "name": "@emulates/postgres",
   "publishConfig": {
     "access": "public",
     "provenance": true

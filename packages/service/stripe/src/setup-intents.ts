@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@emulators/service"
+import { jsonResponse, type OperationHandler } from "@emulates/service"
 import { requestInfo } from "./context.js"
 import { cardError, invalidRequest, parameterMissing, resourceMissing } from "./errors.js"
 import {

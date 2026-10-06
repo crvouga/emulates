@@ -1,10 +1,10 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { ACME_FLAG_STATE } from "./flag-state-fixture.js"
 import { specsFromState } from "./import.js"
 import { createRuntime, type PostHogRuntime, type PostHogRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-posthog serve` listens on when none is given. */
+/** Port `emulates-posthog serve` listens on when none is given. */
 export const DEFAULT_PORT = 8795
 
 export type PostHogServerOptions = PostHogRuntimeOptions & {
@@ -62,6 +62,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "point POSTHOG_HOST / NEXT_PUBLIC_POSTHOG_HOST here; set flags with PUT /__admin/flags/<key>",
-    "namespaces: /__admin/ns/<name> host prefix, x-emulators-namespace, or PUT /__admin/credentials {<phc_token>: <ns>}",
+    "namespaces: /__admin/ns/<name> host prefix, x-emulates-namespace, or PUT /__admin/credentials {<phc_token>: <ns>}",
   ],
 }

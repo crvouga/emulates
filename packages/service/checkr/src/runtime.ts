@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { CHECKR_NAMESPACE, CheckrAPI, type CheckrAPIOptions } from "./index.js"
 export const CHECKR_PRESETS: Record<string, FaultPreset> = {

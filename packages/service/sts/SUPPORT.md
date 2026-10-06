@@ -1,4 +1,4 @@
-# Amazon Security Token Service (Emulators subset) — operation support
+# Amazon Security Token Service (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

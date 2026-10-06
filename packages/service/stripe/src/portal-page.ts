@@ -1,4 +1,4 @@
-import { CSS_RESET } from "@emulators/ui"
+import { CSS_RESET } from "@emulates/ui"
 import { subscriptionItems } from "./billing.js"
 import {
   CANCELLATION_REASONS,

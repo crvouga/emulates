@@ -1,6 +1,6 @@
-# @emulators/pharmetika
+# @emulates/pharmetika
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Pharmetika** compounding-pharmacy provider portal for test suites:
 clinic and patient lookup, patient create, medication-order validate / EPCS prepare / submit /
@@ -20,11 +20,11 @@ the emulator clock).
 ## Install
 
 ```bash
-npm install -D @emulators/pharmetika
+npm install -D @emulates/pharmetika
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-pharmetika serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-pharmetika serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -35,14 +35,14 @@ with `--api-token`). Set `PHARMETIKA_WEBHOOK_SECRET` in the app and pass the sam
 `PHARMETIKA_CLINIC_NAME=Acme` picks the seeded clinic.
 
 ```bash
-npx emulators-pharmetika serve --port 8801 \
+npx emulates-pharmetika serve --port 8801 \
   --webhook-url http://127.0.0.1:3000/prescriptions/webhooks/pharmetika \
   --webhook-secret "$PHARMETIKA_WEBHOOK_SECRET" \
   --auto-advance "2000:data_entry,shipped,completed"
 ```
 
 ```ts
-import { createRuntime } from "@emulators/pharmetika"
+import { createRuntime } from "@emulates/pharmetika"
 
 const pmk = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/prescriptions/webhooks/pharmetika", secret: "whsec" },
@@ -143,7 +143,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 ### Namespaces
 
 Our backend's `fetch` cannot add headers, so a namespace can be chosen three ways:
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `PHARMETIKA_API_URL`, or by credential:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `PHARMETIKA_API_URL`, or by credential:
 `PUT /__admin/credentials {"credentials": {"<PHARMETIKA_API_TOKEN>": "<namespace>"}}` (the Basic
 username works the same way for the catalog client).
 

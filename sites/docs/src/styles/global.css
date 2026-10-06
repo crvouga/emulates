@@ -1,8 +1,8 @@
-/* Emulators docs — one stylesheet, no framework. Tokens first, then base, then components.
+/* Emulates docs — one stylesheet, no framework. Tokens first, then base, then components.
    The palette: paper, ink, live oak, clay, sage.
    Rules live in docs/DESIGN.md. The live tokens are shown at /identity. */
 
-@import "@emulators/ui/reset.css";
+@import "@emulates/ui/reset.css";
 
 :root {
   color-scheme: light;

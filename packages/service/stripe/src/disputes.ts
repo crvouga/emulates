@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@emulators/service"
+import { jsonResponse, type OperationHandler } from "@emulates/service"
 import { resourceMissing } from "./errors.js"
 import { requestScope, type Services } from "./internal.js"
 import { matchesCreated, paginate } from "./list.js"

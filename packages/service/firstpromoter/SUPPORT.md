@@ -1,4 +1,4 @@
-# FirstPromoter API v2 (Emulators subset) — operation support
+# FirstPromoter API v2 (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

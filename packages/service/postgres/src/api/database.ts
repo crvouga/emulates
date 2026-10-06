@@ -1,4 +1,4 @@
-import { type Checkpoint, Timeline } from "@emulators/core";
+import { type Checkpoint, Timeline } from "@emulates/core";
 import { PostgresError, pgError } from "../errors/error.ts";
 import type { ExecEnv } from "../executor/relation.ts";
 import { executeCopyFromData, txManagerFor } from "../executor/session.ts";
@@ -80,7 +80,7 @@ function project(point: Checkpoint<Snapshot>): HistoryCheckpoint {
  *
  * @example
  * ```ts
- * import { Database } from "@emulators/postgres";
+ * import { Database } from "@emulates/postgres";
  *
  * const db = new Database();
  * db.exec("CREATE TABLE users (id serial PRIMARY KEY, name text NOT NULL)");

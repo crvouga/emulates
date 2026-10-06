@@ -61,7 +61,7 @@ let base = ""
 beforeAll(async () => {
   const { port } = await spawnServer({
     PORT: "0",
-    EMULATORS_JUNCTION_CORPUS: corpusPath,
+    EMULATES_JUNCTION_CORPUS: corpusPath,
   })
   base = `http://127.0.0.1:${port}`
 })
@@ -100,7 +100,7 @@ describe("junction mock server contract", () => {
     const missing = join(packageDir, "corpus/does-not-exist.json")
     const child = Bun.spawn(["bun", "scripts/server.ts"], {
       cwd: packageDir,
-      env: { ...process.env, PORT: "0", EMULATORS_JUNCTION_CORPUS: missing },
+      env: { ...process.env, PORT: "0", EMULATES_JUNCTION_CORPUS: missing },
       stdout: "pipe",
       stderr: "pipe",
     })
@@ -134,9 +134,9 @@ describe("junction mock server contract", () => {
 
     const { port } = await spawnServer({
       PORT: "0",
-      EMULATORS_JUNCTION_CORPUS: corpusPath,
-      EMULATORS_JUNCTION_WEBHOOK_URL: `http://127.0.0.1:${receiverPort}`,
-      EMULATORS_JUNCTION_WEBHOOK_SECRET: secret,
+      EMULATES_JUNCTION_CORPUS: corpusPath,
+      EMULATES_JUNCTION_WEBHOOK_URL: `http://127.0.0.1:${receiverPort}`,
+      EMULATES_JUNCTION_WEBHOOK_SECRET: secret,
     })
     const server = `http://127.0.0.1:${port}`
 

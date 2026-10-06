@@ -1,6 +1,6 @@
-# @emulators/postgres
+# @emulates/postgres
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Pure TypeScript, completely in-memory PostgreSQL engine aiming for **PostgreSQL 18 SQL dialect
 parity** (same statements, same results). Use it in tests (or the browser) wherever you want real
@@ -17,12 +17,12 @@ isolation.
 - **Synchronous**, ESM-only API (no Promises, no `require`)
 - **SQL dialect verified** against real PostgreSQL 18.3 (PGlite by default; optional native server)
   via differential contracts and a fail-closed gate
-- In-process it is **not** a drop-in for the `pg` / `postgres.js` client APIs or on-disk clusters, but it also ships an **optional wire-protocol server** (`@emulators/postgres/wire`, Node/Bun) that unmodified clients connect to over TCP
+- In-process it is **not** a drop-in for the `pg` / `postgres.js` client APIs or on-disk clusters, but it also ships an **optional wire-protocol server** (`@emulates/postgres/wire`, Node/Bun) that unmodified clients connect to over TCP
 - Intentional differences: deterministic `random()` / `now()` by default, and a custom snapshot
   format (not `pg_dump`)
 
 It is not an HTTP emulator and is not the storage engine the HTTP emulators use (they
-use the SQLite-dialect [`@emulators/sqlite`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite#readme)
+use the SQLite-dialect [`@emulates/sqlite`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite#readme)
 through the `SqliteClient` port). Use this package as the database for your own code under test.
 
 ### Documentation
@@ -44,18 +44,18 @@ Files marked (shipped) are included in the npm package next to this README.
 ## Install
 
 ```bash
-npm install -D @emulators/postgres
-# or: bun add -d @emulators/postgres
+npm install -D @emulates/postgres
+# or: bun add -d @emulates/postgres
 ```
 
-Requires Node.js >= 20 or Bun >= 1.1 (`engines`); the rest of Emulators targets Node >= 22 /
+Requires Node.js >= 20 or Bun >= 1.1 (`engines`); the rest of Emulates targets Node >= 22 /
 Bun >= 1.2. The package is **ESM only** and has no runtime dependencies. Install it as a regular
 dependency instead of `-D` if you ship it to the browser.
 
 ## Usage
 
 ```ts
-import { Database, Snapshot } from "@emulators/postgres"
+import { Database, Snapshot } from "@emulates/postgres"
 
 const db = new Database()
 
@@ -91,7 +91,7 @@ test (microseconds, tables are shared until either side writes):
 
 ```ts
 import { beforeEach, expect, test } from "bun:test"
-import { Database, PostgresError } from "@emulators/postgres"
+import { Database, PostgresError } from "@emulates/postgres"
 
 const template = new Database()
 template.exec(`
@@ -129,7 +129,7 @@ There is no async client, so put a small shim behind whatever query interface yo
 default:
 
 ```ts
-import { type BindValue, Database } from "@emulators/postgres"
+import { type BindValue, Database } from "@emulates/postgres"
 
 const db = new Database({ int8: "string", now: "system" })
 
@@ -161,7 +161,7 @@ in a local multi-service stack — start the frontend/backend v3 server instead 
 `node:net`, so it is a separate Node/Bun entry (`/wire`) and the main package stays browser-safe.
 
 ```ts
-import { serve } from "@emulators/postgres/wire"
+import { serve } from "@emulates/postgres/wire"
 
 const server = await serve({ port: 0 }) // 0 → a free port, reported as server.port
 // server.connectionString — postgres://postgres@127.0.0.1:<port>/postgres
@@ -180,20 +180,20 @@ seed` forks `seed` through the same copy-on-write snapshot path as `Snapshot.ope
 are available through `pg_database` and `server.databaseNames()`, while
 `server.getDatabase(name)` and `server.snapshot(name)` provide programmatic test controls.
 
-Or from the command line (installs a `emulators-postgres` bin):
+Or from the command line (installs a `emulates-postgres` bin):
 
 ```bash
-emulators-postgres serve --port 55432            # trust auth
-emulators-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
+emulates-postgres serve --port 55432            # trust auth
+emulates-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
 ```
 
 `serve({ database })` shares an existing `Database`, and `serve({ database: snapshot })` boots every
 server from one frozen template, so a seeded stack starts from the same bytes each time.
-`createAdmin` from `@emulators/postgres/admin` serves the same `/__admin`
+`createAdmin` from `@emulates/postgres/admin` serves the same `/__admin`
 surface as every other emulator, including the table explorer (`GET /sql/tables`, `POST /sql/query`).
 The wire server does not speak that HTTP API.
 
-`emulators-postgres serve --config emulators.json` also supervises a mixed HTTP/Postgres/Redis
+`emulates-postgres serve --config emulates.json` also supervises a mixed HTTP/Postgres/Redis
 fleet through the Node `/server` entry. See [fleet configuration and controls](../../../docs/FLEETS.md)
 for ephemeral discovery, namespace endpoints, aggregate health, snapshots and clocks. Each declared
 namespace has an independent cluster. Fleet checkpoints restore its entire catalog, including created
@@ -261,7 +261,7 @@ the PostgreSQL wire convention).
   outside int8, invalid `Date`s.
 
 ```ts
-import { Database } from "@emulators/postgres"
+import { Database } from "@emulates/postgres"
 
 const db = new Database()
 console.log(db.query(`SELECT $1::int AS a, $2 AS b`, [1, "Alice"])) // [{ a: 1, b: "Alice" }]
@@ -363,7 +363,7 @@ search, `ON CONFLICT DO NOTHING/UPDATE`, `RETURNING`, `PREPARE`/`EXECUTE`/`DEALL
 8. **`int8` comes back as `bigint` by default** (`count(*)` included); `{ int8: "number" | "string" }` opts out. `numeric`, dates and JSON come back as **text**; parse them explicitly if you need JS numbers/objects.
 9. **A failed statement does not abort the transaction**: real PostgreSQL rejects everything after an error inside `BEGIN` until `ROLLBACK`; this engine keeps executing (documented divergence).
 10. **Unquoted identifiers fold to lowercase** (the PostgreSQL rule, not uppercase like the SQL standard).
-11. **Do not import `@emulators/postgres/unstable` in application code** unless you accept breakage in any release.
+11. **Do not import `@emulates/postgres/unstable` in application code** unless you accept breakage in any release.
 
 ## API
 
@@ -461,17 +461,17 @@ type QueryRow  = Record<string, JsValue>
 
 Stick to `Database`, `Snapshot`, `Statement`, and `PostgresError` in application code. Advanced
 internals (`parse`, `tokenize`, `executeStatement`, snapshot codec pieces, `Prng`, ...) are
-available only from `@emulators/postgres/unstable` and are **exempt from semver**.
+available only from `@emulates/postgres/unstable` and are **exempt from semver**.
 
 ### Stability policy
 
-The exports of the main entry (`@emulators/postgres`) are **frozen**:
+The exports of the main entry (`@emulates/postgres`) are **frozen**:
 
 - **Never** outside a major: removals, renames, signature changes, or changes to documented
   behaviour of the stable surface.
 - **Allowed in minors:** additions (new methods, new optional `DatabaseOptions` fields, new
   `ErrorCategory` values). Consumers that `switch` on `category` must include a default case.
-- **`@emulators/postgres/unstable`** is exempt from semver and may change or
+- **`@emulates/postgres/unstable`** is exempt from semver and may change or
   disappear in any release.
 - **Snapshots:** newer library versions restore older blobs; older library versions cannot
   restore newer format versions; the byte-identical guarantee holds only within one library version.
@@ -513,7 +513,7 @@ A React + Vite SQL playground lives in
 [`tests/contract/api/`](https://github.com/crvouga/emulators/tree/main/packages/service/postgres/tests/contract/api)
 and [`tests/contract/parameters/`](https://github.com/crvouga/emulators/tree/main/packages/service/postgres/tests/contract/parameters).
 
-Released automatically from the [Emulators monorepo](https://github.com/crvouga/emulators)
+Released automatically from the [Emulates monorepo](https://github.com/crvouga/emulators)
 (see [Releasing](https://github.com/crvouga/emulators/blob/main/docs/RELEASING.md)). License: MIT ([LICENSE](./LICENSE)).
 
 Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).

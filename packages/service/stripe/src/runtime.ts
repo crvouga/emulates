@@ -11,8 +11,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { type AccountConfig, AccountDirectory, validateAccounts } from "./accounts.js"
 import { completeSession } from "./checkout.js"
 import { STRIPE_NAMESPACE } from "./constants.js"
@@ -142,7 +142,7 @@ export type StripeRuntimeOptions = {
   seed?: number | string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Require `x-emulators-admin-key` on `/__admin/*`. */
+  /** Require `x-emulates-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Called in-process with every event the mock records. */
@@ -222,7 +222,7 @@ const guard = (run: () => Response): Response => {
 }
 
 /**
- * The Stripe emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * The Stripe emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, namespaces
  * by header, by `/__admin/ns/<name>` path prefix, or by API key (`PUT /__admin/credentials`), accounts
  * by key (`PUT /__admin/accounts`), clock control that drives renewals and expiries, fault
  * presets, and signed webhooks (`Stripe-Signature`) fanned out to every matching endpoint.

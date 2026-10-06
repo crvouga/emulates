@@ -271,7 +271,7 @@ private-field divergence in a successful repository response is rejected with
 ParityError/mismatch, and the test verifies the divergent response was compared.
 Only the four mutation operations are marked parity unsafe.
 
-An independently written Emulators-owned Node HTTP consumer imports the compiled
+An independently written Emulates-owned Node HTTP consumer imports the compiled
 server for lifecycle, while all fixture control and consumer requests use literal
 HTTP contracts. It exercises socket-loss lookup, duplicate422, same-key distinct
 creates, default-page pagination across31PRs, an intervening ref update, acceptance

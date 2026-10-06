@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Clinic, MedicationTemplate } from "./catalog.js"
 import { document } from "./generated/openapi.js"
 import { PHARMETIKA_NAMESPACE, PharmetikaAPI, tokenCredential } from "./index.js"
@@ -275,7 +275,7 @@ const adminRoutes = (runtime: ServiceRuntime<PharmetikaAPI>): AdminRoutes => ({
 })
 
 /**
- * The Pharmetika emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Pharmetika emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by credential
  * (`PUT /__admin/credentials {"credentials": {"<PHARMETIKA_API_TOKEN>": "<namespace>"}}`),
  * clock control, fault presets, status webhooks and a request journal.

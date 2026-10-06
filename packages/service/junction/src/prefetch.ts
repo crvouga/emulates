@@ -1,4 +1,4 @@
-import type { SeedCacheEntry } from "@emulators/parity"
+import type { SeedCacheEntry } from "@emulates/parity"
 import {
   availabilityAddressForZip,
   COVERAGE_ZIPS,

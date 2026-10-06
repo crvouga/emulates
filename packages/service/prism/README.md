@@ -1,6 +1,6 @@
-# @emulators/prism
+# @emulates/prism
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Prism Labs** body-scan API for test suites: subject upsert, scan
 creation, the presigned capture upload the capture page PUTs its video to, per-stage
@@ -16,11 +16,11 @@ results are computed deterministically from the subject's height, weight, sex an
 ## Install
 
 ```bash
-npm install -D @emulators/prism
+npm install -D @emulates/prism
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-prism serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-prism serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -29,11 +29,11 @@ Point `PRISM_API_URL` at the emulator (http is allowed) and set `PRISM_API_KEY` 
 pin it with `--api-key`). Without both, our adapter reports `unavailable` and never calls out.
 
 ```bash
-npx emulators-prism serve --port 8825 --auto-advance 2000
+npx emulates-prism serve --port 8825 --auto-advance 2000
 ```
 
 ```ts
-import { createRuntime } from "@emulators/prism"
+import { createRuntime } from "@emulates/prism"
 
 const prism = createRuntime()
 const api = (path: string, body?: unknown) =>
@@ -87,7 +87,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `unaut
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `PRISM_API_URL`, or by API key:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `PRISM_API_URL`, or by API key:
 `PUT /__admin/credentials {"credentials": {"<PRISM_API_KEY>": "<namespace>"}}`. Presigned
 upload and asset URLs carry the namespace in their path, since the capture page's PUT has no
 other carrier.

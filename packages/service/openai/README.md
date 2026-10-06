@@ -1,6 +1,6 @@
-# @emulators/openai
+# @emulates/openai
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip**, portable, entirely local OpenAI emulator for Chat Completions, function tool loops,
 Chat SSE streams, embeddings, models, files and staged uploads. Verified with unmodified
@@ -10,13 +10,13 @@ It makes no inference calls and requires no vendor account or billed API key.
 ## Install
 
 ```sh
-bun add @emulators/openai
+bun add @emulates/openai
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime, DEFAULT_TOKEN } from "@emulators/openai"
+import { createRuntime, DEFAULT_TOKEN } from "@emulates/openai"
 
 const mock = createRuntime({
   scripts: [{
@@ -39,8 +39,8 @@ Use the explicit `.chat()` provider: the provider's default model uses the Respo
 ```js
 import { createOpenAI } from "@ai-sdk/openai"
 import { generateText } from "ai"
-import { createServer } from "@emulators/openai/server"
-import { DEFAULT_TOKEN } from "@emulators/openai"
+import { createServer } from "@emulates/openai/server"
+import { DEFAULT_TOKEN } from "@emulates/openai"
 
 const server = await createServer({
   scripts: [{ kind: "chat", message: { role: "assistant", content: "Fixture answer" } }],
@@ -54,7 +54,7 @@ try {
 ```
 
 `openai` also accepts `baseURL: server.url + "/v1"` and the fixture `apiKey`.
-The CLI is `emulators-openai serve --port 8813`. `createServer()` defaults to an ephemeral port.
+The CLI is `emulates-openai serve --port 8813`. `createServer()` defaults to an ephemeral port.
 
 ## Routes and persisted behavior
 
@@ -121,13 +121,13 @@ to 20 MiB and bounds files/uploads/parts locally; it is not a production quota.
 All records use SQLite Collections and IdSequence; lifecycle timestamps/expiry use the shared
 clock. Each namespace receives constructor `scripts`, `models`, `files` fixtures; reset restores
 them. Files accept `{ id?, filename, purpose, bytes: string | number[], expires_at? }`.
-Use `x-emulators-namespace`, `/__admin/ns/{namespace}/v1/...`, or shared credential registration
+Use `x-emulates-namespace`, `/__admin/ns/{namespace}/v1/...`, or shared credential registration
 for SDKs. Timeline branches/checkpoints reuse the shared runtime and keep their state isolated.
 
 ## Controls, failures and privacy
 
 `DEFAULT_ADMIN_KEY` is `fixture-openai-admin`. Admin data routes require
-`x-emulators-admin-key`; configure a nonempty `adminKey` to replace it. A custom `adminPrefix`
+`x-emulates-admin-key`; configure a nonempty `adminKey` to replace it. A custom `adminPrefix`
 relocates all controls and the namespace path carrier. Shared clock, fault, reset, journal,
 state, credential, metrics and Timeline routes remain available.
 

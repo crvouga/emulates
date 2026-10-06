@@ -1,8 +1,8 @@
-import type { DecodedBody } from "@emulators/http-codec"
-import { canonicalToken, type ResourceTable, type Side } from "@emulators/model"
-import type { OpenAPIDocument, SchemaObject } from "@emulators/openapi"
-import { jsonTypeOf } from "@emulators/openapi"
-import { type Annotation, annotateValue, type JsonPath, pathKey } from "@emulators/openapi-metadata"
+import type { DecodedBody } from "@emulates/http-codec"
+import { canonicalToken, type ResourceTable, type Side } from "@emulates/model"
+import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
+import { jsonTypeOf } from "@emulates/openapi"
+import { type Annotation, annotateValue, type JsonPath, pathKey } from "@emulates/openapi-metadata"
 
 /** One side of a differential comparison, already decoded. */
 export type Exchange = {

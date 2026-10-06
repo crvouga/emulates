@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type WhoopRuntime, type WhoopRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12129
 export type WhoopServerOptions = WhoopRuntimeOptions & { port?: number; host?: string }

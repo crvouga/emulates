@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { type AhaRuntime, type AhaRuntimeOptions, createRuntime } from "./runtime.js"
 import type { Settings } from "./state.js"
 
-/** Port `emulators-aha serve` listens on when none is given. */
+/** Port `emulates-aha serve` listens on when none is given. */
 export const DEFAULT_PORT = 8799
 
 export type AhaServerOptions = AhaRuntimeOptions & {
@@ -104,6 +104,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: X-API-KEY + X-TIMESTAMP + X-SIGNATURE (HMAC), or legacy X-<Partner>-Auth-Key",
     "webhooks: POST /__admin/orders/<AC-n>/transition {status, drawStatus?, scheduledAt?, timeZone?}",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AHA_API_KEY>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AHA_API_KEY>: <ns>}",
   ],
 }

@@ -12,8 +12,8 @@ import {
   type WebhookEndpoint,
   type WebhookHub,
   type WebhookSigner,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { errorBody, PaddleError } from "./errors.js"
 import { document } from "./generated/openapi.js"
 import { type CardInput, type CheckoutInput, PADDLE_NAMESPACE, PaddleAPI } from "./index.js"
@@ -176,7 +176,7 @@ const adminRoutes =
   })
 
 /**
- * The Paddle emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Paddle emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PADDLE_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets, `Paddle-Signature` webhooks, a request journal, and the

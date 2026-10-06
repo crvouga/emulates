@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createRuntime, META_PRESETS } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import {
@@ -137,7 +137,7 @@ describe("Meta acceptance", () => {
       runtime.fetch(
         new Request(`${API}/v26.0/pixel_emulators/events?access_token=${TOKEN}`, {
           method: "POST",
-          headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+          headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
           body: JSON.stringify({ data: [event({ event_id: id })] }),
         }),
       )
@@ -179,7 +179,7 @@ describe("Meta acceptance", () => {
         fetchImpl: fetch,
       })
       expect(response.events_received).toBe(1)
-      expect((await fetch(`${server.url}/__admin/health`)).headers.get("x-emulators")).toMatch(
+      expect((await fetch(`${server.url}/__admin/health`)).headers.get("x-emulates")).toMatch(
         /^meta@/,
       )
     } finally {

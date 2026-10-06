@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite, awsMd5 as md5, sigV4AccessKeyId } from "@emulators/service"
-import { clearNamespace } from "@emulators/sqlite-client"
+import { type APIOptions, bootSqlite, awsMd5 as md5, sigV4AccessKeyId } from "@emulates/service"
+import { clearNamespace } from "@emulates/sqlite-client"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import { type SqsMessage, type SqsMessageAttribute, type SqsQueue, SqsState } from "./state.js"
 

@@ -6,7 +6,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { VercelBlobAPI, type VercelBlobAPIOptions } from "./index.js"
 export const VERCEL_BLOB_PRESETS: Record<string, FaultPreset> = {

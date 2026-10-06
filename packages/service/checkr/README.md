@@ -1,6 +1,6 @@
-# @emulators/checkr
+# @emulates/checkr
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Checkr v1 emulator for synthetic candidates, package/hierarchy enumeration, invitations
 and seeded report/ETA reads. No checks run, emails are sent or real personal data is needed.
@@ -8,13 +8,13 @@ and seeded report/ETA reads. No checks run, emails are sent or real personal dat
 ## Install
 
 ```sh
-bun add -d @emulators/checkr
+bun add -d @emulates/checkr
 ```
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/checkr/server"
+import { createServer } from "@emulates/checkr/server"
 const server = await createServer()
 const response = await fetch(`${server.url}/v1/packages`, {
   headers: { authorization: `Basic ${btoa("mock_checkr_key:")}` },
@@ -50,7 +50,7 @@ report is reflected in its candidate's report_ids. The admin controls intentiona
 enforce vendor referential integrity; seed coherent fixtures.
 
 Standard admin reset, Timeline snapshots/branches, clocks and journals are available.
-Namespaces use `x-emulators-namespace`, `/__admin/ns/<name>/…`, or mapped Basic credentials;
+Namespaces use `x-emulates-namespace`, `/__admin/ns/<name>/…`, or mapped Basic credentials;
 pagination URLs retain the namespace, including relocated `adminPrefix` paths.
 Journals retain request metadata only, not candidate data or credentials.
 Presets: `forbidden`, `hierarchy_denied`, `rate_limited`, `server_error`, `non_json`,

@@ -1,4 +1,4 @@
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type ECSRuntime, type ECSRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12129
 export type ECSServerOptions = ECSRuntimeOptions & { port?: number; host?: string }

@@ -1,6 +1,6 @@
-import type { FormValue } from "@emulators/http-codec"
-import { resolveSchema, type SchemaObject } from "@emulators/openapi"
-import { type FormIssue, type OperationContext, parseForm } from "@emulators/service"
+import type { FormValue } from "@emulates/http-codec"
+import { resolveSchema, type SchemaObject } from "@emulates/openapi"
+import { type FormIssue, type OperationContext, parseForm } from "@emulates/service"
 import {
   humanList,
   invalidRequest,

@@ -21,7 +21,7 @@ everyone.
 | The emulator crashes, leaks state, contradicts its README, or does not install or build | `bug` | `[<service>] bug: <what breaks>` | [bug.md][t-bug] |
 | No package emulates the vendor you depend on | `new-service` | `[new-service] <Vendor>: <API surface>` | [new-service.md][t-new] |
 
-`<service>` is the package suffix: `stripe` for `@emulators/stripe`. The
+`<service>` is the package suffix: `stripe` for `@emulates/stripe`. The
 catalog is listed in [`llms.txt`](../llms.txt).
 
 1. [Search for an existing issue](#1-search-first). Comment on it rather than opening a duplicate.
@@ -66,7 +66,7 @@ Do not file when:
   know (a live response, the vendor docs, the SDK source). "Stripe probably returns 400" is a
   guess, not a report.
 - The cause is your own code or configuration: a wrong base URL, a missing
-  `x-emulators-namespace`, or state left over from an earlier test.
+  `x-emulates-namespace`, or state left over from an earlier test.
 
 ## Never include
 
@@ -98,7 +98,7 @@ Reduce the failure to the smallest sequence of requests against a fresh emulator
 Prefer a self-contained script that runs the emulator in-process:
 
 ```ts
-import { createRuntime } from "@emulators/<service>"
+import { createRuntime } from "@emulates/<service>"
 
 const emulator = createRuntime()
 const res = await emulator.fetch(
@@ -125,7 +125,7 @@ agent needs and cannot guess.
 **How you will use it.** Say whether your code calls the API through the vendor's official SDK
 (name and exact version) or through raw `fetch`, how you point it at a different base URL (an SDK
 option or environment variable), and whether you will run the emulator in-process (`createRuntime().fetch`)
-or as a server (`npx emulators-<service> serve`). The SDK version decides the wire format the
+or as a server (`npx emulates-<service> serve`). The SDK version decides the wire format the
 emulator must speak.
 
 **Surface.** List only the operations you call. For each one, give the method and path, what

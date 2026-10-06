@@ -1,6 +1,6 @@
-# @emulators/infisical
+# @emulates/infisical
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip** portable Infisical emulator for Universal Auth and the raw-secret surface used by
 `@infisical/sdk` **3.0.91**. Organizations, project environments, folders, permissions, tokens,
@@ -10,13 +10,13 @@ Use synthetic fixtures only.
 ## Install
 
 ```sh
-bun add @emulators/infisical
+bun add @emulates/infisical
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/infisical"
+import { createRuntime } from "@emulates/infisical"
 
 const mock = createRuntime()
 const response = await mock.fetch(new Request(
@@ -31,7 +31,7 @@ For the SDK walkthrough, also install `@infisical/sdk@3.0.91`. The SDK is an opt
 dependency; the emulator's runtime does not depend on it.
 
 ```js
-import { createServer } from "@emulators/infisical/server"
+import { createServer } from "@emulates/infisical/server"
 import { InfisicalSDK } from "@infisical/sdk"
 
 const mock = await createServer({ adminKey: "fixture-infisical-admin" })
@@ -94,7 +94,7 @@ work for seeded sources; import management uses the admin tree control.
 
 ## Admin controls and privacy
 
-Every admin data read/write requires `x-emulators-admin-key`. The default is the explicitly
+Every admin data read/write requires `x-emulates-admin-key`. The default is the explicitly
 synthetic `fixture-infisical-admin`; provide your own `adminKey` when sharing a server. An empty
 key is rejected. Standard health, state, Timeline, reset, metrics, requests, faults and namespace
 routes live under `/__admin`; `adminPrefix` relocates the complete reserved tree.
@@ -125,7 +125,7 @@ keep that key outside serialized state. Authentication failure/tampering does no
 contents. Constructor fixtures are sealed synchronously so the initial Timeline checkpoint and
 reset include the whole tree.
 
-Namespaces use `x-emulators-namespace`, `/__admin/ns/<name>/…`, or credential mappings set with
+Namespaces use `x-emulates-namespace`, `/__admin/ns/<name>/…`, or credential mappings set with
 `PUT /__admin/credentials`. Machine tokens issued in one namespace cannot authorize another.
 Presets: `rate_limited` (429, Retry-After 1), `missing_version` (404 lookup), `server_error` (500)
 and `network_reset` (connection drop before a write). Pass `count: 1` for a one-shot fault.
@@ -157,7 +157,7 @@ exposes its Collections through `state` plus `sqlite` and `app`. `createRuntime`
 MockSurface and admin controls. Public types include `InfisicalAPIOptions`, `InfisicalRuntime`,
 `InfisicalRuntimeOptions`, `ProjectTree`, `Grant`, `SecretFixture`, `SecretRecord` and `Token`.
 The `/server` entry exports `createServer`, `DEFAULT_PORT` (8811) and `serveTarget`, plus
-`InfisicalServer`, `InfisicalServerOptions`. CLI: `emulators-infisical serve --port 8811`.
+`InfisicalServer`, `InfisicalServerOptions`. CLI: `emulates-infisical serve --port 8811`.
 
 ## Deliberately not modelled
 

@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
-  title: Hermes Agent peer runs (Emulators)
+  title: Hermes Agent peer runs (Emulates)
   version: "2026.8.31"
   description: Pinned public peer-run submission and polling with explicit synthetic
     observations. No agent or inference executes.
-  x-emulators-upstream:
+  x-emulates-upstream:
     url: https://github.com/NousResearch/hermes-agent/blob/29112bef099274229cadff79cdff7bf7b99c4b77/gateway/platforms/api_server_runs.py
     note: Pinned v2026.8.31 route inventory; see API_EVIDENCE.md for researched behavior.
 servers:
@@ -14,7 +14,7 @@ paths:
     post:
       operationId: RunCreate
       summary: Admit a synthetic tracked run
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -47,7 +47,7 @@ paths:
                 properties:
                   run_id:
                     type: string
-                    x-emulators-resource:
+                    x-emulates-resource:
                       type: run
                       identity: true
                   status:
@@ -99,7 +99,7 @@ paths:
     get:
       operationId: RunGet
       summary: Poll a tracked run without advancing execution
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -110,7 +110,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: run
       responses:
         "200":
@@ -129,7 +129,7 @@ paths:
     post:
       operationId: RunStop
       summary: Request run interruption without assuming execution has settled
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -140,7 +140,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: run
       responses:
         "200":
@@ -175,7 +175,7 @@ paths:
     get:
       operationId: RunEvents
       summary: Stream run events
-      x-emulators:
+      x-emulates:
         supported: false
         reason: SSE is outside the public peer-run mock subset.
         parity:
@@ -190,7 +190,7 @@ paths:
             type: string
       responses:
         "501":
-          description: Explicit Emulators-only unsupported operation
+          description: Explicit Emulates-only unsupported operation
           content:
             application/json:
               schema:
@@ -199,7 +199,7 @@ paths:
     post:
       operationId: RunApproval
       summary: Resolve run approval
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Host tool approval execution is outside this mock.
         parity:
@@ -214,7 +214,7 @@ paths:
             type: string
       responses:
         "501":
-          description: Explicit Emulators-only unsupported operation
+          description: Explicit Emulates-only unsupported operation
           content:
             application/json:
               schema:
@@ -223,7 +223,7 @@ paths:
     post:
       operationId: RunSteer
       summary: Steer active execution
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Agent execution and steering are outside this mock.
         parity:
@@ -238,7 +238,7 @@ paths:
             type: string
       responses:
         "501":
-          description: Explicit Emulators-only unsupported operation
+          description: Explicit Emulates-only unsupported operation
           content:
             application/json:
               schema:

@@ -1,6 +1,6 @@
-# @emulators/posthog
+# @emulates/posthog
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **PostHog** for test suites: remote feature-flag evaluation (`/flags` v2 and
 the legacy `/decide` shape), remote config, event capture (`/batch/`, `/e/`, `/i/v0/e/`),
@@ -18,11 +18,11 @@ a stack run never reaches `us.i.posthog.com`.
 ## Install
 
 ```bash
-npm install -D @emulators/posthog
+npm install -D @emulates/posthog
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-posthog serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-posthog serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -38,11 +38,11 @@ Point the app's PostHog host at the emulator (port 8795 by default):
 | Python supplement-management service | `POSTHOG_HOST` |
 
 ```bash
-npx emulators-posthog serve --port 8795 --import-flags dev
+npx emulates-posthog serve --port 8795 --import-flags dev
 ```
 
 ```ts
-import { createRuntime } from "@emulators/posthog"
+import { createRuntime } from "@emulates/posthog"
 
 const posthog = createRuntime()
 const admin = (path: string, body: unknown, method = "PUT") =>
@@ -138,7 +138,7 @@ PostHog SDKs cannot add headers. Choose a namespace by:
   read from `/array/{token}/…`, `?token=`, the body (`token`, `api_key`, or a batch's first
   event's `properties.token`, after decoding gzip/base64), or a personal key's
   `Authorization: Bearer` on the management API.
-- `x-emulators-namespace`, for raw clients.
+- `x-emulates-namespace`, for raw clients.
 
 The management API's `next` page URL preserves the configured admin prefix and namespace.
 Send the personal key in the Authorization header on each page request.

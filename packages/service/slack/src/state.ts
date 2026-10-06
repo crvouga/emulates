@@ -1,5 +1,5 @@
-import { Collection, OutboxStore } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, OutboxStore } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /**
  * One message the app "sent": an incoming-webhook post or a Web API post. The outbox is the
@@ -104,8 +104,8 @@ export type Settings = {
 
 export const DEFAULT_SETTINGS: Settings = {
   teamId: "T0MOCKBIRD",
-  teamName: "Emulators",
-  teamDomain: "emulators",
+  teamName: "Emulates",
+  teamDomain: "emulates",
   botUserId: "U0MOCKBOT",
   botId: "B0MOCKBOT",
   appId: "A0MOCKAPP",
@@ -138,8 +138,8 @@ export const DEFAULT_CHANNELS: readonly SlackChannel[] = [
 export const DEFAULT_USERS: readonly SlackUser[] = [
   {
     id: "U0MOCKBOT",
-    name: "emulators",
-    real_name: "Emulators Bot",
+    name: "emulates",
+    real_name: "Emulates Bot",
     email: null,
     is_bot: true,
     deleted: false,

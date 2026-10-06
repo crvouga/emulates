@@ -5,8 +5,8 @@ import {
   isAdminPath,
   matchNamespacePath,
   resolveAdminPrefix,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { createRuntime, type OAuthRuntime, type OAuthRuntimeOptions } from "./runtime.js"
 import type { Provider } from "./types.js"
 
@@ -138,7 +138,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         isAdminPath(url.pathname, adminPrefix) &&
         !matchNamespacePath(url.pathname, adminPrefix) &&
         options.adminKey !== undefined &&
-        request.headers.get("x-emulators-admin-key") !== options.adminKey
+        request.headers.get("x-emulates-admin-key") !== options.adminKey
       )
         return json({ error: { type: "emulators_admin", message: "invalid admin key" } }, 401)
       if (url.pathname === `${adminPrefix}/mounts` && request.method === "GET")
@@ -150,7 +150,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
           url.searchParams.get("all") === "1"
             ? "*"
             : (url.searchParams.get("namespace") ??
-              request.headers.get("x-emulators-namespace") ??
+              request.headers.get("x-emulates-namespace") ??
               "default")
         await reset(namespace)
         return json({ status: "ok", mounts: [...runtimes.keys()], namespace })

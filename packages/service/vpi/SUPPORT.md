@@ -1,4 +1,4 @@
-# VPI compounding pharmacy API (Emulators subset) — operation support
+# VPI compounding pharmacy API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

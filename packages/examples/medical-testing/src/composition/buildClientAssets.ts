@@ -1,6 +1,6 @@
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { CSS_RESET } from "@emulators/ui"
+import { CSS_RESET } from "@emulates/ui"
 import type { ClientAssets } from "../app/http/app.js"
 import { STYLES } from "../client/theme.js"
 

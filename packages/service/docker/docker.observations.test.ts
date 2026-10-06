@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@emulators/openapi"
+import { findOperation, responseForStatus, validateValue } from "@emulates/openapi"
 import { createRuntime, type DockerRuntime, document } from "./src/index.js"
 
 const imageId = `sha256:${"a".repeat(64)}`
@@ -9,7 +9,7 @@ const call = (runtime: DockerRuntime, path: string, body?: unknown, namespace = 
   runtime.fetch(
     new Request(`http://docker.local${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
   )

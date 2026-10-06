@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   ADMIN_PREFIX,
   type APIOptions,
@@ -14,8 +14,8 @@ import {
   type OperationContext,
   opaqueToken,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { closeSocketNamespace, issueSocketTicket } from "./sockets.js"
@@ -28,8 +28,8 @@ import {
   type SlackUser,
 } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type {
@@ -49,7 +49,7 @@ export type SlackAPIOptions = APIOptions & {
   /** Initial per-namespace settings (workspace identity, accepted tokens, strict channels). */
   settings?: Partial<Settings>
   /**
-   * Public namespace (`default`, or the `x-emulators-namespace` value). Socket records are
+   * Public namespace (`default`, or the `x-emulates-namespace` value). Socket records are
    * keyed by this, which is what `/__admin` selects. `namespace` is the storage key.
    */
   publicNamespace?: string
@@ -576,7 +576,7 @@ export class SlackAPI implements FetchAPI {
       ok: true,
       url: `https://${settings.teamDomain}.slack.com/`,
       team: settings.teamName,
-      user: bot?.name ?? "emulators",
+      user: bot?.name ?? "emulates",
       team_id: settings.teamId,
       user_id: settings.botUserId,
       bot_id: settings.botId,

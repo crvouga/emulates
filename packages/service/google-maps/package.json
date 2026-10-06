@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/google-maps",
+  "name": "@emulates/google-maps",
   "version": "0.0.0-development",
   "description": "Emulator of Google Places Autocomplete / Details / Find Place, the Geocoding API, a Maps JavaScript (places) shim and the Address Validation API (USPS CASS/DPV verdicts), over a QA address corpus, with Google's status codes and fault presets.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-google-maps": "./dist/cli.js"
+    "emulates-google-maps": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/google-maps#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "service",
     "google",
     "maps",
@@ -49,7 +49,7 @@
     "address-validation",
     "usps"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -73,7 +73,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- google-maps",
-        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -100,22 +100,22 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulators/testing": "workspace:*",
-    "@emulators/sqlite": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/credentials": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/http-codec": "workspace:*",
-    "@emulators/adapter-node": "workspace:*"
+    "@emulates/testing": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/credentials": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/http-codec": "workspace:*",
+    "@emulates/adapter-node": "workspace:*"
   }
 }

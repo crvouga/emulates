@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test"
-import { parseOpenAPIDocument } from "@emulators/openapi"
-import { validateMetadata } from "@emulators/openapi-metadata"
+import { parseOpenAPIDocument } from "@emulates/openapi"
+import { validateMetadata } from "@emulates/openapi-metadata"
 import { createRuntime, createService, jsonRes } from "./src/index.js"
 
 const operation = (operationId: string, path?: unknown) => ({
   operationId,
-  ...(path === undefined ? {} : { "x-emulators": { path } }),
+  ...(path === undefined ? {} : { "x-emulates": { path } }),
   parameters: (operationId === "invalid"
     ? ["id", "tail"]
     : operationId === "static"

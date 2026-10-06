@@ -17,7 +17,7 @@ bun run parity:junction
 
 The only required variable is:
 
-- `JUNCTION_WEBHOOK_RECEIVER_URL` — deployed Worker base URL, for example `https://emulators-junction-webhooks.<account>.workers.dev`.
+- `JUNCTION_WEBHOOK_RECEIVER_URL` — deployed Worker base URL, for example `https://emulates-junction-webhooks.<account>.workers.dev`.
 
 Cloudflare Wrangler credentials (`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`) are needed only to deploy the Worker.
 
@@ -35,14 +35,14 @@ For live Junction delivery, the local receiver must be reachable from the public
 
 ```sh
 bun run webhook:deploy
-export JUNCTION_WEBHOOK_RECEIVER_URL="https://emulators-junction-webhooks.<account>.workers.dev"
+export JUNCTION_WEBHOOK_RECEIVER_URL="https://emulates-junction-webhooks.<account>.workers.dev"
 bun run webhook:register
 ```
 
 `webhook:register` health-checks the receiver at `/__admin/health` and prints the exact webhook URL to register in the Junction sandbox dashboard:
 
 ```text
-https://emulators-junction-webhooks.<account>.workers.dev/junction/webhooks
+https://emulates-junction-webhooks.<account>.workers.dev/junction/webhooks
 ```
 
 plus the event types to enable:
@@ -57,7 +57,7 @@ Registration is dashboard-driven and does not require a Junction Management API 
 ## Receiver contract
 
 - `GET /__admin/health` — readiness probe.
-- `POST /junction/webhooks` — receives Junction events. The request must include `x-emulators-scope`; the receiver stores the exact JSON payload in arrival order.
+- `POST /junction/webhooks` — receives Junction events. The request must include `x-emulates-scope`; the receiver stores the exact JSON payload in arrival order.
 - `GET /events/{runId}` — returns the ordered events for one parity run.
 - `DELETE /events/{runId}` — clears one run's events.
 
@@ -71,7 +71,7 @@ Before live parity, verify the Worker:
 curl -fsS "$JUNCTION_WEBHOOK_RECEIVER_URL/__admin/health"
 curl -i -X POST "$JUNCTION_WEBHOOK_RECEIVER_URL/junction/webhooks" \
   -H 'content-type: application/json' \
-  -H 'x-emulators-scope: smoke-test' \
+  -H 'x-emulates-scope: smoke-test' \
   -d '{"event_type":"labtest.order.created"}'
 curl -fsS "$JUNCTION_WEBHOOK_RECEIVER_URL/events/smoke-test"
 ```
@@ -80,7 +80,7 @@ Then run:
 
 ```sh
 bun run webhook:register
-JUNCTION_WEBHOOK_RECEIVER_URL="https://emulators-junction-webhooks.<account>.workers.dev" bun run parity:junction
+JUNCTION_WEBHOOK_RECEIVER_URL="https://emulates-junction-webhooks.<account>.workers.dev" bun run parity:junction
 ```
 
 ## Troubleshooting

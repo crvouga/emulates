@@ -6,7 +6,7 @@
  * files. Each public package is tagged `<name>@<version>` at the commit it was
  * released from; package.json keeps the `0.0.0-development` placeholder.
  *
- * Only services (`@emulators/<id>`, from `packages/service/<id>`) are public. The helper
+ * Only services (`@emulates/<id>`, from `packages/service/<id>`) are public. The helper
  * packages they build on are private and inlined into each service's bundle
  * (scripts/bundle-service.ts), so a service's sources are its own directory plus
  * every private workspace package its `src` reaches.
@@ -32,7 +32,7 @@ export const INITIAL_VERSION = "0.1.0"
 
 // ── Former names (npm migration boundary) ──────────────────────────
 //
-// The project was published as Mockingbird until the rename to Emulators. npm names are
+// The project was published as Mockingbird until the rename to Emulates. npm names are
 // immutable, so the former packages stay on npm, deprecated in favor of their successors.
 // docs/MIGRATING.md lists the full mapping.
 

@@ -1,4 +1,4 @@
-import { HttpError } from "@emulators/service"
+import { HttpError } from "@emulates/service"
 
 export type StripeErrorType =
   | "invalid_request_error"

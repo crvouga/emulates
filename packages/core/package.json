@@ -1,8 +1,8 @@
 {
-  "name": "@emulators/core",
+  "name": "@emulates/core",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Universal contracts shared by Emulators packages: the Fetch-native API interface.",
+  "description": "Universal contracts shared by Emulates packages: the Fetch-native API interface.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/core#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "emulator",
     "fetch"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "core"
   },

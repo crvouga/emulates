@@ -3,7 +3,7 @@ import type { APIRoute } from "astro"
 
 export const GET: APIRoute = () => {
   const parts = [
-    "# Emulators",
+    "# Emulates",
     "",
     "Every service README, generated from the packages. The HTML site is a view of this same text.",
     "",

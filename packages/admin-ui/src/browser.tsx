@@ -234,7 +234,7 @@ function CommandPalette({
           style={{ borderTop: `1px solid ${colors.border}`, padding: "9px 14px" }}
         >
           <Typography.Text type="secondary">↑↓ Navigate · ↵ Open</Typography.Text>
-          <Typography.Text type="secondary">Emulators and admin screens</Typography.Text>
+          <Typography.Text type="secondary">Emulates and admin screens</Typography.Text>
         </Flex>
       </div>
     </Modal>
@@ -419,7 +419,7 @@ function Workspace({
   const apiConfig = apiConfigs.find((candidate) => candidate.id === apiId) ??
     apiConfigs[0] ?? { ...config, id: config.service, label: config.service }
   const [namespace, setNamespace] = useState(params.get("namespace") || "default")
-  const [key, setKey] = useState(params.get("admin_key") ?? remember("emulators-admin-key") ?? "")
+  const [key, setKey] = useState(params.get("admin_key") ?? remember("emulates-admin-key") ?? "")
   const [draftKey, setDraftKey] = useState(key)
   const [view, setView] = useState(location.hash.slice(1) || "overview")
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -428,8 +428,8 @@ function Workspace({
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(
-    remember("emulators-admin-theme") === "dark" ||
-      (remember("emulators-admin-theme") === null &&
+    remember("emulates-admin-theme") === "dark" ||
+      (remember("emulates-admin-theme") === null &&
         window.matchMedia("(prefers-color-scheme: dark)").matches),
   )
   const adminTheme = useMemo(() => shellTheme(dark), [dark])
@@ -460,7 +460,7 @@ function Workspace({
     }
   }, [host])
   useEffect(() => {
-    remember("emulators-admin-key", key)
+    remember("emulates-admin-key", key)
     if (params.has("admin_key")) {
       const url = new URL(location.href)
       url.searchParams.delete("admin_key")
@@ -666,7 +666,7 @@ function Workspace({
                   icon={dark ? <SunOutlined /> : <MoonOutlined />}
                   aria-label={dark ? "Use light theme" : "Use dark theme"}
                   onClick={() => {
-                    remember("emulators-admin-theme", dark ? "light" : "dark")
+                    remember("emulates-admin-theme", dark ? "light" : "dark")
                     setDark(!dark)
                   }}
                 />
@@ -784,6 +784,6 @@ function mountRoot(host: HTMLElement | null, render: (popupHost: HTMLElement) =>
     </Boundary>,
   )
   const dispose = () => root.unmount()
-  document.addEventListener("emulators:unmount", dispose, { once: true })
+  document.addEventListener("emulates:unmount", dispose, { once: true })
   window.addEventListener("pagehide", dispose, { once: true })
 }

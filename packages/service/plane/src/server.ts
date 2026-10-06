@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type PlaneRuntime, type PlaneRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-plane serve` listens on when none is given. */
+/** Port `emulates-plane serve` listens on when none is given. */
 export const DEFAULT_PORT = 8821
 
 export type PlaneServerOptions = PlaneRuntimeOptions & {
@@ -60,6 +60,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: X-API-Key: <token>; projects are provisioned on first use with Plane's default states",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

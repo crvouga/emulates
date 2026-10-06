@@ -1,13 +1,13 @@
-# @emulators/cognito
+# @emulates/cognito
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful local emulator of Amazon Cognito User Pools for the AWS SDK and `amazon-cognito-identity-js`. It implements the authentication, user administration, group, federation, recovery, JWT, discovery, and JWKS surface the consumer app uses without contacting AWS.
 
 ## Install
 
 ```bash
-npm install -D @emulators/cognito
+npm install -D @emulates/cognito
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -17,11 +17,11 @@ ESM only. Node 22+ or Bun 1.2+.
 Point `COGNITO_ENDPOINT` or the AWS SDK `endpoint` option at the served emulator. Fixture SigV4 credentials are accepted for admin operations. Public user-pool operations work without IAM credentials, matching Cognito's client-facing API.
 
 ```ts
-import { createRuntime } from "@emulators/cognito"
+import { createRuntime } from "@emulates/cognito"
 
 const cognito = createRuntime({
   poolId: "us-east-1_emulators",
-  clientId: "emulators-client",
+  clientId: "emulates-client",
   users: [
     {
       username: "ada@example.test",
@@ -33,7 +33,7 @@ const cognito = createRuntime({
 })
 ```
 
-The Node adapter is `createServer()` from `./server`; the CLI is `npx emulators-cognito serve --port 8811 --pool-id us-east-1_emulators --client-id emulators-client`.
+The Node adapter is `createServer()` from `./server`; the CLI is `npx emulates-cognito serve --port 8811 --pool-id us-east-1_emulators --client-id emulates-client`.
 
 ### AWS JSON operations
 
@@ -49,7 +49,7 @@ Responses contain SDK-consumed Cognito fields and AWS-shaped exceptions (`__type
 - `POST /__admin/keys/rotate {"retainPrevious":true}` rotates signing keys with optional overlap.
 - Fault presets: `throttled`, `unavailable`.
 
-The shared runtime supplies reset, clock, snapshots, journals, metrics, faults, branches, and namespace isolation. Select namespaces through `x-emulators-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime supplies reset, clock, snapshots, journals, metrics, faults, branches, and namespace isolation. Select namespaces through `x-emulates-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 
@@ -58,7 +58,7 @@ Operations outside the documented subset, production quotas, email/SMS delivery,
 ## API
 
 - `CognitoAPI`, `CognitoAPIOptions`: AWS JSON handler and options.
-- `createRuntime`, `CognitoRuntime`, `CognitoRuntimeOptions`: full Emulators service runtime.
+- `createRuntime`, `CognitoRuntime`, `CognitoRuntimeOptions`: full Emulates service runtime.
 - `COGNITO_NAMESPACE`, `COGNITO_PRESETS`, `accessKeyCredential`: service constants and controls.
 - `CognitoAttribute`, `CognitoSeedUser`, `CognitoUser`: state and fixture types.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.

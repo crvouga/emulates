@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/oauth",
+  "name": "@emulates/oauth",
   "version": "0.0.0-development",
   "description": "Social-login emulator with Google, Apple, Microsoft, GitHub and generic OIDC profiles, private relay identities, reproducible edge cases, signed tokens and an accessible UI.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-oauth": "./dist/cli.js"
+    "emulates-oauth": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/oauth#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "oauth",
     "openid-connect",
     "google",
@@ -50,7 +50,7 @@
     "github",
     "fault-injection"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -90,7 +90,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- oauth",
-        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -117,17 +117,17 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*"
+    "@emulates/sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@emulators/adapter-node": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/ui": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/testing": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/ui": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/testing": "workspace:*",
     "fast-check": "4.5.3",
     "jose": "6.1.3",
     "oauth4webapi": "3.8.8",

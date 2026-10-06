@@ -1,6 +1,6 @@
-import { type Checkpoint, type FetchAPI, Timeline } from "@emulators/core"
-import { listOperations, type OpenAPIDocument } from "@emulators/openapi"
-import { clearNamespace, type SqliteClient } from "@emulators/sqlite-client"
+import { type Checkpoint, type FetchAPI, Timeline } from "@emulates/core"
+import { listOperations, type OpenAPIDocument } from "@emulates/openapi"
+import { clearNamespace, type SqliteClient } from "@emulates/sqlite-client"
 import { adminUiRoutes } from "./admin-ui.js"
 import { type Clock, createClock } from "./clock.js"
 import {
@@ -48,13 +48,13 @@ import { type WebhookHub, webhookAdminRoutes } from "./webhooks.js"
  * Stamped on every response the runtime returns — vendor, fault, admin and health alike —
  * as `<service>@<version>; ns=<namespace>`, so a consumer can tell the mock from the vendor.
  */
-export const EMULATORS_HEADER = "x-emulators"
+export const EMULATES_HEADER = "x-emulates"
 /** Selects a named copy-on-write history branch. `main` is the compatibility default. */
-export const BRANCH_HEADER = "x-emulators-branch"
+export const BRANCH_HEADER = "x-emulates-branch"
 /** Reads a historical checkpoint. With a branch header, initializes that branch from it. */
-export const AT_HEADER = "x-emulators-at"
+export const AT_HEADER = "x-emulates-at"
 /** Identifies the resulting checkpoint on successful mutations. */
-export const CHECKPOINT_HEADER = "x-emulators-checkpoint"
+export const CHECKPOINT_HEADER = "x-emulates-checkpoint"
 
 /** What the runtime needs from a service: a Fetch handler it can reset. */
 export type ServiceInstance = FetchAPI & { reset(): Promise<void> }
@@ -78,7 +78,7 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   create: (context: InstanceContext) => T
   /** The vendor contract, used to name each request's operation in logs, metrics and faults. */
   document?: OpenAPIDocument
-  /** Shared by every namespace. Defaults to a fresh `@emulators/sqlite`. */
+  /** Shared by every namespace. Defaults to a fresh `@emulates/sqlite`. */
   sqlite?: SqliteClient
   /** Defaults to a live clock over `Date.now`. */
   clock?: Clock
@@ -92,17 +92,17 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   adminPrefix?: string
   /** Invalidate transient handles before replacing an existing instance's stored state. */
   beforeRestore?: (instance: T) => void
-  /** Require this value in `x-emulators-admin-key` on admin data routes. */
+  /** Require this value in `x-emulates-admin-key` on admin data routes. */
   adminKey?: string
   /** Structured request log sink, called once per request. */
   onLog?: (entry: RequestLog) => void
   /** Requests each namespace's journal keeps (`GET /__admin/requests`). Default 1000; 0 turns it off. */
   journalSize?: number
-  /** Reported in the `x-emulators` header. Default: the bundled package's version. */
+  /** Reported in the `x-emulates` header. Default: the bundled package's version. */
   version?: string
   /**
    * The vendor credential a request carries (API key, token, account SID, AWS access key
-   * id), for SDKs that cannot send `x-emulators-namespace`: a suite maps credentials to
+   * id), for SDKs that cannot send `x-emulates-namespace`: a suite maps credentials to
    * namespaces with `PUT /__admin/credentials`. See `bearerToken`, `basicAuth`,
    * `sigV4AccessKeyId`.
    */
@@ -260,9 +260,9 @@ export const faultEffect = (request: Request, name: string): Record<string, unkn
  * `fetch` does when the connection dies mid-request. A served mock destroys the socket.
  */
 export class DroppedConnectionError extends TypeError {
-  readonly code = "EMULATORS_DROP"
+  readonly code = "EMULATES_DROP"
   constructor() {
-    super("fetch failed: connection dropped by Emulators fault")
+    super("fetch failed: connection dropped by Emulates fault")
     this.name = "TypeError"
   }
 }
@@ -284,7 +284,7 @@ const operationMatcher = (document: OpenAPIDocument) => {
 }
 
 /**
- * Wrap a service in the shared Emulators contract: an unauthenticated `/__admin/health`,
+ * Wrap a service in the shared Emulates contract: an unauthenticated `/__admin/health`,
  * the `/__admin/*` control plane, per-request namespaces, a controllable clock,
  * fault injection, and request metrics.
  *
@@ -297,7 +297,7 @@ export const createRuntime = <T extends ServiceInstance>(
 ): ServiceRuntime<T> => {
   const adminPrefix = resolveAdminPrefix(options.adminPrefix)
   const internalPaths = Object.entries(options.document?.paths ?? {})
-    .filter(([, item]) => item["x-emulators-internal"] === true)
+    .filter(([, item]) => item["x-emulates-internal"] === true)
     .map(([path]) => path)
   for (const path of internalPaths) {
     if (!path.startsWith(`${ADMIN_PREFIX}/blobs/`))
@@ -753,12 +753,12 @@ export const createRuntime = <T extends ServiceInstance>(
           ? `${options.name}@${version}; ns=${namespace}`
           : `${options.name}@${version}`
         try {
-          response.headers.set(EMULATORS_HEADER, value)
+          response.headers.set(EMULATES_HEADER, value)
           return response
         } catch {
           // Immutable headers (a response passed through from `fetch`): copy it.
           const copy = new Response(response.body, response)
-          copy.headers.set(EMULATORS_HEADER, value)
+          copy.headers.set(EMULATES_HEADER, value)
           return copy
         }
       }
@@ -990,8 +990,8 @@ export const createRuntime = <T extends ServiceInstance>(
 
 const mutableResponse = (response: Response): Response => {
   try {
-    response.headers.set("x-emulators-mutable-probe", "1")
-    response.headers.delete("x-emulators-mutable-probe")
+    response.headers.set("x-emulates-mutable-probe", "1")
+    response.headers.delete("x-emulates-mutable-probe")
     return response
   } catch {
     return new Response(response.body, response)

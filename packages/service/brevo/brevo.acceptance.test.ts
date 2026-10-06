@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createRuntime } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import { client } from "./test/consumer.js"
@@ -65,7 +65,7 @@ test("namespaces, reset, shared admin state and journal redaction", async () => 
   const { runtime, fetchImpl, consumer } = setup()
   const namespaced = ((input: RequestInfo | URL, init?: RequestInit) => {
     const request = new Request(input, init)
-    request.headers.set("x-emulators-namespace", "isolated")
+    request.headers.set("x-emulates-namespace", "isolated")
     return runtime.fetch(request)
   }) as typeof fetch
   await consumer.create("same@example.test", "same")

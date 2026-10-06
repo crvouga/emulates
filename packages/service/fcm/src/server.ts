@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type FcmRuntime, type FcmRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-fcm serve` listens on when none is given. */
+/** Port `emulates-fcm serve` listens on when none is given. */
 export const DEFAULT_PORT = 8826
 
 export type FcmServerOptions = FcmRuntimeOptions & {
@@ -46,7 +46,7 @@ export const serveTarget: ServeTarget = {
     }),
   banner: () => [
     "send: POST <this>/v1/projects/demo-project/messages:send  Authorization: Bearer fixture-token",
-    "firebase-admin hardcodes fcm.googleapis.com; use createAdminTransport from @emulators/fcm/admin and messaging.enableLegacyHttpTransport()",
+    "firebase-admin hardcodes fcm.googleapis.com; use createAdminTransport from @emulates/fcm/admin and messaging.enableLegacyHttpTransport()",
     "fixture device token: fixture-device-token (android, project demo-project)",
     "outbox: GET /__admin/outbox   inbox: GET /__admin/inbox/<token>",
   ],

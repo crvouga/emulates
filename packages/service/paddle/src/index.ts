@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -10,8 +10,8 @@ import {
   type OperationContext,
   opaqueToken,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import {
   addPeriod,
@@ -57,8 +57,8 @@ import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { listParam, paginate } from "./lists.js"
 import { PaddleState } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type {
   AddressRecord,
   BillingDetails,

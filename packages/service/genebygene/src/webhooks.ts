@@ -1,4 +1,4 @@
-import { hmac, type WebhookSigner } from "@emulators/service"
+import { hmac, type WebhookSigner } from "@emulates/service"
 import type {
   AddressDto,
   FulfillmentRecord,

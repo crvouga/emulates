@@ -1,4 +1,4 @@
-# Kill Bill Billing API (Emulators subset) — operation support
+# Kill Bill Billing API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

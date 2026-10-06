@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { createRuntime, LLAMACLOUD_PRESETS, rank } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -360,7 +360,7 @@ describe("served over HTTP", () => {
       await client.upsertMarkdown("omega-3", "Omega-3", "Fish oil provides EPA and DHA.")
       expect((await client.search("fish oil"))[0]?.sourceId).toBe("omega-3")
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^llamacloud@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^llamacloud@/)
       expect(((await health.json()) as { status: string }).status).toBe("ok")
     } finally {
       await server.close()

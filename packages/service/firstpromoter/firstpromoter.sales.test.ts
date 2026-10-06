@@ -12,7 +12,7 @@ const harness = () => {
         method: body === undefined ? "GET" : "POST",
         headers: {
           "content-type": "application/json",
-          "x-emulators-namespace": namespace,
+          "x-emulates-namespace": namespace,
           ...(auth ? { authorization: "Bearer fixture", "account-id": "fixture" } : {}),
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),

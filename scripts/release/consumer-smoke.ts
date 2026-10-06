@@ -8,7 +8,7 @@
  *   2. typechecks an import of every subpath with `moduleResolution: nodenext`,
  *   3. typechecks every ```ts example in every shipped README.md (the docs agents copy from),
  *   4. runs every `bin` with `--help`,
- *   5. boots every service that ships `./server` from one `emulators.json` through a
+ *   5. boots every service that ships `./server` from one `emulates.json` through a
  *      single service's CLI (`serve --config`), and probes each one's `/__admin/health`.
  * Catches what per-package checks cannot: a published package depending on an unpublished
  * one, a runtime import missing from `dependencies`, a private helper left out of a
@@ -53,7 +53,7 @@ type Manifest = {
 }
 
 const pkgs = discoverPackages().filter((p) => p.isPublic)
-const work = mkdtempSync(join(tmpdir(), "emulators-consumer-"))
+const work = mkdtempSync(join(tmpdir(), "emulates-consumer-"))
 const tarballs = join(work, "tarballs")
 const app = join(work, "app")
 const originals = new Map<string, string>()
@@ -96,7 +96,7 @@ try {
     join(app, "package.json"),
     JSON.stringify(
       {
-        name: "emulators-consumer-smoke",
+        name: "emulates-consumer-smoke",
         private: true,
         type: "module",
         dependencies: overrides,
@@ -184,7 +184,7 @@ try {
   const ours = tsc.stdout
     .toString()
     .split("\n")
-    .filter((line) => /^(smoke\.ts|examples\/|node_modules\/@emulators\/)/.test(line))
+    .filter((line) => /^(smoke\.ts|examples\/|node_modules\/@emulates\/)/.test(line))
   if (ours.length > 0) {
     console.error(ours.join("\n"))
     throw new Error(
@@ -235,7 +235,7 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
   const entry = typeof bin === "string" ? bin : Object.values(bin ?? {})[0]
   if (entry === undefined) throw new Error(`${launcher} declares no bin to serve with`)
   writeFileSync(
-    join(app, "emulators.json"),
+    join(app, "emulates.json"),
     JSON.stringify({
       log: "off",
       services: Object.fromEntries(services.map((s) => [s, { port: 0 }])),
@@ -248,7 +248,7 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
       join(app, "node_modules", launcher, entry),
       "serve",
       "--config",
-      "emulators.json",
+      "emulates.json",
       "--ready-json",
     ],
     { cwd: app, stdout: "pipe", stderr: "pipe", stdin: "ignore" },

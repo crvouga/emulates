@@ -1,6 +1,6 @@
-# @emulators/app-store-connect
+# @emulates/app-store-connect
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP App Store Connect emulator for JSON:API apps, users, user invitations, beta groups and
 beta testers. ES256 signatures are actually verified; no real Apple account or emails.
@@ -8,13 +8,13 @@ beta testers. ES256 signatures are actually verified; no real Apple account or e
 ## Install
 
 ```sh
-bun add -d @emulators/app-store-connect
+bun add -d @emulates/app-store-connect
 ```
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulators/app-store-connect/server"
+import { createServer } from "@emulates/app-store-connect/server"
 const pair = await crypto.subtle.generateKey(
   { name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"],
 )

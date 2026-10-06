@@ -6,8 +6,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { PRISM_NAMESPACE, PrismAPI } from "./index.js"
 import { type AutoAdvance, type Settings, STAGES, type Stage } from "./state.js"
@@ -144,7 +144,7 @@ const adminRoutes = (runtime: ServiceRuntime<PrismAPI>): AdminRoutes => ({
 })
 
 /**
- * The Prism emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Prism emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PRISM_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets and a request journal.

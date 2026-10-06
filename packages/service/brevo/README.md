@@ -1,19 +1,19 @@
-# @emulators/brevo
+# @emulates/brevo
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Brevo v3 contact lifecycle, based on the official contact reference. No messages are sent.
 
 ## Install
 
 ```sh
-bun add @emulators/brevo
+bun add @emulates/brevo
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/brevo"
+import { createRuntime } from "@emulates/brevo"
 
 const brevo = createRuntime()
 const response = await brevo.fetch(new Request("http://brevo.test/v3/contacts", {
@@ -24,7 +24,7 @@ const response = await brevo.fetch(new Request("http://brevo.test/v3/contacts", 
 console.log(await response.json()) // { id: 1 }
 ```
 
-Run `emulators-brevo serve --port 12124` for a separate application process. Replace
+Run `emulates-brevo serve --port 12124` for a separate application process. Replace
 the client's `https://api.brevo.com` origin with `http://localhost:12124`; the consumer must
 make its base URL injectable (the vendor does not define a standard environment variable).
 Use the synthetic `api-key: mock_brevo_key`, or configure `apiKeys` in `createRuntime`.
@@ -52,7 +52,7 @@ routes include `/__admin/state/contacts` for inspection/seeding, `/__admin/reset
 checkpoints, `/__admin/clock`, `/__admin/requests` and `/__admin/faults`. Requests are journaled
 as metadata, never contact bodies or API keys. Set `adminPrefix` to relocate this tree.
 
-Namespace carriers are `x-emulators-namespace`, `/__admin/ns/{namespace}`, or API keys
+Namespace carriers are `x-emulates-namespace`, `/__admin/ns/{namespace}`, or API keys
 mapped through `PUT /__admin/credentials`. Each namespace has independent contacts and ids.
 Fault presets: `unauthorized`, `rate_limited` (429 with Retry-After), `server_error` (503),
 and `connection_drop`. Generic fault rules also support deterministic latency.

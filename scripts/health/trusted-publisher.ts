@@ -66,7 +66,7 @@ export function registryPackagePath(name: string): string {
 /**
  * `github.com/crvouga/emulators` or `github:crvouga/emulators` (or the repo's former name,
  * `crvouga/mockingbird`, which older published versions still declare), including `.git` and
- * a trailing path. A longer repo name such as `emulators-extra` does not match.
+ * a trailing path. A longer repo name such as `emulates-extra` does not match.
  */
 const PROJECT_REPOSITORY = new RegExp(
   `(?:^|[/:@])(?:github\\.com[:/]|github:)(?:${[REPO, "crvouga/mockingbird"].map((r) => r.replace("/", "\\/")).join("|")})(?:\\.git)?(?=$|[/#?])`,
@@ -87,7 +87,7 @@ export function repositoryMatchesProject(repository: unknown): boolean {
   return text !== undefined && PROJECT_REPOSITORY.test(text.trim())
 }
 
-/** Names this repo publishes (`@emulators/…`) or used to publish (`@crvouga/mockingbird…`). */
+/** Names this repo publishes (`@emulates/…`) or used to publish (`@crvouga/mockingbird…`). */
 export function isProjectPackageName(name: string): boolean {
   return (
     name.startsWith(`${project.npmScope}/`) ||

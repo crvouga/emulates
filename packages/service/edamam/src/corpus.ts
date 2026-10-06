@@ -199,7 +199,7 @@ export const DEFAULT_FOODS: readonly Food[] = [
     [m("Serving", 60), m("Package", 60)],
     {
       category: "Packaged foods",
-      brand: "Emulators Foods",
+      brand: "Emulates Foods",
       foodContentsLabel: "protein blend; almonds; chicory root fiber; cocoa",
       servingSizes: [{ uri: `${MEASURE_URI}gram`, label: "Gram", quantity: 60 }],
       upc: "850000000012",
@@ -208,7 +208,7 @@ export const DEFAULT_FOODS: readonly Food[] = [
   ),
   food("mystery_snack", "Mystery Snack", {}, [m("Package", 40)], {
     category: "Packaged foods",
-    brand: "Emulators Foods",
+    brand: "Emulates Foods",
     upc: "850000000029",
   }),
   food(
@@ -218,7 +218,7 @@ export const DEFAULT_FOODS: readonly Food[] = [
     [m("Container", 170), m("Serving", 170)],
     {
       category: "Packaged foods",
-      brand: "Emulators Dairy",
+      brand: "Emulates Dairy",
       foodContentsLabel: "cultured pasteurized nonfat milk",
       servingSizes: [{ uri: `${MEASURE_URI}container`, label: "Container", quantity: 1 }],
       upc: "850000000036",

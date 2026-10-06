@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type MetaRuntime, type MetaRuntimeOptions } from "./runtime.js"
 
 export const DEFAULT_PORT = 12122
@@ -31,6 +31,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Bearer <synthetic token>, or ?access_token=...",
     "fixtures: act_emulators, cmp_emulators, set_emulators, ad_emulators",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or credential mapping",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or credential mapping",
   ],
 }

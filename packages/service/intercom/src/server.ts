@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type IntercomRuntime, type IntercomRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-intercom serve` listens on when none is given. */
+/** Port `emulates-intercom serve` listens on when none is given. */
 export const DEFAULT_PORT = 8807
 
 export type IntercomServerOptions = IntercomRuntimeOptions & {
@@ -89,6 +89,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Bearer <INTERCOM_ACCESS_TOKEN>, Intercom-Version: 2.11",
-    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
+    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
   ],
 }

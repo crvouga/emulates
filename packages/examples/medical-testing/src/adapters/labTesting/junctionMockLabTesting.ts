@@ -1,4 +1,4 @@
-import { createRuntime } from "@emulators/junction"
+import { createRuntime } from "@emulates/junction"
 import type {
   CreateLabOrderInput,
   LabCatalogEntry,

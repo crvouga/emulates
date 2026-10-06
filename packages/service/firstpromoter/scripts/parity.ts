@@ -11,8 +11,8 @@
  * archiving promoters and tracking signups change a real account, so they need
  * `--include-unsafe` (use a test account: FirstPromoter has no sandbox mode).
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, FirstPromoterAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

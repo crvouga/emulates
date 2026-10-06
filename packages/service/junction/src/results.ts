@@ -1,5 +1,5 @@
 /** Lab-results surface: raw results, metadata, and deterministic PDF artifacts. */
-import { HttpError, jsonRes, type OperationContext, opaqueToken } from "@emulators/service"
+import { HttpError, jsonRes, type OperationContext, opaqueToken } from "@emulates/service"
 import { applySimulateTransition, requireOrder } from "./scheduling.js"
 import type { JunctionState, OrderRecord } from "./state.js"
 
@@ -69,7 +69,7 @@ const biomarkerLines = (order: OrderRecord, flags: SimulationFlagsState): Biomar
       timestamp: collected,
       reference_range: null,
       interpretation: flags.interpretation,
-      performing_laboratory: "Emulators Central Lab",
+      performing_laboratory: "Emulates Central Lab",
       source_sample_id: order.sample_id,
       notes: null,
       string_value: null,

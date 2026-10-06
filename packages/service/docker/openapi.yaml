@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Docker Engine (Emulators)
+  title: Docker Engine (Emulates)
   version: "1.52"
   description: Docker Engine 29.1.0 / API 1.52 observation subset. Unversioned and
     /v1.52 aliases; unsupported older mock versions return 501. Container
@@ -9,7 +9,7 @@ info:
     through Fetch; the Node server supports scripted non-TTY duplex streams.
     Synthetic metadata is not host attestation. See
     API_EVIDENCE.md.
-  x-emulators-upstream:
+  x-emulates-upstream:
     url: https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/api/swagger.yaml
     note: Selected operation inventory adapted from Engine 29.1.0/API 1.52.
       Unsupported operations have no successful implementation.
@@ -20,7 +20,7 @@ paths:
     get:
       operationId: ContainerList
       summary: List containers
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -96,7 +96,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported API version or filter feature
+          description: Emulates unsupported API version or filter feature
           content:
             application/json:
               schema:
@@ -153,7 +153,7 @@ paths:
     post:
       operationId: ContainerCreate
       summary: Create a container
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -172,7 +172,7 @@ paths:
                   Id:
                     type: string
                     pattern: ^[a-f0-9]{64}$
-                    x-emulators-resource:
+                    x-emulates-resource:
                       type: container
                       identity: true
                   Warnings:
@@ -204,7 +204,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported creation configuration or API version
+          description: Emulates unsupported creation configuration or API version
           content:
             application/json:
               schema:
@@ -315,7 +315,7 @@ paths:
               required:
                 - Image
               description: Selected creation metadata. Unsupported configuration fields return
-                Emulators 501; stored HostConfig/NetworkingConfig is never
+                Emulates 501; stored HostConfig/NetworkingConfig is never
                 enforced.
       parameters:
         - name: name
@@ -331,7 +331,7 @@ paths:
     get:
       operationId: ContainerInspect
       summary: Inspect a container
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -506,7 +506,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported API version or filter feature
+          description: Emulates unsupported API version or filter feature
           content:
             application/json:
               schema:
@@ -515,7 +515,7 @@ paths:
     post:
       operationId: ContainerStart
       summary: Start a container
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -559,7 +559,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported option or API version
+          description: Emulates unsupported option or API version
           content:
             application/json:
               schema:
@@ -568,7 +568,7 @@ paths:
     post:
       operationId: ContainerStop
       summary: Stop a container
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -616,7 +616,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported option or API version
+          description: Emulates unsupported option or API version
           content:
             application/json:
               schema:
@@ -625,7 +625,7 @@ paths:
     post:
       operationId: ContainerKill
       summary: Kill a container
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -673,7 +673,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported option or API version
+          description: Emulates unsupported option or API version
           content:
             application/json:
               schema:
@@ -682,7 +682,7 @@ paths:
     post:
       operationId: ContainerAttach
       summary: Attach to a container
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Unsupported through Fetch. The Node server supports non-TTY streaming
           attach, verified by raw-wire tests and selected real Engine comparisons.
@@ -720,7 +720,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: "Emulators Fetch transport: duplex attach is unsupported"
+          description: "Emulates Fetch transport: duplex attach is unsupported"
           content:
             application/json:
               schema:
@@ -729,7 +729,7 @@ paths:
     post:
       operationId: ContainerWait
       summary: Wait for a container
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -789,7 +789,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported option or API version
+          description: Emulates unsupported option or API version
           content:
             application/json:
               schema:
@@ -798,7 +798,7 @@ paths:
     delete:
       operationId: ContainerDelete
       summary: Remove a container
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -854,7 +854,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported option or API version
+          description: Emulates unsupported option or API version
           content:
             application/json:
               schema:
@@ -863,7 +863,7 @@ paths:
     get:
       operationId: SystemInfo
       summary: Get system information
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -910,7 +910,7 @@ paths:
                       type: string
                   SystemTime:
                     type: string
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: timestamp
                   NCPU:
                     type: integer
@@ -961,7 +961,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported API version or filter feature
+          description: Emulates unsupported API version or filter feature
           content:
             application/json:
               schema:
@@ -971,7 +971,7 @@ paths:
     get:
       operationId: SystemVersion
       summary: Get version
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1055,7 +1055,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported API version or filter feature
+          description: Emulates unsupported API version or filter feature
           content:
             application/json:
               schema:
@@ -1065,7 +1065,7 @@ paths:
     get:
       operationId: SystemPing
       summary: Ping
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1117,7 +1117,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported API version
+          description: Emulates unsupported API version
           content:
             application/json:
               schema:
@@ -1125,7 +1125,7 @@ paths:
     head:
       operationId: SystemPingHead
       summary: Ping
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1172,7 +1172,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Emulators unsupported API version
+          description: Emulates unsupported API version
           content:
             application/json:
               schema:

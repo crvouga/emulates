@@ -1,17 +1,17 @@
-# @emulators/core
+# @emulates/core
 
-> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
 
-The one contract shared by every Emulators package: `FetchAPI`, anything that answers a Fetch
+The one contract shared by every Emulates package: `FetchAPI`, anything that answers a Fetch
 `Request` with a `Response`. Every emulator service implements it and every runtime adapter consumes it.
 You rarely install this directly. Most users want a provider emulator such as
-`@emulators/stripe`; depend on this package
+`@emulates/stripe`; depend on this package
 only when you write your own `FetchAPI` or a function that accepts one.
 
 ## Install
 
 ```bash
-npm install @emulators/core
+npm install @emulates/core
 ```
 
 ESM only. Portable: no Node- or Bun-only APIs, so it runs on Node >=22, Bun >=1.2, Deno, workerd and
@@ -26,7 +26,7 @@ import {
   fromFetchHandler,
   toFetchHandler,
   Timeline,
-} from "@emulators/core"
+} from "@emulates/core"
 
 // Any object with `fetch(request) => Promise<Response>` is a FetchAPI.
 const api: FetchAPI = {
@@ -60,7 +60,7 @@ api.fetch(new Request(input, init))`, or serve it over HTTP with an adapter (see
 | `fromFetchHandler` | `(handler: FetchHandler) => FetchAPI` | Wrap a bare handler as `{ fetch: handler }`. |
 | `Timeline<T>` | `new Timeline({ now?, maxCheckpoints?, id? })` | Deterministic, storage-agnostic checkpoint DAG with `commit`, `fork`, `checkout`, branch heads and bounded GC. Values are retained by reference so COW snapshots stay O(1). |
 
-`Timeline` is the only history and branching primitive prescribed for Emulators state. Storage
+`Timeline` is the only history and branching primitive prescribed for Emulates state. Storage
 engines may expose immutable COW payloads named `Snapshot` for compatibility and serialization,
 but branch heads, retention, checkout, and garbage collection belong to `Timeline`. Its hot commit
 path is O(1) amortized: an ordered unpinned-node set avoids rescanning history or branch heads.
@@ -75,8 +75,8 @@ their `this` binding.
 
 ## Related
 
-- `@emulators/adapter-node`: serve a `FetchAPI` over `node:http`.
-- `@emulators/adapter-bun`: serve a `FetchAPI` with `Bun.serve`.
-- `@emulators/service`: build a `FetchAPI` from an OpenAPI document.
+- `@emulates/adapter-node`: serve a `FetchAPI` over `node:http`.
+- `@emulates/adapter-bun`: serve a `FetchAPI` with `Bun.serve`.
+- `@emulates/service`: build a `FetchAPI` from an OpenAPI document.
 
 Part of [emulators](https://github.com/crvouga/emulators).

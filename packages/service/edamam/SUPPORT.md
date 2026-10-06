@@ -1,4 +1,4 @@
-# Edamam APIs (Emulators subset) — operation support
+# Edamam APIs (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

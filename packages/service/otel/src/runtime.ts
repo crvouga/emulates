@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { adminRow, OTEL_NAMESPACE, OtelAPI, otelCredential } from "./index.js"
 import { formatKey, type Row } from "./otlp.js"
@@ -238,7 +238,7 @@ const adminRoutes = (runtime: ServiceRuntime<OtelAPI>): AdminRoutes => {
 }
 
 /**
- * The OTLP collector + OpenObserve search emulator with the full Emulators service contract:
+ * The OTLP collector + OpenObserve search emulator with the full Emulates service contract:
  * `/__admin/health`, `/__admin/*` (logs, spans, wait), namespaces by header, by `/__admin/ns/<name>` path
  * prefix, or by credential (the OTLP bearer token or the O2 Basic username), clock control and
  * fault presets.

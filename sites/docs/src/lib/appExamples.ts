@@ -24,6 +24,6 @@ export const APP_EXAMPLES: readonly AppExample[] = [
       "A complete lab ordering app with patient, clinician, and administrator roles. Order tests, track fulfillment, explore biomarker reports, review results, download records, and manage access. The same full stack runs in your browser or on Bun.",
     servicesUsed: ["oauth", "junction", "stripe", "postgres"],
     packagePath: "packages/examples/medical-testing",
-    runCommand: "bunx turbo run dev --filter=@emulators/example-medical-testing",
+    runCommand: "bunx turbo run dev --filter=@emulates/example-medical-testing",
   },
 ]

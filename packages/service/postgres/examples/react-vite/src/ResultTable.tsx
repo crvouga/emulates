@@ -1,5 +1,5 @@
 // biome-ignore-all lint/suspicious/noArrayIndexKey: SQL result grids are positional
-import type { JsValue, ResultSet } from "@emulators/postgres";
+import type { JsValue, ResultSet } from "@emulates/postgres";
 
 function formatValue(value: JsValue | undefined): { text: string; kind: "null" | "bytea" | "value" } {
   if (value === null || value === undefined) return { text: "NULL", kind: "null" };

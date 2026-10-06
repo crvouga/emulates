@@ -29,7 +29,7 @@ node packages/service/github/oracle/run.mjs --plan \
 ```
 
 Planning makes no requests and reads no credentials. It writes a new plan under
-`.emulators/github-oracle/<run-id>/plan.json` and prints its SHA256 digest.
+`.emulates/github-oracle/<run-id>/plan.json` and prints its SHA256 digest.
 The operation subset is deliberately fixed to these nine; unrecognized or partial
 subsets fail instead of silently expanding their fixture requirements.
 
@@ -39,7 +39,7 @@ The manifest covers these actions:
 - Confirm both unique fixture branch names are absent.
 - Create two trees with inline synthetic file content (GitHub also creates blobs)
   and two synthetic-authored commits based on that existing tree.
-- Create `emulators-oracle/<run-id>/base` and `/head`. Advance only the owned head
+- Create `emulates-oracle/<run-id>/base` and `/head`. Advance only the owned head
   with `force: false`; attempt an older-SHA update to compare its rejection.
 - Create one PR from owned head to owned base; compare duplicate-create rejection,
   get/list observations and a title/body edit. No merge, review or default-branch
@@ -61,7 +61,7 @@ is required, and concurrent interference remains a limitation.
 
 Approve the exact manifest digest, all fixture writes, notifications/workflow
 side effects and cleanup separately from ordinary local implementation approval.
-Provide `EMULATORS_GITHUB_TOKEN` through the approved local environment or
+Provide `EMULATES_GITHUB_TOKEN` through the approved local environment or
 repository secret workflow; never put it in a command, plan, report or committed
 file. The token needs the repository permissions for the listed operations.
 Missing environment credentials are reported by key name only. Alternatively,

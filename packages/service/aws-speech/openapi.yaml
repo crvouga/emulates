@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Amazon Polly + Amazon Transcribe (Emulators subset)
+  title: Amazon Polly + Amazon Transcribe (Emulates subset)
   description: |
     The speech surface our consumer calls: Polly `SynthesizeSpeech` and
     `StartSpeechSynthesisStream` (HTTP/2 duplex event stream), Transcribe Streaming
@@ -10,7 +10,7 @@ info:
     `@aws-sdk/client-polly`, `@aws-sdk/client-transcribe-streaming` and
     `@aws-sdk/client-transcribe` 3.1132.0.
   version: "2016-06-10"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Polly and Transcribe Streaming are restJson1 (errors in `x-amzn-ErrorType` + `{"message"}`);
       Transcribe batch is awsJson1_1 (errors as `{"__type", "Message"}`). One mock serves all
@@ -24,7 +24,7 @@ paths:
   /v1/speech:
     post:
       operationId: SynthesizeSpeech
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -64,7 +64,7 @@ paths:
         HTTP/2 duplex. Parameters in `x-amzn-Engine`, `x-amzn-VoiceId`, `x-amzn-OutputFormat`,
         `x-amzn-SampleRate`; the request body streams `TextEvent` / `CloseStreamEvent`, the
         response streams `AudioEvent` then `StreamClosedEvent` (or an exception event).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -97,7 +97,7 @@ paths:
         HTTP/2 duplex (Transcribe Streaming). Parameters in `x-amzn-transcribe-*` headers; the
         request body streams `AudioEvent`s, the response streams `TranscriptEvent`s: scripted
         partials as audio arrives, then the final result when the audio ends.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: false
@@ -132,7 +132,7 @@ paths:
         Transcribe batch (AWS JSON 1.1): `X-Amz-Target: Transcribe.StartTranscriptionJob` or
         `Transcribe.GetTranscriptionJob`. Other targets answer `UnknownOperationException`.
         Unsafe for live runs: StartTranscriptionJob starts a billed job on real media.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -194,7 +194,7 @@ components:
             properties:
               message:
                 type: string
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: opaque
   schemas:
     SynthesizeSpeechInput:
@@ -293,15 +293,15 @@ components:
           type: object
         StartTime:
           type: number
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         CreationTime:
           type: number
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         CompletionTime:
           type: number
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         FailureReason:
           type: string
@@ -310,7 +310,7 @@ components:
           properties:
             TranscriptFileUri:
               type: string
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: url
     TranscriptionJobResponse:
       type: object
@@ -326,9 +326,9 @@ components:
           type: string
         Message:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque
         message:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque

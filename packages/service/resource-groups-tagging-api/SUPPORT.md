@@ -1,4 +1,4 @@
-# Amazon Resource Groups Tagging API (Emulators subset) — operation support
+# Amazon Resource Groups Tagging API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

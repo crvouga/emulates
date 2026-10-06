@@ -1,19 +1,19 @@
-# @emulators/turnstile
+# @emulates/turnstile
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Cloudflare Turnstile server-side Siteverify emulator. It never solves or issues real challenges.
 
 ## Install
 
 ```sh
-bun add @emulators/turnstile
+bun add @emulates/turnstile
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulators/turnstile"
+import { createRuntime } from "@emulates/turnstile"
 
 const turnstile = createRuntime()
 const { token } = await turnstile.instance().issue({
@@ -27,7 +27,7 @@ const result = await turnstile.fetch(new Request("http://turnstile.test/turnstil
 console.log(await result.json()) // success, challenge_ts, hostname, action, cdata
 ```
 
-Run `emulators-turnstile serve --port 12126`, then override the consumer's Siteverify URL
+Run `emulates-turnstile serve --port 12126`, then override the consumer's Siteverify URL
 with `http://localhost:12126/turnstile/v0/siteverify`. Keep the real Cloudflare origin in
 production. There is no universal consumer environment variable for this override.
 Send synthetic `secret: mock_secret`; configure additional sites with `sites`.

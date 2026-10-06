@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Amazon SQS (Emulators subset)
+  title: Amazon SQS (Emulates subset)
   version: "2012-11-05"
   description: AWS JSON SQS contract used by AWS SDK v3.
 servers:
@@ -9,7 +9,7 @@ paths:
   /:
     post:
       operationId: SqsRpc
-      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - { name: X-Amz-Target, in: header, required: true, schema: { type: string } }
       requestBody:

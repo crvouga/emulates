@@ -1,4 +1,4 @@
-# Amazon Route 53 (Emulators subset) — operation support
+# Amazon Route 53 (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

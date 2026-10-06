@@ -1,10 +1,10 @@
-import { replaceKnownIds } from "@emulators/canonicalize"
-import type { ResourceTable, Side } from "@emulators/model"
+import { replaceKnownIds } from "@emulates/canonicalize"
+import type { ResourceTable, Side } from "@emulates/model"
 import {
   createWebhookCollector,
   type WebhookRow,
   type WebhookStore,
-} from "@emulators/webhook-collector"
+} from "@emulates/webhook-collector"
 
 type JsonObject = Record<string, unknown>
 const record = (value: unknown): JsonObject | undefined =>

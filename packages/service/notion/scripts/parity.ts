@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@emulators/credentials"
+import { CredentialError, loadCredentials } from "@emulates/credentials"
 import { NotionAPI } from "../src/index.js"
 
 let key: string
@@ -16,7 +16,7 @@ try {
   throw error
 }
 const body = JSON.stringify({
-  query: "emulators-fixture-nonexistent-example-invalid-8f47536d",
+  query: "emulates-fixture-nonexistent-example-invalid-8f47536d",
   page_size: 1,
   filter: { property: "object", value: "database" },
 })

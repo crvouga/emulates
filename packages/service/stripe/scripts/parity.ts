@@ -1,5 +1,5 @@
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, StripeAPI } from "../src/index.js"
 import { ACCOUNT_GLOBAL_OPS, QA_SURFACE_OPS } from "../src/qa-corpus.js"
 import { compareStripeWebhooks, startStripeWebhookOracle } from "./webhook-oracle.js"

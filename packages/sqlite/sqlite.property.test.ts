@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { Database } from "@emulators/sqlite"
-import { fcParameters } from "@emulators/testing"
+import { Database } from "@emulates/sqlite"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import {
   CORE_MIGRATIONS,

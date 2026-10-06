@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: AWS Step Functions (Emulators subset)
+  title: AWS Step Functions (Emulates subset)
   version: "2016-11-23"
   description: AWS JSON contract used by the pinned SFN client.
 servers:
@@ -9,7 +9,7 @@ paths:
   /:
     post:
       operationId: StepFunctionsRpc
-      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - { name: X-Amz-Target, in: header, required: true, schema: { type: string, pattern: '^AWSStepFunctions\\.[A-Za-z]+$' } }
       requestBody:

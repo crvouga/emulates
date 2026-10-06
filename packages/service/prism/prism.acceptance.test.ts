@@ -248,11 +248,11 @@ describe("S25 Prism acceptance: our body-scan adapter against the mock", () => {
     expect((await uploadCapture(fetchImpl, url, VIDEO)).type).toBe("upload-complete")
     const viaHeader = await runtime.fetch(
       new Request(`${API}/scans/${id}`, {
-        headers: { authorization: "Bearer z", "x-emulators-namespace": "a" },
+        headers: { authorization: "Bearer z", "x-emulates-namespace": "a" },
       }),
     )
     expect(((await viaHeader.json()) as { status: string }).status).toBe("PROCESSING")
-    expect(viaHeader.headers.get("x-emulators")).toMatch(/^prism@.*; ns=a$/)
+    expect(viaHeader.headers.get("x-emulates")).toMatch(/^prism@.*; ns=a$/)
     const journal = await (
       await runtime.fetch(new Request(`${API}/__admin/requests?namespace=a`))
     ).json()
@@ -305,7 +305,7 @@ describe("served over HTTP", () => {
       }
       expect(status).toBe("complete")
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^prism@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^prism@/)
     } finally {
       await server.close()
     }

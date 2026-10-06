@@ -10,7 +10,7 @@
  *
  * @example
  * ```ts
- * import { connect, serve } from "@emulators/sqlite/socket";
+ * import { connect, serve } from "@emulates/sqlite/socket";
  *
  * const server = await serve("sqlite://127.0.0.1:0/app");
  * const db = await connect(server.url);

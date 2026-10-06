@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { parseOpenAPIDocument } from "@emulators/openapi"
-import { fcParameters } from "@emulators/testing"
+import { parseOpenAPIDocument } from "@emulates/openapi"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import {
   type BodyIssue,

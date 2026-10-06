@@ -11,8 +11,8 @@
  * items, comments, links and labels needs `--include-unsafe`. The contract pins the parity
  * walk's slug and project id, so the real side's are substituted in the URL.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, PlaneAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

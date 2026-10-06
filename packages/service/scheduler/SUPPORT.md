@@ -1,4 +1,4 @@
-# Amazon EventBridge Scheduler (Emulators subset) — operation support
+# Amazon EventBridge Scheduler (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

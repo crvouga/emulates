@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { createRuntime, SLACK_PRESETS, type SlackMessage } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -516,7 +516,7 @@ describe("S17 contract", () => {
     expect(texts("c")).toEqual(["from c"])
     expect(texts("default")).toEqual([])
     const viaHeader = await runtime.fetch(
-      new Request(`${HOST}/__admin/outbox`, { headers: { "x-emulators-namespace": "a" } }),
+      new Request(`${HOST}/__admin/outbox`, { headers: { "x-emulates-namespace": "a" } }),
     )
     expect(((await viaHeader.json()) as { messages: unknown[] }).messages).toHaveLength(1)
   })
@@ -613,7 +613,7 @@ describe("served over HTTP", () => {
       }
       expect(outbox.messages.map((m) => m.text)).toEqual(["over the wire", "api over the wire"])
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^slack@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^slack@/)
     } finally {
       await server.close()
     }

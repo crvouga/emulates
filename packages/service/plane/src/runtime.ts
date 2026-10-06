@@ -6,8 +6,8 @@ import {
   type RequestLog,
   type ServiceRuntime,
   type StateDeclaration,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { apiKeyCredential, PLANE_NAMESPACE, PlaneAPI } from "./index.js"
 import type { Settings, WorkItemTypeSeed } from "./state.js"
@@ -220,7 +220,7 @@ const adminRoutes = (runtime: ServiceRuntime<PlaneAPI>): AdminRoutes => ({
 })
 
 /**
- * The Plane emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Plane emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PLANE_ACCESS_TOKEN>": "<namespace>"}}`),
  * clock control, fault presets and a request journal.

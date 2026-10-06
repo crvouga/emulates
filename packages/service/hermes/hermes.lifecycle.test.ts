@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@emulators/openapi"
-import { createClock } from "@emulators/service"
+import { findOperation, responseForStatus, validateValue } from "@emulates/openapi"
+import { createClock } from "@emulates/service"
 import { createRuntime, document, type HermesRuntime } from "./src/index.js"
 
 const call = (runtime: HermesRuntime, path: string, body?: unknown, namespace = "a", key = "") =>
@@ -9,7 +9,7 @@ const call = (runtime: HermesRuntime, path: string, body?: unknown, namespace = 
       method: body === undefined ? "GET" : "POST",
       headers: {
         "content-type": "application/json",
-        "x-emulators-namespace": namespace,
+        "x-emulates-namespace": namespace,
         "Idempotency-Key": key,
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),

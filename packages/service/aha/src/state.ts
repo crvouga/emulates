@@ -1,5 +1,5 @@
-import { Collection, IdempotencyStore, IdSequence } from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+import { Collection, IdempotencyStore, IdSequence } from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 
 /**
  * One order as the mock tracks it. Patient details are validated but never stored: the mock

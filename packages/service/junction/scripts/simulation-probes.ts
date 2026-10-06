@@ -30,7 +30,7 @@ export async function probeSimulationLifecycle(call: SimulationProbeCall, runId:
     if (!success(catalog) || typeof test?.id !== "string") throw new Error()
     stage = "create user"
     const user = await call("POST", "/v2/user", {
-      client_user_id: `emulators-simulation-probe-${runId}`,
+      client_user_id: `emulates-simulation-probe-${runId}`,
     })
     const id = record(user.body).user_id
     if (typeof id === "string") userId = id
@@ -41,7 +41,7 @@ export async function probeSimulationLifecycle(call: SimulationProbeCall, runId:
         const created = await call("POST", "/v3/order", {
           user_id: userId,
           patient_details: {
-            first_name: "Emulators",
+            first_name: "Emulates",
             last_name: "Probe",
             dob: "1990-01-01",
             gender: "female",

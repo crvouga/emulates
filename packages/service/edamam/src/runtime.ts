@@ -6,8 +6,8 @@ import {
   type FaultRule,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Food, RecipeSeed } from "./corpus.js"
 import { document } from "./generated/openapi.js"
 import { appIdCredential, EDAMAM_NAMESPACE, EdamamAPI } from "./index.js"
@@ -197,7 +197,7 @@ const adminRoutes = (runtime: ServiceRuntime<EdamamAPI>): AdminRoutes => ({
 })
 
 /**
- * The Edamam emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Edamam emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by application id
  * (`PUT /__admin/credentials {"credentials": {"<app_id>": "<namespace>"}}`), clock control,
  * fault presets and a request journal.

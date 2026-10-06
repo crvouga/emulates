@@ -1,4 +1,4 @@
-# Google Places, Geocoding and Maps JavaScript API (Emulators subset) — operation support
+# Google Places, Geocoding and Maps JavaScript API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

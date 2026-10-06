@@ -1,6 +1,6 @@
-# @emulators/aws-speech
+# @emulates/aws-speech
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Amazon Polly** and **Amazon Transcribe** for test suites: Polly
 `SynthesizeSpeech` and `StartSpeechSynthesisStream` (HTTP/2 duplex event stream), Transcribe
@@ -17,24 +17,24 @@ synthetic audio whose length follows the text.
 ## Install
 
 ```bash
-npm install -D @emulators/aws-speech
+npm install -D @emulates/aws-speech
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-aws-speech serve` (h2c + HTTP/1.1 on one port), `createServer` from
+`npx emulates-aws-speech serve` (h2c + HTTP/1.1 on one port), `createServer` from
 `./server`, or `createRuntime` with any Fetch server (HTTP/1.1 only).
 
 ## Usage
 
 ```bash
-npx emulators-aws-speech serve --port 8797
+npx emulates-aws-speech serve --port 8797
 export AWS_ENDPOINT_URL_POLLY=http://127.0.0.1:8797
 export AWS_ENDPOINT_URL_TRANSCRIBE_STREAMING=http://127.0.0.1:8797
 export AWS_ENDPOINT_URL_TRANSCRIBE=http://127.0.0.1:8797
 ```
 
 ```ts
-import { createServer } from "@emulators/aws-speech/server"
+import { createServer } from "@emulates/aws-speech/server"
 
 const speech = await createServer({ port: 8797 })
 // What the next voice session "hears": partials while audio streams in, then the final.
@@ -51,7 +51,7 @@ await speech.close()
 
 Polly and Transcribe Streaming clients default to `NodeHttp2Handler`: against an `http://`
 endpoint they speak **h2c** (cleartext HTTP/2, prior knowledge), and their bidirectional
-operations need HTTP/2 duplex. Transcribe batch uses HTTP/1.1. `emulators-aws-speech serve`
+operations need HTTP/2 duplex. Transcribe batch uses HTTP/1.1. `emulates-aws-speech serve`
 and `createServer` sniff each connection and serve both on one port (`serve --config` from
 another service's CLI, and `createRuntime` behind a plain Fetch server, speak HTTP/1.1 only).
 
@@ -99,7 +99,7 @@ event before any audio: our adapter falls back to `SynthesizeSpeech`), `polly_st
 
 ### Namespaces
 
-`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or the SigV4 access key id:
+`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or the SigV4 access key id:
 `PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`. The journal
 records voice, engine, format, character counts and script ids — never text.
 

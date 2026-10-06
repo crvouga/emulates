@@ -1,4 +1,4 @@
-import type { Clock } from "@emulators/service"
+import type { Clock } from "@emulates/service"
 
 /**
  * Timers that count down on a mock clock instead of the wall clock: the webhook hub's retry

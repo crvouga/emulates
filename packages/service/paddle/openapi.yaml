@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Paddle Billing API (Emulators subset)
+  title: Paddle Billing API (Emulates subset)
   description: |
     Stateful mock subset of the Paddle Billing API: customers with their addresses and
     businesses, the catalog (products and prices), transactions with computed totals,
@@ -8,7 +8,7 @@ info:
     renewals) and the events list. Subscriptions come from paid transactions, as in Paddle:
     the mock's admin routes stand in for the hosted checkout and the billing engine.
   version: "1"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Hand-authored from https://developer.paddle.com/api-reference/overview and the wire types
       of @paddle/paddle-node-sdk@3.10.0 (dist/types/**). Every entity carries the fields the SDK
@@ -21,7 +21,7 @@ paths:
   /customers:
     get:
       operationId: ListCustomers
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -35,7 +35,7 @@ paths:
           description: Comma-separated customer ids.
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: customer
               missing: ctm_00000000000000000000000000
         - name: email
@@ -72,7 +72,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
     post:
       operationId: CreateCustomer
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -101,7 +101,7 @@ paths:
       - $ref: "#/components/parameters/CustomerId"
     get:
       operationId: GetCustomer
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -119,7 +119,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       operationId: UpdateCustomer
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -150,7 +150,7 @@ paths:
       - $ref: "#/components/parameters/CustomerId"
     get:
       operationId: GetCustomerCreditBalances
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -195,7 +195,7 @@ paths:
       - $ref: "#/components/parameters/CustomerId"
     post:
       operationId: CreateCustomerAuthToken
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -215,11 +215,11 @@ paths:
                     properties:
                       customer_auth_token:
                         type: string
-                        x-emulators-volatile:
+                        x-emulates-volatile:
                           kind: token
                       expires_at:
                         type: string
-                        x-emulators-volatile:
+                        x-emulates-volatile:
                           kind: timestamp
                   meta:
                     $ref: "#/components/schemas/Meta"
@@ -232,7 +232,7 @@ paths:
       - $ref: "#/components/parameters/CustomerId"
     get:
       operationId: ListAddresses
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -245,7 +245,7 @@ paths:
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: address
               missing: add_00000000000000000000000000
         - name: search
@@ -277,7 +277,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     post:
       operationId: CreateAddress
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -307,7 +307,7 @@ paths:
       - $ref: "#/components/parameters/AddressId"
     get:
       operationId: GetAddress
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -325,7 +325,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       operationId: UpdateAddress
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -354,7 +354,7 @@ paths:
       - $ref: "#/components/parameters/CustomerId"
     get:
       operationId: ListBusinesses
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -367,7 +367,7 @@ paths:
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: business
               missing: biz_00000000000000000000000000
         - name: search
@@ -399,7 +399,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     post:
       operationId: CreateBusiness
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -429,7 +429,7 @@ paths:
       - $ref: "#/components/parameters/BusinessId"
     get:
       operationId: GetBusiness
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -447,7 +447,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       operationId: UpdateBusiness
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -474,7 +474,7 @@ paths:
   /products:
     get:
       operationId: ListProducts
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -487,7 +487,7 @@ paths:
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: product
               missing: pro_00000000000000000000000000
         - name: include
@@ -526,7 +526,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
     post:
       operationId: CreateProduct
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -553,7 +553,7 @@ paths:
       - $ref: "#/components/parameters/ProductId"
     get:
       operationId: GetProduct
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -579,7 +579,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       operationId: UpdateProduct
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -606,7 +606,7 @@ paths:
   /prices:
     get:
       operationId: ListPrices
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -619,14 +619,14 @@ paths:
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: price
               missing: pri_00000000000000000000000000
         - name: product_id
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: product
               missing: pro_00000000000000000000000000
         - name: include
@@ -665,7 +665,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
     post:
       operationId: CreatePrice
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -692,7 +692,7 @@ paths:
       - $ref: "#/components/parameters/PriceId"
     get:
       operationId: GetPrice
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -718,7 +718,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       operationId: UpdatePrice
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -745,7 +745,7 @@ paths:
   /transactions:
     get:
       operationId: ListTransactions
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -763,21 +763,21 @@ paths:
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: transaction
               missing: txn_00000000000000000000000000
         - name: customer_id
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: customer
               missing: ctm_00000000000000000000000000
         - name: subscription_id
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: subscription
               missing: sub_00000000000000000000000000
         - name: status
@@ -836,7 +836,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
     post:
       operationId: CreateTransaction
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -863,7 +863,7 @@ paths:
   /transactions/preview:
     post:
       operationId: PreviewTransaction
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -896,7 +896,7 @@ paths:
       - $ref: "#/components/parameters/TransactionId"
     get:
       operationId: GetTransaction
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -918,7 +918,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       operationId: UpdateTransaction
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -949,7 +949,7 @@ paths:
       - $ref: "#/components/parameters/TransactionId"
     get:
       operationId: GetTransactionInvoice
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -975,7 +975,7 @@ paths:
                     properties:
                       url:
                         type: string
-                        x-emulators-volatile:
+                        x-emulates-volatile:
                           kind: url
                   meta:
                     $ref: "#/components/schemas/Meta"
@@ -990,7 +990,7 @@ paths:
       - $ref: "#/components/parameters/TransactionId"
     post:
       operationId: ReviseTransaction
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Invoice revision (customer, business and address corrections on billed transactions) is not modelled.
       responses:
@@ -1003,7 +1003,7 @@ paths:
   /subscriptions:
     get:
       operationId: ListSubscriptions
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1016,28 +1016,28 @@ paths:
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: subscription
               missing: sub_00000000000000000000000000
         - name: customer_id
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: customer
               missing: ctm_00000000000000000000000000
         - name: address_id
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: address
               missing: add_00000000000000000000000000
         - name: price_id
           in: query
           schema:
             type: string
-            x-emulators-resource-ref:
+            x-emulates-resource-ref:
               type: price
               missing: pri_00000000000000000000000000
         - name: status
@@ -1077,7 +1077,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     get:
       operationId: GetSubscription
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1104,7 +1104,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     patch:
       operationId: UpdateSubscription
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1133,7 +1133,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     patch:
       operationId: PreviewSubscriptionUpdate
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Update previews (proration credit/charge summaries) are not modelled; apply the update instead.
       responses:
@@ -1148,7 +1148,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     post:
       operationId: ActivateSubscription
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1171,7 +1171,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     post:
       operationId: PauseSubscription
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1211,7 +1211,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     post:
       operationId: ResumeSubscription
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1253,7 +1253,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     post:
       operationId: CancelSubscription
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1286,7 +1286,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     post:
       operationId: CreateSubscriptionCharge
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1329,7 +1329,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     post:
       operationId: PreviewSubscriptionCharge
-      x-emulators:
+      x-emulates:
         supported: false
         reason: One-time charge previews are not modelled; create the charge instead.
       responses:
@@ -1344,7 +1344,7 @@ paths:
       - $ref: "#/components/parameters/SubscriptionId"
     get:
       operationId: GetSubscriptionPaymentMethodChangeTransaction
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Payment method changes go through the hosted checkout, which the mock does not serve.
       responses:
@@ -1357,7 +1357,7 @@ paths:
   /events:
     get:
       operationId: ListEvents
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -1388,7 +1388,7 @@ paths:
   /notification-settings:
     get:
       operationId: ListNotificationSettings
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Notification destinations are configured on the mock (`--webhook-url`, `PUT /__admin/webhook-endpoints`), not through the API.
       responses:
@@ -1400,7 +1400,7 @@ paths:
                 type: object
     post:
       operationId: CreateNotificationSetting
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Notification destinations are configured on the mock (`--webhook-url`, `PUT /__admin/webhook-endpoints`), not through the API.
       responses:
@@ -1413,7 +1413,7 @@ paths:
   /discounts:
     get:
       operationId: ListDiscounts
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Discounts are not modelled; totals carry a zero discount.
       responses:
@@ -1425,7 +1425,7 @@ paths:
                 type: object
     post:
       operationId: CreateDiscount
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Discounts are not modelled; totals carry a zero discount.
       responses:
@@ -1438,7 +1438,7 @@ paths:
   /adjustments:
     get:
       operationId: ListAdjustments
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Refunds and credits (adjustments) are not modelled.
       responses:
@@ -1450,7 +1450,7 @@ paths:
                 type: object
     post:
       operationId: CreateAdjustment
-      x-emulators:
+      x-emulates:
         supported: false
         reason: Refunds and credits (adjustments) are not modelled.
       responses:
@@ -1465,7 +1465,7 @@ paths:
       - $ref: "#/components/parameters/CustomerId"
     post:
       operationId: CreateCustomerPortalSession
-      x-emulators:
+      x-emulates:
         supported: false
         reason: The hosted customer portal is not served; `management_urls` on a subscription point at placeholder links.
       responses:
@@ -1522,7 +1522,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: customer
           missing: ctm_00000000000000000000000000
     AddressId:
@@ -1531,7 +1531,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: address
           missing: add_00000000000000000000000000
     BusinessId:
@@ -1540,7 +1540,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: business
           missing: biz_00000000000000000000000000
     ProductId:
@@ -1549,7 +1549,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: product
           missing: pro_00000000000000000000000000
     PriceId:
@@ -1558,7 +1558,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: price
           missing: pri_00000000000000000000000000
     TransactionId:
@@ -1567,7 +1567,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: transaction
           missing: txn_00000000000000000000000000
     SubscriptionId:
@@ -1576,7 +1576,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: subscription
           missing: sub_00000000000000000000000000
   responses:
@@ -1607,7 +1607,7 @@ components:
   schemas:
     RequestId:
       type: string
-      x-emulators-volatile:
+      x-emulates-volatile:
         kind: opaque
     Meta:
       type: object
@@ -1629,7 +1629,7 @@ components:
               type: integer
             next:
               type: string
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: url
             has_more:
               type: boolean
@@ -1666,11 +1666,11 @@ components:
           $ref: "#/components/schemas/Meta"
     Timestamp:
       type: string
-      x-emulators-volatile:
+      x-emulates-volatile:
         kind: timestamp
     NullableTimestamp:
       type: ["string", "null"]
-      x-emulators-volatile:
+      x-emulates-volatile:
         kind: timestamp
     Status:
       type: string
@@ -1789,10 +1789,10 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: customer
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         name:
           type: ["string", "null"]
@@ -1853,14 +1853,14 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: address
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         customer_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         description:
           type: ["string", "null"]
@@ -1949,14 +1949,14 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: business
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         customer_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         name:
           type: string
@@ -2041,10 +2041,10 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: product
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         name:
           type: string
@@ -2130,14 +2130,14 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: price
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         product_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         description:
           type: string
@@ -2226,7 +2226,7 @@ components:
           properties:
             product_id:
               type: string
-              x-emulators-resource-ref:
+              x-emulates-resource-ref:
                 type: product
                 missing: pro_00000000000000000000000000
     PriceUpdate:
@@ -2285,7 +2285,7 @@ components:
           $ref: "#/components/schemas/CustomData"
         product_id:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: product
             missing: pro_00000000000000000000000000
         product:
@@ -2300,7 +2300,7 @@ components:
           maximum: 100
         price_id:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: price
             missing: pri_00000000000000000000000000
         price:
@@ -2344,17 +2344,17 @@ components:
       properties:
         customer_id:
           type: ["string", "null"]
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: customer
             missing: ctm_00000000000000000000000000
         address_id:
           type: ["string", "null"]
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: address
             missing: add_00000000000000000000000000
         business_id:
           type: ["string", "null"]
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: business
             missing: biz_00000000000000000000000000
         currency_code:
@@ -2424,17 +2424,17 @@ components:
                     type: boolean
         customer_id:
           type: ["string", "null"]
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: customer
             missing: ctm_00000000000000000000000000
         address_id:
           type: ["string", "null"]
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: address
             missing: add_00000000000000000000000000
         business_id:
           type: ["string", "null"]
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: business
             missing: biz_00000000000000000000000000
         currency_code:
@@ -2505,11 +2505,11 @@ components:
       properties:
         id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         price_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         quantity:
           type: integer
@@ -2569,15 +2569,15 @@ components:
       properties:
         payment_attempt_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         stored_payment_method_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         payment_method_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         amount:
           type: string
@@ -2622,24 +2622,24 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: transaction
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         status:
           $ref: "#/components/schemas/TransactionStatus"
         customer_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         address_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         business_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         custom_data:
           $ref: "#/components/schemas/CustomData"
@@ -2649,15 +2649,15 @@ components:
           $ref: "#/components/schemas/TransactionOrigin"
         subscription_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         invoice_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         invoice_number:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: opaque
         collection_mode:
           $ref: "#/components/schemas/CollectionMode"
@@ -2677,7 +2677,7 @@ components:
             properties:
               price_id:
                 type: string
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: id
               price:
                 $ref: "#/components/schemas/Price"
@@ -2697,7 +2697,7 @@ components:
           properties:
             url:
               type: ["string", "null"]
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: url
         created_at:
           $ref: "#/components/schemas/Timestamp"
@@ -2736,15 +2736,15 @@ components:
       properties:
         customer_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         address_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         business_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         currency_code:
           $ref: "#/components/schemas/CurrencyCode"
@@ -2794,7 +2794,7 @@ components:
                 properties:
                   price_id:
                     type: string
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: id
                   quantity:
                     type: integer
@@ -2856,24 +2856,24 @@ components:
       properties:
         id:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: subscription
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         status:
           $ref: "#/components/schemas/SubscriptionStatus"
         customer_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         address_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         business_id:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         currency_code:
           $ref: "#/components/schemas/CurrencyCode"
@@ -2911,11 +2911,11 @@ components:
           properties:
             update_payment_method:
               type: ["string", "null"]
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: url
             cancel:
               type: string
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: url
         items:
           type: array
@@ -2959,7 +2959,7 @@ components:
             properties:
               price_id:
                 type: string
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: id
               quantity:
                 type: integer
@@ -2986,17 +2986,17 @@ components:
       properties:
         customer_id:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: customer
             missing: ctm_00000000000000000000000000
         address_id:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: address
             missing: add_00000000000000000000000000
         business_id:
           type: ["string", "null"]
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: business
             missing: biz_00000000000000000000000000
         currency_code:
@@ -3033,7 +3033,7 @@ components:
       properties:
         event_id:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         event_type:
           type: string

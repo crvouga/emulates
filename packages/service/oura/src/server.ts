@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type OuraRuntime, type OuraRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12128
 export type OuraServerOptions = OuraRuntimeOptions & { port?: number; host?: string }

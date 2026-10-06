@@ -1,4 +1,4 @@
-# Pharmetika provider portal API (Emulators subset) — operation support
+# Pharmetika provider portal API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

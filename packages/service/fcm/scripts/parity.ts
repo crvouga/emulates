@@ -9,7 +9,7 @@
  *   FCM_PROJECT_ID
  *   FCM_ACCESS_TOKEN
  */
-import { CredentialError, loadCredentials } from "@emulators/credentials"
+import { CredentialError, loadCredentials } from "@emulates/credentials"
 
 try {
   await loadCredentials(

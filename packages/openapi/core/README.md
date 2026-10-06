@@ -1,13 +1,13 @@
-# @emulators/openapi
+# @emulates/openapi
 
-> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
 
-Dependency-free OpenAPI 3.0/3.1 toolkit used across Emulators: structural document validation, local `$ref` resolution, operation discovery, path templating, schema traversal, and JSON Schema instance validation. Use it directly when you need to inspect or validate an OpenAPI document or check a value against one of its schemas; if you only want parity testing, [`@emulators/parity`](https://www.npmjs.com/package/@emulators/parity) uses it for you.
+Dependency-free OpenAPI 3.0/3.1 toolkit used across Emulates: structural document validation, local `$ref` resolution, operation discovery, path templating, schema traversal, and JSON Schema instance validation. Use it directly when you need to inspect or validate an OpenAPI document or check a value against one of its schemas; if you only want parity testing, [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) uses it for you.
 
 ## Install
 
 ```bash
-npm install @emulators/openapi
+npm install @emulates/openapi
 ```
 
 ESM only, Node >= 22 or Bun >= 1.2. No runtime dependencies. Documents must be already-parsed objects (parse YAML yourself).
@@ -22,7 +22,7 @@ import {
   parseOpenAPIDocument,
   responseForStatus,
   validateValue,
-} from "@emulators/openapi"
+} from "@emulates/openapi"
 
 // Throws OpenAPIDocumentError listing every problem (bad $ref, duplicate operationId, ...).
 const document = parseOpenAPIDocument({
@@ -72,7 +72,7 @@ Documents and operations:
 | Export | Signature | Description |
 | --- | --- | --- |
 | `parseOpenAPIDocument` | `(value: unknown) => OpenAPIDocument` | Checks `openapi` is 3.0.x/3.1.x, `info.title`/`info.version`, `paths`, then runs `validateOpenAPIDocument`. Throws `OpenAPIDocumentError`. |
-| `validateOpenAPIDocument` | `(document) => string[]` | Emulators rules: every `$ref` resolves, every operation has a unique `operationId` and at least one response, path template params and declared path params match and are `required`. Empty array when valid. |
+| `validateOpenAPIDocument` | `(document) => string[]` | Emulates rules: every `$ref` resolves, every operation has a unique `operationId` and at least one response, path template params and declared path params match and are `required`. Empty array when valid. |
 | `OpenAPIDocumentError` | `class extends Error { issues: string[] }` | Thrown by `parseOpenAPIDocument`. |
 | `listOperations` | `(document) => Operation[]` | Every operation in path, then method order. Parameters are merged (operation wins over path item) and `$ref`s in parameters, request body and responses are resolved. Operations without `operationId` are skipped. |
 | `findOperation` | `(document, operationId) => Operation \| undefined` | Look up one operation. |
@@ -108,8 +108,8 @@ Exported types: `OpenAPIDocument`, `Operation` (`{ operationId, method, path, op
 
 ## Related
 
-- [`@emulators/openapi-metadata`](https://www.npmjs.com/package/@emulators/openapi-metadata) — reads the `x-emulators-*` extensions.
-- [`@emulators/openapi-arbitrary`](https://www.npmjs.com/package/@emulators/openapi-arbitrary) — fast-check arbitraries from schemas.
-- [`@emulators/parity`](https://www.npmjs.com/package/@emulators/parity) — differential parity runner.
+- [`@emulates/openapi-metadata`](https://www.npmjs.com/package/@emulates/openapi-metadata) — reads the `x-emulates-*` extensions.
+- [`@emulates/openapi-arbitrary`](https://www.npmjs.com/package/@emulates/openapi-arbitrary) — fast-check arbitraries from schemas.
+- [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — differential parity runner.
 
 Part of [emulators](https://github.com/crvouga/emulators).

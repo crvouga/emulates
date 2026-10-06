@@ -1,6 +1,6 @@
-# @emulators/stripe
+# @emulates/stripe
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful, in-process emulator of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
 chosen by API key, customers and balances, payment methods, payment and setup intents, charges,
@@ -19,7 +19,7 @@ differential property tests against Stripe test mode.
 ## Install
 
 ```bash
-npm install -D @emulators/stripe
+npm install -D @emulates/stripe
 ```
 
 ESM only. Requires Node >= 22 or Bun >= 1.2. No native dependencies: state lives in an in-memory
@@ -28,14 +28,14 @@ SQLite engine (pure TypeScript, bundled in).
 ## Usage
 
 ```bash
-npx emulators-stripe serve                  # http://127.0.0.1:12111
-npx emulators-stripe serve --accounts accounts.json --admin-key local-admin
-npx emulators-stripe serve --config emulators.json   # every service in one process
+npx emulates-stripe serve                  # http://127.0.0.1:12111
+npx emulates-stripe serve --accounts accounts.json --admin-key local-admin
+npx emulates-stripe serve --config emulates.json   # every service in one process
 ```
 
 ```js
 import Stripe from "stripe"
-import { createServer } from "@emulators/stripe/server"
+import { createServer } from "@emulates/stripe/server"
 
 const server = await createServer({
   accounts: [
@@ -60,7 +60,7 @@ await server.close()
 Or over raw HTTP, the way any Stripe client talks to it:
 
 ```ts
-import { createServer } from "@emulators/stripe/server"
+import { createServer } from "@emulates/stripe/server"
 
 const server = await createServer()
 const response = await fetch(`${server.url}/v1/customers`, {
@@ -100,7 +100,7 @@ State is partitioned by **account**, and the account is chosen by API key:
   (see Lifecycles and the clock); unset fields use `createRuntime({lifecycle: {paymentRetries}})`.
 
 **Namespaces** isolate parallel workers; each namespace has its own copy of every account. Carriers:
-the `x-emulators-namespace` header, the `/__admin/ns/<namespace>/…` path prefix, or **by API key**:
+the `x-emulates-namespace` header, the `/__admin/ns/<namespace>/…` path prefix, or **by API key**:
 `PUT /__admin/credentials {"credentials": {"sk_test_worker1": "w1"}}` (stripe-node cannot add
 headers). Hosted-page URLs carry the `/__admin/ns/<namespace>` prefix so the browser lands in the same one.
 
@@ -359,7 +359,7 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 ## API
 
 `StripeAPI` is the engine; `createRuntime` wraps it in the service contract. From
-`@emulators/stripe`:
+`@emulates/stripe`:
 
 | Export | Description |
 | --- | --- |
@@ -378,7 +378,7 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 | `TEST_PAYMENT_METHOD_IDS` | Every modelled magic `pm_card_…`. |
 | `TEST_CARD_NUMBERS` | Every modelled test card number. |
 | `STRIPE_NAMESPACE` | `"stripe"` — SQLite namespace of every record. |
-| `document` | The vendored OpenAPI document (Emulators subset). |
+| `document` | The vendored OpenAPI document (Emulates subset). |
 | `operationIds` | Every `operationId` in `document`. |
 | `supportedOperationIds` | The ones the emulator implements. |
 | `QA_SURFACE_OPS` | Operations the parity walks cover (supported, minus the browser pages). |
@@ -391,7 +391,7 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 | `QA_COUPON_CODES` | Promotion codes the walks use. |
 | `reshapeQaCommand` | Parity-walk hook pinning sampled commands onto those values. |
 
-From `@emulators/stripe/server` (Node): `createServer(options?)` (runtime options
+From `@emulates/stripe/server` (Node): `createServer(options?)` (runtime options
 plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the `serve` wiring:
 `--accounts`, `--webhook-url`, `--webhook-secret`, `--public-url`) and `DEFAULT_PORT` (`12111`).
 

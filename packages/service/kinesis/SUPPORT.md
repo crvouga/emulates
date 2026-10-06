@@ -1,4 +1,4 @@
-# Amazon Kinesis Data Streams (Emulators subset) — operation support
+# Amazon Kinesis Data Streams (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

@@ -1,20 +1,21 @@
 /**
- * One-time local bootstrap after the Mockingbird → Emulators rename (docs/MIGRATING.md).
+ * One-time local bootstrap after the Mockingbird → Emulates rename (docs/MIGRATING.md).
  * Idempotent: every step checks first and skips what is already done.
  *
  *   bun run rebrand:bootstrap                       local checkout only
- *   bun run rebrand:bootstrap -- --publish          + first npm publish of @emulators/*
+ *   bun run rebrand:bootstrap -- --publish          + first npm publish of @emulates/*
  *   bun run rebrand:bootstrap -- --publish --dry-run
  *
  * Local steps:
  *   1. point `origin` at the renamed GitHub repo,
- *   2. rename `MOCKINGBIRD_*` keys in .env.local to `EMULATORS_*` (values are never printed),
- *   3. move the gitignored `.mockingbird/` state directory to `.emulators/`,
+ *   2. rename `MOCKINGBIRD_*` and `EMULATORS_*` keys in .env.local to `EMULATES_*`
+ *      (values are never printed),
+ *   3. move the gitignored `.mockingbird/` or `.emulators/` state directory to `.emulates/`,
  *   4. `bun install` so workspace links use the new package names.
  *
  * `--publish` (maintainer, once, after the rename is on origin/main):
- *   5. require the npm org `emulators` (npm cannot create orgs from the CLI),
- *   6. run `bun run release:seed`: publish every @emulators/* package, attach Trusted
+ *   5. require the npm org `emulates` (npm cannot create orgs from the CLI),
+ *   6. run `bun run release:seed`: publish every @emulates/* package, attach Trusted
  *      Publishing, and deprecate each former @crvouga/mockingbird-* name.
  */
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
@@ -23,12 +24,12 @@ import { $ } from "bun"
 import { project, repositoryUrl } from "../project.ts"
 import { root } from "./release/lib.ts"
 
-const FORMER_ENV_PREFIX = "MOCKINGBIRD_"
+const FORMER_ENV_PREFIXES = ["MOCKINGBIRD_", "EMULATORS_"] as const
 const ENV_PREFIX = `${project.slug.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_`
 
 /**
- * Rename `MOCKINGBIRD_X=` assignments to `EMULATORS_X=`. A key whose new name is already
- * assigned is left alone and reported, so an existing value is never overwritten.
+ * Rename `MOCKINGBIRD_X=` and `EMULATORS_X=` assignments to `EMULATES_X=`. A key whose new
+ * name is already assigned is left alone and reported, so an existing value is never overwritten.
  */
 export function renameEnvKeys(text: string): { text: string; renamed: string[]; kept: string[] } {
   const assigned = new Set(
@@ -36,18 +37,22 @@ export function renameEnvKeys(text: string): { text: string; renamed: string[]; 
   )
   const renamed: string[] = []
   const kept: string[] = []
-  const out = text.replace(
-    new RegExp(`^(\\s*(?:export\\s+)?)${FORMER_ENV_PREFIX}([A-Za-z0-9_]+)(\\s*=)`, "gm"),
-    (line, lead: string, rest: string, eq: string) => {
-      const next = `${ENV_PREFIX}${rest}`
-      if (assigned.has(next)) {
-        kept.push(`${FORMER_ENV_PREFIX}${rest}`)
-        return line
-      }
-      renamed.push(next)
-      return `${lead}${next}${eq}`
-    },
-  )
+  let out = text
+  for (const former of FORMER_ENV_PREFIXES) {
+    out = out.replace(
+      new RegExp(`^(\\s*(?:export\\s+)?)${former}([A-Za-z0-9_]+)(\\s*=)`, "gm"),
+      (line, lead: string, rest: string, eq: string) => {
+        const next = `${ENV_PREFIX}${rest}`
+        if (assigned.has(next)) {
+          kept.push(`${former}${rest}`)
+          return line
+        }
+        assigned.add(next)
+        renamed.push(next)
+        return `${lead}${next}${eq}`
+      },
+    )
+  }
   return { text: out, renamed, kept }
 }
 
@@ -88,15 +93,20 @@ async function main(): Promise<number> {
   }
 
   // 3. local state directory.
-  const former = join(root, ".mockingbird")
   const current = join(root, `.${project.slug}`)
-  if (!existsSync(former)) step("state directory", "ok")
-  else if (existsSync(current)) {
-    console.warn(`::warning::both .mockingbird/ and .${project.slug}/ exist; merge them by hand`)
-  } else {
+  let movedState = false
+  for (const formerName of [".mockingbird", ".emulators"]) {
+    const former = join(root, formerName)
+    if (!existsSync(former)) continue
+    if (existsSync(current)) {
+      console.warn(`::warning::both ${formerName}/ and .${project.slug}/ exist; merge them by hand`)
+      continue
+    }
     renameSync(former, current)
-    step("state directory", `.mockingbird/ → .${project.slug}/`)
+    step("state directory", `${formerName}/ → .${project.slug}/`)
+    movedState = true
   }
+  if (!movedState) step("state directory", "ok")
 
   // 4. workspace links.
   if ((await run(["bun", "install"])) !== 0) return 1

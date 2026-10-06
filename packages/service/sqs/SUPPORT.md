@@ -1,4 +1,4 @@
-# Amazon SQS (Emulators subset) — operation support
+# Amazon SQS (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

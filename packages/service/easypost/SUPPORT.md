@@ -1,4 +1,4 @@
-# EasyPost Trackers API (Emulators subset) — operation support
+# EasyPost Trackers API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

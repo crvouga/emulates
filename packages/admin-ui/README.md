@@ -18,7 +18,7 @@ it does not duplicate service state or implement service controls in the browser
 In a composed shell the top-left title is the emulator switcher. `Command/Ctrl + K` opens the
 keyboard-first command palette for jumping directly to any emulator and built-in screen.
 Ant Design's StyleProvider and ConfigProvider keep styles and portals within the
-embedded document. Hosts dispatch `emulators:unmount` before detaching the document
+embedded document. Hosts dispatch `emulates:unmount` before detaching the document
 to dispose the React root. Service-owned manifest panels keep their existing API
 and can return a cleanup function from their script. Declarative `route` extensions
 render service actions with the shared prebuilt request form and response viewer;

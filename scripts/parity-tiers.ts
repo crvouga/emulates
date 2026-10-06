@@ -5,7 +5,7 @@
  * has a `parity` script declares a tier in its package.json, next to the rest of its
  * `emulators` metadata:
  *
- *   "emulators": { …, "parityTier": "cold" }
+ *   "emulates": { …, "parityTier": "cold" }
  *
  *   hot   every pull request that changes the service (advisory.yml → parity.yml)
  *   warm  on a schedule (parity.yml's `schedule:`)
@@ -59,11 +59,11 @@ export function parityServices(): ParityService[] {
     if (!existsSync(manifest)) continue
     const pkg = JSON.parse(readFileSync(manifest, "utf8")) as {
       scripts?: Record<string, string>
-      emulators?: { parityTier?: unknown; parityInputs?: string[] }
+      emulates?: { parityTier?: unknown; parityInputs?: string[] }
     }
-    const inputs = pkg.emulators?.parityInputs ?? []
+    const inputs = pkg.emulates?.parityInputs ?? []
     if (typeof pkg.scripts?.parity !== "string") continue
-    const declared = pkg.emulators?.parityTier
+    const declared = pkg.emulates?.parityTier
     if (declared === undefined || isTier(declared)) {
       found.push({ name, tier: declared ?? DEFAULT_TIER, inputs })
     } else {

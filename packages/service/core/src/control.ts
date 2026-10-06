@@ -44,9 +44,9 @@ export const assertAdminPrefixAvailable = (prefix: string, paths: readonly strin
 }
 
 /** Carries the admin key, which is separate from any vendor credential. */
-export const ADMIN_KEY_HEADER = "x-emulators-admin-key"
+export const ADMIN_KEY_HEADER = "x-emulates-admin-key"
 /** Selects the isolated namespace a request reads and writes. */
-export const NAMESPACE_HEADER = "x-emulators-namespace"
+export const NAMESPACE_HEADER = "x-emulates-namespace"
 
 export type AdminRequest = {
   request: Request

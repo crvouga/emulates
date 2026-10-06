@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { ParityError, parity } from "@emulators/parity"
-import { Database } from "@emulators/sqlite"
-import { fcParameters } from "@emulators/testing"
+import { ParityError, parity } from "@emulates/parity"
+import { Database } from "@emulates/sqlite"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import { document, JunctionAPI, type JunctionWebhookEvent } from "./src/index.js"
 

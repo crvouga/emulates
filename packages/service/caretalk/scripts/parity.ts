@@ -12,8 +12,8 @@
  * ever target the beta environment. The mock is seeded with the live definitions of the forms
  * the walk asks for, so form bodies compare like for like.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { CareTalkAPI, document, type FullFormDto } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

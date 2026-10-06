@@ -1,6 +1,6 @@
-# @emulators/junction
+# @emulates/junction
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the [Junction (formerly Vital) API](https://docs.junction.com/): users
 (`/v2/user`), the lab-testing catalog, lab orders (create, cancel, simulate, results,
@@ -14,7 +14,7 @@ cap (the emulator enforces no sandbox limit unless a test [asks for one](#sandbo
 cross-suite interference. Serve it as a local origin with one command, or run it in-process.
 
 ```bash
-npx emulators-junction serve   # http://127.0.0.1:8787, recorded sandbox corpus loaded
+npx emulates-junction serve   # http://127.0.0.1:8787, recorded sandbox corpus loaded
 ```
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/SUPPORT.md)
@@ -27,7 +27,7 @@ npx emulators-junction serve   # http://127.0.0.1:8787, recorded sandbox corpus 
 ## Install
 
 ```bash
-npm install -D @emulators/junction
+npm install -D @emulates/junction
 ```
 
 ESM only; Node >= 22 or Bun >= 1.2 (CommonJS callers on Node >= 22.12 can `require()` it). No
@@ -35,20 +35,20 @@ native dependencies: state lives in an in-memory SQLite engine written in TypeSc
 
 | Entry point | Runtime | What it is |
 | --- | --- | --- |
-| `@emulators/junction` | any (Node, Bun, Workers, browsers) | `JunctionAPI`, `createRuntime`, corpus and verify tools |
-| `@emulators/junction/server` | Node | `createServer()` — a listening HTTP server |
-| `@emulators/junction/corpus` | any | `defaultCorpus` — the recording shipped in the package (a separate entry, so importing the emulator never parses it) |
-| `emulators-junction` (bin) | Node | `serve`, `corpus pull`, `corpus diff`, `verify` |
+| `@emulates/junction` | any (Node, Bun, Workers, browsers) | `JunctionAPI`, `createRuntime`, corpus and verify tools |
+| `@emulates/junction/server` | Node | `createServer()` — a listening HTTP server |
+| `@emulates/junction/corpus` | any | `defaultCorpus` — the recording shipped in the package (a separate entry, so importing the emulator never parses it) |
+| `emulates-junction` (bin) | Node | `serve`, `corpus pull`, `corpus diff`, `verify` |
 
 ## Usage
 
-### `emulators-junction serve`
+### `emulates-junction serve`
 
 ```bash
-npx emulators-junction serve --port 8787
-npx emulators-junction serve --corpus ./test/junction-corpus.json --lab-accounts ./test/lab-accounts.json
-npx emulators-junction serve --webhook-url http://127.0.0.1:3100/webhooks/junction --webhook-secret whsec_...
-npx emulators-junction serve --help
+npx emulates-junction serve --port 8787
+npx emulates-junction serve --corpus ./test/junction-corpus.json --lab-accounts ./test/lab-accounts.json
+npx emulates-junction serve --webhook-url http://127.0.0.1:3100/webhooks/junction --webhook-secret whsec_...
+npx emulates-junction serve --help
 ```
 
 | Flag | Default | Meaning |
@@ -64,15 +64,15 @@ npx emulators-junction serve --help
 | `--default-billing-type <lab=type,…>` | `client_bill` | The `billing_type` an order for that lab gets when it omits one ([billing](#default-billing-type)) |
 | `--fixtures <file>` | — | [Users and orders](#fixtures-and-identity) every namespace starts with |
 | `--journal-size <n>` | `1000` | Requests each namespace's [journal](#is-this-the-mock) keeps |
-| `--webhook-url <url>` / `--webhook-secret <whsec_…>` | off | Deliver [signed webhooks](#webhooks) (secret also from `EMULATORS_JUNCTION_WEBHOOK_SECRET`) |
+| `--webhook-url <url>` / `--webhook-secret <whsec_…>` | off | Deliver [signed webhooks](#webhooks) (secret also from `EMULATES_JUNCTION_WEBHOOK_SECRET`) |
 | `--webhook-retry-delays <ms,…>` | Svix's schedule | Delay before each delivery attempt, e.g. `0,1000,5000` in tests |
-| `--webhook-scope <scope>` | — | Sent as `x-emulators-scope` on every delivery |
-| `--admin-key <key>` | open | Require `x-emulators-admin-key` on `/__admin/*` (also `EMULATORS_ADMIN_KEY`) |
+| `--webhook-scope <scope>` | — | Sent as `x-emulates-scope` on every delivery |
+| `--admin-key <key>` | open | Require `x-emulates-admin-key` on `/__admin/*` (also `EMULATES_ADMIN_KEY`) |
 | `--seed <seed>` | `0` | Seeds fault rates and retry jitter |
 | `--log <pretty\|json\|off>` | `pretty` | One line per request: operation id, status, duration, namespace, fault |
 | `--log-requests` | — | Same as `--log json`: one JSON line per request with the ids it touched, never bodies |
 | `--seed-url <url>` / `--seed-key <key>` | — | Pull a corpus from a live team at boot. Slow and a live dependency; prefer a committed `corpus pull` file |
-| `--config <file>` | — | Serve every service in a `emulators.json` instead ([below](#many-services-from-one-config)) |
+| `--config <file>` | — | Serve every service in a `emulates.json` instead ([below](#many-services-from-one-config)) |
 
 At startup it prints the listen address, the loaded corpus (its version label, observation, ZIP,
 lab-test and lab-account counts, recording date and source), the geo mode, the team id, the
@@ -81,9 +81,9 @@ webhook delivery is on.
 
 ### Many services from one config
 
-Any Emulators service's CLI can boot every service in a config file, so a stack adds a config
+Any Emulates service's CLI can boot every service in a config file, so a stack adds a config
 entry per vendor instead of a wrapper process per vendor. Each service named must be installed
-(`junction` loads `@emulators/junction`).
+(`junction` loads `@emulates/junction`).
 
 ```json
 {
@@ -100,7 +100,7 @@ entry per vendor instead of a wrapper process per vendor. Each service named mus
 ```
 
 ```bash
-npx emulators-junction serve --config emulators.json
+npx emulates-junction serve --config emulates.json
 ```
 
 `options` takes the service's own `serve` flags by long name.
@@ -108,7 +108,7 @@ npx emulators-junction serve --config emulators.json
 ### `createServer` (Node)
 
 ```ts
-import { createServer } from "@emulators/junction/server"
+import { createServer } from "@emulates/junction/server"
 
 const server = await createServer() // shipped corpus, any free port
 const health = await fetch(`${server.url}/__admin/health`)
@@ -128,13 +128,13 @@ or a loaded corpus). The result has `url`, `port`, `runtime` and `close()`.
 single runtime-neutral `fetch(request)`. Hand it to `Bun.serve`, a Worker, or call it directly:
 
 ```ts
-import { createRuntime } from "@emulators/junction"
-import { defaultCorpus } from "@emulators/junction/corpus"
+import { createRuntime } from "@emulates/junction"
+import { defaultCorpus } from "@emulates/junction/corpus"
 
 const junction = createRuntime({ corpus: defaultCorpus })
 const as = (worker: string) => ({
   "x-vital-api-key": "sk_us_emulators",
-  "x-emulators-namespace": worker, // isolates this worker's data
+  "x-emulates-namespace": worker, // isolates this worker's data
   "content-type": "application/json",
 })
 
@@ -154,7 +154,7 @@ await junction.reset("worker-1") // or junction.reset("*") for every namespace
 ### In-process (inject `fetch`)
 
 ```ts
-import { JunctionAPI } from "@emulators/junction"
+import { JunctionAPI } from "@emulates/junction"
 
 const junction = new JunctionAPI({ now: () => Date.UTC(2030, 0, 1) })
 const headers = { "x-vital-api-key": "sk_us_emulators", "content-type": "application/json" }
@@ -224,21 +224,21 @@ while keeping the production and sandbox guards intact.
 
 ## The service contract
 
-Every Emulators service answers the same control surface, outside the vendor's auth gate:
+Every Emulates service answers the same control surface, outside the vendor's auth gate:
 
 - `GET /__admin/health` — unauthenticated readiness probe:
   `{ "status": "ok", "service": "junction", "corpus": "<label>", "geo": "corpus", … }`.
 - `/__admin/*` — the control plane. Open by default; with `--admin-key` / `adminKey` it requires
-  `x-emulators-admin-key`, which is separate from any vendor key. Admin errors have one shape,
+  `x-emulates-admin-key`, which is separate from any vendor key. Admin errors have one shape,
   `{ "error": { "type": "emulators_admin", "message": "…" } }`, so they can never be confused
   with a Junction error. `GET /__admin` lists every route.
-- `x-emulators-namespace: <name>` — isolates a request's data (`[A-Za-z0-9_.-]{1,64}`). Each
+- `x-emulates-namespace: <name>` — isolates a request's data (`[A-Za-z0-9_.-]{1,64}`). Each
   namespace is a separate team over one shared database, so parallel workers share one process
   without seeing each other. The corpus is shared read-only; creating a namespace is cheap. Admin
   routes take the namespace from `?namespace=`, then the header, then `default`. Configuration set
   through the admin API (lab accounts, limits, identity, geo) belongs to one namespace and survives
   that namespace's `POST /__admin/reset`; data does not.
-- `x-emulators: junction@<version>; ns=<namespace>` — on **every** response: vendor answers,
+- `x-emulates: junction@<version>; ns=<namespace>` — on **every** response: vendor answers,
   errors, faults, admin and health. Junction never sends it, so it tells the emulator from the vendor
   (see [Is this the emulator?](#is-this-the-mock)).
 
@@ -292,10 +292,10 @@ labs those ZIPs reach, and the recording team's catalog. The catalog and lab acc
 catalog and your lab accounts, record your own team and commit the file:
 
 ```bash
-npx emulators-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --out test/junction-corpus.json
-npx emulators-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --base test/junction-corpus.json \
+npx emulates-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --out test/junction-corpus.json
+npx emulates-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --base test/junction-corpus.json \
   --zip 10001,94105 --coverage-only --out test/junction-corpus.json   # add ZIPs to it
-npx emulators-junction corpus diff test/junction-corpus.json /tmp/fresh.json   # exit 1 when they differ
+npx emulates-junction corpus diff test/junction-corpus.json /tmp/fresh.json   # exit 1 when they differ
 ```
 
 `corpus pull` only issues GETs, refuses non-sandbox keys (`sk_us_…` / `sk_eu_…`) unless given
@@ -312,8 +312,8 @@ availability) answer **only** for ZIPs the corpus covers. Any other well-formed 
 ```json
 {
   "detail": {
-    "error_type": "EMULATORS_UNKNOWN_ZIP",
-    "error_message": "ZIP 00501 is not in the loaded Junction corpus (57 ZIPs covered). Record it with `emulators-junction corpus pull --zip 00501`, or serve with --geo synthetic to invent coverage.",
+    "error_type": "EMULATES_UNKNOWN_ZIP",
+    "error_message": "ZIP 00501 is not in the loaded Junction corpus (57 ZIPs covered). Record it with `emulates-junction corpus pull --zip 00501`, or serve with --geo synthetic to invent coverage.",
     "zip_code": "00501",
     "corpus": "v1-2026-09-18-HqFDuEAuhkwD"
   }
@@ -365,7 +365,7 @@ corpus carries your team's real accounts), else built-in fixtures. Configure the
 `ClientFacingLabAccount`s, with `states` as shorthand for client-bill states:
 
 ```ts
-import { createRuntime, US_STATES } from "@emulators/junction"
+import { createRuntime, US_STATES } from "@emulates/junction"
 
 const junction = createRuntime({
   labAccounts: [
@@ -395,7 +395,7 @@ instead (whether that is a team, lab or account setting is not visible from outs
 default is configurable per lab slug:
 
 ```ts
-import { createRuntime } from "@emulators/junction"
+import { createRuntime } from "@emulates/junction"
 
 const junction = createRuntime({ defaultBillingTypes: { bioreference: "patient_bill_passthrough" } })
 console.log(junction.instance().defaultBillingTypes) // { bioreference: "patient_bill_passthrough" }
@@ -526,7 +526,7 @@ adopted**: an unknown order id always 404s, because inventing an order hides rea
 An emulator 404 and a sandbox 404 are byte-identical, which is how a backend half-pointed at the sandbox
 goes unnoticed. Three things make it visible:
 
-- **`x-emulators` on every response.** Assert on it in a test helper:
+- **`x-emulates` on every response.** Assert on it in a test helper:
 
   ```ts
   import { expect } from "vitest"
@@ -536,7 +536,7 @@ goes unnoticed. Three things make it visible:
     (inner: typeof fetch = fetch): typeof fetch =>
     async (input, init) => {
       const response = await inner(input, init)
-      expect(response.headers.get("x-emulators"), `${String(input)} did not reach the Junction mock`).toMatch(
+      expect(response.headers.get("x-emulates"), `${String(input)} did not reach the Junction mock`).toMatch(
         /^junction@/,
       )
       return response
@@ -548,8 +548,8 @@ goes unnoticed. Three things make it visible:
   lab-account ids it touched, and when (emulator clock). `GET /__admin/requests?operationId=create_order_v3_order_post`
   proves an order was placed here; an empty answer proves it was not. Never bodies.
 - **Miss headers on 404s.** A missing user or order keeps Junction's body byte for byte and adds
-  `x-emulators-miss: order <id>` (or `user <id>`, `user client:<client_user_id>`) and
-  `x-emulators-known: users=<n> orders=<n>`.
+  `x-emulates-miss: order <id>` (or `user <id>`, `user client:<client_user_id>`) and
+  `x-emulates-known: users=<n> orders=<n>`.
 
 `--log-requests` prints the same fields as one JSON line per request.
 
@@ -616,7 +616,7 @@ Faults reproduce the sandbox's failure modes on demand, for retry paths and erro
 | `server_error` / `bad_gateway` / `unavailable` | 500 / 502 / 503 | shape-plausible, not verified |
 
 ```ts
-import { createRuntime, FAULT_PRESETS } from "@emulators/junction"
+import { createRuntime, FAULT_PRESETS } from "@emulates/junction"
 
 const junction = createRuntime()
 junction.faults.add({ ...FAULT_PRESETS.sandbox_user_quota, id: "quota", count: 1 }) // next create_user only
@@ -646,7 +646,7 @@ With `webhooks` / `--webhook-url`, every event is delivered signed, with retries
   retries now; `POST /__admin/webhooks/{id}/replay` redelivers one message.
 
 ```ts
-import { createRuntime, verifySvix } from "@emulators/junction"
+import { createRuntime, verifySvix } from "@emulates/junction"
 
 const secret = "whsec_bW9ja2luZ2JpcmQtdGVzdC1zZWNyZXQ="
 const junction = createRuntime({
@@ -673,8 +673,8 @@ console.log(typeof accept, junction.webhooks?.deliveries().length) // "function"
 and reports every divergence.
 
 ```bash
-npx emulators-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --corpus test/junction-corpus.json
-npx emulators-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --orders --sample 50 --json
+npx emulates-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --corpus test/junction-corpus.json
+npx emulates-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --orders --sample 50 --json
 ```
 
 - **Drift**: re-fetches each recorded observation (or `--sample n` of them) and reports any that no
@@ -726,14 +726,14 @@ An emulator that is silent about its gaps is how a green suite starts lying. Spe
 
 ## API
 
-Main entry (`@emulators/junction`, runtime-neutral):
+Main entry (`@emulates/junction`, runtime-neutral):
 
 | Export | Description |
 | --- | --- |
 | `createRuntime` | `(options?: JunctionRuntimeOptions) => JunctionRuntime` — the served emulator (health, admin, namespaces, clock, faults, metrics, journal, webhooks) as one `fetch`. Options: `corpus`, `geo`, `labAccounts`, `teamId`, `limits`, `identity`, `defaultBillingTypes`, `fixtures`, `journalSize`, `webhooks`, `onWebhook`, `sqlite`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `JunctionAPI` | Class. `new JunctionAPI(options?)`: one namespace's emulator, implementing `fetch(request: Request): Promise<Response>`. |
 | `JUNCTION_NAMESPACE` | `"junction"` — the default namespace's storage key when sharing a `sqlite` client. |
-| `document` | The vendored Junction OpenAPI document (Emulators subset) that drives routing. |
+| `document` | The vendored Junction OpenAPI document (Emulates subset) that drives routing. |
 | `operationIds` | Every `operationId` in `document`. |
 | `supportedOperationIds` | The `operationId`s the emulator implements (all of them). |
 | `pullCorpus` | `(options: PullCorpusOptions) => Promise<SealedCorpus>` — record a corpus from a real team (GETs only). |
@@ -758,11 +758,11 @@ Main entry (`@emulators/junction`, runtime-neutral):
 | `IDENTITY_MODES` | `["strict", "adopt-users"]`. |
 | `FixtureError` | Thrown by the fixture inserts; `status` is 400, 404 or 409. |
 | `ORDER_NOT_FOUND` | Junction's unknown-order `detail`, by operation id. |
-| `MISS_HEADER` / `KNOWN_HEADER` | `"x-emulators-miss"` / `"x-emulators-known"`. |
+| `MISS_HEADER` / `KNOWN_HEADER` | `"x-emulates-miss"` / `"x-emulates-known"`. |
 | `verifyAgainstReal` | `(options: VerifyOptions) => Promise<VerifyReport>` — the `verify` command as a function. |
 | `DEFAULT_JUNCTION_BASE_URL` | `"https://api.sandbox.tryvital.io"`. |
 | `isSandboxKey` / `SANDBOX_KEY_PREFIXES` | Whether a key is a sandbox team key (`sk_us_` / `sk_eu_`). |
-| `UNKNOWN_ZIP_STATUS` / `UNKNOWN_ZIP_ERROR_TYPE` | `424` / `"EMULATORS_UNKNOWN_ZIP"` — the corpus-mode unknown-ZIP error. |
+| `UNKNOWN_ZIP_STATUS` / `UNKNOWN_ZIP_ERROR_TYPE` | `424` / `"EMULATES_UNKNOWN_ZIP"` — the corpus-mode unknown-ZIP error. |
 | `labAccountFromInput` | `(input: LabAccountInput) => LabAccountRecord` — normalize (and validate) a configured account. |
 | `TEAM_LAB_ACCOUNTS` | The built-in lab-account fixtures. |
 | `US_STATES` | The 50 `USState` codes Junction accepts. |
@@ -857,7 +857,7 @@ type OperationId / SupportedOperationId  // string unions of operationIds / supp
 Seeding from the real sandbox (needs network and a real key):
 
 ```ts
-import { JunctionAPI } from "@emulators/junction"
+import { JunctionAPI } from "@emulates/junction"
 
 const junction = new JunctionAPI()
 const report = await junction.seedFrom({
@@ -877,10 +877,10 @@ bun test                                   # offline suites, incl. scheduling st
 bun test junction.runtime.property.test.ts # service contract, corpus, lab accounts, faults, webhooks, verify
 bun test junction.sdk.property.test.ts     # drives the served mock through @tryvital/vital-node
 
-bun run mock:serve                         # env-configured `serve`: HOST, PORT, EMULATORS_JUNCTION_CORPUS,
-                                           # EMULATORS_JUNCTION_WEBHOOK_URL / _SECRET / _SCOPE
+bun run mock:serve                         # env-configured `serve`: HOST, PORT, EMULATES_JUNCTION_CORPUS,
+                                           # EMULATES_JUNCTION_WEBHOOK_URL / _SECRET / _SCOPE
 bun run corpus:record -- --force           # re-record the shipped corpus/sandbox-sealed.json (JUNCTION_API_KEY)
-bun run verify -- --real-key "$KEY"        # `emulators-junction verify` from source
+bun run verify -- --real-key "$KEY"        # `emulates-junction verify` from source
 ```
 
 Live parity (primary proof is seedParity: warmup N on the sandbox, `seedFrom`, then lockstep M):

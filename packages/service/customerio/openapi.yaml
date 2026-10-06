@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Customer.io CDP + App API (Emulators subset)
+  title: Customer.io CDP + App API (Emulates subset)
   description: |
     Stateful mock subset of Customer.io: the Segment-compatible CDP ingestion endpoints
     (`identify`, `track`, `batch`, as `@customerio/cdp-analytics-node` posts them), the App API
@@ -9,7 +9,7 @@ info:
     serves all three hosts (`cdp.customer.io`, `api.customer.io`, the tracking domain); their
     paths do not collide.
   version: "1"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Hand-authored from Customer.io's CDP (Segment spec) and App API reference, trimmed to
       what our consumer sends: customer-io.client.service.ts / notification-adapter.ts /
@@ -25,7 +25,7 @@ paths:
       operationId: CdpIdentify
       security:
         - cdpWriteKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -60,7 +60,7 @@ paths:
       operationId: CdpTrack
       security:
         - cdpWriteKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -96,7 +96,7 @@ paths:
       description: "What `@customerio/cdp-analytics-node` posts: `{batch: [...]}`."
       security:
         - cdpWriteKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -144,7 +144,7 @@ paths:
       operationId: SendEmail
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -169,7 +169,7 @@ paths:
       operationId: SendSms
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -194,7 +194,7 @@ paths:
       operationId: SendInboxMessage
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -219,7 +219,7 @@ paths:
       operationId: ListTransactionalMessages
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -246,14 +246,14 @@ paths:
         required: true
         schema:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: transactional_message
             missing: "999999"
     get:
       operationId: GetTransactionalMessage
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -295,7 +295,7 @@ paths:
         (`id` by default, or `email`, or `cio_id`).
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -319,7 +319,7 @@ paths:
       description: Sender-specific SMS and WhatsApp opt-outs, paginated by an opaque start cursor.
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity: { enabled: true, safe: true }
       parameters:
@@ -361,7 +361,7 @@ paths:
       description: Sender opt-outs for an existing person; marketing preferences are separate.
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity: { enabled: true, safe: true }
       parameters:
@@ -396,7 +396,7 @@ paths:
           type: string
           minLength: 1
           maxLength: 80
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: delivery
             missing: missingdelivery00000000000000
     get:
@@ -406,7 +406,7 @@ paths:
         mock's visibility delay, are 404. The body never includes `message_data`.
       security:
         - appApiKey: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -436,7 +436,7 @@ paths:
         Link-tracking click report on the tracking domain (our backend posts it when a smart
         link opens the app directly). Unauthenticated.
       security: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -454,7 +454,7 @@ paths:
       operationId: FollowClick
       description: A browser following a tracked link; redirects to the original URL.
       security: []
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -489,14 +489,14 @@ components:
             properties:
               delivery_id:
                 type: string
-                x-emulators-resource:
+                x-emulates-resource:
                   type: delivery
                   identity: true
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: id
               queued_at:
                 type: integer
-                x-emulators-volatile:
+                x-emulates-volatile:
                   kind: timestamp
     AppError:
       description: An App API error
@@ -705,7 +705,7 @@ components:
           type: string
         trigger_name:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: transactional_message
             identity: true
         description:
@@ -762,10 +762,10 @@ components:
           properties:
             id:
               type: string
-              x-emulators-resource:
+              x-emulates-resource:
                 type: delivery
                 identity: true
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: id
             type:
               type: string
@@ -775,7 +775,7 @@ components:
               type: ["string", "null"]
             created:
               type: integer
-              x-emulators-volatile:
+              x-emulates-volatile:
                 kind: timestamp
             state:
               type: string

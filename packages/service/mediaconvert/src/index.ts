@@ -4,8 +4,8 @@ import {
   putObject,
   type S3Target,
   sigV4AccessKeyId,
-} from "@emulators/service"
-import { clearNamespace } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import { clearNamespace } from "@emulates/sqlite-client"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
   type MediaConvertJob,
@@ -161,7 +161,7 @@ export class MediaConvertAPI {
         const base =
           output.type === "HLS_GROUP" && name.endsWith(".m3u8")
             ? "#EXTM3U\n#EXT-X-VERSION:3\n#EXTINF:1.000,\nsegment-00001.ts\n#EXT-X-ENDLIST\n"
-            : `emulators-mediaconvert:${job.id}:${groupIndex}:${name}`
+            : `emulates-mediaconvert:${job.id}:${groupIndex}:${name}`
         const requested = Math.max(0, options.size ?? encoder.encode(base).length)
         const bytes = encoder.encode(base.padEnd(requested, "0").slice(0, requested))
         await putObject(
@@ -197,7 +197,7 @@ export class MediaConvertAPI {
       ...(status === "ERROR"
         ? {
             errorCode: options.errorCode ?? 1040,
-            errorMessage: options.errorMessage ?? "Emulators injected transcoding failure",
+            errorMessage: options.errorMessage ?? "Emulates injected transcoding failure",
           }
         : {}),
     }

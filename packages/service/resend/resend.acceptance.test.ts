@@ -229,7 +229,7 @@ describe("S9.4 inbound: the signed email.received webhook through our receiver",
     const { resend } = await sharedStack()
     await fetch(`${resend.url}/__admin/webhook-endpoints`, {
       method: "PUT",
-      headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
+      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
       body: JSON.stringify({ endpoints: [{ url, secret: WEBHOOK_SECRET }] }),
     })
   }

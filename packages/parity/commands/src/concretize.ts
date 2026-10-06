@@ -1,4 +1,4 @@
-import { encodeBody, encodeFormPairs } from "@emulators/http-codec"
+import { encodeBody, encodeFormPairs } from "@emulates/http-codec"
 import {
   defaultMissingId,
   type Placeholder,
@@ -6,12 +6,12 @@ import {
   type ResourceTable,
   resolvePlaceholders,
   type Side,
-} from "@emulators/model"
-import { expandPathTemplate, type HttpMethod } from "@emulators/openapi"
+} from "@emulates/model"
+import { expandPathTemplate, type HttpMethod } from "@emulates/openapi"
 import type { LogicalCommand } from "./command.js"
 import type { OperationPlan } from "./plan.js"
 
-/** Run-scoped values substituted for `x-emulators-scope` placeholders. */
+/** Run-scoped values substituted for `x-emulates-scope` placeholders. */
 export type Scope = {
   runId: string
   /** Seconds since epoch at the start of the current walk. */

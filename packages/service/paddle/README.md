@@ -1,6 +1,6 @@
-# @emulators/paddle
+# @emulates/paddle
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Paddle Billing** API for test suites. Customers, addresses, businesses,
 products and prices behave as Paddle's do (validation, `invalid_field` errors, `include=`,
@@ -18,11 +18,11 @@ official SDK's `paddle.webhooks.unmarshal` verifies.
 ## Install
 
 ```bash
-npm install -D @emulators/paddle
+npm install -D @emulates/paddle
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulators-paddle serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulates-paddle serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -32,7 +32,7 @@ the emulator by passing the emulator's URL as the environment. Give the app the 
 secret as `--webhook-secret`.
 
 ```bash
-npx emulators-paddle serve --port 8795 --fixtures \
+npx emulates-paddle serve --port 8795 --fixtures \
   --webhook-url http://127.0.0.1:3000/webhooks/paddle \
   --webhook-secret "$PADDLE_WEBHOOK_SECRET" \
   --payment-link https://pay.example.com/checkout
@@ -40,7 +40,7 @@ PADDLE_API_BASE_URL=http://127.0.0.1:8795 node app.js
 ```
 
 ```js
-import { createServer } from "@emulators/paddle/server"
+import { createServer } from "@emulates/paddle/server"
 import { Paddle } from "@paddle/paddle-node-sdk"
 
 const mock = await createServer({ paymentLink: "https://pay.example.com/checkout" })
@@ -74,7 +74,7 @@ await mock.close()
 Without the SDK, the same over HTTP:
 
 ```ts
-import { createServer } from "@emulators/paddle/server"
+import { createServer } from "@emulates/paddle/server"
 
 const mock = await createServer({ fixtures: true })
 const headers = { authorization: "Bearer pdl_sdbx_apikey_test", "content-type": "application/json" }
@@ -183,7 +183,7 @@ answers 500 `internal_error`), `bad_gateway_html` (reads answer a 502 HTML page)
 
 `new Paddle(key)` cannot add a namespace header on its own (it can with `customHeaders`), so
 map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_API_KEY>":
-"<namespace>"}}`. Also `x-emulators-namespace`, or a `/__admin/ns/<name>` prefix on the base URL
+"<namespace>"}}`. Also `x-emulates-namespace`, or a `/__admin/ns/<name>` prefix on the base URL
 (`meta.pagination.next` keeps it).
 
 ### Deliberately not modelled

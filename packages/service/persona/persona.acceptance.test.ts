@@ -431,10 +431,10 @@ describe("contract", () => {
           data: unknown[]
         }
       ).data.length
-    expect((await create(`${MOCK}/inquiries`, { "x-emulators-namespace": "h" })).status).toBe(201)
+    expect((await create(`${MOCK}/inquiries`, { "x-emulates-namespace": "h" })).status).toBe(201)
     expect((await create(`${MOCK}/__admin/ns/p/inquiries`)).status).toBe(201)
     expect((await create(`${MOCK}/__admin/ns/p/inquiries`)).status).toBe(201)
-    expect(await list(`${MOCK}/inquiries`, { "x-emulators-namespace": "h" })).toBe(1)
+    expect(await list(`${MOCK}/inquiries`, { "x-emulates-namespace": "h" })).toBe(1)
     expect(await list(`${MOCK}/__admin/ns/p/inquiries`)).toBe(2)
     expect(await list(`${MOCK}/inquiries`)).toBe(0)
     await runtime.fetch(new Request(`${MOCK}/__admin/reset?namespace=p`, { method: "POST" }))
@@ -488,7 +488,7 @@ describe("served over HTTP", () => {
         [200, "pending"],
       ])
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulators")).toMatch(/^persona@/)
+      expect(health.headers.get("x-emulates")).toMatch(/^persona@/)
     } finally {
       await server.close()
       sink.stop(true)

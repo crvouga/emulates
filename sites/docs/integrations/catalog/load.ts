@@ -52,7 +52,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
     }))
     .filter((p) => existsSync(p.file))
     .map((p) => ({ ...p, pkg: readJson(p.file) }))
-    .filter((p) => p.pkg.private !== true && p.pkg.emulators?.layer === "service")
+    .filter((p) => p.pkg.private !== true && p.pkg.emulates?.layer === "service")
   const repo = repositoryUrl(packages[0]?.pkg)
   const brandsFile = join(docsRoot, BRANDS)
   const brands: Record<string, Brand> = existsSync(brandsFile) ? readJson(brandsFile) : {}
@@ -64,7 +64,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
   const loaded = await mapLimited(
     packages.map(({ name, dir, pkg }) => async (): Promise<Service | null> => {
       const where = `packages/service/${name}/package.json`
-      const meta = pkg.emulators ?? {}
+      const meta = pkg.emulates ?? {}
       if (!isCategory(meta.category ?? "")) {
         problems.push(
           `${where}: "emulators.category" must be one of ${Object.keys(CATEGORIES).join(", ")} (got ${JSON.stringify(meta.category)})`,
@@ -183,7 +183,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
         packageName: pkg.name,
         displayName: meta.displayName,
         description: pkg.description ?? "",
-        keywords: (pkg.keywords ?? []).filter((k: string) => k !== "emulators" && k !== "service"),
+        keywords: (pkg.keywords ?? []).filter((k: string) => k !== "emulates" && k !== "service"),
         category: meta.category,
         parity,
         kind,
@@ -199,7 +199,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
         origin,
         contract: {
           title: document?.info?.title ?? null,
-          upstream: document?.info?.["x-emulators-upstream"]?.note ?? null,
+          upstream: document?.info?.["x-emulates-upstream"]?.note ?? null,
         },
         links: {
           npm: `https://www.npmjs.com/package/${pkg.name}`,

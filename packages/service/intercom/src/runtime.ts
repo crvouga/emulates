@@ -12,8 +12,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { INTERCOM_NAMESPACE, IntercomAPI, IntercomError } from "./index.js"
 import { toHtml } from "./query.js"
@@ -268,7 +268,7 @@ const adminRoutes = (runtime: ServiceRuntime<IntercomAPI>): AdminRoutes => {
 }
 
 /**
- * The Intercom emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Intercom emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by access token
  * (`PUT /__admin/credentials {"credentials": {"<INTERCOM_ACCESS_TOKEN>": "<namespace>"}}`),
  * clock control, fault presets, `X-Hub-Signature`-signed webhooks and a request journal

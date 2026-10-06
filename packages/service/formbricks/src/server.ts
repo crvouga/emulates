@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type FormbricksRuntime, type FormbricksRuntimeOptions } from "./runtime.js"
 import { DEFAULT_SETTINGS } from "./state.js"
 
-/** Port `emulators-formbricks serve` listens on when none is given. */
+/** Port `emulates-formbricks serve` listens on when none is given. */
 export const DEFAULT_PORT = 8813
 
 export type FormbricksServerOptions = FormbricksRuntimeOptions & {
@@ -79,6 +79,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     `point the SDK's appUrl at this url; workspace ${DEFAULT_SETTINGS.workspaces[0]} (legacy environment ${Object.keys(DEFAULT_SETTINGS.legacyEnvironmentIds)[0]}) serves the survey corpus`,
-    "management API: x-api-key <any>; namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<workspace id | api key>: <ns>}",
+    "management API: x-api-key <any>; namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<workspace id | api key>: <ns>}",
   ],
 }

@@ -10,8 +10,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, MEDIACONVERT_NAMESPACE, MediaConvertAPI } from "./index.js"
 import type { MediaConvertJobStatus } from "./state.js"

@@ -3,8 +3,8 @@ import {
   type FaultPreset,
   type ServiceRuntime,
   createRuntime as serviceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { OAUTH_SCENARIOS } from "./behavior.js"
 import { document } from "./generated/openapi.js"
 import { OAuthAPI, type OAuthAPIOptions } from "./index.js"

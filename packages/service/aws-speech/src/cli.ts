@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /// <reference types="node" />
-import { type CliCommand, type CliValues, runCli, serveCommand } from "@emulators/adapter-node"
-import type { RequestLog } from "@emulators/service"
-import { resolveAdminPrefix } from "@emulators/service"
+import { type CliCommand, type CliValues, runCli, serveCommand } from "@emulates/adapter-node"
+import type { RequestLog } from "@emulates/service"
+import { resolveAdminPrefix } from "@emulates/service"
 import { listenH2c } from "./h2c.js"
 import { serveTarget } from "./server.js"
 
@@ -38,9 +38,9 @@ const serve: CliCommand = {
       return 2
     }
     const adminPrefix = resolveAdminPrefix(
-      text(values["admin-prefix"]) ?? process.env.EMULATORS_ADMIN_PREFIX,
+      text(values["admin-prefix"]) ?? process.env.EMULATES_ADMIN_PREFIX,
     )
-    const adminKey = text(values["admin-key"]) ?? process.env.EMULATORS_ADMIN_KEY
+    const adminKey = text(values["admin-key"]) ?? process.env.EMULATES_ADMIN_KEY
     const seed = text(values.seed)
     const port = text(values.port)
     try {
@@ -57,7 +57,7 @@ const serve: CliCommand = {
       console.log(`aws-speech emulator listening on ${listening.url} (h2c + HTTP/1.1)`)
       console.log(`aws-speech health: GET ${listening.url}${adminPrefix}/health`)
       console.log(
-        `aws-speech admin: ${listening.url}${adminPrefix} (${adminKey ? "x-emulators-admin-key required" : "open — pass --admin-key to lock"})`,
+        `aws-speech admin: ${listening.url}${adminPrefix} (${adminKey ? "x-emulates-admin-key required" : "open — pass --admin-key to lock"})`,
       )
       console.log(`aws-speech admin ui: ${listening.url}${adminPrefix}/ui`)
       for (const line of serveTarget.banner?.(runtime) ?? [])
@@ -79,7 +79,7 @@ const serve: CliCommand = {
 
 const code = await runCli(
   {
-    bin: "emulators-aws-speech",
+    bin: "emulates-aws-speech",
     description: "AWS Polly + Transcribe (streaming and batch) emulator",
     commands: { serve },
   },

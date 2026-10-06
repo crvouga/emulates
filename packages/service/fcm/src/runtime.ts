@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { rpcBody } from "./errors.js"
 import { document, FCM_NAMESPACE, FcmAPI, type FcmAPIOptions, type OutboxQuery } from "./index.js"
 import {

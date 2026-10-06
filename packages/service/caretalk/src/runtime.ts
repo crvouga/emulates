@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { FullFormDto } from "./forms.js"
 import { document } from "./generated/openapi.js"
 import { CARETALK_NAMESPACE, CareTalkAPI, tokenCredential } from "./index.js"
@@ -181,7 +181,7 @@ const adminRoutes = (runtime: ServiceRuntime<CareTalkAPI>): AdminRoutes => ({
 })
 
 /**
- * The CareTalk emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The CareTalk emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by credential (the API user a token
  * was issued to, or a static API key), clock control, fault presets and a request journal.
  */

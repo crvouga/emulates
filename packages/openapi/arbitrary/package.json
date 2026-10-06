@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/openapi-arbitrary",
+  "name": "@emulates/openapi-arbitrary",
   "version": "0.0.0-development",
   "private": true,
   "description": "OpenAPI / JSON Schema to fast-check arbitraries: boundary-weighted valid values and single-violation invalid values.",
@@ -23,12 +23,12 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/openapi/arbitrary#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "openapi",
     "json-schema",
     "fast-check"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "layer": "openapi-arbitrary"
   },
@@ -41,10 +41,10 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/openapi": "workspace:*",
+    "@emulates/openapi": "workspace:*",
     "fast-check": "4.9.0"
   },
   "devDependencies": {
-    "@emulators/testing": "workspace:*"
+    "@emulates/testing": "workspace:*"
   }
 }

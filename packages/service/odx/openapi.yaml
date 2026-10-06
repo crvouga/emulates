@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Optimal DX partner API (Emulators subset)
+  title: Optimal DX partner API (Emulates subset)
   description: |
     Stateful mock of the Optimal DX (ODX) partner API our backend calls: partner labs and their
     biomarker elements, practice patients (create, update, delete, partner link, search), lab
@@ -9,7 +9,7 @@ info:
     ODX publishes no spec; the contract is hand-authored from our consumer's wire shapes. The
     vendor was retired 2026-07-22 but queue paths still call it while the consumer app's PDF flag (`acme-pdf-enabled`) is off.
   version: "1"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Hand-authored from optimal.dx.service.ts / optimal.dx.types.ts, the webhook guard and DTO
       (odx-signature.guard.ts, odx-webhook-data.dto.ts) and the QA harness (packages/qa odx-client.ts).
@@ -25,7 +25,7 @@ paths:
   /v1/partner/labs:
     get:
       operationId: ListPartnerLabs
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -51,7 +51,7 @@ paths:
           enum: ["1", "2", "3", "999"]
     get:
       operationId: ListElements
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -74,7 +74,7 @@ paths:
       - $ref: "#/components/parameters/PracticeId"
     post:
       operationId: CreatePatient
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -102,7 +102,7 @@ paths:
       - $ref: "#/components/parameters/PatientId"
     put:
       operationId: UpdatePatient
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -129,7 +129,7 @@ paths:
     delete:
       operationId: DeletePatient
       description: Used by the QA harness teardown (via the send-odx-api-request dev tool).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -155,7 +155,7 @@ paths:
     post:
       operationId: LinkPartnerUser
       description: Our client posts the literal body `false`.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -203,7 +203,7 @@ paths:
     get:
       operationId: ListPatients
       description: All patients, or a search when any filter is given (404 when nothing matches).
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -227,7 +227,7 @@ paths:
       - $ref: "#/components/parameters/PatientId"
     post:
       operationId: CreateTestResults
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -258,7 +258,7 @@ paths:
     post:
       operationId: CreatePatientTest
       description: Import an HL7 v2 ORU^R01 message; OBX-3 codes map to elements by their elementReferences.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -295,7 +295,7 @@ paths:
           enum: ["700001", "700002", "999999"]
     put:
       operationId: UpdatePatientTest
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -325,7 +325,7 @@ paths:
       - $ref: "#/components/parameters/PatientId"
     get:
       operationId: ListPatientTests
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -347,7 +347,7 @@ paths:
     post:
       operationId: GenerateFunctionalHealthReport
       description: "`outputType: Json` answers the report as JSON; `Pdf` answers application/pdf bytes."
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -379,7 +379,7 @@ paths:
     get:
       operationId: ListWebhooks
       description: Our webhook guard calls this on every inbound webhook to fetch the signing key.
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -398,7 +398,7 @@ paths:
   /v1/webhook:
     post:
       operationId: RegisterWebhook
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -431,7 +431,7 @@ paths:
           enum: ["1", "2", "999999"]
     put:
       operationId: UpdateWebhook
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -601,11 +601,11 @@ components:
           type: string
         createdDate:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         lastUpdatedDate:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         userTitle:
           type: ["string", "null"]
@@ -782,11 +782,11 @@ components:
           type: string
         createdDate:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         lastUpdatedDate:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         userId:
           type: ["string", "null"]
@@ -936,11 +936,11 @@ components:
           type: integer
         signingKey:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: token
         createDate:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         entityEvents:
           type: object

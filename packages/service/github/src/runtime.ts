@@ -3,7 +3,7 @@ import {
   jsonRes,
   type RuntimeOptions,
   type ServiceRuntime,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document } from "./generated/openapi.js"
 import { GITHUB_NAMESPACE, GitHubAPI } from "./index.js"
 import { presets } from "./presets.js"
@@ -94,7 +94,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
       ? /^([^/]+)(?:\/|$)/.exec(source.pathname.slice(`${adminPrefix}/ns/`.length))
       : null
     const namespace =
-      request.headers.get("x-emulators-namespace") ??
+      request.headers.get("x-emulates-namespace") ??
       (prefix?.[1] ? decodeURIComponent(prefix[1]) : undefined)
     if (!namespace) return response
     response.headers.set(

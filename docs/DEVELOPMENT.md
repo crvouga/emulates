@@ -1,4 +1,4 @@
-# Developing Emulators
+# Developing Emulates
 
 Working on this repo: requirements, how the packages are layered, and the quality gates every change passes.
 
@@ -17,15 +17,15 @@ That is the whole onboarding: no secrets, no accounts, nothing self-hosted. `bun
 
 ## Packages
 
-**Naming (hard rule):** every package is `@emulators/<kebab-case>`, and the short names below drop the scope. A published service is `@emulators/<id>`, where `<id>` is its directory under `packages/service/` (`packages/service/stripe` is `@emulators/stripe`); `packageName(id)` in [`project.ts`](../project.ts) derives it. `bun run check:boundaries` fails CI on any other name.
+**Naming (hard rule):** every package is `@emulates/<kebab-case>`, and the short names below drop the scope. A published service is `@emulates/<id>`, where `<id>` is its directory under `packages/service/` (`packages/service/stripe` is `@emulates/stripe`); `packageName(id)` in [`project.ts`](../project.ts) derives it. `bun run check:boundaries` fails CI on any other name.
 
-**Publishing (hard rule):** only the emulator services (`@emulators/<id>`) are published. Every other package is `"private": true`; a service that uses them builds with [`scripts/bundle-service.ts`](../scripts/bundle-service.ts), which inlines them (JavaScript and `.d.ts`) so the tarball needs nothing unpublished. `bun run check:boundaries` fails CI on a public non-service package.
+**Publishing (hard rule):** only the emulator services (`@emulates/<id>`) are published. Every other package is `"private": true`; a service that uses them builds with [`scripts/bundle-service.ts`](../scripts/bundle-service.ts), which inlines them (JavaScript and `.d.ts`) so the tarball needs nothing unpublished. `bun run check:boundaries` fails CI on a public non-service package.
 
 | Layer | Packages | Published |
 | --- | --- | --- |
-| Services | `stripe`, `junction`, `genebygene`, `medplum`, `postgres`, `sqlite`, and every other emulator in the [catalog](https://emulators.chrisvouga.dev/services) | yes |
+| Services | `stripe`, `junction`, `genebygene`, `medplum`, `postgres`, `sqlite`, and every other emulator in the [catalog](https://emulates.chrisvouga.dev/services) | yes |
 | Core | `core` (`FetchAPI`), `service` (Hono dispatch keyed by `operationId`) | bundled |
-| Storage | `sqlite-client` (`SqliteClient` port, migrate runner, default `@emulators/sqlite`) | bundled |
+| Storage | `sqlite-client` (`SqliteClient` port, migrate runner, default `@emulates/sqlite`) | bundled |
 | Contract | `openapi`, `openapi-metadata`, `openapi-arbitrary`, `openapi-codegen` | bundled / build tool |
 | Parity | `commands`, `model`, `canonicalize`, `parity` (runner) | bundled / tests |
 | Adapters | `adapter-node`, `adapter-bun` | tests only |
@@ -51,7 +51,7 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | --- | --- | --- |
 | Format | `bun run check:format` | [Biome](https://biomejs.dev) formatting |
 | Lint | `bun run lint` | Biome lint (types, style, complexity) |
-| Typecheck | `bun run typecheck` | `tsc` for every package. `@emulators/service-conformance` proves each HTTP emulator's `createRuntime` accepts `{ sqlite?, clock?, seed?, adminKey? }` and returns the shared `MockSurface` |
+| Typecheck | `bun run typecheck` | `tsc` for every package. `@emulates/service-conformance` proves each HTTP emulator's `createRuntime` accepts `{ sqlite?, clock?, seed?, adminKey? }` and returns the shared `MockSurface` |
 | Boundaries | `bun run check:boundaries` | Intra-workspace dep graph plus the state architecture: internal deps resolve, no cycles or self-deps, imports are declared, published dependency rules hold, and providers cannot bypass or reimplement the shared Timeline history coordinator |
 | Package integrity | `bun run pack:check` | `dist` + `exports` + `files`, tarball contents, [publint](https://publint.dev), [arethetypeswrong](https://arethetypeswrong.github.io) (ESM-only consumer resolution) |
 | Portability | `bun run portability` | Every emulator's published entry runs in Node, Bun, browsers, and Workers. The check fails when that entry uses a Node- or Bun-only API. A `./server` or CLI entry may use Node |
@@ -61,7 +61,7 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | Consumer smoke | `bun run release:smoke` | Packs every public package like the release, `npm install`s the tarballs into a clean project, imports every entry point under Node, and typechecks them plus every README TypeScript example |
 | llms.txt | `bun run check:llms` | [`llms.txt`](../llms.txt) lists every published emulator with the parity it declares (`bun run llms:sync` regenerates) |
 | README | `bun run check:readme` | [`README.md`](../README.md) is the overview, generated from `sites/docs/src/lib/content.ts` and these guides (`bun run readme:sync` regenerates). The catalog of emulators stays on the docs site. Never edit the README by hand |
-| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `emulators.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links). The site serves the same record at `/brands.json`; admin shells fetch `https://emulators.chrisvouga.dev/brands.json` instead of embedding it |
+| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `emulators.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links). The site serves the same record at `/brands.json`; admin shells fetch `https://emulates.chrisvouga.dev/brands.json` instead of embedding it |
 | Docs site | `bun run docs:build` (part of `build`) | [`sites/docs`](../sites/docs) renders the same sources, sends every playground sample to a fresh emulator, runs the quick start and SQL snippets, and fails on missing or stale service metadata |
 | Agent commands | `bun run check:agents` | Every `.agents/commands/*.md` is symlinked into each agent harness (`bun run agents:sync` repairs) |
 | Parity tiers | `bun run check:parity-tiers` | Every service's `emulators.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
@@ -143,7 +143,7 @@ Published services use `publishConfig.access = "public"` and `publishConfig.prov
 The docs site (`sites/docs`) is hosted on the shared `crvouga/workspace` fleet as the service
 `mockingbird-docs` ([shared-infra contract §4](https://raw.githubusercontent.com/crvouga/workspace/main/llms.txt)).
 The fleet service id predates the rename and stays `mockingbird-docs` until `crvouga/workspace`
-renames it to `emulators-docs` (requested there); the service entry and
+renames it to `emulates-docs` (requested there); the service entry and
 [`.github/workflows/publish.yml`](../.github/workflows/publish.yml) are managed from that repo with
 OpenTofu, so neither is renamed here.
 [`sites/docs/Dockerfile`](../sites/docs/Dockerfile) builds the static Astro site and serves it
@@ -152,4 +152,4 @@ package. On every push to `main`, `publish.yml` calls the workspace's reusable w
 pushes `ghcr.io/crvouga/chrisvouga-mockingbird-docs:<sha>`,
 and then `crvouga/workspace` deploys that exact image and health-checks it. Railway never builds this repo.
 
-To check the image locally (`emulators-docs` is only a local tag), run `docker build -f sites/docs/Dockerfile -t emulators-docs . && docker run --rm -p 8080:80 emulators-docs`.
+To check the image locally (`emulates-docs` is only a local tag), run `docker build -f sites/docs/Dockerfile -t emulates-docs . && docker run --rm -p 8080:80 emulates-docs`.

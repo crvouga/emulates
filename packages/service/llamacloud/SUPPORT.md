@@ -1,4 +1,4 @@
-# LlamaCloud platform API (Emulators subset) — operation support
+# LlamaCloud platform API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

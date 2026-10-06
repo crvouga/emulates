@@ -11,7 +11,7 @@ import {
   awsRecord,
   awsRequired,
   awsXml,
-} from "@emulators/service"
+} from "@emulates/service"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 
 export type { Runtime, RuntimeOptions } from "./runtime.js"

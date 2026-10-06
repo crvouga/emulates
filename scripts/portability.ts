@@ -38,11 +38,11 @@ const pkg = JSON.parse(await Bun.file(pkgPath).text()) as {
   name?: string
   exports?: Record<string, string | { default?: string; import?: string }>
   bin?: string | Record<string, string>
-  emulators?: { runtime?: string; entries?: Record<string, string>; layer?: string }
+  emulates?: { runtime?: string; entries?: Record<string, string>; layer?: string }
 }
 
 const name = pkg.name || "(unnamed)"
-const runtime = pkg.emulators?.runtime ?? "portable"
+const runtime = pkg.emulates?.runtime ?? "portable"
 
 if (!["portable", "node", "bun"].includes(runtime)) {
   fail(
@@ -50,7 +50,7 @@ if (!["portable", "node", "bun"].includes(runtime)) {
   )
 }
 
-if (pkg.emulators?.layer === "service" && runtime !== "portable") {
+if (pkg.emulates?.layer === "service" && runtime !== "portable") {
   fail(
     `${name}: service emulators are isomorphic, so emulators.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
   )
@@ -92,7 +92,7 @@ if (!existsSync(distDir)) {
   fail(`${name}: no dist/ — build first (bun run build) so portability can be checked`)
 }
 
-for (const [entry, claim] of Object.entries(pkg.emulators?.entries ?? {})) {
+for (const [entry, claim] of Object.entries(pkg.emulates?.entries ?? {})) {
   if (!["portable", "node", "bun"].includes(claim)) {
     fail(`${name}: emulators.entries.${entry} must be portable | node | bun (got ${claim})`)
   }
@@ -112,7 +112,7 @@ function checkEntry(rel: string, text: string, runtimes: Set<string>): void {
   }
 }
 
-const entryRuntimes = pkg.emulators?.entries ?? {}
+const entryRuntimes = pkg.emulates?.entries ?? {}
 console.log(
   `portability: ${name} (runtime=${runtime}${
     Object.keys(entryRuntimes).length > 0

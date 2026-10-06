@@ -1,5 +1,5 @@
 {
-  "name": "@emulators/openai",
+  "name": "@emulates/openai",
   "version": "0.0.0-development",
   "description": "Local scripted OpenAI emulator: chat/tool loops, SSE, embeddings, models, files and staged uploads without billed inference.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulators-openai": "./dist/cli.js"
+    "emulates-openai": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -39,13 +39,13 @@
   },
   "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/openai#readme",
   "keywords": [
-    "emulators",
+    "emulates",
     "service",
     "openai",
     "ai",
     "testing"
   ],
-  "emulators": {
+  "emulates": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -105,25 +105,25 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulators/sqlite": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
     "hono": "4.11.9",
     "@noble/hashes": "2.4.0",
     "@noble/ciphers": "2.4.0"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulators/testing": "workspace:*",
-    "@emulators/sqlite": "workspace:*",
-    "@emulators/parity": "workspace:*",
-    "@emulators/credentials": "workspace:*",
-    "@emulators/openapi-codegen": "workspace:*",
-    "@emulators/openapi-metadata": "workspace:*",
-    "@emulators/core": "workspace:*",
-    "@emulators/sqlite-client": "workspace:*",
-    "@emulators/openapi": "workspace:*",
-    "@emulators/service": "workspace:*",
-    "@emulators/http-codec": "workspace:*",
-    "@emulators/adapter-node": "workspace:*",
+    "@emulates/testing": "workspace:*",
+    "@emulates/sqlite": "workspace:*",
+    "@emulates/parity": "workspace:*",
+    "@emulates/credentials": "workspace:*",
+    "@emulates/openapi-codegen": "workspace:*",
+    "@emulates/openapi-metadata": "workspace:*",
+    "@emulates/core": "workspace:*",
+    "@emulates/sqlite-client": "workspace:*",
+    "@emulates/openapi": "workspace:*",
+    "@emulates/service": "workspace:*",
+    "@emulates/http-codec": "workspace:*",
+    "@emulates/adapter-node": "workspace:*",
     "@ai-sdk/openai": "4.0.83",
     "ai": "7.0.127",
     "openai": "7.27.0"

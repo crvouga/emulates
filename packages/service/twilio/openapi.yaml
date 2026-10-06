@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Twilio Verify, Lookup, Messaging and Recordings (Emulators subset)
+  title: Twilio Verify, Lookup, Messaging and Recordings (Emulates subset)
   description: |
     Stateful mock subset of Twilio, served on one port. Each product keeps its own host upstream
     (api.twilio.com, verify.twilio.com, lookups.twilio.com); the mock routes by that host carried
@@ -9,7 +9,7 @@ info:
     `{mock}/<product>/<path>`. Hand-authored from Twilio's published API reference, trimmed to
     what our consumer calls, and checked against live Lookup v2 responses.
   version: "2010-04-01"
-  x-emulators-upstream:
+  x-emulates-upstream:
     note: >-
       Trimmed from Twilio's public API reference (twilio-oai) to the operations our consumer
       calls (twilio.service.ts, twilio-conversation-sms.adapter.ts,
@@ -46,11 +46,11 @@ paths:
         description: Paid data packages (line_type_intelligence, caller_name, …); the mock answers null for every package.
         schema:
           type: string
-          x-emulators-unsupported:
+          x-emulates-unsupported:
             reason: Data packages cost money upstream and our consumer never requests them.
     get:
       operationId: FetchPhoneNumber
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -73,7 +73,7 @@ paths:
       - $ref: "#/components/parameters/ServiceSid"
     post:
       operationId: CreateVerification
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -140,12 +140,12 @@ paths:
         description: The verification sid (`VE…`).
         schema:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: verification
             missing: VE00000000000000000000000000000000
     get:
       operationId: FetchVerification
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -171,7 +171,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     post:
       operationId: UpdateVerification
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -217,7 +217,7 @@ paths:
       - $ref: "#/components/parameters/ServiceSid"
     post:
       operationId: CreateVerificationCheck
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -240,7 +240,7 @@ paths:
                   examples: ["+12025550123", "+13105550142"]
                 VerificationSid:
                   type: string
-                  x-emulators-resource-ref:
+                  x-emulates-resource-ref:
                     type: verification
                     missing: VE00000000000000000000000000000000
       responses:
@@ -279,7 +279,7 @@ paths:
       - $ref: "#/components/parameters/AccountSid"
     get:
       operationId: ListMessages
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -331,19 +331,19 @@ paths:
                     type: integer
                   uri:
                     type: string
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: url
                   first_page_uri:
                     type: string
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: url
                   next_page_uri:
                     type: ["string", "null"]
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: url
                   previous_page_uri:
                     type: ["string", "null"]
-                    x-emulators-volatile:
+                    x-emulates-volatile:
                       kind: url
         "400":
           description: Request rejected
@@ -377,7 +377,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     post:
       operationId: CreateMessage
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -443,12 +443,12 @@ paths:
         required: true
         schema:
           type: string
-          x-emulators-resource-ref:
+          x-emulates-resource-ref:
             type: message
             missing: SM00000000000000000000000000000000
     get:
       operationId: FetchMessage
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -485,7 +485,7 @@ paths:
           enum: [1, 2]
     get:
       operationId: FetchRecordingMedia
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -516,7 +516,7 @@ paths:
       - $ref: "#/components/parameters/RecordingSid"
     get:
       operationId: FetchRecording
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -542,7 +542,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     delete:
       operationId: DeleteRecording
-      x-emulators:
+      x-emulates:
         supported: true
         parity:
           enabled: true
@@ -593,7 +593,7 @@ components:
       description: The recording sid (`RE…`).
       schema:
         type: string
-        x-emulators-resource-ref:
+        x-emulates-resource-ref:
           type: recording
           missing: RE00000000000000000000000000000000
   schemas:
@@ -669,13 +669,13 @@ components:
       properties:
         attempt_sid:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         channel:
           type: string
         time:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
     Verification:
       type: object
@@ -683,10 +683,10 @@ components:
       properties:
         sid:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: verification
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         service_sid:
           type: string
@@ -715,15 +715,15 @@ components:
           type: ["object", "null"]
         date_created:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         date_updated:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         url:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: url
     VerificationCheck:
       type: object
@@ -731,7 +731,7 @@ components:
       properties:
         sid:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         service_sid:
           type: string
@@ -756,11 +756,11 @@ components:
             type: object
         date_created:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         date_updated:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
     Message:
       type: object
@@ -768,10 +768,10 @@ components:
       properties:
         sid:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: message
             identity: true
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: id
         account_sid:
           type: string
@@ -804,23 +804,23 @@ components:
           type: ["string", "null"]
         date_created:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         date_updated:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         date_sent:
           type: ["string", "null"]
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: timestamp
         uri:
           type: string
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: url
         subresource_uris:
           type: object
-          x-emulators-volatile:
+          x-emulates-volatile:
             kind: url
     Recording:
       type: object
@@ -828,7 +828,7 @@ components:
       properties:
         sid:
           type: string
-          x-emulators-resource:
+          x-emulates-resource:
             type: recording
             identity: true
         account_sid:

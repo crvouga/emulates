@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -15,8 +15,8 @@ import {
   opaqueToken,
   type Service,
   toBase64,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { type Food, type NutrientCode, RECIPE_URI, type RecipeSeed } from "./corpus.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
@@ -38,8 +38,8 @@ import {
 } from "./logic.js"
 import { EdamamState, type Settings } from "./state.js"
 
-export type { FetchAPI } from "@emulators/core"
-export type { SqliteClient } from "@emulators/sqlite-client"
+export type { FetchAPI } from "@emulates/core"
+export type { SqliteClient } from "@emulates/sqlite-client"
 export type { Food, Measure, NutrientCode, RecipeIngredient, RecipeSeed } from "./corpus.js"
 export {
   DEFAULT_FOODS,

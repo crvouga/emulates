@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Cloudflare Turnstile Siteverify
   version: v0
-  x-emulators-upstream:
+  x-emulates-upstream:
     url: https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
 servers:
   - url: https://challenges.cloudflare.com
@@ -33,7 +33,7 @@ paths:
                   hostname: { type: string }
                   action: { type: string }
                   cdata: { type: string }
-      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
 components:
   schemas:
     verification:

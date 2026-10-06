@@ -23,7 +23,7 @@ export function catalog(paths: CatalogPaths): AstroIntegration {
   }
 
   const plugin = {
-    name: "emulators-catalog",
+    name: "emulates-catalog",
     resolveId(id: string) {
       return id === CATALOG_ID || id === RUNTIMES_ID || id === EXAMPLES_ID ? `\0${id}` : undefined
     },
@@ -80,7 +80,7 @@ export function catalog(paths: CatalogPaths): AstroIntegration {
   }
 
   return {
-    name: "emulators-catalog",
+    name: "emulates-catalog",
     hooks: {
       "astro:config:setup": ({ updateConfig }) => {
         updateConfig({ vite: { plugins: [plugin] } })

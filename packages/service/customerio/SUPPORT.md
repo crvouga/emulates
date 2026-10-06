@@ -1,4 +1,4 @@
-# Customer.io CDP + App API (Emulators subset) — operation support
+# Customer.io CDP + App API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

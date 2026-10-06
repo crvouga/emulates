@@ -11,8 +11,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import {
   CUSTOMERIO_NAMESPACE,
@@ -370,7 +370,7 @@ const adminRoutes = (runtime: ServiceRuntime<CustomerIoAPI>): AdminRoutes => ({
 })
 
 /**
- * The Customer.io emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
+ * The Customer.io emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by key (the CDP write key or the App API
  * key: `PUT /__admin/credentials {"credentials": {"<key>": "<namespace>"}}`), clock control,
  * fault presets, the transactional outbox, and signed reporting webhooks.

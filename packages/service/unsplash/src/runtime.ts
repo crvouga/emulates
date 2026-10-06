@@ -4,8 +4,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { accessKey, type PhotoFixture, UNSPLASH_NAMESPACE, UnsplashAPI } from "./index.js"
 export const UNSPLASH_PRESETS: Record<string, FaultPreset> = {

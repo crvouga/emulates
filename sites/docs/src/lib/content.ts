@@ -42,7 +42,7 @@ export const EPIGRAPH = `> Part of [${IDENTITY.name}](${IDENTITY.home}): ${IDENT
  */
 export const RISK_DISCLAIMER = {
   enabled: false,
-  text: "**Use at your own risk.** Emulators is under active development — APIs, behavior and package names may change without notice.",
+  text: "**Use at your own risk.** Emulates is under active development — APIs, behavior and package names may change without notice.",
 }
 
 export const PITCH =
@@ -83,9 +83,9 @@ export const FEATURES = [
 
 /** Executed against the real package during the docs build: it must log a 2xx status first. */
 export const QUICK_START = {
-  package: "@emulators/stripe",
+  package: "@emulates/stripe",
   file: "stripe.test.ts",
-  code: `import { createRuntime } from "@emulators/stripe"
+  code: `import { createRuntime } from "@emulates/stripe"
 
 const stripe = createRuntime()
 
@@ -114,17 +114,17 @@ console.log((await list.json()).data[0].id === customer.id) // true`,
 
 export const CONTRACT = {
   intro:
-    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`EMULATORS_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.",
-  serve: `npx emulators-junction serve --port 8787                # one service
-npx emulators-junction serve --config emulators.json  # every service in the config`,
+    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`EMULATES_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.",
+  serve: `npx emulates-junction serve --port 8787                # one service
+npx emulates-junction serve --config emulates.json  # every service in the config`,
   rows: [
     [
-      "`createRuntime()` · `createServer()` (`./server`) · `emulators-<service> serve`",
+      "`createRuntime()` · `createServer()` (`./server`) · `emulates-<service> serve`",
       "The emulator as one runtime-neutral `fetch`, or a listening server from Node or the CLI",
     ],
     ["`GET /__admin/health`", "Unauthenticated readiness probe, outside the vendor's auth gate"],
     [
-      "`/__admin/*` (`x-emulators-admin-key` optional)",
+      "`/__admin/*` (`x-emulates-admin-key` optional)",
       "Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes",
     ],
     [
@@ -136,7 +136,7 @@ npx emulators-junction serve --config emulators.json  # every service in the con
       "The shared admin UI. An emulator can add panels or replace the document; the shell still reads the same state API. Its header fetches that service's logo, website, and docs from the docs site when the page opens",
     ],
     [
-      "`x-emulators-namespace`",
+      "`x-emulates-namespace`",
       "Per-request isolation: parallel workers share one process without sharing data",
     ],
     [
@@ -157,7 +157,7 @@ npx emulators-junction serve --config emulators.json  # every service in the con
   }
 }`,
   configNote:
-    "`emulators.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.",
+    "`emulates.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.",
 }
 
 export const AGENTS =

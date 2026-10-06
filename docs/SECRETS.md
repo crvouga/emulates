@@ -23,7 +23,7 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 ## Live parity
 
 Each service's `scripts/parity.ts` loads its sandbox credentials from the environment through
-[`@emulators/credentials`](../packages/auth/credentials). The env var names start
+[`@emulates/credentials`](../packages/auth/credentials). The env var names start
 with the service's name (`STRIPE_SECRET_KEY`, `JUNCTION_API_KEY`), and the GitHub Actions secret
 has the same name.
 
@@ -157,7 +157,7 @@ bun github:resolve-issues setup
 
 ## Releasing
 
-The emulator services (`@emulators/*`, the only published packages) are released
+The emulator services (`@emulates/*`, the only published packages) are released
 automatically on every green push to `main` (see [RELEASING.md](RELEASING.md)) and publish with
 **npm Trusted Publishing (OIDC)**, which needs no stored credential.
 

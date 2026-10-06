@@ -1,4 +1,4 @@
-# Amazon Polly + Amazon Transcribe (Emulators subset) — operation support
+# Amazon Polly + Amazon Transcribe (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { validateValue } from "@emulators/openapi"
+import { validateValue } from "@emulates/openapi"
 import cancelledTestkitObservation from "./scripts/cancelled-testkit-observation.json" with {
   type: "json",
 }

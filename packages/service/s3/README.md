@@ -1,13 +1,13 @@
-# @emulators/s3
+# @emulates/s3
 
-> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Amazon S3 emulator for AWS SDK v3. It preserves binary objects and the metadata applications read, supports path-style endpoints, multipart uploads, copies, ranges, pagination, presigned URLs, XML errors, namespace isolation, faults, and object notifications without contacting AWS.
 
 ## Install
 
 ```bash
-npm install -D @emulators/s3
+npm install -D @emulates/s3
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -17,7 +17,7 @@ ESM only. Node 22+ or Bun 1.2+.
 Point the SDK endpoint at the emulator and enable path-style addressing. Fixture credentials are validated for presigned requests; the default pair is `fixture` / `fixture`.
 
 ```ts
-import { createServer } from "@emulators/s3/server"
+import { createServer } from "@emulates/s3/server"
 
 const mock = await createServer()
 await fetch(`${mock.url}/fixtures`, { method: "PUT" })
@@ -37,7 +37,7 @@ Set an application's S3 endpoint environment variable to the server URL and its 
 - Advance the shared emulator clock through `/__admin/clock` to expire a presigned URL.
 - Object writes, copies, multipart completion, and deletes publish S3-shaped notifications. Configure HTTP sinks through runtime `webhooks` options or the shared webhook admin routes; delivery attempts and retries appear under `/__admin/webhooks`.
 
-The shared runtime also provides health, reset, journal, metrics, timeline, and fault routes. Select isolated state with `x-emulators-namespace`, `/__admin/ns/<name>`, or a SigV4 access-key mapping.
+The shared runtime also provides health, reset, journal, metrics, timeline, and fault routes. Select isolated state with `x-emulates-namespace`, `/__admin/ns/<name>`, or a SigV4 access-key mapping.
 
 ### Deliberately not modelled
 
@@ -47,7 +47,7 @@ Operations outside the surface listed above, object versioning, ACL/IAM policy e
 
 - `S3API`, `S3APIOptions`: Fetch handler and configuration.
 - `S3Notification`, `S3Object`, `S3SeedObject`: notification, state, and fixture types.
-- `createRuntime`, `S3Runtime`, `S3RuntimeOptions`: full Emulators runtime and webhook hub.
+- `createRuntime`, `S3Runtime`, `S3RuntimeOptions`: full Emulates runtime and webhook hub.
 - `S3_NAMESPACE`, `S3_PRESETS`, `accessKeyCredential`: constants and fault controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
 - `createServer`, `S3ServerOptions`, `DEFAULT_PORT`, `serveTarget` from `./server`: Node HTTP adapter and CLI integration.

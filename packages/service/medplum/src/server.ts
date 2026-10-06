@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type MedplumRuntime, type MedplumRuntimeOptions } from "./runtime.js"
 
-/** Port `emulators-medplum serve` listens on when none is given (Medplum's own default). */
+/** Port `emulates-medplum serve` listens on when none is given (Medplum's own default). */
 export const DEFAULT_PORT = 8103
 
 export type MedplumServerOptions = Omit<MedplumRuntimeOptions, "baseUrl"> & {
@@ -107,7 +107,7 @@ export const serveTarget: ServeTarget = {
       "routes: /fhir/R4/…, /oauth2/token, /auth/login, /auth/me, /admin/projects/…, /healthcheck",
       `client credentials: ${info.project?.clientId} / ${info.project?.clientSecret} (project ${info.project?.id})`,
       `super admin: ${info.superAdmin.email} / ${info.superAdmin.password}`,
-      "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<clientId>: <ns>}",
+      "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<clientId>: <ns>}",
     ]
   },
 }

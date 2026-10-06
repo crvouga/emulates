@@ -1,4 +1,4 @@
-import { DroppedConnectionError, jsonRes } from "@emulators/service"
+import { DroppedConnectionError, jsonRes } from "@emulates/service"
 import { booleanQuery } from "./observations.js"
 import { parseSignal, stopTimeout } from "./signals.js"
 import { DockerInputError, type DockerState, isRunning, record } from "./state.js"
@@ -30,7 +30,7 @@ export class DockerLifecycle {
   start(id: string, url: URL, accepted: (id: string) => void = () => {}): Response {
     for (const key of ["checkpoint", "checkpoint-dir", "detachKeys"])
       if (url.searchParams.get(key))
-        throw new DockerInputError(501, `Emulators: start ${key} is not implemented`)
+        throw new DockerInputError(501, `Emulates: start ${key} is not implemented`)
     const c = this.state.find(id)
     if (c.status === "paused")
       throw new DockerInputError(409, "cannot start a paused container, try unpause instead")
@@ -106,7 +106,7 @@ export class DockerLifecycle {
   ): Response | Promise<Response> {
     this.checkOpen(signal)
     if (booleanQuery(url, "link"))
-      throw new DockerInputError(501, "Emulators: link removal is not implemented")
+      throw new DockerInputError(501, "Emulates: link removal is not implemented")
     const c = this.state.find(id)
     if (c.removalPending || c.status === "removing")
       throw new DockerInputError(409, `removal of container ${id} is already in progress`)

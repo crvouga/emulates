@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
 import { createRuntime, type NotionRuntime, type NotionRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12127
 export type NotionServerOptions = NotionRuntimeOptions & { port?: number; host?: string }

@@ -1,10 +1,10 @@
-import type { FormValue } from "@emulators/http-codec"
+import type { FormValue } from "@emulates/http-codec"
 import {
   type OpenAPIDocument,
   resolveSchema,
   type SchemaObject,
   schemaTypes,
-} from "@emulators/openapi"
+} from "@emulates/openapi"
 
 /**
  * Why a form value did not fit its schema. `path` uses bracket notation (`shipping[address][line1]`)

@@ -34,13 +34,13 @@ const incomplete = (jwt: string) => ({
   headers: { authorization: `Bearer ${jwt}` },
 })
 
-describe("the Emulators service contract", () => {
-  test("/__admin/health, the x-emulators header, and /__admin lists the VPI routes", async () => {
+describe("the Emulates service contract", () => {
+  test("/__admin/health, the x-emulates header, and /__admin lists the VPI routes", async () => {
     const runtime = createRuntime()
     const health = await call(runtime, "/__admin/health")
     expect(health.status).toBe(200)
     expect(((await health.json()) as { service: string }).service).toBe("vpi")
-    expect(health.headers.get("x-emulators")).toMatch(/^vpi@.+; ns=default$/)
+    expect(health.headers.get("x-emulates")).toMatch(/^vpi@.+; ns=default$/)
     const index = await (await call(runtime, "/__admin")).text()
     for (const route of ["/prescriptions/:id/transition", "/patients", "/settings", "/catalog"]) {
       expect(index).toContain(route)
@@ -77,7 +77,7 @@ describe("the Emulators service contract", () => {
     const jwt = await login(runtime)
     const save = await call(runtime, "/__admin/patients", {
       body: { firstName: "Only", lastName: "InA", dateOfBirth: "1990-01-01" },
-      headers: { "x-emulators-namespace": "a" },
+      headers: { "x-emulates-namespace": "a" },
     })
     expect(save.status).toBe(201)
     const roster = async (prefix: string, headers: Record<string, string> = {}) =>
@@ -95,7 +95,7 @@ describe("the Emulators service contract", () => {
         ).json()) as { patients: unknown[] }
       ).patients.length
     expect(await roster("/__admin/ns/a")).toBe(2)
-    expect(await roster("", { "x-emulators-namespace": "a" })).toBe(2)
+    expect(await roster("", { "x-emulates-namespace": "a" })).toBe(2)
     expect(await roster("/__admin/ns/b")).toBe(1)
     expect(await roster("")).toBe(1)
     await call(runtime, "/__admin/reset?namespace=a", { method: "POST" })
@@ -133,7 +133,7 @@ describe("the Emulators service contract", () => {
     const jwt = await login(runtime)
     await call(runtime, "/__admin/faults", {
       body: { preset: "server_error" },
-      headers: { "x-emulators-namespace": "broken" },
+      headers: { "x-emulates-namespace": "broken" },
     })
     expect(
       (

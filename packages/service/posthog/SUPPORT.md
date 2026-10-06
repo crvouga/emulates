@@ -1,4 +1,4 @@
-# PostHog feature flags, capture and management API (Emulators subset) — operation support
+# PostHog feature flags, capture and management API (Emulates subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 

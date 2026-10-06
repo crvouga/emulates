@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { startFleet } from "@emulators/adapter-node"
+import { startFleet } from "@emulates/adapter-node"
 import { DelayedError, FlowProducer, Queue, QueueEvents, UnrecoverableError, Worker } from "bullmq"
 import { Redis as IORedis } from "ioredis"
 import { Redis as LegacyRedis } from "ioredis-5-9"

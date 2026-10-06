@@ -5,8 +5,8 @@ import {
   type RequestLog,
   type ServiceRuntime,
   createRuntime as serviceRuntime,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, COGNITO_NAMESPACE, CognitoAPI } from "./index.js"
 import type { CognitoSeedUser } from "./state.js"

@@ -13,7 +13,7 @@ LEFT JOIN pg_description d ON d.objoid = i.oid AND d.objsubid = 0
 WHERE i.relname LIKE 'autoidx_%' ORDER BY i.relname`;
 const indexedTable = ["CREATE TABLE t (id int)", "CREATE INDEX t_id_idx ON t (id)"];
 
-// regression: emulators-postgres-index-validity (#326)
+// regression: emulates-postgres-index-validity (#326)
 export const INDEX_RECONCILIATION_CASES: CatalogCase[] = [
   { id: "CAT-index-valid-01", kind: "parity", sql: invalid },
   {
@@ -53,7 +53,7 @@ export const INDEX_RECONCILIATION_CASES: CatalogCase[] = [
     sql: "CREATE INDEX CONCURRENTLY t_id_idx ON t (id)",
     messageTier: "A",
   },
-  // regression: emulators-postgres-index-definitions
+  // regression: emulates-postgres-index-definitions
   {
     id: "CAT-index-def-01",
     kind: "parity",
@@ -73,7 +73,7 @@ export const INDEX_RECONCILIATION_CASES: CatalogCase[] = [
     setup: indexedTable,
     sql: "SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' ORDER BY indexname",
   },
-  // regression: emulators-postgres-index-comments
+  // regression: emulates-postgres-index-comments
   {
     id: "CAT-index-comment-01",
     kind: "sequence",
@@ -89,7 +89,7 @@ export const INDEX_RECONCILIATION_CASES: CatalogCase[] = [
       { sql: comments, query: true },
     ],
   },
-  // regression: emulators-postgres-regnamespace
+  // regression: emulates-postgres-regnamespace
   {
     id: "CAT-namespace-01",
     kind: "parity",
@@ -105,7 +105,7 @@ export const INDEX_RECONCILIATION_CASES: CatalogCase[] = [
   { id: "CAT-namespace-03", kind: "parity", sql: "SELECT 'pg_catalog'::regnamespace::oid AS oid" },
   { id: "CAT-namespace-04", kind: "parity", sql: "SELECT 999::regnamespace::text AS name" },
   { id: "CAT-namespace-05", kind: "error", sql: "SELECT 'missing_schema'::regnamespace", messageTier: "A" },
-  // regression: emulators-postgres-table-statistics (#320)
+  // regression: emulates-postgres-table-statistics (#320)
   { id: "CAT-table-stat-01", kind: "parity", sql: tableStats },
   { id: "CAT-table-stat-02", kind: "parity", setup: ["CREATE TABLE t (id int)"], sql: tableStats },
   {
@@ -119,7 +119,7 @@ export const INDEX_RECONCILIATION_CASES: CatalogCase[] = [
       { sql: tableStats, query: true },
     ],
   },
-  // regression: emulators-postgres-index-statistics
+  // regression: emulates-postgres-index-statistics
   {
     id: "CAT-index-stat-01",
     kind: "parity",

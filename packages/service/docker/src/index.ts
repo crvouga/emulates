@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulators/core"
+import type { FetchAPI } from "@emulates/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -11,8 +11,8 @@ import {
   jsonRes,
   markMutationAccepted,
   type Service,
-} from "@emulators/service"
-import type { SqliteClient } from "@emulators/sqlite-client"
+} from "@emulates/service"
+import type { SqliteClient } from "@emulates/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { DockerLifecycle } from "./lifecycle.js"
@@ -125,7 +125,7 @@ export class DockerAPI implements FetchAPI {
       unsupported: (request, operation) =>
         operation.operationId === "ContainerAttach" && options.onAttach
           ? options.onAttach(this, request)
-          : jsonRes(501, { message: `Emulators: ${operation.operationId} is not implemented` }),
+          : jsonRes(501, { message: `Emulates: ${operation.operationId} is not implemented` }),
       onError: (error) => {
         if (error instanceof DockerInputError)
           return jsonRes(error.status, { message: error.message })
@@ -160,7 +160,7 @@ export class DockerAPI implements FetchAPI {
       }
       if (v !== "1.52")
         return Promise.resolve(
-          jsonRes(501, { message: `Emulators: API ${v} is not implemented; use 1.52` }),
+          jsonRes(501, { message: `Emulates: API ${v} is not implemented; use 1.52` }),
         )
       url.pathname = match[3] ?? "/"
       request = forwardRequestContext(request, new Request(url, request))

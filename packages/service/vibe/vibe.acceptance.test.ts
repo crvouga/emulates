@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulators/service"
+import { createClock } from "@emulates/service"
 import { createRuntime, DEFAULT_ADVERTISER, VIBE_PRESETS } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import { client } from "./test/consumer.js"

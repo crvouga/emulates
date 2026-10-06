@@ -342,7 +342,7 @@ test("seeded decisions replay across instances, reset and snapshot; behavior adm
   ).toBe(401)
   const scenarios = await runtime.fetch(
     new Request(`${origin}/__admin/scenarios`, {
-      headers: { "x-emulators-admin-key": "fixture" },
+      headers: { "x-emulates-admin-key": "fixture" },
     }),
   )
   expect(Object.keys(await scenarios.json())).toEqual(Object.keys(OAUTH_SCENARIOS))
@@ -470,7 +470,7 @@ test("ID-token faults compose through the behavior admin route and presets", asy
     runtime.fetch(
       new Request(`${origin}/__admin${path}`, {
         ...init,
-        headers: { "content-type": "application/json", "x-emulators-admin-key": "fixture" },
+        headers: { "content-type": "application/json", "x-emulates-admin-key": "fixture" },
       }),
     )
   const put = await admin("/behavior", {
@@ -657,7 +657,7 @@ test("neutral UI offers all appearance modes and Apple form-post scripts share o
   const api = make("apple")
   const { result, html, consent } = await login(api)
   expect(consent).toContain("OAuth Emulator")
-  expect(consent).not.toContain("Emulators")
+  expect(consent).not.toContain("Emulates")
   for (const mode of ["system", "light", "dark"])
     expect(consent).toContain(`name="oauth-theme" value="${mode}"`)
   const csp = result.headers.get("content-security-policy") ?? ""

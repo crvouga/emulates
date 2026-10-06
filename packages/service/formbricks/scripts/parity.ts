@@ -10,8 +10,8 @@
  * widget script). Creating responses fires the instance's webhooks and creating surveys changes
  * it, so they need `--include-unsafe`. Never point this at a production instance.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
-import { parity } from "@emulators/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
+import { parity } from "@emulates/parity"
 import { document, FormbricksAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

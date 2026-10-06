@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulators/testing"
+import { fcParameters } from "@emulates/testing"
 import fc from "fast-check"
 import {
   createRuntime,
@@ -81,7 +81,7 @@ const anyRequest = fc.constantFrom(
 )
 
 describe("M5: the mock identifies itself", () => {
-  test("every response carries x-emulators with the service and namespace", async () => {
+  test("every response carries x-emulates with the service and namespace", async () => {
     const runtime = createRuntime()
     await call(runtime, "POST", "/__admin/faults", {
       body: { id: "boom", pathPrefix: "/v3/lab_tests/labs", status: 503, rate: 0.5 },
@@ -94,11 +94,11 @@ describe("M5: the mock identifies itself", () => {
         async (req, ns, authed) => {
           const res = await call(runtime, req.method, req.path, {
             headers: {
-              "x-emulators-namespace": ns,
+              "x-emulates-namespace": ns,
               ...(authed ? {} : { "x-vital-api-key": "" }),
             },
           })
-          expect(res.headers.get("x-emulators")).toMatch(
+          expect(res.headers.get("x-emulates")).toMatch(
             new RegExp(`^junction@[^;]+; ns=${ns.replace(/[-]/g, "\\-")}$`),
           )
         },
@@ -106,10 +106,10 @@ describe("M5: the mock identifies itself", () => {
       { ...params, numRuns: params.numRuns ?? 60 },
     )
     const invalid = await call(runtime, "GET", "/v3/lab_tests/labs", {
-      headers: { "x-emulators-namespace": "bad namespace!" },
+      headers: { "x-emulates-namespace": "bad namespace!" },
     })
     expect(invalid.status).toBe(400)
-    expect(invalid.headers.get("x-emulators")).toMatch(/^junction@[^;]+$/)
+    expect(invalid.headers.get("x-emulates")).toMatch(/^junction@[^;]+$/)
   }, 30_000)
 
   test("the journal records a created order's id, and filters by operation, status and time", async () => {
@@ -162,13 +162,13 @@ describe("M5: the mock identifies itself", () => {
           const sent: Record<string, string[]> = { a: [], b: [] }
           for (const [index, ns] of namespaces.entries()) {
             const path = `/v2/user/resolve/client-${index}`
-            await call(runtime, "GET", path, { headers: { "x-emulators-namespace": ns } })
+            await call(runtime, "GET", path, { headers: { "x-emulates-namespace": ns } })
             sent[ns]?.push(path)
           }
           for (const ns of ["a", "b"]) {
             const logged = (
               await call(runtime, "GET", "/__admin/requests", {
-                headers: { "x-emulators-namespace": ns },
+                headers: { "x-emulates-namespace": ns },
               })
             ).body.requests as Json[]
             expect(logged.map((entry) => entry.path)).toEqual((sent[ns] ?? []).slice(-size))

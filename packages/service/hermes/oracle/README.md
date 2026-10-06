@@ -1,6 +1,6 @@
 # Pinned Hermes runtime oracle
 
-This opt-in harness compares Emulators with Hermes `v2026.8.31`, commit
+This opt-in harness compares Emulates with Hermes `v2026.8.31`, commit
 `29112bef099274229cadff79cdff7bf7b99c4b77`. It is not part of default tests or
 setup. The authorized run passed 33 comparisons;
 [the recorded report](../evidence/pinned-oracle.json) contains the observations
@@ -44,14 +44,14 @@ Declared substitutions:
 
 ## Disposable process and database operations
 
-Each comparison creates a unique directory beneath `.emulators/hermes-oracle/`.
+Each comparison creates a unique directory beneath `.emulates/hermes-oracle/`.
 The pinned store initializes its own SQLite schema there and may perform its
 upstream schema adjustments and retention DELETE statements. No existing database
 is opened. The comparison deliberately exits the owned Python process without
 executor/connection cleanup, then starts a new process against that same disposable
 file. This proves the measured restart behavior, not power-loss durability.
 
-The harness also starts its own loopback Emulators HTTP server and closes it in
+The harness also starts its own loopback Emulates HTTP server and closes it in
 cleanup. Python startup failures may terminate only that fixture child. Source,
 virtualenv, caches and database/report artifacts remain inside the project; no
 cleanup deletes them automatically.
@@ -63,12 +63,12 @@ flag is a guard, not a grant of authority.
 After approval, prepare the environment using the existing compatible Python:
 
 ```sh
-mkdir -p .emulators/tmp .emulators/uv-cache
-TMPDIR="$PWD/.emulators/tmp" uv venv --python python3.11 --no-python-downloads --cache-dir .emulators/uv-cache .emulators/hermes-oracle-venv
-TMPDIR="$PWD/.emulators/tmp" uv pip install --python .emulators/hermes-oracle-venv/bin/python --cache-dir .emulators/uv-cache -r packages/service/hermes/oracle/requirements.lock
+mkdir -p .emulates/tmp .emulates/uv-cache
+TMPDIR="$PWD/.emulates/tmp" uv venv --python python3.11 --no-python-downloads --cache-dir .emulates/uv-cache .emulates/hermes-oracle-venv
+TMPDIR="$PWD/.emulates/tmp" uv pip install --python .emulates/hermes-oracle-venv/bin/python --cache-dir .emulates/uv-cache -r packages/service/hermes/oracle/requirements.lock
 PYTHONDONTWRITEBYTECODE=1 python3.11 packages/service/hermes/oracle/fetch.py --fetch
 bun run --cwd packages/service/hermes build
-EMULATORS_HERMES_ORACLE_APPROVED=1 HERMES_ORACLE_PYTHON="$PWD/.emulators/hermes-oracle-venv/bin/python" node packages/service/hermes/oracle/compare.mjs --run
+EMULATES_HERMES_ORACLE_APPROVED=1 HERMES_ORACLE_PYTHON="$PWD/.emulates/hermes-oracle-venv/bin/python" node packages/service/hermes/oracle/compare.mjs --run
 ```
 
 The report records the source hashes, interpreter/aiohttp/SQLite versions,

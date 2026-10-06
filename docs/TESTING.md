@@ -13,8 +13,8 @@ Two properties, same generator:
 2. **Live parity** (`bun run parity`, sandbox keys required) — the same walk against the real sandbox / test API and a fresh emulator. Responses are canonicalized (volatile ids, timestamps, tokens) then compared.
 
 ```ts
-import { parity } from "@emulators/parity"
-import { document, StripeAPI } from "@emulators/stripe"
+import { parity } from "@emulates/parity"
+import { document, StripeAPI } from "@emulates/stripe"
 
 const now = () => 1_700_000_000_000
 const create = () => new StripeAPI({ now })
@@ -41,7 +41,7 @@ FC_SEED=12345 FC_NUM_RUNS=100 bun test
 
 # Junction parity accepts explicit walk parameters
 bun parity -- --runs 10 --steps 10
-EMULATORS_TRACE=1 bun run parity:stripe
+EMULATES_TRACE=1 bun run parity:stripe
 ```
 
 `bun test` runs each package's appropriate test suite. `bun run parity` (and `parity:stripe` /
@@ -71,7 +71,7 @@ OpenAPI spec
 | `cd packages/service/oauth && bun run parity` | Google, Apple, Microsoft discovery/JWKS plus GitHub REST auth error | None; public, read-only metadata |
 | `bun run parity:service -- <name…> \| --all \| --tier=<tier>` | each service's sandbox | `<NAME>_*` in env; reports `parity`, `diverged`, or `no credentials` per service |
 | `bun run parity:remote -- <name…> \| --all \| --tier=<tier>` | each service's sandbox, on GitHub Actions | the repo's `<NAME>_*` secrets; nothing local. Dispatches the [Parity workflow](../.github/workflows/parity.yml) on the pushed branch and streams its log |
-| `bun run verify:junction` | Junction sandbox | `emulators-junction verify`: corpus drift plus a stateful scenario; also runs daily in the [Verify workflow](../.github/workflows/verify.yml) |
+| `bun run verify:junction` | Junction sandbox | `emulates-junction verify`: corpus drift plus a stateful scenario; also runs daily in the [Verify workflow](../.github/workflows/verify.yml) |
 
 ### Parity tiers
 
@@ -79,7 +79,7 @@ Live parity spends a vendor's rate limit, so each service declares how often it 
 `package.json` (`scripts/parity-tiers.ts` is the only reader):
 
 ```json
-"emulators": { "…": "…", "parityTier": "cold" }
+"emulates": { "…": "…", "parityTier": "cold" }
 ```
 
 | Tier | Runs | Where |

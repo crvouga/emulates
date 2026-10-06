@@ -26,7 +26,7 @@ const harness = () => {
         headers: {
           "content-type": "application/json",
           "x-api-key": key,
-          "x-emulators-namespace": namespace,
+          "x-emulates-namespace": namespace,
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       }),
