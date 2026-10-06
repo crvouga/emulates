@@ -50,8 +50,11 @@ packages stay on npm, deprecated in favor of their successors:
 - **Archived packages.** `@crvouga/postgres-mem` and `@crvouga/sqlite-mem` continue here as
   `@emulators/postgres` and `@emulators/sqlite`.
 
-After the rename merges, a maintainer runs `bun run release:seed` once: it creates the
-`@emulators/*` packages, attaches their Trusted Publishers, and deprecates the former names. OIDC
+After the rename merges, a maintainer runs `bun run rebrand:bootstrap -- --publish` once (add
+`--dry-run` to preview). It requires the npm org `emulators` (create it at
+https://www.npmjs.com/org/create; npm cannot create orgs from the CLI), then runs
+`bun run release:seed`, which creates the `@emulators/*` packages, attaches their Trusted
+Publishers, and deprecates the former names. OIDC
 only authenticates publish operations, so CI logs pending deprecations for the next local seed
 instead of managing package settings. The full old-to-new mapping is in
 [MIGRATING.md](MIGRATING.md).

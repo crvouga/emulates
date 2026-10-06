@@ -85,6 +85,7 @@
     "release:publish": "bun scripts/release/publish.ts",
     "release:smoke": "bun scripts/release/consumer-smoke.ts",
     "release:seed": "bun scripts/release/seed.ts",
+    "rebrand:bootstrap": "bun scripts/rebrand-bootstrap.ts",
     "npm": "open https://www.npmjs.com/org/emulators",
     "health": "bun scripts/health/cli.ts",
     "secrets": "bun scripts/secrets/cli.ts",

@@ -2,6 +2,13 @@
 
 Mockingbird has been renamed to Emulators. Packages have moved from their previous names to the corresponding `@emulators/*` packages; the old npm packages remain available but are deprecated.
 
+## Existing checkouts of this repo
+
+Run `bun run rebrand:bootstrap` once in each clone. It points `origin` at `crvouga/emulators`, renames
+`MOCKINGBIRD_*` keys in `.env.local` to `EMULATORS_*` (values are never printed), moves the gitignored
+`.mockingbird/` state directory to `.emulators/`, and reinstalls so workspace links use the new
+package names. It is safe to re-run.
+
 ## Install the new package
 
 The code is the same; only names changed. Swap the dependency and the import specifier:
