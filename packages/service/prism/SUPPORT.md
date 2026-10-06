@@ -1,12 +1,12 @@
-# Prism Labs body-scan API (Mockingbird subset) — operation support
+# Prism Labs body-scan API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **11**
-- supported by the mock: **11**
+- supported by the emulator: **11**
 - parity enabled: **9**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `UpsertUser` | `POST /users` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `CreateScan` | `POST /scans` | ✅ supported | ⚠️ unsafe (opt-in) |  |

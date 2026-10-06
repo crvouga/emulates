@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto"
 import { chmod, readFile, rename, rm, writeFile } from "node:fs/promises"
-import type { FetchAPI } from "@crvouga/mockingbird-core"
-import type { Clock, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
-import { createClock, parseDuration, resolveAdminPrefix } from "@crvouga/mockingbird-service"
-import type { CommonServeOptions, ConfigService, MockingbirdConfig, ServeTarget } from "./cli.js"
+import type { FetchAPI } from "@emulators/core"
+import type { Clock, ServiceInstance, ServiceRuntime } from "@emulators/service"
+import { createClock, parseDuration, resolveAdminPrefix } from "@emulators/service"
+import type { CommonServeOptions, ConfigService, EmulatorsConfig, ServeTarget } from "./cli.js"
 import type { EndpointManifest } from "./fleet-manifest.js"
 import { type Listening, listen } from "./listen.js"
 
@@ -145,7 +145,7 @@ const httpChild = async (
     url: server.url,
     healthUrl: `${server.url}${adminPrefix}/health`,
     adminUrl: `${server.url}${adminPrefix}`,
-    namespaces: { header: "x-mockingbird-namespace", path: `${adminPrefix}/ns/{name}` },
+    namespaces: { header: "x-emulators-namespace", path: `${adminPrefix}/ns/{name}` },
     ready: async () => {
       try {
         return (
@@ -200,7 +200,7 @@ export type Fleet = {
 }
 
 /** Resolves only after every child and the aggregate control listener are healthy. */
-export async function startFleet(config: MockingbirdConfig, options: FleetOptions): Promise<Fleet> {
+export async function startFleet(config: EmulatorsConfig, options: FleetOptions): Promise<Fleet> {
   const id = randomUUID()
   const startedAt = new Date().toISOString()
   const children = new Map<string, FleetChild>()
@@ -350,8 +350,8 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
         })
       }
       if (!path.startsWith("/fleet/")) return json(404, { error: "not found" })
-      const adminKey = config.adminKey ?? process.env.MOCKINGBIRD_ADMIN_KEY
-      if (adminKey !== undefined && request.headers.get("x-mockingbird-admin-key") !== adminKey)
+      const adminKey = config.adminKey ?? process.env.EMULATORS_ADMIN_KEY
+      if (adminKey !== undefined && request.headers.get("x-emulators-admin-key") !== adminKey)
         return json(401, { error: "admin key required" })
       const route = /^\/fleet\/namespaces\/([^/]+)\/(reset|snapshots)(?:\/([^/]+)\/restore)?$/.exec(
         path,
@@ -359,7 +359,7 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
       const namespace = route
         ? decodeURIComponent(route[1] as string)
         : (url.searchParams.get("namespace") ??
-          request.headers.get("x-mockingbird-namespace") ??
+          request.headers.get("x-emulators-namespace") ??
           config.namespace ??
           "default")
       if (!NS.test(namespace)) return json(400, { error: "invalid namespace" })
@@ -481,7 +481,7 @@ export async function startFleet(config: MockingbirdConfig, options: FleetOption
         const target = await options.load(name)
         if (entry.protocol && entry.protocol !== ("protocol" in target ? target.protocol : "http"))
           throw new Error("configured protocol does not match target")
-        const adminKey = entry.adminKey ?? config.adminKey ?? process.env.MOCKINGBIRD_ADMIN_KEY
+        const adminKey = entry.adminKey ?? config.adminKey ?? process.env.EMULATORS_ADMIN_KEY
         const child =
           "start" in target
             ? await target.start(entry)

@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Pharmetika provider portal API (Mockingbird subset)
+  title: Pharmetika provider portal API (Emulators subset)
   description: |
     Stateful mock subset of the Pharmetika compounding-pharmacy provider portal: clinic and
     patient lookup, patient create, medication-order validate / EPCS prepare / submit / lookup,
@@ -8,7 +8,7 @@ info:
     adapters (the vendor publishes no spec). Every response carries Pharmetika's `success`
     flag: an HTTP 200 with `success: 0` is a failure, and the mock produces it.
   version: "5"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Hand-authored from the wire shapes our consumer reads and writes
       (pharmetika-fulfillment.adapter.ts, pharmetika-live.client.ts, and the adapter spec's
@@ -21,7 +21,7 @@ paths:
   /api/v5/provider_portal/clinic/clinic_list:
     get:
       operationId: ListClinics
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -46,7 +46,7 @@ paths:
   /api/v5/provider_portal/provider/patient_list:
     get:
       operationId: ListPatients
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -71,7 +71,7 @@ paths:
   /api/v5/provider_portal/patient/create_new:
     post:
       operationId: CreatePatient
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -98,7 +98,7 @@ paths:
       - $ref: "#/components/parameters/NewOrderId"
     put:
       operationId: ValidateMedicationOrder
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -131,7 +131,7 @@ paths:
         EPCS prepare for controlled substances. The order parks as
         `pending_prescriber_approval` and is never submitted: the prescriber signs it in the
         portal (an admin transition to `signed`).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -157,7 +157,7 @@ paths:
       operationId: GetMedicationOrder
       parameters:
         - $ref: "#/components/parameters/OrderId"
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -178,7 +178,7 @@ paths:
       - $ref: "#/components/parameters/NewOrderId"
     put:
       operationId: SubmitMedicationOrder
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -207,7 +207,7 @@ paths:
   /api/v7/provider_portal/medication_order/entry/cancel:
     put:
       operationId: CancelMedicationOrder
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -227,7 +227,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 64
-                  x-mockingbird-resource-ref:
+                  x-emulators-resource-ref:
                     type: medication_order
                     missing: 0190c6a4-0000-7000-8000-000000000000
       responses:
@@ -250,7 +250,7 @@ paths:
         - pmkToken: []
         - basicAuth: []
         - {}
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -298,7 +298,7 @@ components:
       schema:
         type: string
         pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        x-mockingbird-resource-ref:
+        x-emulators-resource-ref:
           type: medication_order
           missing: 0190c6a4-0000-7000-8000-000000000000
   responses:
@@ -349,7 +349,7 @@ components:
       properties:
         identifier:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: clinic
             identity: true
         data:
@@ -477,7 +477,7 @@ components:
           type: string
         clinic_identifier:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: clinic
             missing: clinic-missing
         practitioner_identifier:
@@ -513,7 +513,7 @@ components:
               type: string
               minLength: 1
               maxLength: 64
-              x-mockingbird-resource-ref:
+              x-emulators-resource-ref:
                 type: product
                 missing: PMK-MISSING
         medication:
@@ -572,7 +572,7 @@ components:
           type: string
           minLength: 1
           maxLength: 64
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: clinic
             missing: clinic-missing
         practitioner_identifier:
@@ -682,7 +682,7 @@ components:
           type: string
         medication_order_entry_identifier:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         controlled:
           type: integer
@@ -724,7 +724,7 @@ components:
           properties:
             medication_order_identifier:
               type: string
-              x-mockingbird-resource:
+              x-emulators-resource:
                 type: medication_order
                 identity: true
             order_status:
@@ -773,11 +773,11 @@ components:
                     type: string
                 created_at:
                   type: string
-                  x-mockingbird-volatile:
+                  x-emulators-volatile:
                     kind: timestamp
                 updated_at:
                   type: string
-                  x-mockingbird-volatile:
+                  x-emulators-volatile:
                     kind: timestamp
                 ancillary_order_data:
                   type: object
@@ -805,7 +805,7 @@ components:
           type: object
           additionalProperties:
             type: string
-            x-mockingbird-resource:
+            x-emulators-resource:
               type: product
               identity: true
         qty_options:

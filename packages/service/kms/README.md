@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-kms
+# @emulators/kms
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful local mock of Amazon Key Management Service. ESM; Node 22+ or Bun 1.2+.
+Stateful local emulator of Amazon Key Management Service. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-kms/server"
+import { createServer } from "@emulators/kms/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -28,7 +28,7 @@ No LocalStack run is recorded for this integration. The parity command is a boun
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-kms
+bun add @emulators/kms
 ```
 
 ## API

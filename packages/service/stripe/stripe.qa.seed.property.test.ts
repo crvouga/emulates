@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test"
-import { planOperations } from "@crvouga/mockingbird-commands"
-import { seedParity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { planOperations } from "@emulators/commands"
+import { seedParity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import { document, StripeAPI } from "./src/index.js"
 import { QA_SURFACE_OPS } from "./src/qa-corpus.js"
 import { reshapeQaCommand } from "./src/reshape-qa.js"
 
 const params = fcParameters(process.env)
 const MOCK_HOST = "mock.stripe.local"
-const AUTH = { authorization: "Bearer sk_test_mockingbird" }
+const AUTH = { authorization: "Bearer sk_test_emulators" }
 const now = () => 1_700_000_000_000
 
 /**

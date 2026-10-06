@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type PaddleRuntime, type PaddleRuntimeOptions } from "./runtime.js"
 
-/** Port `mockingbird-paddle serve` listens on when none is given. */
+/** Port `emulators-paddle serve` listens on when none is given. */
 export const DEFAULT_PORT = 8795
 
 export type PaddleServerOptions = PaddleRuntimeOptions & {
@@ -78,6 +78,6 @@ export const serveTarget: ServeTarget = {
     "auth: Authorization: Bearer pdl_sdbx_apikey_… (any key); new Paddle(key, { environment: <this url> })",
     "checkout: POST /__admin/checkout {email, items: [{price_id}]} pays a transaction and creates its subscription",
     "billing: POST /__admin/transactions/:id/pay, /__admin/subscriptions/:id/renew, …/payment-failed",
-    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

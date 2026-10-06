@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-acm",
+  "name": "@emulators/acm",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon Certificate Manager mock with AWS SDK wire compatibility and deterministic local controls.",
+  "description": "Stateful Amazon Certificate Manager emulator with AWS SDK wire compatibility and deterministic local controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "mockingbird-acm": "./dist/cli.js"
+    "emulators-acm": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,17 +34,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/acm"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/acm#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/acm#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "aws",
     "acm",
-    "mock"
+    "emulator"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -86,7 +86,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- acm",
-        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -97,7 +97,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -113,18 +113,18 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*"
+    "@emulators/sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-testing": "workspace:*",
+    "@emulators/adapter-node": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/parity": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

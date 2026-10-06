@@ -6,7 +6,7 @@
  * Everything inserted here goes through the records `create_user` and `create_order`
  * build, so no read path can tell a fixture from an API-created resource.
  */
-import { HttpError, type OperationContext } from "@crvouga/mockingbird-service"
+import { HttpError, type OperationContext } from "@emulators/service"
 import { resolveTransition } from "./admin.js"
 import { missing } from "./not-found.js"
 import { buildOrderRecord, persistOrderRecord } from "./orders.js"
@@ -90,7 +90,7 @@ const instant = (value: unknown, field: string, fallback: string): string => {
 }
 
 const DEFAULT_PATIENT_DETAILS = {
-  first_name: "Mockingbird",
+  first_name: "Emulators",
   last_name: "Fixture",
   dob: "1990-01-01",
   gender: "female",

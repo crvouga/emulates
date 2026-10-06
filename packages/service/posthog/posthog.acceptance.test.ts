@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { createRuntime, POSTHOG_PRESETS, type PostHogRuntime } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -729,7 +729,7 @@ describe("served over HTTP", () => {
           reason: "provider_timeout",
         })
         const health = await fetch(`${server.url}/__admin/health`)
-        expect(health.headers.get("x-mockingbird")).toMatch(/^posthog@/)
+        expect(health.headers.get("x-emulators")).toMatch(/^posthog@/)
       } finally {
         await adapter.onModuleDestroy()
         await tracking.onModuleDestroy()

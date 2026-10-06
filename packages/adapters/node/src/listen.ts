@@ -1,5 +1,5 @@
 import type { Server } from "node:http"
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import { serve } from "./serve.js"
 
 export type ListenOptions = {

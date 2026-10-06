@@ -5,8 +5,8 @@ export type {
   CliValues,
   CommonServeOptions,
   ConfigService,
+  EmulatorsConfig,
   LogFormat,
-  MockingbirdConfig,
   ServeTarget,
 } from "./cli.js"
 export { runCli, serveCommand } from "./cli.js"

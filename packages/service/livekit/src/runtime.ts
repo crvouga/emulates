@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { bodySha256, jwt } from "./crypto.js"
 import { document } from "./generated/openapi.js"
 import { LIVEKIT_NAMESPACE, LiveKitAPI } from "./index.js"
@@ -54,7 +54,7 @@ export type LiveKitRuntimeOptions = {
 }
 export type LiveKitRuntime = ServiceRuntime<LiveKitAPI> & { readonly webhooks: WebhookHub }
 const error = (status: number, message: string) =>
-  Response.json({ error: { type: "mockingbird_admin", message } }, { status })
+  Response.json({ error: { type: "emulators_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<LiveKitAPI>): AdminRoutes => ({
   "POST /dispatches/:id/jobs": ({ namespace, params, body }) => {
     if (!body || typeof body !== "object" || Array.isArray(body))

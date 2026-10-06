@@ -33,8 +33,8 @@ const said = async (response: Response) =>
   ((await response.json()) as { output: { message: { content: { text: string }[] } } }).output
     .message.content[0]?.text
 
-describe("the Mockingbird contract", () => {
-  test("/__admin/health is open and every response carries x-mockingbird", async () => {
+describe("the Emulators contract", () => {
+  test("/__admin/health is open and every response carries x-emulators", async () => {
     const runtime = createRuntime()
     const health = await runtime.fetch(new Request(`${API}/__admin/health`))
     expect(health.status).toBe(200)
@@ -43,9 +43,9 @@ describe("the Mockingbird contract", () => {
       service: "bedrock",
       modelCalls: { scripted: 0, unscripted: 0 },
     })
-    expect(health.headers.get("x-mockingbird")).toMatch(/^bedrock@.+; ns=default$/)
+    expect(health.headers.get("x-emulators")).toMatch(/^bedrock@.+; ns=default$/)
     const vendor = await runtime.fetch(converse("hi"))
-    expect(vendor.headers.get("x-mockingbird")).toMatch(/^bedrock@/)
+    expect(vendor.headers.get("x-emulators")).toMatch(/^bedrock@/)
     expect(vendor.headers.get("x-amzn-requestid")).toMatch(/^[0-9a-f]{8}-/)
   })
 
@@ -57,9 +57,9 @@ describe("the Mockingbird contract", () => {
     await runtime.fetch(
       admin("/scripts?namespace=b", { scripts: [{ id: "b", turns: [{ text: "from b" }] }] }, "PUT"),
     )
-    expect(
-      await said(await runtime.fetch(converse("hi", { "x-mockingbird-namespace": "a" }))),
-    ).toBe("from a")
+    expect(await said(await runtime.fetch(converse("hi", { "x-emulators-namespace": "a" })))).toBe(
+      "from a",
+    )
     expect(await said(await runtime.fetch(converse("hi", {}, "/__admin/ns/b")))).toBe("from b")
     expect(await said(await runtime.fetch(converse("hi")))).toBe("OK.")
     await runtime.fetch(
@@ -81,13 +81,13 @@ describe("the Mockingbird contract", () => {
     expect(listed.presets.map((p) => p.name).sort()).toEqual(Object.keys(BEDROCK_PRESETS).sort())
     await runtime.fetch(
       admin("/faults", { preset: "throttling", count: 1 }, "POST", {
-        "x-mockingbird-namespace": "w1",
+        "x-emulators-namespace": "w1",
       }),
     )
-    expect((await runtime.fetch(converse("hi", { "x-mockingbird-namespace": "w2" }))).status).toBe(
+    expect((await runtime.fetch(converse("hi", { "x-emulators-namespace": "w2" }))).status).toBe(
       200,
     )
-    const throttled = await runtime.fetch(converse("hi", { "x-mockingbird-namespace": "w1" }))
+    const throttled = await runtime.fetch(converse("hi", { "x-emulators-namespace": "w1" }))
     expect(throttled.status).toBe(429)
     expect(throttled.headers.get("x-amzn-errortype")).toBe(
       "ThrottlingException:http://internal.amazon.com/coral/com.amazon.bedrock/",
@@ -95,7 +95,7 @@ describe("the Mockingbird contract", () => {
     expect(await throttled.json()).toEqual({
       message: "Too many requests, please wait before trying again.",
     })
-    expect((await runtime.fetch(converse("hi", { "x-mockingbird-namespace": "w1" }))).status).toBe(
+    expect((await runtime.fetch(converse("hi", { "x-emulators-namespace": "w1" }))).status).toBe(
       200,
     )
   })
@@ -158,7 +158,7 @@ describe("the Mockingbird contract", () => {
     const bad = await runtime.fetch(admin("/settings", { nope: 1 }, "PUT"))
     expect(bad.status).toBe(400)
     expect(await bad.json()).toEqual({
-      error: { type: "mockingbird_admin", message: "unknown setting nope" },
+      error: { type: "emulators_admin", message: "unknown setting nope" },
     })
   })
 })
@@ -178,7 +178,7 @@ describe("served over HTTP", () => {
           body: JSON.stringify({ messages: [{ role: "user", content: [{ text }] }] }),
         })
       const booted = await call("boot please")
-      expect(booted.headers.get("x-mockingbird")).toMatch(/^bedrock@/)
+      expect(booted.headers.get("x-emulators")).toMatch(/^bedrock@/)
       expect(await said(booted)).toBe("Loaded at boot.")
       const snapshot = (await (
         await fetch(`${server.url}/__admin/snapshots`, { method: "POST" })

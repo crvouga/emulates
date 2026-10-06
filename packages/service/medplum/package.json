@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-medplum",
+  "name": "@emulators/medplum",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the self-hosted Medplum server (FHIR R4 REST, OAuth2 and admin API), proven at parity with a real self-hosted Medplum used as the oracle.",
+  "description": "Stateful emulator of the self-hosted Medplum server (FHIR R4 REST, OAuth2 and admin API), proven at parity with a real self-hosted Medplum used as the oracle.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -27,7 +27,7 @@
     }
   },
   "bin": {
-    "mockingbird-medplum": "./dist/cli.js"
+    "emulators-medplum": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -35,20 +35,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/medplum"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/medplum#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/medplum#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "service",
     "medplum",
     "fhir",
     "fhir-r4",
     "ehr",
-    "mock"
+    "emulator"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -84,7 +84,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -102,23 +102,23 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
     "@medplum/core": "5.1.37",
     "@medplum/fhirtypes": "5.1.37",
     "dataloader": "2.2.3",
     "graphql": "17.0.2"
   },
   "devDependencies": {
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-testing": "workspace:*",
+    "@emulators/adapter-node": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/http-codec": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/parity": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/testing": "workspace:*",
     "@medplum/definitions": "5.1.37",
     "@types/bun": "1.4.0",
     "@types/node": "22.20.1",

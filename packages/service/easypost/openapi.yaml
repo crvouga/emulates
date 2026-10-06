@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
-  title: EasyPost Trackers API (Mockingbird subset)
+  title: EasyPost Trackers API (Emulators subset)
   description: |
     Stateful mock subset of the EasyPost v2 API: create (or re-use) a tracker for a tracking
     code, retrieve it, and list trackers. Trimmed from EasyPost's published reference to what
     our genomics tracking lookup calls, plus the two reads that make parity walks meaningful.
   version: "2"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Shapes from https://docs.easypost.com/docs/trackers; request/response fields our consumer
       reads come from packages/lib/src/shipment-tracking-status/easypost-client.ts.
@@ -22,7 +22,7 @@ paths:
         Creates a tracker, or answers the existing one when the same tracking code (and
         carrier) was already tracked. EasyPost's test codes (EZ1000000001 … EZ7000000007)
         answer their documented fixed statuses.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -57,7 +57,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     get:
       operationId: ListTrackers
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -116,12 +116,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: tracker
             missing: trk_00000000000000000000000000000000
     get:
       operationId: RetrieveTracker
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -185,10 +185,10 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: tracker
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         object:
           type: string
@@ -221,7 +221,7 @@ components:
           type: ["number", "null"]
         est_delivery_date:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         shipment_id:
           type: ["string", "null"]
@@ -233,7 +233,7 @@ components:
           type: ["object", "null"]
         public_url:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: url
         fees:
           type: array
@@ -241,11 +241,11 @@ components:
             type: object
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     TrackingDetail:
       type: object
@@ -262,7 +262,7 @@ components:
           type: string
         datetime:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         source:
           type: string

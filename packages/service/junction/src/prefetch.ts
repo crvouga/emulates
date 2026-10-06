@@ -1,4 +1,4 @@
-import type { SeedCacheEntry } from "@crvouga/mockingbird-parity"
+import type { SeedCacheEntry } from "@emulators/parity"
 import {
   availabilityAddressForZip,
   COVERAGE_ZIPS,

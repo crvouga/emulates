@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-ses",
-    description: "stateful Amazon Simple Email Service mock",
+    bin: "emulators-ses",
+    description: "Amazon Simple Email Service emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

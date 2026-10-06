@@ -1,6 +1,6 @@
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import type { OperationObject } from "@crvouga/mockingbird-openapi"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import type { OperationObject } from "@emulators/openapi"
+import { parity } from "@emulators/parity"
 import { document, VercelBlobAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

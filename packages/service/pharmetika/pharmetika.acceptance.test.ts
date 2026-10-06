@@ -482,13 +482,13 @@ describe("contract", () => {
     const missing = await admin("/orders/nope/transition", { to: "shipped" })
     expect(missing.status).toBe(404)
     expect(((await missing.json()) as { error: { type: string } }).error.type).toBe(
-      "mockingbird_admin",
+      "emulators_admin",
     )
     const viaHeader = new PharmetikaConsumer(
       { apiUrl: API, apiToken: TOKEN, practitionerIdentifier: "p", webhookSecret: null },
       (r) => {
         const request = new Request(r)
-        request.headers.set("x-mockingbird-namespace", "worker-h")
+        request.headers.set("x-emulators-namespace", "worker-h")
         return runtime.fetch(request)
       },
     )
@@ -543,7 +543,7 @@ describe("served over HTTP", () => {
       expect(statuses.map((s) => s.fulfillmentStatus)).toEqual(["processing", "shipped"])
       expect(statuses[0]?.pharmacyOrderId).toBe(placed.pharmacyOrderId as string)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-mockingbird")).toMatch(/^pharmetika@/)
+      expect(health.headers.get("x-emulators")).toMatch(/^pharmetika@/)
     } finally {
       await server.close()
       sink.stop(true)

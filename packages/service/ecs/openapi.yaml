@@ -5,7 +5,7 @@ paths:
   /:
     post:
       operationId: RunTask
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - name: X-Amz-Target
           in: header
@@ -45,7 +45,7 @@ paths:
                         taskArn: { type: string }
                         clusterArn: { type: string }
                         taskDefinitionArn: { type: string }
-                        createdAt: { type: number, x-mockingbird-volatile: { kind: timestamp } }
+                        createdAt: { type: number, x-emulators-volatile: { kind: timestamp } }
                         overrides: { type: object, additionalProperties: true }
                   failures: { type: array, items: { type: object, properties: { arn: { type: string }, reason: { type: string }, detail: { type: string } } } }
         "400": { $ref: "#/components/responses/Error" }

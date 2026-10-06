@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -9,8 +9,8 @@ import {
   HttpError,
   type OperationContext,
   type Service,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import type { CorpusAddress } from "./corpus.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
@@ -38,8 +38,8 @@ import {
   validateAddress,
 } from "./validation.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export type { CorpusAddress } from "./corpus.js"
 export { DEFAULT_CORPUS, PHOENIX_DEMO_ADDRESS, STATE_NAMES } from "./corpus.js"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"

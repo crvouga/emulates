@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@crvouga/mockingbird-service"
+import { createClock } from "@emulators/service"
 import { createRuntime, type SeedRule } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import { call } from "./test/consumer.js"
@@ -121,7 +121,7 @@ test("missing rules/buses, denial, quota, invalid and expired tokens are AWS err
 test("header, path and SigV4 namespaces isolate state; reset restores seeds; journals omit credentials", async () => {
   const runtime = createRuntime({ rules })
   runtime.instance("alpha").rules.delete("default:batch-a")
-  const headers = { "x-mockingbird-namespace": "alpha" }
+  const headers = { "x-emulators-namespace": "alpha" }
   expect((await (await call(runtime.fetch, "ListRules", {}, headers)).json()).Rules).toHaveLength(1)
   expect((await (await call(runtime.fetch, "ListRules")).json()).Rules).toHaveLength(2)
   const pathFetch = (request: Request) =>

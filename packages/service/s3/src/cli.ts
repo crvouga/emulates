@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-s3",
-    description: "stateful Amazon S3 mock",
+    bin: "emulators-s3",
+    description: "Amazon S3 emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

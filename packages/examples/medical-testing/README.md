@@ -12,7 +12,7 @@ reusable fullscreen example view, no server to start.
 ## Ports and adapters
 
 The application's domain and HTTP code under `src/app/` use plain application contracts and
-never import Mockingbird. The client uses those HTTP routes; its administration page renders
+never import Emulators. The client uses those HTTP routes; its administration page renders
 the shared React and Ant Design UI through the same scoped fetch in both run modes. The
 synthetic report generator is explicit demonstration
 data; it must be replaced with a provider report ingestion path for a real deployment:
@@ -30,8 +30,8 @@ src/app/
                 change already arrived via a webhook, nothing is fetched live)
   http/         the Hono app + routes, constructed from nothing but the ports above
 
-src/adapters/   the ONLY place that imports @crvouga/mockingbird-*, oauth4webapi, etc. —
-                one file per port, each implementing it against an in-process Mockingbird mock
+src/adapters/   the ONLY place that imports @emulators/*, oauth4webapi, etc. —
+                one file per port, each implementing it against an in-process emulator
 
 src/composition/  wires a real adapter into every port and boots the app — the ONLY place
                   that imports from both app/ and adapters/
@@ -44,7 +44,7 @@ intake, provider report ingestion, and persistent infrastructure.
 
 ## What it demonstrates
 
-- **A real OAuth 2.0 / OIDC dance against a mock.** `src/adapters/identity/oauthMockIdentity.ts`
+- **A real OAuth 2.0 / OIDC dance against an emulator.** `src/adapters/identity/oauthMockIdentity.ts`
   drives full discovery, PKCE, state/nonce, the account chooser, consent, authorization-code
   exchange, JWKS signature verification, and userinfo — using
   [`oauth4webapi`](https://github.com/panva/oauth4webapi) exactly as you would against real
@@ -54,7 +54,7 @@ intake, provider report ingestion, and persistent infrastructure.
   nothing is faked or admin-shortcut; it's the actual protocol.
 - **A real hosted checkout, no admin bypass.** `src/adapters/payments/stripeMockPayments.ts`
   creates a real Checkout Session and opens its real hosted payment page
-  (`GET/POST /c/pay/:sessionId`, already fully functional in the Stripe mock — card entry, decline
+  (`GET/POST /c/pay/:sessionId`, already fully functional in the Stripe emulator — card entry, decline
   handling, and a real redirect on completion). The client's `CheckoutModal` drives it the same way
   `OAuthModal` drives sign-in: render the real hosted page, intercept its form submit, follow the
   redirect back.
@@ -71,16 +71,16 @@ intake, provider report ingestion, and persistent infrastructure.
   (`src/app/ports/db.ts`) is a one-method, promise-based interface —
   `query<T>(sql, params): Promise<T[]>` — exactly like `pg`'s `pool.query`. Its adapter
   (`src/adapters/db/postgresMockDb.ts`) runs real `CREATE TABLE`/`INSERT`/`SELECT` SQL against
-  `@crvouga/mockingbird-service-postgres`'s in-memory `Database`, wrapped in promises so the port's
+  `@emulators/postgres`'s in-memory `Database`, wrapped in promises so the port's
   contract holds regardless of what's underneath.
 
 ## Run it
 
 **In the browser, no server:** visit `/examples/medical-testing` on the docs site and click
-"Launch the app". The fullscreen view has one tab for the example and one shared mock admin. A
+"Launch the app". The fullscreen view has one tab for the example and one shared emulator admin. A
 global selector switches that admin between Google, Apple, Stripe, Junction, and Postgres while
 each independent admin API remains directly composable and operates on the same in-process state
-the app uses. The selected mock, admin screen, namespace, and local UI state remain mounted when
+the app uses. The selected emulator, admin screen, namespace, and local UI state remain mounted when
 switching between the example and its admin. Every administration screen uses prebuilt Ant Design tables, forms,
 dialogs, navigation, and feedback. Postgres includes the SQL table explorer and query runner alongside state,
 clock, faults, journal, and routes. SQL changes appear in the app immediately; checkpoint and
@@ -94,7 +94,7 @@ cd packages/examples/medical-testing
 bun run dev                      # http://localhost:4300
 ```
 
-or from the repo root: `bunx turbo run dev --filter=@crvouga/mockingbird-example-medical-testing`.
+or from the repo root: `bunx turbo run dev --filter=@emulators/example-medical-testing`.
 
 Click **Continue with Google** or **Continue with Apple**, pick the seeded account, approve
 consent, pick a test or two, pay with `4242 4242 4242 4242` (or `4000 0000 0000 0002` to see a

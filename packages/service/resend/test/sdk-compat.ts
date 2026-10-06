@@ -80,7 +80,7 @@ const admin = async (path: string, init?: { method?: string; body?: unknown }) =
     method: init?.body === undefined ? "GET" : (init.method ?? "POST"),
     headers: {
       "content-type": "application/json",
-      "x-mockingbird-namespace": namespace,
+      "x-emulators-namespace": namespace,
     },
     ...(init?.body === undefined ? {} : { body: JSON.stringify(init.body) }),
   })

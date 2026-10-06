@@ -21,7 +21,7 @@ export function Members({ config }: { config: MembersConfig }) {
       createApi(
         {
           adminPrefix: config.apiPrefix,
-          adminKeyHeader: "x-mockingbird-admin-key",
+          adminKeyHeader: "x-emulators-admin-key",
         },
         fetch,
         "default",

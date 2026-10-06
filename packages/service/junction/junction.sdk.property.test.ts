@@ -9,7 +9,7 @@ import { parseSealedCorpus } from "./src/index.js"
 const packageDir = dirname(fileURLToPath(import.meta.url))
 const corpusPath = join(packageDir, "corpus/sandbox-sealed.json")
 const corpus = parseSealedCorpus(JSON.parse(readFileSync(corpusPath, "utf8")))
-const apiKey = "sk_us_mockingbird"
+const apiKey = "sk_us_emulators"
 
 const queryOf = (key: string): URLSearchParams =>
   new URLSearchParams(key.slice(key.indexOf("?") + 1))
@@ -53,7 +53,7 @@ let client: VitalClient
 beforeAll(async () => {
   const child = Bun.spawn(["bun", "scripts/server.ts"], {
     cwd: packageDir,
-    env: { ...process.env, PORT: "0", MOCKINGBIRD_JUNCTION_CORPUS: corpusPath },
+    env: { ...process.env, PORT: "0", EMULATORS_JUNCTION_CORPUS: corpusPath },
     stdout: "pipe",
     stderr: "pipe",
   })

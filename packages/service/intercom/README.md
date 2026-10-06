@@ -1,8 +1,8 @@
-# @crvouga/mockingbird-service-intercom
+# @emulators/intercom
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of the **Intercom REST API (version 2.11)** for test suites. It serves the calls
+Stateful emulator of the **Intercom REST API (version 2.11)** for test suites. It serves the calls
 our backend makes:
 
 - **contacts:** search, create (409 on duplicates, the way Intercom does), update and get;
@@ -16,24 +16,24 @@ replies) send Intercom's `notification_event` webhooks, signed with
 `X-Hub-Signature: sha1=<hex HMAC-SHA1>`, to both of our receivers: the backend's
 `POST /messaging/webhook` and the EMR's `POST /v1/webhooks/intercom`.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/intercom/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/intercom/SUPPORT.md)
 - The contract (`openapi.yaml`) is trimmed from Intercom's published 2.11 reference to what our
   consumers use.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-intercom
+npm install -D @emulators/intercom
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-intercom serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulators-intercom serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
 ```bash
-npx mockingbird-intercom serve --port 8807 \
+npx emulators-intercom serve --port 8807 \
   --webhook-url http://127.0.0.1:3000/messaging/webhook \
   --emr-webhook-url http://127.0.0.1:4000/v1/webhooks/intercom \
   --webhook-secret "$INTERCOM_WEBHOOK_SECRET"
@@ -50,7 +50,7 @@ default.
 | Both webhook receivers | `INTERCOM_WEBHOOK_SECRET` = `--webhook-secret` |
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-intercom"
+import { createRuntime } from "@emulators/intercom"
 
 const intercom = createRuntime({
   webhooks: {
@@ -125,7 +125,7 @@ A query is either a filter `{field, operator, value}` or a compound
 
 ### Webhooks
 
-The mock sends webhooks for these events:
+The emulator sends webhooks for these events:
 
 | Event | Topic |
 | --- | --- |
@@ -156,7 +156,7 @@ Each delivery is a JSON body posted with `X-Hub-Signature: sha1=<hex HMAC-SHA1(s
 - **Only the new part.** `item.conversation_parts` holds just the part that caused the event,
   as in Intercom's own payloads.
 - **Wall-clock timestamps.** The part's timestamps and the envelope's `created_at` use real
-  time, never the mock clock, because the EMR rejects parts more than 5 minutes old against its
+  time, never the emulator clock, because the EMR rejects parts more than 5 minutes old against its
   own clock.
 - **Stable id.** The notification `id` stays the same on retries and on `webhook_duplicate`, so
   the backend's `delivery_id ?? id` dedupe and the EMR's processed-marker dedupe both hold.
@@ -169,7 +169,7 @@ Each delivery is a JSON body posted with `X-Hub-Signature: sha1=<hex HMAC-SHA1(s
 | Route | Effect |
 | --- | --- |
 | `POST /__admin/conversations/:id/admin-reply` | `{adminId? \| admin_id? (default: first admin), body, messageType?: "comment" \| "note"}` appends an admin part ("the care team replied") and fires the webhook. |
-| `GET /__admin/outbox?since=&to=&limit=`, `GET /__admin/outbox/:id` | What the client sent through `POST /conversations` and `/reply`, oldest first: `{id, operation, conversationId, contactId, partId, partType ("source" for the opening message), authorType, authorId, hasBody, bodyLength, attachmentCount, at, createdAt}`. **Metadata only**: the body is never stored. `to=` matches the conversation or contact id; `since=` takes epoch ms or ISO-8601 on the mock clock. The admin plane's own replies are not listed. |
+| `GET /__admin/outbox?since=&to=&limit=`, `GET /__admin/outbox/:id` | What the client sent through `POST /conversations` and `/reply`, oldest first: `{id, operation, conversationId, contactId, partId, partType ("source" for the opening message), authorType, authorId, hasBody, bodyLength, attachmentCount, at, createdAt}`. **Metadata only**: the body is never stored. `to=` matches the conversation or contact id; `since=` takes epoch ms or ISO-8601 on the emulator clock. The admin plane's own replies are not listed. |
 | `POST /__admin/conversations/:id/close`, `…/open` | `{adminId?}` closes or reopens as an admin and fires the webhook. |
 | `POST /__admin/conversations` | `{contactId \| externalId, adminId?, body}` creates an admin-initiated conversation. The EMR then looks the member up by `contacts[0].external_id`. |
 | `GET /__admin/conversations`, `GET /__admin/contacts` | The namespace's records. |
@@ -193,7 +193,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`):
 
 ### Namespaces
 
-- the `x-mockingbird-namespace` header;
+- the `x-emulators-namespace` header;
 - a `/__admin/ns/<name>` prefix on `INTERCOM_API_BASE_URL`;
 - the access token: `PUT /__admin/credentials {"credentials": {"<INTERCOM_ACCESS_TOKEN>": "<namespace>"}}`.
 
@@ -209,23 +209,23 @@ never records message bodies or contact details.
 - Tags, notes, companies, segments, tickets, articles, data-attribute management, teams and
   SLAs. These appear only as empty lists where a payload has them.
 - Rate-limit headers on normal responses. Only `rate_limited` sends them.
-- Intercom's exact wording for the idempotency conflict, which is unverified: the mock answers
+- Intercom's exact wording for the idempotency conflict, which is unverified: the emulator answers
   409 `conflict`.
 
 ## API
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `IntercomAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `appendPart(…)`, `manage(…)`, `startAdminConversation(…)`, `conversations()`, `contacts()`, `conversationBody(…)`, `contactBody(…)`, `error(…)`, `state`. Options: `sqlite`, `now`, `wallClock`, `namespace`, `admins`, `settings`, `onWebhook`. |
+| `IntercomAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `appendPart(…)`, `manage(…)`, `startAdminConversation(…)`, `conversations()`, `contacts()`, `conversationBody(…)`, `contactBody(…)`, `error(…)`, `state`. Options: `sqlite`, `now`, `wallClock`, `namespace`, `admins`, `settings`, `onWebhook`. |
 | `IntercomError` | class | A vendor error (status, code, message) raised by the admin-facing methods. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {urls, secret?, events?, retryDelaysMs?, fetch?}` (a `urls` entry may be `{url, events}` to override `events` for that URL), `admins`, `settings`, `clock`, `wallClock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {urls, secret?, events?, retryDelaysMs?, fetch?}` (a `urls` entry may be `{url, events}` to override `events` for that URL), `admins`, `settings`, `clock`, `wallClock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `INTERCOM_PRESETS` | object | Every named fault preset. |
 | `INTERCOM_NAMESPACE` | string | The service name, `"intercom"`. |
-| `INTERCOM_TOPICS` | array | Every webhook topic the mock can send, including the opt-in member topics. |
+| `INTERCOM_TOPICS` | array | Every webhook topic the emulator can send, including the opt-in member topics. |
 | `HUB_SIGNATURE_HEADER`, `signHub` | values | `X-Hub-Signature` and the `sha1=<hex>` signer, for your own receivers. |
 | `DEFAULT_ADMINS`, `DEFAULT_SETTINGS` | values | The seeded admins and default settings. |
 | `toHtml`, `toPlaintext`, `encodeCursor`, `decodeCursor` | functions | Body rendering and the search cursor format. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--webhook-url`, `--webhook-events`, `--emr-webhook-url`, `--webhook-secret`, `--access-token`); port 8807. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

@@ -1,6 +1,6 @@
-import { type Checkpoint, type FetchAPI, Timeline } from "@crvouga/mockingbird-core"
-import { listOperations, type OpenAPIDocument } from "@crvouga/mockingbird-openapi"
-import { clearNamespace, type SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { type Checkpoint, type FetchAPI, Timeline } from "@emulators/core"
+import { listOperations, type OpenAPIDocument } from "@emulators/openapi"
+import { clearNamespace, type SqliteClient } from "@emulators/sqlite-client"
 import { adminUiRoutes } from "./admin-ui.js"
 import { type Clock, createClock } from "./clock.js"
 import {
@@ -48,13 +48,13 @@ import { type WebhookHub, webhookAdminRoutes } from "./webhooks.js"
  * Stamped on every response the runtime returns — vendor, fault, admin and health alike —
  * as `<service>@<version>; ns=<namespace>`, so a consumer can tell the mock from the vendor.
  */
-export const MOCKINGBIRD_HEADER = "x-mockingbird"
+export const EMULATORS_HEADER = "x-emulators"
 /** Selects a named copy-on-write history branch. `main` is the compatibility default. */
-export const BRANCH_HEADER = "x-mockingbird-branch"
+export const BRANCH_HEADER = "x-emulators-branch"
 /** Reads a historical checkpoint. With a branch header, initializes that branch from it. */
-export const AT_HEADER = "x-mockingbird-at"
+export const AT_HEADER = "x-emulators-at"
 /** Identifies the resulting checkpoint on successful mutations. */
-export const CHECKPOINT_HEADER = "x-mockingbird-checkpoint"
+export const CHECKPOINT_HEADER = "x-emulators-checkpoint"
 
 /** What the runtime needs from a service: a Fetch handler it can reset. */
 export type ServiceInstance = FetchAPI & { reset(): Promise<void> }
@@ -78,7 +78,7 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   create: (context: InstanceContext) => T
   /** The vendor contract, used to name each request's operation in logs, metrics and faults. */
   document?: OpenAPIDocument
-  /** Shared by every namespace. Defaults to a fresh `@crvouga/mockingbird-service-sqlite`. */
+  /** Shared by every namespace. Defaults to a fresh `@emulators/sqlite`. */
   sqlite?: SqliteClient
   /** Defaults to a live clock over `Date.now`. */
   clock?: Clock
@@ -92,17 +92,17 @@ export type RuntimeOptions<T extends ServiceInstance> = {
   adminPrefix?: string
   /** Invalidate transient handles before replacing an existing instance's stored state. */
   beforeRestore?: (instance: T) => void
-  /** Require this value in `x-mockingbird-admin-key` on admin data routes. */
+  /** Require this value in `x-emulators-admin-key` on admin data routes. */
   adminKey?: string
   /** Structured request log sink, called once per request. */
   onLog?: (entry: RequestLog) => void
   /** Requests each namespace's journal keeps (`GET /__admin/requests`). Default 1000; 0 turns it off. */
   journalSize?: number
-  /** Reported in the `x-mockingbird` header. Default: the bundled package's version. */
+  /** Reported in the `x-emulators` header. Default: the bundled package's version. */
   version?: string
   /**
    * The vendor credential a request carries (API key, token, account SID, AWS access key
-   * id), for SDKs that cannot send `x-mockingbird-namespace`: a suite maps credentials to
+   * id), for SDKs that cannot send `x-emulators-namespace`: a suite maps credentials to
    * namespaces with `PUT /__admin/credentials`. See `bearerToken`, `basicAuth`,
    * `sigV4AccessKeyId`.
    */
@@ -260,9 +260,9 @@ export const faultEffect = (request: Request, name: string): Record<string, unkn
  * `fetch` does when the connection dies mid-request. A served mock destroys the socket.
  */
 export class DroppedConnectionError extends TypeError {
-  readonly code = "MOCKINGBIRD_DROP"
+  readonly code = "EMULATORS_DROP"
   constructor() {
-    super("fetch failed: connection dropped by Mockingbird fault")
+    super("fetch failed: connection dropped by Emulators fault")
     this.name = "TypeError"
   }
 }
@@ -284,7 +284,7 @@ const operationMatcher = (document: OpenAPIDocument) => {
 }
 
 /**
- * Wrap a service in the shared Mockingbird contract: an unauthenticated `/__admin/health`,
+ * Wrap a service in the shared Emulators contract: an unauthenticated `/__admin/health`,
  * the `/__admin/*` control plane, per-request namespaces, a controllable clock,
  * fault injection, and request metrics.
  *
@@ -297,7 +297,7 @@ export const createRuntime = <T extends ServiceInstance>(
 ): ServiceRuntime<T> => {
   const adminPrefix = resolveAdminPrefix(options.adminPrefix)
   const internalPaths = Object.entries(options.document?.paths ?? {})
-    .filter(([, item]) => item["x-mockingbird-internal"] === true)
+    .filter(([, item]) => item["x-emulators-internal"] === true)
     .map(([path]) => path)
   for (const path of internalPaths) {
     if (!path.startsWith(`${ADMIN_PREFIX}/blobs/`))
@@ -753,12 +753,12 @@ export const createRuntime = <T extends ServiceInstance>(
           ? `${options.name}@${version}; ns=${namespace}`
           : `${options.name}@${version}`
         try {
-          response.headers.set(MOCKINGBIRD_HEADER, value)
+          response.headers.set(EMULATORS_HEADER, value)
           return response
         } catch {
           // Immutable headers (a response passed through from `fetch`): copy it.
           const copy = new Response(response.body, response)
-          copy.headers.set(MOCKINGBIRD_HEADER, value)
+          copy.headers.set(EMULATORS_HEADER, value)
           return copy
         }
       }
@@ -812,7 +812,7 @@ export const createRuntime = <T extends ServiceInstance>(
           new Response(
             JSON.stringify({
               error: {
-                type: "mockingbird_admin",
+                type: "emulators_admin",
                 message: `${NAMESPACE_HEADER} must match ${NAMESPACE_PATTERN}`,
               },
             }),
@@ -990,8 +990,8 @@ export const createRuntime = <T extends ServiceInstance>(
 
 const mutableResponse = (response: Response): Response => {
   try {
-    response.headers.set("x-mockingbird-mutable-probe", "1")
-    response.headers.delete("x-mockingbird-mutable-probe")
+    response.headers.set("x-emulators-mutable-probe", "1")
+    response.headers.delete("x-emulators-mutable-probe")
     return response
   } catch {
     return new Response(response.body, response)
@@ -1005,7 +1005,7 @@ const adminJson = (status: number, body: unknown): Response =>
   })
 
 const adminFail = (status: number, message: string): Response =>
-  adminJson(status, { error: { type: "mockingbird_admin", message } })
+  adminJson(status, { error: { type: "emulators_admin", message } })
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)

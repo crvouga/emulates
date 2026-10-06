@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
+import { jsonResponse, type OperationHandler } from "@emulators/service"
 import { applyExpand, type ExpandResolvers } from "./expand.js"
 import { type RequestScope, requestScope, requireCharge, type Services } from "./internal.js"
 import { matchesCreated, paginate } from "./list.js"

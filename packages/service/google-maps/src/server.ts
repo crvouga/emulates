@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type GoogleMapsRuntime, type GoogleMapsRuntimeOptions } from "./runtime.js"
 
-/** Port `mockingbird-google-maps serve` listens on when none is given. */
+/** Port `emulators-google-maps serve` listens on when none is given. */
 export const DEFAULT_PORT = 8814
 
 export type GoogleMapsServerOptions = GoogleMapsRuntimeOptions & {
@@ -72,6 +72,6 @@ export const serveTarget: ServeTarget = {
     "REST: /maps/api/place/{autocomplete,details,findplacefromtext}/json, /maps/api/geocode/json (?key=)",
     'web: <script src="<this server>/maps/api/js?key=…&libraries=places">',
     "Address Validation: POST /v1:validateAddress?key= (addressvalidation.googleapis.com)",
-    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
+    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<key>: <ns>}",
   ],
 }

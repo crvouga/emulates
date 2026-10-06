@@ -1,15 +1,15 @@
-# @crvouga/mockingbird-adapter-bun
+# @emulators/adapter-bun
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
 
-Serve any Mockingbird `FetchAPI` (a provider mock such as `StripeAPI`, or your own) as a real HTTP
+Serve any Emulators `FetchAPI` (a provider emulator such as `StripeAPI`, or your own) as a real HTTP
 server with `Bun.serve`. Use it on Bun when the code under test needs a URL rather than an injected
-`fetch`. On Node, use `@crvouga/mockingbird-adapter-node` instead.
+`fetch`. On Node, use `@emulators/adapter-node` instead.
 
 ## Install
 
 ```bash
-npm install @crvouga/mockingbird-adapter-bun
+npm install @emulators/adapter-bun
 ```
 
 Bun >=1.2 only: the runtime code calls the global `Bun.serve`. ESM only.
@@ -24,10 +24,10 @@ npm install -D @types/bun
 ## Usage
 
 ```ts
-import { serve } from "@crvouga/mockingbird-adapter-bun"
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import { serve } from "@emulators/adapter-bun"
+import type { FetchAPI } from "@emulators/core"
 
-// Any FetchAPI works, e.g. `new StripeAPI()` from @crvouga/mockingbird-service-stripe.
+// Any FetchAPI works, e.g. `new StripeAPI()` from @emulators/stripe.
 const api: FetchAPI = {
   fetch: async (request) => Response.json({ method: request.method, url: request.url }),
 }
@@ -58,7 +58,7 @@ Requests and responses pass through unchanged (Bun is Fetch-native), so streamin
 
 ## Related
 
-- `@crvouga/mockingbird-core`: the `FetchAPI` contract.
-- `@crvouga/mockingbird-adapter-node`: the same adapter for `node:http`.
+- `@emulators/core`: the `FetchAPI` contract.
+- `@emulators/adapter-node`: the same adapter for `node:http`.
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

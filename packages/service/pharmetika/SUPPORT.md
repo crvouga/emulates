@@ -1,12 +1,12 @@
-# Pharmetika provider portal API (Mockingbird subset) — operation support
+# Pharmetika provider portal API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **9**
-- supported by the mock: **9**
+- supported by the emulator: **9**
 - parity enabled: **9**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListClinics` | `GET /api/v5/provider_portal/clinic/clinic_list` | ✅ supported | ✅ |  |
 | `ListPatients` | `GET /api/v5/provider_portal/provider/patient_list` | ✅ supported | ✅ |  |

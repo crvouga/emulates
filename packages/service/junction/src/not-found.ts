@@ -5,7 +5,7 @@
  * not a typo: every string below was recorded from the sandbox with a random order UUID
  * (2026-09-20), and `verify` re-checks each one.
  */
-import { HttpError } from "@crvouga/mockingbird-service"
+import { HttpError } from "@emulators/service"
 import type { JunctionState } from "./state.js"
 
 /** The `detail` of each order-scoped operation's 404 for an order that does not exist. */
@@ -37,9 +37,9 @@ export const ORDER_NOT_FOUND: Readonly<Record<string, string>> = {
  * Names the missing resource: `order <id>`, `user <id>`, or `user client:<client_user_id>`
  * (the id percent-encoded). Never part of Junction's answer.
  */
-export const MISS_HEADER = "x-mockingbird-miss"
+export const MISS_HEADER = "x-emulators-miss"
 /** What the namespace does hold: `users=<n> orders=<n>`. */
-export const KNOWN_HEADER = "x-mockingbird-known"
+export const KNOWN_HEADER = "x-emulators-known"
 
 /**
  * Throw Junction's 404 for a missing user or order. The body is Junction's, byte for

@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { type CareTalkRuntime, type CareTalkRuntimeOptions, createRuntime } from "./runtime.js"
 
-/** Port `mockingbird-caretalk serve` listens on when none is given. */
+/** Port `emulators-caretalk serve` listens on when none is given. */
 export const DEFAULT_PORT = 8823
 
 export type CareTalkServerOptions = CareTalkRuntimeOptions & {
@@ -67,6 +67,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: POST /externalapi/Auth/client-login {userName, password}, then Authorization: Bearer <token>",
-    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<userName>: <ns>}",
+    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<userName>: <ns>}",
   ],
 }

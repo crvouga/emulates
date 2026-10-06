@@ -5,8 +5,8 @@ import {
   bootSqlite,
   Collection,
   IdSequence,
-} from "@crvouga/mockingbird-service"
-import { clearNamespace } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import { clearNamespace } from "@emulators/sqlite-client"
 
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { TavilyRuntime, TavilyRuntimeOptions } from "./runtime.js"

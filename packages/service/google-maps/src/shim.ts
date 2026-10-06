@@ -18,7 +18,7 @@ const embed = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c")
 
 export const mapsJavaScript = (
   options: ShimOptions,
-): string => `/* Mockingbird Google Maps JavaScript API shim (places, geocoder) */
+): string => `/* Emulators Google Maps JavaScript API shim (places, geocoder) */
 (function () {
   var BASE = ${embed(options.base)};
   var KEY = ${embed(options.key)};
@@ -186,7 +186,7 @@ export const mapsJavaScript = (
 
   w.google = w.google || {};
   w.google.maps = {
-    version: "mockingbird",
+    version: "emulators",
     LatLng: LatLng,
     LatLngBounds: LatLngBounds,
     Geocoder: Geocoder,

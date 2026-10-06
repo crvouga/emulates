@@ -1,12 +1,12 @@
-# VPI compounding pharmacy API (Mockingbird subset) — operation support
+# VPI compounding pharmacy API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **18**
-- supported by the mock: **18**
+- supported by the emulator: **18**
 - parity enabled: **18**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `Authenticate` | `POST /accounts/authenticate` | ✅ supported | ✅ |  |
 | `GetAllFamiliesAndCategories` | `GET /products/getAllFamiliesAndCategories` | ✅ supported | ✅ |  |

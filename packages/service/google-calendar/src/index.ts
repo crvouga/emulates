@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -16,8 +16,8 @@ import {
   opaqueToken,
   type Service,
   toBase64,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
@@ -30,8 +30,8 @@ import {
   type UserRecord,
 } from "./state.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type {
@@ -313,7 +313,7 @@ export class GoogleCalendarAPI implements FetchAPI {
 
   private idToken(email: string, clientId: string, nowSeconds: number): string {
     const user = this.user(email)
-    const header = b64u(JSON.stringify({ alg: "RS256", kid: "mockingbird", typ: "JWT" }))
+    const header = b64u(JSON.stringify({ alg: "RS256", kid: "emulators", typ: "JWT" }))
     const payload = b64u(
       JSON.stringify({
         iss: "https://accounts.google.com",
@@ -881,7 +881,7 @@ export class GoogleCalendarAPI implements FetchAPI {
       return googleError(
         404,
         "notFound",
-        `Channel '${String(body.id)}' not found for project 'mockingbird'`,
+        `Channel '${String(body.id)}' not found for project 'emulators'`,
       )
     }
     this.state.channels.update(channel.id, { ...channel, stopped: true })

@@ -1,4 +1,4 @@
-import type { OpenAPIDocument, Operation } from "@crvouga/mockingbird-openapi"
+import type { OpenAPIDocument, Operation } from "@emulators/openapi"
 import { StripeError } from "./errors.js"
 import { renderInvoicePayments } from "./invoice-payments.js"
 import {

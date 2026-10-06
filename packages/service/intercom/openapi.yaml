@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Intercom REST API 2.11 (Mockingbird subset)
+  title: Intercom REST API 2.11 (Emulators subset)
   description: |
     Stateful mock subset of the Intercom REST API (version 2.11): contacts (search, create,
     update, get), conversations (create, update, reply as user or admin with attachments,
     close/open/snooze/assign, get, search) and the admin identity endpoints. Covers the backend's
     member messaging adapter and the Intercom sync adapter.
   version: "2.11"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Trimmed from Intercom's published 2.11 API reference to the operations and fields our
       consumers use (intercom-messaging.adapter.ts, intercom-api.adapter.ts) and the webhook
@@ -20,7 +20,7 @@ paths:
   /contacts/search:
     post:
       operationId: SearchContacts
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -51,7 +51,7 @@ paths:
   /contacts:
     get:
       operationId: ListContacts
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -85,7 +85,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
     post:
       operationId: CreateContact
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -116,12 +116,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: contact
             missing: 000000000000000000000000
     get:
       operationId: GetContact
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -139,7 +139,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     put:
       operationId: UpdateContact
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -168,7 +168,7 @@ paths:
   /conversations:
     get:
       operationId: ListConversations
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -198,7 +198,7 @@ paths:
     post:
       operationId: CreateConversation
       description: A contact-initiated conversation. An optional `Idempotency-Key` header replays.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -226,7 +226,7 @@ paths:
                       enum: [user, lead, contact]
                     id:
                       type: string
-                      x-mockingbird-resource-ref:
+                      x-emulators-resource-ref:
                         type: contact
                         missing: 000000000000000000000000
                 body:
@@ -255,7 +255,7 @@ paths:
   /conversations/search:
     post:
       operationId: SearchConversations
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -296,7 +296,7 @@ paths:
       - $ref: "#/components/parameters/ConversationId"
     get:
       operationId: GetConversation
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -316,7 +316,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     put:
       operationId: UpdateConversation
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -362,7 +362,7 @@ paths:
         Reply as the contact (`type: user` + `intercom_user_id`) or as an admin (`type: admin`
         + `admin_id`), as JSON (attachments as base64 `attachment_files`) or multipart
         (`attachment_files[]` file parts). Admin comments fire `conversation.admin.replied`.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -412,7 +412,7 @@ paths:
     post:
       operationId: ManageConversation
       description: Close, open, snooze or assign; close and open fire `conversation.admin.closed` / `opened`.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -433,7 +433,7 @@ paths:
                   enum: [admin]
                 admin_id:
                   type: string
-                  x-mockingbird-resource-ref:
+                  x-emulators-resource-ref:
                     type: admin
                     missing: "9999999"
                 body:
@@ -445,7 +445,7 @@ paths:
                   maximum: 1900000000
                 assignee_id:
                   type: string
-                  x-mockingbird-resource-ref:
+                  x-emulators-resource-ref:
                     type: admin
                     missing: "9999999"
       responses:
@@ -464,7 +464,7 @@ paths:
   /admins:
     get:
       operationId: ListAdmins
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -490,7 +490,7 @@ paths:
   /me:
     get:
       operationId: GetMe
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -553,7 +553,7 @@ components:
       required: true
       schema:
         type: string
-        x-mockingbird-resource-ref:
+        x-emulators-resource-ref:
           type: conversation
           missing: "999999999999999"
     DisplayAs:
@@ -597,7 +597,7 @@ components:
           enum: [error.list]
         request_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: token
         errors:
           type: array
@@ -760,7 +760,7 @@ components:
           maxLength: 400
         intercom_user_id:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: contact
             missing: 000000000000000000000000
         user_id:
@@ -771,7 +771,7 @@ components:
           maxLength: 120
         admin_id:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: admin
             missing: "9999999"
         created_at:
@@ -810,7 +810,7 @@ components:
           enum: [contact]
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: contact
             identity: true
         workspace_id:
@@ -837,11 +837,11 @@ components:
           type: boolean
         created_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         signed_up_at:
           type: ["integer", "null"]
@@ -940,15 +940,15 @@ components:
           type: ["string", "null"]
         created_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         notified_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         assigned_to:
           type: ["object", "null"]
@@ -971,22 +971,22 @@ components:
           enum: [conversation]
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: conversation
             identity: true
         title:
           type: ["string", "null"]
         created_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         waiting_since:
           type: ["integer", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         snoozed_until:
           type: ["integer", "null"]
@@ -1099,7 +1099,7 @@ components:
           type: string
         created_at:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         body:
           type: string
@@ -1108,7 +1108,7 @@ components:
           enum: [inapp]
         conversation_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: conversation
             identity: true
     Admin:
@@ -1120,7 +1120,7 @@ components:
           enum: [admin]
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: admin
             identity: true
         name:

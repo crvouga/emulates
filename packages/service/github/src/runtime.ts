@@ -3,7 +3,7 @@ import {
   jsonRes,
   type RuntimeOptions,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { GITHUB_NAMESPACE, GitHubAPI } from "./index.js"
 import { presets } from "./presets.js"
@@ -40,7 +40,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
           !/^[a-fA-F0-9]{40}$/.test(body.sha)
         )
           return jsonRes(400, {
-            code: "mockingbird_control_invalid",
+            code: "emulators_control_invalid",
             message: "Expected owner, repo, full branch ref and seeded 40-hex sha",
           })
         try {
@@ -59,7 +59,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
         } catch (error) {
           if (error instanceof RefError)
             return jsonRes(error.status, {
-              code: "mockingbird_control_invalid",
+              code: "emulators_control_invalid",
               message: error.message,
             })
           throw error
@@ -74,7 +74,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
           if (error instanceof SeedError)
             return jsonRes(error.status, {
               message: error.message,
-              code: "mockingbird_seed_invalid",
+              code: "emulators_seed_invalid",
             })
           throw error
         }
@@ -94,7 +94,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
       ? /^([^/]+)(?:\/|$)/.exec(source.pathname.slice(`${adminPrefix}/ns/`.length))
       : null
     const namespace =
-      request.headers.get("x-mockingbird-namespace") ??
+      request.headers.get("x-emulators-namespace") ??
       (prefix?.[1] ? decodeURIComponent(prefix[1]) : undefined)
     if (!namespace) return response
     response.headers.set(

@@ -1,4 +1,4 @@
-import catalog from "virtual:mockingbird/catalog"
+import catalog from "virtual:emulators/catalog"
 import type { APIRoute } from "astro"
 import { CATEGORIES, type CategorySlug } from "../lib/categories.ts"
 
@@ -29,7 +29,7 @@ export const GET: APIRoute = () => {
         ? `import { createRuntime } from "${s.packageName}"`
         : s.kind === "sql"
           ? `import { Database } from "${s.packageName}"`
-          : `import * as mock from "${s.packageName}"`,
+          : `import * as emulator from "${s.packageName}"`,
       operations: {
         supported: s.opsSupported,
         total: s.opsTotal,

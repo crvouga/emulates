@@ -498,7 +498,7 @@
       },
       "post": {
         "operationId": "CreateInvitation",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -761,7 +761,7 @@
       },
       "post": {
         "operationId": "CreateGroup",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -1024,7 +1024,7 @@
       },
       "post": {
         "operationId": "CreateTester",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -1297,7 +1297,7 @@
     "/v1/betaGroups/{id}/relationships/betaTesters": {
       "post": {
         "operationId": "AddGroupTesters",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -1400,7 +1400,7 @@
       },
       "delete": {
         "operationId": "RemoveGroupTesters",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -1505,7 +1505,7 @@
     "/v1/users/{id}/relationships/visibleApps": {
       "post": {
         "operationId": "AddVisibleApps",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -1610,7 +1610,7 @@
     "/v1/users/{id}": {
       "delete": {
         "operationId": "DeleteUser",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -1705,7 +1705,7 @@
     "/v1/userInvitations/{id}": {
       "delete": {
         "operationId": "DeleteInvitation",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -2330,7 +2330,7 @@
           },
           "id": {
             "type": "string",
-            "x-mockingbird-resource": {
+            "x-emulators-resource": {
               "type": "resource",
               "identity": true
             }

@@ -122,6 +122,9 @@ export class Statement {
     const typed: TypedValue[] = params.map((p, i) => bindValueToTyped(p, i));
     let last: ExecResult | null = null;
     for (const stmt of this.statements) {
+      if (stmt.type === "create_index" && stmt.concurrently && this.database.transactions.inTransaction) {
+        throw pgError("misuse", "CREATE INDEX CONCURRENTLY cannot run inside a transaction block", "25001");
+      }
       const env: ExecEnv = {
         ctx: new EngineCtx(this.database.state),
         params: typed,

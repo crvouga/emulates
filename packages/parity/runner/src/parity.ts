@@ -6,10 +6,10 @@ import {
   type OperationPlan,
   planOperations,
   type Scope,
-} from "@crvouga/mockingbird-commands"
-import type { FetchAPI } from "@crvouga/mockingbird-core"
-import { collectPlaceholders, pickRef, ResourceTable } from "@crvouga/mockingbird-model"
-import type { OpenAPIDocument } from "@crvouga/mockingbird-openapi"
+} from "@emulators/commands"
+import type { FetchAPI } from "@emulators/core"
+import { collectPlaceholders, pickRef, ResourceTable } from "@emulators/model"
+import type { OpenAPIDocument } from "@emulators/openapi"
 import fc from "fast-check"
 import { DEFAULT_PARITY_STEPS, DEFAULT_PROPERTY_RUNS } from "./defaults.js"
 import { type ExecutionContext, executeCommand, type FetchLike, type Target } from "./execute.js"
@@ -79,9 +79,9 @@ export type ParityOptions = {
   /** Default 30. */
   maxCommands?: number
   seed?: number
-  /** Environment used for FC_SEED / FC_NUM_RUNS / MOCKINGBIRD_MAX_COMMANDS / MOCKINGBIRD_TRACE. */
+  /** Environment used for FC_SEED / FC_NUM_RUNS / EMULATORS_MAX_COMMANDS / EMULATORS_TRACE. */
   env?: Record<string, string | undefined>
-  /** Tag threaded through `x-mockingbird-scope: run-id` values. Default derived from the seed. */
+  /** Tag threaded through `x-emulators-scope: run-id` values. Default derived from the seed. */
   runId?: string
   includeUnsafe?: boolean
   only?: readonly string[]
@@ -149,8 +149,7 @@ class Step implements fc.AsyncCommand<WalkModel, WalkReal> {
     const deletionTypes = context.deletionTypes?.[this.command.operationId] ?? []
     if (deletionTypes.length > 0) {
       for (const placeholder of collectPlaceholders([this.command.parameters, this.command.body])) {
-        if (placeholder.$mockingbird !== "ref" || !deletionTypes.includes(placeholder.type))
-          continue
+        if (placeholder.$emulators !== "ref" || !deletionTypes.includes(placeholder.type)) continue
         const ref = pickRef(context.table, placeholder.type, placeholder.pick)
         if (ref) context.table.markDeleted(ref.handle)
       }
@@ -227,15 +226,15 @@ export const parity = async (options: ParityOptions): Promise<ParityReport> => {
   const seed = options.seed ?? integerEnv(env, "FC_SEED") ?? Date.now() % 0x7fffffff
   const numRuns = options.numRuns ?? integerEnv(env, "FC_NUM_RUNS") ?? DEFAULT_PROPERTY_RUNS
   const maxCommands =
-    options.maxCommands ?? integerEnv(env, "MOCKINGBIRD_MAX_COMMANDS") ?? DEFAULT_PARITY_STEPS
-  const trace = env.MOCKINGBIRD_TRACE === "1" || env.MOCKINGBIRD_TRACE === "true"
+    options.maxCommands ?? integerEnv(env, "EMULATORS_MAX_COMMANDS") ?? DEFAULT_PARITY_STEPS
+  const trace = env.EMULATORS_TRACE === "1" || env.EMULATORS_TRACE === "true"
   const log = options.log ?? ((line: string) => console.log(line))
   const now = options.now ?? (() => Date.now())
   const sleep = options.sleep ?? defaultSleep
   const redact = options.redact ?? ((text: string) => text)
   const clockSkewSeconds = options.clockSkewSeconds ?? 2
   const deletedRefProbability = options.deletedRefProbability ?? 0.15
-  const runId = options.runId ?? `mockingbird-parity-${seed.toString(16)}`
+  const runId = options.runId ?? `emulators-parity-${seed.toString(16)}`
 
   assertAllowedHost(options.real.baseUrl, options.real.allowedHosts)
 

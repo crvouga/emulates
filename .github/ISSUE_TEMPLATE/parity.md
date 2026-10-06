@@ -1,6 +1,6 @@
 ---
 name: Parity mismatch
-about: The mock and its oracle (vendor sandbox or real engine) answer the same requests differently.
+about: The emulator and its oracle (vendor sandbox or real engine) answer the same requests differently.
 title: "[<service>] parity: <what diverges>"
 labels: agent-reported, parity
 ---
@@ -9,7 +9,7 @@ labels: agent-reported, parity
 
 ## Service
 
-- Package: `@crvouga/mockingbird-service-<service>@<exact installed version>`
+- Package: `@emulators/<service>@<exact installed version>`
 - Runtime: Node <version> / Bun <version>
 - Client: <official SDK name@exact version | raw fetch>
 - Oracle: <vendor sandbox / test mode / production API / real engine + version / vendor docs>
@@ -17,7 +17,7 @@ labels: agent-reported, parity
 
 ## What diverges
 
-<!-- One or two sentences: which operation, what the oracle does, what the mock does. -->
+<!-- One or two sentences: which operation, what the oracle does, what the emulator does. -->
 
 ## Reproduction
 
@@ -31,7 +31,7 @@ labels: agent-reported, parity
 status, relevant headers, body (redacted)
 ```
 
-## Mock response
+## Emulator response
 
 ```
 status, relevant headers, body

@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type PersonaRuntime, type PersonaRuntimeOptions } from "./runtime.js"
 
-/** Port `mockingbird-persona serve` listens on when none is given. */
+/** Port `emulators-persona serve` listens on when none is given. */
 export const DEFAULT_PORT = 8815
 
 export type PersonaServerOptions = PersonaRuntimeOptions & {
@@ -66,6 +66,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "API: PERSONA_API_URL=<this>/ (POST/GET /inquiries, GET /inquiries/{id}), Authorization: Bearer <key>",
     "hosted flow: PERSONA_WEB_INQUIRY_URL=<this>/verify (or /__admin/ns/<name>/verify)",
-    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

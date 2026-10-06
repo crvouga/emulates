@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: LlamaCloud platform API (Mockingbird subset)
+  title: LlamaCloud platform API (Emulators subset)
   description: |
     Stateful mock subset of the LlamaCloud (LlamaIndex managed index) platform API: project and
     pipeline lookup, pipeline retrieval, and pipeline documents (list, get, create, upsert,
     delete). Covers both of our consumers: the backend's plain-`fetch` knowledge adapter and the
     Python chat service's `llama_cloud_services.LlamaCloudIndex(...).as_retriever().aretrieve()`.
   version: "1"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Hand-authored from the wire shapes of the official Python client (llama-cloud 0.1.45, the
       Fern-generated client that llama-cloud-services 0.6.88 drives) and our backend adapter
@@ -22,7 +22,7 @@ paths:
     get:
       operationId: ListProjects
       description: The SDK's project lookup (`resolve_project` by `project_name`).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -56,13 +56,13 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: project
             missing: 00000000-0000-4000-8000-00000000dead
     get:
       operationId: GetProject
       description: The retriever's project lookup by id (`as_retriever` passes `project_id`).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -90,7 +90,7 @@ paths:
       description: >-
         Our backend lists by `project_name` and picks `name == LLAMACLOUD_INDEX_NAME`; the SDK
         searches by `project_id` + `pipeline_name` + `pipeline_type=MANAGED`.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -101,7 +101,7 @@ paths:
           schema:
             type: string
             maxLength: 64
-            x-mockingbird-resource-ref:
+            x-emulators-resource-ref:
               type: project
               missing: 00000000-0000-4000-8000-00000000dead
         - name: project_name
@@ -141,7 +141,7 @@ paths:
     get:
       operationId: GetPipeline
       description: The retriever's pipeline lookup by id.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -165,7 +165,7 @@ paths:
       description: >-
         Retrieval. Answered from a scripted rule (`PUT /__admin/retrieval`) whose `contains`
         matches the query, else a deterministic term-overlap ranking over the stored documents.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -205,7 +205,7 @@ paths:
       - $ref: "#/components/parameters/PipelineId"
     get:
       operationId: ListPipelineDocuments
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -241,7 +241,7 @@ paths:
     post:
       operationId: CreateBatchPipelineDocuments
       description: Insert documents (the SDK's `insert`); an id that already exists is replaced.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -270,7 +270,7 @@ paths:
     put:
       operationId: UpsertBatchPipelineDocuments
       description: Upsert by id (our backend uses the article slug as the id).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -304,12 +304,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: document
             missing: missing-document
     get:
       operationId: GetPipelineDocument
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -327,7 +327,7 @@ paths:
           $ref: "#/components/responses/NotFound"
     delete:
       operationId: DeletePipelineDocument
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -351,7 +351,7 @@ components:
       required: true
       schema:
         type: string
-        x-mockingbird-resource-ref:
+        x-emulators-resource-ref:
           type: pipeline
           missing: 00000000-0000-4000-8000-0000000beef0
   responses:
@@ -404,7 +404,7 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: project
             identity: true
         name:
@@ -417,11 +417,11 @@ components:
           type: ["string", "null"]
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     Pipeline:
       type: object
@@ -429,7 +429,7 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: pipeline
             identity: true
         name:
@@ -452,11 +452,11 @@ components:
           enum: [CREATED, DELETING]
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     CloudDocumentCreate:
       type: object
@@ -521,7 +521,7 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: document
             identity: true
         text:

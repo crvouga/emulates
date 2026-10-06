@@ -6,7 +6,7 @@ import { resolve } from "node:path"
 import { createServer } from "./src/server.js"
 
 const socketPath = async () => {
-  const dir = "/tmp/mockingbird-docker-sockets"
+  const dir = "/tmp/emulators-docker-sockets"
   await mkdir(dir, { recursive: true })
   return `${dir}/${crypto.randomUUID().slice(0, 8)}.sock`
 }

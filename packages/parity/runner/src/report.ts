@@ -1,7 +1,7 @@
-import type { CanonicalExchange, Difference, Exchange } from "@crvouga/mockingbird-canonicalize"
-import { formatDifference } from "@crvouga/mockingbird-canonicalize"
-import type { ConcreteRequest, LogicalCommand } from "@crvouga/mockingbird-commands"
-import { describeCommand } from "@crvouga/mockingbird-commands"
+import type { CanonicalExchange, Difference, Exchange } from "@emulators/canonicalize"
+import { formatDifference } from "@emulators/canonicalize"
+import type { ConcreteRequest, LogicalCommand } from "@emulators/commands"
+import { describeCommand } from "@emulators/commands"
 
 export type Redactor = (text: string) => string
 

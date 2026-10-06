@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { WORKOS_NAMESPACE, WorkOSAPI, type WorkOSAPIOptions } from "./index.js"
 export const WORKOS_PRESETS: Record<string, FaultPreset> = {

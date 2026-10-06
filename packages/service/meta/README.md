@@ -1,27 +1,27 @@
-# @crvouga/mockingbird-service-meta
+# @emulators/meta
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful Meta Graph v26 mock for server-side Conversions API events and marketing reporting. It
+Stateful Meta Graph v26 emulator for server-side Conversions API events and marketing reporting. It
 preserves privacy-safe hashed user fields, event deduplication, ambiguous writes, Graph errors,
 campaign objects, dated insights, breakdowns, and cursor pagination without contacting Meta.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-meta
+npm install -D @emulators/meta
 ```
 
-ESM only. Node >= 22 or Bun >= 1.2. Serve with `npx mockingbird-meta serve`, `createServer` from
+ESM only. Node >= 22 or Bun >= 1.2. Serve with `npx emulators-meta serve`, `createServer` from
 `./server`, or mount `createRuntime()` in any Fetch-compatible process.
 
 ## Usage
 
-Make the Graph origin injectable and point it at the mock. Any non-empty synthetic Bearer token or
+Make the Graph origin injectable and point it at the emulator. Any non-empty synthetic Bearer token or
 `access_token` query value authenticates unless `/__admin/settings` restricts tokens.
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-meta"
+import { createRuntime } from "@emulators/meta"
 
 const meta = createRuntime()
 const response = await meta.fetch(new Request("http://meta.test/v26.0/pixel_test/events", {
@@ -47,7 +47,7 @@ const response = await meta.fetch(new Request("http://meta.test/v26.0/pixel_test
 | `GET /v26.0/:accountId/insights` | Filters seeded or admin-inserted insight rows by inclusive JSON `time_range`, paginates with `limit`/`after`, and includes `country` when requested as a breakdown. |
 | `GET /v26.0/:objectId` | Reads seeded/admin-inserted campaign, ad-set, or ad records. |
 
-Seed fixtures are `act_mockingbird`, `cmp_mockingbird`, `set_mockingbird`, and `ad_mockingbird`,
+Seed fixtures are `act_emulators`, `cmp_emulators`, `set_emulators`, and `ad_emulators`,
 with three dated insight rows from 2026-01-01 through 2026-01-03.
 
 ### Admin and faults
@@ -60,7 +60,7 @@ Presets: `expired_token`, `rate_limited`, `server_error`, `partial_event_accepta
 `accepted_then_drop`, and `slow`. The ambiguous-write preset persists the event before dropping the
 connection; retrying the same `event_id` remains deduplicated.
 
-Namespaces use `x-mockingbird-namespace`, `/__admin/ns/<name>/…`, or credential mapping through
+Namespaces use `x-emulators-namespace`, `/__admin/ns/<name>/…`, or credential mapping through
 `PUT /__admin/credentials`.
 
 ## API
@@ -68,7 +68,7 @@ Namespaces use `x-mockingbird-namespace`, `/__admin/ns/<name>/…`, or credentia
 The main entry exports `MetaAPI`, `MetaState`, `createRuntime`, `META_NAMESPACE`, `META_PRESETS`,
 `DEFAULT_SETTINGS`, `accessTokenCredential`, the generated `document`, `operationIds`,
 `supportedOperationIds`, and their public option/state/event/insight types.
-`@crvouga/mockingbird-service-meta/server` exports
+`@emulators/meta/server` exports
 `createServer`, `serveTarget`, `DEFAULT_PORT`, and server option/result types.
 
 ## Deliberately not modelled
@@ -76,4 +76,4 @@ The main entry exports `MetaAPI`, `MetaState`, `createRuntime`, `META_NAMESPACE`
 - Real ad delivery, attribution calculation, hashing of plaintext PII, app-secret proof, or OAuth.
 - Campaign/ad-set/ad mutation, creatives, audiences, pixels configuration, dashboards, or billing.
 - The complete Insights fields/breakdowns matrix and asynchronous report jobs.
-- Meta-side probabilistic matching: the mock records only the supplied synthetic hashed fields.
+- Meta-side probabilistic matching: the emulator records only the supplied synthetic hashed fields.

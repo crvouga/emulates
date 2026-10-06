@@ -10,8 +10,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import {
   envelope,
@@ -148,7 +148,7 @@ export type FullscriptRuntime = ServiceRuntime<FullscriptAPI> & { readonly webho
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -294,7 +294,7 @@ const adminRoutes =
   })
 
 /**
- * The Fullscript mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The Fullscript emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix on FULLSCRIPT_API_URL, or by OAuth client
  * (for API calls), clock control, fault presets, signed webhooks and a request journal.
  */

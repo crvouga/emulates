@@ -3,7 +3,7 @@ import {
   type OperationContext,
   type OperationHandler,
   opaqueToken,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { invalidRequest, parameterMissing, resourceMissing } from "./errors.js"
 import {
   changedFields,

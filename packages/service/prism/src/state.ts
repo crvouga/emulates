@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 
 export type Quantity = { value: number; unit: string }
 

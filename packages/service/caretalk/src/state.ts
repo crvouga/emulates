@@ -1,5 +1,5 @@
-import { Collection } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { DEFAULT_FORMS, type FullFormDto } from "./forms.js"
 
 /** A patient as CareTalk echoes it back from `POST /externalapi/Patients`. */

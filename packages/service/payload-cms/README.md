@@ -1,42 +1,42 @@
-# @crvouga/mockingbird-service-payload-cms
+# @emulators/payload-cms
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of **Payload CMS**'s collection REST API for test suites: `GET /api/<collection>`
+Stateful emulator of **Payload CMS**'s collection REST API for test suites: `GET /api/<collection>`
 with Payload's paginated envelope (`docs`, `totalDocs`, `limit`, `totalPages`, `page`,
 `pagingCounter`, `hasPrevPage`, `hasNextPage`, `prevPage`, `nextPage`) and a `where` query
 subset, and `GET /api/<collection>/<id>`. The `marketing` collection is seeded with an active
 referral card, so the backend's referral content comes from the "CMS" deterministically, and
 the admin plane lets a test change it.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/payload-cms/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/payload-cms/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from Payload's REST and query docs and the
   consumer's response type (`payload-cms-response.type.ts`).
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-payload-cms
+npm install -D @emulators/payload-cms
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-payload-cms serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulators-payload-cms serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
 
-Point `PAYLOAD_CMS_API_URL` at the mock. The backend validates it as **https-only**
-(`validation.schema.ts`), so either relax that for loopback or put the mock behind TLS.
+Point `PAYLOAD_CMS_API_URL` at the emulator. The backend validates it as **https-only**
+(`validation.schema.ts`), so either relax that for loopback or put the emulator behind TLS.
 Anything that goes wrong (non-2xx, empty docs, bad JSON, a dropped connection) makes the
 backend fall back to its default referral content, which the presets exercise.
 
 ```bash
-npx mockingbird-payload-cms serve --port 8822
+npx emulators-payload-cms serve --port 8822
 # or seed your own collections: --collections ./cms-seed.json   ({"marketing": [ … ]})
 ```
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-payload-cms"
+import { createRuntime } from "@emulators/payload-cms"
 
 const cms = createRuntime()
 await cms.fetch(
@@ -75,7 +75,7 @@ card, `3` an active banner.
 | `GET /__admin/collections` | `{collections: {<slug>: <doc count>}}`. |
 | `GET /__admin/collections/:slug` | The collection's documents. |
 | `PUT /__admin/collections/:slug` | `{docs: [...]}` replaces the collection (creates it if new). |
-| `POST /__admin/collections/:slug/docs` | Adds a document (next integer id, timestamps from the mock clock). |
+| `POST /__admin/collections/:slug/docs` | Adds a document (next integer id, timestamps from the emulator clock). |
 | `PATCH /__admin/collections/:slug/docs/:id` | Merges fields into a document. |
 | `DELETE /__admin/collections/:slug/docs/:id` | Removes a document. |
 
@@ -86,7 +86,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `serve
 ### Namespaces
 
 Our backend's `fetch` sends no credential, so use a `/__admin/ns/<name>` suffix on
-`PAYLOAD_CMS_API_URL` (e.g. `http://127.0.0.1:8822/__admin/ns/worker-1`) or `x-mockingbird-namespace`.
+`PAYLOAD_CMS_API_URL` (e.g. `http://127.0.0.1:8822/__admin/ns/worker-1`) or `x-emulators-namespace`.
 A request carrying `Authorization: <collection> API-Key <key>` or a bearer token can also be
 mapped with `PUT /__admin/credentials`.
 
@@ -100,8 +100,8 @@ mapped with `PUT /__admin/credentials`.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PayloadCmsAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `addDoc(slug, fields)`, `updateDoc(slug, id, patch)`, `deleteDoc(slug, id)`, `collections()`. Options: `sqlite`, `now`, `namespace`, `collections`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, presets). Options: `collections`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `PayloadCmsAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `addDoc(slug, fields)`, `updateDoc(slug, id, patch)`, `deleteDoc(slug, id)`, `collections()`. Options: `sqlite`, `now`, `namespace`, `collections`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, presets). Options: `collections`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `PAYLOAD_CMS_PRESETS` | object | Every named fault preset. |
 | `PAYLOAD_CMS_NAMESPACE` | string | The service name, `"payload-cms"`. |
 | `DEFAULT_MARKETING_DOCS` | array | The marketing collection seed. |
@@ -112,4 +112,4 @@ mapped with `PUT /__admin/credentials`.
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--collections <file>`); port 8822. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-textract",
+  "name": "@emulators/textract",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon Textract mock with document analysis jobs, graph blocks, pagination, and deterministic notifications.",
+  "description": "Stateful Amazon Textract emulator with document analysis jobs, graph blocks, pagination, and deterministic notifications.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "mockingbird-textract": "./dist/cli.js"
+    "emulators-textract": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,19 +34,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/textract"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/textract#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/textract#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "aws",
     "textract",
     "ocr",
     "documents",
-    "mock"
+    "emulator"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -70,7 +70,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- textract",
-        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -81,7 +81,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -97,19 +97,19 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*"
+    "@emulators/sqlite": "workspace:*"
   },
   "devDependencies": {
     "@aws-sdk/client-textract": "3.1132.0",
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-testing": "workspace:*",
+    "@emulators/adapter-node": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/parity": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

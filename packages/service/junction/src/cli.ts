@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /// <reference types="node" />
 import { readFile, writeFile } from "node:fs/promises"
-import { type CliValues, runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { type CliValues, runCli, serveCommand } from "@emulators/adapter-node"
 import { defaultCorpus } from "./corpus.js"
 import { DEFAULT_JUNCTION_BASE_URL, diffCorpus, isSandboxKey, pullCorpus } from "./corpus-tools.js"
 import { createRuntime } from "./runtime.js"
@@ -56,14 +56,14 @@ const REAL_OPTIONS = {
 
 const code = await runCli(
   {
-    bin: "mockingbird-junction",
-    description: "stateful Junction (Vital) API mock",
+    bin: "emulators-junction",
+    description: "Junction (Vital) API emulator",
     commands: {
       serve: serveCommand(serveTarget),
 
       "corpus pull": {
         summary: "Record a corpus from a real Junction team (read-only GETs)",
-        usage: "mockingbird-junction corpus pull --out <file> [--zip 10001,94105] [--base <file>]",
+        usage: "emulators-junction corpus pull --out <file> [--zip 10001,94105] [--base <file>]",
         options: {
           ...REAL_OPTIONS,
           out: { type: "string", value: "<file>", description: "Where to write the corpus" },
@@ -117,12 +117,12 @@ const code = await runCli(
 
       "corpus diff": {
         summary: "Show what changed between two corpora (exit 1 when they differ)",
-        usage: "mockingbird-junction corpus diff <before|default> <after|default> [--json]",
+        usage: "emulators-junction corpus diff <before|default> <after|default> [--json]",
         options: { json: { type: "boolean", description: "Print the diff as JSON" } },
         async run(values, positionals) {
           const [beforePath, afterPath] = positionals
           if (beforePath === undefined || afterPath === undefined) {
-            console.error("usage: mockingbird-junction corpus diff <before> <after>")
+            console.error("usage: emulators-junction corpus diff <before> <after>")
             return 2
           }
           const diff = diffCorpus(await readCorpus(beforePath), await readCorpus(afterPath))
@@ -157,14 +157,14 @@ const code = await runCli(
       },
 
       verify: {
-        summary: "Replay the corpus and a stateful scenario against real Junction and the mock",
-        usage: "mockingbird-junction verify --real-key <sk_us_…> [--corpus <file>] [--orders]",
+        summary: "Replay the corpus and a stateful scenario against real Junction and the emulator",
+        usage: "emulators-junction verify --real-key <sk_us_…> [--corpus <file>] [--orders]",
         options: {
           ...REAL_OPTIONS,
           corpus: {
             type: "string",
             value: "<default|file>",
-            description: "Corpus the mock serves and drift is checked against",
+            description: "Corpus the emulator serves and drift is checked against",
             default: "default",
           },
           sample: {

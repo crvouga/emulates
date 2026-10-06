@@ -12,8 +12,8 @@
  * patient, test and webhook writes need `--include-unsafe`. The spec's fixed practice id is
  * swapped for the real one on the way out.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, OdxAPI } from "../src/index.js"
 
 const SPEC_PRACTICE = "3f0c0c43-7d2b-4b8e-9a50-9c1f0c6c0001"

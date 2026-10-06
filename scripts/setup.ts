@@ -25,7 +25,7 @@ async function run(cmd: string[]): Promise<void> {
   }
 }
 
-console.log("mockingbird setup")
+console.log("emulators setup")
 console.log("==================")
 
 step("Installing dependencies")
@@ -33,13 +33,13 @@ await run(["bun", "install", "--frozen-lockfile"])
 
 // On a genuinely fresh install, bun only links a workspace package's `bin` if its
 // dist/ file already exists at install time — it doesn't retroactively pick one up.
-// @crvouga/mockingbird-openapi-codegen's bin (mockingbird-codegen) doesn't exist until
+// @emulators/openapi-codegen's bin (emulators-codegen) doesn't exist until
 // it's built, so a first-ever `bun install && bun run build` leaves every service
-// package's `generate` step failing with "mockingbird-codegen: command not found".
+// package's `generate` step failing with "emulators-codegen: command not found".
 // Fix: build just that package, reinstall to link its now-existing bin, then build
 // everything else. This is idempotent and a no-op once dist/ already exists.
 step("Building the codegen package first (needed to link its CLI bin)")
-await run(["bunx", "turbo", "run", "build", "--filter=@crvouga/mockingbird-openapi-codegen"])
+await run(["bunx", "turbo", "run", "build", "--filter=@emulators/openapi-codegen"])
 
 step("Reinstalling to link the codegen CLI bin")
 await run(["bun", "install", "--frozen-lockfile"])
@@ -76,7 +76,7 @@ console.log(
 console.log("")
 console.log("Done. No secrets are needed for any of this:")
 console.log("")
-console.log("  bun test            # property-based suite — every mock's self-parity")
+console.log("  bun test            # property-based suite — every emulator's self-parity")
 console.log("  bun run check       # everything CI checks: lint, typecheck, tests, boundaries...")
 console.log("  bun docs            # docs site with live playgrounds")
 console.log("")

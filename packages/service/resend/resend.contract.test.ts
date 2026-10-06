@@ -52,7 +52,7 @@ const email = (overrides: Record<string, unknown> = {}) => ({
 })
 
 describe("the service contract", () => {
-  test("health, missing key, unknown email, x-mockingbird", async () => {
+  test("health, missing key, unknown email, x-emulators", async () => {
     const { call } = harness()
     expect((await call("/__admin/health", { key: "" })).status).toBe(200)
     const noKey = await call("/emails", { body: email(), key: "" })
@@ -64,7 +64,7 @@ describe("the service contract", () => {
       name: "not_found",
       message: "Email not found",
     })
-    expect(missing.headers.get("x-mockingbird")).toMatch(/^resend@.+; ns=default$/)
+    expect(missing.headers.get("x-emulators")).toMatch(/^resend@.+; ns=default$/)
   })
 
   test("namespaces by header, by /__admin/ns/ prefix and by API key are isolated", async () => {
@@ -77,7 +77,7 @@ describe("the service contract", () => {
     expect((await call(`/emails/${sent.id}`, { key: "re_worker_a" })).status).toBe(200)
     expect((await call(`/emails/${sent.id}`, { key: "re_worker_b" })).status).toBe(404)
     expect(
-      (await call(`/emails/${sent.id}`, { headers: { "x-mockingbird-namespace": "a" } })).status,
+      (await call(`/emails/${sent.id}`, { headers: { "x-emulators-namespace": "a" } })).status,
     ).toBe(200)
     expect((await call(`/__admin/ns/a/emails/${sent.id}`)).status).toBe(200)
   })
@@ -248,12 +248,12 @@ describe("inbound and webhooks", () => {
           to: "c@d.co",
           attachments: [{ filename: "n.txt", content: btoa("note"), contentType: "text/plain" }],
         },
-        headers: { "x-mockingbird-namespace": "w1" },
+        headers: { "x-emulators-namespace": "w1" },
       })
     ).json()) as { id: string }
     const listed = (await (
       await call(`/emails/receiving/${created.id}/attachments`, {
-        headers: { "x-mockingbird-namespace": "w1" },
+        headers: { "x-emulators-namespace": "w1" },
       })
     ).json()) as { data: { download_url: string; size: number }[] }
     const url = new URL(listed.data[0]?.download_url as string)
@@ -264,7 +264,7 @@ describe("inbound and webhooks", () => {
     expect(await download.text()).toBe("note")
     expect((await call("/downloads/inbound/unknown", { key: "" })).status).toBe(404)
     const inbox = (await (
-      await call("/__admin/inbound", { headers: { "x-mockingbird-namespace": "w1" } })
+      await call("/__admin/inbound", { headers: { "x-emulators-namespace": "w1" } })
     ).json()) as { emails: { id: string }[] }
     expect(inbox.emails.map((e) => e.id)).toEqual([created.id])
   })

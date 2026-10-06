@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 
 export const FCM_FIXTURE_PROJECT = "demo-project"
 export const FCM_FIXTURE_TOKEN = "fixture-device-token"

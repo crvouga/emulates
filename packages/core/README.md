@@ -1,17 +1,17 @@
-# @crvouga/mockingbird-core
+# @emulators/core
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
 
-The one contract shared by every Mockingbird package: `FetchAPI`, anything that answers a Fetch
-`Request` with a `Response`. Every mock service implements it and every runtime adapter consumes it.
-You rarely install this directly. Most users want a provider mock such as
-`@crvouga/mockingbird-service-stripe`; depend on this package
+The one contract shared by every Emulators package: `FetchAPI`, anything that answers a Fetch
+`Request` with a `Response`. Every emulator service implements it and every runtime adapter consumes it.
+You rarely install this directly. Most users want a provider emulator such as
+`@emulators/stripe`; depend on this package
 only when you write your own `FetchAPI` or a function that accepts one.
 
 ## Install
 
 ```bash
-npm install @crvouga/mockingbird-core
+npm install @emulators/core
 ```
 
 ESM only. Portable: no Node- or Bun-only APIs, so it runs on Node >=22, Bun >=1.2, Deno, workerd and
@@ -26,7 +26,7 @@ import {
   fromFetchHandler,
   toFetchHandler,
   Timeline,
-} from "@crvouga/mockingbird-core"
+} from "@emulators/core"
 
 // Any object with `fetch(request) => Promise<Response>` is a FetchAPI.
 const api: FetchAPI = {
@@ -49,7 +49,7 @@ history.fork("experiment", { from: root.id })
 history.commit({ count: 1 }, { branch: "experiment" })
 ```
 
-Pass a mock straight to your code under test as its `fetch`, e.g. `fetch: (input, init) =>
+Pass an emulator straight to your code under test as its `fetch`, e.g. `fetch: (input, init) =>
 api.fetch(new Request(input, init))`, or serve it over HTTP with an adapter (see Related).
 
 ## API
@@ -60,7 +60,7 @@ api.fetch(new Request(input, init))`, or serve it over HTTP with an adapter (see
 | `fromFetchHandler` | `(handler: FetchHandler) => FetchAPI` | Wrap a bare handler as `{ fetch: handler }`. |
 | `Timeline<T>` | `new Timeline({ now?, maxCheckpoints?, id? })` | Deterministic, storage-agnostic checkpoint DAG with `commit`, `fork`, `checkout`, branch heads and bounded GC. Values are retained by reference so COW snapshots stay O(1). |
 
-`Timeline` is the only history and branching primitive prescribed for Mockingbird state. Storage
+`Timeline` is the only history and branching primitive prescribed for Emulators state. Storage
 engines may expose immutable COW payloads named `Snapshot` for compatibility and serialization,
 but branch heads, retention, checkout, and garbage collection belong to `Timeline`. Its hot commit
 path is O(1) amortized: an ordered unpinned-node set avoids rescanning history or branch heads.
@@ -75,8 +75,8 @@ their `this` binding.
 
 ## Related
 
-- `@crvouga/mockingbird-adapter-node`: serve a `FetchAPI` over `node:http`.
-- `@crvouga/mockingbird-adapter-bun`: serve a `FetchAPI` with `Bun.serve`.
-- `@crvouga/mockingbird-service`: build a `FetchAPI` from an OpenAPI document.
+- `@emulators/adapter-node`: serve a `FetchAPI` over `node:http`.
+- `@emulators/adapter-bun`: serve a `FetchAPI` with `Bun.serve`.
+- `@emulators/service`: build a `FetchAPI` from an OpenAPI document.
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

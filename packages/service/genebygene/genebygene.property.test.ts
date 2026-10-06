@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { ParityError, type ParityOptions, parity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { ParityError, type ParityOptions, parity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import {
   type AddressDto,
@@ -278,7 +278,7 @@ const validAddress = fc
   .map(
     ({ zip, number, commercial }): AddressDto => ({
       isCommercial: commercial,
-      recipientName: "Mockingbird Test",
+      recipientName: "Emulators Test",
       addressLine1: `${number} Main St`,
       addressLine2: null,
       city: "Springfield",

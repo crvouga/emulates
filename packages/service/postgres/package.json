@@ -1,18 +1,18 @@
 {
   "bin": {
-    "mockingbird-postgres": "./dist/wire/cli.js"
+    "emulators-postgres": "./dist/wire/cli.js"
   },
   "bugs": {
-    "url": "https://github.com/crvouga/mockingbird/issues"
+    "url": "https://github.com/crvouga/emulators/issues"
   },
   "description": "Pure TypeScript in-memory PostgreSQL implementation with zero WASM/native dependencies",
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.14",
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-ui": "workspace:*",
+    "@emulators/adapter-node": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/ui": "workspace:*",
     "@electric-sql/pglite": "^0.5.8",
     "@types/bun": "latest",
     "@types/pg": "^8.23.1",
@@ -67,9 +67,9 @@
     "CHANGELOG.md",
     "DISCOVERY.md"
   ],
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/postgres#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/postgres#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "postgres",
     "postgresql",
     "typescript",
@@ -79,7 +79,7 @@
   ],
   "license": "MIT",
   "main": "./dist/index.js",
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "layer": "service",
     "category": "databases",
@@ -110,18 +110,18 @@
         "README.md public test controls",
         "COMPATIBILITY.md compatibility and divergence evidence"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "module": "./dist/index.js",
-  "name": "@crvouga/mockingbird-service-postgres",
+  "name": "@emulators/postgres",
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/postgres"
   },
   "scripts": {

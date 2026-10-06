@@ -1,5 +1,5 @@
-import { Collection } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Row, Scalar } from "./otlp.js"
 
 export type StreamType = "logs" | "traces"

@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: AHA (Advanced Health Academy) partner API (Mockingbird subset)
+  title: AHA (Advanced Health Academy) partner API (Emulators subset)
   description: |
     Stateful mock of the AHA at-home phlebotomy partner API: create-or-update order and cancel.
     The vendor has no pull API; order state reaches the partner only as inbound webhooks, which
     the mock emits from admin transitions (see the README). Hand-authored from the consumer's
     wire shapes (the vendor publishes no spec).
   version: "1"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Hand-authored from aha.service.ts, aha.types.ts (zod request/response schemas) and
       aha.lab-provider.ts. Success responses come in one of two envelopes (raw, or
@@ -26,7 +26,7 @@ paths:
       description: >-
         Create an order, or update it when partner_order_id already exists (the same
         order_number is returned). Honors X-Idempotency-Key.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -85,7 +85,7 @@ paths:
       description: >-
         Cancel an order by partner_order_id. The mock also accepts the AHA order_number here,
         because our lab-provider client sends it in that field (G-A1).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -304,7 +304,7 @@ components:
           type: string
           minLength: 1
           maxLength: 64
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: order
             missing: AC-999999999
         notes:
@@ -330,12 +330,12 @@ components:
           properties:
             partner_order_id:
               type: string
-              x-mockingbird-resource:
+              x-emulators-resource:
                 type: order
                 identity: true
             order_number:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: id
         message:
           type: string

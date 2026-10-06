@@ -10,8 +10,8 @@
  * By default only safe operations run (catalogs and status lookups); submit and cancel place
  * and cancel real supplement orders, so they need `--include-unsafe` and a sandbox account.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, WholescriptsAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

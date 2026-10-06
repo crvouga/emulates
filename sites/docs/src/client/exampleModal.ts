@@ -1,5 +1,5 @@
 /**
- * Every live example on the site (per-service `mockingbird.examples` and the
+ * Every live example on the site (per-service `emulators.examples` and the
  * full-stack app examples) opens in the same modal surface: a native modal
  * `<dialog>` in the top layer, with the example mounted inside a window that
  * is its own containing block (`contain: layout paint` on

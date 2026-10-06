@@ -1,4 +1,4 @@
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import {
   createRuntime,
   type EventBridgeRuntime,

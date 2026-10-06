@@ -38,7 +38,7 @@ describe("MediaConvert contract", () => {
     })
     const isolated = await runtime.fetch(
       new Request(`http://mock/2017-08-29/jobs/${id}`, {
-        headers: { "x-mockingbird-namespace": "other" },
+        headers: { "x-emulators-namespace": "other" },
       }),
     )
     expect(isolated.status).toBe(404)

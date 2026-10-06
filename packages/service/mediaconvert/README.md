@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-mediaconvert
+# @emulators/mediaconvert
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful AWS Elemental MediaConvert mock for the official SDK v3 client. It supports endpoint discovery, asynchronous jobs, deterministic controls, EventBridge-compatible events, and output writes to a configured mock S3 service.
+Stateful AWS Elemental MediaConvert emulator for the official SDK v3 client. It supports endpoint discovery, asynchronous jobs, deterministic controls, EventBridge-compatible events, and output writes to a configured emulator S3 service.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-mediaconvert
+npm install -D @emulators/mediaconvert
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -15,7 +15,7 @@ ESM only. Node 22+ or Bun 1.2+.
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-mediaconvert/server"
+import { createServer } from "@emulators/mediaconvert/server"
 
 const mock = await createServer()
 // Point the discovery MediaConvertClient at mock.url. DescribeEndpoints returns
@@ -39,7 +39,7 @@ The shared runtime provides reset, clock, journal, metrics, faults, and namespac
 
 - `MediaConvertAPI`, `MediaConvertAPIOptions`, `MediaConvertEvent`, `TransitionOptions`: handler, events, and deterministic controls.
 - `MediaConvertJob`, `MediaConvertJobStatus`, `OutputGroupDetail`: durable job state.
-- `createRuntime`, `MediaConvertRuntime`, `MediaConvertRuntimeOptions`: full Mockingbird runtime and webhook hub.
+- `createRuntime`, `MediaConvertRuntime`, `MediaConvertRuntimeOptions`: full Emulators runtime and webhook hub.
 - `MEDIACONVERT_NAMESPACE`, `MEDIACONVERT_PRESETS`, `accessKeyCredential`: constants and fault controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
 - `createServer`, `MediaConvertServerOptions`, `DEFAULT_PORT`, `serveTarget` from `./server`: Node HTTP adapter and CLI integration.

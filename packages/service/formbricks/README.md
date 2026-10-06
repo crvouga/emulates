@@ -1,8 +1,8 @@
-# @crvouga/mockingbird-service-formbricks
+# @emulators/formbricks
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of open-source **[Formbricks](https://github.com/formbricks/formbricks)** (6.x) for
+Stateful emulator of open-source **[Formbricks](https://github.com/formbricks/formbricks)** (6.x) for
 test suites: the client environment state the JS SDK loads surveys from, response creation with
 upstream's validation and `{code, message, details}` errors, the v1 management API (responses and
 surveys, `x-api-key`), the widget script the web SDK loads, and the response pipeline's
@@ -10,34 +10,34 @@ surveys, `x-api-key`), the widget script the web SDK loads, and the response pip
 synthetic survey corpus (`src/corpus/surveys.json`: NPS, Onboarding, Product Feedback, a link
 survey and a paused survey; invented content).
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/formbricks/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/formbricks/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from upstream Formbricks 6.0.0's route handlers
   and the [docs](https://formbricks.com/docs).
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-formbricks
+npm install -D @emulators/formbricks
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-formbricks serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulators-formbricks serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
 
-Point the SDK's `appUrl` (and your management API base URL) at the mock, use the workspace id
+Point the SDK's `appUrl` (and your management API base URL) at the emulator, use the workspace id
 `cworkspace000000000000001` (or its legacy environment id `cenvironment0000000000001`, as older
 SDKs send), and any management API key.
 
 ```bash
-npx mockingbird-formbricks serve --port 8813 \
+npx emulators-formbricks serve --port 8813 \
   --webhook-url http://127.0.0.1:3000/webhooks/formbricks \
   --webhook-secret "whsec_…"
 ```
 
 ```ts
-import { createRuntime, WORKSPACE_ID } from "@crvouga/mockingbird-service-formbricks"
+import { createRuntime, WORKSPACE_ID } from "@emulators/formbricks"
 
 const formbricks = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/webhooks/formbricks", secret: "whsec_…" },
@@ -95,7 +95,7 @@ string), `management_unauthorized`, `connection_drop`, `duplicate` (the next web
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the app URL, or by credential: the workspace
+`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the app URL, or by credential: the workspace
 (or legacy environment) id in the client paths (the SDK cannot add headers) or the management
 `x-api-key`, through `PUT /__admin/credentials {"credentials": {"<workspace id or key>":
 "<namespace>"}}`.
@@ -117,8 +117,8 @@ string), `management_unauthorized`, `connection_drop`, `duplicate` (the next web
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `FormbricksAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `responses()`, `render(record)`, `wireSurvey(survey)`, `pipeline(event, record, survey)`, `state`. Options: `sqlite`, `now`, `namespace`, `surveys`, `settings`, `onWebhook`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret?, events?, retryDelaysMs?, fetch?}`, `surveys`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `FormbricksAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `responses()`, `render(record)`, `wireSurvey(survey)`, `pipeline(event, record, survey)`, `state`. Options: `sqlite`, `now`, `namespace`, `surveys`, `settings`, `onWebhook`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret?, events?, retryDelaysMs?, fetch?}`, `surveys`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `FORMBRICKS_PRESETS` | object | Every named fault preset. |
 | `FORMBRICKS_NAMESPACE` | string | The service name, `"formbricks"`. |
 | `WEBHOOK_PATH` | string | A conventional receiver path for examples, `/webhooks/formbricks`. |
@@ -130,4 +130,4 @@ string), `management_unauthorized`, `connection_drop`, `duplicate` (the next web
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8813. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

@@ -93,7 +93,7 @@ for (const entry of providers) {
 }
 
 const githubLive = await fetch("https://api.github.com/user", {
-  headers: { accept: "application/vnd.github+json", "user-agent": "mockingbird-parity" },
+  headers: { accept: "application/vnd.github+json", "user-agent": "emulators-parity" },
 })
 const githubMock = await new OAuthAPI({ provider: "github" }).fetch(
   new Request("https://identity.test/user"),

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type TextractRuntime, type TextractRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 8818
 export type TextractServerOptions = TextractRuntimeOptions & { port?: number; host?: string }

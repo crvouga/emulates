@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -10,8 +10,8 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
@@ -24,8 +24,8 @@ import {
 } from "./state.js"
 import { otherOptionOverLimit, surveyElements, validateResponseData } from "./validation.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { Contact, ResponseRecord, ResponseValidation, Settings, Survey } from "./state.js"
@@ -331,7 +331,7 @@ const questionsToBlocks = (questions: Record<string, unknown>[], nextId: () => s
     }
   })
 
-const WIDGET_SCRIPT = `/* Mockingbird Formbricks widget stub: a no-op window.formbricks. */
+const WIDGET_SCRIPT = `/* Emulators Formbricks widget stub: a no-op window.formbricks. */
 (function () {
   var noop = function () { return Promise.resolve(); };
   var api = {

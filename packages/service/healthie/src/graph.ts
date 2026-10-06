@@ -1,4 +1,4 @@
-import { opaqueToken, toBase64 } from "@crvouga/mockingbird-service"
+import { opaqueToken, toBase64 } from "@emulators/service"
 import { GraphQLError } from "graphql"
 import { Upload } from "./schema.js"
 import type {

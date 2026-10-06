@@ -4,7 +4,7 @@ import {
   discoverIdentities,
   type Exchange,
   structuralDiff,
-} from "@crvouga/mockingbird-canonicalize"
+} from "@emulators/canonicalize"
 import {
   type ConcreteRequest,
   concretize,
@@ -12,12 +12,12 @@ import {
   type OperationPlan,
   type Scope,
   toRequest,
-} from "@crvouga/mockingbird-commands"
-import { mediaTypeOf, readBody } from "@crvouga/mockingbird-http-codec"
-import type { ResourceTable, Side } from "@crvouga/mockingbird-model"
-import type { OpenAPIDocument, ResponseObject, SchemaObject } from "@crvouga/mockingbird-openapi"
-import { responseForStatus, validateValue } from "@crvouga/mockingbird-openapi"
-import { parityHeaders } from "@crvouga/mockingbird-openapi-metadata"
+} from "@emulators/commands"
+import { mediaTypeOf, readBody } from "@emulators/http-codec"
+import type { ResourceTable, Side } from "@emulators/model"
+import type { OpenAPIDocument, ResponseObject, SchemaObject } from "@emulators/openapi"
+import { responseForStatus, validateValue } from "@emulators/openapi"
+import { parityHeaders } from "@emulators/openapi-metadata"
 import { type FailureDetails, ParityError, type Redactor } from "./report.js"
 
 export type FetchLike = (request: Request) => Promise<Response>

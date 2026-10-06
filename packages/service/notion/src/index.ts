@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -13,7 +13,7 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 
@@ -191,7 +191,7 @@ export class NotionAPI implements FetchAPI {
         const version = context.request.headers.get("notion-version")
         if (!version) return error(400, "missing_version", "Notion-Version header is required.")
         if (version !== "2022-06-28")
-          return error(400, "validation_error", "This mock supports Notion-Version 2022-06-28.")
+          return error(400, "validation_error", "This emulator supports Notion-Version 2022-06-28.")
         return undefined
       },
       handlers: defineOperations<SupportedOperationId>({

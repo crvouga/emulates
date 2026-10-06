@@ -1,48 +1,48 @@
-# @crvouga/mockingbird-service-pharmetika
+# @emulators/pharmetika
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of the **Pharmetika** compounding-pharmacy provider portal for test suites:
+Stateful emulator of the **Pharmetika** compounding-pharmacy provider portal for test suites:
 clinic and patient lookup, patient create, medication-order validate / EPCS prepare / submit /
 lookup, the v7 cancel, the medication-template catalog, and the status webhooks the pharmacy
 posts back. Orders move only when a test says so (an admin transition or an auto-advance path on
-the mock clock).
+the emulator clock).
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/pharmetika/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/pharmetika/SUPPORT.md)
 - The vendor publishes no spec: the contract (`openapi.yaml`) is hand-authored from the wire
   shapes our consumer reads and writes (`pharmetika-fulfillment.adapter.ts`,
   `pharmetika-live.client.ts`, and the bodies recorded in the adapter's spec).
 - **The success rule.** Every body carries Pharmetika's `success` flag. Only `true` or `1` is
-  success: the mock answers business failures (unknown patient, controlled substance on submit,
+  success: the emulator answers business failures (unknown patient, controlled substance on submit,
   a reused order id, …) as **HTTP 200 with `success: 0`** and `messages: [{message, type}]`, the
   case our adapter guards against.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-pharmetika
+npm install -D @emulators/pharmetika
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-pharmetika serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulators-pharmetika serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
-Point `PHARMETIKA_API_URL` at the mock and give the app any `PHARMETIKA_API_TOKEN` (or pin one
+Point `PHARMETIKA_API_URL` at the emulator and give the app any `PHARMETIKA_API_TOKEN` (or pin one
 with `--api-token`). Set `PHARMETIKA_WEBHOOK_SECRET` in the app and pass the same value as
 `--webhook-secret`. `PHARMETIKA_PRACTITIONER_IDENTIFIER` can be any string;
 `PHARMETIKA_CLINIC_NAME=Acme` picks the seeded clinic.
 
 ```bash
-npx mockingbird-pharmetika serve --port 8801 \
+npx emulators-pharmetika serve --port 8801 \
   --webhook-url http://127.0.0.1:3000/prescriptions/webhooks/pharmetika \
   --webhook-secret "$PHARMETIKA_WEBHOOK_SECRET" \
   --auto-advance "2000:data_entry,shipped,completed"
 ```
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-pharmetika"
+import { createRuntime } from "@emulators/pharmetika"
 
 const pmk = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/prescriptions/webhooks/pharmetika", secret: "whsec" },
@@ -122,7 +122,7 @@ submitted/processing to shipped in our receiver.
 | `GET /__admin/patients`, `POST /__admin/patients` | Read or seed the roster: `{patient_id?, clinic_identifier?, demographics: {first_name, last_name, DOB, …}}`. |
 | `PUT /__admin/templates` | Replace the medication templates (`{templates: [...]}`). |
 | `GET`/`PUT /__admin/settings` | `{tokens?, basic?, anonymousCatalog?, webhookVariant?, autoAdvance?: {afterMs, path} \| null}` for the calling namespace. |
-| `POST /__admin/tick` | Apply due auto-advance steps (the served mock ticks every 100 ms). Orders awaiting prescriber approval never auto-advance. |
+| `POST /__admin/tick` | Apply due auto-advance steps (the served emulator ticks every 100 ms). Orders awaiting prescriber approval never auto-advance. |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /__admin/faults/presets`):
 
@@ -143,7 +143,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 ### Namespaces
 
 Our backend's `fetch` cannot add headers, so a namespace can be chosen three ways:
-`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `PHARMETIKA_API_URL`, or by credential:
+`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `PHARMETIKA_API_URL`, or by credential:
 `PUT /__admin/credentials {"credentials": {"<PHARMETIKA_API_TOKEN>": "<namespace>"}}` (the Basic
 username works the same way for the catalog client).
 
@@ -162,8 +162,8 @@ username works the same way for the catalog client).
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PharmetikaAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(uuid, {to, tracking_id?})`, `tick()`, `orders()`, `webhookBody(order)`. Options: `sqlite`, `now`, `namespace`, `templates`, `clinics`, `patients`, `settings`, `onWebhook`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `templates`, `clinics`, `patients`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `PharmetikaAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(uuid, {to, tracking_id?})`, `tick()`, `orders()`, `webhookBody(order)`. Options: `sqlite`, `now`, `namespace`, `templates`, `clinics`, `patients`, `settings`, `onWebhook`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `templates`, `clinics`, `patients`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `PHARMETIKA_PRESETS` | object | Every named fault preset. |
 | `PHARMETIKA_NAMESPACE` | string | The service name, `"pharmetika"`. |
 | `TOKEN_HEADER` | string | `"x-pmk-authentication-token"`. |
@@ -174,4 +174,4 @@ username works the same way for the catalog client).
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http` (auto-advance ticks every 100 ms); the `serve` CLI target; port 8801. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

@@ -1,4 +1,4 @@
-import { CSS_RESET } from "@crvouga/mockingbird-ui";
+import { CSS_RESET } from "@emulators/ui";
 import { formatBytes, formatMs } from "./report.ts";
 import type { BenchReport, BenchResult } from "./types.ts";
 

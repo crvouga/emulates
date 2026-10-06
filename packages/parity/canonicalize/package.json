@@ -1,5 +1,5 @@
 {
-  "name": "@crvouga/mockingbird-canonicalize",
+  "name": "@emulators/canonicalize",
   "version": "0.0.0-development",
   "private": true,
   "description": "Strict, provider-neutral canonicalisation of HTTP exchanges for differential comparison: symbolic id replacement, declared volatile fields, parity headers, structural diff.",
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/parity/canonicalize"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/parity/canonicalize#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/parity/canonicalize#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "parity",
     "canonicalize"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "layer": "parity"
   },
@@ -40,13 +40,13 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-model": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*"
+    "@emulators/openapi": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/model": "workspace:*",
+    "@emulators/http-codec": "workspace:*"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@crvouga/mockingbird-testing": "workspace:*"
+    "@emulators/testing": "workspace:*"
   }
 }

@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   bootSqlite,
@@ -11,8 +11,8 @@ import {
   type OperationHandler,
   type Service,
   type WebhookEndpoint,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import { accountOfKey } from "./account.js"
 import { type AccountConfig, AccountDirectory, DEFAULT_WEBHOOK_API_VERSION } from "./accounts.js"
@@ -63,8 +63,8 @@ import { testClockHandlers } from "./test-clocks.js"
 import { eraOf, isApiVersion, STRIPE_API_VERSION } from "./version.js"
 import { webhookEndpointHandlers } from "./webhook-endpoints.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export { accountOf, accountOfKey } from "./account.js"
 export type { AccountConfig } from "./accounts.js"
 export { AccountDirectory, DEFAULT_WEBHOOK_API_VERSION } from "./accounts.js"
@@ -309,7 +309,7 @@ export class StripeAPI implements FetchAPI {
   }
 
   private requestLogUrl() {
-    return `https://dashboard.stripe.com/acct_mockingbird/test/workbench/logs?object=${this.state.ids.next("req_")}`
+    return `https://dashboard.stripe.com/acct_emulators/test/workbench/logs?object=${this.state.ids.next("req_")}`
   }
 
   private decorate(response: Response, version: string, cors: boolean): Response {

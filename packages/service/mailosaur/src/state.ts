@@ -1,5 +1,5 @@
-import { Collection, IdSequence, OutboxStore } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence, OutboxStore } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { MessageAddress, MessageContent } from "./content.js"
 
 /** A message exactly as `GET /api/messages/{id}` answers (the SDK's `Message` model). */

@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { CredentialError, loadCredentials } from "@emulators/credentials"
 import { VibeAPI } from "../src/index.js"
 
 if (process.argv.includes("--unauthenticated")) {

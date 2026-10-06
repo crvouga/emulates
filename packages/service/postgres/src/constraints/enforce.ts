@@ -73,7 +73,7 @@ export function uniqueSpecsFor(env: ExecEnv, table: TableData): UniqueSpec[] {
   const schema = env.ctx.state.schemas.get(table.schema);
   if (schema) {
     for (const idx of schema.indexes.values()) {
-      if (idx.table !== table.name || !idx.unique || idx.isConstraint) continue;
+      if (idx.table !== table.name || !idx.unique || idx.isConstraint || idx.valid === false) continue;
       specs.push({
         name: idx.name,
         keys: idx.columns.map((c) => ({

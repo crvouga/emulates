@@ -10,8 +10,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { FIRSTPROMOTER_NAMESPACE, FirstPromoterAPI } from "./index.js"
 import type { Campaign, CommissionUnit, Settings } from "./state.js"
@@ -114,7 +114,7 @@ export type FirstPromoterRuntime = ServiceRuntime<FirstPromoterAPI> & {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -237,7 +237,7 @@ const adminRoutes = (runtime: ServiceRuntime<FirstPromoterAPI>): AdminRoutes => 
 })
 
 /**
- * The FirstPromoter mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The FirstPromoter emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix (in `FIRST_PROMOTER_API_URL`), or by API
  * key (`PUT /__admin/credentials {"credentials": {"<FIRST_PROMOTER_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets, Basic-auth webhooks and a request journal.

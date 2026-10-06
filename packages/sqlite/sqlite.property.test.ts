@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { Database } from "@crvouga/mockingbird-service-sqlite"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { Database } from "@emulators/sqlite"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import {
   CORE_MIGRATIONS,
@@ -44,8 +44,8 @@ describe("migrate", () => {
           migrateCore(sqlite)
           const first = listAppliedMigrations(sqlite)
           expect(first).toEqual(CORE_MIGRATIONS.map((m) => m.id))
-          expect(tableExists(sqlite, "mockingbird_records")).toBe(true)
-          expect(tableExists(sqlite, "mockingbird_sequences")).toBe(true)
+          expect(tableExists(sqlite, "emulators_records")).toBe(true)
+          expect(tableExists(sqlite, "emulators_sequences")).toBe(true)
 
           migrateCore(sqlite)
           expect(listAppliedMigrations(sqlite)).toEqual(first)

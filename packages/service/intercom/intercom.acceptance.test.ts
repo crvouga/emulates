@@ -660,7 +660,7 @@ describe("served over HTTP", () => {
         expect(r.signature).toBe(`sha1=${createHmac("sha1", SECRET).update(r.body).digest("hex")}`)
       }
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-mockingbird")).toMatch(/^intercom@/)
+      expect(health.headers.get("x-emulators")).toMatch(/^intercom@/)
     } finally {
       await server.close()
       sink.stop(true)

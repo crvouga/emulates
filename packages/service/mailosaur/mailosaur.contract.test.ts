@@ -27,7 +27,7 @@ const harness = () => {
   const ingest = (body: unknown, namespace?: string) =>
     call("/__admin/ingest", {
       body,
-      ...(namespace ? { headers: { "x-mockingbird-namespace": namespace } } : {}),
+      ...(namespace ? { headers: { "x-emulators-namespace": namespace } } : {}),
     })
   const search = async (criteria: unknown, key = "key", query = "") =>
     (await (
@@ -37,7 +37,7 @@ const harness = () => {
 }
 
 describe("the service contract", () => {
-  test("health is unauthenticated and every response carries x-mockingbird", async () => {
+  test("health is unauthenticated and every response carries x-emulators", async () => {
     const { call } = harness()
     const health = await call("/__admin/health", { key: "" })
     expect(health.status).toBe(200)
@@ -48,14 +48,14 @@ describe("the service contract", () => {
       type: "authentication_error",
       message: "Authentication failed, check your API key.",
     })
-    expect(denied.headers.get("x-mockingbird")).toMatch(/^mailosaur@.+; ns=default$/)
+    expect(denied.headers.get("x-emulators")).toMatch(/^mailosaur@.+; ns=default$/)
   })
 
   test("namespaces by header, by /__admin/ns/ prefix and by API key are isolated", async () => {
     const { call, ingest, search } = harness()
     await ingest({ to: `x@${SERVER}.mailosaur.net`, subject: "in a" }, "a")
     const viaHeader = await call(`/api/messages?server=${SERVER}`, {
-      headers: { "x-mockingbird-namespace": "a" },
+      headers: { "x-emulators-namespace": "a" },
     })
     expect(((await viaHeader.json()) as { items: unknown[] }).items).toHaveLength(1)
     const viaPrefix = await call(`/__admin/ns/a/api/messages?server=${SERVER}`)
@@ -281,7 +281,7 @@ describe("served over HTTP and HTTPS", () => {
       expect(((await secure.json()) as { items: unknown[] }).items).toHaveLength(1)
       // The secure port also answers plain HTTP.
       const door = await fetch(`${server.proxyUrl}/__admin/health`)
-      expect(door.headers.get("x-mockingbird")).toMatch(/^mailosaur@/)
+      expect(door.headers.get("x-emulators")).toMatch(/^mailosaur@/)
     } finally {
       await server.close()
     }

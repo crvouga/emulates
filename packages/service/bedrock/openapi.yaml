@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Amazon Bedrock Runtime + AgentCore harness (Mockingbird subset)
+  title: Amazon Bedrock Runtime + AgentCore harness (Emulators subset)
   description: |
     The Bedrock Runtime data plane our consumer calls: Converse, ConverseStream (event
     stream), InvokeModel (Anthropic Messages bodies and Titan text embeddings), and
@@ -9,7 +9,7 @@ info:
     `@aws-sdk/client-bedrock-runtime@3.1132.0` and `@aws-sdk/client-bedrock-agentcore@3.1074.0`
     to the fields our consumer sends and reads.
   version: "2023-09-30"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Shapes follow the AWS SDK v3 Smithy schemas (restJson1). Errors carry
       `x-amzn-ErrorType: <Name>:http://internal.amazon.com/coral/com.amazon.bedrock/` and a
@@ -24,7 +24,7 @@ paths:
       - $ref: "#/components/parameters/ModelId"
     post:
       operationId: Converse
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -59,7 +59,7 @@ paths:
       - $ref: "#/components/parameters/ModelId"
     post:
       operationId: ConverseStream
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -103,7 +103,7 @@ paths:
         normalize}` → `{embedding, inputTextTokenCount}`) or an Anthropic Messages body for a
         Claude model (`{anthropic_version, max_tokens, system, messages}` → a Messages
         response).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -142,7 +142,7 @@ paths:
       - $ref: "#/components/parameters/ModelId"
     post:
       operationId: InvokeModelWithResponseStream
-      x-mockingbird:
+      x-emulators:
         supported: false
         reason: No consumer calls it; chat streaming goes through ConverseStream.
       responses:
@@ -162,7 +162,7 @@ paths:
         Nova Sonic. HTTP/2 duplex: the request body is an event stream of `chunk` events
         (`{bytes: base64(JSON {event})}`, SigV4-wrapped) that stays open for the session;
         the response streams `chunk` events back while it does.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: false
@@ -196,7 +196,7 @@ paths:
     post:
       operationId: InvokeHarness
       description: AgentCore data plane (`bedrock-agentcore.<region>.amazonaws.com`).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -287,7 +287,7 @@ components:
       properties:
         message:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: opaque
     TextBlock:
       type: object
@@ -565,23 +565,23 @@ components:
       properties:
         inputTokens:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: opaque
         outputTokens:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: opaque
         totalTokens:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: opaque
         cacheReadInputTokens:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: opaque
         cacheWriteInputTokens:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: opaque
     ConverseResponse:
       type: object
@@ -605,7 +605,7 @@ components:
                     properties:
                       text:
                         type: string
-                        x-mockingbird-volatile:
+                        x-emulators-volatile:
                           kind: opaque
                       toolUse:
                         type: object
@@ -613,12 +613,12 @@ components:
                         properties:
                           toolUseId:
                             type: string
-                            x-mockingbird-volatile:
+                            x-emulators-volatile:
                               kind: id
                           name:
                             type: string
                           input:
-                            x-mockingbird-volatile:
+                            x-emulators-volatile:
                               kind: opaque
                       reasoningContent:
                         type: object
@@ -633,7 +633,7 @@ components:
           properties:
             latencyMs:
               type: integer
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: opaque
         trace:
           type: object
@@ -666,11 +666,11 @@ components:
           type: array
           items:
             type: number
-            x-mockingbird-volatile:
+            x-emulators-volatile:
               kind: opaque
         inputTextTokenCount:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: opaque
         embeddingsByType:
           type: object
@@ -719,7 +719,7 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         type:
           type: string
@@ -739,7 +739,7 @@ components:
                 type: string
               text:
                 type: string
-                x-mockingbird-volatile:
+                x-emulators-volatile:
                   kind: opaque
         stop_reason:
           type: string
@@ -751,11 +751,11 @@ components:
           properties:
             input_tokens:
               type: integer
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: opaque
             output_tokens:
               type: integer
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: opaque
     HarnessRequest:
       type: object

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@crvouga/mockingbird-service"
+import { createClock } from "@emulators/service"
 import { createRuntime, META_PRESETS } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import {
@@ -32,7 +32,7 @@ const harness = () => {
   const send = (events: ConversionEvent[], accessToken = TOKEN) =>
     sendConversionEvents({
       baseUrl: API,
-      pixelId: "pixel_mockingbird",
+      pixelId: "pixel_emulators",
       accessToken,
       events,
       testEventCode: "TEST42",
@@ -48,7 +48,7 @@ describe("Meta acceptance", () => {
     expect(await send([event()])).toMatchObject({ events_received: 1, messages: [] })
     expect(runtime.instance().events()).toHaveLength(1)
     expect(runtime.instance().events()[0]).toMatchObject({
-      pixelId: "pixel_mockingbird",
+      pixelId: "pixel_emulators",
       event_name: "Purchase",
       event_id: "order_42",
       action_source: "website",
@@ -99,7 +99,7 @@ describe("Meta acceptance", () => {
     const { fetchImpl } = harness()
     const first = await listInsights({
       baseUrl: API,
-      accountId: "act_mockingbird",
+      accountId: "act_emulators",
       accessToken: TOKEN,
       since: "2026-01-01",
       until: "2026-01-03",
@@ -112,7 +112,7 @@ describe("Meta acceptance", () => {
     expect(first.paging.next).toContain("after=2")
     const second = await listInsights({
       baseUrl: API,
-      accountId: "act_mockingbird",
+      accountId: "act_emulators",
       accessToken: TOKEN,
       since: "2026-01-01",
       until: "2026-01-03",
@@ -128,16 +128,16 @@ describe("Meta acceptance", () => {
     expect(
       await getMarketingObject({
         baseUrl: API,
-        id: "cmp_mockingbird",
+        id: "cmp_emulators",
         accessToken: TOKEN,
         fetchImpl,
       }),
-    ).toMatchObject({ id: "cmp_mockingbird", status: "ACTIVE" })
+    ).toMatchObject({ id: "cmp_emulators", status: "ACTIVE" })
     const namespaced = (namespace: string, id: string) =>
       runtime.fetch(
-        new Request(`${API}/v26.0/pixel_mockingbird/events?access_token=${TOKEN}`, {
+        new Request(`${API}/v26.0/pixel_emulators/events?access_token=${TOKEN}`, {
           method: "POST",
-          headers: { "content-type": "application/json", "x-mockingbird-namespace": namespace },
+          headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
           body: JSON.stringify({ data: [event({ event_id: id })] }),
         }),
       )
@@ -173,13 +173,13 @@ describe("Meta acceptance", () => {
     try {
       const response = await sendConversionEvents({
         baseUrl: server.url,
-        pixelId: "pixel_mockingbird",
+        pixelId: "pixel_emulators",
         accessToken: TOKEN,
         events: [event()],
         fetchImpl: fetch,
       })
       expect(response.events_received).toBe(1)
-      expect((await fetch(`${server.url}/__admin/health`)).headers.get("x-mockingbird")).toMatch(
+      expect((await fetch(`${server.url}/__admin/health`)).headers.get("x-emulators")).toMatch(
         /^meta@/,
       )
     } finally {

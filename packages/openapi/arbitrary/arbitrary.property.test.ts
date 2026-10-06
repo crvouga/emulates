@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
-import type { OpenAPIDocument, SchemaObject } from "@crvouga/mockingbird-openapi"
-import { validateValue } from "@crvouga/mockingbird-openapi"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import type { OpenAPIDocument, SchemaObject } from "@emulators/openapi"
+import { validateValue } from "@emulators/openapi"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { invalidSchemaArbitrary, mutationSites, schemaArbitrary } from "./src/index.js"
 

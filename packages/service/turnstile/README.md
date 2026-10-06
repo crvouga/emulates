@@ -1,19 +1,19 @@
-# @crvouga/mockingbird-service-turnstile
+# @emulators/turnstile
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-WIP Cloudflare Turnstile server-side Siteverify mock. It never solves or issues real challenges.
+WIP Cloudflare Turnstile server-side Siteverify emulator. It never solves or issues real challenges.
 
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-turnstile
+bun add @emulators/turnstile
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-turnstile"
+import { createRuntime } from "@emulators/turnstile"
 
 const turnstile = createRuntime()
 const { token } = await turnstile.instance().issue({
@@ -27,7 +27,7 @@ const result = await turnstile.fetch(new Request("http://turnstile.test/turnstil
 console.log(await result.json()) // success, challenge_ts, hostname, action, cdata
 ```
 
-Run `mockingbird-turnstile serve --port 12126`, then override the consumer's Siteverify URL
+Run `emulators-turnstile serve --port 12126`, then override the consumer's Siteverify URL
 with `http://localhost:12126/turnstile/v0/siteverify`. Keep the real Cloudflare origin in
 production. There is no universal consumer environment variable for this override.
 Send synthetic `secret: mock_secret`; configure additional sites with `sites`.
@@ -40,7 +40,7 @@ optional `remoteip` and UUID `idempotency_key`. Valid tokens return HTTP 200 and
 `error-codes`, not a transport exception. Missing/invalid secrets, missing/invalid tokens,
 malformed bodies and expired/used tokens retain their documented error codes.
 
-Tokens expire at five minutes on the mock clock and are consumed once. Matching idempotency
+Tokens expire at five minutes on the emulator clock and are consumed once. Matching idempotency
 key retries replay the original response; other retries return `timeout-or-duplicate`.
 Wrong secrets do not consume a valid token. Applications must independently check the returned
 hostname/action. Remote IP is accepted, not used for actual bot detection.
@@ -77,7 +77,7 @@ stand-ins; only identical retry behavior is covered by the public contract evide
 ## API
 
 - `TurnstileAPI`: FetchAPI with `fetch`, `reset`, `issue`, and site/token/attempt collections.
-- `createRuntime`: shared mock contract plus token issuance/attempt inspection.
+- `createRuntime`: shared emulator contract plus token issuance/attempt inspection.
 - `TURNSTILE_NAMESPACE`: service name.
 - `TURNSTILE_PRESETS`: named failure controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.

@@ -1,19 +1,19 @@
-# @crvouga/mockingbird-service-brevo
+# @emulators/brevo
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Brevo v3 contact lifecycle, based on the official contact reference. No messages are sent.
 
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-brevo
+bun add @emulators/brevo
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-brevo"
+import { createRuntime } from "@emulators/brevo"
 
 const brevo = createRuntime()
 const response = await brevo.fetch(new Request("http://brevo.test/v3/contacts", {
@@ -24,7 +24,7 @@ const response = await brevo.fetch(new Request("http://brevo.test/v3/contacts", 
 console.log(await response.json()) // { id: 1 }
 ```
 
-Run `mockingbird-brevo serve --port 12124` for a separate application process. Replace
+Run `emulators-brevo serve --port 12124` for a separate application process. Replace
 the client's `https://api.brevo.com` origin with `http://localhost:12124`; the consumer must
 make its base URL injectable (the vendor does not define a standard environment variable).
 Use the synthetic `api-key: mock_brevo_key`, or configure `apiKeys` in `createRuntime`.
@@ -47,12 +47,12 @@ Errors use `{code, message}`. There are no webhooks for this surface.
 
 ### Controls and verification
 
-Pass synthetic `contacts` to seed the mock; reset restores those fixtures. Shared admin
+Pass synthetic `contacts` to seed the emulator; reset restores those fixtures. Shared admin
 routes include `/__admin/state/contacts` for inspection/seeding, `/__admin/reset`, Timeline
 checkpoints, `/__admin/clock`, `/__admin/requests` and `/__admin/faults`. Requests are journaled
 as metadata, never contact bodies or API keys. Set `adminPrefix` to relocate this tree.
 
-Namespace carriers are `x-mockingbird-namespace`, `/__admin/ns/{namespace}`, or API keys
+Namespace carriers are `x-emulators-namespace`, `/__admin/ns/{namespace}`, or API keys
 mapped through `PUT /__admin/credentials`. Each namespace has independent contacts and ids.
 Fault presets: `unauthorized`, `rate_limited` (429 with Retry-After), `server_error` (503),
 and `connection_drop`. Generic fault rules also support deterministic latency.

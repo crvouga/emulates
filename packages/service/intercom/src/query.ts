@@ -1,4 +1,4 @@
-import { fromBase64, toBase64 } from "@crvouga/mockingbird-service"
+import { fromBase64, toBase64 } from "@emulators/service"
 
 /**
  * Intercom's search query language, shared by contact and conversation search: a filter

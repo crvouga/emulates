@@ -1,4 +1,4 @@
-import type { JsonPath } from "@crvouga/mockingbird-openapi-metadata"
+import type { JsonPath } from "@emulators/openapi-metadata"
 
 export type Difference =
   | { kind: "type"; path: JsonPath; left: string; right: string }

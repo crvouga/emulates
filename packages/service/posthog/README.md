@@ -1,8 +1,8 @@
-# @crvouga/mockingbird-service-posthog
+# @emulators/posthog
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of **PostHog** for test suites: remote feature-flag evaluation (`/flags` v2 and
+Stateful emulator of **PostHog** for test suites: remote feature-flag evaluation (`/flags` v2 and
 the legacy `/decide` shape), remote config, event capture (`/batch/`, `/e/`, `/i/v0/e/`),
 session-recording intake, the posthog-js asset and survey endpoints, and the slice of the
 management API our tooling and crons call (feature-flag list/create/patch, HogQL). Every flag
@@ -10,7 +10,7 @@ is set per test through admin routes, so paths our in-app overrides cannot reach
 booleans, `getConfig` payloads, EMR server gates, member-app variants) become controllable, and
 a stack run never reaches `us.i.posthog.com`.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/posthog/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/posthog/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from the wire shapes of posthog-node 5.52.2,
   `@posthog/core` 1.54.0 (posthog-react-native 4.72.1's base) and posthog-js 1.433.2, and from
   our own raw fetches. All three SDKs are proven against it (`posthog.sdk.test.ts`).
@@ -18,16 +18,16 @@ a stack run never reaches `us.i.posthog.com`.
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-posthog
+npm install -D @emulators/posthog
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-posthog serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulators-posthog serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
-Point the app's PostHog host at the mock (port 8795 by default):
+Point the app's PostHog host at the emulator (port 8795 by default):
 
 | App | Variables |
 | --- | --- |
@@ -38,11 +38,11 @@ Point the app's PostHog host at the mock (port 8795 by default):
 | Python supplement-management service | `POSTHOG_HOST` |
 
 ```bash
-npx mockingbird-posthog serve --port 8795 --import-flags dev
+npx emulators-posthog serve --port 8795 --import-flags dev
 ```
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-posthog"
+import { createRuntime } from "@emulators/posthog"
 
 const posthog = createRuntime()
 const admin = (path: string, body: unknown, method = "PUT") =>
@@ -117,7 +117,7 @@ Every route answers with and without its trailing slash. Errors use PostHog's
 | `GET /__admin/flags/evaluate?distinct_id=&email=` | What `/flags` answers for that subject, as `{flags: {key: value}}`. |
 | `POST /__admin/flags/import` | `{from: "state.json", env: "dev" \| "prod", project?: "member-app" \| "emr", replace?}` seeds from the bundled copy of the consumer app's `docs/feature-flags/state.json` (or pass `state: {flags: […]}` inline). `live` → `true` (or the largest variant), `rollout 0` / `targeted` / `ramping` → `false`, `inactive` / `missing` → absent. |
 | `POST /__admin/flags/bump` | Changes nothing server-side; returns a `generation` counter. The documented moment to clear the app's flag caches (backend `getAllFlagsAndPayloads` 60 s per user; EMR frontend server 60 s / 10 s). |
-| `GET /__admin/events?distinct_id=&event=&since=` | Captured events, oldest first (`since`: epoch ms or ISO, mock clock). `$exception` keeps only `$lib`, `$lib_version`, `$exception_level`, `$session_id`; properties named like message/body/text/content/prompt/stack/trace/html/comment/note are dropped from every event (and from `$set`). |
+| `GET /__admin/events?distinct_id=&event=&since=` | Captured events, oldest first (`since`: epoch ms or ISO, emulator clock). `$exception` keeps only `$lib`, `$lib_version`, `$exception_level`, `$session_id`; properties named like message/body/text/content/prompt/stack/trace/html/comment/note are dropped from every event (and from `$set`). |
 | `GET /__admin/recordings` | `{count}` of `/s/` posts. |
 | `GET/PUT /__admin/settings` | `{sessionRecording?: bool, queryResults?: [{match?, columns?, results}]}`. |
 
@@ -138,7 +138,7 @@ PostHog SDKs cannot add headers. Choose a namespace by:
   read from `/array/{token}/…`, `?token=`, the body (`token`, `api_key`, or a batch's first
   event's `properties.token`, after decoding gzip/base64), or a personal key's
   `Authorization: Bearer` on the management API.
-- `x-mockingbird-namespace`, for raw clients.
+- `x-emulators-namespace`, for raw clients.
 
 The management API's `next` page URL preserves the configured admin prefix and namespace.
 Send the personal key in the Authorization header on each page request.
@@ -160,8 +160,8 @@ Send the personal key in the Authorization header on each page request.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PostHogAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `evaluate(subject, keys?)`, `events(query?)`, `flagList()`, `state`. Options: `sqlite`, `now`, `namespace`, `flags`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces by prefix/token/header, presets, journal). Options: `flags`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `PostHogAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `evaluate(subject, keys?)`, `events(query?)`, `flagList()`, `state`. Options: `sqlite`, `now`, `namespace`, `flags`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces by prefix/token/header, presets, journal). Options: `flags`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `POSTHOG_PRESETS` | object | Every named fault preset. |
 | `POSTHOG_NAMESPACE` | string | The service name, `"posthog"`. |
 | `evaluateFlag` | function | Evaluate one flag record for `{distinct_id, person_properties}` (`undefined` = absent). |
@@ -174,4 +174,4 @@ Send the personal key in the Authorization header on each page request.
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--import-flags dev\|prod`, `--session-recording`); port 8795. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

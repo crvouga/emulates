@@ -11,8 +11,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import {
   CUSTOMERIO_NAMESPACE,
@@ -184,7 +184,7 @@ export type CustomerIoRuntime = ServiceRuntime<CustomerIoAPI> & { readonly webho
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -370,7 +370,7 @@ const adminRoutes = (runtime: ServiceRuntime<CustomerIoAPI>): AdminRoutes => ({
 })
 
 /**
- * The Customer.io mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The Customer.io emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by key (the CDP write key or the App API
  * key: `PUT /__admin/credentials {"credentials": {"<key>": "<namespace>"}}`), clock control,
  * fault presets, the transactional outbox, and signed reporting webhooks.

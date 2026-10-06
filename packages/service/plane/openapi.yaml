@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Plane REST API (Mockingbird subset)
+  title: Plane REST API (Emulators subset)
   description: 'Stateful mock subset of Plane''s public REST API v1 for one project: work items (cursor-paginated
     list, get, create, patch), comments, links, states, labels, cycles and work-item types. Hand-authored from Plane''s API reference
     and the consumer''s zod schemas (plane-response.ts).
 
     '
   version: '1'
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: 'Shapes from https://developers.plane.so/api-reference; consumer: apps/backend/src/modules/bug-reports/adapters/native-fetch-plane.adapter.ts,
       plane-http-client.ts, plane-response.ts.'
 servers:
@@ -19,7 +19,7 @@ paths:
     get:
       operationId: ListWorkItems
       description: Cursor-paginated work items (`cursor=<per_page>:<page>:<is_prev>`).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -52,7 +52,7 @@ paths:
     post:
       operationId: CreateWorkItem
       description: Create a work item.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -90,7 +90,7 @@ paths:
     get:
       operationId: GetWorkItem
       description: One work item.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -108,7 +108,7 @@ paths:
     patch:
       operationId: UpdateWorkItem
       description: Partial update (the consumer sends `state` or `labels`).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -138,7 +138,7 @@ paths:
     get:
       operationId: ListComments
       description: Comments on a work item.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -165,7 +165,7 @@ paths:
     post:
       operationId: CreateComment
       description: Add a comment.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -195,7 +195,7 @@ paths:
     get:
       operationId: ListLinks
       description: Links on a work item.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -220,7 +220,7 @@ paths:
     post:
       operationId: CreateLink
       description: Attach a link (the same URL twice is a 400).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -252,7 +252,7 @@ paths:
     get:
       operationId: ListStates
       description: The project's workflow states.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -281,7 +281,7 @@ paths:
     get:
       operationId: ListLabels
       description: The project's labels.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -306,7 +306,7 @@ paths:
     post:
       operationId: CreateLabel
       description: Create a label (a duplicate name is a 409 carrying the existing id).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -344,7 +344,7 @@ paths:
     get:
       operationId: ListCycles
       description: Cycles, paginated except cycle_view=current (a bare array).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -398,7 +398,7 @@ paths:
     post:
       operationId: CreateCycle
       description: Create a draft or a dated cycle in a UTC project.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -436,13 +436,13 @@ paths:
         schema:
           type: string
           format: uuid
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: cycle
             missing: 00000000-0000-4000-8000-000000000000
     get:
       operationId: ListCycleWorkItems
       description: Paginated live work items assigned to the cycle.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -464,7 +464,7 @@ paths:
     post:
       operationId: AddCycleWorkItems
       description: Add or move work items; unknown or foreign item ids are ignored.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -493,7 +493,7 @@ paths:
     get:
       operationId: ListWorkItemTypes
       description: All work-item types for the project, as a bare array.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -543,7 +543,7 @@ components:
       schema:
         type: string
         format: uuid
-        x-mockingbird-resource-ref:
+        x-emulators-resource-ref:
           type: work_item
           missing: 00000000-0000-4000-8000-000000000000
     PerPage:
@@ -618,22 +618,22 @@ components:
             - string
             - "null"
           format: uuid
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         type:
           type:
             - string
             - "null"
           format: uuid
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         id:
           type: string
           format: uuid
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: work_item
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         sequence_id:
           type: integer
@@ -655,13 +655,13 @@ components:
           - none
         state:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         labels:
           type: array
           items:
             type: string
-            x-mockingbird-volatile:
+            x-emulators-volatile:
               kind: id
         assignees:
           type: array
@@ -683,7 +683,7 @@ components:
           type:
           - string
           - 'null'
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         archived_at:
           type:
@@ -707,7 +707,7 @@ components:
           - 'null'
         created_at: &id008
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at: *id008
     State:
@@ -723,10 +723,10 @@ components:
         id:
           type: string
           format: uuid
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: state
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         name:
           type: string
@@ -763,10 +763,10 @@ components:
         id:
           type: string
           format: uuid
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: label
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         name:
           type: string
@@ -797,7 +797,7 @@ components:
         id:
           type: string
           format: uuid
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         comment_html:
           type: string
@@ -807,7 +807,7 @@ components:
           type: string
         issue:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         actor:
           type:
@@ -831,7 +831,7 @@ components:
         id:
           type: string
           format: uuid
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         url:
           type: string
@@ -843,7 +843,7 @@ components:
           type: object
         issue:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         project:
           type: string
@@ -1086,7 +1086,7 @@ components:
             - string
             - "null"
           format: uuid
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: work_item_type
             missing: 00000000-0000-4000-8000-000000000000
         name:
@@ -1099,7 +1099,7 @@ components:
         state:
           type: string
           format: uuid
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: state
             missing: 00000000-0000-4000-8000-000000000000
         labels:
@@ -1108,7 +1108,7 @@ components:
           items:
             type: string
             format: uuid
-            x-mockingbird-resource-ref:
+            x-emulators-resource-ref:
               type: label
               missing: 00000000-0000-4000-8000-000000000000
         priority:
@@ -1127,7 +1127,7 @@ components:
             - string
             - "null"
           format: uuid
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: work_item_type
             missing: 00000000-0000-4000-8000-000000000000
         name:
@@ -1140,7 +1140,7 @@ components:
         state:
           type: string
           format: uuid
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: state
             missing: 00000000-0000-4000-8000-000000000000
         labels:
@@ -1149,7 +1149,7 @@ components:
           items:
             type: string
             format: uuid
-            x-mockingbird-resource-ref:
+            x-emulators-resource-ref:
               type: label
               missing: 00000000-0000-4000-8000-000000000000
         priority:
@@ -1233,10 +1233,10 @@ components:
         id:
           type: string
           format: uuid
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: cycle
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         name: &a1
           type: string
@@ -1254,7 +1254,7 @@ components:
         workspace: *a1
         created_at: &a3
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at: *a3
         archived_at: *a2
@@ -1356,10 +1356,10 @@ components:
         id:
           type: string
           format: uuid
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: cycle_membership
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         cycle:
           type: string
@@ -1384,7 +1384,7 @@ components:
           items:
             type: string
             format: uuid
-            x-mockingbird-resource-ref:
+            x-emulators-resource-ref:
               type: work_item
               missing: 00000000-0000-4000-8000-000000000000
     CycleError:
@@ -1420,10 +1420,10 @@ components:
         id:
           type: string
           format: uuid
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: work_item_type
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         name:
           type: string
@@ -1446,11 +1446,11 @@ components:
           type: number
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         deleted_at:
           type:

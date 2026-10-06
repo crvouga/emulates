@@ -158,7 +158,7 @@ function pgClass(ctx: EngineCtx): Relation {
     for (const s of schemaData.sequences.values()) push(s.oid, s.name, s.schema, "S", 3, 1, false, true, s.temp);
     for (const i of schemaData.indexes.values()) {
       push(
-        state.schemas.get(i.schema)?.tables.get(i.table)?.oid ?? 0,
+        i.oid ?? state.schemas.get(i.schema)?.tables.get(i.table)?.oid ?? 0,
         i.name,
         i.schema,
         "i",
@@ -403,7 +403,15 @@ function pgIndex(ctx: EngineCtx): Relation {
       const table = schema.tables.get(i.table);
       const isPrimary =
         i.isConstraint && table?.constraints.some((c) => c.kind === "primary_key" && c.name === i.name) === true;
-      rows.push([table?.oid ?? 0, table?.oid ?? 0, i.columns.length, i.unique, isPrimary, i.where !== null]);
+      rows.push([
+        i.oid ?? table?.oid ?? 0,
+        table?.oid ?? 0,
+        i.columns.length,
+        i.unique,
+        isPrimary,
+        i.where !== null,
+        i.valid !== false,
+      ]);
     }
   }
   return rel(
@@ -414,9 +422,41 @@ function pgIndex(ctx: EngineCtx): Relation {
       ["indisunique", "bool"],
       ["indisprimary", "bool"],
       ["indpred", "bool"],
+      ["indisvalid", "bool"],
     ],
     rows,
     "pg_index",
+  );
+}
+
+function pgStatUserIndexes(ctx: EngineCtx): Relation {
+  const rows: Datum[][] = [];
+  for (const schema of ctx.state.schemas.values()) {
+    if (schema.name === "pg_catalog" || schema.name === "information_schema" || schema.name.startsWith("pg_toast"))
+      continue;
+    for (const index of schema.indexes.values()) {
+      const table = schema.tables.get(index.table);
+      rows.push([
+        table?.oid ?? 0,
+        index.oid ?? table?.oid ?? 0,
+        schema.name,
+        index.table,
+        index.name,
+        index.scans ?? 0n,
+      ]);
+    }
+  }
+  return rel(
+    [
+      ["relid", "oid"],
+      ["indexrelid", "oid"],
+      ["schemaname", "name"],
+      ["relname", "name"],
+      ["indexrelname", "name"],
+      ["idx_scan", "int8"],
+    ],
+    rows,
+    "pg_stat_user_indexes",
   );
 }
 
@@ -887,6 +927,8 @@ function buildCatalogRelation(ctx: EngineCtx, schema: string, name: string): Rel
         return pgConstraint(ctx);
       case "pg_index":
         return pgIndex(ctx);
+      case "pg_stat_user_indexes":
+        return pgStatUserIndexes(ctx);
       case "pg_sequence":
         return pgSequence(ctx);
       case "pg_sequences":

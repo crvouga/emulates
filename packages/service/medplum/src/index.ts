@@ -1,5 +1,5 @@
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export type { MedplumAPIOptions, MedplumUserFixture } from "./api.js"
 export {
   DEFAULT_BASE_URL,

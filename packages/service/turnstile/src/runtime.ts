@@ -4,8 +4,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { type Site, type Token, TURNSTILE_NAMESPACE, TurnstileAPI } from "./index.js"
 export const TURNSTILE_PRESETS: Record<string, FaultPreset> = {

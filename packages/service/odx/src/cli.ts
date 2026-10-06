@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-odx",
-    description: "stateful Optimal DX partner API mock",
+    bin: "emulators-odx",
+    description: "Optimal DX partner API emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

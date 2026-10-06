@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
+import { jsonResponse, type OperationHandler } from "@emulators/service"
 import { afterIntentSucceeded } from "./billing.js"
 import { requestInfo } from "./context.js"
 import { invalidRequest, parameterMissing } from "./errors.js"

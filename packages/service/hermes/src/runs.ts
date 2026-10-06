@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 
 export const runStatuses = [
   "queued",
@@ -52,9 +52,9 @@ export class HermesError extends Error {
 export const unsupported = (message: string): never => {
   throw new HermesError(
     501,
-    `Mockingbird: ${message}`,
+    `Emulators: ${message}`,
     "operation_not_implemented",
-    "mockingbird_unsupported",
+    "emulators_unsupported",
   )
 }
 const invalid = (message: string): never => {

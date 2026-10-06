@@ -16,7 +16,7 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@crvouga/mockingbird-service-sqlite": ["../../src/index.ts"]
+      "@emulators/sqlite": ["../../src/index.ts"]
     }
   },
   "include": ["src"]

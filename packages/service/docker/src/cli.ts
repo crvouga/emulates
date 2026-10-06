@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-docker",
-    description: "Docker Engine API mock (WIP: synthetic observations and shared controls)",
+    bin: "emulators-docker",
+    description: "Docker Engine API emulator (WIP: synthetic observations and shared controls)",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

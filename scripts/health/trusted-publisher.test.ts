@@ -20,7 +20,7 @@ import type { WebChallenge } from "./web-auth.ts"
 const github = (overrides: TrustConfig = {}): TrustConfig => ({
   type: "github",
   permissions: ["createPackage"],
-  claims: { repository: "crvouga/mockingbird", workflow_ref: { file: "ci.yml" } },
+  claims: { repository: "crvouga/emulators", workflow_ref: { file: "ci.yml" } },
   ...overrides,
 })
 
@@ -34,7 +34,7 @@ describe("publisherGap", () => {
       publisherGap(true, [
         {
           type: "github",
-          claims: { repository: "crvouga/mockingbird", workflow_ref: { file: "ci.yml" } },
+          claims: { repository: "crvouga/emulators", workflow_ref: { file: "ci.yml" } },
         },
       ]),
     ).toBeNull()
@@ -45,8 +45,8 @@ describe("publisherGap", () => {
       publisherGap(true, [
         github({
           claims: {
-            repository: "crvouga/mockingbird",
-            workflow_ref: "crvouga/mockingbird/.github/workflows/ci.yml@refs/heads/main",
+            repository: "crvouga/emulators",
+            workflow_ref: "crvouga/emulators/.github/workflows/ci.yml@refs/heads/main",
           },
         }),
       ]),
@@ -63,7 +63,7 @@ describe("publisherGap", () => {
     expect(
       publisherGap(true, [
         github({
-          claims: { repository: "crvouga/mockingbird", workflow_ref: { file: "release.yml" } },
+          claims: { repository: "crvouga/emulators", workflow_ref: { file: "release.yml" } },
         }),
       ]),
     ).toBe("missing")
@@ -81,7 +81,7 @@ describe("publisherGap", () => {
       publisherGap(true, [
         github({
           claims: {
-            repository: "crvouga/mockingbird",
+            repository: "crvouga/emulators",
             workflow_ref: { file: "ci.yml" },
             environment: "release",
           },
@@ -105,15 +105,15 @@ describe("publisherGap", () => {
 describe("trustedPublisherReport", () => {
   test("groups the pages that need a click and leaves healthy packages out", () => {
     const report = trustedPublisherReport([
-      { name: "@crvouga/mockingbird-service-ok", published: true, configs: [github()] },
-      { name: "@crvouga/mockingbird-service-fullscript", published: true, configs: [] },
+      { name: "@emulators/ok", published: true, configs: [github()] },
+      { name: "@emulators/fullscript", published: true, configs: [] },
       {
-        name: "@crvouga/mockingbird-service-stripe",
+        name: "@emulators/stripe",
         published: true,
         configs: [github({ permissions: ["createStagedPackage"] })],
       },
-      { name: "@crvouga/mockingbird-service-paddle", published: false },
-      { name: "@crvouga/mockingbird-service-aha", error: "trust lookup HTTP 500" },
+      { name: "@emulators/paddle", published: false },
+      { name: "@emulators/aha", error: "trust lookup HTTP 500" },
     ])
 
     expect(renderHealth([report])).toBe(
@@ -122,17 +122,17 @@ describe("trustedPublisherReport", () => {
         "",
         "trusted publisher — 4 to fix",
         "",
-        "No GitHub Actions publisher for crvouga/mockingbird ci.yml. On the access page add one and allow npm publish. Organization crvouga, repository mockingbird, workflow filename ci.yml, environment empty.",
-        accessUrl("@crvouga/mockingbird-service-fullscript"),
+        "No GitHub Actions publisher for crvouga/emulators ci.yml. On the access page add one and allow npm publish. Organization crvouga, repository emulators, workflow filename ci.yml, environment empty.",
+        accessUrl("@emulators/fullscript"),
         "",
         "GitHub Actions publisher does not allow npm publish (stage only). On the access page, allow npm publish.",
-        accessUrl("@crvouga/mockingbird-service-stripe"),
+        accessUrl("@emulators/stripe"),
         "",
         "Not on npm yet, so there is no access page until the interactive first publish (bun run release:seed).",
-        "@crvouga/mockingbird-service-paddle",
+        "@emulators/paddle",
         "",
         "npm did not return the trusted publisher for these packages.",
-        "@crvouga/mockingbird-service-aha — trust lookup HTTP 500",
+        "@emulators/aha — trust lookup HTTP 500",
         "",
       ].join("\n"),
     )
@@ -140,7 +140,7 @@ describe("trustedPublisherReport", () => {
 
   test("an empty report says the check is ok", () => {
     const report = trustedPublisherReport([
-      { name: "@crvouga/mockingbird-service-ok", published: true, configs: [github()] },
+      { name: "@emulators/ok", published: true, configs: [github()] },
     ])
     expect(renderHealth([report])).toBe("health\n\ntrusted publisher — ok\n")
   })
@@ -232,23 +232,21 @@ describe("readRegistryToken", () => {
 
 describe("registryPackagePath", () => {
   test("escapes the scope slash the way npm's trust endpoint expects", () => {
-    expect(registryPackagePath("@crvouga/mockingbird-service-stripe")).toBe(
-      "@crvouga%2fmockingbird-service-stripe",
-    )
+    expect(registryPackagePath("@emulators/stripe")).toBe("@emulators%2fstripe")
   })
 })
 
 describe("repositoryMatchesProject", () => {
   test("accepts this repo's git, https, ssh, and github shorthand forms", () => {
+    expect(repositoryMatchesProject({ url: "git+https://github.com/crvouga/emulators.git" })).toBe(
+      true,
+    )
+    expect(repositoryMatchesProject("https://github.com/crvouga/emulators")).toBe(true)
+    expect(repositoryMatchesProject("git@github.com:crvouga/emulators.git")).toBe(true)
+    expect(repositoryMatchesProject("git+ssh://git@github.com/crvouga/emulators.git")).toBe(true)
+    expect(repositoryMatchesProject("github:crvouga/emulators")).toBe(true)
     expect(
-      repositoryMatchesProject({ url: "git+https://github.com/crvouga/mockingbird.git" }),
-    ).toBe(true)
-    expect(repositoryMatchesProject("https://github.com/crvouga/mockingbird")).toBe(true)
-    expect(repositoryMatchesProject("git@github.com:crvouga/mockingbird.git")).toBe(true)
-    expect(repositoryMatchesProject("git+ssh://git@github.com/crvouga/mockingbird.git")).toBe(true)
-    expect(repositoryMatchesProject("github:crvouga/mockingbird")).toBe(true)
-    expect(
-      repositoryMatchesProject("git+https://github.com/crvouga/mockingbird.git/packages/core"),
+      repositoryMatchesProject("git+https://github.com/crvouga/emulators.git/packages/core"),
     ).toBe(true)
   })
 
@@ -256,23 +254,23 @@ describe("repositoryMatchesProject", () => {
     expect(
       repositoryMatchesProject({ url: "git+https://github.com/crvouga/postgres-mem.git" }),
     ).toBe(false)
-    expect(repositoryMatchesProject("git+https://github.com/crvouga/mockingbird-extra.git")).toBe(
+    expect(repositoryMatchesProject("git+https://github.com/crvouga/emulators-extra.git")).toBe(
       false,
     )
-    expect(repositoryMatchesProject("https://github.com/other/mockingbird")).toBe(false)
+    expect(repositoryMatchesProject("https://github.com/other/emulators")).toBe(false)
     expect(repositoryMatchesProject(undefined)).toBe(false)
     expect(repositoryMatchesProject({})).toBe(false)
   })
 })
 
 describe("selectProjectPackages", () => {
-  const mockingbird = { url: "git+https://github.com/crvouga/mockingbird.git" }
+  const emulators = { url: "git+https://github.com/crvouga/emulators.git" }
 
   test("keeps this repo's packages and public workspace packages, and leaves other npm projects out", () => {
     expect(
       selectProjectPackages({
         account: [
-          { name: "@crvouga/mockingbird-core", status: 200, repository: mockingbird },
+          { name: "@emulators/core", status: 200, repository: emulators },
           {
             name: "@crvouga/postgres-mem",
             status: 200,
@@ -284,43 +282,37 @@ describe("selectProjectPackages", () => {
             status: 200,
             repository: "git+https://github.com/someone/headless-combobox.git",
           },
-          { name: "@crvouga/mockingbird-service-stripe", status: 500 },
+          { name: "@emulators/stripe", status: 500 },
           {
-            name: "@crvouga/mockingbird-service-moved",
+            name: "@emulators/moved",
             status: 200,
             repository: "git+https://github.com/crvouga/somewhere-else.git",
           },
         ],
-        workspacePublic: ["@crvouga/mockingbird-service-paddle", "@crvouga/mockingbird-core"],
+        workspacePublic: ["@emulators/paddle", "@emulators/core"],
       }),
-    ).toEqual([
-      "@crvouga/mockingbird-core",
-      "@crvouga/mockingbird-service-paddle",
-      "@crvouga/mockingbird-service-stripe",
-    ])
+    ).toEqual(["@emulators/core", "@emulators/paddle", "@emulators/stripe"])
   })
 
   test("a public workspace package is included when the account has not published it", () => {
     expect(
       selectProjectPackages({
         account: [],
-        workspacePublic: ["@crvouga/mockingbird-service-paddle"],
+        workspacePublic: ["@emulators/paddle"],
       }),
-    ).toEqual(["@crvouga/mockingbird-service-paddle"])
+    ).toEqual(["@emulators/paddle"])
   })
 })
 
 describe("account package list", () => {
   test("reads package names from the account map", () => {
-    expect(accountPackageNames({ "@crvouga/mockingbird-core": "write" })).toEqual([
-      "@crvouga/mockingbird-core",
-    ])
+    expect(accountPackageNames({ "@emulators/core": "write" })).toEqual(["@emulators/core"])
     expect(accountPackageNames([])).toBeUndefined()
     expect(accountPackageNames(null)).toBeUndefined()
   })
 
   test("reads repository from the packument, then from the latest version", () => {
-    const repository = { url: "git+https://github.com/crvouga/mockingbird.git" }
+    const repository = { url: "git+https://github.com/crvouga/emulators.git" }
     expect(packumentRepository({ repository })).toEqual(repository)
     expect(
       packumentRepository({
@@ -332,7 +324,7 @@ describe("account package list", () => {
   })
 
   test("project package names are this repo's scope and name", () => {
-    expect(isProjectPackageName("@crvouga/mockingbird")).toBe(true)
+    expect(isProjectPackageName("@emulators/stripe")).toBe(true)
     expect(isProjectPackageName("@crvouga/mockingbird-service-stripe")).toBe(true)
     expect(isProjectPackageName("@crvouga/postgres-mem")).toBe(false)
     expect(isProjectPackageName("headless-combobox")).toBe(false)

@@ -4,7 +4,7 @@ import { createRuntime, PADDLE_PRESETS, type PaddleRuntimeOptions } from "./src/
 import { createServer, serveTarget } from "./src/server.js"
 
 const API = "http://paddle.mock"
-const SECRET = "pdl_ntfset_mockingbird_contract_test_secret"
+const SECRET = "pdl_ntfset_emulators_contract_test_secret"
 const COMMON = { adminKey: undefined, seed: undefined, onLog: undefined }
 
 const harness = (options: PaddleRuntimeOptions = {}) => {
@@ -46,7 +46,7 @@ type Envelope<T> = { data: T; meta: { request_id: string } }
 type ErrorEnvelope = { error: { type: string; code: string; detail: string; errors?: unknown[] } }
 
 describe("the service contract", () => {
-  test("health, auth errors, not found and the x-mockingbird header", async () => {
+  test("health, auth errors, not found and the x-emulators header", async () => {
     const { call, json } = harness()
     expect((await call("/__admin/health", { key: "" })).status).toBe(200)
     const missing = await call("/customers", { key: "" })
@@ -63,7 +63,7 @@ describe("the service contract", () => {
       detail: "Entity ctm_00000000000000000000000000 not found",
       documentation_url: "https://developer.paddle.com/errors/shared/not_found",
     })
-    expect(unknown.headers.get("x-mockingbird")).toMatch(/^paddle@.+; ns=default$/)
+    expect(unknown.headers.get("x-emulators")).toMatch(/^paddle@.+; ns=default$/)
     const invalid = await json<ErrorEnvelope>("/customers", { body: { name: "No email" } })
     expect(invalid.error.code).toBe("invalid_field")
     expect(invalid.error.errors).toEqual([{ field: "email", message: "email: required field" }])
@@ -86,7 +86,7 @@ describe("the service contract", () => {
       (await call(`/customers/${created.data.id}`, { key: "pdl_sdbx_apikey_worker_b" })).status,
     ).toBe(404)
     expect(
-      (await call(`/customers/${created.data.id}`, { headers: { "x-mockingbird-namespace": "a" } }))
+      (await call(`/customers/${created.data.id}`, { headers: { "x-emulators-namespace": "a" } }))
         .status,
     ).toBe(200)
     expect((await call(`/__admin/ns/a/customers/${created.data.id}`)).status).toBe(200)

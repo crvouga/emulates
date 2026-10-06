@@ -1,12 +1,12 @@
-# Stripe API (Mockingbird subset) — operation support
+# Stripe API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **125**
-- supported by the mock: **121**
+- supported by the emulator: **121**
 - parity enabled: **114**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PostThreeDSecureAuthenticate` | `POST /c/3ds/{intent}/authenticate` | ✅ supported | ❌ disabled | the 3-D Secure challenge the Stripe.js stand-in completes has no public API |
 | `GetCheckoutPage` | `GET /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page is HTML served by the mock in place of checkout.stripe.com |

@@ -12,7 +12,7 @@ bun run check   # every CI gate, no secrets
 ```
 
 Secrets are only involved in two places, and both run on GitHub with the repo's own
-Actions secrets. Anyone with **write access** to `crvouga/mockingbird` can use them without
+Actions secrets. Anyone with **write access** to `crvouga/emulators` can use them without
 seeing a value (GitHub never returns a secret's value, to anyone):
 
 | Workflow | Secrets it reads | How to run it |
@@ -23,7 +23,7 @@ seeing a value (GitHub never returns a secret's value, to anyone):
 ## Live parity
 
 Each service's `scripts/parity.ts` loads its sandbox credentials from the environment through
-[`@crvouga/mockingbird-credentials`](../packages/auth/credentials). The env var names start
+[`@emulators/credentials`](../packages/auth/credentials). The env var names start
 with the service's name (`STRIPE_SECRET_KEY`, `JUNCTION_API_KEY`), and the GitHub Actions secret
 has the same name.
 
@@ -157,7 +157,7 @@ bun github:resolve-issues setup
 
 ## Releasing
 
-The mock services (`@crvouga/mockingbird-service-*`, the only published packages) are released
+The emulator services (`@emulators/*`, the only published packages) are released
 automatically on every green push to `main` (see [RELEASING.md](RELEASING.md)) and publish with
 **npm Trusted Publishing (OIDC)**, which needs no stored credential.
 
@@ -179,7 +179,7 @@ Set by the local seed after the first publish. Manual equivalent, per package at
 `https://www.npmjs.com/package/<name>/access`:
 
 - Organization/user: `crvouga`
-- Repository: `mockingbird`
+- Repository: `emulators`
 - Workflow filename: `ci.yml`
 - Environment: (empty)
 - Allowed actions: npm publish

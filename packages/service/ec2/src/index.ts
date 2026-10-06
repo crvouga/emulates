@@ -1,8 +1,4 @@
-import {
-  type AwsOperation,
-  AwsProtocolAPI,
-  type AwsProtocolOptions,
-} from "@crvouga/mockingbird-service"
+import { type AwsOperation, AwsProtocolAPI, type AwsProtocolOptions } from "@emulators/service"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 
 export type { Runtime, RuntimeOptions } from "./runtime.js"

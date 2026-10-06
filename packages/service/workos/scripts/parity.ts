@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { CredentialError, loadCredentials } from "@emulators/credentials"
 import { WorkOSAPI } from "../src/index.js"
 
 let key: string

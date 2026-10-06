@@ -7,7 +7,7 @@
 .superset
 .super.engineering
 .worktree
-.mockingbird
+.emulators
 .parity-artifacts
 coverage
 *.log

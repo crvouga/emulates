@@ -23,7 +23,7 @@ const setup = () => {
     runtime.fetch(
       new Request(`http://github.mock${path}`, {
         method,
-        headers: { "content-type": "application/json", "x-mockingbird-namespace": namespace },
+        headers: { "content-type": "application/json", "x-emulators-namespace": namespace },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       }),
     )

@@ -1,14 +1,9 @@
 #!/usr/bin/env node
 
 /// <reference types="node" />
-import {
-  type CliCommand,
-  type CliValues,
-  runCli,
-  serveCommand,
-} from "@crvouga/mockingbird-adapter-node"
-import type { RequestLog } from "@crvouga/mockingbird-service"
-import { resolveAdminPrefix } from "@crvouga/mockingbird-service"
+import { type CliCommand, type CliValues, runCli, serveCommand } from "@emulators/adapter-node"
+import type { RequestLog } from "@emulators/service"
+import { resolveAdminPrefix } from "@emulators/service"
 import { listenH2c } from "./h2c.js"
 import { serveTarget } from "./server.js"
 
@@ -43,9 +38,9 @@ const serve: CliCommand = {
       return 2
     }
     const adminPrefix = resolveAdminPrefix(
-      text(values["admin-prefix"]) ?? process.env.MOCKINGBIRD_ADMIN_PREFIX,
+      text(values["admin-prefix"]) ?? process.env.EMULATORS_ADMIN_PREFIX,
     )
-    const adminKey = text(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
+    const adminKey = text(values["admin-key"]) ?? process.env.EMULATORS_ADMIN_KEY
     const seed = text(values.seed)
     const port = text(values.port)
     try {
@@ -59,10 +54,10 @@ const serve: CliCommand = {
         port: port === undefined ? serveTarget.defaultPort : Number.parseInt(port, 10),
         host: text(values.host) ?? "127.0.0.1",
       })
-      console.log(`bedrock mock listening on ${listening.url} (h2c + HTTP/1.1)`)
+      console.log(`bedrock emulator listening on ${listening.url} (h2c + HTTP/1.1)`)
       console.log(`bedrock health: GET ${listening.url}${adminPrefix}/health`)
       console.log(
-        `bedrock admin: ${listening.url}${adminPrefix} (${adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
+        `bedrock admin: ${listening.url}${adminPrefix} (${adminKey ? "x-emulators-admin-key required" : "open — pass --admin-key to lock"})`,
       )
       console.log(`bedrock admin ui: ${listening.url}${adminPrefix}/ui`)
       for (const line of serveTarget.banner?.(runtime) ?? [])
@@ -84,8 +79,8 @@ const serve: CliCommand = {
 
 const code = await runCli(
   {
-    bin: "mockingbird-bedrock",
-    description: "stateful, scriptable AWS Bedrock Runtime + AgentCore mock",
+    bin: "emulators-bedrock",
+    description: "Scriptable AWS Bedrock Runtime + AgentCore emulator",
     commands: { serve },
   },
   process.argv.slice(2),

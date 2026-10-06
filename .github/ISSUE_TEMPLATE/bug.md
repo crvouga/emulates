@@ -1,6 +1,6 @@
 ---
 name: Bug
-about: A mock crashes, leaks state between namespaces, contradicts its README, or fails to install, build or type-check.
+about: An emulator crashes, leaks state between namespaces, contradicts its README, or fails to install, build or type-check.
 title: "[<service>] bug: <what breaks>"
 labels: agent-reported, bug
 ---
@@ -9,9 +9,9 @@ labels: agent-reported, bug
 
 ## Service
 
-- Package: `@crvouga/mockingbird-service-<service>@<exact installed version>`
+- Package: `@emulators/<service>@<exact installed version>`
 - Runtime: Node <version> / Bun <version>, OS <os>
-- Mode: <in-process createRuntime | createServer | mockingbird-<service> serve>
+- Mode: <in-process createRuntime | createServer | emulators-<service> serve>
 
 ## What breaks
 

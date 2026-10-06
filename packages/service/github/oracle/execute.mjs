@@ -72,7 +72,7 @@ export async function executeOracle(
             "X-GitHub-Api-Version": plan.apiVersion,
             Authorization: `Bearer ${grants.token}`,
             "content-type": "application/json",
-            "user-agent": "mockingbird-bounded-oracle",
+            "user-agent": "emulators-bounded-oracle",
           },
           ...(body === undefined ? {} : { body: JSON.stringify(body) }),
         }),
@@ -169,7 +169,7 @@ export async function executeOracle(
               path: plan.file,
               mode: "100644",
               type: "blob",
-              content: `Synthetic Mockingbird oracle ${plan.runId} revision${i}\n`,
+              content: `Synthetic Emulators oracle ${plan.runId} revision${i}\n`,
             },
           ],
         }),
@@ -178,7 +178,7 @@ export async function executeOracle(
       )
       if (!sha(createdTree.sha)) throw new Error("Invalid created tree identity")
       tree = createdTree.sha
-      const author = { name: "Mockingbird Oracle", email: "mockingbird-oracle@example.invalid" }
+      const author = { name: "Emulators Oracle", email: "emulators-oracle@example.invalid" }
       const created = requireStatus(
         await request(`fixture-commit-${i}`, "POST", `${root}/git/commits`, {
           message: `Synthetic oracle ${plan.runId} revision${i}`,
@@ -246,7 +246,7 @@ export async function executeOracle(
       read,
       refView,
     )
-    const listPath = `${root}/git/matching-refs/heads/mockingbird-oracle/${plan.runId}/`
+    const listPath = `${root}/git/matching-refs/heads/emulators-oracle/${plan.runId}/`
     const refs = await request("list-owned-refs", "GET", listPath)
     requireStatus(refs, 200, "Ref list")
     await compare(

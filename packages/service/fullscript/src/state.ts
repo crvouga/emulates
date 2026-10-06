@@ -1,5 +1,5 @@
-import { Collection } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 
 /** Lab order states, in the only order they may move (forward). */
 export const LAB_ORDER_STATES = [

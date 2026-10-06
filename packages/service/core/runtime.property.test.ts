@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { type OpenAPIDocument, parseOpenAPIDocument } from "@crvouga/mockingbird-openapi"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { type OpenAPIDocument, parseOpenAPIDocument } from "@emulators/openapi"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import {
   ADMIN_KEY_HEADER,
@@ -14,9 +14,9 @@ import {
   createRng,
   createRuntime,
   createService,
+  EMULATORS_HEADER,
   type InstanceContext,
   jsonRes,
-  MOCKINGBIRD_HEADER,
   NAMESPACE_HEADER,
   PACKAGE_VERSION,
   parseDuration,
@@ -392,7 +392,7 @@ describe("runtime", () => {
     const runtime = createRuntime({ name: "notes", document, create: notesService })
     const res = await call(runtime, "GET", "/v1/notes", { headers: { [NAMESPACE_HEADER]: "a b" } })
     expect(res.status).toBe(400)
-    expect(res.headers.get(MOCKINGBIRD_HEADER)).toBe(`notes@${PACKAGE_VERSION}`)
+    expect(res.headers.get(EMULATORS_HEADER)).toBe(`notes@${PACKAGE_VERSION}`)
   })
 
   test("every response names the service, its version and the namespace", async () => {
@@ -419,7 +419,7 @@ describe("runtime", () => {
           const res = await call(runtime, "GET", path, {
             headers: { [NAMESPACE_HEADER]: namespace, ...(keyed ? {} : { "x-key": "" }) },
           })
-          expect(res.headers.get(MOCKINGBIRD_HEADER)).toBe(`notes@9.9.9; ns=${namespace}`)
+          expect(res.headers.get(EMULATORS_HEADER)).toBe(`notes@9.9.9; ns=${namespace}`)
         },
       ),
       params,

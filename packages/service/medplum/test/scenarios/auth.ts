@@ -4,7 +4,7 @@ const form = "application/x-www-form-urlencoded"
 const SUPER_EMAIL = "admin@example.com"
 const SUPER_PASSWORD = "medplum_admin"
 const SUPER_CLIENT = "6f3f0c17-8bd1-4a56-9d5a-6b21e5b0a101"
-const SUPER_SECRET = "mockingbird-local-secret"
+const SUPER_SECRET = "emulators-local-secret"
 
 export const authScenarios: Scenario[] = [
   {

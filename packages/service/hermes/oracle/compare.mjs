@@ -6,7 +6,7 @@ import { createInterface } from "node:readline"
 import { createServer } from "../dist/server.js"
 import { normalizeObservation } from "./comparison.mjs"
 
-if (!process.argv.includes("--run") || process.env.MOCKINGBIRD_HERMES_ORACLE_APPROVED !== "1") {
+if (!process.argv.includes("--run") || process.env.EMULATORS_HERMES_ORACLE_APPROVED !== "1") {
   throw new Error(
     "Opt-in oracle requires --run and explicit approved disposable-process/database execution",
   )
@@ -15,8 +15,8 @@ const root = resolve(import.meta.dirname, "../../../..")
 const python = process.env.HERMES_ORACLE_PYTHON
 if (!python)
   throw new Error("Set HERMES_ORACLE_PYTHON to the approved local virtualenv interpreter")
-const source = resolve(root, ".mockingbird/hermes-evidence/v2026.8.31")
-const scratch = resolve(root, ".mockingbird/hermes-oracle", crypto.randomUUID())
+const source = resolve(root, ".emulators/hermes-evidence/v2026.8.31")
+const scratch = resolve(root, ".emulators/hermes-oracle", crypto.randomUUID())
 await mkdir(scratch, { recursive: true })
 const lock = JSON.parse(await readFile(new URL("source-lock.json", import.meta.url), "utf8"))
 const mock = await createServer()

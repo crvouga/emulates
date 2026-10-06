@@ -1,20 +1,20 @@
-# @crvouga/mockingbird-service-checkr
+# @emulators/checkr
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-WIP Checkr v1 mock for synthetic candidates, package/hierarchy enumeration, invitations
+WIP Checkr v1 emulator for synthetic candidates, package/hierarchy enumeration, invitations
 and seeded report/ETA reads. No checks run, emails are sent or real personal data is needed.
 
 ## Install
 
 ```sh
-bun add -d @crvouga/mockingbird-service-checkr
+bun add -d @emulators/checkr
 ```
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-checkr/server"
+import { createServer } from "@emulators/checkr/server"
 const server = await createServer()
 const response = await fetch(`${server.url}/v1/packages`, {
   headers: { authorization: `Basic ${btoa("mock_checkr_key:")}` },
@@ -43,14 +43,14 @@ GET `/v1/reports/{id}` and `/v1/reports/{id}/eta` read seeded reports; missing E
 
 Runtime seeds: `packages`, `nodes`, `candidates`, `reports`; `hierarchyEnabled` defaults false,
 so nodes returns 403 while other APIs work. Enabled hierarchy requires an available node/package
-on invitation creation. `invitationTtlMs` and the mock clock drive expiration.
+on invitation creation. `invitationTtlMs` and the emulator clock drive expiration.
 All records and settings are collections in `/__admin/state`: edit prices, report state/ETA,
 invitation expiry/completion and hierarchy access without external services. An admin-seeded
 report is reflected in its candidate's report_ids. The admin controls intentionally do not
 enforce vendor referential integrity; seed coherent fixtures.
 
 Standard admin reset, Timeline snapshots/branches, clocks and journals are available.
-Namespaces use `x-mockingbird-namespace`, `/__admin/ns/<name>/…`, or mapped Basic credentials;
+Namespaces use `x-emulators-namespace`, `/__admin/ns/<name>/…`, or mapped Basic credentials;
 pagination URLs retain the namespace, including relocated `adminPrefix` paths.
 Journals retain request metadata only, not candidate data or credentials.
 Presets: `forbidden`, `hierarchy_denied`, `rate_limited`, `server_error`, `non_json`,

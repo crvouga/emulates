@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import type { Listening, ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import type { Listening, ServeTarget } from "@emulators/adapter-node"
 import { type AttachHandshakeOptions, createAttachHandshake } from "./attach.js"
 import { createRuntime, type DockerRuntime, type DockerRuntimeOptions } from "./runtime.js"
 import type { AttachStreamOptions, DockerAttachment } from "./streams.js"

@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **2**
-- supported by the mock: **2**
+- supported by the emulator: **2**
 - parity enabled: **1**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `BrowserScript` | `GET /recaptcha/api.js` | ✅ supported | ❌ disabled | Semantic shim |
 | `Siteverify` | `POST /recaptcha/api/siteverify` | ✅ supported | ✅ |  |

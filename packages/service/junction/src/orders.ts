@@ -1,10 +1,5 @@
-import type { FormValue } from "@crvouga/mockingbird-http-codec"
-import {
-  HttpError,
-  jsonRes,
-  type OperationContext,
-  opaqueToken,
-} from "@crvouga/mockingbird-service"
+import type { FormValue } from "@emulators/http-codec"
+import { HttpError, jsonRes, type OperationContext, opaqueToken } from "@emulators/service"
 import { requireUser } from "./fixtures.js"
 import {
   effectiveBilling,
@@ -1342,7 +1337,7 @@ export const orderHandlers = (state: JunctionState) => ({
         date_reported: "2024-11-02",
         specimen_number: opaqueToken(`junction:specimen:${order.id}`, 24),
         status: "final",
-        laboratory: "Mockingbird Central Lab",
+        laboratory: "Emulators Central Lab",
         provider: null,
         interpretation: null,
         patient_id: null,
@@ -1546,6 +1541,6 @@ const biomarker = (order: OrderRecord, created_at: string) =>
     timestamp: created_at,
     reference_range: null,
     interpretation: "normal",
-    performing_laboratory: "Mockingbird Central Lab",
+    performing_laboratory: "Emulators Central Lab",
     source_sample_id: null,
   }))

@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { sha256 } from "@noble/hashes/sha2.js"
 import type { Sealed, Vault } from "./vault.js"
 export const DEFAULT_TOKEN = "fixture-openai-token"

@@ -1,4 +1,4 @@
-import catalog from "virtual:mockingbird/catalog"
+import catalog from "virtual:emulators/catalog"
 import type { APIRoute, GetStaticPaths } from "astro"
 
 export const getStaticPaths = (() =>

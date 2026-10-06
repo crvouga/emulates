@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@crvouga/mockingbird-service"
-import { clearNamespace } from "@crvouga/mockingbird-sqlite"
+import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@emulators/service"
+import { clearNamespace } from "@emulators/sqlite-client"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
   type AttributeValue,

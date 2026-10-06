@@ -6,7 +6,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { adsFailure, present, record } from "./errors.js"
 import { document } from "./generated/openapi.js"
 import { DEFAULT_ADMIN_KEY, GoogleAdsAPI, type GoogleAdsAPIOptions } from "./index.js"

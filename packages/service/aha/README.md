@@ -1,30 +1,30 @@
-# @crvouga/mockingbird-service-aha
+# @emulators/aha
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of the **AHA (Advanced Health Academy) at-home phlebotomy** partner API for test
+Stateful emulator of the **AHA (Advanced Health Academy) at-home phlebotomy** partner API for test
 suites: HMAC-signed create-order and cancel, and — its main job — the order-status webhooks AHA
 posts back. The vendor has no pull API, so every downstream effect (EMR appointment booking,
-storefront status, "blood drawn") starts with a webhook; the mock emits one on demand, with every
+storefront status, "blood drawn") starts with a webhook; the emulator emits one on demand, with every
 field our handler reads, so the ZIP-routed bloodwork path can finally be tested.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/aha/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/aha/SUPPORT.md)
 - The vendor publishes no spec: the contract (`openapi.yaml`) is hand-authored from our
   consumers' zod schemas and wire shapes.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-aha
+npm install -D @emulators/aha
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-aha serve`, `createServer` from `./server` (Node), or `createRuntime` with any
+`npx emulators-aha serve`, `createServer` from `./server` (Node), or `createRuntime` with any
 Fetch server.
 
 ## Usage
 
-Point the app at the mock:
+Point the app at the emulator:
 
 | Env | Value |
 | --- | --- |
@@ -34,7 +34,7 @@ Point the app at the mock:
 | `AHA_WEBHOOK_SECRET` | the same value as `--webhook-secret` |
 
 ```bash
-npx mockingbird-aha serve --port 8799 \
+npx emulators-aha serve --port 8799 \
   --webhook-url http://127.0.0.1:3000/bloodwork/aha-webhook \
   --webhook-secret "$AHA_WEBHOOK_SECRET" \
   --api-key "$AHA_API_KEY" --api-secret "$AHA_API_SECRET" \
@@ -42,7 +42,7 @@ npx mockingbird-aha serve --port 8799 \
 ```
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-aha"
+import { createRuntime } from "@emulators/aha"
 
 const aha = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/bloodwork/aha-webhook", secret: "aha-webhook-secret" },
@@ -70,7 +70,7 @@ await admin("/orders/AC-101/transition", { status: "Check Out", drawStatus: "Sam
 
 ### Routes
 
-The `{partner}` path segment is your account's slug (e.g. `acme`); the mock accepts any.
+The `{partner}` path segment is your account's slug (e.g. `acme`); the emulator accepts any.
 
 | Route | Behaviour |
 | --- | --- |
@@ -117,7 +117,7 @@ plus, by status (all local times in the order's IANA zone):
 | --- | --- |
 | `POST /__admin/orders/:partnerOrderId/transition` | `{status, drawStatus?, scheduledAt?, timeZone?}` emits the webhook. `status` is any value above (case and `_` forgiven; unknown values are sent verbatim). `scheduledAt` (ISO or epoch ms) defaults to the order's preferred slot, else the next hour 24 h out; `Rescheduled` defaults to one day later. `timeZone` defaults to the order's `patient_timezone`, else `America/New_York`. `:partnerOrderId` may also be the `order_number`. |
 | `PUT /__admin/settings` | `{envelope?, credentials?: [{apiKey, apiSecret?}], allowLegacy?, timestampToleranceMs?, defaultTimeZone?, cancelWebhook?, autoSchedule?: {afterMs, leadMs?} \| ms \| null}` for the calling namespace. `GET` shows them with secrets masked. |
-| `POST /__admin/tick` | Emit every `autoSchedule` webhook that is due on the mock clock (the served mock ticks every 100 ms). |
+| `POST /__admin/tick` | Emit every `autoSchedule` webhook that is due on the emulator clock (the served emulator ticks every 100 ms). |
 | `GET /__admin/orders` | The namespace's orders (ids, status, appointment, zone — no patient data). |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `bad_signature` (401),
@@ -127,17 +127,17 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `bad_s
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `AHA_API_URL` (the signature still covers
+`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `AHA_API_URL` (the signature still covers
 only the path after it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<AHA_API_KEY>": "<namespace>"}}`.
 
 ### SFTP result delivery
 
-`createAhaSftpServer` from `./sftp` starts a real SSH/SFTP server on an ephemeral port and shares order state with `createRuntime`. It supports password or public-key authentication, host-key verification, `list`/`stat`, binary upload/download, atomic temp-file rename, delete, nested directories, stable POSIX permissions and mock-clock timestamps. The deterministic Ed25519 host key is stable between runs.
+`createAhaSftpServer` from `./sftp` starts a real SSH/SFTP server on an ephemeral port and shares order state with `createRuntime`. It supports password or public-key authentication, host-key verification, `list`/`stat`, binary upload/download, atomic temp-file rename, delete, nested directories, stable POSIX permissions and emulator-clock timestamps. The deterministic Ed25519 host key is stable between runs.
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-aha"
-import { createAhaSftpServer } from "@crvouga/mockingbird-service-aha/sftp"
+import { createRuntime } from "@emulators/aha"
+import { createAhaSftpServer } from "@emulators/aha/sftp"
 
 const runtime = createRuntime()
 const sftp = await createAhaSftpServer({
@@ -162,17 +162,17 @@ Use `seed()` to install arbitrary binary fixtures or `publishResult(orderId, byt
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `AhaAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(id, {status, drawStatus?, scheduledAt?, timeZone?})`, `tick()`, `orders()`. Options: `sqlite`, `now`, `namespace`, `settings`, `onWebhook`, `wallClock`. |
-| `createRuntime` | function | The mock with the full service contract. Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `tickMs`, `wallClock`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `AhaAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(id, {status, drawStatus?, scheduledAt?, timeZone?})`, `tick()`, `orders()`. Options: `sqlite`, `now`, `namespace`, `settings`, `onWebhook`, `wallClock`. |
+| `createRuntime` | function | The emulator with the full service contract. Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `tickMs`, `wallClock`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `AHA_PRESETS` | object | Every named fault preset. |
 | `AHA_NAMESPACE` | string | The service name, `"aha"`. |
 | `WEBHOOK_PATH` | string | `"/bloodwork/aha-webhook"`, our receiver's route. |
 | `ORDER_STATUSES`, `DRAW_STATUSES` | arrays | The vendor status spellings the webhooks use. |
-| `verifyAuth` | function | The HMAC / legacy verification the mock applies (an error message, or `undefined`). |
+| `verifyAuth` | function | The HMAC / legacy verification the emulator applies (an error message, or `undefined`). |
 | `apiKeyCredential` | function | The API key a request carries (how credentials map to namespaces). |
 | `isTimeZone`, `zonedParts`, `zonedToEpoch` | functions | IANA-zone helpers used to fill the local date/time fields. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http` (autoSchedule ticks every 100 ms); the `serve` CLI target; port 8799. |
 | `createAhaSftpServer` (`./sftp`) | Node | Real SSH/SFTP endpoint with deterministic host key/filesystem, shared order state, transfer controls, and an ephemeral port. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

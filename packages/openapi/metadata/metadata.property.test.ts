@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import type { OpenAPIDocument, SchemaObject } from "@crvouga/mockingbird-openapi"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import type { OpenAPIDocument, SchemaObject } from "@emulators/openapi"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { annotateValue, operationMetadata, pathKey, validateMetadata } from "./src/index.js"
 
@@ -21,7 +21,7 @@ test("operationMetadata defaults and derivations", () => {
       (supported, enabled) => {
         const meta = operationMetadata({
           responses: {},
-          "x-mockingbird": {
+          "x-emulators": {
             ...(supported === undefined ? {} : { supported }),
             parity: enabled === undefined ? {} : { enabled },
           },
@@ -40,8 +40,8 @@ test("annotateValue finds every identity and volatile value inside nested lists 
     customer: {
       type: "object",
       properties: {
-        id: { type: "string", "x-mockingbird-resource": { type: "customer", identity: true } },
-        created: { type: "integer", "x-mockingbird-volatile": { kind: "timestamp" } },
+        id: { type: "string", "x-emulators-resource": { type: "customer", identity: true } },
+        created: { type: "integer", "x-emulators-volatile": { kind: "timestamp" } },
         tags: { type: "object", additionalProperties: { type: "string" } },
       },
     },
@@ -86,13 +86,13 @@ test("validateMetadata rejects dangling references and non-string identities, ac
           thing: {
             type: "object",
             properties: {
-              id: { type: "string", "x-mockingbird-resource": { type: produced, identity: true } },
+              id: { type: "string", "x-emulators-resource": { type: produced, identity: true } },
             },
           },
           input: {
             type: "object",
             properties: {
-              thing: { type: "string", "x-mockingbird-resource-ref": { type: referenced } },
+              thing: { type: "string", "x-emulators-resource-ref": { type: referenced } },
             },
           },
         })
@@ -103,7 +103,7 @@ test("validateMetadata rejects dangling references and non-string identities, ac
           thing: {
             type: "object",
             properties: {
-              id: { type: "integer", "x-mockingbird-resource": { type: produced, identity: true } },
+              id: { type: "integer", "x-emulators-resource": { type: produced, identity: true } },
             },
           },
         })

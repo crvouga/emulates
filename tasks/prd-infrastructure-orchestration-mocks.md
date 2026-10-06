@@ -1,12 +1,12 @@
-# PRD: Mockingbird infrastructure and orchestration mocks
+# PRD: infrastructure and orchestration emulators
 
 Status: requirements and implementation-plan draft requested September 25, 2026.
-Scope: changes within Mockingbird only. This document authorizes no execution,
+Scope: changes within Emulators only. This document authorizes no execution,
 installation, publication, deployment, or changes to another repository.
 
 ## 1. Overview
 
-Add stateful Docker Engine, Hermes Agent peer-run, and GitHub REST API mocks in
+Add Docker Engine, Hermes Agent peer-run, and GitHub REST API emulators in
 that delivery order. Their value is reproducing accepted operations with lost
 responses, retained execution after connection loss, idempotent replay, and remote
 state changes that ordinary canned responses cannot represent.
@@ -15,15 +15,15 @@ The consumer use cases come from Avengers Initiative, but these packages model
 public third-party interfaces, not Initiative's private control services or policy.
 Initiative-owned implementation, host tests, and adoption are tracked separately
 in the [Initiative handoff](avengers-initiative-mock-integration-handoff.md).
-No Initiative task is part of [the archived Mockingbird plan](archive/infrastructure-orchestration-mocks/PLAN.md).
+No Initiative task is part of [the archived Emulators plan](archive/infrastructure-orchestration-mocks/PLAN.md).
 
 ### Planned packages
 
 | Delivery | Package | Boundary |
 | --- | --- | --- |
-| 1 | `@crvouga/mockingbird-service-docker` | Engine HTTP observations and lifecycle, Unix sockets, attach upgrade/streams |
-| 2 | `@crvouga/mockingbird-service-hermes` | Public tracked peer runs, idempotency, stopping, interruption, retention |
-| 3 | `@crvouga/mockingbird-service-github` | Repository/ref observations, supported ref mutations, pull requests, response-loss scenarios |
+| 1 | `@emulators/docker` | Engine HTTP observations and lifecycle, Unix sockets, attach upgrade/streams |
+| 2 | `@emulators/hermes` | Public tracked peer runs, idempotency, stopping, interruption, retention |
+| 3 | `@emulators/github` | Repository/ref observations, supported ref mutations, pull requests, response-loss scenarios |
 
 All packages begin as `wip`. Names and API coverage are requirements; unverified
 provider semantics and exact Engine/GitHub version choices remain open questions.
@@ -77,7 +77,7 @@ No parity or installed-version verification was performed during drafting.
 ## 4. Individual deliverables and user stories
 
 Each `US-*` below maps one-to-one to `PLAN.md`. Dependencies refer only to
-Mockingbird deliverables; delivery order is Docker, Hermes, GitHub. Every story
+Emulators deliverables; delivery order is Docker, Hermes, GitHub. Every story
 requires **Typecheck passes**. Every story with testable behavior also requires
 **Tests pass**, using focused meaningful checks. Those criteria are explicit in
 the task plan. Documentation-only stories require link/source consistency checks,
@@ -85,7 +85,7 @@ not manufactured behavior tests.
 
 ### US-001: Define package boundaries and scenario ownership
 
-As a maintainer, I want a compatibility matrix so that public mock behavior and
+As a maintainer, I want a compatibility matrix so that public emulator behavior and
 consumer policy are not conflated.
 
 - [ ] Add `docs/INFRASTRUCTURE_MOCKS.md` with package boundaries and scenario IDs.
@@ -97,7 +97,7 @@ consumer policy are not conflated.
 
 ### US-002: Research and pin the Docker API contract
 
-As a Docker client developer, I want version-specific evidence so that the mock
+As a Docker client developer, I want version-specific evidence so that the emulator
 speaks the API actually consumed.
 
 - [ ] Use Context7 and create Docker `API_EVIDENCE.md` under the evidence rules.
@@ -206,7 +206,7 @@ As a consumer, I want failures caught independently of handler implementation.
 
 - [ ] Add eligible OpenAPI self-parity walks, operation-coverage assertions, and
   deliberate divergence detection.
-- [ ] Add Mockingbird-owned socket consumer fixtures for retained HTTP and attach,
+- [ ] Add Emulators-owned socket consumer fixtures for retained HTTP and attach,
   including accepted operation followed by lost response and re-inspection.
 - [ ] Use an actual pinned SDK where the declared consumer uses one; raw protocol
   fixtures are required for the observed raw-socket consumer.
@@ -248,7 +248,7 @@ As a peer client developer, I want the supported runtime's actual API contract.
 
 ### US-016: Scaffold the Hermes service package
 
-As a consumer, I want standard public peer-run mock entry points.
+As a consumer, I want standard public peer-run emulator entry points.
 
 - [ ] Add `packages/service/hermes`, annotated contract/codegen, WIP metadata,
   portable runtime, Node server/CLI, and initial consumer README.
@@ -302,7 +302,7 @@ As a peer client, I want realistic uncertainty and protocol evidence.
 - [ ] Add accepted-run/response-loss, timeout, throttle, and scripted provider-error
   scenarios; labels/statuses follow the pinned contract.
 - [ ] Add self-parity coverage and deliberate divergence detection.
-- [ ] Exercise submit/poll/stop through a Mockingbird-owned HTTP consumer fixture,
+- [ ] Exercise submit/poll/stop through an Emulators-owned HTTP consumer fixture,
   checking response loss, replay, and expiry without importing Initiative.
 - [ ] Scripted denied responses do not claim to implement real credential enforcement.
 
@@ -386,7 +386,7 @@ As a client developer, I want independent checks of the supported REST behavior.
 
 - [ ] Add OpenAPI self-parity with operation-coverage assertions and a deliberate
   divergent-instance test.
-- [ ] Add Mockingbird-owned consumer scenarios for lost PR-create responses, ref
+- [ ] Add Emulators-owned consumer scenarios for lost PR-create responses, ref
   movement, duplicate creation, pagination, and retry-after handling.
 - [ ] Verify no fictional compare-and-swap or universal idempotency semantics appear
   in fixtures; full broker recovery and Git transport remain external consumer tests.
@@ -405,7 +405,7 @@ As a maintainer, I want real API comparison evidence without touching unrelated 
 
 ### US-031: Deliver GitHub documentation and package gates
 
-As a consumer, I want installable REST mocks with honest publication guarantees.
+As a consumer, I want installable REST emulators with honest publication guarantees.
 
 - [ ] Complete README/API examples, fault controls, API evidence, supported operations,
   and explicit Git transport/token/ruleset/atomicity exclusions.
@@ -415,7 +415,7 @@ As a consumer, I want installable REST mocks with honest publication guarantees.
 
 ## 5. Functional requirements
 
-- **FR-1:** All implementation stories modify Mockingbird only. Source references
+- **FR-1:** All implementation stories modify Emulators only. Source references
   to another repository are evidence, not dependencies on executing its code.
 - **FR-2:** Each provider must perform Context7 research before API implementation
   and maintain version-aware API evidence as defined in section 3.
@@ -451,7 +451,7 @@ As a consumer, I want installable REST mocks with honest publication guarantees.
 
 - Initiative source/test changes, scheduling fairness, duplicate-launch policy,
   supervisor fencing, publication journals, or intake graph implementation.
-- A Hermes dispatcher/Kanban clone or a public mock of Initiative's internal APIs.
+- A Hermes dispatcher/Kanban clone or a public emulator of Initiative's internal APIs.
 - A systemd service package in this implementation plan. Consumer assessment and
   native Linux evidence belong to the separate Initiative handoff; a future package
   needs its own approved requirements.
@@ -479,7 +479,7 @@ controls, and never market in-memory checkpoint restoration as crash durability.
 
 Hermes profile/session scoping and retention must follow pinned source. GitHub ref
 semantics must follow the actual REST contract; consumer expected-target guards and
-Git transport cannot be proved by a more powerful fictional mock endpoint.
+Git transport cannot be proved by a more powerful fictional emulator endpoint.
 
 ## 8. Verification and completion
 
@@ -524,10 +524,10 @@ bounded reusable review knowledge belongs in `memory.json`. Drafting creates nei
 
 ### Inspection provenance
 
-Mockingbird was clean at `accea1e9` before these planning files. Initiative source
+Emulators was clean at `accea1e9` before these planning files. Initiative source
 was sampled at HEAD `e3583b9` with substantial uncommitted/untracked work; that SHA
 does not represent the inspected working tree. Relevant sampled consumers included
 `docker_attach_handshake.py`, `docker_read_session.py`, `docker_endpoint.py`,
 `maria_systemd_bus.py`, and `integrations/hermes/peer_http.py`. Their policy and
-host-trust behavior is outside Mockingbird implementation scope. No claim is made
+host-trust behavior is outside Emulators implementation scope. No claim is made
 that those implementations or the new packages have passed runtime verification.

@@ -1,4 +1,4 @@
-import { ResourceTable } from "@crvouga/mockingbird-model"
+import { ResourceTable } from "@emulators/model"
 import { StripeAPI } from "../src/index.js"
 import { compareStripeWebhooks, startStripeWebhookOracle } from "./webhook-oracle.js"
 
@@ -32,7 +32,7 @@ try {
     new Request("https://mock.stripe.local/v1/customers", {
       method: "POST",
       headers: {
-        authorization: "Bearer sk_test_mockingbird",
+        authorization: "Bearer sk_test_emulators",
         "content-type": "application/x-www-form-urlencoded",
       },
       body,

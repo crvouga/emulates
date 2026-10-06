@@ -1,24 +1,20 @@
-import { FORM_MEDIA_TYPE } from "@crvouga/mockingbird-http-codec"
+import { FORM_MEDIA_TYPE } from "@emulators/http-codec"
 import {
   collectPlaceholders,
   missingPlaceholder,
   refPlaceholder,
   scopePlaceholder,
-} from "@crvouga/mockingbird-model"
-import type { OpenAPIDocument, ParameterObject, SchemaObject } from "@crvouga/mockingbird-openapi"
-import { resolveSchema, walkSchema } from "@crvouga/mockingbird-openapi"
+} from "@emulators/model"
+import type { OpenAPIDocument, ParameterObject, SchemaObject } from "@emulators/openapi"
+import { resolveSchema, walkSchema } from "@emulators/openapi"
 import {
   invalidSchemaArbitrary,
   type Mutation,
   mutationSites,
   type Override,
   schemaArbitrary,
-} from "@crvouga/mockingbird-openapi-arbitrary"
-import {
-  parameterMetadata,
-  type SchemaMetadata,
-  schemaMetadata,
-} from "@crvouga/mockingbird-openapi-metadata"
+} from "@emulators/openapi-arbitrary"
+import { parameterMetadata, type SchemaMetadata, schemaMetadata } from "@emulators/openapi-metadata"
 import fc from "fast-check"
 import type { OperationPlan } from "./plan.js"
 
@@ -242,7 +238,7 @@ const PRODUCER_WEIGHT = 2
 export const referencedTypes = (command: LogicalCommand): string[] => {
   const types = new Set<string>()
   for (const placeholder of collectPlaceholders([command.parameters, command.body])) {
-    if (placeholder.$mockingbird === "ref") types.add(placeholder.type)
+    if (placeholder.$emulators === "ref") types.add(placeholder.type)
   }
   return [...types].sort()
 }
@@ -253,8 +249,8 @@ export const isEligible = (command: LogicalCommand, count: (type: string) => num
 
 const compact = (value: unknown) => {
   const text = JSON.stringify(value, (_, v: unknown) =>
-    typeof v === "object" && v !== null && "$mockingbird" in v
-      ? `<${(v as { $mockingbird: string }).$mockingbird}${"type" in v ? `:${String((v as { type: unknown }).type)}` : ""}${"pick" in v ? `#${String((v as { pick: unknown }).pick)}` : ""}>`
+    typeof v === "object" && v !== null && "$emulators" in v
+      ? `<${(v as { $emulators: string }).$emulators}${"type" in v ? `:${String((v as { type: unknown }).type)}` : ""}${"pick" in v ? `#${String((v as { pick: unknown }).pick)}` : ""}>`
       : v,
   )
   return text === undefined ? "" : text

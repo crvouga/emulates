@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type FlexRuntime, type FlexRuntimeOptions } from "./runtime.js"
 
-/** Port `mockingbird-flex serve` listens on when none is given. */
+/** Port `emulators-flex serve` listens on when none is given. */
 export const DEFAULT_PORT = 8792
 
 export type FlexServerOptions = FlexRuntimeOptions & {
@@ -85,6 +85,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Bearer fsk_test_… (test mode) or fsk_… (live mode)",
     "hosted page: GET /pay/<checkout_session_id> (cards 4000051230000072 HSA, 4242424242424242, 4000000000000002 declines)",
-    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<FLEX_API_KEY>: <ns>}",
+    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<FLEX_API_KEY>: <ns>}",
   ],
 }

@@ -1,8 +1,8 @@
-# @crvouga/mockingbird-service-infisical
+# @emulators/infisical
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-A **wip** portable Infisical mock for Universal Auth and the raw-secret surface used by
+A **wip** portable Infisical emulator for Universal Auth and the raw-secret surface used by
 `@infisical/sdk` **3.0.91**. Organizations, project environments, folders, permissions, tokens,
 secrets and historical versions share the standard SQLite state, clock, namespaces and Timeline.
 Use synthetic fixtures only.
@@ -10,13 +10,13 @@ Use synthetic fixtures only.
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-infisical
+bun add @emulators/infisical
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-infisical"
+import { createRuntime } from "@emulators/infisical"
 
 const mock = createRuntime()
 const response = await mock.fetch(new Request(
@@ -28,10 +28,10 @@ console.log(result.secrets.map((secret) => ({ key: secret.secretKey, version: se
 ```
 
 For the SDK walkthrough, also install `@infisical/sdk@3.0.91`. The SDK is an optional consumer
-dependency; the mock's runtime does not depend on it.
+dependency; the emulator's runtime does not depend on it.
 
 ```js
-import { createServer } from "@crvouga/mockingbird-service-infisical/server"
+import { createServer } from "@emulators/infisical/server"
 import { InfisicalSDK } from "@infisical/sdk"
 
 const mock = await createServer({ adminKey: "fixture-infisical-admin" })
@@ -79,10 +79,10 @@ Lists return `{ secrets, imports }`, ordered by secret key ascending; the v3 rou
 metadata or limit/offset parameters**. Duplicate creation returns vendor `400 BadRequestError`,
 rather than an invented conflict status. Secret values are trimmed while retaining a final
 newline, following the raw-route transform. Shared machine/service access is supported;
-personal secret writes are rejected. Token expiry uses the injected mock clock. Missing/invalid
+personal secret writes are rejected. Token expiry uses the injected emulator clock. Missing/invalid
 tokens, denied permissions, missing locations/secrets, schema validation and throttling return
 vendor-shaped error envelopes. Location-not-found messages are deliberately generic to avoid
-exposing fixture structure. Machine tokens are opaque mock credentials rather than signed JWTs.
+exposing fixture structure. Machine tokens are opaque emulator credentials rather than signed JWTs.
 Legacy service tokens with one exact scope override the caller's project/environment/path,
 following the v3 router; recursive service scopes retain explicit caller locations.
 
@@ -94,7 +94,7 @@ work for seeded sources; import management uses the admin tree control.
 
 ## Admin controls and privacy
 
-Every admin data read/write requires `x-mockingbird-admin-key`. The default is the explicitly
+Every admin data read/write requires `x-emulators-admin-key`. The default is the explicitly
 synthetic `fixture-infisical-admin`; provide your own `adminKey` when sharing a server. An empty
 key is rejected. Standard health, state, Timeline, reset, metrics, requests, faults and namespace
 routes live under `/__admin`; `adminPrefix` relocates the complete reserved tree.
@@ -114,7 +114,7 @@ Secret values, comments, metadata, client secrets and token credentials are seal
 AES-256-GCM **before** entering any Collection. Standard state reads and Timeline snapshots
 contain encrypted bytes; service-specific admin reads expose metadata only. Request journals,
 metrics, logs and errors never contain secret values or credential bodies. Plaintext is returned
-only by authorized vendor secret operations. This is a test mock: callers holding the runtime
+only by authorized vendor secret operations. This is a test emulator: callers holding the runtime
 object can access its programmatic API and should be trusted.
 
 The encryption key is private to the runtime and is shared across its namespaces. Sealed rows
@@ -125,7 +125,7 @@ keep that key outside serialized state. Authentication failure/tampering does no
 contents. Constructor fixtures are sealed synchronously so the initial Timeline checkpoint and
 reset include the whole tree.
 
-Namespaces use `x-mockingbird-namespace`, `/__admin/ns/<name>/…`, or credential mappings set with
+Namespaces use `x-emulators-namespace`, `/__admin/ns/<name>/…`, or credential mappings set with
 `PUT /__admin/credentials`. Machine tokens issued in one namespace cannot authorize another.
 Presets: `rate_limited` (429, Retry-After 1), `missing_version` (404 lookup), `server_error` (500)
 and `network_reset` (connection drop before a write). Pass `count: 1` for a one-shot fault.
@@ -157,7 +157,7 @@ exposes its Collections through `state` plus `sqlite` and `app`. `createRuntime`
 MockSurface and admin controls. Public types include `InfisicalAPIOptions`, `InfisicalRuntime`,
 `InfisicalRuntimeOptions`, `ProjectTree`, `Grant`, `SecretFixture`, `SecretRecord` and `Token`.
 The `/server` entry exports `createServer`, `DEFAULT_PORT` (8811) and `serveTarget`, plus
-`InfisicalServer`, `InfisicalServerOptions`. CLI: `mockingbird-infisical serve --port 8811`.
+`InfisicalServer`, `InfisicalServerOptions`. CLI: `emulators-infisical serve --port 8811`.
 
 ## Deliberately not modelled
 

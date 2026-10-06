@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { CredentialError, loadCredentials } from "@emulators/credentials"
 import { UnsplashAPI } from "../src/index.js"
 
 let key: string
@@ -17,7 +17,7 @@ try {
 }
 // Only metadata search: never fetch real images or register downloads.
 const path =
-  "/search/photos?query=mockingbird-fixture-nonexistent-example-invalid-8f47536d&per_page=1"
+  "/search/photos?query=emulators-fixture-nonexistent-example-invalid-8f47536d&per_page=1"
 const live = await fetch(`https://api.unsplash.com${path}`, {
   headers: { authorization: `Client-ID ${key}`, "accept-version": "v1" },
 })

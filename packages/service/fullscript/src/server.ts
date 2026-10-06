@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type FullscriptRuntime, type FullscriptRuntimeOptions } from "./runtime.js"
 
-/** Port `mockingbird-fullscript serve` listens on when none is given. */
+/** Port `emulators-fullscript serve` listens on when none is given. */
 export const DEFAULT_PORT = 8819
 
 export type FullscriptServerOptions = FullscriptRuntimeOptions & {
@@ -93,6 +93,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "oauth: GET /oauth/authorize (auto-consents as prac_mock_1), POST /api/oauth/token, POST /api/oauth/revoke",
-    "namespaces: x-mockingbird-namespace, or a /__admin/ns/<name>/ suffix on FULLSCRIPT_API_URL",
+    "namespaces: x-emulators-namespace, or a /__admin/ns/<name>/ suffix on FULLSCRIPT_API_URL",
   ],
 }

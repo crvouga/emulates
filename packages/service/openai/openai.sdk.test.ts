@@ -237,7 +237,7 @@ test("official SDK retries one 429/5xx fault and preserves the queued response",
         new Request(`${server.url}/__admin/faults/presets/${preset}`, {
           method: "POST",
           headers: {
-            "x-mockingbird-admin-key": "fixture-openai-admin",
+            "x-emulators-admin-key": "fixture-openai-admin",
             "content-type": "application/json",
           },
           body: "{}",

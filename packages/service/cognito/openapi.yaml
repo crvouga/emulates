@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Amazon Cognito Identity Provider (Mockingbird subset)
+  title: Amazon Cognito Identity Provider (Emulators subset)
   version: "2016-04-18"
   description: Hand-trimmed AWS JSON 1.1 user-pools contract used by the AWS SDK clients.
 servers:
@@ -11,7 +11,7 @@ paths:
   /:
     post:
       operationId: CognitoRpc
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: true, safe: false }
       parameters:
@@ -49,7 +49,7 @@ paths:
     get:
       operationId: Discovery
       security: []
-      x-mockingbird: { supported: true, parity: { enabled: false, reason: Local issuer metadata. } }
+      x-emulators: { supported: true, parity: { enabled: false, reason: Local issuer metadata. } }
       parameters:
         - { name: poolId, in: path, required: true, schema: { type: string } }
       responses:
@@ -60,7 +60,7 @@ paths:
     get:
       operationId: Jwks
       security: []
-      x-mockingbird: { supported: true, parity: { enabled: false, reason: Local signing keys. } }
+      x-emulators: { supported: true, parity: { enabled: false, reason: Local signing keys. } }
       parameters:
         - { name: poolId, in: path, required: true, schema: { type: string } }
       responses:

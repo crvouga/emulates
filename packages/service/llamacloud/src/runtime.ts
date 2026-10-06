@@ -6,8 +6,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { LLAMACLOUD_NAMESPACE, LlamaCloudAPI } from "./index.js"
 import type { PipelineSeed, RetrievalRule, ScriptedNode, Settings } from "./state.js"
@@ -66,7 +66,7 @@ export type LlamaCloudRuntime = ServiceRuntime<LlamaCloudAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -157,7 +157,7 @@ const adminRoutes = (runtime: ServiceRuntime<LlamaCloudAPI>): AdminRoutes => ({
 })
 
 /**
- * The LlamaCloud mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The LlamaCloud emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<LLAMACLOUD_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets and a request journal (metadata only: never queries or text).

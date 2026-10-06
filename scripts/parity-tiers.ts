@@ -3,9 +3,9 @@
  *
  * A live parity run spends a vendor's rate limit and, sometimes, its sandbox. So each service that
  * has a `parity` script declares a tier in its package.json, next to the rest of its
- * `mockingbird` metadata:
+ * `emulators` metadata:
  *
- *   "mockingbird": { …, "parityTier": "cold" }
+ *   "emulators": { …, "parityTier": "cold" }
  *
  *   hot   every pull request that changes the service (advisory.yml → parity.yml)
  *   warm  on a schedule (parity.yml's `schedule:`)
@@ -44,7 +44,7 @@ export interface ParityService {
   invalid?: string
   /**
    * Repo-root-relative globs, beyond the service's own package and its workspace dependencies,
-   * whose change can change its parity result (`mockingbird.parityInputs`).
+   * whose change can change its parity result (`emulators.parityInputs`).
    */
   inputs: string[]
 }
@@ -59,11 +59,11 @@ export function parityServices(): ParityService[] {
     if (!existsSync(manifest)) continue
     const pkg = JSON.parse(readFileSync(manifest, "utf8")) as {
       scripts?: Record<string, string>
-      mockingbird?: { parityTier?: unknown; parityInputs?: string[] }
+      emulators?: { parityTier?: unknown; parityInputs?: string[] }
     }
-    const inputs = pkg.mockingbird?.parityInputs ?? []
+    const inputs = pkg.emulators?.parityInputs ?? []
     if (typeof pkg.scripts?.parity !== "string") continue
-    const declared = pkg.mockingbird?.parityTier
+    const declared = pkg.emulators?.parityTier
     if (declared === undefined || isTier(declared)) {
       found.push({ name, tier: declared ?? DEFAULT_TIER, inputs })
     } else {
@@ -109,7 +109,7 @@ if (import.meta.main) {
     const bad = parityServices().filter((s) => s.invalid)
     for (const s of bad) {
       console.error(
-        `${s.name}: mockingbird.parityTier is ${s.invalid}; expected one of ${TIERS.join(", ")}`,
+        `${s.name}: emulators.parityTier is ${s.invalid}; expected one of ${TIERS.join(", ")}`,
       )
     }
     if (bad.length > 0) process.exit(1)

@@ -1,4 +1,4 @@
-import { hmac, type WebhookSigner } from "@crvouga/mockingbird-service"
+import { hmac, type WebhookSigner } from "@emulators/service"
 import type {
   AddressDto,
   FulfillmentRecord,

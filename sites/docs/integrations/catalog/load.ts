@@ -52,7 +52,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
     }))
     .filter((p) => existsSync(p.file))
     .map((p) => ({ ...p, pkg: readJson(p.file) }))
-    .filter((p) => p.pkg.private !== true && p.pkg.mockingbird?.layer === "service")
+    .filter((p) => p.pkg.private !== true && p.pkg.emulators?.layer === "service")
   const repo = repositoryUrl(packages[0]?.pkg)
   const brandsFile = join(docsRoot, BRANDS)
   const brands: Record<string, Brand> = existsSync(brandsFile) ? readJson(brandsFile) : {}
@@ -64,22 +64,22 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
   const loaded = await mapLimited(
     packages.map(({ name, dir, pkg }) => async (): Promise<Service | null> => {
       const where = `packages/service/${name}/package.json`
-      const meta = pkg.mockingbird ?? {}
+      const meta = pkg.emulators ?? {}
       if (!isCategory(meta.category ?? "")) {
         problems.push(
-          `${where}: "mockingbird.category" must be one of ${Object.keys(CATEGORIES).join(", ")} (got ${JSON.stringify(meta.category)})`,
+          `${where}: "emulators.category" must be one of ${Object.keys(CATEGORIES).join(", ")} (got ${JSON.stringify(meta.category)})`,
         )
         return null
       }
       if (typeof meta.displayName !== "string" || meta.displayName.trim() === "") {
         problems.push(
-          `${where}: "mockingbird.displayName" is required (the vendor's name as people write it)`,
+          `${where}: "emulators.displayName" is required (the vendor's name as people write it)`,
         )
         return null
       }
       if (typeof meta.parity !== "string" || meta.parity.trim() === "" || meta.parity.length > 80) {
         problems.push(
-          `${where}: "mockingbird.parity" is required: a short statement of the vendor surface this mock keeps in step (got ${JSON.stringify(meta.parity)})`,
+          `${where}: "emulators.parity" is required: a short statement of the vendor surface this emulator keeps in step (got ${JSON.stringify(meta.parity)})`,
         )
         return null
       }
@@ -108,7 +108,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
       )
       if ((meta.runtime ?? "portable") !== "portable") {
         problems.push(
-          `${where}: every service mock runs in Node, Bun, browsers, and Workers, so "mockingbird.runtime" must be "portable" (got ${JSON.stringify(meta.runtime)})`,
+          `${where}: every emulator runs in Node, Bun, browsers, and Workers, so "emulators.runtime" must be "portable" (got ${JSON.stringify(meta.runtime)})`,
         )
       }
       const kind: ServiceKind =
@@ -121,7 +121,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
       const supportedIds: string[] = mod.supportedOperationIds ?? mod.operationIds ?? []
       const playground = meta.playground ?? {}
       // `basicAuth: "user:pass"` keeps a base64 Basic credential out of package.json, where
-      // secret scanners flag it even when only the mock accepts it.
+      // secret scanners flag it even when only the emulator accepts it.
       const headers: Record<string, string> | undefined =
         typeof playground.basicAuth === "string"
           ? { ...playground.headers, authorization: `Basic ${btoa(playground.basicAuth)}` }
@@ -135,14 +135,14 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
       const defaultOperation = pickDefault(operations, playground.operation)
       if (headers && !operations.some((o) => o.verified)) {
         problems.push(
-          `${where}: no sample request succeeds with "mockingbird.playground.headers" / "basicAuth"; the credentials no longer match what the mock accepts`,
+          `${where}: no sample request succeeds with "emulators.playground.headers" / "basicAuth"; the credentials no longer match what the emulator accepts`,
         )
       }
       if (playground.operation) {
         const op = operations.find((o) => o.id === playground.operation)
         if (!op?.verified) {
           problems.push(
-            `${where}: "mockingbird.playground.operation" ${JSON.stringify(playground.operation)} ${op ? `does not succeed with its sample request (${sampleFailures.get(op.id) ?? "no runnable sample"})` : "is not an operation in the contract"}`,
+            `${where}: "emulators.playground.operation" ${JSON.stringify(playground.operation)} ${op ? `does not succeed with its sample request (${sampleFailures.get(op.id) ?? "no runnable sample"})` : "is not an operation in the contract"}`,
           )
         }
       }
@@ -183,9 +183,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
         packageName: pkg.name,
         displayName: meta.displayName,
         description: pkg.description ?? "",
-        keywords: (pkg.keywords ?? []).filter(
-          (k: string) => k !== "mockingbird" && k !== "service",
-        ),
+        keywords: (pkg.keywords ?? []).filter((k: string) => k !== "emulators" && k !== "service"),
         category: meta.category,
         parity,
         kind,
@@ -201,7 +199,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
         origin,
         contract: {
           title: document?.info?.title ?? null,
-          upstream: document?.info?.["x-mockingbird-upstream"]?.note ?? null,
+          upstream: document?.info?.["x-emulators-upstream"]?.note ?? null,
         },
         links: {
           npm: `https://www.npmjs.com/package/${pkg.name}`,
@@ -337,7 +335,7 @@ async function runQuickStart(
   const entry = pathToFileURL(join(serviceDir, target.name, "dist/index.js")).href
   const logs: unknown[][] = []
   // A fresh module URL is required after catalog invalidation; ESM caches data URLs.
-  const key = `__mockingbirdQuickStart_${crypto.randomUUID().replaceAll("-", "")}`
+  const key = `__emulatorsQuickStart_${crypto.randomUUID().replaceAll("-", "")}`
   ;(globalThis as Record<string, unknown>)[key] = (...args: unknown[]) => logs.push(args)
   const source = `const console = { log: (...a) => globalThis.${key}(...a) };\n${QUICK_START.code.replaceAll(JSON.stringify(QUICK_START.package), JSON.stringify(entry))}`
   try {
@@ -364,7 +362,7 @@ async function mapLimited<T>(tasks: (() => Promise<T>)[]): Promise<T[]> {
 
 const VERIFY_TIMEOUT_MS = 2_000
 
-/** Send each supported operation's sample, in contract order, to one fresh instance of the mock. */
+/** Send each supported operation's sample, in contract order, to one fresh instance of the emulator. */
 async function verifySamples(
   mod: Json,
   origin: string,

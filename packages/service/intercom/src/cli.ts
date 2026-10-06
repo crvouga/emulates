@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-intercom",
-    description: "stateful Intercom (contacts, conversations, webhooks) mock",
+    bin: "emulators-intercom",
+    description: "Intercom (contacts, conversations, webhooks) emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -15,7 +15,7 @@ import {
   type OperationContext,
   opaqueToken,
   type Service,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 
@@ -215,7 +215,7 @@ export class VibeAPI implements FetchAPI {
       return failure(403, "insufficient_scope", "Advertiser not accessible")
     // The initial package deliberately serves pre-aggregated JSON/DAY fixtures only.
     if ((body.format && body.format !== "JSON") || (body.granularity && body.granularity !== "DAY"))
-      return failure(400, "validation", "This mock supports JSON/DAY fixtures only")
+      return failure(400, "validation", "This emulator supports JSON/DAY fixtures only")
     const columns = [
       ...(Array.isArray(body.dimensions) ? body.dimensions : []),
       ...(body.metrics as string[]),

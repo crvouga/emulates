@@ -4,8 +4,8 @@ import {
   type ServiceRuntime,
   createRuntime as serviceRuntime,
   sigV4AccessKeyId,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { EventbridgeAPI } from "./aws.js"
 import { document } from "./generated/openapi.js"
 export type RuntimeOptions = {

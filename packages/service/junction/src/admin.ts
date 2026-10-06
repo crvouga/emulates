@@ -5,7 +5,7 @@ import {
   type FaultRule,
   jsonRes,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import {
   fixtureErrorMessage,
   IDENTITY_MODES,
@@ -235,7 +235,7 @@ export const resolveTransition = (
 }
 
 const adminError = (status: number, message: string) =>
-  jsonRes(status, { error: { type: "mockingbird_admin", message } })
+  jsonRes(status, { error: { type: "emulators_admin", message } })
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)

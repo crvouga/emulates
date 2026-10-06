@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-stripe",
+  "name": "@emulators/stripe",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Stripe API (accounts by key, customers, payments, subscriptions that renew, pause, resume and cancel, invoices, checkout with a hosted page, a hosted customer portal, a Stripe.js stand-in, signed webhooks) at API versions 2024-06-20 and 2025-02-24.acacia, verified by differential property tests against Stripe test mode.",
+  "description": "Stateful emulator of the Stripe API (accounts by key, customers, payments, subscriptions that renew, pause, resume and cancel, invoices, checkout with a hosted page, a hosted customer portal, a Stripe.js stand-in, signed webhooks) at API versions 2024-06-20 and 2025-02-24.acacia, verified by differential property tests against Stripe test mode.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "mockingbird-stripe": "./dist/cli.js"
+    "emulators-stripe": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,12 +34,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/stripe"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/stripe#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/stripe#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "service",
     "stripe",
     "payments",
@@ -48,7 +48,7 @@
     "webhooks",
     "billing"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -66,7 +66,7 @@
     "playground": {
       "operation": "PostCustomers",
       "headers": {
-        "authorization": "Bearer sk_test_mockingbird"
+        "authorization": "Bearer sk_test_emulators"
       }
     },
     "discovery": {
@@ -78,7 +78,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- stripe",
-        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -89,7 +89,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -108,31 +108,31 @@
     "portability": "bun ../../../scripts/portability.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@crvouga/mockingbird-testing": "workspace:*",
-    "@crvouga/mockingbird-adapter-bun": "workspace:*",
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-webhook-collector": "workspace:*",
-    "@crvouga/mockingbird-model": "workspace:*",
-    "@crvouga/mockingbird-canonicalize": "workspace:*",
-    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@emulators/testing": "workspace:*",
+    "@emulators/adapter-bun": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
+    "@emulators/parity": "workspace:*",
+    "@emulators/webhook-collector": "workspace:*",
+    "@emulators/model": "workspace:*",
+    "@emulators/canonicalize": "workspace:*",
+    "@emulators/credentials": "workspace:*",
     "stripe": "16.12.0",
     "yaml": "2.9.0",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-ui": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
-    "@crvouga/mockingbird-commands": "workspace:*",
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/ui": "workspace:*",
+    "@emulators/http-codec": "workspace:*",
+    "@emulators/commands": "workspace:*",
+    "@emulators/adapter-node": "workspace:*",
     "stripe-v17": "npm:stripe@17.7.0"
   }
 }

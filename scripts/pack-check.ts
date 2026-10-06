@@ -37,7 +37,7 @@ const pkg = await tryReadJson<{
   bin?: string | Record<string, string>
   repository?: { url?: string }
   publishConfig?: { access?: string; provenance?: boolean }
-  mockingbird?: {
+  emulators?: {
     runtime?: string
     layer?: string
     discovery?: {
@@ -121,10 +121,10 @@ if (isPublic) {
       `${name}: publishConfig.provenance should be true for npm Trusted Publishing (OIDC) rebuilds`,
     )
   }
-  if (isPublic && pkg.mockingbird?.layer === "service") {
-    const discovery = pkg.mockingbird.discovery
+  if (isPublic && pkg.emulators?.layer === "service") {
+    const discovery = pkg.emulators.discovery
     if (!discovery) {
-      fail(`${name}: service package needs mockingbird.discovery metadata`)
+      fail(`${name}: service package needs emulators.discovery metadata`)
     } else {
       const artifacts = [
         discovery.guide,
@@ -135,7 +135,7 @@ if (isPublic) {
       ].filter((value): value is string => Boolean(value))
       for (const artifact of artifacts) {
         if (!existsSync(join(pkgDir, artifact))) {
-          fail(`${name}: mockingbird.discovery references missing ${artifact}`)
+          fail(`${name}: emulators.discovery references missing ${artifact}`)
         }
         const top = artifact.split("/")[0]
         if (top && top !== "dist" && !pkg.files?.includes(top) && !pkg.files?.includes(artifact)) {
@@ -149,9 +149,7 @@ if (isPublic) {
         !discovery.reporting ||
         !discovery.introspection?.length
       ) {
-        fail(
-          `${name}: mockingbird.discovery must describe the oracle, reporting, and introspection`,
-        )
+        fail(`${name}: emulators.discovery must describe the oracle, reporting, and introspection`)
       }
     }
   }
@@ -203,7 +201,7 @@ if (isPublic) {
 
 // --- dist homogeneity / portability ---
 // A `portable` public package must not ship Node/Bun-only API usage in its ESM.
-const runtime = pkg.mockingbird?.runtime
+const runtime = pkg.emulators?.runtime
 if (isPublic && runtime === "portable") {
   const bundle = existsSync(join(pkgDir, distJs)) ? await Bun.file(join(pkgDir, distJs)).text() : ""
   for (const label of [
@@ -249,9 +247,9 @@ if (pack.exitCode !== 0) {
   }
   const files = entries[0]?.files?.map((f) => f.path) ?? []
   const neededFiles = ["dist/index.js", "dist/index.d.ts", "package.json"]
-  if (isPublic && pkg.mockingbird?.layer === "service") {
-    neededFiles.push("DISCOVERY.md", pkg.mockingbird.discovery?.capabilities ?? "")
-    if (pkg.mockingbird.discovery?.contract) neededFiles.push(pkg.mockingbird.discovery.contract)
+  if (isPublic && pkg.emulators?.layer === "service") {
+    neededFiles.push("DISCOVERY.md", pkg.emulators.discovery?.capabilities ?? "")
+    if (pkg.emulators.discovery?.contract) neededFiles.push(pkg.emulators.discovery.contract)
   }
   for (const needed of neededFiles.filter(Boolean)) {
     if (!files.some((p) => p === needed || p.endsWith(`/${needed}`))) {

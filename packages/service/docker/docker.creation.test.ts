@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@crvouga/mockingbird-openapi"
+import { findOperation, responseForStatus, validateValue } from "@emulators/openapi"
 import { createRuntime, type DockerRuntime, document } from "./src/index.js"
 
 const image = `sha256:${"a".repeat(64)}`
@@ -129,7 +129,7 @@ test("created records and ID sequence participate in checkout and reset", async 
   const checkpoint = (await (await call(r, "/__admin/checkpoints", {})).json()) as { id: string }
   const first = await call(r, "/containers/create?name=one", { Image: "synthetic" })
   expect(first.status).toBe(201)
-  expect(first.headers.get("x-mockingbird-checkpoint")).toMatch(/^cp_/)
+  expect(first.headers.get("x-emulators-checkpoint")).toMatch(/^cp_/)
   const id = ((await first.json()) as { Id: string }).Id
   await call(r, "/__admin/branches/main/checkout", { checkpoint: checkpoint.id })
   expect((await call(r, `/containers/${id}/json`)).status).toBe(404)
@@ -172,7 +172,7 @@ test("image defaults, entrypoint clearing, generated names and platform warnings
   expect(value.Warnings).toHaveLength(1)
   expect(value.Warnings[0]).toContain("linux/arm64")
   expect(await (await call(r, `/containers/${value.Id}/json`)).json()).toMatchObject({
-    Name: expect.stringMatching(/^\/mockingbird_/),
+    Name: expect.stringMatching(/^\/emulators_/),
     Config: { Entrypoint: [], Cmd: ["replacement"] },
   })
   expect(

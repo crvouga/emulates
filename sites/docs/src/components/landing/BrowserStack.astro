@@ -4,7 +4,7 @@
  * one browser tab. The launch button mounts that app (`client/appExamples.ts`), so the page that
  * includes this component must load that script.
  */
-import catalog from "virtual:mockingbird/catalog"
+import catalog from "virtual:emulators/catalog"
 import { APP_EXAMPLES } from "../../lib/appExamples.ts"
 import { IDENTITY } from "../../lib/content.ts"
 import ExampleView from "../ExampleView.astro"
@@ -14,7 +14,7 @@ import VendorLogo from "./VendorLogo.astro"
 const example = APP_EXAMPLES.find((e) => e.slug === "medical-testing")
 if (!example) throw new Error("medical-testing is missing from APP_EXAMPLES")
 
-/** What each vendor does for the app. The OAuth mock's brand is the OpenID Foundation; name the protocol. */
+/** What each vendor does for the app. The OAuth emulator's brand is the OpenID Foundation; name the protocol. */
 const ROLES: Record<string, { name?: string; role: string }> = {
   oauth: { name: "OAuth", role: "Google & Apple sign-in" },
   stripe: { role: "Payments" },

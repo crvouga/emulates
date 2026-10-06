@@ -1,5 +1,5 @@
-import { Collection, opaqueToken } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, opaqueToken } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { ImportLog, ResultElement } from "./results.js"
 
 /** A practice patient as `OdxPatient` (our consumer's type) plus the partner (our) user id. */

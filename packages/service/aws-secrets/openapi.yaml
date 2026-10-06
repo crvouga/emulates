@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: AWS Secrets Manager and SSM Parameter Store (Mockingbird subset)
+  title: AWS Secrets Manager and SSM Parameter Store (Emulators subset)
   version: "2017-10-17"
   description: AWS JSON contracts used by the pinned Secrets Manager and SSM clients.
 servers:
@@ -9,7 +9,7 @@ paths:
   /:
     post:
       operationId: AwsSecretsRpc
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - { name: X-Amz-Target, in: header, required: true, schema: { type: string } }
       requestBody:

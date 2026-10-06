@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: reCAPTCHA v3
   version: v3
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     url: https://developers.google.com/recaptcha/docs/verify
 servers:
   - url: https://www.google.com
@@ -20,7 +20,7 @@ paths:
           content:
             application/javascript:
               schema: { type: string }
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: false, reason: Semantic shim, not Google's production script }
   /recaptcha/api/siteverify:
@@ -51,6 +51,6 @@ paths:
                   hostname: { type: string }
                   challenge_ts: { type: string, format: date-time }
                   error-codes: { type: array, items: { type: string } }
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: true, safe: true }

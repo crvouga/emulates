@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Fullscript API (Mockingbird subset)
+  title: Fullscript API (Emulators subset)
   description: 'Stateful mock subset of the Fullscript API for lab ordering: per-practitioner OAuth (authorize,
     token with authorization_code and refresh_token grants, revoke), clinic, embeddable session grants,
     lab orders, lab-order events, expiring result PDFs, and signed webhooks. Hand-authored from the EMR
@@ -8,7 +8,7 @@ info:
 
     '
   version: '1'
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: Wire shapes from the consumer app's EMR backend (its Fullscript services and routers);
       the vendor's API reference is behind a partner login.
 servers:
@@ -21,7 +21,7 @@ paths:
       operationId: OAuthToken
       description: Exchange an authorization code, or rotate a refresh token (the old refresh token stops
         working).
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -62,7 +62,7 @@ paths:
     post:
       operationId: OAuthRevoke
       description: 'Revoke an access or refresh token (RFC 7009: always 200).'
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -103,7 +103,7 @@ paths:
     get:
       operationId: GetClinic
       description: The token's clinic.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -131,7 +131,7 @@ paths:
     post:
       operationId: CreateSessionGrant
       description: A short-lived secret for the embedded Fullscript widget.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -154,7 +154,7 @@ paths:
     get:
       operationId: ListLabOrders
       description: The clinic's lab orders (optionally one patient's), paged.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -201,7 +201,7 @@ paths:
     get:
       operationId: GetLabOrder
       description: One lab order with tests, per-test results and the aggregated result.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -241,7 +241,7 @@ paths:
     get:
       operationId: ListLabOrderEvents
       description: The clinic's lab_order.updated events, newest first by default.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -287,7 +287,7 @@ paths:
     get:
       operationId: GetEvent
       description: One event with its data.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -329,7 +329,7 @@ paths:
       description: 'The consent page: auto-approves as the requested (or default) practitioner and redirects
         to redirect_uri with code and state.'
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: false
@@ -381,7 +381,7 @@ paths:
       operationId: GetResultPdf
       description: An expiring result PDF URL (what pdf_url points at).
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: false
@@ -492,7 +492,7 @@ components:
           properties:
             access_token:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: token
             token_type:
               type: string
@@ -502,13 +502,13 @@ components:
               type: integer
             refresh_token:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: token
             scope:
               type: string
             created_at: &id002
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: timestamp
             resource_owner:
               type: object
@@ -575,7 +575,7 @@ components:
       properties:
         secret_token:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: token
         expires_at: *id002
     LabOrderSummary:
@@ -709,7 +709,7 @@ components:
                     type: string
                   pdf_url: &id004
                     type: string
-                    x-mockingbird-volatile:
+                    x-emulators-volatile:
                       kind: url
             latest_aggregated_result:
               type:

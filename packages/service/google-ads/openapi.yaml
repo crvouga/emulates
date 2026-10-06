@@ -3,7 +3,7 @@
   "info": {
     "title": "Google Ads v25 and GA4 local API subset",
     "version": "0.1.0",
-    "x-mockingbird-upstream": {
+    "x-emulators-upstream": {
       "note": "Bounded subset of official googleapis/googleapis proto SHA03a91044136a014466d4293eb1fe91f2b02075d2, Google Ads REST and GA4 Measurement Protocol/Data API documentation. Developer tokens are ignored under the September2026 policy."
     }
   },
@@ -344,7 +344,7 @@
             }
           }
         },
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -459,7 +459,7 @@
             }
           }
         },
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -505,7 +505,7 @@
             "description": "Success"
           }
         },
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -926,7 +926,7 @@
                     },
                     "requestId": {
                       "type": "string",
-                      "x-mockingbird-volatile": {
+                      "x-emulators-volatile": {
                         "kind": "id"
                       }
                     }
@@ -1189,7 +1189,7 @@
           },
           "nextPageToken": {
             "type": "string",
-            "x-mockingbird-volatile": {
+            "x-emulators-volatile": {
               "kind": "token"
             }
           },
@@ -1242,7 +1242,7 @@
           },
           "requestId": {
             "type": "string",
-            "x-mockingbird-volatile": {
+            "x-emulators-volatile": {
               "kind": "id"
             }
           },
@@ -1310,7 +1310,7 @@
               "properties": {
                 "resourceName": {
                   "type": "string",
-                  "x-mockingbird-resource": {
+                  "x-emulators-resource": {
                     "type": "google_campaign_budget",
                     "identity": true
                   }
@@ -1417,7 +1417,7 @@
           "jobId": {
             "type": "string",
             "pattern": "^-?[0-9]+$",
-            "x-mockingbird-volatile": {
+            "x-emulators-volatile": {
               "kind": "id"
             }
           },

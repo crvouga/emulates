@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { accessTokenCredential, META_NAMESPACE, MetaAPI } from "./index.js"
 import type { MetaSettings } from "./state.js"
@@ -80,19 +80,19 @@ const adminRoutes = (runtime: ServiceRuntime<MetaAPI>): AdminRoutes => ({
   "GET /settings": ({ namespace }) => json(200, runtime.instance(namespace).state.current()),
   "PUT /settings": ({ namespace, body }) => {
     if (!isRecord(body))
-      return json(400, { error: { type: "mockingbird_admin", message: "expected a JSON object" } })
+      return json(400, { error: { type: "emulators_admin", message: "expected a JSON object" } })
     const patch: Partial<MetaSettings> = {}
     if (body.accessTokens !== undefined) {
       if (!Array.isArray(body.accessTokens))
         return json(400, {
-          error: { type: "mockingbird_admin", message: "accessTokens: string[]" },
+          error: { type: "emulators_admin", message: "accessTokens: string[]" },
         })
       patch.accessTokens = body.accessTokens.map(String)
     }
     if (body.maxEventAgeSeconds !== undefined) {
       if (!Number.isInteger(body.maxEventAgeSeconds) || Number(body.maxEventAgeSeconds) < 0) {
         return json(400, {
-          error: { type: "mockingbird_admin", message: "maxEventAgeSeconds: non-negative integer" },
+          error: { type: "emulators_admin", message: "maxEventAgeSeconds: non-negative integer" },
         })
       }
       patch.maxEventAgeSeconds = Number(body.maxEventAgeSeconds)

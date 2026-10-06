@@ -1,6 +1,6 @@
-import type { FormValue } from "@crvouga/mockingbird-http-codec"
-import { resolveSchema, type SchemaObject } from "@crvouga/mockingbird-openapi"
-import { type FormIssue, type OperationContext, parseForm } from "@crvouga/mockingbird-service"
+import type { FormValue } from "@emulators/http-codec"
+import { resolveSchema, type SchemaObject } from "@emulators/openapi"
+import { type FormIssue, type OperationContext, parseForm } from "@emulators/service"
 import {
   humanList,
   invalidRequest,

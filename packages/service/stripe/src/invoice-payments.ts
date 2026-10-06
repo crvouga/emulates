@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
+import { jsonResponse, type OperationHandler } from "@emulators/service"
 import { invalidRequest, resourceMissing } from "./errors.js"
 import { requestScope, type Services, stringOf } from "./internal.js"
 import { clampLimit, matchesCreated } from "./list.js"

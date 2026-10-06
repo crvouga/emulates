@@ -7,7 +7,7 @@
  * `/v1/{payment,setup}_intents/{id}/confirm` with the publishable key and client secret, exactly
  * the requests UI suites already wait for; a 3-D Secure test card is authenticated in place.
  */
-export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stand-in */
+export const stripeJs = (base: string): string => `/* Emulators Stripe.js stand-in */
 (function () {
   "use strict";
   var BASE = ${JSON.stringify(base)};
@@ -159,7 +159,7 @@ export const stripeJs = (base: string): string => `/* Mockingbird Stripe.js stan
   }
   Element.prototype.mount = function (target) {
     var host = typeof target === "string" ? document.querySelector(target) : target;
-    if (!host) throw new Error("Mockingbird Stripe.js: mount target not found");
+    if (!host) throw new Error("Emulators Stripe.js: mount target not found");
     var root = document.createElement("div");
     root.setAttribute("data-testid", "stripe-mock-element");
     root.setAttribute("data-element-type", this.type);

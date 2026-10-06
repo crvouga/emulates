@@ -16,28 +16,28 @@ html, body { height: 100%; }
 .body{color:blue}
 `)
     expect(css).toContain(
-      '[data-mockingbird-paste="test"]{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0}',
+      '[data-emulators-paste="test"]{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0}',
     )
     expect(css).toContain(
-      '[data-mockingbird-paste="test"]>.page{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:100%;container-type:inline-size}',
+      '[data-emulators-paste="test"]>.page{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:100%;container-type:inline-size}',
     )
-    expect(css).toContain('[data-mockingbird-paste="test"]>.page{margin:0;min-height:100%}')
-    expect(css).toContain('[data-mockingbird-paste="test"]>.page h1{font-size:24px}')
+    expect(css).toContain('[data-emulators-paste="test"]>.page{margin:0;min-height:100%}')
+    expect(css).toContain('[data-emulators-paste="test"]>.page h1{font-size:24px}')
     expect(css).toContain(
-      '@media(prefers-color-scheme:dark){[data-mockingbird-paste="test"]>.page{--bg:#111}}',
+      '@media(prefers-color-scheme:dark){[data-emulators-paste="test"]>.page{--bg:#111}}',
     )
     expect(css).toContain(
       "@keyframes arrive{from{opacity:0;transform:translateY(5px)}to{opacity:1}}",
     )
-    expect(css).toContain('[data-mockingbird-paste="test"]>.page {min-height: 100%; }')
+    expect(css).toContain('[data-emulators-paste="test"]>.page {min-height: 100%; }')
     expect(css).toContain(
-      '[data-mockingbird-paste="test"]>.page, [data-mockingbird-paste="test"]>.page {min-height: 100%; }',
+      '[data-emulators-paste="test"]>.page, [data-emulators-paste="test"]>.page {min-height: 100%; }',
     )
-    expect(css).toContain('[data-mockingbird-paste="test"]>.page[data-theme="dark"]{color:red}')
-    expect(css).toContain('[data-mockingbird-paste="test"]>.page .app{min-height:100%}')
-    expect(css).toContain('[data-mockingbird-paste="test"]>.page .pane{height:100%}')
+    expect(css).toContain('[data-emulators-paste="test"]>.page[data-theme="dark"]{color:red}')
+    expect(css).toContain('[data-emulators-paste="test"]>.page .app{min-height:100%}')
+    expect(css).toContain('[data-emulators-paste="test"]>.page .pane{height:100%}')
     expect(css.match(/(?<![\w-])height:\s*100%/g)).toEqual(["height:100%"])
-    expect(css).toContain('[data-mockingbird-paste="test"]>.page .body{color:blue}')
+    expect(css).toContain('[data-emulators-paste="test"]>.page .body{color:blue}')
     expect(css).not.toContain(":root")
     expect(css).not.toContain("100vh")
     expect(css).not.toContain("100svh")
@@ -53,19 +53,19 @@ html, body { height: 100%; }
 @media (min-width:700px) and (prefers-reduced-motion:reduce){.card{animation:none}}
 `)
     expect(css).toContain(
-      '@container (min-width:992px){[data-mockingbird-paste="test"]>.page .app{flex-direction:row}}',
+      '@container (min-width:992px){[data-emulators-paste="test"]>.page .app{flex-direction:row}}',
     )
     expect(css).toContain(
-      '@container (max-width: 640px){[data-mockingbird-paste="test"]>.page .nav{flex-wrap:wrap}}',
+      '@container (max-width: 640px){[data-emulators-paste="test"]>.page .nav{flex-wrap:wrap}}',
     )
     expect(css).toContain(
-      '@container (max-width:800px){[data-mockingbird-paste="test"]>.page .layout{display:block}}',
+      '@container (max-width:800px){[data-emulators-paste="test"]>.page .layout{display:block}}',
     )
     expect(css).toContain(
-      '@container (min-width:600px) and (max-width:900px){[data-mockingbird-paste="test"]>.page .split{display:block}}',
+      '@container (min-width:600px) and (max-width:900px){[data-emulators-paste="test"]>.page .split{display:block}}',
     )
     expect(css).toContain(
-      '@media (prefers-color-scheme:dark){[data-mockingbird-paste="test"]>.page{--bg:#111}}',
+      '@media (prefers-color-scheme:dark){[data-emulators-paste="test"]>.page{--bg:#111}}',
     )
     expect(css).toContain("@media (min-width:700px) and (prefers-reduced-motion:reduce)")
     expect(css).not.toContain("@media (min-width:992px)")
@@ -77,10 +77,10 @@ html, body { height: 100%; }
       ':is(a,button,input,[tabindex="0"]):focus-visible{outline:2px solid} .card, main{padding:1rem}',
     )
     expect(css).toContain(
-      '[data-mockingbird-paste="test"]>.page :is(a,button,input,[tabindex="0"]):focus-visible{outline:2px solid}',
+      '[data-emulators-paste="test"]>.page :is(a,button,input,[tabindex="0"]):focus-visible{outline:2px solid}',
     )
     expect(css).toContain(
-      '[data-mockingbird-paste="test"]>.page .card, [data-mockingbird-paste="test"]>.page main{padding:1rem}',
+      '[data-emulators-paste="test"]>.page .card, [data-emulators-paste="test"]>.page main{padding:1rem}',
     )
   })
 })

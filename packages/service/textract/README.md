@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-textract
+# @emulators/textract
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful Amazon Textract mock for the official SDK v3 client. It models synchronous and asynchronous document analysis, connected block graphs, stable pagination, idempotency, and completion notifications.
+Stateful Amazon Textract emulator for the official SDK v3 client. It models synchronous and asynchronous document analysis, connected block graphs, stable pagination, idempotency, and completion notifications.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-textract
+npm install -D @emulators/textract
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -15,7 +15,7 @@ ESM only. Node 22+ or Bun 1.2+.
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-textract/server"
+import { createServer } from "@emulators/textract/server"
 
 const mock = await createServer({
   corpora: [{ bucket: "fixtures", name: "invoice.pdf", pages: 1, blocks: [] }],
@@ -39,7 +39,7 @@ Terminal jobs with a NotificationChannel publish an SNS-compatible Textract stat
 
 - `TextractAPI`, `TextractAPIOptions`, `TextractNotification`: handler and notification contract.
 - `TextractBlock`, `TextractCorpus`, `TextractJob`, `TextractJobStatus`: fixtures and durable state.
-- `createRuntime`, `TextractRuntime`, `TextractRuntimeOptions`: full Mockingbird runtime and webhook hub.
+- `createRuntime`, `TextractRuntime`, `TextractRuntimeOptions`: full Emulators runtime and webhook hub.
 - `TEXTRACT_NAMESPACE`, `TEXTRACT_PRESETS`, `accessKeyCredential`: constants and fault controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
 - `createServer`, `TextractServerOptions`, `DEFAULT_PORT`, `serveTarget` from `./server`: Node HTTP adapter and CLI integration.

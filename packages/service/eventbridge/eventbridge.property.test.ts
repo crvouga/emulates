@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { ParityError, parity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { ParityError, parity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import { document, EventBridgeAPI, supportedOperationIds } from "./src/index.js"
 
 const params = fcParameters(process.env)

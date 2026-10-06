@@ -5,7 +5,7 @@ description: Run every check (format, lint, typecheck, build, test, pack, portab
 
 # Check Loop
 
-You are making the mockingbird repo fully green: **all checks** (lint, typecheck, build, tests,
+You are making the emulators repo fully green: **all checks** (lint, typecheck, build, tests,
 portability, pack, boundaries) **and live parity** (differential property tests against each
 provider's real sandbox). Run the checks, fix every failure at its root cause, repeat until
 everything passes, then commit. Never stop on a green-ish subset and never disable, skip,
@@ -24,8 +24,8 @@ comment out, or loosen a check to make it pass.
    - portability
    - pack:check
    - check:boundaries, check:agents, check:llms, check:format
-   Then run `bun run release:smoke` (not part of the turbo graph): it packs every published mock
-   service, installs the tarballs into a clean npm project, and typechecks every README ```ts
+   Then run `bun run release:smoke` (not part of the turbo graph): it packs every published
+   emulator, installs the tarballs into a clean npm project, and typechecks every README ```ts
    example. A failing README example is a docs bug — fix the README (or
    the API) rather than removing the example.
 3. **Run live parity.** `bun run check` does **not** cover parity (it needs sandbox
@@ -35,15 +35,15 @@ comment out, or loosen a check to make it pass.
    bun run parity:junction         # junction
    bun run parity:stripe           # stripe
    bun run parity:genebygene       # genebygene
-   bun run parity --filter=@crvouga/mockingbird-service-junction --concurrency=1
+   bun run parity --filter=@emulators/junction --concurrency=1
    ```
    Replay a specific failing walk with the seed printed in the error:
    ```bash
    FC_SEED=2032472120 bun run parity:junction
    FC_SEED=2032472120 bun run parity:junction -- --runs 10 --steps 12   # shorter run, faster
-   MOCKINGBIRD_TRACE=1 bun run parity:junction                              # trace each step
+   EMULATORS_TRACE=1 bun run parity:junction                              # trace each step
    ```
-   The self-parity property suite (two independent mocks) needs **no** credentials and is great
+   The self-parity property suite (two independent emulator instances) needs **no** credentials and is great
    for fast local iteration:
    ```bash
    # inside packages/service/<provider>
@@ -70,8 +70,8 @@ comment out, or loosen a check to make it pass.
 
 ## Live parity details
 
-Live parity replays the same random API walk against a provider's real sandbox and against the
-mock, canonicalizes both responses (strips volatile ids, timestamps, tokens), and
+Live parity replays the same random API walk against a provider's real sandbox and against a
+fresh emulator, canonicalizes both responses (strips volatile ids, timestamps, tokens), and
 structural-diffs them. Any divergence is a failure.
 
 ### Credentials
@@ -102,7 +102,8 @@ Provider sandboxes (from `packages/service/*/scripts/parity.ts`):
 
 ### Read the failure precisely
 
-A parity failure prints the **real vs mock** response, the canonical forms, and the diff:
+A parity failure prints the real and emulator responses (labelled `real` and `mock`), the
+canonical forms, and the diff:
 
 ```
 differences:
@@ -113,13 +114,13 @@ differences:
 
 - The **minimal** reproduction is on the `Counterexample:` line. The long `Encountered failures
   were:` block is fast-check's shrink trail — you can ignore it.
-- `kind: mismatch` = real and mock diverged. `kind: mock-conformance` = the mock returned a
-  status or body not declared in the vendored OpenAPI spec (e.g. `status 400 is not declared
-  for <operation>`).
+- `kind: mismatch` = the real API and the emulator diverged. `kind: mock-conformance` = the
+  emulator returned a status or body not declared in the vendored OpenAPI spec (e.g. `status 400
+  is not declared for <operation>`).
 - Status, body `kind`, and body `value` are all compared. Volatile ids/timestamps/tokens are
   canonicalized away, so focus on **status + non-volatile body** differences.
 - Error bodies (`detail`) are compared **strictly** unless the schema annotates them. If the real
-  returns a FastAPI-style `{"detail":[{...}]}` array, the mock must return the same.
+  returns a FastAPI-style `{"detail":[{...}]}` array, the emulator must return the same.
 
 ### Probe the real API to learn ground truth
 
@@ -142,9 +143,9 @@ Probe the boundary cases the command generator can produce (empty body, `null` v
 fields, conflict/duplicate ids, wrong types, delete-then-access). Record the exact status **and**
 body.
 
-### Fix the mock
+### Fix the emulator
 
-Mock handlers live in `packages/service/<provider>/src/*.ts` (e.g. `users.ts`). Make the handler
+Emulator handlers live in `packages/service/<provider>/src/*.ts` (e.g. `users.ts`). Make the handler
 return exactly what the real API returns — same status, same body shape, same `detail` text/array.
 
 Common fixes this repo needs:
@@ -154,14 +155,14 @@ Common fixes this repo needs:
 - **Conflict / duplicate** → real returns `409` with a specific message (e.g.
   `Client user id already exists`), not a generic `422`.
 - **Validation error shape** → FastAPI returns `{"detail":[{type,loc,msg,input,...}]}` arrays.
-  The mock's `HttpError(422, { detail: "..." })` string does **not** match; build the array.
+  The emulator's `HttpError(422, { detail: "..." })` string does **not** match; build the array.
 - **Delete-then-access** → real keeps the id "scheduled for deletion" and returns a per-endpoint
   message (e.g. GET `You have scheduled this user for deletion.`, PATCH/DELETE
   `The user has been scheduled for deletion as per your previous request`). Track deleted ids.
 
 ### Update the spec and regenerate
 
-If you change the mock to return a status the spec doesn't declare, `validateMock` fails
+If you change the emulator to return a status the spec doesn't declare, `validateMock` fails
 (`status X is not declared for <operation>`). Add that response to `openapi.yaml`:
 
 ```yaml

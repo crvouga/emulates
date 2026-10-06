@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Clock, ClockState } from "./clock.js"
 import type { CredentialRegistry } from "./credentials.js"
 import type { FaultRegistry, FaultRule } from "./faults.js"

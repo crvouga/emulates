@@ -1,11 +1,6 @@
 /// <reference types="node" />
 import { readFile } from "node:fs/promises"
-import {
-  type CliValues,
-  type Listening,
-  listen,
-  type ServeTarget,
-} from "@crvouga/mockingbird-adapter-node"
+import { type CliValues, type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { defaultCorpus } from "./corpus.js"
 import { pullCorpus } from "./corpus-tools.js"
 import { IDENTITY_MODES, type IdentityMode, type JunctionFixtures } from "./fixtures.js"
@@ -15,7 +10,7 @@ import { createRuntime, type JunctionRuntime, type JunctionRuntimeOptions } from
 import { parseSealedCorpus, type SealedCorpus } from "./sealed-corpus.js"
 import type { GeoMode } from "./state.js"
 
-/** Port `mockingbird-junction serve` listens on when none is given. */
+/** Port `emulators-junction serve` listens on when none is given. */
 export const DEFAULT_PORT = 8787
 
 /** A corpus to serve: the shipped one, none (synthetic), a file path, or a loaded corpus. */
@@ -130,7 +125,7 @@ export const serveTarget: ServeTarget = {
     "team-id": {
       type: "string",
       value: "<uuid>",
-      description: "Team the mock answers as (default: the corpus's recorded team)",
+      description: "Team the emulator answers as (default: the corpus's recorded team)",
     },
     "max-users": {
       type: "string",
@@ -169,13 +164,13 @@ export const serveTarget: ServeTarget = {
     "seed-key": {
       type: "string",
       value: "<key>",
-      description: "API key for --seed-url (env MOCKINGBIRD_JUNCTION_SEED_KEY)",
+      description: "API key for --seed-url (env EMULATORS_JUNCTION_SEED_KEY)",
     },
     "webhook-url": { type: "string", value: "<url>", description: "Deliver signed webhooks here" },
     "webhook-secret": {
       type: "string",
       value: "<whsec_…>",
-      description: "Svix signing secret (env MOCKINGBIRD_JUNCTION_WEBHOOK_SECRET)",
+      description: "Svix signing secret (env EMULATORS_JUNCTION_WEBHOOK_SECRET)",
     },
     "webhook-retry-delays": {
       type: "string",
@@ -185,12 +180,12 @@ export const serveTarget: ServeTarget = {
     "webhook-scope": {
       type: "string",
       value: "<scope>",
-      description: "Sent as x-mockingbird-scope on every delivery",
+      description: "Sent as x-emulators-scope on every delivery",
     },
   },
   async create(values: CliValues, common) {
     const seedUrl = asString(values["seed-url"])
-    const seedKey = asString(values["seed-key"]) ?? process.env.MOCKINGBIRD_JUNCTION_SEED_KEY
+    const seedKey = asString(values["seed-key"]) ?? process.env.EMULATORS_JUNCTION_SEED_KEY
     let corpus: SealedCorpus | undefined
     if (seedUrl !== undefined) {
       if (seedKey === undefined) throw new Error("--seed-url needs --seed-key")
@@ -224,7 +219,7 @@ export const serveTarget: ServeTarget = {
     const defaultBillingTypes = billingDefaults(asString(values["default-billing-type"]))
     const webhookUrl = asString(values["webhook-url"])
     const webhookSecret =
-      asString(values["webhook-secret"]) ?? process.env.MOCKINGBIRD_JUNCTION_WEBHOOK_SECRET
+      asString(values["webhook-secret"]) ?? process.env.EMULATORS_JUNCTION_WEBHOOK_SECRET
     if (webhookUrl !== undefined && webhookSecret === undefined) {
       throw new Error("--webhook-url needs --webhook-secret (the whsec_… your receiver verifies)")
     }
@@ -246,7 +241,7 @@ export const serveTarget: ServeTarget = {
               url: webhookUrl,
               secret: webhookSecret,
               ...(delays ? { retryDelaysMs: delays } : {}),
-              ...(scope ? { headers: { "x-mockingbird-scope": scope } } : {}),
+              ...(scope ? { headers: { "x-emulators-scope": scope } } : {}),
             },
           }
         : {}),
@@ -264,7 +259,7 @@ export const serveTarget: ServeTarget = {
       info
         ? `corpus ${info.label}: ${info.observations} observations, ${info.zips} ZIPs, ${info.labTests} lab tests, ${info.labAccounts} lab accounts (recorded ${info.recordedAt} from ${info.source})`
         : "corpus none: synthetic catalog and coverage",
-      `geo ${api.geoMode}${api.geoMode === "corpus" ? " (unknown ZIPs answer 424 MOCKINGBIRD_UNKNOWN_ZIP)" : ""}`,
+      `geo ${api.geoMode}${api.geoMode === "corpus" ? " (unknown ZIPs answer 424 EMULATORS_UNKNOWN_ZIP)" : ""}`,
       `team ${api.teamId}`,
       `lab accounts: ${api.labAccounts().length}`,
       `limits: ${
@@ -275,7 +270,7 @@ export const serveTarget: ServeTarget = {
       }`,
       `identity ${api.identity}`,
       `webhooks: ${junction.webhooks ? "signed delivery on" : "off"}`,
-      "auth: any x-vital-api-key value (e.g. sk_us_mockingbird)",
+      "auth: any x-vital-api-key value (e.g. sk_us_emulators)",
     ]
   },
 }

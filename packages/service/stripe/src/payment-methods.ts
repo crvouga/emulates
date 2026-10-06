@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
+import { jsonResponse, type OperationHandler } from "@emulators/service"
 import { parameterInvalidEmpty, parameterMissing, resourceMissing, stateError } from "./errors.js"
 import {
   mergeRecordMetadata,

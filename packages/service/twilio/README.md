@@ -1,14 +1,14 @@
-# @crvouga/mockingbird-service-twilio
+# @emulators/twilio
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of **Twilio** for test suites: Lookup v2 phone validation, Verify v2 phone OTP
-(with the real state machine: wrong codes, attempt limits, 10-minute expiry on the mock clock),
+Stateful emulator of **Twilio** for test suites: Lookup v2 phone validation, Verify v2 phone OTP
+(with the real state machine: wrong codes, attempt limits, 10-minute expiry on the emulator clock),
 Programmable Messaging with an outbox, and call Recordings. It also signs and posts Twilio's
 inbound SMS and voice webhooks to your app. Every product is served on one port. A suite reads the
 OTP from the admin plane instead of bypassing verification (`E2E_OTP_BYPASS_*`).
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/twilio/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/twilio/SUPPORT.md)
 - The contract (`openapi.yaml`) is trimmed from Twilio's API reference to what our consumer
   calls. Lookup v2 responses are checked byte for byte against the live API
   (`scripts/parity.ts`, recorded in `test/fixtures/lookups.live.json`).
@@ -16,17 +16,17 @@ OTP from the admin plane instead of bypassing verification (`E2E_OTP_BYPASS_*`).
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-twilio
+npm install -D @emulators/twilio
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. Lookup validation uses `libphonenumber-js` (Twilio's
-Lookup is libphonenumber). Serve it with `npx mockingbird-twilio serve`, with `createServer`
+Lookup is libphonenumber). Serve it with `npx emulators-twilio serve`, with `createServer`
 from `./server` (Node), or with `createRuntime` in any Fetch server.
 
 ## Usage
 
 ```bash
-npx mockingbird-twilio serve --port 8798 \
+npx emulators-twilio serve --port 8798 \
   --app-url http://127.0.0.1:3000 \
   --public-base-url "$TWILIO_VOICE_WEBHOOK_BASE_URL" \
   --account-sid "$TWILIO_ACCOUNT_SID" --auth-token "$TWILIO_AUTH_TOKEN" \
@@ -36,13 +36,13 @@ npx mockingbird-twilio serve --port 8798 \
 ### Pointing the app at it (G-T1)
 
 twilio-node builds a host for each product (`api.twilio.com`, `verify.twilio.com`,
-`lookups.twilio.com`). The mock takes that host as the first path segment:
+`lookups.twilio.com`). The emulator takes that host as the first path segment:
 `{mock}/api/2010-04-01/…`, `{mock}/verify/v2/…`, `{mock}/lookups/v2/…`. Pass every
 `new Twilio(...)` an `httpClient` that rewrites the URL. `twilioMockUrl` does the rewrite:
 
 ```js
 import { RequestClient, Twilio } from "twilio"
-import { twilioMockUrl } from "@crvouga/mockingbird-service-twilio"
+import { twilioMockUrl } from "@emulators/twilio"
 
 /** https://verify.twilio.com/v2/Services/VA…/Verifications → {base}/verify/v2/Services/VA…/Verifications */
 class MockRequestClient extends RequestClient {
@@ -64,7 +64,7 @@ const client = new Twilio(
 )
 ```
 
-The mock also routes by the `Host` header. A request that reaches it as `lookups.twilio.com`
+The emulator also routes by the `Host` header. A request that reaches it as `lookups.twilio.com`
 (through a DNS override or a proxy) and has no prefix is served as `/lookups/…`. The recording
 adapter's raw `fetch` of `https://api.twilio.com/2010-04-01/…` becomes
 `twilioMockUrl(url, TWILIO_API_BASE_URL)`. `RecordingUrl` in webhooks keeps the canonical
@@ -73,7 +73,7 @@ adapter's raw `fetch` of `https://api.twilio.com/2010-04-01/…` becomes
 ### Reading the OTP in a test
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-twilio"
+import { createRuntime } from "@emulators/twilio"
 
 const twilio = createRuntime()
 // …the app calls verify.v2.services(VA).verifications.create({ to, channel: "sms" })…
@@ -88,7 +88,7 @@ const { code, sid, status } = (await latest.json()) as { code: string; sid: stri
 | --- | --- |
 | `GET /lookups/v2/PhoneNumbers/{PhoneNumber}` | Validates the number the way the live API does (libphonenumber): `valid`, `validation_errors` (`TOO_SHORT`, `TOO_LONG`, `INVALID_BUT_POSSIBLE`, `INVALID_COUNTRY_CODE`, `INVALID_LENGTH`, `NOT_A_NUMBER`), `phone_number`, `national_format`, `calling_country_code`, `country_code`, `url`. Every data package is `null`. A national number with no `CountryCode` must be a valid US number, otherwise the answer is `INVALID_COUNTRY_CODE`. Fictional 555-01xx numbers are valid. |
 | `POST /verify/v2/Services/{VA}/Verifications` | `To` (valid E.164, or an email for `Channel=email`), `Channel`, optional `CustomCode`. Creates a `VE…` verification with a 6-digit code (or `fixedCode`). Sending again to the same pending verification keeps its sid and code and adds a `send_code_attempts` entry. The 6th send to one number within 10 minutes is 429 `60203`. A bad `To` is 400 `60200`. An unknown service sid (not `VA` + 32 hex) is 404 `20404`. |
-| `POST /verify/v2/Services/{VA}/VerificationCheck` | `Code` plus `VerificationSid` or `To`. The right code returns 200 `approved`, `valid: true`. A wrong code returns 200 `pending` and counts an attempt. The 6th check is 429 `60202`. A missing, approved, canceled or expired (10 minutes on the mock clock) verification is 404 `20404`. |
+| `POST /verify/v2/Services/{VA}/VerificationCheck` | `Code` plus `VerificationSid` or `To`. The right code returns 200 `approved`, `valid: true`. A wrong code returns 200 `pending` and counts an attempt. The 6th check is 429 `60202`. A missing, approved, canceled or expired (10 minutes on the emulator clock) verification is 404 `20404`. |
 | `GET` / `POST /verify/v2/Services/{VA}/Verifications/{VE}` | Fetches a verification, or sets `Status=canceled\|approved` on one. |
 | `POST /api/2010-04-01/Accounts/{AC}/Messages.json` | `To`, `Body` or `MediaUrl`, and `From` or `MessagingServiceSid`. Returns 201 with an `SM…` sid (`MM…` with media) and RFC 2822 dates. `MessagingServiceSid` alone is status `accepted`, `from: null`, `num_segments: "0"` (a sender is not chosen yet). `From` alone is status `queued`. Both are kept and the status is `queued` (Twilio queues on a specific sender). There is no idempotency key: the same body creates another sid. Errors: 21604 (no To), 21602 (no Body), 21603 (no From), 21211 (invalid To), 21617 (over 1600 characters). The message is recorded in the outbox. |
 | `GET /api/2010-04-01/Accounts/{AC}/Messages/{SM}.json` | Reads a message back. |
@@ -104,11 +104,11 @@ wrong credential is 401 `20003`. For a wrong token the message matches the live 
 
 ### Webhooks (S8.4)
 
-The mock signs inbound webhooks with `X-Twilio-Signature`. The signature is base64
+The emulator signs inbound webhooks with `X-Twilio-Signature`. The signature is base64
 HMAC-SHA1(auth token, public URL + sorted `key+value` params), the same computation as
 `twilio.validateRequest`. It signs against the **public base URL the app is configured with**
 (`--public-base-url`, i.e. `TWILIO_VOICE_WEBHOOK_BASE_URL`), not the localhost address it posts
-to. Twilio does not retry these webhooks, so the mock sends each one once.
+to. Twilio does not retry these webhooks, so the emulator sends each one once.
 
 | Trigger | Posts to | Payload |
 | --- | --- | --- |
@@ -139,14 +139,14 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n, "latencyM
 
 The Twilio SDK cannot add headers, so a suite picks a namespace by **AccountSid**:
 `PUT /__admin/credentials {"credentials": {"<TWILIO_ACCOUNT_SID>": "<namespace>"}}`. A namespace
-can also come from the `x-mockingbird-namespace` header or a `/__admin/ns/<name>` prefix on the base URL
+can also come from the `x-emulators-namespace` header or a `/__admin/ns/<name>` prefix on the base URL
 (`twilioMockUrl` keeps the prefix).
 
 ### Deliberately not modelled
 
 - Delivery: messages stay `queued`/`accepted`, no status callbacks are sent (our consumer sets no
   `statusCallback`), and no voice calls, conferences or media streams happen.
-- Message collection `DateSent` filters (messages are never sent by the mock).
+- Message collection `DateSent` filters (messages are never sent by the emulator).
 - Paid Lookup data packages (`Fields=line_type_intelligence`, `caller_name`, …) are always
   `null`.
 - Verify channels other than SMS are accepted and recorded, but nothing is delivered. Verify
@@ -154,7 +154,7 @@ can also come from the `x-mockingbird-namespace` header or a `/__admin/ns/<name>
   `PUT /__admin/verify`.
 - Accounts: any `AC…` sid is its own account, and the path's `{AccountSid}` is not
   cross-checked against the credential.
-- libphonenumber-js drops "local only" lengths from its metadata. The mock restores them for
+- libphonenumber-js drops "local only" lengths from its metadata. The emulator restores them for
   NANP (7) and GB (4–6, 8), which is enough for the fictional numbers tests use. Other countries
   may answer `TOO_SHORT` where Twilio answers `INVALID_BUT_POSSIBLE`.
 
@@ -162,11 +162,11 @@ can also come from the `x-mockingbird-namespace` header or a `/__admin/ns/<name>
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `TwilioAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `latestVerification(to)`, `resolveLookup(raw, country?)`, `setLookup(e164, override)`, `putRecording(sid, input)`, `outbox()`, `messages()`. Options: `sqlite`, `now`, `namespace`, `verify`, `accounts`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, outbox, webhooks), plus host routing. Options: `app: {url, publicBaseUrl?, authToken, accountSid?, callerId?, messagingServiceSid?}`, `verify`, `accounts`, `retryDelaysMs`, `fetch`, `clock`, `seed`, `adminKey`, `onLog`. The returned runtime also has `inboundSms(input)` and `voiceWebhook(kind, params)`. |
+| `TwilioAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `latestVerification(to)`, `resolveLookup(raw, country?)`, `setLookup(e164, override)`, `putRecording(sid, input)`, `outbox()`, `messages()`. Options: `sqlite`, `now`, `namespace`, `verify`, `accounts`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, outbox, webhooks), plus host routing. Options: `app: {url, publicBaseUrl?, authToken, accountSid?, callerId?, messagingServiceSid?}`, `verify`, `accounts`, `retryDelaysMs`, `fetch`, `clock`, `seed`, `adminKey`, `onLog`. The returned runtime also has `inboundSms(input)` and `voiceWebhook(kind, params)`. |
 | `TWILIO_PRESETS` | object | Every named fault preset. |
 | `TWILIO_WEBHOOK_EVENTS` | object | Webhook event type → the app path it posts to. |
-| `twilioMockUrl` | function | Rewrites an upstream `https://<product>.twilio.com/…` URL onto a mock base URL (for the G-T1 `httpClient`). |
+| `twilioMockUrl` | function | Rewrites an upstream `https://<product>.twilio.com/…` URL onto an emulator base URL (for the G-T1 `httpClient`). |
 | `TWILIO_PRODUCTS` | array | The product prefixes served: `api`, `verify`, `lookups`. |
 | `lookup` | function | Lookup v2 validation of a raw input (optionally in a `CountryCode` region). |
 | `e164Key` | function | `+` and digits: the key that admin overrides use. |
@@ -178,4 +178,4 @@ can also come from the `x-mockingbird-namespace` header or a `/__admin/ns/<name>
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8798. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

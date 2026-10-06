@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@crvouga/mockingbird-openapi"
+import { findOperation, responseForStatus, validateValue } from "@emulators/openapi"
 import { createRuntime, document } from "./src/index.js"
 
 const a = "a".repeat(40),
@@ -26,7 +26,7 @@ const setup = () => {
     runtime.fetch(
       new Request(`http://github.mock${path}`, {
         method,
-        headers: { "content-type": "application/json", "x-mockingbird-namespace": ns },
+        headers: { "content-type": "application/json", "x-emulators-namespace": ns },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       }),
     )

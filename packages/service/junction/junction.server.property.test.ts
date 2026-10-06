@@ -10,7 +10,7 @@ import { parseSealedCorpus } from "./src/index.js"
 const packageDir = dirname(fileURLToPath(import.meta.url))
 const corpusPath = join(packageDir, "corpus/sandbox-sealed.json")
 const corpus = parseSealedCorpus(JSON.parse(readFileSync(corpusPath, "utf8")))
-const auth = { "x-vital-api-key": "sk_us_mockingbird" }
+const auth = { "x-vital-api-key": "sk_us_emulators" }
 
 const AREA_ZIP = "85004"
 const areaKey = `GET /v3/order/area/info?radius=100&zip_code=${AREA_ZIP}`
@@ -61,7 +61,7 @@ let base = ""
 beforeAll(async () => {
   const { port } = await spawnServer({
     PORT: "0",
-    MOCKINGBIRD_JUNCTION_CORPUS: corpusPath,
+    EMULATORS_JUNCTION_CORPUS: corpusPath,
   })
   base = `http://127.0.0.1:${port}`
 })
@@ -100,7 +100,7 @@ describe("junction mock server contract", () => {
     const missing = join(packageDir, "corpus/does-not-exist.json")
     const child = Bun.spawn(["bun", "scripts/server.ts"], {
       cwd: packageDir,
-      env: { ...process.env, PORT: "0", MOCKINGBIRD_JUNCTION_CORPUS: missing },
+      env: { ...process.env, PORT: "0", EMULATORS_JUNCTION_CORPUS: missing },
       stdout: "pipe",
       stderr: "pipe",
     })
@@ -134,9 +134,9 @@ describe("junction mock server contract", () => {
 
     const { port } = await spawnServer({
       PORT: "0",
-      MOCKINGBIRD_JUNCTION_CORPUS: corpusPath,
-      MOCKINGBIRD_JUNCTION_WEBHOOK_URL: `http://127.0.0.1:${receiverPort}`,
-      MOCKINGBIRD_JUNCTION_WEBHOOK_SECRET: secret,
+      EMULATORS_JUNCTION_CORPUS: corpusPath,
+      EMULATORS_JUNCTION_WEBHOOK_URL: `http://127.0.0.1:${receiverPort}`,
+      EMULATORS_JUNCTION_WEBHOOK_SECRET: secret,
     })
     const server = `http://127.0.0.1:${port}`
 

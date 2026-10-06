@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-github",
+  "name": "@emulators/github",
   "version": "0.0.0-development",
-  "description": "Stateful GitHub REST API 2026-03-10 mock for repository, reference and pull-request scenarios.",
+  "description": "Stateful GitHub REST API 2026-03-10 emulator for repository, reference and pull-request scenarios.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -27,7 +27,7 @@
     }
   },
   "bin": {
-    "mockingbird-github": "./dist/cli.js"
+    "emulators-github": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -35,17 +35,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/github"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/github#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/github#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "service",
     "github",
     "rest"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -70,7 +70,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- github",
-        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -81,7 +81,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -96,17 +96,17 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-testing": "workspace:*",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-adapter-node": "workspace:*"
+    "@emulators/parity": "workspace:*",
+    "@emulators/testing": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/adapter-node": "workspace:*"
   }
 }

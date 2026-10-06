@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { type CatalogItem, parseCatalogItem } from "./catalog.js"
 import { document } from "./generated/openapi.js"
 import { RXVORTEX_NAMESPACE, RxVortexAPI, tokenCredential } from "./index.js"
@@ -114,7 +114,7 @@ export type RxVortexRuntime = ServiceRuntime<RxVortexAPI> & {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -205,7 +205,7 @@ const adminRoutes = (runtime: ServiceRuntime<RxVortexAPI>): AdminRoutes => ({
 })
 
 /**
- * The RxVortex mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The RxVortex emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by client id
  * (`PUT /__admin/credentials {"credentials": {"<RXVORTEX_CLIENT_ID>": "<namespace>"}}`),
  * clock control, fault presets, signed status webhooks and a request journal.

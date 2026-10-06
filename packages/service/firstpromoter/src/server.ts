@@ -1,12 +1,12 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import {
   createRuntime,
   type FirstPromoterRuntime,
   type FirstPromoterRuntimeOptions,
 } from "./runtime.js"
 
-/** Port `mockingbird-firstpromoter serve` listens on when none is given. */
+/** Port `emulators-firstpromoter serve` listens on when none is given. */
 export const DEFAULT_PORT = 8812
 
 export type FirstPromoterServerOptions = FirstPromoterRuntimeOptions & {
@@ -64,6 +64,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Bearer <FIRST_PROMOTER_API_KEY> and Account-ID: <FIRST_PROMOTER_ACCOUNT_ID>",
-    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

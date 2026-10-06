@@ -7,7 +7,7 @@ import {
   MediaConvertClient,
 } from "@aws-sdk/client-mediaconvert"
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3"
-import { createServer as createS3Server } from "@crvouga/mockingbird-service-s3/server"
+import { createServer as createS3Server } from "@emulators/s3/server"
 import { createServer } from "./src/server.js"
 
 const credentials = { accessKeyId: "fixture", secretAccessKey: "fixture" }

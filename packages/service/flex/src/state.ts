@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { CORPUS_ROWS } from "./corpus/products.js"
 
 /** The HSA/FSA eligibility values Flex assigns a product. */

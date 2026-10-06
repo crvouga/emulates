@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@crvouga/mockingbird-service"
-import { clearNamespace } from "@crvouga/mockingbird-sqlite"
+import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@emulators/service"
+import { clearNamespace } from "@emulators/sqlite-client"
 import { CognitoSigner } from "./crypto.js"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
@@ -51,8 +51,8 @@ export class CognitoAPI {
     this.sqlite = bootSqlite(options.sqlite)
     this.namespace = options.namespace ?? COGNITO_NAMESPACE
     this.now = options.now ?? Date.now
-    this.poolId = options.poolId ?? "us-east-1_mockingbird"
-    this.defaultClientId = options.clientId ?? "mockingbird-client"
+    this.poolId = options.poolId ?? "us-east-1_emulators"
+    this.defaultClientId = options.clientId ?? "emulators-client"
     this.state = new CognitoState(this.sqlite, this.namespace, options.users ?? [])
   }
   async reset() {
@@ -322,7 +322,7 @@ export class CognitoAPI {
       if (this.state.find(username))
         return this.error("UsernameExistsException", "User account already exists")
       const temporary =
-        typeof body.TemporaryPassword === "string" ? body.TemporaryPassword : "Mockingbird1"
+        typeof body.TemporaryPassword === "string" ? body.TemporaryPassword : "Emulators1"
       const user = this.state.put({
         username,
         password: temporary,

@@ -29,7 +29,7 @@ export type ErrorCategory =
  *
  * @example
  * ```ts
- * import { Database, SqliteError } from "@crvouga/mockingbird-service-sqlite";
+ * import { Database, SqliteError } from "@emulators/sqlite";
  *
  * const db = new Database();
  * try {

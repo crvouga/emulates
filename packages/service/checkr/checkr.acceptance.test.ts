@@ -156,7 +156,7 @@ test("served auth, credential namespace, reset, faults and metadata-only journal
     const admin = (path: string, body: unknown, method = "POST") =>
       fetch(`${server.url}/__admin${path}`, {
         method,
-        headers: { "content-type": "application/json", "x-mockingbird-namespace": "mapped" },
+        headers: { "content-type": "application/json", "x-emulators-namespace": "mapped" },
         body: JSON.stringify(body),
       })
     await admin("/credentials", { credentials: { mock_checkr_key: "mapped" } }, "PUT")

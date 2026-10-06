@@ -1,4 +1,4 @@
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type TavilyRuntime, type TavilyRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12130
 export type TavilyServerOptions = TavilyRuntimeOptions & { port?: number; host?: string }

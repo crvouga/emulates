@@ -1,6 +1,6 @@
-# @crvouga/mockingbird-service-notion
+# @emulators/notion
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Notion **2022-06-28** database search, OAuth token exchange and database-parent page creation.
 This is the legacy database API, not the newer data-source API.
@@ -8,13 +8,13 @@ This is the legacy database API, not the newer data-source API.
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-notion
+bun add @emulators/notion
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-notion"
+import { createRuntime } from "@emulators/notion"
 
 const notion = createRuntime()
 const result = await notion.fetch(new Request("http://notion.test/v1/search", {
@@ -30,7 +30,7 @@ const { results } = await result.json()
 console.log(results[0].properties)
 ```
 
-Run `mockingbird-notion serve --port 12127` and inject `http://localhost:12127` as the
+Run `emulators-notion serve --port 12127` and inject `http://localhost:12127` as the
 consumer's API origin. Keep `/v1` in request paths. No universal vendor environment variable
 exists for this origin override. The reported integration uses raw fetch.
 

@@ -1,20 +1,20 @@
-# @crvouga/mockingbird-service-workos
+# @emulators/workos
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-WIP WorkOS AuthKit mock: authorization redirects, single-use codes, signed JWT sessions,
+WIP WorkOS AuthKit emulator: authorization redirects, single-use codes, signed JWT sessions,
 rotating refresh tokens, user metadata and pagination. Synthetic fixtures only.
 
 ## Install
 
 ```sh
-bun add -d @crvouga/mockingbird-service-workos
+bun add -d @emulators/workos
 ```
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-workos/server"
+import { createServer } from "@emulators/workos/server"
 const server = await createServer()
 // Set AuthKit WORKOS_API_HOSTNAME/WORKOS_API_PORT from server.url and WORKOS_API_HTTPS=false.
 // WORKOS_API_KEY=mock_workos_key, WORKOS_CLIENT_ID=client_mock.
@@ -38,7 +38,7 @@ over HTTP, including PKCE, JWT signature validation and expired-session refresh.
 ### State and controls
 
 Seed `users`, `clients` and `memberships` with runtime options. Options `accessTtlMs`,
-`refreshTtlMs` and `codeTtlMs` control expiry. The mock clock controls issued timestamps.
+`refreshTtlMs` and `codeTtlMs` control expiry. The emulator clock controls issued timestamps.
 The standard `/__admin/state` collections expose users, clients, memberships, codes, sessions
 and refreshTokens. Edit `sessions.revoked`, expiry fields or used flags for failure scenarios.
 Private signing keys are ephemeral and never journaled; resetting state invalidates refresh
@@ -46,7 +46,7 @@ tokens, but offline JWT verification has no revocation lookup, just like the SDK
 
 Standard `/__admin` reset, Timeline snapshots/branches, clock, faults and request journal
 are available. Journals store metadata, not client secrets or token request bodies.
-Header (`x-mockingbird-namespace`), path (`/__admin/ns/<name>/…`) and bearer credential
+Header (`x-emulators-namespace`), path (`/__admin/ns/<name>/…`) and bearer credential
 namespaces isolate durable state. AuthKit applications should use one dedicated server per
 test namespace so the SDK's JWKS URL and issuer remain consistent. Configure `adminPrefix`
 to relocate the reserved tree. Presets: `auth_failure`, `rate_limited`, `server_error`,

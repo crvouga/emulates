@@ -467,10 +467,10 @@ describe("contract", () => {
       "Robert Chase",
     )
     const viaHeader = await fetch(`${server.url}/calendar/v3/users/me/calendarList`, {
-      headers: { authorization: "Bearer nope", "x-mockingbird-namespace": "w" },
+      headers: { authorization: "Bearer nope", "x-emulators-namespace": "w" },
     })
     expect(viaHeader.status).toBe(401)
-    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/^google-calendar@.*; ns=w$/)
+    expect(viaHeader.headers.get("x-emulators")).toMatch(/^google-calendar@.*; ns=w$/)
     const journal = await (await admin("/requests?namespace=w")).text()
     expect(journal).toContain("EventsInsert")
     expect(journal).not.toContain("oncology")

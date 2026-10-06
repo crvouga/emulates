@@ -1,7 +1,8 @@
 ---
-import catalog from "virtual:mockingbird/catalog"
-import BirdMark from "../components/BirdMark.astro"
+import catalog from "virtual:emulators/catalog"
+import { project } from "../../../../project.ts"
 import Icon from "../components/Icon.astro"
+import Mark from "../components/Mark.astro"
 import Sprite from "../components/Sprite.astro"
 import { IDENTITY, MARK_HREF, RISK_DISCLAIMER } from "../lib/content.ts"
 import { inline } from "../lib/inline.ts"
@@ -16,12 +17,13 @@ interface Props {
 
 const {
   title,
-  description = `Stateful mocks for ${catalog.totals.services} third-party APIs and SQL databases. Every mock runs in Node, Bun, browsers, and Workers.`,
+  description = `${IDENTITY.tagline} ${catalog.totals.services} emulators for third-party APIs and SQL databases, each running in Node, Bun, browsers, and Workers.`,
   markdown,
 } = Astro.props
 const fullTitle = title
-  ? `${title} · Mockingbird`
-  : "Mockingbird · Stateful mocks for the APIs you depend on"
+  ? `${title} · ${IDENTITY.name}`
+  : `${IDENTITY.name} · ${IDENTITY.tagline.replace(/\.$/, "")}`
+const npmOrg = `https://www.npmjs.com/org/${project.npmScope.replace(/^@/, "")}`
 const path = Astro.url.pathname.replace(/\/$/, "") || "/"
 const nav = [
   { href: "/services", label: "Services" },
@@ -42,9 +44,15 @@ const nav = [
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={IDENTITY.name} />
+    <meta property="og:url" content={new URL(Astro.url.pathname, IDENTITY.docs).href} />
+    <meta property="og:image" content={new URL(MARK_HREF, IDENTITY.docs).href} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
     <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#161c19" media="(prefers-color-scheme: dark)" />
-    <link rel="icon" type="image/png" href={MARK_HREF} />
+    <link rel="icon" type="image/svg+xml" href={MARK_HREF} />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     {markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
     <script is:inline>
@@ -72,9 +80,9 @@ const nav = [
     }
     <header class="site-header" data-header>
       <div class="container">
-        <a class="brand" href="/" aria-label="Mockingbird home">
-          <BirdMark />
-          <span class="wordmark">Mockingbird</span>
+        <a class="brand" href="/" aria-label={`${IDENTITY.name} home`}>
+          <Mark />
+          <span class="wordmark">{IDENTITY.name}</span>
         </a>
         <nav class="nav" aria-label="Primary">
           {
@@ -91,7 +99,7 @@ const nav = [
             <span>Search services…</span>
             <kbd data-mod-key>⌘K</kbd>
           </button>
-          <a class="icon-btn gh" href={catalog.repo} target="_blank" rel="noopener" aria-label="Mockingbird on GitHub">
+          <a class="icon-btn gh" href={catalog.repo} target="_blank" rel="noopener" aria-label={`${IDENTITY.name} on GitHub`}>
             <Icon name="github" />
           </a>
           <div class="theme-picker" data-theme-picker>
@@ -125,9 +133,9 @@ const nav = [
       <div class="container">
         <div class="footer-grid">
           <div>
-            <a class="brand" href="/"><BirdMark /> Mockingbird</a>
+            <a class="brand" href="/"><Mark /> {IDENTITY.name}</a>
             <p class="footer-tagline">{IDENTITY.tagline}</p>
-            <p>Stateful test doubles for the third-party APIs and databases your app depends on.</p>
+            <p>Real SDK compatibility, real state, no live sandbox: test against the APIs and databases your app depends on without leaving your process.</p>
           </div>
           <div>
             <h2>Docs</h2>
@@ -136,8 +144,8 @@ const nav = [
               <li><a href="/examples">Examples</a></li>
               <li><a href="/coverage">Coverage</a></li>
               <li><a href="/docs">Guides</a></li>
-              <li><a href="/why">Why Mockingbird</a></li>
-              <li><a href="/identity">Field guide</a></li>
+              <li><a href="/why">Why {IDENTITY.name}</a></li>
+              <li><a href="/identity">Brand</a></li>
             </ul>
           </div>
           <div>
@@ -152,7 +160,7 @@ const nav = [
             <h2>Project</h2>
             <ul>
               <li><a href={catalog.repo} target="_blank" rel="noopener">GitHub</a></li>
-              <li><a href="https://www.npmjs.com/search?q=%40crvouga%2Fmockingbird-service" target="_blank" rel="noopener">npm</a></li>
+              <li><a href={npmOrg} target="_blank" rel="noopener">npm</a></li>
               <li><a href={`${catalog.repo}/blob/main/docs/AUTHORING_A_SERVICE.md`} target="_blank" rel="noopener">Add a service</a></li>
             </ul>
           </div>

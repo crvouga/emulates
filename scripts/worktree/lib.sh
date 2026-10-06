@@ -61,7 +61,7 @@ copy_local_files() {
     echo "copied $relative"
   done < <(
     find "$root_real" \
-      \( -name node_modules -o -name .git -o -name dist -o -name .turbo -o -name .mockingbird \) -prune \
+      \( -name node_modules -o -name .git -o -name dist -o -name .turbo -o -name .emulators \) -prune \
       -o -type f \( -name '.env' -o -name '.env.*' \) -print0
   )
 

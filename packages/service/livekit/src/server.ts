@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type LiveKitRuntime, type LiveKitRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 8819
 export type LiveKitServerOptions = LiveKitRuntimeOptions & { port?: number; host?: string }

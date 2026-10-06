@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@crvouga/mockingbird-openapi"
-import { createClock } from "@crvouga/mockingbird-service"
+import { findOperation, responseForStatus, validateValue } from "@emulators/openapi"
+import { createClock } from "@emulators/service"
 import { createRuntime, document, type HermesRuntime } from "./src/index.js"
 
 const call = (runtime: HermesRuntime, path: string, body?: unknown, namespace = "a", key = "") =>
@@ -9,7 +9,7 @@ const call = (runtime: HermesRuntime, path: string, body?: unknown, namespace = 
       method: body === undefined ? "GET" : "POST",
       headers: {
         "content-type": "application/json",
-        "x-mockingbird-namespace": namespace,
+        "x-emulators-namespace": namespace,
         "Idempotency-Key": key,
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),

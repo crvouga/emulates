@@ -1,4 +1,4 @@
-import { isAdminPath, matchNamespacePath, resolveAdminPrefix } from "@crvouga/mockingbird-service"
+import { isAdminPath, matchNamespacePath, resolveAdminPrefix } from "@emulators/service"
 /**
  * Routing Twilio's per-product hosts onto one mock origin.
  *

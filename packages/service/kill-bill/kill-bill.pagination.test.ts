@@ -25,7 +25,7 @@ const harness = () => {
           "x-killbill-createdby": "fixture",
           "x-killbill-apikey": tenant,
           "x-killbill-apisecret": "fixture-secret",
-          ...(namespace === undefined ? {} : { "x-mockingbird-namespace": namespace }),
+          ...(namespace === undefined ? {} : { "x-emulators-namespace": namespace }),
           ...(auth ? { authorization: `Basic ${btoa("fixture-user:fixture-password")}` } : {}),
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),

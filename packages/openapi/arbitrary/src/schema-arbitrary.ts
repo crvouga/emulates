@@ -1,10 +1,5 @@
-import type {
-  JsonValue,
-  OpenAPIDocument,
-  SchemaObject,
-  SchemaType,
-} from "@crvouga/mockingbird-openapi"
-import { resolveSchema, schemaTypes, validateValue } from "@crvouga/mockingbird-openapi"
+import type { JsonValue, OpenAPIDocument, SchemaObject, SchemaType } from "@emulators/openapi"
+import { resolveSchema, schemaTypes, validateValue } from "@emulators/openapi"
 import fc from "fast-check"
 
 /** Where a schema node sits inside the root schema, e.g. `["properties", "address", "properties", "city"]`. */

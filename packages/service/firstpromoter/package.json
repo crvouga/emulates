@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-firstpromoter",
+  "name": "@emulators/firstpromoter",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the FirstPromoter v2 API: promoters (adopt-before-create by cust_id), signup tracking by tid / promoter_id / ref token, iframe login, archive, and Basic-auth lead_becomes_referral webhooks.",
+  "description": "Stateful emulator of the FirstPromoter v2 API: promoters (adopt-before-create by cust_id), signup tracking by tid / promoter_id / ref token, iframe login, archive, and Basic-auth lead_becomes_referral webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "mockingbird-firstpromoter": "./dist/cli.js"
+    "emulators-firstpromoter": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,18 +34,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/firstpromoter"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/firstpromoter#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/firstpromoter#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "service",
     "firstpromoter",
     "affiliate",
     "referrals"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -62,8 +62,8 @@
     "parityTier": "cold",
     "playground": {
       "headers": {
-        "authorization": "Bearer fp_mockingbird",
-        "account-id": "acc_mockingbird"
+        "authorization": "Bearer fp_emulators",
+        "account-id": "acc_emulators"
       }
     },
     "discovery": {
@@ -75,7 +75,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- firstpromoter",
-        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -86,7 +86,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -102,22 +102,22 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@crvouga/mockingbird-testing": "workspace:*",
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-credentials": "workspace:*",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
-    "@crvouga/mockingbird-adapter-node": "workspace:*"
+    "@emulators/testing": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
+    "@emulators/parity": "workspace:*",
+    "@emulators/credentials": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/http-codec": "workspace:*",
+    "@emulators/adapter-node": "workspace:*"
   }
 }

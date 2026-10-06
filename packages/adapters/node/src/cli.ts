@@ -4,8 +4,8 @@ import { createRequire } from "node:module"
 import { resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 import { type ParseArgsConfig, parseArgs } from "node:util"
-import type { RequestLog, ServiceInstance, ServiceRuntime } from "@crvouga/mockingbird-service"
-import { resolveAdminPrefix } from "@crvouga/mockingbird-service"
+import type { RequestLog, ServiceInstance, ServiceRuntime } from "@emulators/service"
+import { resolveAdminPrefix } from "@emulators/service"
 import { type FleetTarget, startFleet } from "./fleet.js"
 import { type Listening, listen } from "./listen.js"
 
@@ -144,12 +144,12 @@ const COMMON_SERVE_OPTIONS: Record<string, CliOption> = {
   "admin-prefix": {
     type: "string",
     value: "<path>",
-    description: "Internal API prefix (default /__admin; env MOCKINGBIRD_ADMIN_PREFIX)",
+    description: "Internal API prefix (default /__admin; env EMULATORS_ADMIN_PREFIX)",
   },
   "admin-key": {
     type: "string",
     value: "<key>",
-    description: "Require x-mockingbird-admin-key on /__admin/* (env MOCKINGBIRD_ADMIN_KEY)",
+    description: "Require x-emulators-admin-key on /__admin/* (env EMULATORS_ADMIN_KEY)",
   },
   seed: { type: "string", value: "<seed>", description: "Seed for every random choice" },
   log: {
@@ -166,7 +166,7 @@ const COMMON_SERVE_OPTIONS: Record<string, CliOption> = {
   config: {
     type: "string",
     value: "<file>",
-    description: "Serve every service in a mockingbird.json config instead",
+    description: "Serve every service in a emulators.json config instead",
   },
   "ready-file": {
     type: "string",
@@ -213,7 +213,7 @@ const formatLog = (format: LogFormat) => {
 const asString = (value: string | boolean | undefined): string | undefined =>
   typeof value === "string" ? value : undefined
 
-/** A service entry in `mockingbird.json`. */
+/** A service entry in `emulators.json`. */
 export type ConfigService = {
   protocol?: "http" | "postgres" | "redis"
   port?: number
@@ -230,8 +230,8 @@ export type ConfigService = {
   options?: Record<string, string | boolean>
 }
 
-export type MockingbirdConfig = {
-  /** Keyed by service name: `junction` loads `@crvouga/mockingbird-service-junction`. */
+export type EmulatorsConfig = {
+  /** Keyed by service name: `junction` loads `@emulators/junction`. */
   services: Record<string, ConfigService>
   log?: LogFormat
   adminPrefix?: string
@@ -242,7 +242,7 @@ export type MockingbirdConfig = {
 
 const loadTarget = async (name: string, own: FleetTarget): Promise<FleetTarget> => {
   if (name === own.name) return own
-  const specifier = `@crvouga/mockingbird-service-${name}/server`
+  const specifier = `@emulators/${name}/server`
   try {
     // A CLI run with npx may live outside the consumer project. Discover its locally
     // installed services as well as siblings of the bundled CLI.
@@ -259,9 +259,7 @@ const loadTarget = async (name: string, own: FleetTarget): Promise<FleetTarget> 
     return mod.serveTarget
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
-    throw new Error(
-      `cannot load service "${name}": ${reason}. Install @crvouga/mockingbird-service-${name}.`,
-    )
+    throw new Error(`cannot load service "${name}": ${reason}. Install @emulators/${name}.`)
   }
 }
 
@@ -286,10 +284,10 @@ const start = async (
   })
   const listening = await listen(runtime, { port: config.port, host: config.host })
   target.listening?.(listening)
-  console.log(`${target.name} mock listening on ${listening.url}`)
+  console.log(`${target.name} emulator listening on ${listening.url}`)
   console.log(`${target.name} health: GET ${listening.url}${adminPrefix}/health`)
   console.log(
-    `${target.name} admin: ${listening.url}${adminPrefix} (${config.adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
+    `${target.name} admin: ${listening.url}${adminPrefix} (${config.adminKey ? "x-emulators-admin-key required" : "open — pass --admin-key to lock"})`,
   )
   console.log(`${target.name} admin ui: ${listening.url}${adminPrefix}/ui`)
   for (const line of target.banner?.(runtime) ?? [])
@@ -311,7 +309,7 @@ const untilSignal = async (servers: { close(): Promise<void> }[]): Promise<numbe
 
 /** The standard `serve` command for a service, including multi-service `--config`. */
 export const serveCommand = (target: FleetTarget): CliCommand => ({
-  summary: `Serve the ${target.name} mock or a configured fleet`,
+  summary: `Serve the ${target.name} emulator or a configured fleet`,
   options: { ...COMMON_SERVE_OPTIONS, ...("options" in target ? target.options : {}) },
   async run(values) {
     const log = (
@@ -324,14 +322,14 @@ export const serveCommand = (target: FleetTarget): CliCommand => ({
     const configPath = asString(values.config)
     if (configPath !== undefined) {
       try {
-        const config = JSON.parse(await readFile(configPath, "utf8")) as MockingbirdConfig
+        const config = JSON.parse(await readFile(configPath, "utf8")) as EmulatorsConfig
         config.adminPrefix = resolveAdminPrefix(
           config.adminPrefix ??
             asString(values["admin-prefix"]) ??
-            process.env.MOCKINGBIRD_ADMIN_PREFIX,
+            process.env.EMULATORS_ADMIN_PREFIX,
         )
         const adminKey =
-          config.adminKey ?? asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
+          config.adminKey ?? asString(values["admin-key"]) ?? process.env.EMULATORS_ADMIN_KEY
         if (adminKey !== undefined) config.adminKey = adminKey
         const fleet = await startFleet(config, {
           load: (name) => loadTarget(name, target),
@@ -344,7 +342,7 @@ export const serveCommand = (target: FleetTarget): CliCommand => ({
             if (values["ready-json"]) console.log(JSON.stringify(manifest))
             else
               for (const [name, endpoint] of Object.entries(manifest.services))
-                console.log(`${name} mock listening on ${endpoint.url}`)
+                console.log(`${name} emulator listening on ${endpoint.url}`)
           },
         })
         return untilSignal([fleet])
@@ -358,13 +356,13 @@ export const serveCommand = (target: FleetTarget): CliCommand => ({
       return 2
     }
     const port = asString(values.port)
-    const adminKey = asString(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
+    const adminKey = asString(values["admin-key"]) ?? process.env.EMULATORS_ADMIN_KEY
     const seed = asString(values.seed)
     let listening: Listening
     try {
       listening = await start(target, values, {
         adminPrefix: resolveAdminPrefix(
-          asString(values["admin-prefix"]) ?? process.env.MOCKINGBIRD_ADMIN_PREFIX,
+          asString(values["admin-prefix"]) ?? process.env.EMULATORS_ADMIN_PREFIX,
         ),
         port: port === undefined ? target.defaultPort : Number.parseInt(port, 10),
         host: asString(values.host) ?? "127.0.0.1",

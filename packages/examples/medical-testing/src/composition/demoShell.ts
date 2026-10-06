@@ -1,4 +1,4 @@
-import { scopeReset } from "@crvouga/mockingbird-ui"
+import { scopeReset } from "@emulators/ui"
 import type { MockAdmin } from "../adapters/admin.js"
 import { type PastedLocation, type PasteFetch, pasteHtml } from "../client/pasteHtml.js"
 
@@ -147,7 +147,7 @@ export const mountDemoShell = (
   const appRoot = document.createElement("div")
   appPanel.append(appRoot)
   const unmountApp = options.mountApp(appRoot)
-  addTab("admin", "Mocks")
+  addTab("admin", "Emulators")
 
   const showStatus = (panel: HTMLElement, text: string, isError = false): void => {
     panel.replaceChildren()
@@ -164,17 +164,17 @@ export const mountDemoShell = (
     const panel = panels.get("admin")
     if (!panel) return Promise.resolve()
     const ticket = ++adminTicket
-    showStatus(panel, "Loading mock administration…")
+    showStatus(panel, "Loading emulator administration…")
     adminLoading = (async () => {
       try {
         const response = await options.admin.fetch(new Request(`${ADMIN_ORIGIN}/__admin/ui`))
         const html = await response.text()
         if (ticket !== adminTicket) return
-        if (!response.ok) throw new Error(`Mock admin returned ${response.status}`)
+        if (!response.ok) throw new Error(`Emulator admin returned ${response.status}`)
         const frame = document.createElement("div")
         frame.className = "demo-frame"
         frame.setAttribute("role", "region")
-        frame.setAttribute("aria-label", "Mock administration")
+        frame.setAttribute("aria-label", "Emulator administration")
         panel.replaceChildren(frame)
         unpaste = pasteHtml(frame, html, {
           fetch: adminFetch(options.admin.fetch),

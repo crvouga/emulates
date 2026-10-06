@@ -4,7 +4,7 @@ import {
   jsonRes,
   type RuntimeOptions,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { DOCKER_NAMESPACE, DockerAPI, type DockerAPIOptions } from "./index.js"
 import { presets } from "./presets.js"

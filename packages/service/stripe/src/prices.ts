@@ -1,8 +1,4 @@
-import {
-  jsonResponse,
-  type OperationContext,
-  type OperationHandler,
-} from "@crvouga/mockingbird-service"
+import { jsonResponse, type OperationContext, type OperationHandler } from "@emulators/service"
 import { invalidRequest, parameterInvalidEmpty, resourceMissing } from "./errors.js"
 import { applyExpand, type ExpandResolvers } from "./expand.js"
 import { mergeMetadata, optionalBoolean, parseUnitAmountDecimal, strip } from "./fields.js"
@@ -96,7 +92,7 @@ const applyCurrencyOptions = (
     for (const unmodelled of ["custom_unit_amount", "tiers"])
       if (option[unmodelled] !== undefined)
         throw invalidRequest(
-          `\`${unmodelled}\` in currency_options is not modelled by this mock.`,
+          `\`${unmodelled}\` in currency_options is not modelled by this emulator.`,
           `${param}[${unmodelled}]`,
         )
     const hasAmount = option.unit_amount !== undefined

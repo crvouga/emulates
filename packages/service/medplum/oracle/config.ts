@@ -53,7 +53,7 @@ export type MedplumServerConfig = {
 export const SUPER_ADMIN_EMAIL = "admin@example.com"
 export const SUPER_ADMIN_PASSWORD = "medplum_admin"
 export const SUPER_ADMIN_CLIENT_ID = "6f3f0c17-8bd1-4a56-9d5a-6b21e5b0a101"
-export const SUPER_ADMIN_CLIENT_SECRET = "mockingbird-local-secret"
+export const SUPER_ADMIN_CLIENT_SECRET = "emulators-local-secret"
 const SHUTDOWN_TIMEOUT_MILLISECONDS = 5000
 const HOST = "127.0.0.1"
 
@@ -62,7 +62,7 @@ const signingKey = (() => {
   let cached: { signingKey: string; signingKeyId: string; signingKeyPassphrase: string } | undefined
   return () => {
     if (cached) return cached
-    const passphrase = "mockingbird-oracle"
+    const passphrase = "emulators-oracle"
     const { privateKey } = generateKeyPairSync("rsa", {
       modulusLength: 2048,
       publicKeyEncoding: { type: "spki", format: "pem" },
@@ -70,7 +70,7 @@ const signingKey = (() => {
     })
     cached = {
       signingKey: privateKey,
-      signingKeyId: "mockingbird-oracle",
+      signingKeyId: "emulators-oracle",
       signingKeyPassphrase: passphrase,
     }
     return cached

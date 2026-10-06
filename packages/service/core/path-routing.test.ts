@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test"
-import { parseOpenAPIDocument } from "@crvouga/mockingbird-openapi"
-import { validateMetadata } from "@crvouga/mockingbird-openapi-metadata"
+import { parseOpenAPIDocument } from "@emulators/openapi"
+import { validateMetadata } from "@emulators/openapi-metadata"
 import { createRuntime, createService, jsonRes } from "./src/index.js"
 
 const operation = (operationId: string, path?: unknown) => ({
   operationId,
-  ...(path === undefined ? {} : { "x-mockingbird": { path } }),
+  ...(path === undefined ? {} : { "x-emulators": { path } }),
   parameters: (operationId === "invalid"
     ? ["id", "tail"]
     : operationId === "static"

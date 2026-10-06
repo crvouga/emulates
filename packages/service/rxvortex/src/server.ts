@@ -1,10 +1,10 @@
 /// <reference types="node" />
 import { readFileSync } from "node:fs"
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { type CatalogItem, parseCatalog } from "./catalog.js"
 import { createRuntime, type RxVortexRuntime, type RxVortexRuntimeOptions } from "./runtime.js"
 
-/** Port `mockingbird-rxvortex serve` listens on when none is given. */
+/** Port `emulators-rxvortex serve` listens on when none is given. */
 export const DEFAULT_PORT = 8791
 
 export type RxVortexServerOptions = RxVortexRuntimeOptions & {
@@ -132,6 +132,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: POST /api/v1/generate-access-token {client_id, client_secret}, then Authorization: Bearer <token>",
-    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<client_id>: <ns>}",
+    "namespaces: x-emulators-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<client_id>: <ns>}",
   ],
 }

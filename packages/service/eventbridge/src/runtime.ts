@@ -5,7 +5,7 @@ import {
   type ServiceRuntime,
   createRuntime as serviceRuntime,
   sigV4AccessKeyId,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { EVENTBRIDGE_NAMESPACE, EventBridgeAPI, type EventBridgeAPIOptions } from "./index.js"
 

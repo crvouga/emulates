@@ -1,4 +1,4 @@
-import type { OperationContext } from "@crvouga/mockingbird-service"
+import type { OperationContext } from "@emulators/service"
 import { invalidField } from "./errors.js"
 
 export type Page<T> = {

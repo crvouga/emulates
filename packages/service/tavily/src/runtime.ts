@@ -5,7 +5,7 @@ import {
   type RequestLog,
   type ServiceRuntime,
   createRuntime as serviceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { TAVILY_NAMESPACE, TavilyAPI, type TavilyAPIOptions } from "./index.js"
 

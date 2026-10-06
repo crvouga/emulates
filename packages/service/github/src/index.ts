@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   bootSqlite,
@@ -6,8 +6,8 @@ import {
   defineOperations,
   jsonRes,
   type Service,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { GitHubPulls, pullHandlers } from "./pulls.js"
@@ -62,8 +62,8 @@ export class GitHubAPI implements FetchAPI {
       notFound: missing,
       unsupported: (_request, operation) =>
         jsonRes(501, {
-          message: `Mockingbird: ${operation.operationId} is not implemented`,
-          code: "mockingbird_unsupported",
+          message: `Emulators: ${operation.operationId} is not implemented`,
+          code: "emulators_unsupported",
         }),
     })
     this.app = new Hono().all("*", (c) => this.fetch(c.req.raw))
@@ -72,8 +72,8 @@ export class GitHubAPI implements FetchAPI {
     const version = request.headers.get("X-GitHub-Api-Version")
     if (version && version !== GITHUB_API_VERSION)
       return jsonRes(501, {
-        message: "Mockingbird only models GitHub API 2026-03-10",
-        code: "mockingbird_unsupported",
+        message: "Emulators only models GitHub API 2026-03-10",
+        code: "emulators_unsupported",
       })
     const response = await this.service.fetch(request)
     response.headers.set("x-github-api-version-selected", GITHUB_API_VERSION)

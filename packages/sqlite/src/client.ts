@@ -1,4 +1,4 @@
-/** Bind values accepted by Mockingbird's SQLite port (matches sqlite-mem / better-sqlite3). */
+/** Bind values accepted by the Emulators SQLite port (matches sqlite-mem / better-sqlite3). */
 export type SqliteValue = null | number | bigint | string | Uint8Array | boolean
 
 /** Mutation counters returned by {@link SqliteStatement.run}. */
@@ -19,9 +19,9 @@ export interface SqliteStatement {
 }
 
 /**
- * Sync SQLite client port owned by Mockingbird.
+ * Sync SQLite client port owned by Emulators.
  *
- * Duck-typed so `@crvouga/mockingbird-service-sqlite` `Database`, better-sqlite3, and wrapped
+ * Duck-typed so `@emulators/sqlite` `Database`, better-sqlite3, and wrapped
  * `bun:sqlite` instances all work when they expose this surface.
  */
 export interface SqliteClient {

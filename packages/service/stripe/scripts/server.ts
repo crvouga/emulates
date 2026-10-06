@@ -17,13 +17,13 @@ const PORT = Number(Bun.env.PORT ?? 12111)
 const DEFAULT_TIMEOUT_MS = 15_000
 
 const parseTargets = (): Target[] => {
-  const raw = Bun.env.MOCKINGBIRD_STRIPE_WEBHOOK_TARGETS
+  const raw = Bun.env.EMULATORS_STRIPE_WEBHOOK_TARGETS
   const targets: Target[] = []
   if (raw !== undefined && raw.trim() !== "") {
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed))
       throw new Error(
-        "MOCKINGBIRD_STRIPE_WEBHOOK_TARGETS must be a JSON array of {apiKey,url,secret}",
+        "EMULATORS_STRIPE_WEBHOOK_TARGETS must be a JSON array of {apiKey,url,secret}",
       )
     for (const entry of parsed) {
       if (typeof entry !== "object" || entry === null) continue
@@ -34,8 +34,8 @@ const parseTargets = (): Target[] => {
       targets.push({ apiKey, url, secret })
     }
   }
-  const fallbackUrl = Bun.env.MOCKINGBIRD_STRIPE_WEBHOOK_URL
-  const fallbackSecret = Bun.env.MOCKINGBIRD_STRIPE_WEBHOOK_SECRET
+  const fallbackUrl = Bun.env.EMULATORS_STRIPE_WEBHOOK_URL
+  const fallbackSecret = Bun.env.EMULATORS_STRIPE_WEBHOOK_SECRET
   if (targets.length === 0 && fallbackUrl !== undefined && fallbackSecret !== undefined) {
     targets.push({ apiKey: "*", url: fallbackUrl, secret: fallbackSecret })
   }
@@ -85,11 +85,11 @@ const server = Bun.serve({
   port: PORT,
 })
 
-console.log(`stripe mock listening on http://${server.hostname}:${server.port}`)
+console.log(`stripe emulator listening on http://${server.hostname}:${server.port}`)
 console.log(
-  "stripe mock auth: Bearer sk_test_* (any test key; different keys are different accounts)",
+  "stripe emulator auth: Bearer sk_test_* (any test key; different keys are different accounts)",
 )
 if (targets.length === 0)
   console.warn(
-    "stripe webhook delivery disabled: set MOCKINGBIRD_STRIPE_WEBHOOK_TARGETS or MOCKINGBIRD_STRIPE_WEBHOOK_URL + MOCKINGBIRD_STRIPE_WEBHOOK_SECRET",
+    "stripe webhook delivery disabled: set EMULATORS_STRIPE_WEBHOOK_TARGETS or EMULATORS_STRIPE_WEBHOOK_URL + EMULATORS_STRIPE_WEBHOOK_SECRET",
   )

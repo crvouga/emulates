@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-aws-secrets",
-    description: "stateful AWS Secrets Manager and SSM mock",
+    bin: "emulators-aws-secrets",
+    description: "AWS Secrets Manager and SSM emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

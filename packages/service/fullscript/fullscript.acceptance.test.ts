@@ -357,10 +357,10 @@ describe("S25 Fullscript acceptance: the EMR's integration against the mock", ()
     expect(await defaultNs.listLabOrders(token.accessToken, "pat_ns")).toHaveLength(1)
     const viaHeader = await runtime.fetch(
       new Request(`${API}api/clinic`, {
-        headers: { authorization: `Bearer ${token.accessToken}`, "x-mockingbird-namespace": "a" },
+        headers: { authorization: `Bearer ${token.accessToken}`, "x-emulators-namespace": "a" },
       }),
     )
-    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/^fullscript@.*; ns=a$/)
+    expect(viaHeader.headers.get("x-emulators")).toMatch(/^fullscript@.*; ns=a$/)
     const journal = JSON.stringify(
       await (await runtime.fetch(new Request(`${API}__admin/requests?namespace=a`))).json(),
     )

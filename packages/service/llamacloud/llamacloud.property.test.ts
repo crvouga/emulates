@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { ParityError, parity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { ParityError, parity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { document, LlamaCloudAPI, supportedOperationIds } from "./src/index.js"
 

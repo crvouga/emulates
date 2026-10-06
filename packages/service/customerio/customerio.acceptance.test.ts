@@ -481,7 +481,7 @@ describe("served over HTTP", () => {
       while (results.length < 1 && Date.now() < deadline) await Bun.sleep(25)
       expect(results).toEqual([{ received: true, applied: true }])
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-mockingbird")).toMatch(/^customerio@/)
+      expect(health.headers.get("x-emulators")).toMatch(/^customerio@/)
     } finally {
       await server.close()
       sink.stop(true)
@@ -500,11 +500,11 @@ describe("contract", () => {
       string,
       unknown[]
     >
-    const viaHeader = await get(`${base}/v1/transactional`, { "x-mockingbird-namespace": "a" })
-    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/; ns=a$/)
+    const viaHeader = await get(`${base}/v1/transactional`, { "x-emulators-namespace": "a" })
+    expect(viaHeader.headers.get("x-emulators")).toMatch(/; ns=a$/)
     const viaPrefix = await get(`${base}/__admin/ns/b/v1/transactional`)
     expect(viaPrefix.status).toBe(viaHeader.status)
-    expect(viaPrefix.headers.get("x-mockingbird")).toMatch(/; ns=b$/)
+    expect(viaPrefix.headers.get("x-emulators")).toMatch(/; ns=b$/)
     expect(((await viaPrefix.json()) as Record<string, unknown[]>).messages?.length).toBe(
       before.messages?.length,
     )

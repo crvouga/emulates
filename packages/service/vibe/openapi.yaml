@@ -169,7 +169,7 @@
         "x-scopes": [
           "reporting:read"
         ],
-        "x-mockingbird": {
+        "x-emulators": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -355,7 +355,7 @@
             }
           }
         },
-        "x-mockingbird": {
+        "x-emulators": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -459,7 +459,7 @@
             }
           }
         },
-        "x-mockingbird": {
+        "x-emulators": {
           "supported": true,
           "parity": {
             "enabled": true,
@@ -469,7 +469,7 @@
       }
     },
     "/__admin/blobs/{id}": {
-      "x-mockingbird-internal": true,
+      "x-emulators-internal": true,
       "get": {
         "operationId": "DownloadReport",
         "parameters": [
@@ -581,7 +581,7 @@
             }
           }
         },
-        "x-mockingbird": {
+        "x-emulators": {
           "supported": true,
           "parity": {
             "enabled": false,
@@ -596,7 +596,7 @@
     "description": "Vibe Public API revision 2026-06-01",
     "version": "2026-06-01",
     "contact": {},
-    "x-mockingbird-upstream": {
+    "x-emulators-upstream": {
       "url": "https://developers.vibe.co/reference/createreport-1"
     }
   },

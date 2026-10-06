@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite } from "@crvouga/mockingbird-service"
-import { clearNamespace } from "@crvouga/mockingbird-sqlite"
+import { type APIOptions, bootSqlite } from "@emulators/service"
+import { clearNamespace } from "@emulators/sqlite-client"
 import { verifyJwt } from "./crypto.js"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
