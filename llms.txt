@@ -8,6 +8,16 @@ The sentence above is the product's identity. The rules for the mark, the colors
 
 Each service declares its own parity: a short statement of the vendor surface it keeps in step. Read that statement, and the package README, before you depend on an emulator.
 
+## Migrating from Mockingbird
+
+This project was previously published as Mockingbird. If a codebase depends on `@crvouga/mockingbird-service-*`, migrate it with these renames; behavior and APIs are unchanged. The old npm packages stay installable but are deprecated. Full guide with every package: [Migrating from Mockingbird](https://raw.githubusercontent.com/crvouga/emulators/main/docs/MIGRATING.md) (also at https://emulators.chrisvouga.dev/docs/migrating).
+
+- Packages: `@crvouga/mockingbird-service-<id>` → `@emulators/<id>` (e.g. `@crvouga/mockingbird-service-stripe` → `@emulators/stripe`), in package.json and every import specifier, including subpaths like `/server`. Versions continue the old line, so take the latest.
+- CLIs: `mockingbird-<id>` → `emulators-<id>` (e.g. `npx emulators-stripe serve`); fleet config file `mockingbird.json` → `emulators.json`.
+- HTTP headers and OpenAPI extensions: `x-mockingbird-*` → `x-emulators-*` (e.g. `x-emulators-namespace`, `x-emulators-admin-key`).
+- Environment variables: `MOCKINGBIRD_*` → `EMULATORS_*` (e.g. `EMULATORS_ADMIN_PREFIX`); local state directory `.mockingbird/` → `.emulators/`.
+- URLs: github.com/crvouga/mockingbird → https://github.com/crvouga/emulators (GitHub redirects the old one); mockingbird.chrisvouga.dev → https://emulators.chrisvouga.dev.
+
 ## Reporting issues and requesting services
 
 Do not work around an emulator in your own project: file a GitHub issue on crvouga/emulators and your fix lands in the next release. Search first (`gh issue list --repo crvouga/emulators --state all --search "<service> <operation>"`), redact every key and all personal data, fill in the kind's template, and run `gh issue create --repo crvouga/emulators --title "<title>" --label agent-reported,<kind> --body-file issue.md`. Feature and service requests are specifications: list the operations you call and number the behaviors you need as Given / When / Then; each becomes an acceptance test.

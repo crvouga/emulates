@@ -9,7 +9,7 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { project } from "../project.ts"
+import { packageName, project, repositoryUrl } from "../project.ts"
 import { IDENTITY, PITCH } from "../sites/docs/src/lib/content.ts"
 import { discoverPackages, REPO, root } from "./release/lib.ts"
 
@@ -60,6 +60,16 @@ const body = [
   `The sentence above is the product's identity. The rules for the mark, the colors, and where that sentence has to appear: [Design](${RAW}/docs/DESIGN.md).`,
   "",
   "Each service declares its own parity: a short statement of the vendor surface it keeps in step. Read that statement, and the package README, before you depend on an emulator.",
+  "",
+  "## Migrating from Mockingbird",
+  "",
+  `This project was previously published as Mockingbird. If a codebase depends on \`@crvouga/mockingbird-service-*\`, migrate it with these renames; behavior and APIs are unchanged. The old npm packages stay installable but are deprecated. Full guide with every package: [Migrating from Mockingbird](${RAW}/docs/MIGRATING.md) (also at ${project.site}/docs/migrating).`,
+  "",
+  `- Packages: \`@crvouga/mockingbird-service-<id>\` → \`${packageName("<id>")}\` (e.g. \`@crvouga/mockingbird-service-stripe\` → \`${packageName("stripe")}\`), in package.json and every import specifier, including subpaths like \`/server\`. Versions continue the old line, so take the latest.`,
+  "- CLIs: `mockingbird-<id>` → `emulators-<id>` (e.g. `npx emulators-stripe serve`); fleet config file `mockingbird.json` → `emulators.json`.",
+  "- HTTP headers and OpenAPI extensions: `x-mockingbird-*` → `x-emulators-*` (e.g. `x-emulators-namespace`, `x-emulators-admin-key`).",
+  "- Environment variables: `MOCKINGBIRD_*` → `EMULATORS_*` (e.g. `EMULATORS_ADMIN_PREFIX`); local state directory `.mockingbird/` → `.emulators/`.",
+  `- URLs: github.com/crvouga/mockingbird → ${repositoryUrl} (GitHub redirects the old one); mockingbird.chrisvouga.dev → ${project.site}.`,
   "",
   "## Reporting issues and requesting services",
   "",
