@@ -49,6 +49,7 @@ export function datumCompare(t: TypeId, a: Datum, b: Datum, ctx: CompareCtx = DE
     case "int2":
     case "int4":
     case "oid":
+    case "regnamespace":
     case "date":
       return expectNumber(a, t) - expectNumber(b, t);
     case "float4":
