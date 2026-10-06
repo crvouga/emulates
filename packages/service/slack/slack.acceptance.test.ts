@@ -335,7 +335,7 @@ describe("S17 acceptance: request-intake SlackClient (the cheap methods)", () =>
     const { ts, channel } = await slack.postMessage({ channel: "C0ALERTS", text: "New request" })
     expect(channel).toBe("C0ALERTS")
     expect(await slack.permalink("C0ALERTS", ts)).toBe(
-      `https://emulators.slack.com/archives/C0ALERTS/p${ts.replace(".", "")}`,
+      `https://emulates.slack.com/archives/C0ALERTS/p${ts.replace(".", "")}`,
     )
     await expect(slack.permalink("C0ALERTS", "1.000000")).rejects.toThrow(
       "Slack chat.getPermalink failed: message_not_found",

@@ -84,9 +84,7 @@ describe("the Emulates contract", () => {
         "x-emulates-namespace": "w1",
       }),
     )
-    expect((await runtime.fetch(converse("hi", { "x-emulates-namespace": "w2" }))).status).toBe(
-      200,
-    )
+    expect((await runtime.fetch(converse("hi", { "x-emulates-namespace": "w2" }))).status).toBe(200)
     const throttled = await runtime.fetch(converse("hi", { "x-emulates-namespace": "w1" }))
     expect(throttled.status).toBe(429)
     expect(throttled.headers.get("x-amzn-errortype")).toBe(
@@ -95,9 +93,7 @@ describe("the Emulates contract", () => {
     expect(await throttled.json()).toEqual({
       message: "Too many requests, please wait before trying again.",
     })
-    expect((await runtime.fetch(converse("hi", { "x-emulates-namespace": "w1" }))).status).toBe(
-      200,
-    )
+    expect((await runtime.fetch(converse("hi", { "x-emulates-namespace": "w1" }))).status).toBe(200)
   })
 
   test("the journal records metadata (model, script, tools, flags, tokens) and never prompt text", async () => {

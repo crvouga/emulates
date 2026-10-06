@@ -167,9 +167,7 @@ describe("S2.9 acceptance: our consumer's logic against the mock", () => {
     const json = results.items.find(
       (r) => r.resultType === "nutrigenomics_comprehensive_report_json",
     )
-    expect(String(json?.resultPayload)).toBe(
-      `s3://emulates-genebygene-results/default/${kit}.json`,
-    )
+    expect(String(json?.resultPayload)).toBe(`s3://emulates-genebygene-results/default/${kit}.json`)
     const payload = await fetchResultPayload(
       client,
       { kitNumber: kit, resultId: String(json?.resultId), resultType: String(json?.resultType) },

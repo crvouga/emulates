@@ -22,9 +22,7 @@ const parseTargets = (): Target[] => {
   if (raw !== undefined && raw.trim() !== "") {
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed))
-      throw new Error(
-        "EMULATES_STRIPE_WEBHOOK_TARGETS must be a JSON array of {apiKey,url,secret}",
-      )
+      throw new Error("EMULATES_STRIPE_WEBHOOK_TARGETS must be a JSON array of {apiKey,url,secret}")
     for (const entry of parsed) {
       if (typeof entry !== "object" || entry === null) continue
       const candidate = entry as Record<string, unknown>

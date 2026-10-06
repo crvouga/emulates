@@ -29,9 +29,7 @@ const documentArb: fc.Arbitrary<OpenAPIDocument> = fc
       item[row.method as "get" | "post" | "delete"] = {
         operationId: row.id,
         responses: { "200": { description: row.description } },
-        ...(row.supported
-          ? {}
-          : { "x-emulates": { supported: false, reason: "not implemented" } }),
+        ...(row.supported ? {} : { "x-emulates": { supported: false, reason: "not implemented" } }),
       }
     }
     return { openapi: "3.1.0", info: { title: "gen", version: "1" }, paths }
