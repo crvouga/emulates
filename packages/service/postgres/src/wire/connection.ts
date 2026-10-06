@@ -677,7 +677,15 @@ export class Connection implements Session {
         const result = this.cluster.as(this, () => this.runQuery(db, text, params));
         return { empty: false as const, result, tag: commandTag(result) };
       };
-      const outcome = db.transaction(run);
+      // Concurrent index builds retain their invalid catalog entry on failure.
+      // They cannot use the statement rollback wrapper or run in an explicit transaction.
+      const concurrentIndex =
+        /\bconcurrently\b/i.test(text) &&
+        parseSql(text).some((stmt) => stmt.type === "create_index" && stmt.concurrently);
+      if (concurrentIndex && this.transaction !== null) {
+        throw new PostgresError("misuse", "CREATE INDEX CONCURRENTLY cannot run inside a transaction block", "25001");
+      }
+      const outcome = concurrentIndex ? run() : db.transaction(run);
       if (this.transaction && mutatesDatabase(text)) {
         this.transaction.statements.push({ kind: "sql", sql: text, params: params.slice() });
       }

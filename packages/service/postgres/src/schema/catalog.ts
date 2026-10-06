@@ -29,6 +29,7 @@ export const PG_CATALOG_RELATIONS: ReadonlySet<string> = new Set([
   "pg_enum",
   "pg_constraint",
   "pg_index",
+  "pg_stat_user_indexes",
   "pg_sequence",
   "pg_sequences",
   "pg_tables",

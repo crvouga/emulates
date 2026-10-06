@@ -51,7 +51,7 @@ export function quoteIdent(name: string): string {
   return `"${name.replaceAll('"', '""')}"`;
 }
 
-function deparseExpr(e: Expr): string {
+export function deparseExpr(e: Expr): string {
   switch (e.type) {
     case "null_lit":
       return "NULL";

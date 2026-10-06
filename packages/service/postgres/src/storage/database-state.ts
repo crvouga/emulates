@@ -37,10 +37,14 @@ export type ConstraintMeta =
     };
 
 export interface IndexMeta {
+  oid?: number;
   name: string;
   schema: string;
   table: string;
   unique: boolean;
+  comment?: string | null;
+  valid?: boolean;
+  scans?: bigint;
   /** simple column indexes store names; expression indexes store the AST */
   columns: Array<{ column: string | null; expr: Expr | null; dir: "asc" | "desc"; nulls: "first" | "last" }>;
   where: Expr | null;

@@ -543,6 +543,7 @@ export function executeCreateIndex(env: ExecEnv, stmt: CreateIndexStmt): ExecRes
   }
   assertGinTrgmIndex(state, table, stmt);
   schema.indexes.set(name, {
+    oid: state.nextOid(),
     name,
     schema: schema.name,
     table: table.name,
@@ -556,6 +557,7 @@ export function executeCreateIndex(env: ExecEnv, stmt: CreateIndexStmt): ExecRes
     where: stmt.where,
     nullsNotDistinct: stmt.nullsNotDistinct,
     isConstraint: false,
+    valid: true,
   });
   // unique index: validate existing rows
   if (stmt.unique) {
@@ -564,7 +566,9 @@ export function executeCreateIndex(env: ExecEnv, stmt: CreateIndexStmt): ExecRes
         checkUnique(env, table, table.rowAt(i), i);
       }
     } catch (err) {
-      schema.indexes.delete(name);
+      if (stmt.concurrently) schema.indexes.get(name)!.valid = false;
+      else schema.indexes.delete(name);
+      table.indexStores = null;
       throw err;
     }
   }
@@ -1221,7 +1225,8 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
         }
         const seq = buildSequence(env, target.schema, target.name, action.options, false);
         if (!action.options.as) {
-          seq.dataType = col.type.id === "int2" || col.type.id === "int4" || col.type.id === "int8" ? col.type.id : "int8";
+          seq.dataType =
+            col.type.id === "int2" || col.type.id === "int4" || col.type.id === "int8" ? col.type.id : "int8";
           const limits = SEQ_LIMITS[seq.dataType]!;
           if (action.options.maxValue === undefined) seq.maxValue = seq.increment > 0n ? limits.max : -1n;
           if (action.options.minValue === undefined) seq.minValue = seq.increment > 0n ? 1n : limits.min;
