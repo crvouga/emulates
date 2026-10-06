@@ -247,11 +247,11 @@ describe("contract: presets, journal, admin errors", () => {
     expect(journal).not.toContain("confidential-dx")
   })
 
-  test("admin errors use the emulators_admin shape", async () => {
+  test("admin errors use the emulates_admin shape", async () => {
     const { admin } = harness()
     const bad = await admin("/flags/x", { overrides: [{ value: true }] })
     expect(bad.status).toBe(400)
-    expect(await bad.json()).toMatchObject({ error: { type: "emulators_admin" } })
+    expect(await bad.json()).toMatchObject({ error: { type: "emulates_admin" } })
     expect((await admin("/flags/missing", undefined, "DELETE")).status).toBe(404)
     expect((await admin("/flags/import", { env: "staging" }, "POST")).status).toBe(400)
     expect((await admin("/events?since=yesterday")).status).toBe(400)

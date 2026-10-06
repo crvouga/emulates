@@ -1,6 +1,6 @@
 # @emulates/sqs
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Amazon SQS emulator for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
 

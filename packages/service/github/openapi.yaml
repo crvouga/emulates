@@ -821,7 +821,7 @@ components:
           type: string
         code:
           type: string
-          const: emulators_unsupported
+          const: emulates_unsupported
     Reference:
       type: object
       required:

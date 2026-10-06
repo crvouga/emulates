@@ -1,6 +1,6 @@
 # @emulates/mediaconvert
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful AWS Elemental MediaConvert emulator for the official SDK v3 client. It supports endpoint discovery, asynchronous jobs, deterministic controls, EventBridge-compatible events, and output writes to a configured emulator S3 service.
 

@@ -1,6 +1,6 @@
 /**
  * Loaders for full-stack app examples (`../lib/appExamples.ts`). Small and
- * hand-maintained on purpose — unlike `virtual:emulators/examples`, which
+ * hand-maintained on purpose — unlike `virtual:emulates/examples`, which
  * the catalog integration derives from every service's own package.json,
  * there is exactly one of these per app, not per service.
  */

@@ -60,7 +60,7 @@ export type MediaConvertRuntime = ServiceRuntime<MediaConvertAPI> & {
   readonly webhooks: WebhookHub
 }
 const problem = (status: number, message: string) =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<MediaConvertAPI>): AdminRoutes => ({
   "GET /jobs": ({ namespace }) =>
     Response.json({

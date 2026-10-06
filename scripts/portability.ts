@@ -1,13 +1,13 @@
 /**
  * Per-package portability gate.
  *
- * Reads the package's `emulators.runtime` claim (portable | node | bun) and
+ * Reads the package's `emulates.runtime` claim (portable | node | bun) and
  * verifies the built `dist` bundle does not use APIs outside that runtime.
- * A service emulator (`emulators.layer === "service"`) must claim `portable`: the
+ * A service emulator (`emulates.layer === "service"`) must claim `portable`: the
  * published entry runs in Node, Bun, browsers, and Workers. A `./server` or CLI
  * entry may still claim `node`.
  *
- * An entry point can claim a different runtime in `emulators.entries`, keyed by its
+ * An entry point can claim a different runtime in `emulates.entries`, keyed by its
  * dist name — `{ "server": "node", "cli": "node" }` lets a portable service ship a Node
  * listener and CLI. Each built file must then satisfy every runtime whose entry
  * reaches it through static imports, so a chunk shared with the portable main entry
@@ -46,13 +46,13 @@ const runtime = pkg.emulates?.runtime ?? "portable"
 
 if (!["portable", "node", "bun"].includes(runtime)) {
   fail(
-    `${name}: emulators.runtime must be one of portable | node | bun (got ${JSON.stringify(runtime)})`,
+    `${name}: emulates.runtime must be one of portable | node | bun (got ${JSON.stringify(runtime)})`,
   )
 }
 
 if (pkg.emulates?.layer === "service" && runtime !== "portable") {
   fail(
-    `${name}: service emulators are isomorphic, so emulators.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
+    `${name}: Emulates services are isomorphic, so emulates.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
   )
 }
 
@@ -94,7 +94,7 @@ if (!existsSync(distDir)) {
 
 for (const [entry, claim] of Object.entries(pkg.emulates?.entries ?? {})) {
   if (!["portable", "node", "bun"].includes(claim)) {
-    fail(`${name}: emulators.entries.${entry} must be portable | node | bun (got ${claim})`)
+    fail(`${name}: emulates.entries.${entry} must be portable | node | bun (got ${claim})`)
   }
 }
 

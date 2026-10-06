@@ -1,6 +1,6 @@
 # @emulates/livekit
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful LiveKit emulator for `livekit-server-sdk`. It serves Twirp JSON room and agent-dispatch APIs, validates genuine HS256 LiveKit grants, models participant/track/data state, exposes deterministic SIP and egress controls, and emits correctly signed lifecycle webhooks.
 

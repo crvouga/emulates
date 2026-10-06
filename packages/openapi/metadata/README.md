@@ -91,4 +91,4 @@ Exported types: `OperationExtension`, `OperationMetadata`, `SchemaMetadata`, `Re
 - [`@emulates/canonicalize`](https://www.npmjs.com/package/@emulates/canonicalize) — consumes these annotations to canonicalize responses.
 - [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — differential parity runner.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

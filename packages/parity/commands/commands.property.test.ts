@@ -294,8 +294,8 @@ describe("commandArbitrary", () => {
           expect(real.path.replaceAll("realcus_", "cus_")).toBe(
             mock.path.replaceAll("mockcus_", "cus_"),
           )
-          expect(JSON.stringify(real.query)).not.toContain("$emulators")
-          expect(JSON.stringify(real.body ?? "")).not.toContain("$emulators")
+          expect(JSON.stringify(real.query)).not.toContain("$emulates")
+          expect(JSON.stringify(real.body ?? "")).not.toContain("$emulates")
           const request = toRequest(real, "https://api.example.test/base/", {
             authorization: "Bearer x",
           })
@@ -361,7 +361,7 @@ describe("commandArbitrary", () => {
           const table = new ResourceTable()
           table.register("customer", { real: "cus_real", mock: "cus_mock" })
           const real = concretize(command, plan, table, "real", scope)
-          if (placeholder.$emulators === "missing")
+          if (placeholder.$emulates === "missing")
             expect(real.path).toBe("/v1/customers/cus_missing")
           else expect(real.path).toBe("/v1/customers/cus_real")
         },

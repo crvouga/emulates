@@ -38,7 +38,7 @@ try {
 
 const baseUrl = credentials.values.POSTHOG_HOST.replace(/\/$/, "")
 const realToken = credentials.values.POSTHOG_PROJECT_TOKEN
-const MOCK_TOKEN = "phc_emulators_parity"
+const MOCK_TOKEN = "phc_emulates_parity"
 
 /** Put `token` everywhere a PostHog request carries a project key. */
 const withToken =

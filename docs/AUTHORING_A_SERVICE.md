@@ -134,7 +134,7 @@ would echo back.
    `<NAME>_*` secrets in the Parity workflow);
    without them print which keys are missing and `process.exit(2)`. Run only safe operations by
    default. Never print secret values; never send real messages, charges or orders to real people.
-   Declare `"parityTier": "cold"` in the package's `emulators` block (see
+   Declare `"parityTier": "cold"` in the package's `emulates` block (see
    [Parity tiers](TESTING.md#parity-tiers)); a new service starts cold.
 
 Use `fcParameters(process.env)` so `FC_SEED` / `FC_NUM_RUNS` replay failures, and keep each test
@@ -151,7 +151,7 @@ not modelled** section.
 
 The docs site (`sites/docs`, `bun docs`) is built from the package itself: the README is the
 service page, the contract gives the operations list and coverage, and the built module runs in
-the page's playground. It reads these fields from the `emulators` block of `package.json`, and
+the page's playground. It reads these fields from the `emulates` block of `package.json`, and
 its build fails when they are missing or stale:
 
 Every published service also declares `emulates.discovery` in `package.json` and ships every
@@ -200,7 +200,7 @@ bun test
 ## Bespoke interactive examples
 
 A service can attach any number of interactive examples to its docs page through
-`emulators.examples` in its `package.json`. Keep the implementation in that service's
+`emulates.examples` in its `package.json`. Keep the implementation in that service's
 `examples/` directory:
 
 ```json

@@ -881,7 +881,7 @@ export class GoogleCalendarAPI implements FetchAPI {
       return googleError(
         404,
         "notFound",
-        `Channel '${String(body.id)}' not found for project 'emulators'`,
+        `Channel '${String(body.id)}' not found for project 'emulates'`,
       )
     }
     this.state.channels.update(channel.id, { ...channel, stopped: true })

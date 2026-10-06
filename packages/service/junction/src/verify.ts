@@ -444,7 +444,7 @@ export const verifyAgainstReal = async (options: VerifyOptions): Promise<VerifyR
     const request = new Request(`${base}${path}`, {
       method,
       headers: {
-        "x-vital-api-key": side === "real" ? options.realKey : "sk_us_emulators_verify",
+        "x-vital-api-key": side === "real" ? options.realKey : "sk_us_emulates_verify",
         ...(body !== undefined ? { "content-type": "application/json" } : {}),
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),

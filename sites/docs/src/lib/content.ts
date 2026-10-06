@@ -93,7 +93,7 @@ const res = await stripe.fetch(
   new Request("https://api.stripe.com/v1/customers", {
     method: "POST",
     headers: {
-      authorization: "Bearer sk_test_emulators",
+      authorization: "Bearer sk_test_emulates",
       "content-type": "application/x-www-form-urlencoded",
     },
     body: "email=ada@example.com",
@@ -106,7 +106,7 @@ const customer = await res.json() // { id: "cus_…", object: "customer", email:
 // State persists: the customer is there when you list customers.
 const list = await stripe.fetch(
   new Request("https://api.stripe.com/v1/customers", {
-    headers: { authorization: "Bearer sk_test_emulators" },
+    headers: { authorization: "Bearer sk_test_emulates" },
   }),
 )
 console.log((await list.json()).data[0].id === customer.id) // true`,
@@ -161,7 +161,7 @@ npx emulates-junction serve --config emulates.json  # every service in the confi
 }
 
 export const AGENTS =
-  "Every npm package ships an agent index at `node_modules/<package>/DISCOVERY.md`. It points to the local behavior guide, exact capability matrix, machine-readable contract or compatibility evidence, public types, parity oracle, runtime introspection, and issue-reporting contract. [`llms.txt`](llms.txt) indexes those files with the parity each service declares, and the docs site publishes the same source material as markdown and JSON. When an emulator diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
+  "Every npm package ships an agent index at `node_modules/<package>/DISCOVERY.md`. It points to the local behavior guide, exact capability matrix, machine-readable contract or compatibility evidence, public types, parity oracle, runtime introspection, and issue-reporting contract. [`llms.txt`](llms.txt) indexes those files with the parity each service declares, and the docs site publishes the same source material as markdown and JSON. When an emulator diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
 
 /** Guides in `docs/`, in the order the README and the site list them. Others follow by name. */
 export const GUIDE_ORDER = [

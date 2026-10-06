@@ -34,10 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/service/cloudcontrol"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/cloudcontrol#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/cloudcontrol#readme",
   "keywords": [
     "emulates",
     "aws",
@@ -97,7 +97,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {

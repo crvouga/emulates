@@ -1,6 +1,6 @@
 # @emulates/vibe
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Vibe revision **2026-06-01** OAuth and asynchronous campaign-spend reports.
 

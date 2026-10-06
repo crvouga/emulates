@@ -35,7 +35,7 @@ for (const pkg of pkgs) {
     parity.length > 80
   ) {
     console.error(
-      `::error::${pkg.relDir}/package.json: a published service needs emulators.parity, a short statement of the vendor surface it keeps in step`,
+      `::error::${pkg.relDir}/package.json: a published service needs emulates.parity, a short statement of the vendor surface it keeps in step`,
     )
     process.exit(1)
   }

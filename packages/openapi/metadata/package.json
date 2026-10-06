@@ -18,10 +18,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/openapi/metadata"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/openapi/metadata#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/openapi/metadata#readme",
   "keywords": [
     "emulates",
     "openapi",

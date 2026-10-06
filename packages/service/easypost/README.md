@@ -1,13 +1,13 @@
 # @emulates/easypost
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **EasyPost** trackers API for test suites: `POST /v2/trackers` (create or
 re-use a tracker for a tracking code), `GET /v2/trackers/{id}` and `GET /v2/trackers`. EasyPost's
 documented test tracking codes answer their fixed statuses, and any other code moves through
 admin transitions, so the genomics admin's shipping-leg states can be driven deterministically.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/easypost/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/easypost/SUPPORT.md)
 - The contract (`openapi.yaml`) is trimmed from EasyPost's published reference to what our
   tracking lookup (`packages/lib/src/shipment-tracking-status/easypost-client.ts`) calls.
 
@@ -116,4 +116,4 @@ records `unknown` and warns), `slow` (5 s).
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8818. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

@@ -134,4 +134,4 @@ Exported types: `OperationPlan` (`{ operation, metadata, requires, produces, bod
 - [`@emulates/openapi-arbitrary`](https://www.npmjs.com/package/@emulates/openapi-arbitrary) — the value generators underneath.
 - [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — runs these commands against a real API and an emulator.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

@@ -1,6 +1,6 @@
 # @emulates/workos
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP WorkOS AuthKit emulator: authorization redirects, single-use codes, signed JWT sessions,
 rotating refresh tokens, user metadata and pagination. Synthetic fixtures only.

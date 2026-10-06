@@ -1,6 +1,6 @@
 # @emulates/docker
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Work-in-progress Docker Engine API 1.52 emulator. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
@@ -136,7 +136,7 @@ strings. Request environment keys and labels take precedence. `Entrypoint: [""]`
 clears the image entrypoint; provide a replacement command when doing so.
 
 Use `?name=...` for a stable name. Conflicting names return 409, including concurrent
-creation requests. Omitted names use `emulators_<id-prefix>`. Responses contain
+creation requests. Omitted names use `emulates_<id-prefix>`. Responses contain
 `Id` and `Warnings`; IDs are deterministic synthetic 64-character hex strings,
 immutable within stored records and restored with the shared ID sequence by
 Timeline checkout. New records inspect as `created` with `Running: false`.

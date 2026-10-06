@@ -12,8 +12,8 @@ import Stripe from "stripe"
 import { accountOfKey } from "../src/account.js"
 import { StripeAPI } from "../src/index.js"
 
-const MSO_KEY = "sk_test_emulatorsmso"
-const PC_KEY = "sk_test_emulatorspc"
+const MSO_KEY = "sk_test_emulatesmso"
+const PC_KEY = "sk_test_emulatespc"
 const API_VERSION = "2024-06-20" as const
 const WEBHOOK_SECRET = "whsec_local_test"
 

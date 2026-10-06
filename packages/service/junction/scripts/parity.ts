@@ -375,7 +375,7 @@ const runSeed = async (seed: number | undefined) => {
           api.fetch = withTestkitSettlement(fetch)
           return api
         },
-        headers: () => ({ "x-vital-api-key": "sk_us_emulators" }),
+        headers: () => ({ "x-vital-api-key": "sk_us_emulates" }),
       },
       ...(webhookParity === undefined ? {} : { webhooks: webhookParity }),
       redact: createRedactor(credentials.secrets),

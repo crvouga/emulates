@@ -61,4 +61,4 @@ Requests and responses pass through unchanged (Bun is Fetch-native), so streamin
 - `@emulates/core`: the `FetchAPI` contract.
 - `@emulates/adapter-node`: the same adapter for `node:http`.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

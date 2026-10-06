@@ -252,7 +252,7 @@ try {
     },
     mock: {
       create: () => new StripeAPI(),
-      headers: () => ({ authorization: "Bearer sk_test_emulators" }),
+      headers: () => ({ authorization: "Bearer sk_test_emulates" }),
     },
     ...(webhookOracle
       ? {

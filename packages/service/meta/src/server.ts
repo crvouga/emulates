@@ -30,7 +30,7 @@ export const serveTarget: ServeTarget = {
     }),
   banner: () => [
     "auth: Authorization: Bearer <synthetic token>, or ?access_token=...",
-    "fixtures: act_emulators, cmp_emulators, set_emulators, ad_emulators",
+    "fixtures: act_emulates, cmp_emulates, set_emulates, ad_emulates",
     "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or credential mapping",
   ],
 }

@@ -1,6 +1,6 @@
 # @emulates/aws-speech
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Amazon Polly** and **Amazon Transcribe** for test suites: Polly
 `SynthesizeSpeech` and `StartSpeechSynthesisStream` (HTTP/2 duplex event stream), Transcribe
@@ -9,7 +9,7 @@ Streaming `StartStreamTranscription` (HTTP/2 duplex) and Transcribe batch
 leaving the machine: Transcribe "hears" what a test scripts, Polly answers with deterministic
 synthetic audio whose length follows the text.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/aws-speech/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/aws-speech/SUPPORT.md)
 - Proven with the official clients our consumer pins: `@aws-sdk/client-polly`,
   `@aws-sdk/client-transcribe-streaming`, `@aws-sdk/client-transcribe` (3.1132.0), and the MP3
   decoder our backend uses (`mpg123-decoder@1.0.3`).
@@ -131,4 +131,4 @@ records voice, engine, format, character counts and script ids — never text.
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT`, `listenH2c` (`./server`) | Node | Serve h2c + HTTP/1.1 on one port; the `serve` CLI target; port 8797; the dual-protocol listener. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

@@ -67,4 +67,4 @@ Behavior:
 - `@emulates/core`: the `FetchAPI` contract.
 - `@emulates/adapter-bun`: the same adapter for `Bun.serve`.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

@@ -1,6 +1,6 @@
 # @emulates/daily
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Daily.co** REST API for test suites: rooms (create, get, update,
 delete, presence, eject), meeting tokens (mint and validate), verification of the HS256 meeting
@@ -9,7 +9,7 @@ tokens our backend signs itself, and the end-of-call webhooks (`transcription.st
 booking creates a room and a token; today a broken Daily integration is silent because booking
 swallows the error. Against the emulator it is observable and assertable.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/daily/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/daily/SUPPORT.md)
 - The contract (`openapi.yaml`) is trimmed from Daily's documented REST API to the calls our
   backend and EMR make, with the fields they send.
 
@@ -159,4 +159,4 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `room_
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8800. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

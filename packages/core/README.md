@@ -79,4 +79,4 @@ their `this` binding.
 - `@emulates/adapter-bun`: serve a `FetchAPI` with `Bun.serve`.
 - `@emulates/service`: build a `FetchAPI` from an OpenAPI document.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

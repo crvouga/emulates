@@ -998,7 +998,7 @@ describe("the scripting model", () => {
   test("scripts are validated, listed, replaced, appended and deleted per namespace", async () => {
     const { admin } = await harness()
     expect(await admin("/scripts", { scripts: [{ id: "x", turns: [] }] }, "PUT")).toEqual({
-      error: { type: "emulators_admin", message: "scripts[0].turns: a non-empty array" },
+      error: { type: "emulates_admin", message: "scripts[0].turns: a non-empty array" },
     })
     expect(
       (

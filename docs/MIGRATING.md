@@ -4,10 +4,11 @@ Mockingbird has been renamed to Emulates. Packages have moved from their previou
 
 ## Existing checkouts of this repo
 
-Run `bun run rebrand:bootstrap` once in each clone. It points `origin` at `crvouga/emulators`, renames
-`MOCKINGBIRD_*` keys in `.env.local` to `EMULATES_*` (values are never printed), moves the gitignored
-`.mockingbird/` state directory to `.emulates/`, and reinstalls so workspace links use the new
-package names. It is safe to re-run.
+Run `bun run rebrand:bootstrap` once in each clone. It points `origin` at `crvouga/emulates` when the
+remote is still `crvouga/mockingbird` or `crvouga/emulators`, renames `MOCKINGBIRD_*` and `EMULATORS_*`
+keys in `.env.local` to `EMULATES_*` (values are never printed), moves a gitignored `.mockingbird/` or
+`.emulators/` state directory to `.emulates/`, and reinstalls so workspace links use the new package
+names. It is safe to re-run.
 
 ## Install the new package
 
@@ -36,7 +37,7 @@ Each `@emulates/<id>` package continues its former package's version line, so th
 | `x-mockingbird-*` HTTP headers and OpenAPI extensions | `x-emulates-*` |
 | `MOCKINGBIRD_*` environment variables | `EMULATES_*` |
 | `.mockingbird/` local state directory | `.emulates/` |
-| https://github.com/crvouga/mockingbird | https://github.com/crvouga/emulators (GitHub redirects the old URL) |
+| https://github.com/crvouga/mockingbird | https://github.com/crvouga/emulates (GitHub redirects the old URL) |
 | https://mockingbird.chrisvouga.dev | https://emulates.chrisvouga.dev |
 
 ## Package mapping

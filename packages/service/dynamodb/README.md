@@ -1,6 +1,6 @@
 # @emulates/dynamodb
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Amazon DynamoDB emulator for the AWS SDK v3 low-level client and `DynamoDBDocumentClient`. It preserves DynamoDB attribute types while modelling CRUD, expressions, indexes, pagination, batches, transactions, TTL, streams, and conditional writes without contacting AWS.
 

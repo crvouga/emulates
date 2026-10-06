@@ -34,10 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/service/firstpromoter"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/firstpromoter#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/firstpromoter#readme",
   "keywords": [
     "emulates",
     "service",
@@ -62,8 +62,8 @@
     "parityTier": "cold",
     "playground": {
       "headers": {
-        "authorization": "Bearer fp_emulators",
-        "account-id": "acc_emulators"
+        "authorization": "Bearer fp_emulates",
+        "account-id": "acc_emulates"
       }
     },
     "discovery": {
@@ -86,7 +86,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {

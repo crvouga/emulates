@@ -1,6 +1,6 @@
 # @emulates/stripe
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful, in-process emulator of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
 chosen by API key, customers and balances, payment methods, payment and setup intents, charges,
@@ -13,7 +13,7 @@ fanned out to every matching endpoint. Responses are rendered at the caller's `S
 differential property tests against Stripe test mode.
 
 - Operation coverage (119 of 123 operations in the vendored spec, with reasons for each gap):
-  [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/stripe/SUPPORT.md)
+  [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/stripe/SUPPORT.md)
 - Stripe API reference: https://docs.stripe.com/api · Upstream OpenAPI: https://github.com/stripe/openapi
 
 ## Install
@@ -423,7 +423,7 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
 
 ## Development
 
-For contributors to the emulators repo only; these scripts are not shipped in the npm package.
+For contributors to the Emulates repo only; these scripts are not shipped in the npm package.
 
 ```bash
 bun test                   # self-parity, acceptance (via test/consumer.ts), stripe-node drop-in, contract
@@ -438,4 +438,4 @@ or the repo secret via `bun run parity:remote -- stripe`) and exits 2 without on
 leaves out account-global ones (account profile, lifetime balance, lingering test clocks and
 webhook endpoints).
 
-Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).
+Part of [Emulates](https://github.com/crvouga/emulates) — agent integration guide: [README](https://github.com/crvouga/emulates#readme) · [llms.txt](https://github.com/crvouga/emulates/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md).

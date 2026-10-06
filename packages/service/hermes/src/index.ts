@@ -82,7 +82,7 @@ export class HermesAPI implements FetchAPI {
         jsonRes(501, {
           error: {
             message: `Emulates: ${operation.operationId} is not implemented`,
-            type: "emulators_unsupported",
+            type: "emulates_unsupported",
             param: null,
             code: "operation_not_implemented",
           },

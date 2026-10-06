@@ -309,7 +309,7 @@ export class StripeAPI implements FetchAPI {
   }
 
   private requestLogUrl() {
-    return `https://dashboard.stripe.com/acct_emulators/test/workbench/logs?object=${this.state.ids.next("req_")}`
+    return `https://dashboard.stripe.com/acct_emulates/test/workbench/logs?object=${this.state.ids.next("req_")}`
   }
 
   private decorate(response: Response, version: string, cors: boolean): Response {

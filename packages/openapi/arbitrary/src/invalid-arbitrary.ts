@@ -251,7 +251,7 @@ export const invalidSchemaArbitrary = (
       } else if (site.violation === "unexpected-property") {
         mutated = setAt(value, site.valuePath, (current) =>
           typeof current === "object" && current !== null && !Array.isArray(current)
-            ? { ...current, emulators_unexpected: "x" }
+            ? { ...current, emulates_unexpected: "x" }
             : undefined,
         )
       } else {

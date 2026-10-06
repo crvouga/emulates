@@ -1,6 +1,6 @@
 # @emulates/firstpromoter
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **FirstPromoter v2** affiliate API for test suites: promoter create (adopt
 before create by `cust_id`), lookups by id / `cust_id` / `ref_token` / email, list, update,
@@ -9,7 +9,7 @@ and the Basic-auth `lead_becomes_referral` webhook our backend receives. Every r
 recorded in the journal, so a checkout suite can assert what the post-checkout job sent instead
 of producing a failed job.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/firstpromoter/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/firstpromoter/SUPPORT.md)
 - FirstPromoter publishes no machine-readable spec: the contract (`openapi.yaml`) is
   hand-authored from our consumer's requests and the zod schemas it validates responses with.
 
@@ -171,4 +171,4 @@ deduplication. A successful sale preserves the existing conversion webhook behav
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8812. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

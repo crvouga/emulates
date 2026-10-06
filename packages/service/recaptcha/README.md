@@ -1,6 +1,6 @@
 # @emulates/recaptcha
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 A WIP reCAPTCHA v3 emulator: browser `grecaptcha.ready`/`execute`, deterministic single-use tokens,
 and form-encoded Siteverify. The contract follows Google's [verification](https://developers.google.com/recaptcha/docs/verify)

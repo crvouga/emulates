@@ -168,11 +168,11 @@ export const discoverCollections = (root: unknown): Collection<unknown>[] => {
 
 const storedNames = (sqlite: SqliteClient, namespace: string): string[] => {
   const records = sqlite
-    .prepare("SELECT DISTINCT collection AS name FROM emulators_records WHERE namespace = ?")
+    .prepare("SELECT DISTINCT collection AS name FROM emulates_records WHERE namespace = ?")
     .all<{ name: string }>(namespace)
   const sequences = sqlite
     .prepare(
-      "SELECT DISTINCT name FROM emulators_sequences WHERE namespace = ? AND kind = 'collection'",
+      "SELECT DISTINCT name FROM emulates_sequences WHERE namespace = ? AND kind = 'collection'",
     )
     .all<{ name: string }>(namespace)
   return [...records, ...sequences].map((row) => row.name)
@@ -293,7 +293,7 @@ export type StateScope = {
   sqlite: SqliteClient
   /** Public namespace name a request selects. */
   namespace: string
-  /** Namespace key used in `emulators_records`. */
+  /** Namespace key used in `emulates_records`. */
   storageNamespace: string
   /** Service instance, walked for Collection fields. */
   root: unknown
@@ -482,7 +482,7 @@ const json = (status: number, body: unknown): Response =>
   })
 
 const adminError = (status: number, message: string): Response =>
-  json(status, { error: { type: "emulators_admin", message } })
+  json(status, { error: { type: "emulates_admin", message } })
 
 const fromResult = <T>(result: StateResult<T>, status: number): Response =>
   result.ok ? json(status, result.value) : adminError(result.status, result.message)

@@ -85,4 +85,4 @@ Exported types: `Exchange` (`{ status; headers (lower-cased); body: DecodedBody 
 - [`@emulates/openapi-metadata`](https://www.npmjs.com/package/@emulates/openapi-metadata) — the `x-emulates-resource` / `x-emulates-volatile` annotations this reads.
 - [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — the runner.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

@@ -34,10 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/service/paddle"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/paddle#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/paddle#readme",
   "keywords": [
     "emulates",
     "service",
@@ -66,7 +66,7 @@
     "playground": {
       "operation": "CreateCustomer",
       "headers": {
-        "authorization": "Bearer pdl_sdbx_apikey_emulators"
+        "authorization": "Bearer pdl_sdbx_apikey_emulates"
       }
     },
     "discovery": {
@@ -89,7 +89,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {

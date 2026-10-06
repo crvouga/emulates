@@ -15,7 +15,7 @@ const GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 /** Under Socket Mode's default 30s server-ping timeout, and frequent enough to test quickly. */
 const SERVER_PING_MS = 2_000
 const MAX_FRAME = 1_000_000
-const HOST = "applink-emulators"
+const HOST = "applink-emulates"
 
 const attached = new WeakSet<Server>()
 

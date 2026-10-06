@@ -34,10 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/service/plane"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/plane#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/plane#readme",
   "keywords": [
     "emulates",
     "service",
@@ -80,7 +80,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {

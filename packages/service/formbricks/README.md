@@ -1,6 +1,6 @@
 # @emulates/formbricks
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of open-source **[Formbricks](https://github.com/formbricks/formbricks)** (6.x) for
 test suites: the client environment state the JS SDK loads surveys from, response creation with
@@ -10,7 +10,7 @@ surveys, `x-api-key`), the widget script the web SDK loads, and the response pip
 synthetic survey corpus (`src/corpus/surveys.json`: NPS, Onboarding, Product Feedback, a link
 survey and a paused survey; invented content).
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/formbricks/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/formbricks/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from upstream Formbricks 6.0.0's route handlers
   and the [docs](https://formbricks.com/docs).
 
@@ -130,4 +130,4 @@ string), `management_unauthorized`, `connection_drop`, `duplicate` (the next web
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8813. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

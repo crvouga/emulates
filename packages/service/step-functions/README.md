@@ -1,6 +1,6 @@
 # @emulates/step-functions
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful AWS Step Functions emulator for the official SFN SDK v3 client. It models Standard execution identity, input/output strings, deterministic terminal transitions, callback tokens, stop requests, ordered history, pagination, and shared-clock scripts without contacting AWS.
 

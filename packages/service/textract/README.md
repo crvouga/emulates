@@ -1,6 +1,6 @@
 # @emulates/textract
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Amazon Textract emulator for the official SDK v3 client. It models synchronous and asynchronous document analysis, connected block graphs, stable pagination, idempotency, and completion notifications.
 

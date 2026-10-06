@@ -7,7 +7,7 @@ import type {
 } from "../../app/ports/labTestingClient.js"
 
 const BASE_URL = "https://api.sandbox.tryvital.io"
-const API_KEY = "sk_us_emulators"
+const API_KEY = "sk_us_emulates"
 
 /** How long a freshly placed order takes to reach "results ready" in this demo. */
 const RESULTS_READY_DELAY_MS = 4_000

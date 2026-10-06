@@ -274,11 +274,11 @@ describe("the service contract", () => {
     expect(readWav(synthesizeWav({ channels: 1 }))?.channels).toBe(1)
   })
 
-  test("admin validation errors use the emulators_admin shape", async () => {
+  test("admin validation errors use the emulates_admin shape", async () => {
     const runtime = createRuntime()
     const response = await admin(runtime, "/verify", { fixedCode: "12" }, "PUT")
     expect(response.status).toBe(400)
-    expect(await response.json()).toMatchObject({ error: { type: "emulators_admin" } })
+    expect(await response.json()).toMatchObject({ error: { type: "emulates_admin" } })
   })
 
   test("twilioMockUrl rewrites every product host (and edge/region hosts), and nothing else", () => {

@@ -10,7 +10,7 @@ import { document, StripeAPI } from "./src/index.js"
 const params = fcParameters(process.env)
 
 const MOCK_HOST = "mock.stripe.local"
-const AUTH = { authorization: "Bearer sk_test_emulators" }
+const AUTH = { authorization: "Bearer sk_test_emulates" }
 const now = () => 1_700_000_000_000
 
 /**
@@ -348,7 +348,7 @@ describe("StripeAPI", () => {
         const stripe = new StripeAPI({ sqlite, now })
         sqlite
           .prepare(
-            `INSERT INTO emulators_records (namespace, collection, id, seq, value)
+            `INSERT INTO emulates_records (namespace, collection, id, seq, value)
              VALUES ('other', 'keep', '1', 1, ?)`,
           )
           .run(JSON.stringify({ seq: 1, value: "keep" }))
@@ -372,7 +372,7 @@ describe("StripeAPI", () => {
         expect(gone.status).toBe(404)
         const other = sqlite
           .prepare(
-            "SELECT value FROM emulators_records WHERE namespace = 'other' AND collection = 'keep' AND id = '1'",
+            "SELECT value FROM emulates_records WHERE namespace = 'other' AND collection = 'keep' AND id = '1'",
           )
           .get<{ value: string }>()
         expect(other).toBeDefined()

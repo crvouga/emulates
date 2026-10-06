@@ -28,13 +28,13 @@ export class Collection<T> {
   private bumpCollectionSeq(): number {
     const row = this.sqlite
       .prepare(
-        "SELECT value FROM emulators_sequences WHERE namespace = ? AND name = ? AND kind = 'collection'",
+        "SELECT value FROM emulates_sequences WHERE namespace = ? AND name = ? AND kind = 'collection'",
       )
       .get<{ value: number }>(this.namespace, this.collectionName)
     const next = (row?.value ?? 0) + 1
     this.sqlite
       .prepare(
-        `INSERT INTO emulators_sequences (namespace, name, kind, value) VALUES (?, ?, 'collection', ?)
+        `INSERT INTO emulates_sequences (namespace, name, kind, value) VALUES (?, ?, 'collection', ?)
          ON CONFLICT(namespace, name, kind) DO UPDATE SET value = excluded.value`,
       )
       .run(this.namespace, this.collectionName, next)
@@ -48,7 +48,7 @@ export class Collection<T> {
   get(id: string): T | undefined {
     const row = this.sqlite
       .prepare(
-        "SELECT value FROM emulators_records WHERE namespace = ? AND collection = ? AND id = ?",
+        "SELECT value FROM emulates_records WHERE namespace = ? AND collection = ? AND id = ?",
       )
       .get<{ value: string }>(this.namespace, this.collectionName, id)
     if (!row) return undefined
@@ -58,7 +58,7 @@ export class Collection<T> {
   has(id: string): boolean {
     const row = this.sqlite
       .prepare(
-        "SELECT 1 AS ok FROM emulators_records WHERE namespace = ? AND collection = ? AND id = ?",
+        "SELECT 1 AS ok FROM emulates_records WHERE namespace = ? AND collection = ? AND id = ?",
       )
       .get<{ ok: number }>(this.namespace, this.collectionName, id)
     return row !== undefined
@@ -71,7 +71,7 @@ export class Collection<T> {
       const stored = { seq, value }
       this.sqlite
         .prepare(
-          `INSERT INTO emulators_records (namespace, collection, id, seq, value)
+          `INSERT INTO emulates_records (namespace, collection, id, seq, value)
            VALUES (?, ?, ?, ?, ?)
            ON CONFLICT(namespace, collection, id) DO UPDATE SET seq = excluded.seq, value = excluded.value`,
         )
@@ -85,14 +85,14 @@ export class Collection<T> {
     return this.sqlite.transaction(() => {
       const row = this.sqlite
         .prepare(
-          "SELECT seq, value FROM emulators_records WHERE namespace = ? AND collection = ? AND id = ?",
+          "SELECT seq, value FROM emulates_records WHERE namespace = ? AND collection = ? AND id = ?",
         )
         .get<{ seq: number; value: string }>(this.namespace, this.collectionName, id)
       if (!row) return undefined
       const stored = { seq: row.seq, value }
       this.sqlite
         .prepare(
-          "UPDATE emulators_records SET value = ? WHERE namespace = ? AND collection = ? AND id = ?",
+          "UPDATE emulates_records SET value = ? WHERE namespace = ? AND collection = ? AND id = ?",
         )
         .run(JSON.stringify(stored), this.namespace, this.collectionName, id)
       return stored
@@ -101,7 +101,7 @@ export class Collection<T> {
 
   delete(id: string): boolean {
     const result = this.sqlite
-      .prepare("DELETE FROM emulators_records WHERE namespace = ? AND collection = ? AND id = ?")
+      .prepare("DELETE FROM emulates_records WHERE namespace = ? AND collection = ? AND id = ?")
       .run(this.namespace, this.collectionName, id)
     return result.changes > 0
   }
@@ -109,7 +109,7 @@ export class Collection<T> {
   /** How many records the collection holds, without reading them. */
   count(): number {
     const row = this.sqlite
-      .prepare("SELECT COUNT(*) AS n FROM emulators_records WHERE namespace = ? AND collection = ?")
+      .prepare("SELECT COUNT(*) AS n FROM emulates_records WHERE namespace = ? AND collection = ?")
       .get<{ n: number }>(this.namespace, this.collectionName)
     return Number(row?.n ?? 0)
   }
@@ -117,7 +117,7 @@ export class Collection<T> {
   list(options: ListRecordsOptions<T> = {}): Array<Stored<T> & { id: string }> {
     const rows = this.sqlite
       .prepare(
-        "SELECT id, seq, value FROM emulators_records WHERE namespace = ? AND collection = ?",
+        "SELECT id, seq, value FROM emulates_records WHERE namespace = ? AND collection = ?",
       )
       .all<RecordRow>(this.namespace, this.collectionName)
     const out: Array<Stored<T> & { id: string }> = []

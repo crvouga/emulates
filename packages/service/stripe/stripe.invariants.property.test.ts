@@ -13,7 +13,7 @@ import { StripeAPI } from "./src/index.js"
 
 const params = fcParameters(process.env)
 const HOST = "https://mock.stripe.local"
-const AUTH = { authorization: "Bearer sk_test_emulators" }
+const AUTH = { authorization: "Bearer sk_test_emulates" }
 const START = 1_700_000_000_000
 
 type Json = Record<string, unknown>

@@ -47,7 +47,7 @@ export type AwsSecretsRuntimeOptions = {
 }
 export type AwsSecretsRuntime = ServiceRuntime<AwsSecretsAPI>
 const error = (status: number, message: string) =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<AwsSecretsAPI>): AdminRoutes => ({
   "GET /secrets": ({ namespace }) =>
     Response.json({

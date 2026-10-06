@@ -12,7 +12,7 @@ export type ExampleDefinition = {
 /** Service-owned examples are explicit metadata, never inferred from filenames. */
 export function readExamples(value: unknown, serviceDir: string): ExampleDefinition[] {
   if (value === undefined) return []
-  if (!Array.isArray(value)) throw new Error("emulators.examples must be an array")
+  if (!Array.isArray(value)) throw new Error("emulates.examples must be an array")
   const ids = new Set<string>()
   const file = (path: unknown): string => {
     if (typeof path !== "string" || !path.startsWith("examples/") || isAbsolute(path))

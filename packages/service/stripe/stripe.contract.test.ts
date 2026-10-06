@@ -216,7 +216,7 @@ describe("service contract", () => {
     expect(journal).not.toContain("4242424242424242")
     expect(journal).toContain("PostCheckoutPage")
     const stored = runtime.sqlite
-      .prepare("SELECT value FROM emulators_records")
+      .prepare("SELECT value FROM emulates_records")
       .all<{ value: string }>()
       .map((row) => row.value)
       .join("\n")

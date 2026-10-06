@@ -1,13 +1,13 @@
 # @emulates/wholescripts
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Wholescripts** supplement fulfilment API for test suites: the product
 catalog, the private-label (MedPax) catalog, order submit, status polling and cancel. Orders
 move only when a test says so (an admin transition or an auto-advance path on the emulator clock).
 Wholescripts sends no webhooks, so the app sees each change on its next status poll.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/wholescripts/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/wholescripts/SUPPORT.md)
 - The vendor publishes no spec. The contract (`openapi.yaml`) is hand-authored from our
   consumers' zod schemas (backend and EMR `wholescripts.types.ts`) and the supplement scheduler's Python client.
 
@@ -134,4 +134,4 @@ recording exists; pass `catalog` (or `PUT /__admin/catalog`) to load recorded ro
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http` (auto-advance ticks every 100 ms); the `serve` CLI target; port 8803. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

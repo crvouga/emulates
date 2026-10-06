@@ -40,6 +40,6 @@ issue to a green PR). Only public third-party vendor APIs get an emulator: decli
 own internal services, and keep fixtures and test data free of any real customer's name.
 
 `README.md` is the overview, generated from `sites/docs/src/lib/content.ts` and `docs/*.md`
-(`bun run readme:sync`). The catalog of emulators stays on the docs site; `llms.txt` indexes it
+(`bun run readme:sync`). The catalog of services stays on the docs site; `llms.txt` indexes it
 from each service's `package.json` (`bun run llms:sync`). `bun run check` fails when either
 file is stale.

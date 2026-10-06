@@ -32,7 +32,7 @@ try {
     new Request("https://mock.stripe.local/v1/customers", {
       method: "POST",
       headers: {
-        authorization: "Bearer sk_test_emulators",
+        authorization: "Bearer sk_test_emulates",
         "content-type": "application/x-www-form-urlencoded",
       },
       body,

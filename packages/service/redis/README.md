@@ -1,6 +1,6 @@
 # @emulates/redis
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 In-process Redis for tests. `createRedis()` is a pure TypeScript RESP store: call commands on
 `redis.client()`, or speak RESP to the TCP server (`emulates-redis`, or `serve` from

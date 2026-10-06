@@ -168,7 +168,7 @@ enforces this rule.
 - `@emulates/openapi`, `@emulates/openapi-metadata`: document parsing and `x-emulates` metadata.
 - `@emulates/adapter-node` / `@emulates/adapter-bun`: serve the result over HTTP.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).
 
 ### Accepted mutations and response loss
 

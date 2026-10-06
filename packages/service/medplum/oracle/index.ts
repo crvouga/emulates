@@ -1,6 +1,6 @@
 /**
  * The parity oracle: a real, self-hosted Medplum server (the pinned version, built once from
- * source into ~/.cache/emulators/medplum-server) on embedded Postgres and a throwaway Redis,
+ * source into ~/.cache/emulates/medplum-server) on embedded Postgres and a throwaway Redis,
  * behind the same `fetch(Request)` shape as the mock. Dev-only — Node child processes, never
  * part of the published package.
  */

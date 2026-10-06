@@ -1,10 +1,10 @@
 # @emulates/fcm
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Firebase Cloud Messaging HTTP v1** send API (`POST /v1/projects/{project_id}/messages:send`), the call `firebase-admin` makes. Projects, access tokens, and registration tokens are fixtures. There is no FCM sandbox. This package is `status: "wip"`.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/fcm/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/fcm/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from the FCM REST reference and firebase-admin 12.7.0 / 13.5.0.
 
 ## Install
@@ -134,4 +134,4 @@ firebase-admin maps `error.details[].errorCode` when `@type` is `type.googleapis
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`. CLI flag `--strict`. Port 8826. |
 | `createAdminTransport` (`./admin`) | Node | `{ origin, token? }` → `{ credential, agent, port, close }`. `agent` is an `https.Agent` aimed at the emulator. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

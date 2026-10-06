@@ -51,7 +51,7 @@ export class CognitoAPI {
     this.sqlite = bootSqlite(options.sqlite)
     this.namespace = options.namespace ?? COGNITO_NAMESPACE
     this.now = options.now ?? Date.now
-    this.poolId = options.poolId ?? "us-east-1_emulators"
+    this.poolId = options.poolId ?? "us-east-1_emulates"
     this.defaultClientId = options.clientId ?? "emulates-client"
     this.state = new CognitoState(this.sqlite, this.namespace, options.users ?? [])
   }

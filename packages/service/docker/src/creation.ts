@@ -189,9 +189,9 @@ export const createContainer = (
     id = [...ids.next("", 32)].map((c) => c.charCodeAt(0).toString(16)).join("")
   } while (
     state.containers.has(id) ||
-    (!name && state.containers.list().some((c) => c.value.name === `emulators_${id.slice(0, 12)}`))
+    (!name && state.containers.list().some((c) => c.value.name === `emulates_${id.slice(0, 12)}`))
   )
-  name ||= `emulators_${id.slice(0, 12)}`
+  name ||= `emulates_${id.slice(0, 12)}`
   config.Hostname ||= id.slice(0, 12)
   state.containers.insert(id, {
     id,

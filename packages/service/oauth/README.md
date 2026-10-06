@@ -1,6 +1,6 @@
 # @emulates/oauth
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 A stateful OAuth 2.0 / OpenID Connect identity sandbox. Google, Apple, Microsoft and GitHub wire profiles share a vendor-neutral account chooser, signup and consent UI. Generic OIDC works with other configurable identity clients. Uses real RS256 signatures, discovery, JWKS, authorization codes, S256 PKCE, refresh tokens and revocation.
 

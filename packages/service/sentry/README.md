@@ -1,6 +1,6 @@
 # @emulates/sentry
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 A stateful Sentry SDK transport and event/issue assertion emulator. This initial package is **wip**:
 its bounded surface follows the official envelope protocol and Relay responses, not the entire

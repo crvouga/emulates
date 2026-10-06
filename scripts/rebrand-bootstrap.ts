@@ -25,6 +25,19 @@ import { project, repositoryUrl } from "../project.ts"
 import { root } from "./release/lib.ts"
 
 const FORMER_ENV_PREFIXES = ["MOCKINGBIRD_", "EMULATORS_"] as const
+/** GitHub repo names this checkout may still use as `origin`. */
+const FORMER_GITHUB_REPOS = ["mockingbird", "emulators"] as const
+
+/** The origin URL to set, or null when `remote` should stay. `target` includes `.git`. */
+export function nextOriginUrl(remote: string, target: string): string | null {
+  const repoName = (url: string) => url.match(/[/:]([^/:]+?)(?:\.git)?$/)?.[1]
+  const remoteName = repoName(remote)
+  const targetName = repoName(target)
+  if (!remoteName || !targetName || remoteName === targetName) return null
+  if (!remote.includes(`crvouga/${remoteName}`)) return null
+  if (!(FORMER_GITHUB_REPOS as readonly string[]).includes(remoteName)) return null
+  return target
+}
 const ENV_PREFIX = `${project.slug.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_`
 
 /**
@@ -71,11 +84,12 @@ async function main(): Promise<number> {
   // 1. git remote.
   const remote = (await $`git remote get-url origin`.cwd(root).quiet().nothrow()).text().trim()
   const target = `${repositoryUrl}.git`
+  const next = nextOriginUrl(remote, target)
   if (!remote) step("git remote", "no origin, skipped")
-  else if (!/crvouga\/mockingbird(?:\.git)?$/.test(remote)) step("git remote", `ok (${remote})`)
+  else if (!next) step("git remote", `ok (${remote})`)
   else {
-    await $`git remote set-url origin ${target}`.cwd(root).quiet()
-    step("git remote", `origin → ${target}`)
+    await $`git remote set-url origin ${next}`.cwd(root).quiet()
+    step("git remote", `origin → ${next}`)
   }
 
   // 2. .env.local keys.

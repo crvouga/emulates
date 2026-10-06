@@ -25,7 +25,7 @@ async function run(cmd: string[]): Promise<void> {
   }
 }
 
-console.log("emulators setup")
+console.log("emulates setup")
 console.log("==================")
 
 step("Installing dependencies")

@@ -14,7 +14,7 @@ export const project = {
   description: "High-fidelity, in-process emulators for APIs and databases.",
   npmScope: "@emulates",
   /** GitHub `owner/name`. */
-  repository: "crvouga/emulators",
+  repository: "crvouga/emulates",
   site: "https://emulates.chrisvouga.dev",
 } as const
 

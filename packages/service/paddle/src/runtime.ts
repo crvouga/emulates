@@ -128,8 +128,8 @@ export type PaddleRuntime = ServiceRuntime<PaddleAPI> & { readonly webhooks: Web
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 
-const adminError = (status: number, message: string, code = "emulators_admin") =>
-  json(status, { error: { type: "emulators_admin", code, message } })
+const adminError = (status: number, message: string, code = "emulates_admin") =>
+  json(status, { error: { type: "emulates_admin", code, message } })
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)

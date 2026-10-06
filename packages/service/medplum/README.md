@@ -1,6 +1,6 @@
 # @emulates/medplum
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful, in-process emulator of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
 for test suites. It covers:
@@ -27,7 +27,7 @@ exchanges: status, headers and body) and seeded random walks run against a self-
 v5.1.37 and the emulator, and they must agree exchange by exchange. The oracle's recording replays
 in CI.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/medplum/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/medplum/SUPPORT.md)
 - Medplum docs: https://www.medplum.com/docs · FHIR R4: https://hl7.org/fhir/R4/
 
 ## Install
@@ -243,7 +243,7 @@ return the same ids.
 
 ## Development
 
-For contributors to the emulators repo only.
+For contributors to the Emulates repo only.
 
 ```bash
 bun run test                          # unit, SDK, auth, runtime, property and recorded-oracle tests
@@ -255,7 +255,7 @@ EMULATES_MEDPLUM_ORACLE_URL=http://127.0.0.1:8103/ bun test medplum.oracle.test.
 ```
 
 The oracle (`oracle/`, dev-only) is the real Medplum server built from the pinned tag
-(`EMULATES_MEDPLUM_VERSION`, default `v5.1.37`) into `~/.cache/emulators/medplum-server`
+(`EMULATES_MEDPLUM_VERSION`, default `v5.1.37`) into `~/.cache/emulates/medplum-server`
 (`MEDPLUM_MOCK_CACHE_DIR`). It runs on embedded Postgres and a `redis-server` on `PATH`. The
 first boot clones and builds it, which takes several minutes. After changing a scenario, run
 `bun run oracle:record`.
@@ -264,4 +264,4 @@ first boot clones and builds it, which takes several minutes. After changing a s
 in its README. `bun run generate` regenerates the operation table and the embedded definitions,
 and `generate:check` fails when they are stale.
 
-Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).
+Part of [Emulates](https://github.com/crvouga/emulates) — agent integration guide: [README](https://github.com/crvouga/emulates#readme) · [llms.txt](https://github.com/crvouga/emulates/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md).

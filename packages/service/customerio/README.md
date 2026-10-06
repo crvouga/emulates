@@ -1,6 +1,6 @@
 # @emulates/customerio
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Customer.io** for test suites, serving all three hosts our code talks to from
 one process: the Segment-compatible **CDP** (`identify`, `track`, `batch`, exactly as
@@ -10,7 +10,7 @@ inbox message), message catalog, profile attribute reads, sender opt-out reconci
 of); reporting events (`unsubscribed`, `subscribed`, `spammed`, subscription preferences,
 `clicked`) are posted to our reporting webhook, signed the way Customer.io signs them.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/customerio/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/customerio/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from Customer.io's CDP (Segment spec) and App API
   references, trimmed to what our consumers send.
 
@@ -161,4 +161,4 @@ username) or the App API key (Bearer) through `PUT /__admin/credentials {"creden
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8810. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

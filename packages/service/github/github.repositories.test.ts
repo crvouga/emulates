@@ -140,7 +140,7 @@ test("owner identity is shared and version limitations remain explicit", async (
     }),
   )
   expect(unsupported.status).toBe(501)
-  expect(await unsupported.json()).toMatchObject({ code: "emulators_unsupported" })
+  expect(await unsupported.json()).toMatchObject({ code: "emulates_unsupported" })
   const health = await request(runtime, "/__admin/health")
   expect(health.status).toBe(200)
   expect(await health.json()).toMatchObject({ service: "github" })
@@ -199,6 +199,6 @@ test("deep cyclic ancestry returns a structured error without partial state", as
     branches: { main: id(100000) },
   })
   expect(response.status).toBe(400)
-  expect(await response.json()).toMatchObject({ code: "emulators_seed_invalid" })
+  expect(await response.json()).toMatchObject({ code: "emulates_seed_invalid" })
   expect((await request(runtime, "/repos/synthetic-org/example")).status).toBe(404)
 })

@@ -13,7 +13,7 @@ import type { SeedSource } from "./src/seed-from.js"
 import { deterministicUuid, MOCK_TEAM_ID } from "./src/state.js"
 
 const params = fcParameters(process.env)
-const AUTH = { "x-vital-api-key": "sk_us_emulators" }
+const AUTH = { "x-vital-api-key": "sk_us_emulates" }
 const HOST = "https://junction.test"
 const now = () => 1_700_000_000_000
 

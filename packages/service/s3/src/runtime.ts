@@ -118,7 +118,7 @@ const admin = (runtime: ServiceRuntime<S3API>): AdminRoutes => ({
     )
       return Response.json(
         {
-          error: { type: "emulators_admin", message: "bucket, key and string body are required" },
+          error: { type: "emulates_admin", message: "bucket, key and string body are required" },
         },
         { status: 400 },
       )
@@ -143,7 +143,7 @@ const admin = (runtime: ServiceRuntime<S3API>): AdminRoutes => ({
           headers: { "content-type": object.contentType ?? "application/octet-stream" },
         })
       : Response.json(
-          { error: { type: "emulators_admin", message: "object not found" } },
+          { error: { type: "emulates_admin", message: "object not found" } },
           { status: 404 },
         )
   },

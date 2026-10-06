@@ -1,6 +1,6 @@
 # @emulates/healthie
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Healthie GraphQL API**, covering the legacy surface our backend still
 calls:
@@ -17,7 +17,7 @@ implementation against a subset of Healthie's schema written by hand. Selection 
 fragments, variables, `__typename` and validation errors therefore behave as they do on
 Healthie, and the emulator returns only the fields a document asks for.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/healthie/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/healthie/SUPPORT.md)
 - Healthie publishes an SDL but no OpenAPI. `openapi.yaml` describes the HTTP side: one GraphQL
   operation and the file-download route. The GraphQL schema is `HEALTHIE_SDL`.
 
@@ -265,4 +265,4 @@ backend uses, so it ships as a normal `dependency` rather than being bundled.
 | `document`, `operationIds`, `supportedOperationIds` | values | The HTTP contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8816. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

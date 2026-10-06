@@ -82,7 +82,7 @@ export type OpenAIRuntimeOptions = Omit<
 }
 export type OpenAIRuntime = ServiceRuntime<OpenAIAPI>
 const fail = (status: number, message: string) =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const routes = (runtime: OpenAIRuntime): AdminRoutes => ({
   "POST /scripts": ({ namespace, body }) => {
     try {

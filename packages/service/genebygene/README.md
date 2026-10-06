@@ -1,6 +1,6 @@
 # @emulates/genebygene
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Gene by Gene's Nucleus API v2** (and its OAuth auth host) for test suites:
 client-credentials tokens with the credential-blocking failures, both recorded product catalogs,
@@ -15,7 +15,7 @@ slot with 15 s sleeps and 300 s waits resolve in milliseconds.
 > The catalog calls this package `@emulates/gene-by-gene`; it is published as
 > `@emulates/genebygene` (bin `emulates-genebygene`).
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/genebygene/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/genebygene/SUPPORT.md)
   (30 of the 51 operations; every one our consumer calls).
 - Contract: `openapi.yaml` is the full Nucleus v2 Swagger document our consumer commits
   (`GXG/transport/spec/gxg-openapi.json`, from `demo-api.genebygene.com`), vendored by
@@ -324,4 +324,4 @@ bun run parity:remote -- genebygene  # the same on GitHub Actions with the repo'
                                    # recordings with gh run download <run-id> -n parity-corpus
 ```
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

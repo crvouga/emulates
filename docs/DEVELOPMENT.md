@@ -8,7 +8,7 @@ Working on this repo: requirements, how the packages are layered, and the qualit
 - npm is required for the package-integrity gates (`bunx publint`, `bunx attw`); Bun runs the rest.
 
 ```bash
-git clone https://github.com/crvouga/emulators.git && cd emulators
+git clone https://github.com/crvouga/emulates.git && cd emulates
 bun run setup   # install, build every package, create .env.local from .env.example
 bun test
 ```
@@ -60,11 +60,11 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | Consumer docs | `bun run pack:check` | Every public package ships a README that opens with the shared epigraph from `sites/docs/src/lib/content.ts`, then `## Install`, `## Usage` (a TypeScript example) and `## API` listing every runtime export |
 | Consumer smoke | `bun run release:smoke` | Packs every public package like the release, `npm install`s the tarballs into a clean project, imports every entry point under Node, and typechecks them plus every README TypeScript example |
 | llms.txt | `bun run check:llms` | [`llms.txt`](../llms.txt) lists every published emulator with the parity it declares (`bun run llms:sync` regenerates) |
-| README | `bun run check:readme` | [`README.md`](../README.md) is the overview, generated from `sites/docs/src/lib/content.ts` and these guides (`bun run readme:sync` regenerates). The catalog of emulators stays on the docs site. Never edit the README by hand |
-| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `emulators.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links). The site serves the same record at `/brands.json`; admin shells fetch `https://emulates.chrisvouga.dev/brands.json` instead of embedding it |
+| README | `bun run check:readme` | [`README.md`](../README.md) is the overview, generated from `sites/docs/src/lib/content.ts` and these guides (`bun run readme:sync` regenerates). The catalog of services stays on the docs site. Never edit the README by hand |
+| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `emulates.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links). The site serves the same record at `/brands.json`; admin shells fetch `https://emulates.chrisvouga.dev/brands.json` instead of embedding it |
 | Docs site | `bun run docs:build` (part of `build`) | [`sites/docs`](../sites/docs) renders the same sources, sends every playground sample to a fresh emulator, runs the quick start and SQL snippets, and fails on missing or stale service metadata |
 | Agent commands | `bun run check:agents` | Every `.agents/commands/*.md` is symlinked into each agent harness (`bun run agents:sync` repairs) |
-| Parity tiers | `bun run check:parity-tiers` | Every service's `emulators.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
+| Parity tiers | `bun run check:parity-tiers` | Every service's `emulates.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
 | Worktree lifecycle | `bun run check:worktree` | Every orchestrator's config (`.superset/`, `.super.engineering/`) runs the same [`scripts/worktree`](../scripts/worktree/README.md) setup, run and teardown (`bun run worktree:sync` regenerates) |
 | Scripts | `bun run check:scripts` | Every `scripts/**/*.ts` typechecks under the base tsconfig (`scripts/tsconfig.json`), and `bun test ./scripts` passes |
 | Workflows | `bun run check:workflows` | Every `.github/workflows/*.yml` passes a pinned, checksum-verified [actionlint](https://github.com/rhysd/actionlint) (its `run:` scripts through shellcheck when that is installed, as on GitHub's runners) |

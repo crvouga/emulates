@@ -20,7 +20,7 @@ import type { WebChallenge } from "./web-auth.ts"
 const github = (overrides: TrustConfig = {}): TrustConfig => ({
   type: "github",
   permissions: ["createPackage"],
-  claims: { repository: "crvouga/emulators", workflow_ref: { file: "ci.yml" } },
+  claims: { repository: "crvouga/emulates", workflow_ref: { file: "ci.yml" } },
   ...overrides,
 })
 
@@ -34,7 +34,7 @@ describe("publisherGap", () => {
       publisherGap(true, [
         {
           type: "github",
-          claims: { repository: "crvouga/emulators", workflow_ref: { file: "ci.yml" } },
+          claims: { repository: "crvouga/emulates", workflow_ref: { file: "ci.yml" } },
         },
       ]),
     ).toBeNull()
@@ -45,8 +45,8 @@ describe("publisherGap", () => {
       publisherGap(true, [
         github({
           claims: {
-            repository: "crvouga/emulators",
-            workflow_ref: "crvouga/emulators/.github/workflows/ci.yml@refs/heads/main",
+            repository: "crvouga/emulates",
+            workflow_ref: "crvouga/emulates/.github/workflows/ci.yml@refs/heads/main",
           },
         }),
       ]),
@@ -63,7 +63,7 @@ describe("publisherGap", () => {
     expect(
       publisherGap(true, [
         github({
-          claims: { repository: "crvouga/emulators", workflow_ref: { file: "release.yml" } },
+          claims: { repository: "crvouga/emulates", workflow_ref: { file: "release.yml" } },
         }),
       ]),
     ).toBe("missing")
@@ -81,7 +81,7 @@ describe("publisherGap", () => {
       publisherGap(true, [
         github({
           claims: {
-            repository: "crvouga/emulators",
+            repository: "crvouga/emulates",
             workflow_ref: { file: "ci.yml" },
             environment: "release",
           },
@@ -122,7 +122,7 @@ describe("trustedPublisherReport", () => {
         "",
         "trusted publisher — 4 to fix",
         "",
-        "No GitHub Actions publisher for crvouga/emulators ci.yml. On the access page add one and allow npm publish. Organization crvouga, repository emulators, workflow filename ci.yml, environment empty.",
+        "No GitHub Actions publisher for crvouga/emulates ci.yml. On the access page add one and allow npm publish. Organization crvouga, repository emulates, workflow filename ci.yml, environment empty.",
         accessUrl("@emulates/fullscript"),
         "",
         "GitHub Actions publisher does not allow npm publish (stage only). On the access page, allow npm publish.",
@@ -238,15 +238,17 @@ describe("registryPackagePath", () => {
 
 describe("repositoryMatchesProject", () => {
   test("accepts this repo's git, https, ssh, and github shorthand forms", () => {
-    expect(repositoryMatchesProject({ url: "git+https://github.com/crvouga/emulators.git" })).toBe(
+    expect(repositoryMatchesProject({ url: "git+https://github.com/crvouga/emulates.git" })).toBe(
       true,
     )
+    expect(repositoryMatchesProject("https://github.com/crvouga/emulates")).toBe(true)
     expect(repositoryMatchesProject("https://github.com/crvouga/emulators")).toBe(true)
-    expect(repositoryMatchesProject("git@github.com:crvouga/emulators.git")).toBe(true)
-    expect(repositoryMatchesProject("git+ssh://git@github.com/crvouga/emulators.git")).toBe(true)
-    expect(repositoryMatchesProject("github:crvouga/emulators")).toBe(true)
+    expect(repositoryMatchesProject("git+https://github.com/crvouga/emulators.git")).toBe(true)
+    expect(repositoryMatchesProject("git@github.com:crvouga/emulates.git")).toBe(true)
+    expect(repositoryMatchesProject("git+ssh://git@github.com/crvouga/emulates.git")).toBe(true)
+    expect(repositoryMatchesProject("github:crvouga/emulates")).toBe(true)
     expect(
-      repositoryMatchesProject("git+https://github.com/crvouga/emulators.git/packages/core"),
+      repositoryMatchesProject("git+https://github.com/crvouga/emulates.git/packages/core"),
     ).toBe(true)
   })
 
@@ -264,13 +266,13 @@ describe("repositoryMatchesProject", () => {
 })
 
 describe("selectProjectPackages", () => {
-  const emulators = { url: "git+https://github.com/crvouga/emulators.git" }
+  const projectRepo = { url: "git+https://github.com/crvouga/emulates.git" }
 
   test("keeps this repo's packages and public workspace packages, and leaves other npm projects out", () => {
     expect(
       selectProjectPackages({
         account: [
-          { name: "@emulates/core", status: 200, repository: emulators },
+          { name: "@emulates/core", status: 200, repository: projectRepo },
           {
             name: "@crvouga/postgres-mem",
             status: 200,
@@ -312,7 +314,7 @@ describe("account package list", () => {
   })
 
   test("reads repository from the packument, then from the latest version", () => {
-    const repository = { url: "git+https://github.com/crvouga/emulators.git" }
+    const repository = { url: "git+https://github.com/crvouga/emulates.git" }
     expect(packumentRepository({ repository })).toEqual(repository)
     expect(
       packumentRepository({

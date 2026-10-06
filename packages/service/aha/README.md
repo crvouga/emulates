@@ -1,6 +1,6 @@
 # @emulates/aha
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **AHA (Advanced Health Academy) at-home phlebotomy** partner API for test
 suites: HMAC-signed create-order and cancel, and — its main job — the order-status webhooks AHA
@@ -8,7 +8,7 @@ posts back. The vendor has no pull API, so every downstream effect (EMR appointm
 storefront status, "blood drawn") starts with a webhook; the emulator emits one on demand, with every
 field our handler reads, so the ZIP-routed bloodwork path can finally be tested.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/aha/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/aha/SUPPORT.md)
 - The vendor publishes no spec: the contract (`openapi.yaml`) is hand-authored from our
   consumers' zod schemas and wire shapes.
 
@@ -175,4 +175,4 @@ Use `seed()` to install arbitrary binary fixtures or `publishResult(orderId, byt
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http` (autoSchedule ticks every 100 ms); the `serve` CLI target; port 8799. |
 | `createAhaSftpServer` (`./sftp`) | Node | Real SSH/SFTP endpoint with deterministic host key/filesystem, shared order state, transfer controls, and an ephemeral port. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

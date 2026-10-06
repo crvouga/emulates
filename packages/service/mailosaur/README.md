@@ -1,6 +1,6 @@
 # @emulates/mailosaur
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Mailosaur** email/SMS testing API for test suites, plus an HTTP ingest so
 anything that "sends" mail (the Resend emulator's `--forward-to-inbox`, the Twilio emulator, Cognito
@@ -8,7 +8,7 @@ hooks, a test) drops it into one inbox. The unmodified `mailosaur` SDK reads it:
 returns within ~20 ms of a message arriving instead of long-polling Mailosaur for up to 120 s,
 and `html.codes` / `text.codes` / `html.links` are parsed the way Mailosaur parses them.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/mailosaur/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/mailosaur/SUPPORT.md)
 - The vendor publishes no OpenAPI spec: `openapi.yaml` is hand-authored from `mailosaur@11.1.0`
   (the requests it sends and the fields its models read) and our consumer's client.
 
@@ -160,4 +160,4 @@ with `x-emulates-namespace` (the Resend emulator forwards with its own namespace
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`, plus `tls: true` for the HTTPS + CONNECT door (`tlsUrl`, `proxyUrl`, `cert`); the `serve` CLI target (`--tls-port`, `--tls-cert`, `--tls-key`, `--tls-cert-out`, `--poll-delay`); port 8793. |
 | `selfSignedCertificate`, `CERTIFICATE_HOSTS` (`./server`) | Node | Generate the in-memory certificate the door presents, and the hosts it names. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

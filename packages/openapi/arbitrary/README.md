@@ -86,4 +86,4 @@ Gotcha: when `mutationSites` finds nothing to break (an unconstrained schema suc
 - [`@emulates/openapi`](https://www.npmjs.com/package/@emulates/openapi) — schema resolution and `validateValue`.
 - [`@emulates/commands`](https://www.npmjs.com/package/@emulates/commands) — builds whole API commands from these arbitraries.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

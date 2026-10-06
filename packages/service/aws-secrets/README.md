@@ -1,6 +1,6 @@
 # @emulates/aws-secrets
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of AWS Secrets Manager and SSM Parameter Store for the official AWS SDK v3 clients. It models secret versions and stages, binary values, deterministic rotation, SecureString metadata, parameter versions, denials, decryption failures, and redacted controls without contacting AWS.
 

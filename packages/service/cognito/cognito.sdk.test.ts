@@ -17,7 +17,7 @@ import {
 } from "amazon-cognito-identity-js"
 import { createServer } from "./src/server.js"
 
-const poolId = "us-east-1_emulators"
+const poolId = "us-east-1_emulates"
 const clientId = "emulates-client"
 
 describe("official Cognito clients", () => {

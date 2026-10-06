@@ -3,7 +3,7 @@ import fc from "fast-check"
 import { JunctionAPI } from "./src/index.js"
 import { OTHER_CANCELLATION_REASON_ID } from "./src/scheduling.js"
 
-const auth = { "x-vital-api-key": "sk_us_emulators" }
+const auth = { "x-vital-api-key": "sk_us_emulates" }
 const host = "https://junction.test"
 const baseTime = 1_700_000_000_000
 /** Walk clock advances so `delay`-queued simulate transitions and slot expiry both engage. */

@@ -47,7 +47,7 @@ export const serve = async (api: FetchAPI, options: NodeServeOptions = {}) => {
       res.end(
         JSON.stringify({
           error: {
-            type: "emulators_internal",
+            type: "emulates_internal",
             message: error instanceof Error ? error.message : String(error),
           },
         }),

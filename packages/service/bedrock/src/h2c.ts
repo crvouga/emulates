@@ -61,7 +61,7 @@ const isDrop = (error: unknown) => (error as { code?: string } | null)?.code ===
 const internalError = (error: unknown) =>
   JSON.stringify({
     error: {
-      type: "emulators_internal",
+      type: "emulates_internal",
       message: error instanceof Error ? error.message : String(error),
     },
   })

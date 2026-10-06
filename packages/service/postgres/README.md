@@ -1,6 +1,6 @@
 # @emulates/postgres
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Pure TypeScript, completely in-memory PostgreSQL engine aiming for **PostgreSQL 18 SQL dialect
 parity** (same statements, same results). Use it in tests (or the browser) wherever you want real
@@ -22,7 +22,7 @@ isolation.
   format (not `pg_dump`)
 
 It is not an HTTP emulator and is not the storage engine the HTTP emulators use (they
-use the SQLite-dialect [`@emulates/sqlite`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite#readme)
+use the SQLite-dialect [`@emulates/sqlite`](https://github.com/crvouga/emulates/tree/main/packages/service/sqlite#readme)
 through the `SqliteClient` port). Use this package as the database for your own code under test.
 
 ### Documentation
@@ -34,12 +34,12 @@ Files marked (shipped) are included in the npm package next to this README.
 | [COMPATIBILITY.md](./COMPATIBILITY.md) (shipped) | Feature matrix + verify commands |
 | [COMPATIBILITY-AUDIT.md](./COMPATIBILITY-AUDIT.md) (shipped) | Audit evidence |
 | [AGENTS.md](./AGENTS.md) (shipped) | Contributor docs: architecture, how to change code, test/compat gates |
-| [DROP-IN-CONTRACT.md](https://github.com/crvouga/emulators/blob/main/packages/service/postgres/docs/DROP-IN-CONTRACT.md) | Falsifiable drop-in claim (what "same" means) |
-| [PROOF.md](https://github.com/crvouga/emulators/blob/main/packages/service/postgres/docs/PROOF.md) | Evidence argument + what is not proven |
-| [GAP-ANALYSIS.md](https://github.com/crvouga/emulators/blob/main/packages/service/postgres/docs/GAP-ANALYSIS.md) | Gap analysis vs the full PostgreSQL surface |
-| [GAP-CATALOG.md](https://github.com/crvouga/emulators/blob/main/packages/service/postgres/docs/GAP-CATALOG.md) | Current unproven / thin / intentional inventory |
-| [DIVERGENCES.md](https://github.com/crvouga/emulators/blob/main/packages/service/postgres/DIVERGENCES.md) | Auto-generated intentional divergences (machine-readable: `compat/divergences.json`, shipped) |
-| [PERFORMANCE.md](https://github.com/crvouga/emulators/blob/main/packages/service/postgres/benchmarks/PERFORMANCE.md) | Performance notes |
+| [DROP-IN-CONTRACT.md](https://github.com/crvouga/emulates/blob/main/packages/service/postgres/docs/DROP-IN-CONTRACT.md) | Falsifiable drop-in claim (what "same" means) |
+| [PROOF.md](https://github.com/crvouga/emulates/blob/main/packages/service/postgres/docs/PROOF.md) | Evidence argument + what is not proven |
+| [GAP-ANALYSIS.md](https://github.com/crvouga/emulates/blob/main/packages/service/postgres/docs/GAP-ANALYSIS.md) | Gap analysis vs the full PostgreSQL surface |
+| [GAP-CATALOG.md](https://github.com/crvouga/emulates/blob/main/packages/service/postgres/docs/GAP-CATALOG.md) | Current unproven / thin / intentional inventory |
+| [DIVERGENCES.md](https://github.com/crvouga/emulates/blob/main/packages/service/postgres/DIVERGENCES.md) | Auto-generated intentional divergences (machine-readable: `compat/divergences.json`, shipped) |
+| [PERFORMANCE.md](https://github.com/crvouga/emulates/blob/main/packages/service/postgres/benchmarks/PERFORMANCE.md) | Performance notes |
 
 ## Install
 
@@ -322,7 +322,7 @@ The engine is deterministic by default:
 
 Goal: **SQL dialect** behavioural parity vs PostgreSQL **18.3** for the sync API. Full matrix:
 [COMPATIBILITY.md](./COMPATIBILITY.md). Contract:
-[DROP-IN-CONTRACT.md](https://github.com/crvouga/emulators/blob/main/packages/service/postgres/docs/DROP-IN-CONTRACT.md).
+[DROP-IN-CONTRACT.md](https://github.com/crvouga/emulates/blob/main/packages/service/postgres/docs/DROP-IN-CONTRACT.md).
 
 The in-process API has no async client, no connection pooling and no `pg_dump` codec; the optional
 [wire-protocol server](#wire-protocol-server-separate-processes) adds a TCP listener, per-session
@@ -478,7 +478,7 @@ The exports of the main entry (`@emulates/postgres`) are **frozen**:
 
 ## Development
 
-For contributors to the emulators repo only. Requires [Bun](https://bun.sh). For
+For contributors to the Emulates repo only. Requires [Bun](https://bun.sh). For
 architecture, change checklists, and how to add contract tests, see [AGENTS.md](./AGENTS.md).
 
 Parity is proven by differential contracts against real PostgreSQL: the default oracle is PGlite
@@ -508,12 +508,12 @@ POSTGRES_MEM_FUZZ_SEED=12345 POSTGRES_MEM_FUZZ_PATH='0:1' bun test tests/fuzz  #
 ```
 
 A React + Vite SQL playground lives in
-[`examples/react-vite`](https://github.com/crvouga/emulators/tree/main/packages/service/postgres/examples/react-vite)
+[`examples/react-vite`](https://github.com/crvouga/emulates/tree/main/packages/service/postgres/examples/react-vite)
 (`bun run example` from this package after `bun install` there). More working examples:
-[`tests/contract/api/`](https://github.com/crvouga/emulators/tree/main/packages/service/postgres/tests/contract/api)
-and [`tests/contract/parameters/`](https://github.com/crvouga/emulators/tree/main/packages/service/postgres/tests/contract/parameters).
+[`tests/contract/api/`](https://github.com/crvouga/emulates/tree/main/packages/service/postgres/tests/contract/api)
+and [`tests/contract/parameters/`](https://github.com/crvouga/emulates/tree/main/packages/service/postgres/tests/contract/parameters).
 
-Released automatically from the [Emulates monorepo](https://github.com/crvouga/emulators)
-(see [Releasing](https://github.com/crvouga/emulators/blob/main/docs/RELEASING.md)). License: MIT ([LICENSE](./LICENSE)).
+Released automatically from the [Emulates monorepo](https://github.com/crvouga/emulates)
+(see [Releasing](https://github.com/crvouga/emulates/blob/main/docs/RELEASING.md)). License: MIT ([LICENSE](./LICENSE)).
 
-Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).
+Part of [Emulates](https://github.com/crvouga/emulates) — agent integration guide: [README](https://github.com/crvouga/emulates#readme) · [llms.txt](https://github.com/crvouga/emulates/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md).

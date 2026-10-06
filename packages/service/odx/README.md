@@ -1,6 +1,6 @@
 # @emulates/odx
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Optimal DX (ODX)** partner API for test suites: partner labs and their
 biomarker elements, practice patients (create, update, delete, partner link, search), lab
@@ -13,7 +13,7 @@ webhook registrations, and the signed `PatientTest` webhooks ODX posts back.
 > (`@emulates/posthog`); use this emulator when a suite must exercise the ODX
 > path itself (bio-age webhooks, the Healthie PDF upload, migrations).
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/odx/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/odx/SUPPORT.md)
 - ODX publishes no spec: `openapi.yaml` is hand-authored from our consumer's wire shapes
   (`optimal.dx.service.ts`, the webhook guard and DTO, and QA's `odx-client.ts`).
 
@@ -146,4 +146,4 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `wrong
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8817. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

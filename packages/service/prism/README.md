@@ -1,6 +1,6 @@
 # @emulates/prism
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Prism Labs** body-scan API for test suites: subject upsert, scan
 creation, the presigned capture upload the capture page PUTs its video to, per-stage
@@ -9,7 +9,7 @@ measurements, health report with metabolic age, asset URLs). Scans move through 
 lifecycle (`CREATED` → `PROCESSING` → `READY` / `FAILED`) on command or on the emulator clock, and
 results are computed deterministically from the subject's height, weight, sex and age.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/prism/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/prism/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from the consumer's zod schemas
   (`prism-scan.adapter.ts`) and the capture page's upload (`body-scan-capture-page`).
 
@@ -113,4 +113,4 @@ other carrier.
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http` (auto-advance ticks every 100 ms); the `serve` CLI target (`--api-key`, `--auto-advance`); port 8825. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

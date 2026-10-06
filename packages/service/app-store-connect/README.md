@@ -1,6 +1,6 @@
 # @emulates/app-store-connect
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP App Store Connect emulator for JSON:API apps, users, user invitations, beta groups and
 beta testers. ES256 signatures are actually verified; no real Apple account or emails.

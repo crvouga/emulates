@@ -8,7 +8,7 @@ import { reshapeQaCommand } from "./src/reshape-qa.js"
 
 const params = fcParameters(process.env)
 const MOCK_HOST = "mock.stripe.local"
-const AUTH = { authorization: "Bearer sk_test_emulators" }
+const AUTH = { authorization: "Bearer sk_test_emulates" }
 const now = () => 1_700_000_000_000
 
 /**

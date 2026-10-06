@@ -1,6 +1,6 @@
 # @emulates/cognito
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful local emulator of Amazon Cognito User Pools for the AWS SDK and `amazon-cognito-identity-js`. It implements the authentication, user administration, group, federation, recovery, JWT, discovery, and JWKS surface the consumer app uses without contacting AWS.
 
@@ -20,7 +20,7 @@ Point `COGNITO_ENDPOINT` or the AWS SDK `endpoint` option at the served emulator
 import { createRuntime } from "@emulates/cognito"
 
 const cognito = createRuntime({
-  poolId: "us-east-1_emulators",
+  poolId: "us-east-1_emulates",
   clientId: "emulates-client",
   users: [
     {
@@ -33,7 +33,7 @@ const cognito = createRuntime({
 })
 ```
 
-The Node adapter is `createServer()` from `./server`; the CLI is `npx emulates-cognito serve --port 8811 --pool-id us-east-1_emulators --client-id emulates-client`.
+The Node adapter is `createServer()` from `./server`; the CLI is `npx emulates-cognito serve --port 8811 --pool-id us-east-1_emulates --client-id emulates-client`.
 
 ### AWS JSON operations
 

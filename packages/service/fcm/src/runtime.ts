@@ -102,7 +102,7 @@ const json = (status: number, body: unknown) =>
   })
 
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulators_admin", message } })
+  json(status, { error: { type: "emulates_admin", message } })
 
 const outboxQuery = (url: URL): OutboxQuery => {
   const since = url.searchParams.get("since")

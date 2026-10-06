@@ -33,7 +33,7 @@ import {
 // (better-sqlite3, a wrapped bun:sqlite, @emulates/sqlite's Database).
 const sqlite: SqliteClient = resolveSqlite(undefined) // same as createDefaultSqlite()
 
-migrateCore(sqlite) // emulators_records + emulators_sequences; mocks do this on boot
+migrateCore(sqlite) // emulates_records + emulates_sequences; mocks do this on boot
 
 const migrations: Migration[] = [
   { id: "001_kv", sql: "CREATE TABLE kv (k TEXT PRIMARY KEY, v INTEGER NOT NULL)" },
@@ -62,7 +62,7 @@ All methods are synchronous; do not `await` them.
 | `resolveSqlite` | `(sqlite?: SqliteClient) => SqliteClient` | Return the injected client, or `createDefaultSqlite()`. |
 | `migrate` | `(sqlite, migrations: readonly Migration[]) => void` | Apply pending migrations in order, all in one transaction. Idempotent by `id`. |
 | `listAppliedMigrations` | `(sqlite) => string[]` | Applied ids ordered by `applied_at` (whole seconds), then `id`. Migrations applied in the same second come back sorted by id, not in application order. |
-| `CORE_MIGRATIONS` | `readonly Migration[]` | Core schema: `emulators_records` (namespaced JSON records) and `emulators_sequences`. |
+| `CORE_MIGRATIONS` | `readonly Migration[]` | Core schema: `emulates_records` (namespaced JSON records) and `emulates_sequences`. |
 | `migrateCore` | `(sqlite) => void` | `migrate(sqlite, CORE_MIGRATIONS)`. |
 | `clearNamespace` | `(sqlite, namespace: string) => void` | Delete every record and sequence in a namespace (what an emulator's `reset()` does). |
 
@@ -81,4 +81,4 @@ Types:
 - `@emulates/sqlite`: the default in-memory SQLite engine.
 - `@emulates/service`: `bootSqlite`, `Collection` and `IdSequence` on top of this port.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).
