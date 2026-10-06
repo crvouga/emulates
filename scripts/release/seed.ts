@@ -1,7 +1,7 @@
 /**
  * Seed npm: reconcile the npm registry with origin/main, from your own npm login.
  *
- * Only emulator services (`@emulators/*`) are published; every other
+ * Only emulator services (`@emulates/*`) are published; every other
  * workspace package is private and bundled into the services. Reconciling means:
  *   - publish every service that is not on npm yet (Trusted Publishing (OIDC) cannot
  *     create packages, so a maintainer does it once with an interactive npm login),
@@ -22,17 +22,30 @@
  *   bun run release:seed               (reconcile)
  *   bun run release:seed -- --dry-run  (plan + pack, print what would change)
  */
-import { mkdtempSync, rmSync } from "node:fs"
+import { existsSync, mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { chdir } from "node:process"
 import { $ } from "bun"
 import { root } from "./lib.ts"
+
+/**
+ * Bun's shell calls getcwd() even when `.cwd()` is set, and throws ENOENT if this
+ * process's directory was removed (oven-sh/bun#23589). `chdir` to a live absolute
+ * path repairs that before the next `$` or spawn.
+ */
+function enter(dir: string) {
+  if (!existsSync(dir)) throw new Error(`release:seed: missing directory ${dir}`)
+  chdir(dir)
+}
 
 const dryRun = process.argv.includes("--dry-run")
 const MIN_NPM = [11, 10] as const
 
 async function run(cmd: string[], cwd: string, env: Record<string, string | undefined>) {
+  enter(cwd)
   const code = await Bun.spawn(cmd, { cwd, env, stdio: ["inherit", "inherit", "inherit"] }).exited
+  enter(root)
   if (code !== 0) throw new Error(`${cmd.join(" ")} exited ${code}`)
 }
 
@@ -41,10 +54,11 @@ function npmIsRecentEnough(version: string): boolean {
   return major > MIN_NPM[0] || (major === MIN_NPM[0] && minor >= MIN_NPM[1])
 }
 
-const scratch = mkdtempSync(join(tmpdir(), "emulators-seed-"))
+const scratch = mkdtempSync(join(tmpdir(), "emulates-seed-"))
 const worktree = join(scratch, "main")
 const env: Record<string, string | undefined> = { ...process.env }
 delete env.NODE_AUTH_TOKEN
+enter(root)
 
 try {
   // 1. npm new enough for `npm trust`.
@@ -82,6 +96,19 @@ try {
   console.error(`release:seed: ${error instanceof Error ? error.message : String(error)}`)
   process.exitCode = 1
 } finally {
-  await $`git worktree remove --force ${worktree}`.cwd(root).quiet().nothrow()
+  try {
+    enter(root)
+  } catch {
+    // The checkout this process started in is gone; removal below uses absolute paths.
+  }
+  try {
+    await Bun.spawn(["git", "worktree", "remove", "--force", worktree], {
+      cwd: root,
+      stdout: "ignore",
+      stderr: "ignore",
+    }).exited
+  } catch {
+    // Absolute removal below still drops the checkout if git cannot start.
+  }
   rmSync(scratch, { recursive: true, force: true })
 }
