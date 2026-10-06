@@ -127,6 +127,22 @@ describe("canonicalizeValue", () => {
     )
   })
 
+  test("preserves __proto__ keys as own properties without changing prototypes", () => {
+    const value = JSON.parse('{"__proto__":{"polluted":true},"nested":{"__proto__":null}}')
+    const canonical = canonicalizeValue(value, {
+      document,
+      schema: undefined,
+      parityHeaders: [],
+      side: "mock",
+      table: new ResourceTable(),
+    }) as Record<string, unknown>
+    expect(canonical).toEqual(value)
+    expect(Object.hasOwn(canonical, "__proto__")).toBe(true)
+    expect(Object.getPrototypeOf(canonical)).toBe(Object.prototype)
+    expect(Object.getPrototypeOf(canonical.nested)).toBe(Object.prototype)
+    expect(canonical.polluted).toBeUndefined()
+  })
+
   test("without a schema nothing but known ids is rewritten", () => {
     fc.assert(
       fc.property(fc.jsonValue(), (value) => {

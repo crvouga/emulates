@@ -84,9 +84,9 @@ const mapStrings = (value: unknown, f: (s: string) => string): unknown => {
   if (typeof value === "string") return f(value)
   if (Array.isArray(value)) return value.map((item) => mapStrings(item, f))
   if (typeof value === "object" && value !== null) {
-    const out: Record<string, unknown> = {}
-    for (const [key, item] of Object.entries(value)) out[f(key)] = mapStrings(item, f)
-    return out
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [f(key), mapStrings(item, f)]),
+    )
   }
   return value
 }
