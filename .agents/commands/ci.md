@@ -5,7 +5,7 @@ description: Run every check (format, lint, typecheck, build, test, pack, portab
 
 # Check Loop
 
-You are making the emulators repo fully green: **all checks** (lint, typecheck, build, tests,
+You are making the Emulates repo fully green: **all checks** (lint, typecheck, build, tests,
 portability, pack, boundaries) **and live parity** (differential property tests against each
 provider's real sandbox). Run the checks, fix every failure at its root cause, repeat until
 everything passes, then commit. Never stop on a green-ish subset and never disable, skip,

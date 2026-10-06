@@ -1,6 +1,6 @@
 # @emulates/checkr
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Checkr v1 emulator for synthetic candidates, package/hierarchy enumeration, invitations
 and seeded report/ETA reads. No checks run, emails are sent or real personal data is needed.

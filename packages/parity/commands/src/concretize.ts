@@ -60,7 +60,7 @@ export const resolveForSide = (
   deletedRefProbability = 0,
 ): unknown =>
   resolvePlaceholders(value, (placeholder: Placeholder) => {
-    switch (placeholder.$emulators) {
+    switch (placeholder.$emulates) {
       case "ref": {
         const ref = pickRef(table, placeholder.type, placeholder.pick, deletedRefProbability)
         const id = ref === undefined ? undefined : table.idOf(ref, side)

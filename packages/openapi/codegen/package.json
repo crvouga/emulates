@@ -18,10 +18,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/openapi/codegen"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/openapi/codegen#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/openapi/codegen#readme",
   "keywords": [
     "emulates",
     "openapi",

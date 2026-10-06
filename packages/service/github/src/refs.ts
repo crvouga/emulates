@@ -46,7 +46,7 @@ export const refHandlers = (
           throw new RefError(422, "Reference name is not valid")
         if (ref.startsWith("refs/pull/"))
           return jsonRes(501, {
-            code: "emulators_unsupported",
+            code: "emulates_unsupported",
             message: "Emulates does not model provider-managed pull refs",
           })
         if (kind === "update" && input.force !== undefined && typeof input.force !== "boolean")

@@ -13,12 +13,13 @@ The name and the sentence live in `project.ts` at the repo root as `project.name
 and `tagline`). Change them in `project.ts`. `bun run readme:sync` and `bun run llms:sync`
 rewrite the generated files. Do not paraphrase the sentence in a package README or on a page.
 
-Call the packages emulators: high-fidelity, in-process, API or database emulators. Say
-"mock" only to contrast a hand-written mock with an emulator.
+The product is called Emulates. Call a package an Emulates service. The sentence uses
+"emulators" as the ordinary word for an in-process stand-in, not as the name. Say "mock"
+only to contrast a hand-written mock with an Emulates service.
 
 ## The mark
 
-`sites/docs/public/identity/emulators.svg` is the mark: two overlapping rounded squares on a
+`sites/docs/public/identity/emulates.svg` is the mark: two overlapping rounded squares on a
 dark tile, an original and its stand-in. That path is `MARK_REPO_PATH` in
 `sites/docs/src/lib/content.ts`. The docs site serves the same file as the favicon
 (`image/svg+xml`) and renders it in the header and footer through

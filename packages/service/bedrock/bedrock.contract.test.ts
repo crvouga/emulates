@@ -154,7 +154,7 @@ describe("the Emulates contract", () => {
     const bad = await runtime.fetch(admin("/settings", { nope: 1 }, "PUT"))
     expect(bad.status).toBe(400)
     expect(await bad.json()).toEqual({
-      error: { type: "emulators_admin", message: "unknown setting nope" },
+      error: { type: "emulates_admin", message: "unknown setting nope" },
     })
   })
 })

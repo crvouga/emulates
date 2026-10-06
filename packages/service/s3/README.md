@@ -1,6 +1,6 @@
 # @emulates/s3
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Amazon S3 emulator for AWS SDK v3. It preserves binary objects and the metadata applications read, supports path-style endpoints, multipart uploads, copies, ranges, pagination, presigned URLs, XML errors, namespace isolation, faults, and object notifications without contacting AWS.
 

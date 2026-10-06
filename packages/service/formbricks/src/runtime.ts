@@ -126,7 +126,7 @@ export type FormbricksRuntime = ServiceRuntime<FormbricksAPI> & { readonly webho
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulators_admin", message } })
+  json(status, { error: { type: "emulates_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 

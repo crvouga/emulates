@@ -1,4 +1,4 @@
-import { loaders } from "virtual:emulators/runtimes"
+import { loaders } from "virtual:emulates/runtimes"
 import type { Operation } from "../lib/types.ts"
 import { escapeHtml, formatBytes, highlightJson } from "./render.ts"
 

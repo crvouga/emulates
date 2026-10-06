@@ -1,6 +1,6 @@
 # @emulates/openai
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip**, portable, entirely local OpenAI emulator for Chat Completions, function tool loops,
 Chat SSE streams, embeddings, models, files and staged uploads. Verified with unmodified

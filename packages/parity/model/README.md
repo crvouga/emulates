@@ -36,11 +36,11 @@ for (const side of ["real", "mock"] as const) {
   console.log(
     side,
     resolvePlaceholders(body, (placeholder) => {
-      if (placeholder.$emulators === "ref") {
+      if (placeholder.$emulates === "ref") {
         const ref = pickRef(table, placeholder.type, placeholder.pick)
         return ref === undefined ? undefined : table.idOf(ref, side)
       }
-      return placeholder.$emulators === "missing" ? "cus_does_not_exist" : placeholder.value
+      return placeholder.$emulates === "missing" ? "cus_does_not_exist" : placeholder.value
     }),
   )
 }
@@ -56,15 +56,15 @@ for (const side of ["real", "mock"] as const) {
 | `SIDES` | `readonly ["real", "mock"]` | Both sides of a comparison. |
 | `canonicalToken` | `(type, handle) => string` | `resource:<type>:<handle>`, identical on both sides. |
 | `describeRef` | `(ref: SymbolicRef) => string` | `"customer #2"`. |
-| `PLACEHOLDER_KEY` | `"$emulators"` | Marker key of placeholders embedded in generated values. |
+| `PLACEHOLDER_KEY` | `"$emulates"` | Marker key of placeholders embedded in generated values. |
 | `refPlaceholder` | `(type, pick: number) => Placeholder` | "The `pick`-th existing resource of `type`" (modulo count at execution time). |
 | `missingPlaceholder` | `(type, missing?: string) => Placeholder` | A well-formed id that exists on neither side. |
 | `scopePlaceholder` | `(value: string) => Placeholder` | A run-scoped value (`run-id`, `walk-start-unix`, `walk-start-iso`). |
-| `isPlaceholder` | `(value) => value is Placeholder` | Object with a string `$emulators` key. |
+| `isPlaceholder` | `(value) => value is Placeholder` | Object with a string `$emulates` key. |
 | `resolvePlaceholders` | `(value, resolve: (p: Placeholder) => unknown) => unknown` | Depth-first copy replacing every placeholder (safe for `__proto__` keys). |
 | `collectPlaceholders` | `(value, out?) => Placeholder[]` | Every placeholder in pre-order. |
 | `pickRef` | `(table, type, pick, deletedRefProbability = 0) => SymbolicRef \| undefined` | Resolve a `ref` pick against active handles, wrapping around; `undefined` if none exist. With a probability > 0, some picks (`pick % 100` below the threshold) also consider deleted resources. |
-| `defaultMissingId` | `(type) => string` | `emulators_missing_<type>`, used when the spec gives no `missing` id. |
+| `defaultMissingId` | `(type) => string` | `emulates_missing_<type>`, used when the spec gives no `missing` id. |
 
 `ResourceTable` methods:
 
@@ -88,4 +88,4 @@ Exported types: `Side` (`"real" | "mock"`), `SymbolicRef` (`{ type; handle }`), 
 - [`@emulates/canonicalize`](https://www.npmjs.com/package/@emulates/canonicalize) — rewrites ids to canonical tokens using the table.
 - [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — the runner that ties them together.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

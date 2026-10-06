@@ -124,7 +124,7 @@ const json = (status: number, body: unknown): Response =>
 
 /** Admin errors use one documented shape, distinct from any vendor's error body. */
 const adminError = (status: number, message: string): Response =>
-  json(status, { error: { type: "emulators_admin", message } })
+  json(status, { error: { type: "emulates_admin", message } })
 
 const UNITS: Record<string, number> = {
   ms: 1,

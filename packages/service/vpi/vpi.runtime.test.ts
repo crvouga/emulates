@@ -108,14 +108,14 @@ describe("the Emulates service contract", () => {
     expect(await list.json()).toEqual([])
   })
 
-  test("admin errors use the emulators_admin shape; settings validate", async () => {
+  test("admin errors use the emulates_admin shape; settings validate", async () => {
     const runtime = createRuntime()
     const missing = await call(runtime, "/__admin/prescriptions/nope/transition", {
       body: { to: "Cancelled" },
     })
     expect(missing.status).toBe(404)
     expect(((await missing.json()) as { error: { type: string } }).error.type).toBe(
-      "emulators_admin",
+      "emulates_admin",
     )
     expect(
       (await call(runtime, "/__admin/settings", { method: "PUT", body: { statusEnvelope: "xml" } }))

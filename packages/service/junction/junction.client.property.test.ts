@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { JunctionAPI } from "./src/index.js"
 
-const auth = { "x-vital-api-key": "sk_us_emulators" }
+const auth = { "x-vital-api-key": "sk_us_emulates" }
 const now = () => 1_700_000_000_000
 const request = (api: JunctionAPI, path: string, init?: RequestInit) =>
   api.fetch(

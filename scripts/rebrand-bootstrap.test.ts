@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { renameEnvKeys } from "./rebrand-bootstrap.ts"
+import { nextOriginUrl, renameEnvKeys } from "./rebrand-bootstrap.ts"
 
 describe("renameEnvKeys", () => {
   test("renames former keys and keeps values, comments and other keys", () => {
@@ -31,5 +31,15 @@ describe("renameEnvKeys", () => {
     expect(text).toBe("EMULATES_ADMIN_KEY=abc\n")
     expect(renamed).toEqual(["EMULATES_ADMIN_KEY"])
     expect(kept).toEqual([])
+  })
+})
+
+describe("nextOriginUrl", () => {
+  test("points a former GitHub remote at crvouga/emulates", () => {
+    const target = "https://github.com/crvouga/emulates.git"
+    expect(nextOriginUrl("https://github.com/crvouga/mockingbird.git", target)).toBe(target)
+    expect(nextOriginUrl("git@github.com:crvouga/emulators.git", target)).toBe(target)
+    expect(nextOriginUrl(target, target)).toBeNull()
+    expect(nextOriginUrl("https://github.com/other/emulators.git", target)).toBeNull()
   })
 })

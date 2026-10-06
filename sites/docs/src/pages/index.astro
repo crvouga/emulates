@@ -1,5 +1,5 @@
 ---
-import catalog from "virtual:emulators/catalog"
+import catalog from "virtual:emulates/catalog"
 import Icon from "../components/Icon.astro"
 import Install from "../components/Install.astro"
 import BrowserStack from "../components/landing/BrowserStack.astro"
@@ -19,13 +19,13 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     <div class="container hero-inner">
       <p class="hero-kicker">
         <Mark size={40} />
-        <a href="/services">{totals.services} emulators</a>
+        <a href="/services">{totals.services} services</a>
       </p>
       <h1>{IDENTITY.name}</h1>
       <p class="tagline">{IDENTITY.tagline}</p>
       <p class="lede" set:html={inline(PITCH)} />
       <div class="hero-cta">
-        <a class="btn btn-primary" href="/services">Browse emulators <Icon name="arrow-right" /></a>
+        <a class="btn btn-primary" href="/services">Browse services <Icon name="arrow-right" /></a>
         <a class="btn btn-secondary" href="/why">Why {IDENTITY.name}</a>
       </div>
       <div class="hero-install">
@@ -36,7 +36,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 
   <div class="container">
     <section class="stats" aria-label="By the numbers">
-    <a href="/services"><strong>{totals.services}</strong><span>emulators</span></a>
+    <a href="/services"><strong>{totals.services}</strong><span>services</span></a>
     <a href="/coverage"><strong>{totals.opsSupported}</strong><span>vendor operations emulated</span></a>
     <div><strong>0</strong><span>network calls</span></div>
   </section>

@@ -67,19 +67,19 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
       const meta = pkg.emulates ?? {}
       if (!isCategory(meta.category ?? "")) {
         problems.push(
-          `${where}: "emulators.category" must be one of ${Object.keys(CATEGORIES).join(", ")} (got ${JSON.stringify(meta.category)})`,
+          `${where}: "emulates.category" must be one of ${Object.keys(CATEGORIES).join(", ")} (got ${JSON.stringify(meta.category)})`,
         )
         return null
       }
       if (typeof meta.displayName !== "string" || meta.displayName.trim() === "") {
         problems.push(
-          `${where}: "emulators.displayName" is required (the vendor's name as people write it)`,
+          `${where}: "emulates.displayName" is required (the vendor's name as people write it)`,
         )
         return null
       }
       if (typeof meta.parity !== "string" || meta.parity.trim() === "" || meta.parity.length > 80) {
         problems.push(
-          `${where}: "emulators.parity" is required: a short statement of the vendor surface this emulator keeps in step (got ${JSON.stringify(meta.parity)})`,
+          `${where}: "emulates.parity" is required: a short statement of the vendor surface this emulator keeps in step (got ${JSON.stringify(meta.parity)})`,
         )
         return null
       }
@@ -108,7 +108,7 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
       )
       if ((meta.runtime ?? "portable") !== "portable") {
         problems.push(
-          `${where}: every emulator runs in Node, Bun, browsers, and Workers, so "emulators.runtime" must be "portable" (got ${JSON.stringify(meta.runtime)})`,
+          `${where}: every emulator runs in Node, Bun, browsers, and Workers, so "emulates.runtime" must be "portable" (got ${JSON.stringify(meta.runtime)})`,
         )
       }
       const kind: ServiceKind =
@@ -135,14 +135,14 @@ export async function loadCatalog({ repoRoot, docsRoot }: CatalogPaths): Promise
       const defaultOperation = pickDefault(operations, playground.operation)
       if (headers && !operations.some((o) => o.verified)) {
         problems.push(
-          `${where}: no sample request succeeds with "emulators.playground.headers" / "basicAuth"; the credentials no longer match what the emulator accepts`,
+          `${where}: no sample request succeeds with "emulates.playground.headers" / "basicAuth"; the credentials no longer match what the emulator accepts`,
         )
       }
       if (playground.operation) {
         const op = operations.find((o) => o.id === playground.operation)
         if (!op?.verified) {
           problems.push(
-            `${where}: "emulators.playground.operation" ${JSON.stringify(playground.operation)} ${op ? `does not succeed with its sample request (${sampleFailures.get(op.id) ?? "no runnable sample"})` : "is not an operation in the contract"}`,
+            `${where}: "emulates.playground.operation" ${JSON.stringify(playground.operation)} ${op ? `does not succeed with its sample request (${sampleFailures.get(op.id) ?? "no runnable sample"})` : "is not an operation in the contract"}`,
           )
         }
       }
@@ -335,7 +335,7 @@ async function runQuickStart(
   const entry = pathToFileURL(join(serviceDir, target.name, "dist/index.js")).href
   const logs: unknown[][] = []
   // A fresh module URL is required after catalog invalidation; ESM caches data URLs.
-  const key = `__emulatorsQuickStart_${crypto.randomUUID().replaceAll("-", "")}`
+  const key = `__emulatesQuickStart_${crypto.randomUUID().replaceAll("-", "")}`
   ;(globalThis as Record<string, unknown>)[key] = (...args: unknown[]) => logs.push(args)
   const source = `const console = { log: (...a) => globalThis.${key}(...a) };\n${QUICK_START.code.replaceAll(JSON.stringify(QUICK_START.package), JSON.stringify(entry))}`
   try {

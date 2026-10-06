@@ -145,7 +145,7 @@ describe("placeholders", () => {
         let calls = 0
         const resolved = resolvePlaceholders(value, (p) => {
           calls++
-          return `<${p.$emulators}>`
+          return `<${p.$emulates}>`
         })
         expect(calls).toBe(placeholders.length)
         expect(collectPlaceholders(resolved)).toEqual([])
@@ -163,7 +163,7 @@ describe("placeholders", () => {
           typeof value === "object" &&
             value !== null &&
             !Array.isArray(value) &&
-            typeof (value as Record<string, unknown>).$emulators === "string",
+            typeof (value as Record<string, unknown>).$emulates === "string",
         )
       }),
       fcParameters(process.env),

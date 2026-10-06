@@ -1,6 +1,6 @@
 /**
- * Full-stack demo apps built entirely on emulators, one process,
- * no real network. Hand-authored (unlike the per-service `emulators.examples`
+ * Full-stack demo apps built entirely on Emulates, one process,
+ * no real network. Hand-authored (unlike the per-service `emulates.examples`
  * snippets, which the catalog integration derives from each service's own
  * package.json at build time) because there is one of these per app, not
  * per service.

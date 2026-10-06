@@ -812,7 +812,7 @@ export const createRuntime = <T extends ServiceInstance>(
           new Response(
             JSON.stringify({
               error: {
-                type: "emulators_admin",
+                type: "emulates_admin",
                 message: `${NAMESPACE_HEADER} must match ${NAMESPACE_PATTERN}`,
               },
             }),
@@ -1005,7 +1005,7 @@ const adminJson = (status: number, body: unknown): Response =>
   })
 
 const adminFail = (status: number, message: string): Response =>
-  adminJson(status, { error: { type: "emulators_admin", message } })
+  adminJson(status, { error: { type: "emulates_admin", message } })
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)

@@ -1,6 +1,6 @@
 # @emulates/vercel-blob
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip** portable Vercel Blob emulator verified with the unmodified `@vercel/blob` **2.8.0** SDK.
 Blobs, multipart uploads, pending parts and synthetic download grants use SQLite Collections,

@@ -284,7 +284,7 @@ export const pullHandlers = (
       } catch (error) {
         if (!(error instanceof PullError)) throw error
         if (error.status === 501)
-          return jsonRes(501, { code: "emulators_unsupported", message: error.message })
+          return jsonRes(501, { code: "emulates_unsupported", message: error.message })
         if (error.status === 422)
           return jsonRes(422, {
             message: "Validation Failed",

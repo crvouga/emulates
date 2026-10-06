@@ -54,7 +54,7 @@ export type Settings = {
 export const DEFAULT_SETTINGS: Settings = {
   apiKeys: [],
   domainId: "00000000-0000-4000-8000-00000000da11",
-  roomUrlBase: "https://emulators.daily.co/",
+  roomUrlBase: "https://emulates.daily.co/",
 }
 
 export class DailyState {

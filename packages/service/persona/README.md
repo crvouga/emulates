@@ -1,6 +1,6 @@
 # @emulates/persona
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Persona**'s identity-verification API for test suites: create an inquiry,
 the "reusable inquiry" list lookup, fetch one inquiry, the hosted flow page members are sent
@@ -8,7 +8,7 @@ to, and the `Persona-Signature`-signed events Persona posts back. Inquiries move
 test says so (an admin action or a click on the hosted page), so the Rx consultation's ID
 verification step (flag `rx-id-verification`) runs without a real sandbox or a real selfie.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/persona/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/persona/SUPPORT.md)
 - Persona publishes no OpenAPI document: the contract (`openapi.yaml`) is hand-authored from
   Persona's API reference (JSON:API, `Persona-Version: 2023-01-05`) and our EMR's zod schemas.
 
@@ -153,4 +153,4 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8815. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

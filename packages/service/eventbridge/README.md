@@ -1,6 +1,6 @@
 # @emulates/eventbridge
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP AWS EventBridge control-plane discovery. Seeded rule and target reads use AWS JSON 1.1;
 no containers or infrastructure are executed. Follows the official

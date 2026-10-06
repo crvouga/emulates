@@ -149,7 +149,7 @@ class Step implements fc.AsyncCommand<WalkModel, WalkReal> {
     const deletionTypes = context.deletionTypes?.[this.command.operationId] ?? []
     if (deletionTypes.length > 0) {
       for (const placeholder of collectPlaceholders([this.command.parameters, this.command.body])) {
-        if (placeholder.$emulators !== "ref" || !deletionTypes.includes(placeholder.type)) continue
+        if (placeholder.$emulates !== "ref" || !deletionTypes.includes(placeholder.type)) continue
         const ref = pickRef(context.table, placeholder.type, placeholder.pick)
         if (ref) context.table.markDeleted(ref.handle)
       }

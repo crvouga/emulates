@@ -42,7 +42,7 @@ if (!live.ok || !Array.isArray(liveBody.data)) {
 
 const mock = createRuntime()
 const mocked = await mock.fetch(
-  new Request("http://meta.test/v26.0/act_emulators/insights?limit=1", {
+  new Request("http://meta.test/v26.0/act_emulates/insights?limit=1", {
     headers: { authorization: "Bearer meta_parity" },
   }),
 )

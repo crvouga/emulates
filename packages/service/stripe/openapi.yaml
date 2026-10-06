@@ -25,7 +25,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -118,7 +118,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
       responses:
         "200":
           content:
@@ -199,7 +199,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -312,7 +312,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: billing_portal_session
-              missing: bps_emulators_missing
+              missing: bps_emulates_missing
         - name: flow
           in: query
           schema:
@@ -403,7 +403,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: billing_portal_session
-              missing: bps_emulators_missing
+              missing: bps_emulates_missing
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -777,7 +777,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: balance_transaction
-              missing: txn_emulators_missing
+              missing: txn_emulates_missing
           style: form
         - explode: true
           in: query
@@ -814,7 +814,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: charge
-              missing: ch_emulators_missing
+              missing: ch_emulates_missing
           style: form
         - in: query
           name: starting_after
@@ -824,7 +824,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: balance_transaction
-              missing: txn_emulators_missing
+              missing: txn_emulates_missing
           style: form
         - in: query
           name: type
@@ -967,7 +967,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: balance_transaction
-              missing: txn_emulators_missing
+              missing: txn_emulates_missing
           style: simple
       requestBody:
         content:
@@ -1579,7 +1579,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: billing_portal_configuration
-              missing: bpc_emulators_missing
+              missing: bpc_emulates_missing
           style: simple
         - explode: true
           in: query
@@ -1693,7 +1693,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: billing_portal_configuration
-              missing: bpc_emulators_missing
+              missing: bpc_emulates_missing
           style: simple
       requestBody:
         content:
@@ -2069,13 +2069,13 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: billing_portal_configuration
-                    missing: bpc_emulators_missing
+                    missing: bpc_emulates_missing
                 customer:
                   maxLength: 5000
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -2377,7 +2377,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: ending_before
@@ -2386,7 +2386,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: charge
-              missing: ch_emulators_missing
+              missing: ch_emulates_missing
           style: form
         - explode: true
           in: query
@@ -2418,7 +2418,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: form
         - in: query
           name: starting_after
@@ -2427,7 +2427,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: charge
-              missing: ch_emulators_missing
+              missing: ch_emulates_missing
           style: form
         - in: query
           name: transfer_group
@@ -2862,7 +2862,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: charge
-              missing: ch_emulators_missing
+              missing: ch_emulates_missing
           style: simple
         - explode: true
           in: query
@@ -2981,7 +2981,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: charge
-              missing: ch_emulators_missing
+              missing: ch_emulates_missing
           style: simple
       requestBody:
         content:
@@ -3201,7 +3201,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -3231,7 +3231,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
           style: form
         - explode: true
           in: query
@@ -3262,7 +3262,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: form
         - in: query
           name: payment_link
@@ -3279,7 +3279,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
           style: form
         - in: query
           name: status
@@ -3299,7 +3299,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: form
       requestBody:
         content:
@@ -3829,7 +3829,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -6004,7 +6004,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
           style: simple
       requestBody:
         content:
@@ -6106,7 +6106,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
           style: simple
       requestBody:
         content:
@@ -6493,7 +6493,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
           style: simple
       requestBody:
         content:
@@ -6636,7 +6636,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: session
-              missing: cs_emulators_missing
+              missing: cs_emulates_missing
           style: simple
         - in: query
           name: starting_after
@@ -6789,7 +6789,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: coupon
-              missing: coupon_emulators_missing
+              missing: coupon_emulates_missing
           style: form
         - explode: true
           in: query
@@ -6817,7 +6817,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: coupon
-              missing: coupon_emulators_missing
+              missing: coupon_emulates_missing
           style: form
       requestBody:
         content:
@@ -7106,7 +7106,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: coupon
-              missing: coupon_emulators_missing
+              missing: coupon_emulates_missing
           style: simple
       requestBody:
         content:
@@ -7208,7 +7208,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: coupon
-              missing: coupon_emulators_missing
+              missing: coupon_emulates_missing
           style: simple
         - explode: true
           in: query
@@ -7322,7 +7322,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: coupon
-              missing: coupon_emulators_missing
+              missing: coupon_emulates_missing
           style: simple
       requestBody:
         content:
@@ -7490,7 +7490,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - explode: true
           in: query
@@ -7518,7 +7518,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: test_clock
@@ -8153,7 +8153,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: simple
       requestBody:
         content:
@@ -8255,7 +8255,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: simple
         - explode: true
           in: query
@@ -8371,7 +8371,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: simple
       requestBody:
         content:
@@ -8887,7 +8887,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: simple
         - in: query
           name: ending_before
@@ -9048,7 +9048,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: simple
       requestBody:
         content:
@@ -9336,7 +9336,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: charge
-              missing: ch_emulators_missing
+              missing: ch_emulates_missing
           style: form
         - explode: true
           in: query
@@ -9367,7 +9367,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: dispute
-              missing: dp_emulators_missing
+              missing: dp_emulates_missing
           style: form
         - explode: true
           in: query
@@ -9395,7 +9395,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: form
         - in: query
           name: starting_after
@@ -9405,7 +9405,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: dispute
-              missing: dp_emulators_missing
+              missing: dp_emulates_missing
           style: form
       requestBody:
         content:
@@ -9529,7 +9529,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: dispute
-              missing: dp_emulators_missing
+              missing: dp_emulates_missing
           style: simple
         - explode: true
           in: query
@@ -9643,7 +9643,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: dispute
-              missing: dp_emulators_missing
+              missing: dp_emulates_missing
           style: simple
       requestBody:
         content:
@@ -10099,7 +10099,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: event
-              missing: evt_emulators_missing
+              missing: evt_emulates_missing
           style: form
         - explode: true
           in: query
@@ -10127,7 +10127,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: event
-              missing: evt_emulators_missing
+              missing: evt_emulates_missing
           style: form
         - in: query
           name: type
@@ -10280,7 +10280,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: event
-              missing: evt_emulators_missing
+              missing: evt_emulates_missing
           style: simple
       requestBody:
         content:
@@ -10404,7 +10404,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice_payment
-              missing: inpay_emulators_missing
+              missing: inpay_emulates_missing
           style: form
         - explode: true
           in: query
@@ -10427,7 +10427,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: form
         - in: query
           name: limit
@@ -10446,7 +10446,7 @@ paths:
                 type: string
                 x-emulates-resource-ref:
                   type: payment_intent
-                  missing: pi_emulators_missing
+                  missing: pi_emulates_missing
               payment_record:
                 maxLength: 5000
                 type: string
@@ -10470,7 +10470,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice_payment
-              missing: inpay_emulators_missing
+              missing: inpay_emulates_missing
           style: form
         - in: query
           name: status
@@ -10616,7 +10616,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice_payment
-              missing: inpay_emulators_missing
+              missing: inpay_emulates_missing
           style: simple
       requestBody:
         content:
@@ -10740,7 +10740,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -10757,7 +10757,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoiceitem
-              missing: ii_emulators_missing
+              missing: ii_emulates_missing
           style: form
         - explode: true
           in: query
@@ -10780,7 +10780,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: form
         - in: query
           name: limit
@@ -10802,7 +10802,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoiceitem
-              missing: ii_emulators_missing
+              missing: ii_emulates_missing
           style: form
       requestBody:
         content:
@@ -10963,7 +10963,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -11007,7 +11007,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: invoice
-                    missing: in_emulators_missing
+                    missing: in_emulates_missing
                 metadata:
                   type: object
                   additionalProperties: true
@@ -11098,7 +11098,7 @@ paths:
                 price:
                   x-emulates-resource-ref:
                     type: price
-                    missing: price_emulators_missing
+                    missing: price_emulates_missing
               type: object
         required: false
       responses:
@@ -11194,7 +11194,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoiceitem
-              missing: ii_emulators_missing
+              missing: ii_emulates_missing
           style: simple
       requestBody:
         content:
@@ -11310,7 +11310,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoiceitem
-              missing: ii_emulators_missing
+              missing: ii_emulates_missing
           style: simple
       requestBody:
         content:
@@ -11412,7 +11412,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoiceitem
-              missing: ii_emulators_missing
+              missing: ii_emulates_missing
           style: simple
       requestBody:
         content:
@@ -11573,7 +11573,7 @@ paths:
                 price:
                   x-emulates-resource-ref:
                     type: price
-                    missing: price_emulators_missing
+                    missing: price_emulates_missing
               type: object
         required: false
       responses:
@@ -11698,7 +11698,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -11734,7 +11734,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: form
         - explode: true
           in: query
@@ -11767,7 +11767,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: form
         - in: query
           name: status
@@ -11789,7 +11789,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: form
       requestBody:
         content:
@@ -12025,7 +12025,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -12649,7 +12649,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: subscription
-                    missing: sub_emulators_missing
+                    missing: sub_emulates_missing
                 transfer_data:
                   properties:
                     amount:
@@ -12757,7 +12757,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: simple
       requestBody:
         content:
@@ -12880,7 +12880,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: simple
       requestBody:
         content:
@@ -12982,7 +12982,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: simple
       requestBody:
         content:
@@ -13830,7 +13830,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: simple
       requestBody:
         content:
@@ -13970,7 +13970,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: simple
         - in: query
           name: limit
@@ -14108,7 +14108,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: simple
       requestBody:
         content:
@@ -14254,7 +14254,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: invoice
-              missing: in_emulators_missing
+              missing: in_emulates_missing
           style: simple
       requestBody:
         content:
@@ -14367,14 +14367,14 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
         - name: subscription
           in: query
           schema:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
         - name: schedule
           in: query
           schema:
@@ -14513,7 +14513,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -14530,7 +14530,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: form
         - explode: true
           in: query
@@ -14561,7 +14561,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: form
       requestBody:
         content:
@@ -15022,7 +15022,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -17622,7 +17622,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: simple
       requestBody:
         content:
@@ -17724,7 +17724,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: simple
       requestBody:
         content:
@@ -18043,7 +18043,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -20530,7 +20530,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: simple
       requestBody:
         content:
@@ -20652,7 +20652,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: simple
       requestBody:
         content:
@@ -21001,7 +21001,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: simple
       requestBody:
         content:
@@ -24016,7 +24016,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -24033,7 +24033,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_method
-              missing: pm_emulators_missing
+              missing: pm_emulates_missing
           style: form
         - explode: true
           in: query
@@ -24061,7 +24061,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_method
-              missing: pm_emulators_missing
+              missing: pm_emulates_missing
           style: form
         - in: query
           name: type
@@ -25053,7 +25053,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_method
-              missing: pm_emulators_missing
+              missing: pm_emulates_missing
           style: simple
       requestBody:
         content:
@@ -25155,7 +25155,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_method
-              missing: pm_emulators_missing
+              missing: pm_emulates_missing
           style: simple
       requestBody:
         content:
@@ -25327,7 +25327,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_method
-              missing: pm_emulators_missing
+              missing: pm_emulates_missing
           style: simple
       requestBody:
         content:
@@ -25344,7 +25344,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -25449,7 +25449,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_method
-              missing: pm_emulators_missing
+              missing: pm_emulates_missing
           style: simple
       requestBody:
         content:
@@ -25603,7 +25603,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: price
-              missing: price_emulators_missing
+              missing: price_emulates_missing
           style: form
         - explode: true
           in: query
@@ -25643,7 +25643,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: product
-              missing: prod_emulators_missing
+              missing: prod_emulates_missing
           style: form
         - explode: true
           in: query
@@ -25679,7 +25679,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: price
-              missing: price_emulators_missing
+              missing: price_emulates_missing
           style: form
         - in: query
           name: type
@@ -25955,7 +25955,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: product
-                    missing: prod_emulators_missing
+                    missing: prod_emulates_missing
                 product_data:
                   properties:
                     active:
@@ -26196,7 +26196,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: price
-              missing: price_emulators_missing
+              missing: price_emulates_missing
           style: simple
       requestBody:
         content:
@@ -26298,7 +26298,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: price
-              missing: price_emulators_missing
+              missing: price_emulates_missing
           style: simple
       requestBody:
         content:
@@ -26535,7 +26535,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: product
-              missing: prod_emulators_missing
+              missing: prod_emulates_missing
           style: form
         - explode: true
           in: query
@@ -26559,7 +26559,7 @@ paths:
               type: string
               x-emulates-resource-ref:
                 type: product
-                missing: prod_emulators_missing
+                missing: prod_emulates_missing
             type: array
           style: deepObject
         - in: query
@@ -26582,7 +26582,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: product
-              missing: prod_emulators_missing
+              missing: prod_emulates_missing
           style: form
         - in: query
           name: url
@@ -27021,7 +27021,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: product
-              missing: prod_emulators_missing
+              missing: prod_emulates_missing
           style: simple
       requestBody:
         content:
@@ -27135,7 +27135,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: product
-              missing: prod_emulators_missing
+              missing: prod_emulates_missing
           style: simple
       requestBody:
         content:
@@ -27237,7 +27237,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: product
-              missing: prod_emulators_missing
+              missing: prod_emulates_missing
           style: simple
       requestBody:
         content:
@@ -27635,7 +27635,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: coupon
-              missing: coupon_emulators_missing
+              missing: coupon_emulates_missing
           style: form
         - explode: true
           in: query
@@ -27666,7 +27666,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -27683,7 +27683,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: promotion_code
-              missing: promo_emulators_missing
+              missing: promo_emulates_missing
           style: form
         - explode: true
           in: query
@@ -27713,7 +27713,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: promotion_code
-              missing: promo_emulators_missing
+              missing: promo_emulates_missing
           style: form
       requestBody:
         content:
@@ -27856,7 +27856,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -27897,7 +27897,7 @@ paths:
                 coupon:
                   x-emulates-resource-ref:
                     type: coupon
-                    missing: coupon_emulators_missing
+                    missing: coupon_emulates_missing
               required:
                 - promotion
               type: object
@@ -28009,7 +28009,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: promotion_code
-              missing: promo_emulators_missing
+              missing: promo_emulates_missing
           style: simple
       requestBody:
         content:
@@ -28111,7 +28111,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: promotion_code
-              missing: promo_emulators_missing
+              missing: promo_emulates_missing
           style: simple
       requestBody:
         content:
@@ -28239,7 +28239,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: charge
-              missing: ch_emulators_missing
+              missing: ch_emulates_missing
           style: form
         - explode: true
           in: query
@@ -28267,7 +28267,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: refund
-              missing: re_emulators_missing
+              missing: re_emulates_missing
           style: form
         - explode: true
           in: query
@@ -28296,7 +28296,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: payment_intent
-              missing: pi_emulators_missing
+              missing: pi_emulates_missing
           style: form
         - in: query
           name: starting_after
@@ -28305,7 +28305,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: refund
-              missing: re_emulators_missing
+              missing: re_emulates_missing
           style: form
       requestBody:
         content:
@@ -28440,7 +28440,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: charge
-                    missing: ch_emulators_missing
+                    missing: ch_emulates_missing
                 currency:
                   format: currency
                   type: string
@@ -28471,7 +28471,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: payment_intent
-                    missing: pi_emulators_missing
+                    missing: pi_emulates_missing
                 reason:
                   type: string
                   enum:
@@ -28593,7 +28593,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: refund
-              missing: re_emulators_missing
+              missing: re_emulates_missing
           style: simple
       requestBody:
         content:
@@ -28694,7 +28694,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: refund
-              missing: re_emulators_missing
+              missing: re_emulates_missing
           style: simple
       requestBody:
         content:
@@ -28841,7 +28841,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -28858,7 +28858,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: setup_intent
-              missing: seti_emulators_missing
+              missing: seti_emulates_missing
           style: form
         - explode: true
           in: query
@@ -28894,7 +28894,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: setup_intent
-              missing: seti_emulators_missing
+              missing: seti_emulates_missing
           style: form
       requestBody:
         content:
@@ -29179,7 +29179,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -30635,7 +30635,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: setup_intent
-              missing: seti_emulators_missing
+              missing: seti_emulates_missing
           style: simple
       requestBody:
         content:
@@ -30737,7 +30737,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: setup_intent
-              missing: seti_emulators_missing
+              missing: seti_emulates_missing
           style: simple
       requestBody:
         content:
@@ -30885,7 +30885,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -32248,7 +32248,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: setup_intent
-              missing: seti_emulators_missing
+              missing: seti_emulates_missing
           style: simple
       requestBody:
         content:
@@ -32368,7 +32368,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: setup_intent
-              missing: seti_emulators_missing
+              missing: seti_emulates_missing
           style: simple
       requestBody:
         content:
@@ -33857,7 +33857,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription_item
-              missing: si_emulators_missing
+              missing: si_emulates_missing
           style: form
         - explode: true
           in: query
@@ -33885,7 +33885,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription_item
-              missing: si_emulators_missing
+              missing: si_emulates_missing
           style: form
         - in: query
           name: subscription
@@ -33895,7 +33895,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: form
       requestBody:
         content:
@@ -34094,7 +34094,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: price
-                    missing: price_emulators_missing
+                    missing: price_emulates_missing
                 price_data:
                   properties:
                     currency:
@@ -34157,7 +34157,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: subscription
-                    missing: sub_emulators_missing
+                    missing: sub_emulates_missing
                 tax_rates:
                   anyOf:
                     - items:
@@ -34266,7 +34266,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription_item
-              missing: si_emulators_missing
+              missing: si_emulates_missing
           style: simple
       requestBody:
         content:
@@ -34403,7 +34403,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription_item
-              missing: si_emulators_missing
+              missing: si_emulates_missing
           style: simple
       requestBody:
         content:
@@ -34505,7 +34505,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription_item
-              missing: si_emulators_missing
+              missing: si_emulates_missing
           style: simple
       requestBody:
         content:
@@ -34596,7 +34596,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: price
-                    missing: price_emulators_missing
+                    missing: price_emulates_missing
                 price_data:
                   properties:
                     currency:
@@ -34818,7 +34818,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -34835,7 +34835,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: schedule
-              missing: sub_sched_emulators_missing
+              missing: sub_sched_emulates_missing
           style: form
         - explode: true
           in: query
@@ -34889,7 +34889,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: schedule
-              missing: sub_sched_emulators_missing
+              missing: sub_sched_emulates_missing
           style: form
       requestBody:
         content:
@@ -35053,7 +35053,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -35344,7 +35344,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: schedule
-              missing: sub_sched_emulators_missing
+              missing: sub_sched_emulates_missing
           style: simple
       requestBody:
         content:
@@ -35446,7 +35446,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: schedule
-              missing: sub_sched_emulators_missing
+              missing: sub_sched_emulates_missing
           style: simple
       requestBody:
         content:
@@ -35735,7 +35735,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: schedule
-              missing: sub_sched_emulators_missing
+              missing: sub_sched_emulates_missing
           style: simple
       requestBody:
         content:
@@ -35852,7 +35852,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: schedule
-              missing: sub_sched_emulators_missing
+              missing: sub_sched_emulates_missing
           style: simple
       requestBody:
         content:
@@ -36048,7 +36048,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: customer
-              missing: cus_emulators_missing
+              missing: cus_emulates_missing
           style: form
         - in: query
           name: customer_account
@@ -36065,7 +36065,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: form
         - explode: true
           in: query
@@ -36103,7 +36103,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: form
         - in: query
           name: status
@@ -36579,7 +36579,7 @@ paths:
                   type: string
                   x-emulates-resource-ref:
                     type: customer
-                    missing: cus_emulators_missing
+                    missing: cus_emulates_missing
                 customer_account:
                   maxLength: 5000
                   type: string
@@ -37222,7 +37222,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: simple
       requestBody:
         content:
@@ -37389,7 +37389,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: simple
       requestBody:
         content:
@@ -37491,7 +37491,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: simple
       requestBody:
         content:
@@ -38478,7 +38478,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: subscription
-              missing: sub_emulators_missing
+              missing: sub_emulates_missing
           style: simple
       requestBody:
         content:
@@ -38610,7 +38610,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: test_clock
-              missing: clock_emulators_missing
+              missing: clock_emulates_missing
           style: form
         - explode: true
           in: query
@@ -38638,7 +38638,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: test_clock
-              missing: clock_emulators_missing
+              missing: clock_emulates_missing
           style: form
       requestBody:
         content:
@@ -38878,7 +38878,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: test_clock
-              missing: clock_emulators_missing
+              missing: clock_emulates_missing
           style: simple
       requestBody:
         content:
@@ -38992,7 +38992,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: test_clock
-              missing: clock_emulators_missing
+              missing: clock_emulates_missing
           style: simple
       requestBody:
         content:
@@ -39095,7 +39095,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: test_clock
-              missing: clock_emulators_missing
+              missing: clock_emulates_missing
           style: simple
       requestBody:
         content:
@@ -39214,7 +39214,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: webhook_endpoint
-              missing: we_emulators_missing
+              missing: we_emulates_missing
           style: form
         - explode: true
           in: query
@@ -39242,7 +39242,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: webhook_endpoint
-              missing: we_emulators_missing
+              missing: we_emulates_missing
           style: form
       requestBody:
         content:
@@ -39895,7 +39895,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: webhook_endpoint
-              missing: we_emulators_missing
+              missing: we_emulates_missing
           style: simple
       requestBody:
         content:
@@ -40009,7 +40009,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: webhook_endpoint
-              missing: we_emulators_missing
+              missing: we_emulates_missing
           style: simple
       requestBody:
         content:
@@ -40111,7 +40111,7 @@ paths:
             type: string
             x-emulates-resource-ref:
               type: webhook_endpoint
-              missing: we_emulators_missing
+              missing: we_emulates_missing
           style: simple
       requestBody:
         content:

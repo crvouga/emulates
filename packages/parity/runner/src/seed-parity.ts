@@ -204,7 +204,7 @@ const applyDeletionTypes = (context: ExecutionContext, command: LogicalCommand) 
   const deletionTypes = context.deletionTypes?.[command.operationId] ?? []
   if (deletionTypes.length === 0) return
   for (const placeholder of collectPlaceholders([command.parameters, command.body])) {
-    if (placeholder.$emulators !== "ref" || !deletionTypes.includes(placeholder.type)) continue
+    if (placeholder.$emulates !== "ref" || !deletionTypes.includes(placeholder.type)) continue
     const ref = pickRef(context.table, placeholder.type, placeholder.pick)
     if (ref) context.table.markDeleted(ref.handle)
   }

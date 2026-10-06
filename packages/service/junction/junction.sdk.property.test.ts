@@ -9,7 +9,7 @@ import { parseSealedCorpus } from "./src/index.js"
 const packageDir = dirname(fileURLToPath(import.meta.url))
 const corpusPath = join(packageDir, "corpus/sandbox-sealed.json")
 const corpus = parseSealedCorpus(JSON.parse(readFileSync(corpusPath, "utf8")))
-const apiKey = "sk_us_emulators"
+const apiKey = "sk_us_emulates"
 
 const queryOf = (key: string): URLSearchParams =>
   new URLSearchParams(key.slice(key.indexOf("?") + 1))

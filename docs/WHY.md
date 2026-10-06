@@ -55,7 +55,7 @@ directly.
 - **Isomorphic.** Every emulator is the same package in Node, Bun, browsers, and Workers. The
   playgrounds on the docs site run that package in your browser tab.
 
-## How the emulators stay honest
+## How Emulates stays honest
 
 An emulator is only useful if it behaves like the vendor. Each one is checked continuously with
 property-based tests driven by its contract (details in [TESTING.md](TESTING.md)):
@@ -71,7 +71,7 @@ property-based tests driven by its contract (details in [TESTING.md](TESTING.md)
 
 ## Parity
 
-Every service declares its own parity in `package.json` as `emulators.parity`: a short
+Every service declares its own parity in `package.json` as `emulates.parity`: a short
 statement of the vendor surface it keeps in step. The docs site, `llms.txt` and `catalog.json`
 show that statement, generated from that one field. The current list is the
 [services catalog](https://emulates.chrisvouga.dev/services).
@@ -85,7 +85,7 @@ contract. A service's documentation is its package README, the same file npm shi
 The repo README is the short overview (`bun run readme:sync`), and CI fails when it is stale. The
 name, the sentence, and the mark live in `sites/docs/src/lib/content.ts`. The README header,
 `llms.txt`, and the opening line of every published package README are generated or checked from
-that file. The catalog of emulators is the docs site, `llms.txt`, and `catalog.json`. The rules are in
+that file. The catalog of services is the docs site, `llms.txt`, and `catalog.json`. The rules are in
 [docs/DESIGN.md](DESIGN.md). The docs site renders the package
 READMEs, these guides and the same shared copy at build time. It sends every playground sample request to a fresh emulator and runs the quick start and
 every SQL snippet against the real packages, so an example that stops working fails the build.
@@ -101,6 +101,6 @@ README as markdown at `/services/<name>.md`, all of them in `/llms-full.txt`, an
 ## When not to use it
 
 - For a final check against the real vendor before a release. Run a small live suite for that.
-  The emulators' own live parity exists for the same reason.
+  Emulates' own live parity exists for the same reason.
 - For vendor behavior an emulator does not model yet. Each package's README and `SUPPORT.md` say what
   is deliberately not modelled.

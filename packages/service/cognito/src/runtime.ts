@@ -68,7 +68,7 @@ const admin = (runtime: CognitoRuntime): AdminRoutes => ({
     const input = body as Partial<CognitoSeedUser> | null
     if (!input || typeof input.username !== "string" || typeof input.password !== "string")
       return json(
-        { error: { type: "emulators_admin", message: "username and password are required" } },
+        { error: { type: "emulates_admin", message: "username and password are required" } },
         400,
       )
     return json(runtime.instance(namespace).state.put(input as CognitoSeedUser), 201)
@@ -81,7 +81,7 @@ const admin = (runtime: CognitoRuntime): AdminRoutes => ({
           confirmationCode: user.confirmationCode,
           resetCode: user.resetCode,
         })
-      : json({ error: { type: "emulators_admin", message: "user not found" } }, 404)
+      : json({ error: { type: "emulates_admin", message: "user not found" } }, 404)
   },
   "POST /keys/rotate": ({ namespace, body }) =>
     json(
@@ -92,7 +92,7 @@ const admin = (runtime: CognitoRuntime): AdminRoutes => ({
   "POST /sessions/revoke": ({ namespace, body }) => {
     const username = (body as { username?: unknown } | null)?.username
     if (typeof username !== "string")
-      return json({ error: { type: "emulators_admin", message: "username is required" } }, 400)
+      return json({ error: { type: "emulates_admin", message: "username is required" } }, 400)
     const api = runtime.instance(namespace)
     for (const row of api.state.sessions.list({
       where: (session) => session.username === username,

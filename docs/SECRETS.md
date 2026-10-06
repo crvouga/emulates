@@ -12,7 +12,7 @@ bun run check   # every CI gate, no secrets
 ```
 
 Secrets are only involved in two places, and both run on GitHub with the repo's own
-Actions secrets. Anyone with **write access** to `crvouga/emulators` can use them without
+Actions secrets. Anyone with **write access** to `crvouga/emulates` can use them without
 seeing a value (GitHub never returns a secret's value, to anyone):
 
 | Workflow | Secrets it reads | How to run it |
@@ -179,7 +179,7 @@ Set by the local seed after the first publish. Manual equivalent, per package at
 `https://www.npmjs.com/package/<name>/access`:
 
 - Organization/user: `crvouga`
-- Repository: `emulators`
+- Repository: `emulates`
 - Workflow filename: `ci.yml`
 - Environment: (empty)
 - Allowed actions: npm publish

@@ -59,7 +59,7 @@ export type InfisicalRuntimeOptions = Omit<
 }
 export type InfisicalRuntime = ServiceRuntime<InfisicalAPI>
 const adminError = (status: number, message: string): Response =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const routes = (runtime: InfisicalRuntime): AdminRoutes => ({
   "GET /project-tree": ({ namespace }) => {
     const api = runtime.instance(namespace)

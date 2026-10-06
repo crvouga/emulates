@@ -3,7 +3,7 @@
  *
  * A live parity run spends a vendor's rate limit and, sometimes, its sandbox. So each service that
  * has a `parity` script declares a tier in its package.json, next to the rest of its
- * `emulators` metadata:
+ * `emulates` metadata:
  *
  *   "emulates": { …, "parityTier": "cold" }
  *
@@ -44,7 +44,7 @@ export interface ParityService {
   invalid?: string
   /**
    * Repo-root-relative globs, beyond the service's own package and its workspace dependencies,
-   * whose change can change its parity result (`emulators.parityInputs`).
+   * whose change can change its parity result (`emulates.parityInputs`).
    */
   inputs: string[]
 }
@@ -109,7 +109,7 @@ if (import.meta.main) {
     const bad = parityServices().filter((s) => s.invalid)
     for (const s of bad) {
       console.error(
-        `${s.name}: emulators.parityTier is ${s.invalid}; expected one of ${TIERS.join(", ")}`,
+        `${s.name}: emulates.parityTier is ${s.invalid}; expected one of ${TIERS.join(", ")}`,
       )
     }
     if (bad.length > 0) process.exit(1)

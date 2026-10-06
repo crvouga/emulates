@@ -1,6 +1,6 @@
 # @emulates/ecs
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP AWS ECS Fargate RunTask control-plane emulator. It records task acceptance; it never starts
 containers. Wire contract follows [RunTask](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html).

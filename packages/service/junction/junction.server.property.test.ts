@@ -10,7 +10,7 @@ import { parseSealedCorpus } from "./src/index.js"
 const packageDir = dirname(fileURLToPath(import.meta.url))
 const corpusPath = join(packageDir, "corpus/sandbox-sealed.json")
 const corpus = parseSealedCorpus(JSON.parse(readFileSync(corpusPath, "utf8")))
-const auth = { "x-vital-api-key": "sk_us_emulators" }
+const auth = { "x-vital-api-key": "sk_us_emulates" }
 
 const AREA_ZIP = "85004"
 const areaKey = `GET /v3/order/area/info?radius=100&zip_code=${AREA_ZIP}`

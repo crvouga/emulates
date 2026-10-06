@@ -27,7 +27,7 @@ export default defineConfig({
       ...(pinDocsPort ? { port: reservedDocsPort, strictPort: true, host: "127.0.0.1" } : {}),
       watch: {
         // Vite ignores node_modules by default, but every `@crvouga/*` workspace
-        // package this site imports (service emulators, example apps) is symlinked
+        // package this site imports (Emulates services, example apps) is symlinked
         // there and rebuilt independently (`bun run build` in its own package) —
         // without this, `astro dev` keeps serving a stale in-memory copy of a
         // workspace package's `dist/` output until the dev server is restarted.

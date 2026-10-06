@@ -148,7 +148,7 @@ const serviceRoute = (template: string) => {
         offset = match.index + match[0].length
       }
       expression += escapePattern(segment.slice(offset))
-      return `:emulatorsSegment${index}{${expression}}`
+      return `:emulatesSegment${index}{${expression}}`
     })
     .join("/")
   return {

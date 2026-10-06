@@ -1,6 +1,6 @@
 # @emulates/payload-cms
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Payload CMS**'s collection REST API for test suites: `GET /api/<collection>`
 with Payload's paginated envelope (`docs`, `totalDocs`, `limit`, `totalPages`, `page`,
@@ -9,7 +9,7 @@ subset, and `GET /api/<collection>/<id>`. The `marketing` collection is seeded w
 referral card, so the backend's referral content comes from the "CMS" deterministically, and
 the admin plane lets a test change it.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/payload-cms/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/payload-cms/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from Payload's REST and query docs and the
   consumer's response type (`payload-cms-response.type.ts`).
 
@@ -112,4 +112,4 @@ mapped with `PUT /__admin/credentials`.
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--collections <file>`); port 8822. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

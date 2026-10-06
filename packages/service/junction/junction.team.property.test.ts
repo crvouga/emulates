@@ -383,7 +383,7 @@ describe("M3: lab-account configuration ergonomics", () => {
     for (const [body, message] of cases) {
       const res = await admin(runtime, "POST", "/lab-accounts", body)
       expect(res.status).toBe(400)
-      expect((res.body.error as Json).type).toBe("emulators_admin")
+      expect((res.body.error as Json).type).toBe("emulates_admin")
       expect((res.body.error as Json).message as string).toMatch(message)
     }
   })

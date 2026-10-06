@@ -18,10 +18,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/sqlite"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/sqlite#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/sqlite#readme",
   "keywords": [
     "emulates",
     "sqlite"

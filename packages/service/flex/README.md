@@ -1,6 +1,6 @@
 # @emulates/flex
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Flex** (withflex.com) HSA/FSA payments API for test suites: products
 (answered from a recorded catalog corpus), checkout sessions in `payment` (one-time),
@@ -10,7 +10,7 @@ refunds, the **hosted checkout page**, and the Svix-signed webhooks Flex posts b
 milliseconds: the page is local, and the signed webhook reaches the app as soon as the card is
 accepted.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/flex/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/flex/SUPPORT.md)
 - Flex publishes no machine-readable spec: the contract (`openapi.yaml`) is hand-authored from
   the wire shapes our consumer reads and writes (`B/billing/flex/`), and every field its zod
   schemas require is served. Subscription mode, `price_data.recurring` and the subscription
@@ -231,4 +231,4 @@ so product names are synthesised.
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http` (expiry ticks every 100 ms); the `serve` CLI target (`--webhook-url`, `--webhook-secret`, `--public-url`, `--event-naming`); port 8792. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

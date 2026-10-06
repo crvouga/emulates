@@ -542,7 +542,7 @@ const json = (status: number, body: unknown): Response =>
   })
 
 const adminError = (status: number, message: string): Response =>
-  json(status, { error: { type: "emulators_admin", message } })
+  json(status, { error: { type: "emulates_admin", message } })
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)

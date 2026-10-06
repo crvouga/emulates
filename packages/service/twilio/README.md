@@ -1,6 +1,6 @@
 # @emulates/twilio
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of **Twilio** for test suites: Lookup v2 phone validation, Verify v2 phone OTP
 (with the real state machine: wrong codes, attempt limits, 10-minute expiry on the emulator clock),
@@ -8,7 +8,7 @@ Programmable Messaging with an outbox, and call Recordings. It also signs and po
 inbound SMS and voice webhooks to your app. Every product is served on one port. A suite reads the
 OTP from the admin plane instead of bypassing verification (`E2E_OTP_BYPASS_*`).
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/twilio/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/twilio/SUPPORT.md)
 - The contract (`openapi.yaml`) is trimmed from Twilio's API reference to what our consumer
   calls. Lookup v2 responses are checked byte for byte against the live API
   (`scripts/parity.ts`, recorded in `test/fixtures/lookups.live.json`).
@@ -178,4 +178,4 @@ can also come from the `x-emulates-namespace` header or a `/__admin/ns/<name>` p
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8798. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

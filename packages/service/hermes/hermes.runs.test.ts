@@ -123,7 +123,7 @@ test("unverified malformed and unimplemented feature paths fail explicitly witho
   for (const body of [null, [], { input: [null] }, { input: "x", hosted_room_dispatch: {} }]) {
     const response = await send(runtime, "/v1/runs", body)
     expect(response.status).toBe(501)
-    expect(await response.json()).toMatchObject({ error: { type: "emulators_unsupported" } })
+    expect(await response.json()).toMatchObject({ error: { type: "emulates_unsupported" } })
   }
 })
 

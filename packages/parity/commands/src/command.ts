@@ -238,7 +238,7 @@ const PRODUCER_WEIGHT = 2
 export const referencedTypes = (command: LogicalCommand): string[] => {
   const types = new Set<string>()
   for (const placeholder of collectPlaceholders([command.parameters, command.body])) {
-    if (placeholder.$emulators === "ref") types.add(placeholder.type)
+    if (placeholder.$emulates === "ref") types.add(placeholder.type)
   }
   return [...types].sort()
 }
@@ -249,8 +249,8 @@ export const isEligible = (command: LogicalCommand, count: (type: string) => num
 
 const compact = (value: unknown) => {
   const text = JSON.stringify(value, (_, v: unknown) =>
-    typeof v === "object" && v !== null && "$emulators" in v
-      ? `<${(v as { $emulators: string }).$emulators}${"type" in v ? `:${String((v as { type: unknown }).type)}` : ""}${"pick" in v ? `#${String((v as { pick: unknown }).pick)}` : ""}>`
+    typeof v === "object" && v !== null && "$emulates" in v
+      ? `<${(v as { $emulates: string }).$emulates}${"type" in v ? `:${String((v as { type: unknown }).type)}` : ""}${"pick" in v ? `#${String((v as { pick: unknown }).pick)}` : ""}>`
       : v,
   )
   return text === undefined ? "" : text

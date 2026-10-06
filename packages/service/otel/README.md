@@ -1,6 +1,6 @@
 # @emulates/otel
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of an **OTLP/HTTP collector** in front of the **OpenObserve (O2) search API**,
 over one store. Local and E2E runs stop exporting to production telemetry infrastructure, and a
@@ -8,7 +8,7 @@ test can assert on structured events: emit through the real OpenTelemetry SDK, t
 log back with the same SQL our ops feed and investigation agent send ("the reconcile cron
 emitted `initial_credit_reconcile_completed` with `granted=1`").
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/otel/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/otel/SUPPORT.md)
 - OTLP/HTTP follows opentelemetry-proto v1; the O2 routes follow OpenObserve's API, trimmed to
   what our clients call.
 
@@ -174,4 +174,4 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8809. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

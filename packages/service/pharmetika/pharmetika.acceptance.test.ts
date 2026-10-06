@@ -482,7 +482,7 @@ describe("contract", () => {
     const missing = await admin("/orders/nope/transition", { to: "shipped" })
     expect(missing.status).toBe(404)
     expect(((await missing.json()) as { error: { type: string } }).error.type).toBe(
-      "emulators_admin",
+      "emulates_admin",
     )
     const viaHeader = new PharmetikaConsumer(
       { apiUrl: API, apiToken: TOKEN, practitionerIdentifier: "p", webhookSecret: null },

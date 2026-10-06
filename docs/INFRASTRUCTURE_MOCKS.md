@@ -27,7 +27,7 @@ provider behavior is specified from memory in this boundary document.
 
 All packages use the standard health, reset, namespace, clock, fault, metrics and
 metadata-only journal controls described in
-[Authoring an emulator](AUTHORING_A_SERVICE.md#the-service-contract-what-emulatorsservice-gives-you).
+[Authoring an emulator](AUTHORING_A_SERVICE.md#the-service-contract-what-emulatesservice-gives-you).
 Scenario controls belong to the emulators' admin/runtime interfaces; they must not
 masquerade as vendor endpoints. Synthetic identity scopes and scripted denied
 responses are observations for tests and do not implement authentication policy.

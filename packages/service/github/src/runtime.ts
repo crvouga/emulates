@@ -40,7 +40,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
           !/^[a-fA-F0-9]{40}$/.test(body.sha)
         )
           return jsonRes(400, {
-            code: "emulators_control_invalid",
+            code: "emulates_control_invalid",
             message: "Expected owner, repo, full branch ref and seeded 40-hex sha",
           })
         try {
@@ -59,7 +59,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
         } catch (error) {
           if (error instanceof RefError)
             return jsonRes(error.status, {
-              code: "emulators_control_invalid",
+              code: "emulates_control_invalid",
               message: error.message,
             })
           throw error
@@ -74,7 +74,7 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
           if (error instanceof SeedError)
             return jsonRes(error.status, {
               message: error.message,
-              code: "emulators_seed_invalid",
+              code: "emulates_seed_invalid",
             })
           throw error
         }

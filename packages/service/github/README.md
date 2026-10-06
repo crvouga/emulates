@@ -1,6 +1,6 @@
 # @emulates/github
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP GitHub REST emulator targeting `X-GitHub-Api-Version: 2026-03-10`.
 Repository observations, commit-backed references, and same-repository pull-request
@@ -227,7 +227,7 @@ all nine operations after repairing the empty-body update mismatch found in its
 first run. Each run closed its fixture PR and deleted its two unchanged fixture
 branches; closed PR history and Git objects remain. The runner is available only
 in the repository checkout; see the
-[oracle guide](https://github.com/crvouga/emulators/tree/main/packages/service/github/oracle).
+[oracle guide](https://github.com/crvouga/emulates/tree/main/packages/service/github/oracle).
 It requires a reviewed manifest and explicit writes/notifications/cleanup approval,
 plus `EMULATES_GITHUB_TOKEN` or explicitly selected authenticated `gh` usage.
 Ordinary package tests never invoke it.

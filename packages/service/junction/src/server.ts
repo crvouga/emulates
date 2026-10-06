@@ -270,7 +270,7 @@ export const serveTarget: ServeTarget = {
       }`,
       `identity ${api.identity}`,
       `webhooks: ${junction.webhooks ? "signed delivery on" : "off"}`,
-      "auth: any x-vital-api-key value (e.g. sk_us_emulators)",
+      "auth: any x-vital-api-key value (e.g. sk_us_emulates)",
     ]
   },
 }

@@ -217,7 +217,7 @@ Exported types: `ParityOptions`, `ParityReport`, `RealTarget`, `MockTarget`, `Wa
 ## Related
 
 - [`@emulates/openapi-metadata`](https://www.npmjs.com/package/@emulates/openapi-metadata) — the `x-emulates-*` annotations your spec needs.
-- [`@emulates/credentials`](https://github.com/crvouga/emulators/tree/main/packages/auth/credentials) — load sandbox credentials and build `redact`.
+- [`@emulates/credentials`](https://github.com/crvouga/emulates/tree/main/packages/auth/credentials) — load sandbox credentials and build `redact`.
 - Lower level: [`@emulates/commands`](https://www.npmjs.com/package/@emulates/commands), [`@emulates/canonicalize`](https://www.npmjs.com/package/@emulates/canonicalize), [`@emulates/model`](https://www.npmjs.com/package/@emulates/model), [`@emulates/openapi`](https://www.npmjs.com/package/@emulates/openapi).
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

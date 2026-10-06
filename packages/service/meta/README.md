@@ -1,6 +1,6 @@
 # @emulates/meta
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful Meta Graph v26 emulator for server-side Conversions API events and marketing reporting. It
 preserves privacy-safe hashed user fields, event deduplication, ambiguous writes, Graph errors,
@@ -47,7 +47,7 @@ const response = await meta.fetch(new Request("http://meta.test/v26.0/pixel_test
 | `GET /v26.0/:accountId/insights` | Filters seeded or admin-inserted insight rows by inclusive JSON `time_range`, paginates with `limit`/`after`, and includes `country` when requested as a breakdown. |
 | `GET /v26.0/:objectId` | Reads seeded/admin-inserted campaign, ad-set, or ad records. |
 
-Seed fixtures are `act_emulators`, `cmp_emulators`, `set_emulators`, and `ad_emulators`,
+Seed fixtures are `act_emulates`, `cmp_emulates`, `set_emulates`, and `ad_emulates`,
 with three dated insight rows from 2026-01-01 through 2026-01-03.
 
 ### Admin and faults

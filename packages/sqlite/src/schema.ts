@@ -10,7 +10,7 @@ export const CORE_MIGRATIONS: readonly Migration[] = [
   {
     id: "20260322_core_records_sequences",
     sql: `
-      CREATE TABLE IF NOT EXISTS emulators_records (
+      CREATE TABLE IF NOT EXISTS emulates_records (
         namespace TEXT NOT NULL,
         collection TEXT NOT NULL,
         id TEXT NOT NULL,
@@ -18,9 +18,9 @@ export const CORE_MIGRATIONS: readonly Migration[] = [
         value TEXT NOT NULL,
         PRIMARY KEY (namespace, collection, id)
       );
-      CREATE INDEX IF NOT EXISTS emulators_records_seq
-        ON emulators_records (namespace, collection, seq);
-      CREATE TABLE IF NOT EXISTS emulators_sequences (
+      CREATE INDEX IF NOT EXISTS emulates_records_seq
+        ON emulates_records (namespace, collection, seq);
+      CREATE TABLE IF NOT EXISTS emulates_sequences (
         namespace TEXT NOT NULL,
         name TEXT NOT NULL,
         kind TEXT NOT NULL,
@@ -31,15 +31,43 @@ export const CORE_MIGRATIONS: readonly Migration[] = [
   },
 ]
 
-/** Apply {@link CORE_MIGRATIONS} (idempotent). */
+/** Tables and indexes from before the Emulates name. Renamed in place so an existing database keeps its rows. */
+const LEGACY_TABLES = [
+  ["emulators_records", "emulates_records"],
+  ["emulators_sequences", "emulates_sequences"],
+] as const
+const LEGACY_INDEXES = [["emulators_records_seq", "emulates_records_seq"]] as const
+
+const namesOf = (sqlite: SqliteClient, type: "table" | "index"): Set<string> =>
+  new Set(
+    sqlite
+      .prepare("SELECT name FROM sqlite_master WHERE type = ?")
+      .all<{ name: string }>(type)
+      .map((row) => row.name),
+  )
+
+/** Apply {@link CORE_MIGRATIONS}, then rename a database that still uses the former table names. */
 export const migrateCore = (sqlite: SqliteClient): void => {
   migrate(sqlite, CORE_MIGRATIONS)
+  const tables = namesOf(sqlite, "table")
+  const indexes = namesOf(sqlite, "index")
+  sqlite.transaction(() => {
+    for (const [from, to] of LEGACY_TABLES) {
+      if (tables.has(from) && !tables.has(to)) sqlite.exec(`ALTER TABLE ${from} RENAME TO ${to}`)
+    }
+    for (const [from, to] of LEGACY_INDEXES) {
+      if (!indexes.has(from) || indexes.has(to)) continue
+      // The sqlite port accepts ALTER TABLE, not ALTER INDEX.
+      sqlite.exec(`DROP INDEX ${from}`)
+      sqlite.exec(`CREATE INDEX ${to} ON emulates_records (namespace, collection, seq)`)
+    }
+  })
 }
 
 /** Delete every record and sequence belonging to `namespace`. */
 export const clearNamespace = (sqlite: SqliteClient, namespace: string): void => {
   sqlite.transaction(() => {
-    sqlite.prepare("DELETE FROM emulators_records WHERE namespace = ?").run(namespace)
-    sqlite.prepare("DELETE FROM emulators_sequences WHERE namespace = ?").run(namespace)
+    sqlite.prepare("DELETE FROM emulates_records WHERE namespace = ?").run(namespace)
+    sqlite.prepare("DELETE FROM emulates_sequences WHERE namespace = ?").run(namespace)
   })
 }

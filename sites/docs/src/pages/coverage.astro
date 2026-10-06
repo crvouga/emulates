@@ -1,5 +1,5 @@
 ---
-import catalog from "virtual:emulators/catalog"
+import catalog from "virtual:emulates/catalog"
 import Icon from "../components/Icon.astro"
 import Monogram from "../components/Monogram.astro"
 import Base from "../layouts/Base.astro"
@@ -15,7 +15,7 @@ const yes = (on: boolean) => (on ? "yes" : "no")
     <header class="page-head">
       <h1>Coverage</h1>
       <p class="lede">
-        {totals.services} emulators. Each one declares its own parity, and every emulator is isomorphic:
+        {totals.services} services. Each one declares its own parity, and every service is isomorphic:
         the same package runs in the browser, in a worker, and on a server. Across all of them,
         {totals.opsSupported} of {totals.opsTotal} contract operations are emulated, computed from each package at build time.
         Click a column to sort.

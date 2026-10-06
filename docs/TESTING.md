@@ -26,7 +26,7 @@ await parity({
   real: {
     baseUrl: "https://mock.stripe.local",
     allowedHosts: ["mock.stripe.local"],
-    headers: () => ({ authorization: "Bearer sk_test_emulators" }),
+    headers: () => ({ authorization: "Bearer sk_test_emulates" }),
     fetch: (request) => reference.fetch(request),
   },
   mock: { create },
@@ -96,7 +96,7 @@ the graph, `tsconfig.base.json` (a turbo global dependency), `scripts/bundle-ser
 `scripts/parity-service.ts` and a `bun.lock` change to an external package or to the root reach every
 hot service; a `bun.lock` change to one workspace's own entry reaches that service; root config,
 workflows and docs reach none. A service lists files it reads beyond its graph in
-`emulators.parityInputs` (junction: `PARITY_FAILURE_SEED_REGISTRY.json`).
+`emulates.parityInputs` (junction: `PARITY_FAILURE_SEED_REGISTRY.json`).
 
 A service with no `parityTier` is cold, and every service starts there. **To promote one, change
 that one value** (`cold` → `warm` → `hot`); no workflow names a service. A manual run takes any

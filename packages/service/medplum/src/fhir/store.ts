@@ -114,7 +114,7 @@ export class FhirStore {
   resourceTypes(): string[] {
     const rows = this.sqlite
       .prepare(
-        "SELECT DISTINCT collection FROM emulators_records WHERE namespace = ? AND collection LIKE 'fhir:%'",
+        "SELECT DISTINCT collection FROM emulates_records WHERE namespace = ? AND collection LIKE 'fhir:%'",
       )
       .all<{ collection: string }>(this.namespace)
     return rows.map((row) => row.collection.slice("fhir:".length)).sort()

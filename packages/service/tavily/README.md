@@ -1,6 +1,6 @@
 # @emulates/tavily
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP scripted Tavily search and extraction. No public URLs are fetched. Contract references:
 [Search](https://docs.tavily.com/documentation/api-reference/endpoint/search),

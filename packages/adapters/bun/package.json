@@ -18,10 +18,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulators.git",
+    "url": "git+https://github.com/crvouga/emulates.git",
     "directory": "packages/adapters/bun"
   },
-  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/adapters/bun#readme",
+  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/adapters/bun#readme",
   "keywords": [
     "emulates",
     "adapter",

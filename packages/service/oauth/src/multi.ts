@@ -140,7 +140,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         options.adminKey !== undefined &&
         request.headers.get("x-emulates-admin-key") !== options.adminKey
       )
-        return json({ error: { type: "emulators_admin", message: "invalid admin key" } }, 401)
+        return json({ error: { type: "emulates_admin", message: "invalid admin key" } }, 401)
       if (url.pathname === `${adminPrefix}/mounts` && request.method === "GET")
         return json({
           mounts: options.mounts.map(({ path, provider, issuer }) => ({ path, provider, issuer })),
@@ -162,7 +162,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         const selected = url.searchParams.get("mount")
         const runtime = selected && runtimes.get(selected)
         if (!runtime)
-          return json({ error: { type: "emulators_admin", message: "mount is required" } }, 400)
+          return json({ error: { type: "emulates_admin", message: "mount is required" } }, 400)
         url.searchParams.delete("mount")
         return runtime.fetch(new Request(url, request))
       }
@@ -174,7 +174,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         if (path !== mount && !path.startsWith(`${mount}/`)) continue
         return runtime.fetch(withoutMount(request, namespacePrefix, path.slice(mount.length)))
       }
-      return json({ error: { type: "emulators_not_found", message: "unknown OAuth mount" } }, 404)
+      return json({ error: { type: "emulates_not_found", message: "unknown OAuth mount" } }, 404)
     },
   }
 }

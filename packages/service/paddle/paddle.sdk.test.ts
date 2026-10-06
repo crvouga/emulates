@@ -9,8 +9,8 @@ import { ApiError, type Environment, Paddle } from "@paddle/paddle-node-sdk"
 import { createServer, type PaddleServer } from "./src/server.js"
 import { PaddleBilling } from "./test/consumer.js"
 
-const SECRET = "pdl_ntfset_emulators_sdk_test_secret"
-const KEY = "pdl_sdbx_apikey_emulators_sdk_test"
+const SECRET = "pdl_ntfset_emulates_sdk_test_secret"
+const KEY = "pdl_sdbx_apikey_emulates_sdk_test"
 
 let server: PaddleServer
 let paddle: Paddle

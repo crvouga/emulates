@@ -1,6 +1,6 @@
 # @emulates/fullscript
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Fullscript** lab-ordering API for test suites: per-practitioner OAuth
 (consent redirect, `authorization_code` and rotating `refresh_token` grants, revoke), the
@@ -9,7 +9,7 @@ result PDFs, and `Fullscript-Signature` webhooks with the challenge acknowledgem
 implements. Lab orders move forward only, through exactly Fullscript's states, when a test says
 so.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/fullscript/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/fullscript/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from the EMR consumer
   (`fullscript-api-client.ts`, `fullscript-event-model.ts`, `fullscript-webhook-signature.ts`,
   `routers/v1/fullscript/webhook-controller.ts`, `fullscript-result-storage.ts`).
@@ -145,4 +145,4 @@ body, so they need the prefix or the header.
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--webhook-url`, `--webhook-secret`, `--webhook-challenge`, `--client`, `--results-base-url`); port 8819. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

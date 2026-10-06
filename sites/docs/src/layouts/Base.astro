@@ -1,5 +1,5 @@
 ---
-import catalog from "virtual:emulators/catalog"
+import catalog from "virtual:emulates/catalog"
 import { project } from "../../../../project.ts"
 import Icon from "../components/Icon.astro"
 import Mark from "../components/Mark.astro"
@@ -17,7 +17,7 @@ interface Props {
 
 const {
   title,
-  description = `${IDENTITY.tagline} ${catalog.totals.services} emulators for third-party APIs and SQL databases, each running in Node, Bun, browsers, and Workers.`,
+  description = `${IDENTITY.tagline} ${catalog.totals.services} services for third-party APIs and SQL databases, each running in Node, Bun, browsers, and Workers.`,
   markdown,
 } = Astro.props
 const fullTitle = title

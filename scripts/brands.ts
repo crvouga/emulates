@@ -2,7 +2,7 @@
  * Vendor branding for the docs site: each emulated service's logo, brand color and a one-line
  * description of the vendor, fetched from the web so nobody hand-collects them.
  *
- * Inputs are the `emulators.vendor` block in each service's package.json:
+ * Inputs are the `emulates.vendor` block in each service's package.json:
  *
  *   "vendor": {
  *     "website": "https://stripe.com",          required: the vendor's homepage
@@ -350,7 +350,7 @@ const targets: Target[] = discoverPackages()
     const pkg = JSON.parse(readFileSync(p.manifestPath, "utf8"))
     const vendor = pkg.emulates?.vendor as Vendor | undefined
     if (!vendor?.website) {
-      console.error(`::error::${p.relDir}/package.json: emulators.vendor.website is required`)
+      console.error(`::error::${p.relDir}/package.json: emulates.vendor.website is required`)
       process.exit(1)
     }
     return {

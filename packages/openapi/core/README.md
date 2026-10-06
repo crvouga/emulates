@@ -112,4 +112,4 @@ Exported types: `OpenAPIDocument`, `Operation` (`{ operationId, method, path, op
 - [`@emulates/openapi-arbitrary`](https://www.npmjs.com/package/@emulates/openapi-arbitrary) — fast-check arbitraries from schemas.
 - [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — differential parity runner.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

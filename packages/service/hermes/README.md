@@ -1,6 +1,6 @@
 # @emulates/hermes
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Work-in-progress emulator for the Hermes Agent public peer-run API pinned to
 `v2026.8.31`. Submission, polling and stop work with explicit synthetic lifecycle observations.
@@ -51,7 +51,7 @@ The Node entry is separate from the portable Fetch entry.
 `POST /v1/runs` admits a run and `GET /v1/runs/{run_id}` polls it.
 `POST /v1/runs/{run_id}/stop` requests interruption. Events, approval and steer
 return an emulator-only 501 envelope with `error.type` of
-`emulators_unsupported` and `error.code` of `operation_not_implemented`.
+`emulates_unsupported` and `error.code` of `operation_not_implemented`.
 Missing runs use the pinned `run_not_found` 404 envelope. Unknown paths return
 404. Emulator-only errors do not claim real Hermes rejection behavior.
 

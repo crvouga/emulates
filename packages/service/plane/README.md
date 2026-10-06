@@ -1,6 +1,6 @@
 # @emulates/plane
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the **Plane** REST API (v1) for test suites, covering what our bug-report
 dedup and resolution jobs call on one project: work items (Plane's cursor-paginated list, get,
@@ -8,7 +8,7 @@ create, patch), comments, links, states and labels, with Plane's rate limit and 
 Projects are provisioned on first use with Plane's default workflow (Backlog, Todo, In
 Progress, Done, Cancelled), so no setup is needed.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/plane/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/plane/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from Plane's API reference and the consumer's
   zod schemas (`plane-response.ts`).
 
@@ -137,4 +137,4 @@ never retried.
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--api-key`, `--rate-limit`); port 8821. |
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

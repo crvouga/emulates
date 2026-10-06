@@ -1,4 +1,4 @@
-import catalog from "virtual:emulators/catalog"
+import catalog from "virtual:emulates/catalog"
 import type { APIRoute } from "astro"
 import { CATEGORIES, type CategorySlug } from "../lib/categories.ts"
 import { initials } from "../lib/format.ts"

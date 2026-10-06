@@ -1,5 +1,5 @@
 ---
-import catalog from "virtual:emulators/catalog"
+import catalog from "virtual:emulates/catalog"
 import Icon from "../../components/Icon.astro"
 import Base from "../../layouts/Base.astro"
 import { APP_EXAMPLES } from "../../lib/appExamples.ts"
@@ -9,13 +9,13 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
 
 <Base
   title="Examples"
-  description="Full-stack demo apps built entirely on emulators — client, server and database, one process, no real network."
+  description="Full-stack demo apps built entirely on Emulates — client, server and database, one process, no real network."
 >
   <div class="container">
     <header class="page-head">
       <h1>Examples</h1>
       <p class="lede">
-        Small, real full-stack apps that compose emulators the way you would in production —
+        Small, real full-stack apps that compose Emulates services the way you would in production —
         client, server, database, and every "vendor" call in one process, with no real network. Each one is
         a working app you can run locally, not a snippet.
       </p>

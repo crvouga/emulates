@@ -1,6 +1,6 @@
 # @emulates/infisical
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip** portable Infisical emulator for Universal Auth and the raw-secret surface used by
 `@infisical/sdk` **3.0.91**. Organizations, project environments, folders, permissions, tokens,

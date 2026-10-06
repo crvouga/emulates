@@ -1,6 +1,6 @@
 # @emulates/sqlite
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Pure TypeScript, completely in-memory SQLite engine aiming for **full SQLite3 SQL dialect parity**
 (same statements, same results). Use it in tests (or the browser) wherever you want real SQLite SQL
@@ -30,12 +30,12 @@ Files marked (shipped) are included in the npm package next to this README.
 | [COMPATIBILITY.md](./COMPATIBILITY.md) (shipped) | Feature matrix + verify commands |
 | [COMPATIBILITY-AUDIT.md](./COMPATIBILITY-AUDIT.md) (shipped) | Audit evidence |
 | [AGENTS.md](./AGENTS.md) (shipped) | Contributor docs: architecture, how to change code, test/compat gates |
-| [DROP-IN-CONTRACT.md](https://github.com/crvouga/emulators/blob/main/packages/service/sqlite/docs/DROP-IN-CONTRACT.md) | Falsifiable drop-in claim (what "same" means) |
-| [PROOF.md](https://github.com/crvouga/emulators/blob/main/packages/service/sqlite/docs/PROOF.md) | Evidence argument + what is not proven |
-| [GAP-ANALYSIS.md](https://github.com/crvouga/emulators/blob/main/packages/service/sqlite/docs/GAP-ANALYSIS.md) | Phase 0 gap analysis vs the full drop-in catalog |
-| [GAP-CATALOG.md](https://github.com/crvouga/emulators/blob/main/packages/service/sqlite/docs/GAP-CATALOG.md) | Current unproven / thin / intentional inventory |
-| [DIVERGENCES.md](https://github.com/crvouga/emulators/blob/main/packages/service/sqlite/DIVERGENCES.md) | Auto-generated intentional divergences (machine-readable: `compat/divergences.json`, shipped) |
-| [PERFORMANCE.md](https://github.com/crvouga/emulators/blob/main/packages/service/sqlite/benchmarks/PERFORMANCE.md) | Performance notes |
+| [DROP-IN-CONTRACT.md](https://github.com/crvouga/emulates/blob/main/packages/service/sqlite/docs/DROP-IN-CONTRACT.md) | Falsifiable drop-in claim (what "same" means) |
+| [PROOF.md](https://github.com/crvouga/emulates/blob/main/packages/service/sqlite/docs/PROOF.md) | Evidence argument + what is not proven |
+| [GAP-ANALYSIS.md](https://github.com/crvouga/emulates/blob/main/packages/service/sqlite/docs/GAP-ANALYSIS.md) | Phase 0 gap analysis vs the full drop-in catalog |
+| [GAP-CATALOG.md](https://github.com/crvouga/emulates/blob/main/packages/service/sqlite/docs/GAP-CATALOG.md) | Current unproven / thin / intentional inventory |
+| [DIVERGENCES.md](https://github.com/crvouga/emulates/blob/main/packages/service/sqlite/DIVERGENCES.md) | Auto-generated intentional divergences (machine-readable: `compat/divergences.json`, shipped) |
+| [PERFORMANCE.md](https://github.com/crvouga/emulates/blob/main/packages/service/sqlite/benchmarks/PERFORMANCE.md) | Performance notes |
 
 ## Install
 
@@ -140,7 +140,7 @@ const warmed = sqlite.snapshot()
 const freshStripe = () => new StripeAPI({ sqlite: warmed.open() })
 ```
 
-The emulators create their own tables (`emulators_records`, `emulators_sequences`,
+The emulators create their own tables (`emulates_records`, `emulates_sequences`,
 `schema_migrations`) on construction, and each emulator's `reset()` clears only its own namespace, so
 resetting one emulator leaves the others' data in a shared database intact. Any other client with the same sync surface (better-sqlite3, a
 wrapped `bun:sqlite`) also satisfies the port.
@@ -261,7 +261,7 @@ The engine is deterministic by default:
 
 Goal: **SQL dialect** behavioural parity vs SQLite **3.51.0** / **3.53.0** for the sync API. Full
 matrix: [COMPATIBILITY.md](./COMPATIBILITY.md). Contract:
-[DROP-IN-CONTRACT.md](https://github.com/crvouga/emulators/blob/main/packages/service/sqlite/docs/DROP-IN-CONTRACT.md).
+[DROP-IN-CONTRACT.md](https://github.com/crvouga/emulates/blob/main/packages/service/sqlite/docs/DROP-IN-CONTRACT.md).
 
 This is **not** a drop-in replacement for `sql.js`, `@sqlite.org/sqlite-wasm`, or better-sqlite3's
 full Node API. There is no `.sqlite` file codec, no `create_function` / custom collations, no
@@ -418,7 +418,7 @@ The exports of the main entry (`@emulates/sqlite`) are **frozen**:
 
 ## Development
 
-For contributors to the emulators repo only. Requires [Bun](https://bun.sh). For
+For contributors to the Emulates repo only. Requires [Bun](https://bun.sh). For
 architecture, change checklists, and how to add contract tests, see [AGENTS.md](./AGENTS.md).
 
 Parity is proven only by differential contracts against real SQLite (`bun:sqlite`). Isolated
@@ -446,12 +446,12 @@ SQLITE_MEM_FUZZ_SEED=12345 SQLITE_MEM_FUZZ_PATH='0:1' bun test tests/fuzz  # exa
 ```
 
 A React + Vite SQL playground lives in
-[`examples/react-vite`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite/examples/react-vite)
+[`examples/react-vite`](https://github.com/crvouga/emulates/tree/main/packages/service/sqlite/examples/react-vite)
 (`bun run example` from this package after `bun install` there). More working examples:
-[`tests/contract/api/`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite/tests/contract/api)
-and [`tests/contract/parameters/`](https://github.com/crvouga/emulators/tree/main/packages/service/sqlite/tests/contract/parameters).
+[`tests/contract/api/`](https://github.com/crvouga/emulates/tree/main/packages/service/sqlite/tests/contract/api)
+and [`tests/contract/parameters/`](https://github.com/crvouga/emulates/tree/main/packages/service/sqlite/tests/contract/parameters).
 
-Released automatically from the [Emulates monorepo](https://github.com/crvouga/emulators)
-(see [Releasing](https://github.com/crvouga/emulators/blob/main/docs/RELEASING.md)). License: MIT ([LICENSE](./LICENSE)).
+Released automatically from the [Emulates monorepo](https://github.com/crvouga/emulates)
+(see [Releasing](https://github.com/crvouga/emulates/blob/main/docs/RELEASING.md)). License: MIT ([LICENSE](./LICENSE)).
 
-Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).
+Part of [Emulates](https://github.com/crvouga/emulates) — agent integration guide: [README](https://github.com/crvouga/emulates#readme) · [llms.txt](https://github.com/crvouga/emulates/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md).

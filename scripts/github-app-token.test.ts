@@ -7,7 +7,7 @@ import {
   reachProblems,
 } from "./github-app-token.ts"
 
-const repo = "owner/emulators"
+const repo = "owner/emulates"
 const installation = (over: Partial<Installation> = {}): Installation => ({
   id: 1,
   repository_selection: "selected",
@@ -26,18 +26,18 @@ test("a token on this repository alone, with the agents' permissions, passes", (
 
 test("a token that reaches another repository is refused", () => {
   expect(reachProblems([installation()], [repo, "owner/other"], repo)).toEqual([
-    "it reaches owner/emulators, owner/other, not owner/emulators alone",
+    "it reaches owner/emulates, owner/other, not owner/emulates alone",
   ])
   expect(reachProblems([installation()], ["owner/other"], repo)).toHaveLength(1)
   expect(reachProblems([installation()], [], repo)).toEqual([
-    "it reaches no repository, not owner/emulators alone",
+    "it reaches no repository, not owner/emulates alone",
   ])
 })
 
 test("an app installed on every repository, or twice, is refused", () => {
   expect(
     reachProblems([installation({ repository_selection: "all" })], [repo], repo),
-  ).toContainEqual("the app is installed on all repositories, not only owner/emulators")
+  ).toContainEqual("the app is installed on all repositories, not only owner/emulates")
   expect(reachProblems([installation(), installation({ id: 2 })], [repo], repo)).toContainEqual(
     "it reaches 2 installations of the app, not exactly one",
   )

@@ -54,7 +54,7 @@ export const unsupported = (message: string): never => {
     501,
     `Emulates: ${message}`,
     "operation_not_implemented",
-    "emulators_unsupported",
+    "emulates_unsupported",
   )
 }
 const invalid = (message: string): never => {

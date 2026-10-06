@@ -7,7 +7,7 @@ import { document, JunctionAPI, type JunctionWebhookEvent } from "./src/index.js
 
 const params = fcParameters(process.env)
 const MOCK_HOST = "mock.junction.local"
-const AUTH = { "x-vital-api-key": "sk_us_emulators" }
+const AUTH = { "x-vital-api-key": "sk_us_emulates" }
 const now = () => 1_700_000_000_000
 
 describe("JunctionAPI", () => {

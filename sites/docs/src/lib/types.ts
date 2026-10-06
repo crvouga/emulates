@@ -58,7 +58,7 @@ export interface Service {
   description: string
   keywords: string[]
   category: string
-  /** The vendor surface this emulator keeps in step, declared as `emulators.parity`. */
+  /** The vendor surface this emulator keeps in step, declared as `emulates.parity`. */
   parity: string
   kind: ServiceKind
   surfaces: {

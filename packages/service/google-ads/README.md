@@ -1,6 +1,6 @@
 # @emulates/google-ads
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 A **wip** portable emulator for Google Ads API v25 and Google Analytics 4. It provides deterministic
 GAQL reporting, campaign-budget mutations, click-conversion uploads, Measurement Protocol event

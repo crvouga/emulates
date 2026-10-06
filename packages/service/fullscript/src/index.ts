@@ -618,12 +618,12 @@ export class FullscriptAPI implements FetchAPI {
     const order = this.state.orders.get(orderId)
     if (!order)
       throw new HttpError(404, {
-        error: { type: "emulators_admin", message: `no lab order ${orderId}` },
+        error: { type: "emulates_admin", message: `no lab order ${orderId}` },
       })
     if (stateRank(to) <= stateRank(order.state)) {
       throw new HttpError(409, {
         error: {
-          type: "emulators_admin",
+          type: "emulates_admin",
           message: `lab orders only move forward: ${order.state} → ${to} is not allowed`,
         },
       })

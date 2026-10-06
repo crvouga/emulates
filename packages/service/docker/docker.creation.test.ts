@@ -172,7 +172,7 @@ test("image defaults, entrypoint clearing, generated names and platform warnings
   expect(value.Warnings).toHaveLength(1)
   expect(value.Warnings[0]).toContain("linux/arm64")
   expect(await (await call(r, `/containers/${value.Id}/json`)).json()).toMatchObject({
-    Name: expect.stringMatching(/^\/emulators_/),
+    Name: expect.stringMatching(/^\/emulates_/),
     Config: { Entrypoint: [], Cmd: ["replacement"] },
   })
   expect(

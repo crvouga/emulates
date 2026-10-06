@@ -54,7 +54,7 @@ export type LiveKitRuntimeOptions = {
 }
 export type LiveKitRuntime = ServiceRuntime<LiveKitAPI> & { readonly webhooks: WebhookHub }
 const error = (status: number, message: string) =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<LiveKitAPI>): AdminRoutes => ({
   "POST /dispatches/:id/jobs": ({ namespace, params, body }) => {
     if (!body || typeof body !== "object" || Array.isArray(body))

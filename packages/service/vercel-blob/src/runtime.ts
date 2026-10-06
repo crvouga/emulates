@@ -61,7 +61,7 @@ export type VercelBlobRuntime = ServiceRuntime<VercelBlobAPI>
 const object = (v: unknown): Record<string, unknown> =>
   v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
 const adminError = (status: number, message: string) =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const routes = (runtime: VercelBlobRuntime): AdminRoutes => ({
   "GET /store/blobs": ({ namespace }) => {
     const api = runtime.instance(namespace)

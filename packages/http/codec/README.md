@@ -78,4 +78,4 @@ and `__proto__` keys become plain own properties (no prototype pollution).
 
 - `@emulates/service`: uses this codec to hand operation handlers decoded bodies and queries.
 
-Part of [emulators](https://github.com/crvouga/emulators).
+Part of [Emulates](https://github.com/crvouga/emulates).

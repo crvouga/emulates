@@ -4,7 +4,7 @@ import { createRuntime, PADDLE_PRESETS, type PaddleRuntimeOptions } from "./src/
 import { createServer, serveTarget } from "./src/server.js"
 
 const API = "http://paddle.mock"
-const SECRET = "pdl_ntfset_emulators_contract_test_secret"
+const SECRET = "pdl_ntfset_emulates_contract_test_secret"
 const COMMON = { adminKey: undefined, seed: undefined, onLog: undefined }
 
 const harness = (options: PaddleRuntimeOptions = {}) => {

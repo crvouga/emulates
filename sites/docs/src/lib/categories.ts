@@ -1,5 +1,5 @@
 /**
- * Labels for the `emulators.category` slug each service declares in its package.json.
+ * Labels for the `emulates.category` slug each service declares in its package.json.
  * The build fails if a service names a slug that is not listed here.
  */
 export const CATEGORIES = {

@@ -1,6 +1,6 @@
 # @emulates/notion
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Notion **2022-06-28** database search, OAuth token exchange and database-parent page creation.
 This is the legacy database API, not the newer data-source API.

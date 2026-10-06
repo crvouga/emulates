@@ -23,7 +23,7 @@ import mappingsFixture from "./test/corpus/flex-catalog-mappings.json" with { ty
 
 const params = fcParameters(process.env)
 const API = "http://flex.mock"
-const KEY = "fsk_test_emulators_acceptance"
+const KEY = "fsk_test_emulates_acceptance"
 /** `FLEX_WEBHOOK_SECRET`: Flex issues `fwhsec_<base64>`. */
 const SECRET = `fwhsec_${Buffer.from("flex-mock-signing-key-0123456789").toString("base64")}`
 

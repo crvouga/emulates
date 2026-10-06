@@ -73,7 +73,7 @@ export type KillBillRuntimeOptions = {
 }
 export type KillBillRuntime = ServiceRuntime<KillBillAPI> & { readonly webhooks: WebhookHub }
 const problem = (status: number, message: string) =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<KillBillAPI>): AdminRoutes => ({
   "GET /billing": ({ namespace }) => {
     const state = runtime.instance(namespace).state

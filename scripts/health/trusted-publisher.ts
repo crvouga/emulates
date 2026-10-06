@@ -2,10 +2,11 @@
  * Trusted Publisher health for every npm package associated with this repo.
  *
  * Association is the logged-in account's packages whose registry repository is
- * crvouga/emulators, plus every public workspace package (including one that
- * is not on npm yet). npm can only record a publisher on a package that already
- * exists, and direct `npm publish` from this repo's Release workflow needs a
- * GitHub Actions publisher for crvouga/emulators, workflow ci.yml, with no
+ * crvouga/emulates (or a former name, crvouga/emulators or crvouga/mockingbird),
+ * plus every public workspace package (including one that is not on npm yet).
+ * npm can only record a publisher on a package that already exists, and direct
+ * `npm publish` from this repo's Release workflow needs a GitHub Actions publisher
+ * for crvouga/emulates, workflow ci.yml, with no
  * environment and permission to publish (not stage-only). The fix is the
  * package access page.
  */
@@ -63,13 +64,15 @@ export function registryPackagePath(name: string): string {
   return name.replaceAll("/", "%2f")
 }
 
+/** Former GitHub names for this repo. Older packages still declare them. */
+const FORMER_REPOSITORIES = ["crvouga/emulators", "crvouga/mockingbird"] as const
+
 /**
- * `github.com/crvouga/emulators` or `github:crvouga/emulators` (or the repo's former name,
- * `crvouga/mockingbird`, which older published versions still declare), including `.git` and
- * a trailing path. A longer repo name such as `emulates-extra` does not match.
+ * `github.com/crvouga/emulates` or `github:crvouga/emulates`, plus {@link FORMER_REPOSITORIES},
+ * including `.git` and a trailing path. A longer repo name such as `emulates-extra` does not match.
  */
 const PROJECT_REPOSITORY = new RegExp(
-  `(?:^|[/:@])(?:github\\.com[:/]|github:)(?:${[REPO, "crvouga/mockingbird"].map((r) => r.replace("/", "\\/")).join("|")})(?:\\.git)?(?=$|[/#?])`,
+  `(?:^|[/:@])(?:github\\.com[:/]|github:)(?:${[REPO, ...FORMER_REPOSITORIES].map((r) => r.replace("/", "\\/")).join("|")})(?:\\.git)?(?=$|[/#?])`,
 )
 
 function repositoryText(repository: unknown): string | undefined {

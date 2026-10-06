@@ -57,7 +57,7 @@ export type TextractRuntimeOptions = {
 }
 export type TextractRuntime = ServiceRuntime<TextractAPI> & { readonly webhooks: WebhookHub }
 const problem = (status: number, message: string) =>
-  Response.json({ error: { type: "emulators_admin", message } }, { status })
+  Response.json({ error: { type: "emulates_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<TextractAPI>): AdminRoutes => ({
   "GET /corpora": ({ namespace }) =>
     Response.json({

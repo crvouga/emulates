@@ -1,6 +1,6 @@
 # @emulates/junction
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Stateful emulator of the [Junction (formerly Vital) API](https://docs.junction.com/): users
 (`/v2/user`), the lab-testing catalog, lab orders (create, cancel, simulate, results,
@@ -17,10 +17,10 @@ cross-suite interference. Serve it as a local origin with one command, or run it
 npx emulates-junction serve   # http://127.0.0.1:8787, recorded sandbox corpus loaded
 ```
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/junction/SUPPORT.md)
 - Drop-in readiness and the sandbox quirks the emulator mirrors:
-  [docs/drop-in.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/docs/drop-in.md)
-- Behaviour notes: [docs/behavior.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/docs/behavior.md)
+  [docs/drop-in.md](https://github.com/crvouga/emulates/blob/main/packages/service/junction/docs/drop-in.md)
+- Behaviour notes: [docs/behavior.md](https://github.com/crvouga/emulates/blob/main/packages/service/junction/docs/behavior.md)
 - **What the emulator does not model:** [below](#what-is-and-is-not-modelled). Read it before trusting a
   green suite.
 
@@ -133,7 +133,7 @@ import { defaultCorpus } from "@emulates/junction/corpus"
 
 const junction = createRuntime({ corpus: defaultCorpus })
 const as = (worker: string) => ({
-  "x-vital-api-key": "sk_us_emulators",
+  "x-vital-api-key": "sk_us_emulates",
   "x-emulates-namespace": worker, // isolates this worker's data
   "content-type": "application/json",
 })
@@ -157,7 +157,7 @@ await junction.reset("worker-1") // or junction.reset("*") for every namespace
 import { JunctionAPI } from "@emulates/junction"
 
 const junction = new JunctionAPI({ now: () => Date.UTC(2030, 0, 1) })
-const headers = { "x-vital-api-key": "sk_us_emulators", "content-type": "application/json" }
+const headers = { "x-vital-api-key": "sk_us_emulates", "content-type": "application/json" }
 
 const call = async (method: string, path: string, body?: unknown) => {
   const response = await junction.fetch(
@@ -215,7 +215,7 @@ constructs it):
 ```js
 import { VitalClient } from "@tryvital/vital-node"
 
-const client = new VitalClient({ apiKey: "sk_us_emulators", environment: baseUrl })
+const client = new VitalClient({ apiKey: "sk_us_emulates", environment: baseUrl })
 const user = await client.user.create({ clientUserId: "app-user-1" })
 ```
 
@@ -230,7 +230,7 @@ Every Emulates service answers the same control surface, outside the vendor's au
   `{ "status": "ok", "service": "junction", "corpus": "<label>", "geo": "corpus", … }`.
 - `/__admin/*` — the control plane. Open by default; with `--admin-key` / `adminKey` it requires
   `x-emulates-admin-key`, which is separate from any vendor key. Admin errors have one shape,
-  `{ "error": { "type": "emulators_admin", "message": "…" } }`, so they can never be confused
+  `{ "error": { "type": "emulates_admin", "message": "…" } }`, so they can never be confused
   with a Junction error. `GET /__admin` lists every route.
 - `x-emulates-namespace: <name>` — isolates a request's data (`[A-Za-z0-9_.-]{1,64}`). Each
   namespace is a separate team over one shared database, so parallel workers share one process
@@ -349,9 +349,9 @@ enforce them either. An id naming another lab's account is accepted and the orde
 that account (the guide says it must be "associated with the lab selected for the order"):
 recorded in `corpus/lab-account-probes.json`, where a Labcorp test ordered through Junction's
 BioReference account was placed, and reported live by a consumer's team
-([#138](https://github.com/crvouga/emulators/issues/138)). An omitted id while several active
+([#138](https://github.com/crvouga/emulates/issues/138)). An omitted id while several active
 accounts are linked for the lab places the order (the guide says it "may be rejected"): reported
-live by a consumer's team ([#136](https://github.com/crvouga/emulators/issues/136)); the
+live by a consumer's team ([#136](https://github.com/crvouga/emulates/issues/136)); the
 sandbox team the parity run uses has one account per lab, so `verify --orders` checks it whenever
 a corpus has such a lab. Which of the several accounts the sandbox bills through is not visible
 from outside; the emulator uses the first listed.
@@ -870,7 +870,7 @@ console.log(report.users, report.orders)
 
 ## Development
 
-For contributors to the emulators repo only.
+For contributors to the Emulates repo only.
 
 ```bash
 bun test                                   # offline suites, incl. scheduling state space
@@ -892,7 +892,7 @@ bun run parity -- --mode=empty                   # legacy empty-start differenti
 ```
 
 Webhook parity needs a public receiver; see
-[docs/webhook-parity.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/docs/webhook-parity.md).
+[docs/webhook-parity.md](https://github.com/crvouga/emulates/blob/main/packages/service/junction/docs/webhook-parity.md).
 
 ## Asynchronous testkit simulation
 
@@ -909,4 +909,4 @@ explicitly delayed simulations and unsuccessful requests are not treated as sett
 The USSL testkit result metadata follows the observed sandbox fixture (null specimen dates
 and CLIA `05D2130115`); other laboratories retain their existing metadata behavior.
 
-Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).
+Part of [Emulates](https://github.com/crvouga/emulates) — agent integration guide: [README](https://github.com/crvouga/emulates#readme) · [llms.txt](https://github.com/crvouga/emulates/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md).

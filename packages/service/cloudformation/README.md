@@ -1,6 +1,6 @@
 # @emulates/cloudformation
 
-> Part of [Emulates](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
+> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
 
 Transport scaffold for Amazon CloudFormation. ESM; Node 22+ or Bun 1.2+.
 

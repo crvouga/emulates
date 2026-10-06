@@ -68,14 +68,14 @@ export class MetaState {
     }
     const fixtures: MarketingObject[] = [
       {
-        id: "cmp_emulators",
+        id: "cmp_emulates",
         kind: "campaign",
         name: "Emulates launch",
         status: "ACTIVE",
         objective: "OUTCOME_SALES",
       },
-      { id: "set_emulators", kind: "adset", name: "Synthetic audience", status: "ACTIVE" },
-      { id: "ad_emulators", kind: "ad", name: "Synthetic creative", status: "ACTIVE" },
+      { id: "set_emulates", kind: "adset", name: "Synthetic audience", status: "ACTIVE" },
+      { id: "ad_emulates", kind: "ad", name: "Synthetic creative", status: "ACTIVE" },
     ]
     for (const fixture of fixtures)
       if (!this.objects.has(fixture.id)) this.objects.insert(fixture.id, fixture)
@@ -85,10 +85,10 @@ export class MetaState {
       if (!this.insights.has(id))
         this.insights.insert(id, {
           id,
-          account_id: "act_emulators",
+          account_id: "act_emulates",
           date_start: date,
           date_stop: date,
-          campaign_id: "cmp_emulators",
+          campaign_id: "cmp_emulates",
           campaign_name: "Emulates launch",
           impressions: String(day * 100),
           clicks: String(day * 10),
