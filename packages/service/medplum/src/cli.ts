@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-medplum",
-    description: "stateful mock of a self-hosted Medplum server (FHIR R4, OAuth2, admin API)",
+    bin: "emulators-medplum",
+    description: "Emulator of a self-hosted Medplum server (FHIR R4, OAuth2, admin API)",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

@@ -96,10 +96,10 @@ export {
   createRuntime,
   DEFAULT_NAMESPACE,
   DroppedConnectionError,
+  EMULATORS_HEADER,
   faultEffect,
   faultEffects,
   forwardRequestContext,
-  MOCKINGBIRD_HEADER,
   markMutationAccepted,
 } from "./runtime.js"
 export type { S3Target } from "./s3.js"

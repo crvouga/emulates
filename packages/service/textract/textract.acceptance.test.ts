@@ -48,7 +48,7 @@ describe("Textract contract", () => {
         headers: {
           "content-type": "application/x-amz-json-1.1",
           "x-amz-target": "Textract.GetDocumentAnalysis",
-          "x-mockingbird-namespace": "other",
+          "x-emulators-namespace": "other",
         },
         body: JSON.stringify({ jobId: id }),
       }),

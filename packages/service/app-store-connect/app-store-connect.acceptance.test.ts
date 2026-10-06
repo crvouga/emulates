@@ -230,7 +230,7 @@ test("served HTTP, credential mapping, reset, presets and metadata-only journal"
     const admin = (path: string, body: unknown, method = "POST") =>
       fetch(`${server.url}/__admin${path}`, {
         method,
-        headers: { "content-type": "application/json", "x-mockingbird-namespace": "mapped" },
+        headers: { "content-type": "application/json", "x-emulators-namespace": "mapped" },
         body: JSON.stringify(body),
       })
     await admin("/credentials", { credentials: { [token]: "mapped" } }, "PUT")
@@ -257,7 +257,7 @@ test("served HTTP, credential mapping, reset, presets and metadata-only journal"
     }
     const journal = await (
       await fetch(`${server.url}/__admin/requests`, {
-        headers: { "x-mockingbird-namespace": "mapped" },
+        headers: { "x-emulators-namespace": "mapped" },
       })
     ).text()
     expect(journal).not.toContain(token)

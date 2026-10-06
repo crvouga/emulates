@@ -6,7 +6,7 @@ import {
   awsList,
   awsRecord,
   awsRequired,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 
 type APIOptions = AwsProtocolOptions
 export class EventbridgeAPI extends AwsProtocolAPI {

@@ -1,7 +1,7 @@
 /**
- * Build a published mock-service package as a self-contained bundle.
+ * Build a published service package as a self-contained bundle.
  *
- * Only `@crvouga/mockingbird-service-*` packages ship to npm; the helper workspace
+ * Only `@emulators/*` packages ship to npm; the helper workspace
  * packages they build on (core, service runtime, openapi, commands, …) are private.
  * So each service inlines them: every import that is not a declared `dependency` /
  * `peerDependency` of the service is bundled into its `dist`, JavaScript with esbuild
@@ -19,6 +19,7 @@ import { $ } from "bun"
 import { build } from "esbuild"
 import { rollup } from "rollup"
 import { dts } from "rollup-plugin-dts"
+import { project } from "../project.ts"
 import { VERSION_PLACEHOLDER } from "./bundle-service-version.ts"
 
 const pkgDir = process.cwd()
@@ -28,7 +29,7 @@ const pkg = JSON.parse(await Bun.file(join(pkgDir, "package.json")).text()) as {
   bin?: string | Record<string, string>
   dependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
-  mockingbird?: { runtime?: string }
+  emulators?: { runtime?: string }
 }
 
 const external = [...Object.keys({ ...pkg.dependencies, ...pkg.peerDependencies })]
@@ -41,7 +42,7 @@ const packageRoot = (id: string) =>
     .join("/")
 /** Private workspace helpers are inlined; every other bare import stays an import. */
 const isInlined = (id: string) =>
-  /^@crvouga\/mockingbird(?:-|\/|$)/.test(id) && !external.includes(packageRoot(id))
+  id.startsWith(`${project.npmScope}/`) && !external.includes(packageRoot(id))
 
 const entryName = (target: string) =>
   target
@@ -72,13 +73,13 @@ const js = await build({
   bundle: true,
   splitting: entries.length > 1,
   format: "esm",
-  platform: pkg.mockingbird?.runtime === "node" ? "node" : "neutral",
+  platform: pkg.emulators?.runtime === "node" ? "node" : "neutral",
   mainFields: ["module", "main"],
   target: "es2022",
   sourcemap: true,
   // The unreleased placeholder; `release:publish` rewrites it to the version it publishes
   // (see UNRELEASED_VERSION in packages/service/core/src/version.ts).
-  define: { __MOCKINGBIRD_PACKAGE_VERSION__: JSON.stringify(VERSION_PLACEHOLDER) },
+  define: { __EMULATORS_PACKAGE_VERSION__: JSON.stringify(VERSION_PLACEHOLDER) },
   external: [...external, "node:*", "bun", "bun:*"],
   logLevel: "warning",
   metafile: true,

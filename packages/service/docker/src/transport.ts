@@ -57,7 +57,7 @@ export const listenDocker = async (
     res.once("close", onClose)
     const reject = (status: number) => {
       res.writeHead(status, { "content-type": "application/json", connection: "close" })
-      res.end(JSON.stringify({ message: `Mockingbird transport rejected request (${status})` }))
+      res.end(JSON.stringify({ message: `Emulators transport rejected request (${status})` }))
     }
     try {
       if (Number(req.headers["content-length"]) > maxBody) {
@@ -170,7 +170,7 @@ export const listenDocker = async (
       }
     } catch (error) {
       if (
-        (error as { code?: string })?.code === "MOCKINGBIRD_DROP" ||
+        (error as { code?: string })?.code === "EMULATORS_DROP" ||
         abort.signal.aborted ||
         res.headersSent
       )

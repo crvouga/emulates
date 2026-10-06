@@ -10,8 +10,8 @@
  * products, customers and sessions, and refunds, write to the shared sandbox account, so they
  * need `--include-unsafe`.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, FlexAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

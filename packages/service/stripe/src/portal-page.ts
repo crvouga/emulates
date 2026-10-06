@@ -1,4 +1,4 @@
-import { CSS_RESET } from "@crvouga/mockingbird-ui"
+import { CSS_RESET } from "@emulators/ui"
 import { subscriptionItems } from "./billing.js"
 import {
   CANCELLATION_REASONS,

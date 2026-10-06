@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-healthie
+# @emulators/healthie
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of the **Healthie GraphQL API**, covering the legacy surface our backend still
+Stateful emulator of the **Healthie GraphQL API**, covering the legacy surface our backend still
 calls:
 
 - sign-in, users, the current user, and profile, password and avatar updates
 - client updates and addresses
-- documents and folders, including multipart uploads, with downloads served by the mock
+- documents and folders, including multipart uploads, with downloads served by the emulator
 - requested forms and form answers
 - offerings and billing items
 - the IP-allowlisted status webhooks
@@ -15,28 +15,28 @@ calls:
 GraphQL documents run on the reference [`graphql`](https://www.npmjs.com/package/graphql)
 implementation against a subset of Healthie's schema written by hand. Selection sets, aliases,
 fragments, variables, `__typename` and validation errors therefore behave as they do on
-Healthie, and the mock returns only the fields a document asks for.
+Healthie, and the emulator returns only the fields a document asks for.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/healthie/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/healthie/SUPPORT.md)
 - Healthie publishes an SDL but no OpenAPI. `openapi.yaml` describes the HTTP side: one GraphQL
   operation and the file-download route. The GraphQL schema is `HEALTHIE_SDL`.
 
 > **Is this worth testing?** The catalog (S23) marks Healthie as legacy. Appointments and
 > providers moved to Medplum. What is left is legacy sign-in, password reset, profile and
 > address, the ODX document upload, and admin export and migration. Check that a suite still
-> exercises these paths before you wire the mock into the stack. It is fully implemented
+> exercises these paths before you wire the emulator into the stack. It is fully implemented
 > either way.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-healthie
+npm install -D @emulators/healthie
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. The one runtime dependency besides `hono` is the public
 `graphql` package (pinned to 16.11.0, the version our backend uses). See
 [Why `graphql`](#why-graphql-is-a-runtime-dependency). Serve it with
-`npx mockingbird-healthie serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx emulators-healthie serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -47,14 +47,14 @@ the backend's Joi and zod schemas currently accept only the staging or prod URL,
 and pass the same value as `--api-key`.
 
 ```bash
-npx mockingbird-healthie serve --port 8816 \
+npx emulators-healthie serve --port 8816 \
   --api-key "$HEALTHIE_API_AUTH_TOKEN" \
   --webhook-base-url http://127.0.0.1:3000 \
   --webhook-ip 18.206.70.225
 ```
 
 ```ts
-import { createRuntime, SEED } from "@crvouga/mockingbird-service-healthie"
+import { createRuntime, SEED } from "@emulators/healthie"
 
 const healthie = createRuntime({
   settings: { orgApiKeys: ["gh_sbox_test_org"] },
@@ -96,7 +96,7 @@ await healthie.fetch(
 | Route | Behaviour |
 | --- | --- |
 | `POST /graphql` | One document per request, sent as JSON `{query, variables, operationName}` or as a [GraphQL multipart request](https://github.com/jaydenseric/graphql-multipart-request-spec) (`operations`, `map`, file parts) for `Upload` variables. The `Authorization` header carries the API key as `Bearer <key>`, `Basic <key>` or the bare key. `AuthorizationSource: API` is accepted and ignored. Errors come back with HTTP 200, as on Healthie. A body that is not GraphQL gets a 400. |
-| `GET /files/{token}` | The bytes behind `document.expiring_url` and `user.avatar_url`, which point here on the request's own origin (with `/__admin/ns/<name>` when namespaced). Links are signed and expire on the mock clock (`expiringUrlSeconds`, default 300). A tampered or expired link gets a 403 and a deleted file a 404. Each download adds one entry to `document.opens`. |
+| `GET /files/{token}` | The bytes behind `document.expiring_url` and `user.avatar_url`, which point here on the request's own origin (with `/__admin/ns/<name>` when namespaced). Links are signed and expire on the emulator clock (`expiringUrlSeconds`, default 300). A tampered or expired link gets a 403 and a deleted file a 404. Each download adds one entry to `document.opens`. |
 
 GraphQL root fields: `currentUser`, `user(id)`, `users(keywords, should_paginate, …)`,
 `location(id)`, `locations`, `documents(…)`, `document(id)`, `folders(…)`,
@@ -194,7 +194,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`):
 
 Choose a namespace in any of three ways:
 
-- the `x-mockingbird-namespace` header;
+- the `x-emulators-namespace` header;
 - a `/__admin/ns/<name>/graphql` prefix on `HEALTHIE_API_URL` (file URLs keep the prefix);
 - by API key, with `PUT /__admin/credentials {"credentials": {"<key>": "<namespace>"}}`.
 
@@ -204,7 +204,7 @@ Choose a namespace in any of three ways:
 
 Healthie has no official Node SDK. Our backend talks to it through `graphql-request` 7.2.0
 (plain documents) and `awesome-graphql-client` 0.14.1 (multipart `Upload` documents). The
-acceptance tests drive the mock through those exact versions, pinned as devDependencies, with
+acceptance tests drive the emulator through those exact versions, pinned as devDependencies, with
 the backend's documents copied verbatim (`test/consumer.ts`). A separate SDK drop-in test would
 repeat them.
 
@@ -219,7 +219,7 @@ A hand-rolled parser would drift from those rules, which are exactly what parity
 preserve. `graphql` is a public, dependency-free npm package, pinned to the version our
 backend uses, so it ships as a normal `dependency` rather than being bundled.
 
-### Discrepancies found in our consumer (the mock follows the vendor, and the tests pin them)
+### Discrepancies found in our consumer (the emulator follows the vendor, and the tests pin them)
 
 - `createLocation` sends `city: line2` and never declares `$line2`, so Healthie stores the
   second address line as the city.
@@ -248,8 +248,8 @@ backend uses, so it ships as a normal `dependency` rather than being bundled.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `HealthieAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `userForKey(key)`, `emit(event)`, `fileUrl(origin, fileId)`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `onEvent`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `settings`, `webhooks: {baseUrl, ip?, retryDelaysMs?, fetch?}`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `HealthieAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `userForKey(key)`, `emit(event)`, `fileUrl(origin, fileId)`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `onEvent`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `settings`, `webhooks: {baseUrl, ip?, retryDelaysMs?, fetch?}`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `HEALTHIE_PRESETS` | object | Every named fault preset. |
 | `HEALTHIE_EVENT_ROUTES` | object | Receiver path → event types delivered there. |
 | `healthieEndpoints` | function | The webhook endpoints for a backend base URL and source IP. |
@@ -265,4 +265,4 @@ backend uses, so it ships as a normal `dependency` rather than being bundled.
 | `document`, `operationIds`, `supportedOperationIds` | values | The HTTP contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8816. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

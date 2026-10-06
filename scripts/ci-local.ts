@@ -136,7 +136,7 @@ async function commitlintJob(): Promise<void> {
   finished.push({ label: "Commitlint", seconds: 0 })
 }
 
-console.log("mockingbird check:full")
+console.log("emulators check:full")
 console.log(
   "Mirrors .github/workflows/pr.yml — the pull-request gate. Release publishes after merge.",
 )

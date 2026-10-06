@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test"
-import { type JsonValue, listOperations } from "@crvouga/mockingbird-openapi"
-import { operationMetadata } from "@crvouga/mockingbird-openapi-metadata"
-import { ParityError, parity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { type JsonValue, listOperations } from "@emulators/openapi"
+import { operationMetadata } from "@emulators/openapi-metadata"
+import { ParityError, parity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import { DEFAULT_TOKEN, document, OpenAIAPI } from "./src/index.js"
 
 const headers = () => ({ authorization: `Bearer ${DEFAULT_TOKEN}` })

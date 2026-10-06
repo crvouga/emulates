@@ -1,5 +1,5 @@
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, StripeAPI } from "../src/index.js"
 import { ACCOUNT_GLOBAL_OPS, QA_SURFACE_OPS } from "../src/qa-corpus.js"
 import { compareStripeWebhooks, startStripeWebhookOracle } from "./webhook-oracle.js"
@@ -252,7 +252,7 @@ try {
     },
     mock: {
       create: () => new StripeAPI(),
-      headers: () => ({ authorization: "Bearer sk_test_mockingbird" }),
+      headers: () => ({ authorization: "Bearer sk_test_emulators" }),
     },
     ...(webhookOracle
       ? {

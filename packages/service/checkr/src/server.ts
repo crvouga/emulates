@@ -1,4 +1,4 @@
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { type CheckrRuntime, type CheckrRuntimeOptions, createRuntime } from "./runtime.js"
 export const DEFAULT_PORT = 12129
 export const createServer = async (

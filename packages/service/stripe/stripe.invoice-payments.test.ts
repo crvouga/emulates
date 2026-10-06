@@ -68,7 +68,7 @@ describe("invoice.payments (basil)", () => {
   test("rejects a payment intent filter paired with the payment record type", async () => {
     const h = await harness()
     const result = await h.get(
-      "/v1/invoice_payments?created=-1000000&payment[type]=payment_record&payment[payment_intent]=pi_mockingbird_missing",
+      "/v1/invoice_payments?created=-1000000&payment[type]=payment_record&payment[payment_intent]=pi_emulators_missing",
       BASIL,
     )
     expect(result.status).toBe(400)
@@ -78,7 +78,7 @@ describe("invoice.payments (basil)", () => {
     })
     expect((result.body.error as Json).param).toBeUndefined()
     const valid = await h.get(
-      "/v1/invoice_payments?payment[type]=payment_record&payment[payment_record]=pr_mockingbird_missing",
+      "/v1/invoice_payments?payment[type]=payment_record&payment[payment_record]=pr_emulators_missing",
       BASIL,
     )
     expect(valid.status).toBe(200)

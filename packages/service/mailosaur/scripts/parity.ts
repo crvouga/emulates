@@ -10,8 +10,8 @@
  * the vendor and an empty inbox on the mock). By default only safe operations run (search, list,
  * get); create and delete touch the real inbox, so they need `--include-unsafe`.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, MailosaurAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

@@ -1,4 +1,4 @@
-import { opaqueToken } from "@crvouga/mockingbird-service"
+import { opaqueToken } from "@emulators/service"
 import {
   type Food,
   MEASURE_URI,
@@ -276,8 +276,8 @@ export const buildRecipe = (seed: RecipeSeed, foods: readonly Food[]) => {
     uri: `${RECIPE_URI}${seed.id}`,
     label: seed.label,
     image: `https://edamam-product-images.s3.amazonaws.com/web-img/${seed.id}.jpg`,
-    source: "Mockingbird Kitchen",
-    url: `https://kitchen.mockingbird.dev/recipes/${slug}`,
+    source: "Emulators Kitchen",
+    url: `https://kitchen.emulators.dev/recipes/${slug}`,
     shareAs: `http://www.edamam.com/recipe/${slug}/${seed.id}`,
     yield: seed.yield,
     dietLabels: seed.dietLabels,

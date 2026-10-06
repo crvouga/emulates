@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
-import type { OperationObject } from "@crvouga/mockingbird-openapi"
-import { ParityError, parity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import type { OperationObject } from "@emulators/openapi"
+import { ParityError, parity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import { document, InfisicalAPI, supportedOperationIds } from "./src/index.js"
 
 const headers = () => ({ authorization: "Bearer fixture-service-token" })

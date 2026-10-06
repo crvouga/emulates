@@ -18,10 +18,10 @@ export class InfisicalStore {
     const h = new Headers({
       authorization: `Bearer ${this.token}`,
       "content-type": "application/json",
-      "x-mockingbird-admin-key": this.adminKey,
+      "x-emulators-admin-key": this.adminKey,
       ...Object.fromEntries(new Headers(headers)),
     })
-    if (this.namespace) h.set("x-mockingbird-namespace", this.namespace)
+    if (this.namespace) h.set("x-emulators-namespace", this.namespace)
     return this.fetch(
       new Request(`${this.base}${path}`, {
         method,

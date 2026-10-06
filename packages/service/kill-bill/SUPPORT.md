@@ -1,12 +1,12 @@
-# Kill Bill Billing API (Mockingbird subset) — operation support
+# Kill Bill Billing API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **16**
-- supported by the mock: **16**
+- supported by the emulator: **16**
 - parity enabled: **16**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PaginateAccounts` | `GET /1.0/kb/accounts/pagination` | ✅ supported | ✅ |  |
 | `PaginateInvoices` | `GET /1.0/kb/invoices/pagination` | ✅ supported | ✅ |  |

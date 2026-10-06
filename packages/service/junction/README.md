@@ -1,8 +1,8 @@
-# @crvouga/mockingbird-service-junction
+# @emulators/junction
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of the [Junction (formerly Vital) API](https://docs.junction.com/): users
+Stateful emulator of the [Junction (formerly Vital) API](https://docs.junction.com/): users
 (`/v2/user`), the lab-testing catalog, lab orders (create, cancel, simulate, results,
 requisitions), at-home phlebotomy and patient-service-center (PSC) scheduling, and the
 `labtest.order.*` / `labtest.appointment.updated` webhooks. All 40 operations in the vendored
@@ -10,24 +10,24 @@ OpenAPI subset are served, and behaviour is checked by differential property tes
 Junction sandbox.
 
 Use it to take Junction off your suite's critical path: no sandbox key, no shared 50-user sandbox
-cap (the mock enforces no sandbox limit unless a test [asks for one](#sandbox-limits)), no
+cap (the emulator enforces no sandbox limit unless a test [asks for one](#sandbox-limits)), no
 cross-suite interference. Serve it as a local origin with one command, or run it in-process.
 
 ```bash
-npx mockingbird-junction serve   # http://127.0.0.1:8787, recorded sandbox corpus loaded
+npx emulators-junction serve   # http://127.0.0.1:8787, recorded sandbox corpus loaded
 ```
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/junction/SUPPORT.md)
-- Drop-in readiness and the sandbox quirks the mock mirrors:
-  [docs/drop-in.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/junction/docs/drop-in.md)
-- Behaviour notes: [docs/behavior.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/junction/docs/behavior.md)
-- **What the mock does not model:** [below](#what-is-and-is-not-modelled). Read it before trusting a
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/SUPPORT.md)
+- Drop-in readiness and the sandbox quirks the emulator mirrors:
+  [docs/drop-in.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/docs/drop-in.md)
+- Behaviour notes: [docs/behavior.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/docs/behavior.md)
+- **What the emulator does not model:** [below](#what-is-and-is-not-modelled). Read it before trusting a
   green suite.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-junction
+npm install -D @emulators/junction
 ```
 
 ESM only; Node >= 22 or Bun >= 1.2 (CommonJS callers on Node >= 22.12 can `require()` it). No
@@ -35,20 +35,20 @@ native dependencies: state lives in an in-memory SQLite engine written in TypeSc
 
 | Entry point | Runtime | What it is |
 | --- | --- | --- |
-| `@crvouga/mockingbird-service-junction` | any (Node, Bun, Workers, browsers) | `JunctionAPI`, `createRuntime`, corpus and verify tools |
-| `@crvouga/mockingbird-service-junction/server` | Node | `createServer()` — a listening HTTP server |
-| `@crvouga/mockingbird-service-junction/corpus` | any | `defaultCorpus` — the recording shipped in the package (a separate entry, so importing the mock never parses it) |
-| `mockingbird-junction` (bin) | Node | `serve`, `corpus pull`, `corpus diff`, `verify` |
+| `@emulators/junction` | any (Node, Bun, Workers, browsers) | `JunctionAPI`, `createRuntime`, corpus and verify tools |
+| `@emulators/junction/server` | Node | `createServer()` — a listening HTTP server |
+| `@emulators/junction/corpus` | any | `defaultCorpus` — the recording shipped in the package (a separate entry, so importing the emulator never parses it) |
+| `emulators-junction` (bin) | Node | `serve`, `corpus pull`, `corpus diff`, `verify` |
 
 ## Usage
 
-### `mockingbird-junction serve`
+### `emulators-junction serve`
 
 ```bash
-npx mockingbird-junction serve --port 8787
-npx mockingbird-junction serve --corpus ./test/junction-corpus.json --lab-accounts ./test/lab-accounts.json
-npx mockingbird-junction serve --webhook-url http://127.0.0.1:3100/webhooks/junction --webhook-secret whsec_...
-npx mockingbird-junction serve --help
+npx emulators-junction serve --port 8787
+npx emulators-junction serve --corpus ./test/junction-corpus.json --lab-accounts ./test/lab-accounts.json
+npx emulators-junction serve --webhook-url http://127.0.0.1:3100/webhooks/junction --webhook-secret whsec_...
+npx emulators-junction serve --help
 ```
 
 | Flag | Default | Meaning |
@@ -58,21 +58,21 @@ npx mockingbird-junction serve --help
 | `--corpus <default\|none\|file>` | `default` | The shipped corpus, no corpus (synthetic data), or a file from `corpus pull` |
 | `--geo <corpus\|synthetic>` | `corpus` with a corpus | How unknown ZIPs are answered; see [Geo](#geo-corpus-or-synthetic) |
 | `--lab-accounts <file>` | built-in fixtures | [Lab accounts](#lab-accounts): a JSON array, or `{ "presets": [...], "accounts": [...] }` |
-| `--team-id <uuid>` | the corpus's team | The [team](#team-identity) the mock answers as |
+| `--team-id <uuid>` | the corpus's team | The [team](#team-identity) the emulator answers as |
 | `--max-users <n>` | unlimited | Enforce the sandbox's [live-user cap](#sandbox-limits) |
 | `--identity <strict\|adopt-users>` | `strict` | Unknown `user_id`s: 404, or [create on first use](#fixtures-and-identity) |
 | `--default-billing-type <lab=type,…>` | `client_bill` | The `billing_type` an order for that lab gets when it omits one ([billing](#default-billing-type)) |
 | `--fixtures <file>` | — | [Users and orders](#fixtures-and-identity) every namespace starts with |
 | `--journal-size <n>` | `1000` | Requests each namespace's [journal](#is-this-the-mock) keeps |
-| `--webhook-url <url>` / `--webhook-secret <whsec_…>` | off | Deliver [signed webhooks](#webhooks) (secret also from `MOCKINGBIRD_JUNCTION_WEBHOOK_SECRET`) |
+| `--webhook-url <url>` / `--webhook-secret <whsec_…>` | off | Deliver [signed webhooks](#webhooks) (secret also from `EMULATORS_JUNCTION_WEBHOOK_SECRET`) |
 | `--webhook-retry-delays <ms,…>` | Svix's schedule | Delay before each delivery attempt, e.g. `0,1000,5000` in tests |
-| `--webhook-scope <scope>` | — | Sent as `x-mockingbird-scope` on every delivery |
-| `--admin-key <key>` | open | Require `x-mockingbird-admin-key` on `/__admin/*` (also `MOCKINGBIRD_ADMIN_KEY`) |
+| `--webhook-scope <scope>` | — | Sent as `x-emulators-scope` on every delivery |
+| `--admin-key <key>` | open | Require `x-emulators-admin-key` on `/__admin/*` (also `EMULATORS_ADMIN_KEY`) |
 | `--seed <seed>` | `0` | Seeds fault rates and retry jitter |
 | `--log <pretty\|json\|off>` | `pretty` | One line per request: operation id, status, duration, namespace, fault |
 | `--log-requests` | — | Same as `--log json`: one JSON line per request with the ids it touched, never bodies |
 | `--seed-url <url>` / `--seed-key <key>` | — | Pull a corpus from a live team at boot. Slow and a live dependency; prefer a committed `corpus pull` file |
-| `--config <file>` | — | Serve every service in a `mockingbird.json` instead ([below](#many-services-from-one-config)) |
+| `--config <file>` | — | Serve every service in a `emulators.json` instead ([below](#many-services-from-one-config)) |
 
 At startup it prints the listen address, the loaded corpus (its version label, observation, ZIP,
 lab-test and lab-account counts, recording date and source), the geo mode, the team id, the
@@ -81,9 +81,9 @@ webhook delivery is on.
 
 ### Many services from one config
 
-Any Mockingbird service's CLI can boot every service in a config file, so a stack adds a config
+Any Emulators service's CLI can boot every service in a config file, so a stack adds a config
 entry per vendor instead of a wrapper process per vendor. Each service named must be installed
-(`junction` loads `@crvouga/mockingbird-service-junction`).
+(`junction` loads `@emulators/junction`).
 
 ```json
 {
@@ -100,7 +100,7 @@ entry per vendor instead of a wrapper process per vendor. Each service named mus
 ```
 
 ```bash
-npx mockingbird-junction serve --config mockingbird.json
+npx emulators-junction serve --config emulators.json
 ```
 
 `options` takes the service's own `serve` flags by long name.
@@ -108,7 +108,7 @@ npx mockingbird-junction serve --config mockingbird.json
 ### `createServer` (Node)
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-junction/server"
+import { createServer } from "@emulators/junction/server"
 
 const server = await createServer() // shipped corpus, any free port
 const health = await fetch(`${server.url}/__admin/health`)
@@ -124,17 +124,17 @@ or a loaded corpus). The result has `url`, `port`, `runtime` and `close()`.
 
 ### `createRuntime` (any Fetch server)
 
-`createRuntime` is the whole served mock — health, admin, namespaces, clock, faults, metrics — as a
+`createRuntime` is the whole served emulator — health, admin, namespaces, clock, faults, metrics — as a
 single runtime-neutral `fetch(request)`. Hand it to `Bun.serve`, a Worker, or call it directly:
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-junction"
-import { defaultCorpus } from "@crvouga/mockingbird-service-junction/corpus"
+import { createRuntime } from "@emulators/junction"
+import { defaultCorpus } from "@emulators/junction/corpus"
 
 const junction = createRuntime({ corpus: defaultCorpus })
 const as = (worker: string) => ({
-  "x-vital-api-key": "sk_us_mockingbird",
-  "x-mockingbird-namespace": worker, // isolates this worker's data
+  "x-vital-api-key": "sk_us_emulators",
+  "x-emulators-namespace": worker, // isolates this worker's data
   "content-type": "application/json",
 })
 
@@ -154,10 +154,10 @@ await junction.reset("worker-1") // or junction.reset("*") for every namespace
 ### In-process (inject `fetch`)
 
 ```ts
-import { JunctionAPI } from "@crvouga/mockingbird-service-junction"
+import { JunctionAPI } from "@emulators/junction"
 
 const junction = new JunctionAPI({ now: () => Date.UTC(2030, 0, 1) })
-const headers = { "x-vital-api-key": "sk_us_mockingbird", "content-type": "application/json" }
+const headers = { "x-vital-api-key": "sk_us_emulators", "content-type": "application/json" }
 
 const call = async (method: string, path: string, body?: unknown) => {
   const response = await junction.fetch(
@@ -215,7 +215,7 @@ constructs it):
 ```js
 import { VitalClient } from "@tryvital/vital-node"
 
-const client = new VitalClient({ apiKey: "sk_us_mockingbird", environment: baseUrl })
+const client = new VitalClient({ apiKey: "sk_us_emulators", environment: baseUrl })
 const user = await client.user.create({ clientUserId: "app-user-1" })
 ```
 
@@ -224,23 +224,23 @@ while keeping the production and sandbox guards intact.
 
 ## The service contract
 
-Every Mockingbird service answers the same control surface, outside the vendor's auth gate:
+Every Emulators service answers the same control surface, outside the vendor's auth gate:
 
 - `GET /__admin/health` — unauthenticated readiness probe:
   `{ "status": "ok", "service": "junction", "corpus": "<label>", "geo": "corpus", … }`.
 - `/__admin/*` — the control plane. Open by default; with `--admin-key` / `adminKey` it requires
-  `x-mockingbird-admin-key`, which is separate from any vendor key. Admin errors have one shape,
-  `{ "error": { "type": "mockingbird_admin", "message": "…" } }`, so they can never be confused
+  `x-emulators-admin-key`, which is separate from any vendor key. Admin errors have one shape,
+  `{ "error": { "type": "emulators_admin", "message": "…" } }`, so they can never be confused
   with a Junction error. `GET /__admin` lists every route.
-- `x-mockingbird-namespace: <name>` — isolates a request's data (`[A-Za-z0-9_.-]{1,64}`). Each
+- `x-emulators-namespace: <name>` — isolates a request's data (`[A-Za-z0-9_.-]{1,64}`). Each
   namespace is a separate team over one shared database, so parallel workers share one process
   without seeing each other. The corpus is shared read-only; creating a namespace is cheap. Admin
   routes take the namespace from `?namespace=`, then the header, then `default`. Configuration set
   through the admin API (lab accounts, limits, identity, geo) belongs to one namespace and survives
   that namespace's `POST /__admin/reset`; data does not.
-- `x-mockingbird: junction@<version>; ns=<namespace>` — on **every** response: vendor answers,
-  errors, faults, admin and health. Junction never sends it, so it tells the mock from the vendor
-  (see [Is this the mock?](#is-this-the-mock)).
+- `x-emulators: junction@<version>; ns=<namespace>` — on **every** response: vendor answers,
+  errors, faults, admin and health. Junction never sends it, so it tells the emulator from the vendor
+  (see [Is this the emulator?](#is-this-the-mock)).
 
 | Route | Does |
 | --- | --- |
@@ -283,7 +283,7 @@ a new SDK call shows up — as a count — before it fails a suite as a 404.
 
 Provider-owned inventory — area serviceability, PSC site lists, the lab catalog, labs, lab
 accounts — cannot be synthesized faithfully. A corpus is an exact recording of those
-parameter-stable reads, and the mock answers them byte for byte.
+parameter-stable reads, and the emulator answers them byte for byte.
 
 **The shipped corpus** (`defaultCorpus`, and what `serve` loads unless told otherwise) was recorded
 from the Junction sandbox. It covers area and PSC serviceability for 57 ZIPs across the US, the PSC
@@ -292,10 +292,10 @@ labs those ZIPs reach, and the recording team's catalog. The catalog and lab acc
 catalog and your lab accounts, record your own team and commit the file:
 
 ```bash
-npx mockingbird-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --out test/junction-corpus.json
-npx mockingbird-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --base test/junction-corpus.json \
+npx emulators-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --out test/junction-corpus.json
+npx emulators-junction corpus pull --real-key "$JUNCTION_SANDBOX_KEY" --base test/junction-corpus.json \
   --zip 10001,94105 --coverage-only --out test/junction-corpus.json   # add ZIPs to it
-npx mockingbird-junction corpus diff test/junction-corpus.json /tmp/fresh.json   # exit 1 when they differ
+npx emulators-junction corpus diff test/junction-corpus.json /tmp/fresh.json   # exit 1 when they differ
 ```
 
 `corpus pull` only issues GETs, refuses non-sandbox keys (`sk_us_…` / `sk_eu_…`) unless given
@@ -312,8 +312,8 @@ availability) answer **only** for ZIPs the corpus covers. Any other well-formed 
 ```json
 {
   "detail": {
-    "error_type": "MOCKINGBIRD_UNKNOWN_ZIP",
-    "error_message": "ZIP 00501 is not in the loaded Junction corpus (57 ZIPs covered). Record it with `mockingbird-junction corpus pull --zip 00501`, or serve with --geo synthetic to invent coverage.",
+    "error_type": "EMULATORS_UNKNOWN_ZIP",
+    "error_message": "ZIP 00501 is not in the loaded Junction corpus (57 ZIPs covered). Record it with `emulators-junction corpus pull --zip 00501`, or serve with --geo synthetic to invent coverage.",
     "zip_code": "00501",
     "corpus": "v1-2026-09-18-HqFDuEAuhkwD"
   }
@@ -344,19 +344,19 @@ one active account for the lab is selected, several select the first listed, and
 falls back to Junction's platform account. The billing type must be allowed in the patient's
 state by the account's `allowed_billing`.
 
-Two of Junction's documented rules are **not** enforced by the sandbox, so the mock does not
+Two of Junction's documented rules are **not** enforced by the sandbox, so the emulator does not
 enforce them either. An id naming another lab's account is accepted and the order is placed with
 that account (the guide says it must be "associated with the lab selected for the order"):
 recorded in `corpus/lab-account-probes.json`, where a Labcorp test ordered through Junction's
 BioReference account was placed, and reported live by a consumer's team
-([#138](https://github.com/crvouga/mockingbird/issues/138)). An omitted id while several active
+([#138](https://github.com/crvouga/emulators/issues/138)). An omitted id while several active
 accounts are linked for the lab places the order (the guide says it "may be rejected"): reported
-live by a consumer's team ([#136](https://github.com/crvouga/mockingbird/issues/136)); the
+live by a consumer's team ([#136](https://github.com/crvouga/emulators/issues/136)); the
 sandbox team the parity run uses has one account per lab, so `verify --orders` checks it whenever
 a corpus has such a lab. Which of the several accounts the sandbox bills through is not visible
-from outside; the mock uses the first listed.
+from outside; the emulator uses the first listed.
 
-Junction's order (`ClientFacingOrder`) has no `lab_account_id`, so neither does the mock's: not on
+Junction's order (`ClientFacingOrder`) has no `lab_account_id`, so neither does the emulator's: not on
 the create response, `GET /v3/order/{id}`, `GET /v3/orders` or webhooks. The account an order was
 placed with is reported only by `GET /__admin/orders` and `instance().orderLabAccount(orderId)`.
 
@@ -365,7 +365,7 @@ corpus carries your team's real accounts), else built-in fixtures. Configure the
 `ClientFacingLabAccount`s, with `states` as shorthand for client-bill states:
 
 ```ts
-import { createRuntime, US_STATES } from "@crvouga/mockingbird-service-junction"
+import { createRuntime, US_STATES } from "@emulators/junction"
 
 const junction = createRuntime({
   labAccounts: [
@@ -395,7 +395,7 @@ instead (whether that is a team, lab or account setting is not visible from outs
 default is configurable per lab slug:
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-junction"
+import { createRuntime } from "@emulators/junction"
 
 const junction = createRuntime({ defaultBillingTypes: { bioreference: "patient_bill_passthrough" } })
 console.log(junction.instance().defaultBillingTypes) // { bioreference: "patient_bill_passthrough" }
@@ -455,7 +455,7 @@ works and keeps its own default id (`presetAccountId("bioreference_customer_mult
 
 ### Team identity
 
-The mock answers as one team: `team_id` on users, orders and webhooks, and the team that
+The emulator answers as one team: `team_id` on users, orders and webhooks, and the team that
 `team_id_allowlist` is checked against. It is, in order: `teamId` / `--team-id`, the team a
 version-2 corpus recorded (`corpus pull` reads it from a listed user, else from the accounts'
 allowlists), else the fixed `MOCK_TEAM_ID`. `GET /__admin/team` reports it.
@@ -463,18 +463,18 @@ allowlists), else the fixed `MOCK_TEAM_ID`. `GET /__admin/team` reports it.
 A version-2 corpus keeps each account's allowlist **verbatim**, so an account the real team is not
 linked to answers `400 {"detail": "Lab account is not linked to your team"}` exactly as it does
 live. A version-1 corpus (no `teamId`) still loads and behaves as 0.2.0 did: every recorded account
-is also linked to the mock team.
+is also linked to the emulator team.
 
 **Empty allowlists.** Junction's own Quest, Labcorp and BioReference accounts carry
-`team_id_allowlist: []`, and a real team's listing returns them, so the mock lists them and treats
+`team_id_allowlist: []`, and a real team's listing returns them, so the emulator lists them and treats
 them as linked. Ordering through one by explicit id, and with the id omitted when it is the lab's
 only active account, places the order on the sandbox (`corpus/lab-account-probes.json`, recorded
-by the parity run), as the mock does. `verify --orders` re-checks it whenever the corpus has such
+by the parity run), as the emulator does. `verify --orders` re-checks it whenever the corpus has such
 an account.
 
 ## Sandbox limits
 
-The mock exists to escape the sandbox's restrictions, so it enforces none of them unless a test
+The emulator exists to escape the sandbox's restrictions, so it enforces none of them unless a test
 asks — this is a tested guarantee (500 users in a loop all succeed), not an accident.
 
 | Sandbox limit | Modelled | Default | Turn it on |
@@ -508,7 +508,7 @@ curl -X POST localhost:8787/__admin/import -d @test/junction-fixtures.json
   user and lab test must exist (404 otherwise).
 - Inserted records go through the same builders as `create_user` / `create_order`, so every read
   path (`GET /v2/user/{id}`, resolve by `client_user_id`, `GET /v3/order/{id}`,
-  `GET /v3/orders?user_id=`) sees them as API-created. Default timestamps read the mock clock.
+  `GET /v3/orders?user_id=`) sees them as API-created. Default timestamps read the emulator clock.
 - **No webhook fires** unless the body has `"emitWebhooks": true`: fixtures should not trigger
   backend side effects.
 - `fixtures` / `--fixtures <file>` loads `{ "users": [...], "orders": [...] }` into every namespace
@@ -521,12 +521,12 @@ and the request proceeds. The journal marks the request `adopted: true`. **Order
 adopted**: an unknown order id always 404s, because inventing an order hides real bugs. The default,
 `strict`, is Junction's own behaviour.
 
-## Is this the mock?
+## Is this the emulator?
 
-A mock 404 and a sandbox 404 are byte-identical, which is how a backend half-pointed at the sandbox
+An emulator 404 and a sandbox 404 are byte-identical, which is how a backend half-pointed at the sandbox
 goes unnoticed. Three things make it visible:
 
-- **`x-mockingbird` on every response.** Assert on it in a test helper:
+- **`x-emulators` on every response.** Assert on it in a test helper:
 
   ```ts
   import { expect } from "vitest"
@@ -536,7 +536,7 @@ goes unnoticed. Three things make it visible:
     (inner: typeof fetch = fetch): typeof fetch =>
     async (input, init) => {
       const response = await inner(input, init)
-      expect(response.headers.get("x-mockingbird"), `${String(input)} did not reach the Junction mock`).toMatch(
+      expect(response.headers.get("x-emulators"), `${String(input)} did not reach the Junction mock`).toMatch(
         /^junction@/,
       )
       return response
@@ -545,11 +545,11 @@ goes unnoticed. Three things make it visible:
 
 - **The request journal.** Each namespace keeps its last 1000 requests (`--journal-size`,
   `journalSize`): operation id, method, path, status, duration, fault id, the user / order /
-  lab-account ids it touched, and when (mock clock). `GET /__admin/requests?operationId=create_order_v3_order_post`
+  lab-account ids it touched, and when (emulator clock). `GET /__admin/requests?operationId=create_order_v3_order_post`
   proves an order was placed here; an empty answer proves it was not. Never bodies.
 - **Miss headers on 404s.** A missing user or order keeps Junction's body byte for byte and adds
-  `x-mockingbird-miss: order <id>` (or `user <id>`, `user client:<client_user_id>`) and
-  `x-mockingbird-known: users=<n> orders=<n>`.
+  `x-emulators-miss: order <id>` (or `user <id>`, `user client:<client_user_id>`) and
+  `x-emulators-known: users=<n> orders=<n>`.
 
 `--log-requests` prints the same fields as one JSON line per request.
 
@@ -592,7 +592,7 @@ delayed simulations (`?delay=<seconds>`) due and moves appointment windows, with
 
 ## Faults and error shapes
 
-Error bodies the mock reproduces byte for byte, checked against the sandbox by `verify` and the
+Error bodies the emulator reproduces byte for byte, checked against the sandbox by `verify` and the
 parity suite (`ORDER_NOT_FOUND` holds the unknown-order text per operation id):
 
 | Case | Status | Body |
@@ -616,7 +616,7 @@ Faults reproduce the sandbox's failure modes on demand, for retry paths and erro
 | `server_error` / `bad_gateway` / `unavailable` | 500 / 502 / 503 | shape-plausible, not verified |
 
 ```ts
-import { createRuntime, FAULT_PRESETS } from "@crvouga/mockingbird-service-junction"
+import { createRuntime, FAULT_PRESETS } from "@emulators/junction"
 
 const junction = createRuntime()
 junction.faults.add({ ...FAULT_PRESETS.sandbox_user_quota, id: "quota", count: 1 }) // next create_user only
@@ -639,14 +639,14 @@ With `webhooks` / `--webhook-url`, every event is delivered signed, with retries
   official `svix` verifier, and a receiver written for real Junction, accept it unchanged. (Signing
   `"<timestamp>.<body>"` without the message id, as this package's own server script did before,
   is not Svix-compatible.)
-- Timestamps are wall-clock even when the mock clock is moved, because receivers reject timestamps
+- Timestamps are wall-clock even when the emulator clock is moved, because receivers reject timestamps
   outside a few minutes of their own clock.
 - Any 2xx is delivered; anything else is retried on Svix's schedule (immediately, 5 s, 5 min,
   30 min, 2 h, 5 h, 10 h, 10 h) or `retryDelaysMs`. `POST /__admin/webhooks/flush` runs pending
   retries now; `POST /__admin/webhooks/{id}/replay` redelivers one message.
 
 ```ts
-import { createRuntime, verifySvix } from "@crvouga/mockingbird-service-junction"
+import { createRuntime, verifySvix } from "@emulators/junction"
 
 const secret = "whsec_bW9ja2luZ2JpcmQtdGVzdC1zZWNyZXQ="
 const junction = createRuntime({
@@ -669,12 +669,12 @@ console.log(typeof accept, junction.webhooks?.deliveries().length) // "function"
 
 ## Verify
 
-`verify` is the fidelity guarantee: it runs the same requests against real Junction and the mock
+`verify` is the fidelity guarantee: it runs the same requests against real Junction and the emulator
 and reports every divergence.
 
 ```bash
-npx mockingbird-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --corpus test/junction-corpus.json
-npx mockingbird-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --orders --sample 50 --json
+npx emulators-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --corpus test/junction-corpus.json
+npx emulators-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --orders --sample 50 --json
 ```
 
 - **Drift**: re-fetches each recorded observation (or `--sample n` of them) and reports any that no
@@ -687,7 +687,7 @@ npx mockingbird-junction verify --real-key "$JUNCTION_SANDBOX_KEY" --orders --sa
   bodies must match in shape, and byte for byte for the documented error bodies.
 
 It exits 1 on any divergence. The scenario always deletes its user (and cancels its order), because
-it runs against the same capped sandbox the mock exists to relieve. `verifyAgainstReal` is the same
+it runs against the same capped sandbox the emulator exists to relieve. `verifyAgainstReal` is the same
 check as a function. This repo runs it in CI against the Junction sandbox.
 
 ## Determinism
@@ -700,7 +700,7 @@ availability, and which requests a partial-`rate` fault hits. Wall-clock by desi
 
 ## What is and is not modelled
 
-A mock that is silent about its gaps is how a green suite starts lying. Specifically:
+An emulator that is silent about its gaps is how a green suite starts lying. Specifically:
 
 - **Corpus-backed** (byte-exact): area and PSC serviceability for covered ZIPs; the catalog, labs,
   expected results and lab accounts of the team the corpus was recorded from.
@@ -718,7 +718,7 @@ A mock that is silent about its gaps is how a green suite starts lying. Specific
   - Adopted users (`adopt-users`) have `client_user_id` equal to their `user_id`; nothing in
     Junction corresponds to adoption.
   - Real 429 / 5xx bodies: the presets are plausible, not recorded.
-  - Phlebotomy availability breadth: the sandbox serves it only for `85004`; the mock generates slots
+  - Phlebotomy availability breadth: the sandbox serves it only for `85004`; the emulator generates slots
     for any covered ZIP.
   - Webhook retry jitter across a snapshot restore (the jitter stream is not part of a snapshot).
   - Operations outside the vendored OpenAPI subset: they return 404 and are counted as
@@ -726,16 +726,16 @@ A mock that is silent about its gaps is how a green suite starts lying. Specific
 
 ## API
 
-Main entry (`@crvouga/mockingbird-service-junction`, runtime-neutral):
+Main entry (`@emulators/junction`, runtime-neutral):
 
 | Export | Description |
 | --- | --- |
-| `createRuntime` | `(options?: JunctionRuntimeOptions) => JunctionRuntime` — the served mock (health, admin, namespaces, clock, faults, metrics, journal, webhooks) as one `fetch`. Options: `corpus`, `geo`, `labAccounts`, `teamId`, `limits`, `identity`, `defaultBillingTypes`, `fixtures`, `journalSize`, `webhooks`, `onWebhook`, `sqlite`, `clock`, `seed`, `adminKey`, `onLog`. |
-| `JunctionAPI` | Class. `new JunctionAPI(options?)`: one namespace's mock, implementing `fetch(request: Request): Promise<Response>`. |
+| `createRuntime` | `(options?: JunctionRuntimeOptions) => JunctionRuntime` — the served emulator (health, admin, namespaces, clock, faults, metrics, journal, webhooks) as one `fetch`. Options: `corpus`, `geo`, `labAccounts`, `teamId`, `limits`, `identity`, `defaultBillingTypes`, `fixtures`, `journalSize`, `webhooks`, `onWebhook`, `sqlite`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `JunctionAPI` | Class. `new JunctionAPI(options?)`: one namespace's emulator, implementing `fetch(request: Request): Promise<Response>`. |
 | `JUNCTION_NAMESPACE` | `"junction"` — the default namespace's storage key when sharing a `sqlite` client. |
-| `document` | The vendored Junction OpenAPI document (Mockingbird subset) that drives routing. |
+| `document` | The vendored Junction OpenAPI document (Emulators subset) that drives routing. |
 | `operationIds` | Every `operationId` in `document`. |
-| `supportedOperationIds` | The `operationId`s the mock implements (all of them). |
+| `supportedOperationIds` | The `operationId`s the emulator implements (all of them). |
 | `pullCorpus` | `(options: PullCorpusOptions) => Promise<SealedCorpus>` — record a corpus from a real team (GETs only). |
 | `diffCorpus` | `(before, after) => CorpusDiff` — ZIPs, lab tests, lab accounts and observations added / removed / changed. |
 | `fingerprintCorpus` | `(corpus) => Promise<string>` — SHA-256 of a corpus's content. |
@@ -744,7 +744,7 @@ Main entry (`@crvouga/mockingbird-service-junction`, runtime-neutral):
 | `SEALED_CORPUS_VERSION` | Current corpus format version (`2`: adds `teamId`). |
 | `SUPPORTED_SEALED_CORPUS_VERSIONS` | Versions `parseSealedCorpus` loads (`[1, 2]`). |
 | `MOCK_TEAM_ID` | The team id used when neither `teamId` nor the corpus gives one. |
-| `OTHER_TEAM_ID` | A team that is not the mock's, for fixtures modelling another team's account. |
+| `OTHER_TEAM_ID` | A team that is not the emulator's, for fixtures modelling another team's account. |
 | `isLinkedToTeam` | `(account, teamId) => boolean` — the allowlist rule (`[]` counts as linked). |
 | `LAB_ACCOUNT_PRESETS` | The [lab-account presets](#lab-account-presets), without ids. |
 | `LAB_ACCOUNT_PRESET_ALIASES` | Deprecated preset names → the preset each stands for (`bioreference_customer_multi_state` → `bioreference_platform`). |
@@ -758,11 +758,11 @@ Main entry (`@crvouga/mockingbird-service-junction`, runtime-neutral):
 | `IDENTITY_MODES` | `["strict", "adopt-users"]`. |
 | `FixtureError` | Thrown by the fixture inserts; `status` is 400, 404 or 409. |
 | `ORDER_NOT_FOUND` | Junction's unknown-order `detail`, by operation id. |
-| `MISS_HEADER` / `KNOWN_HEADER` | `"x-mockingbird-miss"` / `"x-mockingbird-known"`. |
+| `MISS_HEADER` / `KNOWN_HEADER` | `"x-emulators-miss"` / `"x-emulators-known"`. |
 | `verifyAgainstReal` | `(options: VerifyOptions) => Promise<VerifyReport>` — the `verify` command as a function. |
 | `DEFAULT_JUNCTION_BASE_URL` | `"https://api.sandbox.tryvital.io"`. |
 | `isSandboxKey` / `SANDBOX_KEY_PREFIXES` | Whether a key is a sandbox team key (`sk_us_` / `sk_eu_`). |
-| `UNKNOWN_ZIP_STATUS` / `UNKNOWN_ZIP_ERROR_TYPE` | `424` / `"MOCKINGBIRD_UNKNOWN_ZIP"` — the corpus-mode unknown-ZIP error. |
+| `UNKNOWN_ZIP_STATUS` / `UNKNOWN_ZIP_ERROR_TYPE` | `424` / `"EMULATORS_UNKNOWN_ZIP"` — the corpus-mode unknown-ZIP error. |
 | `labAccountFromInput` | `(input: LabAccountInput) => LabAccountRecord` — normalize (and validate) a configured account. |
 | `TEAM_LAB_ACCOUNTS` | The built-in lab-account fixtures. |
 | `US_STATES` | The 50 `USState` codes Junction accepts. |
@@ -857,7 +857,7 @@ type OperationId / SupportedOperationId  // string unions of operationIds / supp
 Seeding from the real sandbox (needs network and a real key):
 
 ```ts
-import { JunctionAPI } from "@crvouga/mockingbird-service-junction"
+import { JunctionAPI } from "@emulators/junction"
 
 const junction = new JunctionAPI()
 const report = await junction.seedFrom({
@@ -870,17 +870,17 @@ console.log(report.users, report.orders)
 
 ## Development
 
-For contributors to the mockingbird repo only.
+For contributors to the emulators repo only.
 
 ```bash
 bun test                                   # offline suites, incl. scheduling state space
 bun test junction.runtime.property.test.ts # service contract, corpus, lab accounts, faults, webhooks, verify
 bun test junction.sdk.property.test.ts     # drives the served mock through @tryvital/vital-node
 
-bun run mock:serve                         # env-configured `serve`: HOST, PORT, MOCKINGBIRD_JUNCTION_CORPUS,
-                                           # MOCKINGBIRD_JUNCTION_WEBHOOK_URL / _SECRET / _SCOPE
+bun run mock:serve                         # env-configured `serve`: HOST, PORT, EMULATORS_JUNCTION_CORPUS,
+                                           # EMULATORS_JUNCTION_WEBHOOK_URL / _SECRET / _SCOPE
 bun run corpus:record -- --force           # re-record the shipped corpus/sandbox-sealed.json (JUNCTION_API_KEY)
-bun run verify -- --real-key "$KEY"        # `mockingbird-junction verify` from source
+bun run verify -- --real-key "$KEY"        # `emulators-junction verify` from source
 ```
 
 Live parity (primary proof is seedParity: warmup N on the sandbox, `seedFrom`, then lockstep M):
@@ -892,13 +892,13 @@ bun run parity -- --mode=empty                   # legacy empty-start differenti
 ```
 
 Webhook parity needs a public receiver; see
-[docs/webhook-parity.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/junction/docs/webhook-parity.md).
+[docs/webhook-parity.md](https://github.com/crvouga/emulators/blob/main/packages/service/junction/docs/webhook-parity.md).
 
 ## Asynchronous testkit simulation
 
 A completion-target simulation on an active testkit advances through delivery and queues
 completion for the next millisecond of the injected `now` clock. This is a deterministic
-mock scheduling boundary, not a claim about Junction's processing latency. Order, result,
+emulator scheduling boundary, not a claim about Junction's processing latency. Order, result,
 transaction, and order-list reads apply due work to its owning order. A second simulation
 is not required. Results remain unavailable while the testkit is `delivered_to_lab`.
 Cancelled orders never complete from queued simulation work.
@@ -909,4 +909,4 @@ explicitly delayed simulations and unsuccessful requests are not treated as sett
 The USSL testkit result metadata follows the observed sandbox fixture (null specimen dates
 and CLIA `05D2130115`); other laboratories retain their existing metadata behavior.
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird) — agent integration guide: [README](https://github.com/crvouga/mockingbird#readme) · [llms.txt](https://github.com/crvouga/mockingbird/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md).
+Part of [emulators](https://github.com/crvouga/emulators) — agent integration guide: [README](https://github.com/crvouga/emulators#readme) · [llms.txt](https://github.com/crvouga/emulators/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md).

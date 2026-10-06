@@ -1,12 +1,12 @@
 /**
- * Vendor branding for the docs site: each mocked service's logo, brand color and a one-line
+ * Vendor branding for the docs site: each emulated service's logo, brand color and a one-line
  * description of the vendor, fetched from the web so nobody hand-collects them.
  *
- * Inputs are the `mockingbird.vendor` block in each service's package.json:
+ * Inputs are the `emulators.vendor` block in each service's package.json:
  *
  *   "vendor": {
  *     "website": "https://stripe.com",          required: the vendor's homepage
- *     "docs": "https://docs.stripe.com/api",   optional: the API reference the mock follows
+ *     "docs": "https://docs.stripe.com/api",   optional: the API reference the emulator follows
  *     "name": "Stripe",                         optional: when it differs from displayName
  *     "icon": "stripe" | false,                 optional: Simple Icons slug, or false to skip it
  *     "description": "…",                       optional: overrides the fetched description
@@ -48,7 +48,7 @@ interface Vendor {
 }
 
 export interface Brand {
-  /** The vendor's name, which can differ from the mock's display name (LlamaCloud → LlamaIndex). */
+  /** The vendor's name, which can differ from the emulator's display name (LlamaCloud → LlamaIndex). */
   vendor: string
   website: string
   docs: string | null
@@ -348,14 +348,14 @@ const targets: Target[] = discoverPackages()
   .filter((p) => p.isPublic && p.relDir.startsWith("packages/service/"))
   .map((p) => {
     const pkg = JSON.parse(readFileSync(p.manifestPath, "utf8"))
-    const vendor = pkg.mockingbird?.vendor as Vendor | undefined
+    const vendor = pkg.emulators?.vendor as Vendor | undefined
     if (!vendor?.website) {
-      console.error(`::error::${p.relDir}/package.json: mockingbird.vendor.website is required`)
+      console.error(`::error::${p.relDir}/package.json: emulators.vendor.website is required`)
       process.exit(1)
     }
     return {
       name: p.relDir.split("/").pop() ?? "",
-      displayName: pkg.mockingbird.displayName,
+      displayName: pkg.emulators.displayName,
       vendor,
     }
   })

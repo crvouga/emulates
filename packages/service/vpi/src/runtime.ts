@@ -6,8 +6,8 @@ import {
   type FaultRule,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document, supportedOperationIds } from "./generated/openapi.js"
 import { type PatientInput, tokenCredential, VPI_NAMESPACE, VpiAPI } from "./index.js"
 import type { Account, Seed, Settings, StatusEnvelope } from "./state.js"
@@ -97,7 +97,7 @@ export type VpiRuntime = ServiceRuntime<VpiAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 const isString = (value: unknown): value is string =>
@@ -219,7 +219,7 @@ const adminRoutes = (runtime: ServiceRuntime<VpiAPI>): AdminRoutes => ({
 })
 
 /**
- * The VPI mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * The VPI emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`, namespaces
  * by header, by `/__admin/ns/<name>` path prefix, or by login email
  * (`PUT /__admin/credentials {"credentials": {"<VPI_API_EMAIL>": "<namespace>"}}`), clock
  * control, fault presets and a request journal. VPI sends no webhooks: our client polls.

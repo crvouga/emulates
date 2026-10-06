@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import type { SqliteClient } from "@emulators/sqlite-client"
 
 /** 32-bit FNV-1a with an avalanche finish. */
 const mix = (input: string): number => {
@@ -45,13 +45,13 @@ export class IdSource {
     return this.sqlite.transaction(() => {
       const row = this.sqlite
         .prepare(
-          "SELECT value FROM mockingbird_sequences WHERE namespace = ? AND name = ? AND kind = 'id'",
+          "SELECT value FROM emulators_sequences WHERE namespace = ? AND name = ? AND kind = 'id'",
         )
         .get<{ value: number }>(this.namespace, name)
       const value = (row?.value ?? 0) + 1
       this.sqlite
         .prepare(
-          `INSERT INTO mockingbird_sequences (namespace, name, kind, value) VALUES (?, ?, 'id', ?)
+          `INSERT INTO emulators_sequences (namespace, name, kind, value) VALUES (?, ?, 'id', ?)
            ON CONFLICT(namespace, name, kind) DO UPDATE SET value = excluded.value`,
         )
         .run(this.namespace, name, value)

@@ -1,17 +1,17 @@
 {
   "bin": {
-    "mockingbird-sqlite": "./dist/socket/cli.js"
+    "emulators-sqlite": "./dist/socket/cli.js"
   },
   "bugs": {
-    "url": "https://github.com/crvouga/mockingbird/issues"
+    "url": "https://github.com/crvouga/emulators/issues"
   },
   "description": "Pure TypeScript in-memory SQLite implementation with zero WASM/native dependencies",
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.14",
-    "@crvouga/mockingbird-admin-ui": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-ui": "workspace:*",
+    "@emulators/admin-ui": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/ui": "workspace:*",
     "@types/bun": "latest",
     "alasql": "^4.19.1",
     "esbuild": "^0.28.2",
@@ -58,9 +58,9 @@
     "CHANGELOG.md",
     "DISCOVERY.md"
   ],
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/sqlite#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/sqlite#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "sqlite",
     "typescript",
     "in-memory",
@@ -69,7 +69,7 @@
   ],
   "license": "MIT",
   "main": "./dist/index.js",
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "layer": "service",
     "category": "databases",
@@ -98,18 +98,18 @@
         "README.md public test controls",
         "COMPATIBILITY.md compatibility and divergence evidence"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "module": "./dist/index.js",
-  "name": "@crvouga/mockingbird-service-sqlite",
+  "name": "@emulators/sqlite",
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/sqlite"
   },
   "scripts": {

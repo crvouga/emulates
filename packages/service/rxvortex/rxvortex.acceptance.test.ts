@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { CUSTOM_CREAM_ANCHOR_PRESET_ID, createRuntime, RXVORTEX_PRESETS } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -311,7 +311,7 @@ describe("served over HTTP", () => {
         "Fulfillment Complete",
       ])
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-mockingbird")).toMatch(/^rxvortex@/)
+      expect(health.headers.get("x-emulators")).toMatch(/^rxvortex@/)
     } finally {
       await server.close()
       sink.stop(true)

@@ -1,8 +1,8 @@
 {
-  "name": "@crvouga/mockingbird-sqlite",
+  "name": "@emulators/sqlite-client",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Owned sync SqliteClient port for Mockingbird services. Defaults to @crvouga/mockingbird-service-sqlite; accepts any duck-typed SQLite client.",
+  "description": "Owned sync SqliteClient port for Emulators services. Defaults to @emulators/sqlite; accepts any duck-typed SQLite client.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,15 +18,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/sqlite"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/sqlite#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/sqlite#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "sqlite"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "layer": "sqlite"
   },
@@ -39,10 +39,10 @@
     "pack:check": "bun ../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*"
+    "@emulators/sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@crvouga/mockingbird-testing": "workspace:*",
+    "@emulators/testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

@@ -1,6 +1,6 @@
-import { type ComposableAdminApi, composeAdminApis } from "@crvouga/mockingbird-admin-ui"
+import { type ComposableAdminApi, composeAdminApis } from "@emulators/admin-ui"
 
-const ADMIN_BRANDS_URL = "https://mockingbird.chrisvouga.dev/brands.json"
+const ADMIN_BRANDS_URL = "https://emulators.chrisvouga.dev/brands.json"
 
 /** One independently usable admin API. Its UI is supplied by the composed facade. */
 export type MockAdmin = {
@@ -17,9 +17,9 @@ export const composeMockAdmins = (admins: readonly MockAdmin[]) =>
         ...admin,
         service: admin.id,
         adminPrefix: "/__admin",
-        adminKeyHeader: "x-mockingbird-admin-key",
+        adminKeyHeader: "x-emulators-admin-key",
         standardRoutes: [],
       }),
     ),
-    { brandsUrl: ADMIN_BRANDS_URL, title: "Lab testing mocks" },
+    { brandsUrl: ADMIN_BRANDS_URL, title: "Lab testing emulators" },
   )

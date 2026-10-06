@@ -33,7 +33,7 @@ describe("S3 contract", () => {
       (await runtime.fetch(new Request("http://mock/data/absent", { method: "DELETE" }))).status,
     ).toBe(204)
     const isolated = await runtime.fetch(
-      new Request("http://mock/data/key", { headers: { "x-mockingbird-namespace": "other" } }),
+      new Request("http://mock/data/key", { headers: { "x-emulators-namespace": "other" } }),
     )
     expect(await xmlCode(isolated)).toBe("NoSuchBucket")
   })

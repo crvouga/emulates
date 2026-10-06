@@ -8,7 +8,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { "@crvouga/mockingbird-service-sqlite": path.resolve(dir, "../../src/index.ts") },
+    alias: { "@emulators/sqlite": path.resolve(dir, "../../src/index.ts") },
   },
   server: { fs: { allow: [path.resolve(dir, "../..")] } },
 });

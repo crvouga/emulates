@@ -1,4 +1,4 @@
-import { createRuntime } from "@crvouga/mockingbird-service-junction"
+import { createRuntime } from "@emulators/junction"
 import type {
   CreateLabOrderInput,
   LabCatalogEntry,
@@ -7,7 +7,7 @@ import type {
 } from "../../app/ports/labTestingClient.js"
 
 const BASE_URL = "https://api.sandbox.tryvital.io"
-const API_KEY = "sk_us_mockingbird"
+const API_KEY = "sk_us_emulators"
 
 /** How long a freshly placed order takes to reach "results ready" in this demo. */
 const RESULTS_READY_DELAY_MS = 4_000
@@ -16,8 +16,8 @@ type JunctionOrderResponse = { order: { id: string } }
 type JunctionCatalogResponse = { data: { id: string; method: string }[] }
 
 /**
- * Implements `LabTestingClient` against Mockingbird's in-process Junction
- * (Vital-shaped) mock. `dispatch` delivers this adapter's own webhooks back
+ * Implements `LabTestingClient` against the in-process Junction
+ * (Vital-shaped) emulator. `dispatch` delivers this adapter's own webhooks back
  * into the app's `/api/webhooks/lab-testing` route — the same in-process,
  * no-socket call pattern used everywhere else in this app.
  */

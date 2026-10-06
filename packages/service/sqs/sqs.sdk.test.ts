@@ -10,7 +10,7 @@ import {
   SendMessageCommand,
   SQSClient,
 } from "@aws-sdk/client-sqs"
-import { createClock } from "@crvouga/mockingbird-service"
+import { createClock } from "@emulators/service"
 import { createServer } from "./src/server.js"
 
 const clientFor = (endpoint: string) =>

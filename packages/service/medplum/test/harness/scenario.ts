@@ -73,7 +73,7 @@ export const runScenario = async (
     const path = resolve(step.path, vars) as string
     const headers = new Headers(resolve(step.headers, vars) ?? {})
     // The same client identity on both sides (in-process requests carry no User-Agent).
-    if (!headers.has("user-agent")) headers.set("user-agent", "mockingbird-parity/1.0")
+    if (!headers.has("user-agent")) headers.set("user-agent", "emulators-parity/1.0")
     const auth = step.auth ?? "project"
     if (auth === "project") headers.set("authorization", `Bearer ${provisioned.token}`)
     if (auth === "super") headers.set("authorization", `Bearer ${provisioned.superToken}`)

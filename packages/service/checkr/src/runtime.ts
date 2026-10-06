@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { CHECKR_NAMESPACE, CheckrAPI, type CheckrAPIOptions } from "./index.js"
 export const CHECKR_PRESETS: Record<string, FaultPreset> = {

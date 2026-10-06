@@ -1,6 +1,6 @@
 ---
 name: resolve-issues
-description: Pick up agent-reported GitHub issues (parity mismatches, missing features, bugs and new-service requests filed by agents in other projects), verify each against the oracle, fix or build the mock with tests, and open a PR that closes it.
+description: Pick up agent-reported GitHub issues (parity mismatches, missing features, bugs and new-service requests filed by agents in other projects), verify each against the oracle, fix or build the emulator with tests, and open a PR that closes it.
 ---
 
 # /resolve-issues
@@ -51,12 +51,12 @@ Check the report before you change any code:
 
 ## 3. Confirm against the oracle
 
-Before changing the mock to match a claim, confirm what the oracle really does. A reporter can be
+Before changing the emulator to match a claim, confirm what the oracle really does. A reporter can be
 wrong about the vendor.
 
 - HTTP services: send the same requests to the provider sandbox (`bun run parity:remote -- <service>`
   on GitHub, or `curl` / `bun run parity:service -- <service>` with keys from `.env.local`). A parity seed in the report
-  reproduces with `FC_SEED=<seed>`, and `MOCKINGBIRD_TRACE=1` prints the walk. Never print key values.
+  reproduces with `FC_SEED=<seed>`, and `EMULATORS_TRACE=1` prints the walk. Never print key values.
 - SQLite and PostgreSQL: run the statements against the real engine through the package's oracle
   tests.
 - `medplum`: run the requests against a real Medplum server (see the package README).

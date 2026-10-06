@@ -183,7 +183,7 @@ const orderBody = (
 ) => ({
   user_id: userId,
   patient_details: {
-    first_name: "Mockingbird",
+    first_name: "Emulators",
     last_name: "Verify",
     dob: "1990-01-01",
     gender: "female",
@@ -440,11 +440,11 @@ export const verifyAgainstReal = async (options: VerifyOptions): Promise<VerifyR
   const divergences: Divergence[] = []
 
   const call = async (side: Side, method: string, path: string, body?: unknown): Promise<Reply> => {
-    const base = side === "real" ? realUrl : "http://mock.mockingbird.local"
+    const base = side === "real" ? realUrl : "http://mock.emulators.local"
     const request = new Request(`${base}${path}`, {
       method,
       headers: {
-        "x-vital-api-key": side === "real" ? options.realKey : "sk_us_mockingbird_verify",
+        "x-vital-api-key": side === "real" ? options.realKey : "sk_us_emulators_verify",
         ...(body !== undefined ? { "content-type": "application/json" } : {}),
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
@@ -499,7 +499,7 @@ export const verifyAgainstReal = async (options: VerifyOptions): Promise<VerifyR
   }
 
   // ── scenario ─────────────────────────────────────────────────────
-  const clientUserId = `mockingbird-verify-${Date.now().toString(36)}`
+  const clientUserId = `emulators-verify-${Date.now().toString(36)}`
   const ctx: Record<Side, Context> = {
     real: { clientUserId, extraOrders: [] },
     mock: { clientUserId, extraOrders: [] },

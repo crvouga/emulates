@@ -367,7 +367,7 @@
       },
       "post": {
         "operationId": "CreateCandidate",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -606,7 +606,7 @@
       },
       "post": {
         "operationId": "CreateInvitation",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -673,7 +673,7 @@
                 "properties": {
                   "candidate_id": {
                     "type": "string",
-                    "x-mockingbird-resource-ref": {
+                    "x-emulators-resource-ref": {
                       "type": "candidate",
                       "missing": "mock_missing_candidate"
                     }
@@ -721,7 +721,7 @@
                 "properties": {
                   "candidate_id": {
                     "type": "string",
-                    "x-mockingbird-resource-ref": {
+                    "x-emulators-resource-ref": {
                       "type": "candidate",
                       "missing": "mock_missing_candidate"
                     }
@@ -842,7 +842,7 @@
       },
       "delete": {
         "operationId": "CancelInvitation",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -1064,7 +1064,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-mockingbird-resource": {
+            "x-emulators-resource": {
               "type": "candidate",
               "identity": true
             }
@@ -1098,7 +1098,7 @@
           },
           "created_at": {
             "type": "string",
-            "x-mockingbird-volatile": {
+            "x-emulators-volatile": {
               "kind": "timestamp"
             }
           }
@@ -1163,7 +1163,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-mockingbird-resource": {
+            "x-emulators-resource": {
               "type": "invitation",
               "identity": true
             }
@@ -1196,13 +1196,13 @@
           },
           "created_at": {
             "type": "string",
-            "x-mockingbird-volatile": {
+            "x-emulators-volatile": {
               "kind": "timestamp"
             }
           },
           "expires_at": {
             "type": "string",
-            "x-mockingbird-volatile": {
+            "x-emulators-volatile": {
               "kind": "timestamp"
             }
           },

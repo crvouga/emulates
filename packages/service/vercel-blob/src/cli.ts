@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-vercel-blob",
-    description: "stateful Vercel Blob object storage mock",
+    bin: "emulators-vercel-blob",
+    description: "Vercel Blob object storage emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

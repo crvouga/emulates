@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test"
-import { createExploreRng, type LogicalCommand } from "@crvouga/mockingbird-commands"
-import { seedParity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { createExploreRng, type LogicalCommand } from "@emulators/commands"
+import { seedParity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import { document, JunctionAPI } from "./src/index.js"
 import { prefetchCoverageObservations } from "./src/prefetch.js"
 import { reshapeCoverageGeoCommand } from "./src/reshape.js"
 
 const params = fcParameters(process.env)
 const MOCK_HOST = "mock.junction.local"
-const AUTH = { "x-vital-api-key": "sk_us_mockingbird" }
+const AUTH = { "x-vital-api-key": "sk_us_emulators" }
 const now = () => 1_700_000_000_000
 
 test("generated idempotency headers survive HTTP request construction", () => {

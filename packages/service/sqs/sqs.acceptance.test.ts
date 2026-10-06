@@ -96,7 +96,7 @@ describe("SQS acceptance", () => {
       headers: {
         "content-type": "application/x-amz-json-1.0",
         "x-amz-target": "AmazonSQS.CreateQueue",
-        "x-mockingbird-namespace": "one",
+        "x-emulators-namespace": "one",
       },
       body: JSON.stringify({ QueueName: "only-one" }),
     })
@@ -106,7 +106,7 @@ describe("SQS acceptance", () => {
       headers: {
         "content-type": "application/x-amz-json-1.0",
         "x-amz-target": "AmazonSQS.GetQueueUrl",
-        "x-mockingbird-namespace": "two",
+        "x-emulators-namespace": "two",
       },
       body: JSON.stringify({ QueueName: "only-one" }),
     })

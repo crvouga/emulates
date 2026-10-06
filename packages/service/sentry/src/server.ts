@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type SentryRuntime, type SentryRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 8810
 export type SentryServerOptions = SentryRuntimeOptions & { port?: number; host?: string }

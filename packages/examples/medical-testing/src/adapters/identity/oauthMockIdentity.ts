@@ -1,4 +1,4 @@
-import { createRuntime, type OAuthRuntime } from "@crvouga/mockingbird-service-oauth"
+import { createRuntime, type OAuthRuntime } from "@emulators/oauth"
 import * as oauth from "oauth4webapi"
 import type { HostedFlowStep } from "../../app/ports/hostedFlow.js"
 import type {
@@ -19,18 +19,18 @@ const CLIENTS: Record<IdentityProviderKey, ClientConfig> = {
   google: {
     clientId: "cove-web",
     clientSecret: "cove-oauth-demo-secret",
-    issuer: "https://accounts.google.mockingbird.internal",
+    issuer: "https://accounts.google.emulators.internal",
     scope: "openid email profile",
   },
   apple: {
     clientId: "cove-web",
     clientSecret: "cove-oauth-demo-secret",
-    issuer: "https://appleid.apple.mockingbird.internal",
+    issuer: "https://appleid.apple.emulators.internal",
     scope: "openid email name",
   },
 }
 const REDIRECT_URI = (provider: IdentityProviderKey) =>
-  `https://cove.mockingbird.internal/auth/callback/${provider}`
+  `https://cove.emulators.internal/auth/callback/${provider}`
 
 type PendingFlow = {
   provider: IdentityProviderKey
@@ -134,7 +134,7 @@ const decodeHtmlEntities = (value: string): string =>
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
 
-/** Implements `IdentityProvider` against Mockingbird's in-process OAuth mock. */
+/** Implements `IdentityProvider` against the in-process OAuth emulator. */
 export const createOAuthMockIdentity = (): { client: IdentityProvider; admins: MockAdmin[] } => {
   const apis = createProviderRuntimes()
   const flows = new Map<string, PendingFlow>()

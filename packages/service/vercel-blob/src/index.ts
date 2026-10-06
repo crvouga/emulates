@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -9,8 +9,8 @@ import {
   faultEffect,
   type OperationContext,
   type Service,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
   type BlobFixture,
@@ -246,7 +246,7 @@ export class VercelBlobAPI implements FetchAPI {
   } {
     const h = c.request.headers
     if (h.get("x-vercel-blob-access") !== "public")
-      bad("Only access: public is supported by this mock")
+      bad("Only access: public is supported by this emulator")
     let pathname = this.path(c.url.searchParams.get("pathname"))
     if (h.get("x-add-random-suffix") === "1") pathname = this.suffix(pathname)
     const maxAge = h.has("x-cache-control-max-age")

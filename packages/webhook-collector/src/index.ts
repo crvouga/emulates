@@ -1,4 +1,4 @@
-import { resolveAdminPrefix } from "@crvouga/mockingbird-service"
+import { resolveAdminPrefix } from "@emulators/service"
 import { Hono } from "hono"
 
 export type WebhookRow = {
@@ -64,7 +64,7 @@ export const createWebhookCollector = (
     })
     await c.var.store.insert({
       service,
-      run_id: c.req.header("x-mockingbird-scope") ?? new URL(c.req.url).searchParams.get("run_id"),
+      run_id: c.req.header("x-emulators-scope") ?? new URL(c.req.url).searchParams.get("run_id"),
       received_at: new Date().toISOString(),
       headers,
       payload,

@@ -1,24 +1,24 @@
-# @crvouga/mockingbird-service-airtable
+# @emulators/airtable
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-WIP Airtable OAuth and forms-integration mock. Only synthetic fixtures belong here.
+WIP Airtable OAuth and forms-integration emulator. Only synthetic fixtures belong here.
 
 ## Install
 
-`bun add @crvouga/mockingbird-service-airtable`
+`bun add @emulators/airtable`
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-airtable"
+import { createRuntime } from "@emulators/airtable"
 const runtime = createRuntime()
 const response = await runtime.fetch(new Request("http://airtable.test/v0/meta/bases", {
   headers: { authorization: "Bearer mock_airtable_token" },
 }))
 ```
 
-Run `mockingbird-airtable serve --port 12130`. Inject its origin for both the API and OAuth origin in the optional integration; consumer endpoint wiring is separate.
+Run `emulators-airtable serve --port 12130`. Inject its origin for both the API and OAuth origin in the optional integration; consumer endpoint wiring is separate.
 
 ## Surface and state
 

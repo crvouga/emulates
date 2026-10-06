@@ -1,18 +1,13 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
-import {
-  type DecodedBody,
-  decodeFormPairs,
-  type FormObject,
-  readBody,
-} from "@crvouga/mockingbird-http-codec"
-import { listOperations, type OpenAPIDocument, type Operation } from "@crvouga/mockingbird-openapi"
-import { operationMetadata } from "@crvouga/mockingbird-openapi-metadata"
+import type { FetchAPI } from "@emulators/core"
+import { type DecodedBody, decodeFormPairs, type FormObject, readBody } from "@emulators/http-codec"
+import { listOperations, type OpenAPIDocument, type Operation } from "@emulators/openapi"
+import { operationMetadata } from "@emulators/openapi-metadata"
 import {
   clearNamespace,
   migrateCore,
   resolveSqlite,
   type SqliteClient,
-} from "@crvouga/mockingbird-sqlite"
+} from "@emulators/sqlite-client"
 import { type Context, Hono } from "hono"
 import { annotateResponse } from "./journal.js"
 import { operationPath } from "./path.js"
@@ -26,7 +21,7 @@ const withIssues = (request: Request, response: Response): Response => {
 
 /** Options every provider constructor accepts. */
 export type APIOptions = {
-  /** Sync SQLite client. Defaults to `@crvouga/mockingbird-service-sqlite`. */
+  /** Sync SQLite client. Defaults to `@emulators/sqlite`. */
   sqlite?: SqliteClient
   /** Clock used for `created`-style fields. Default `Date.now`. */
   now?: () => number
@@ -153,7 +148,7 @@ const serviceRoute = (template: string) => {
         offset = match.index + match[0].length
       }
       expression += escapePattern(segment.slice(offset))
-      return `:mockingbirdSegment${index}{${expression}}`
+      return `:emulatorsSegment${index}{${expression}}`
     })
     .join("/")
   return {

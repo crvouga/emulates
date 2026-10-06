@@ -1,12 +1,12 @@
-# Intercom REST API 2.11 (Mockingbird subset) — operation support
+# Intercom REST API 2.11 (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **14**
-- supported by the mock: **14**
+- supported by the emulator: **14**
 - parity enabled: **14**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `SearchContacts` | `POST /contacts/search` | ✅ supported | ✅ |  |
 | `ListContacts` | `GET /contacts` | ✅ supported | ✅ |  |

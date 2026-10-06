@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type SlackRuntime, type SlackRuntimeOptions } from "./runtime.js"
 import { attachSocketServer } from "./socket-server.js"
 
-/** Port `mockingbird-slack serve` listens on when none is given. */
+/** Port `emulators-slack serve` listens on when none is given. */
 export const DEFAULT_PORT = 8808
 
 export type SlackServerOptions = SlackRuntimeOptions & {

@@ -1,5 +1,5 @@
 const DEFAULT_MEDPLUM_VERSION = "v5.1.37"
-const CACHE_ROOT_SEGMENTS = ["mockingbird", "medplum-server"]
+const CACHE_ROOT_SEGMENTS = ["emulators", "medplum-server"]
 const HOME_CACHE_ROOT = ".cache"
 
 export type MedplumPathsOptions = {
@@ -31,7 +31,7 @@ export type MedplumPaths = {
 
 export const resolveMedplumPaths = (options: MedplumPathsOptions = {}): MedplumPaths => {
   const version = normalizeVersion(
-    options.version ?? process.env.MOCKINGBIRD_MEDPLUM_VERSION ?? DEFAULT_MEDPLUM_VERSION,
+    options.version ?? process.env.EMULATORS_MEDPLUM_VERSION ?? DEFAULT_MEDPLUM_VERSION,
   )
   const cacheRoot = options.cacheDir ?? process.env.MEDPLUM_MOCK_CACHE_DIR ?? defaultCacheRoot()
   const cloneDir = joinPath(cacheRoot, version)
@@ -40,6 +40,6 @@ export const resolveMedplumPaths = (options: MedplumPathsOptions = {}): MedplumP
     cacheRoot,
     cloneDir,
     serverEntry: joinPath(cloneDir, "packages", "server", "dist", "index.js"),
-    buildMarker: joinPath(cloneDir, ".mockingbird-build-complete"),
+    buildMarker: joinPath(cloneDir, ".emulators-build-complete"),
   }
 }

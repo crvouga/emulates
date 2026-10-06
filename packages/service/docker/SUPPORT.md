@@ -1,12 +1,12 @@
-# Docker Engine (Mockingbird) — operation support
+# Docker Engine (Emulators) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **13**
-- supported by the mock: **12**
+- supported by the emulator: **12**
 - parity enabled: **8**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ContainerList` | `GET /containers/json` | ✅ supported | ✅ |  |
 | `ContainerCreate` | `POST /containers/create` | ✅ supported | ⚠️ unsafe (opt-in) |  |

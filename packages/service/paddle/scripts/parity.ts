@@ -13,8 +13,8 @@
  * customers, catalog entries and transactions in the sandbox (no money moves) and need
  * `--include-unsafe`.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, PaddleAPI, supportedOperationIds } from "../src/index.js"
 
 const UNSCOPED_LISTS = [

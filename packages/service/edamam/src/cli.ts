@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-edamam",
-    description: "stateful Edamam food, recipe and meal-planning APIs mock",
+    bin: "emulators-edamam",
+    description: "Edamam food, recipe and meal-planning APIs emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

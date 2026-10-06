@@ -1,4 +1,4 @@
-import { fromBase64, hmac, timingSafeEqual, toBase64 } from "@crvouga/mockingbird-service"
+import { fromBase64, hmac, timingSafeEqual, toBase64 } from "@emulators/service"
 
 /**
  * Daily meeting tokens are HS256 JWTs signed with the domain's API key, their claims using

@@ -1,4 +1,4 @@
-import { jsonRes } from "@crvouga/mockingbird-service"
+import { jsonRes } from "@emulators/service"
 
 export type FieldError = { field: string; message: string }
 

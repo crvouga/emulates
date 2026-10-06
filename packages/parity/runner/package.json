@@ -1,8 +1,8 @@
 {
-  "name": "@crvouga/mockingbird-parity",
+  "name": "@emulators/parity",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Differential property-based test runner: executes generated API walks against a real sandbox API and a Mockingbird mock, comparing every canonicalised response.",
+  "description": "Differential property-based test runner: executes generated API walks against a real sandbox API and a Emulators emulator, comparing every canonicalised response.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/parity/runner"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/parity/runner#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/parity/runner#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "parity",
     "runner"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "layer": "parity"
   },
@@ -40,17 +40,17 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-openapi-arbitrary": "workspace:*",
-    "@crvouga/mockingbird-model": "workspace:*",
-    "@crvouga/mockingbird-commands": "workspace:*",
-    "@crvouga/mockingbird-canonicalize": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/openapi-arbitrary": "workspace:*",
+    "@emulators/model": "workspace:*",
+    "@emulators/commands": "workspace:*",
+    "@emulators/canonicalize": "workspace:*",
+    "@emulators/http-codec": "workspace:*",
     "fast-check": "4.9.0"
   },
   "devDependencies": {
-    "@crvouga/mockingbird-testing": "workspace:*"
+    "@emulators/testing": "workspace:*"
   }
 }

@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { KILL_BILL_NAMESPACE, KillBillAPI } from "./index.js"
 import type { CatalogPlan } from "./state.js"
@@ -73,7 +73,7 @@ export type KillBillRuntimeOptions = {
 }
 export type KillBillRuntime = ServiceRuntime<KillBillAPI> & { readonly webhooks: WebhookHub }
 const problem = (status: number, message: string) =>
-  Response.json({ error: { type: "mockingbird_admin", message } }, { status })
+  Response.json({ error: { type: "emulators_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<KillBillAPI>): AdminRoutes => ({
   "GET /billing": ({ namespace }) => {
     const state = runtime.instance(namespace).state

@@ -1,6 +1,6 @@
 # Live parity against the real provider sandboxes, with the repo's secrets.
 #
-# Every parity service has a tier in its package.json (`mockingbird.parityTier`, read by
+# Every parity service has a tier in its package.json (`emulators.parityTier`, read by
 # scripts/parity-tiers.ts) that says how often it may spend a vendor's rate limit:
 #   hot   advisory.yml calls this workflow on each PR that changes the service
 #   warm  the `schedule:` below runs every warm service

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@crvouga/mockingbird-service"
+import { createClock } from "@emulators/service"
 import { createRuntime, type HermesRuntime } from "./src/index.js"
 
 const base = 1_700_000_000_000
@@ -14,7 +14,7 @@ const call = (runtime: HermesRuntime, path: string, body?: unknown, key = "", ns
       method: body === undefined ? "GET" : "POST",
       headers: {
         "content-type": "application/json",
-        "x-mockingbird-namespace": ns,
+        "x-emulators-namespace": ns,
         "Idempotency-Key": key,
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),

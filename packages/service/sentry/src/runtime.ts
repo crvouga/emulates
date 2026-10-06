@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { SentryAPI, type SentryAPIOptions, sentryCredential } from "./index.js"
 import { createCaptureKey, object } from "./protocol.js"
@@ -42,7 +42,7 @@ export type SentryRuntimeOptions = Omit<SentryAPIOptions, "now" | "namespace"> &
 }
 export type SentryRuntime = ServiceRuntime<SentryAPI>
 const bad = (detail: string) =>
-  Response.json({ error: { type: "mockingbird_admin", message: detail } }, { status: 400 })
+  Response.json({ error: { type: "emulators_admin", message: detail } }, { status: 400 })
 const routes = (runtime: SentryRuntime): AdminRoutes => ({
   "GET /events": ({ namespace, url }) =>
     Response.json({ events: runtime.instance(namespace).captured(url) }),
@@ -121,7 +121,7 @@ const routes = (runtime: SentryRuntime): AdminRoutes => ({
     const api = runtime.instance(namespace)
     if (!api.state.projects.has(params.id ?? ""))
       return Response.json(
-        { error: { type: "mockingbird_admin", message: "Unknown project" } },
+        { error: { type: "emulators_admin", message: "Unknown project" } },
         { status: 404 },
       )
     api.state.clearProject(params.id as string)
@@ -132,7 +132,7 @@ const routes = (runtime: SentryRuntime): AdminRoutes => ({
     const issue = api.state.issues.get(params.id ?? "")
     if (!issue)
       return Response.json(
-        { error: { type: "mockingbird_admin", message: "Unknown issue" } },
+        { error: { type: "emulators_admin", message: "Unknown issue" } },
         { status: 404 },
       )
     const status = object(body).status

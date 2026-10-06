@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { createHmac } from "node:crypto"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { defaultCorpus } from "./src/corpus.js"
 import { diffCorpus, fingerprintCorpus } from "./src/corpus-tools.js"
@@ -53,7 +53,7 @@ const call = async (
 }
 
 const createUser = async (runtime: JunctionRuntime, namespace?: string) => {
-  const headers = namespace ? { "x-mockingbird-namespace": namespace } : {}
+  const headers = namespace ? { "x-emulators-namespace": namespace } : {}
   const res = await call(runtime, "POST", "/v2/user", {
     body: { client_user_id: `client-${Math.random().toString(36).slice(2)}` },
     headers,
@@ -136,16 +136,16 @@ describe("service contract", () => {
     const runtime = createRuntime()
     const a = await createUser(runtime, "worker-a")
     const inB = await call(runtime, "GET", `/v2/user/${a}`, {
-      headers: { "x-mockingbird-namespace": "worker-b" },
+      headers: { "x-emulators-namespace": "worker-b" },
     })
     expect(inB.status).toBe(404)
     const inA = await call(runtime, "GET", `/v2/user/${a}`, {
-      headers: { "x-mockingbird-namespace": "worker-a" },
+      headers: { "x-emulators-namespace": "worker-a" },
     })
     expect(inA.status).toBe(200)
     await admin(runtime, "POST", "/reset?namespace=worker-a")
     const afterReset = await call(runtime, "GET", `/v2/user/${a}`, {
-      headers: { "x-mockingbird-namespace": "worker-a" },
+      headers: { "x-emulators-namespace": "worker-a" },
     })
     expect(afterReset.status).toBe(404)
   })
@@ -217,13 +217,13 @@ describe("A7 error shapes and faults", () => {
     const runtime = createRuntime()
     const added = await call(runtime, "POST", "/__admin/faults/presets/sandbox_user_quota", {
       body: { count: 1 },
-      headers: { "x-mockingbird-namespace": "worker-a" },
+      headers: { "x-emulators-namespace": "worker-a" },
     })
     expect(added.status).toBe(201)
     const create = (namespace: string) =>
       call(runtime, "POST", "/v2/user", {
         body: { client_user_id: "c" },
-        headers: { "x-mockingbird-namespace": namespace },
+        headers: { "x-emulators-namespace": namespace },
       })
     // worker-b is untouched; worker-a takes the one injected failure, then recovers.
     expect((await create("worker-b")).status).toBe(200)
@@ -521,7 +521,7 @@ describe("A8 order control", () => {
 })
 
 describe("A10 webhooks", () => {
-  const secret = `whsec_${Buffer.from("mockingbird-test-secret-32-bytes!").toString("base64")}`
+  const secret = `whsec_${Buffer.from("emulators-test-secret-32-bytes!").toString("base64")}`
 
   /** Svix's documented algorithm, independently: HMAC-SHA256 over "id.timestamp.body". */
   const svixOracle = (id: string, timestamp: string, body: string) =>

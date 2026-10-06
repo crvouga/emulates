@@ -18,7 +18,7 @@ const connect = (
         host: server.host,
         port: server.port,
         username: "aha",
-        password: "mockingbird",
+        password: "emulators",
         hostVerifier: (key: Buffer) => key.equals(server.hostPublicKey),
         ...overrides,
       })

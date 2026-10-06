@@ -1,5 +1,5 @@
 import { EventBridgeClient, ListRulesCommand } from "@aws-sdk/client-eventbridge"
-import { loadCredentials } from "@crvouga/mockingbird-credentials"
+import { loadCredentials } from "@emulators/credentials"
 import { EventBridgeAPI } from "../src/index.js"
 
 const credentials = await loadCredentials(
@@ -21,7 +21,7 @@ const client = new EventBridgeClient({
   region: process.env.EVENTBRIDGE_REGION ?? "us-east-1",
 })
 try {
-  const input = { NamePrefix: "mockingbird-oracle-nonexistent-fixture", Limit: 1 }
+  const input = { NamePrefix: "emulators-oracle-nonexistent-fixture", Limit: 1 }
   const actual = await client.send(new ListRulesCommand(input))
   const expected = (await (
     await new EventBridgeAPI().fetch(

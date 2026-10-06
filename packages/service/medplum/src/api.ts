@@ -1,6 +1,6 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
-import { bootSqlite, Collection } from "@crvouga/mockingbird-service"
-import { clearNamespace, type SqliteClient } from "@crvouga/mockingbird-sqlite"
+import type { FetchAPI } from "@emulators/core"
+import { bootSqlite, Collection } from "@emulators/service"
+import { clearNamespace, type SqliteClient } from "@emulators/sqlite-client"
 import {
   allOk,
   badRequest,
@@ -64,12 +64,12 @@ import { ensureSchema } from "./schema.js"
 export const SUPER_ADMIN_EMAIL = "admin@example.com"
 export const SUPER_ADMIN_PASSWORD = "medplum_admin"
 export const SUPER_ADMIN_CLIENT_ID = "6f3f0c17-8bd1-4a56-9d5a-6b21e5b0a101"
-export const SUPER_ADMIN_CLIENT_SECRET = "mockingbird-local-secret"
+export const SUPER_ADMIN_CLIENT_SECRET = "emulators-local-secret"
 
 /** The ready-to-use project every namespace seeds, with a client application consumers sign in with. */
 export const DEFAULT_PROJECT_ID = "a3b8f042-1d1e-4d0a-9f4c-6d6f636b6272"
 export const DEFAULT_CLIENT_ID = "b4c9e153-2e2f-4e1b-8a5d-6d6f636b6272"
-export const DEFAULT_CLIENT_SECRET = "mockingbird-medplum-client-secret"
+export const DEFAULT_CLIENT_SECRET = "emulators-medplum-client-secret"
 
 /** Medplum's default base URL, `http://localhost:8103/`. */
 export const DEFAULT_BASE_URL = "http://localhost:8103/"
@@ -88,7 +88,7 @@ export type MedplumUserFixture = {
 }
 
 export type MedplumAPIOptions = {
-  /** Sync SQLite client. Defaults to `@crvouga/mockingbird-service-sqlite`. */
+  /** Sync SQLite client. Defaults to `@emulators/sqlite`. */
   sqlite?: SqliteClient
   /** Clock for `meta.lastUpdated`, token lifetimes and history. Default `Date.now`. */
   now?: () => number
@@ -365,14 +365,14 @@ export class MedplumAPI implements FetchAPI {
     const project = await system.updateResource<Project>({
       resourceType: "Project",
       id: defaults?.id ?? DEFAULT_PROJECT_ID,
-      name: defaults?.name ?? "Mockingbird",
+      name: defaults?.name ?? "Emulators",
       strictMode: true,
     })
     const projectClient = await system.updateResource<ClientApplication>({
       meta: { project: project.id },
       resourceType: "ClientApplication",
       id: defaults?.clientId ?? DEFAULT_CLIENT_ID,
-      name: "Mockingbird Client",
+      name: "Emulators Client",
       secret: defaults?.clientSecret ?? DEFAULT_CLIENT_SECRET,
     })
     await system.createResource<ProjectMembership>({
@@ -387,7 +387,7 @@ export class MedplumAPI implements FetchAPI {
   }
 
   private async hashPassword(password: string): Promise<string> {
-    return `mockingbird-sha256$${await sha256Hex(password)}`
+    return `emulators-sha256$${await sha256Hex(password)}`
   }
 
   private async createProfile(
@@ -1457,8 +1457,8 @@ export class MedplumAPI implements FetchAPI {
         return json(200, {
           ok: true,
           version: MEDPLUM_VERSION,
-          platform: "mockingbird",
-          runtime: "mockingbird",
+          platform: "emulators",
+          runtime: "emulators",
           postgres: true,
           redis: true,
           redisInstances: { default: true },

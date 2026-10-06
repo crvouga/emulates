@@ -1,11 +1,11 @@
 openapi: 3.1.0
-info: { title: Kill Bill Billing API (Mockingbird subset), version: "1.0", description: Stateful REST billing contract. }
+info: { title: Kill Bill Billing API (Emulators subset), version: "1.0", description: Stateful REST billing contract. }
 servers: [{ url: http://127.0.0.1:8080 }]
 paths:
   /1.0/kb/accounts/pagination:
     get:
       operationId: PaginateAccounts
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -74,7 +74,7 @@ paths:
                   properties:
                     accountId:
                       type: string
-                      x-mockingbird-resource:
+                      x-emulators-resource:
                         type: account
                         identity: true
                     externalKey:
@@ -85,7 +85,7 @@ paths:
                       type: string
                     referenceTime:
                       type: string
-                      x-mockingbird-volatile:
+                      x-emulators-volatile:
                         kind: timestamp
                     accountBalance:
                       type:
@@ -102,7 +102,7 @@ paths:
   /1.0/kb/invoices/pagination:
     get:
       operationId: PaginateInvoices
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -146,7 +146,7 @@ paths:
                   properties:
                     invoiceId:
                       type: string
-                      x-mockingbird-resource:
+                      x-emulators-resource:
                         type: invoice
                         identity: true
                     accountId:
@@ -184,14 +184,14 @@ paths:
   /1.0/kb/tenants:
     get:
       operationId: GetTenantByApiKey
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: true } }
       parameters: [{ name: apiKey, in: query, required: true, schema: { type: string } }]
       responses:
         "200": { description: Tenant }
         "404": { description: Tenant not found }
     post:
       operationId: CreateTenant
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
       requestBody:
         content:
           application/json:
@@ -208,40 +208,40 @@ paths:
   /1.0/kb/tenants/registerNotificationCallback:
     get:
       operationId: GetNotificationCallbacks
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: true } }
       responses: { "200": { description: Registered push notification callbacks } }
     post:
       operationId: RegisterNotificationCallback
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
       parameters: [{ name: cb, in: query, required: true, schema: { type: string } }]
       responses: { "201": { description: Callback registered } }
     delete:
       operationId: DeleteNotificationCallbacks
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
       responses: { "204": { description: Callbacks deleted } }
   /1.0/kb/test/queues:
     get:
       operationId: WaitForQueues
       parameters:
         - { name: timeoutSec, in: query, required: false, schema: { type: integer, default: 5 } }
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: true } }
       responses:
         "200": { description: Tenant bus and due notifications are caught up }
         "412": { description: Timeout elapsed while notifications or bus events are still queued }
   /1.0/kb/{resource}:
     parameters: [{ name: resource, in: path, required: true, schema: { type: string } }]
-    get: { operationId: ReadResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }, responses: { "200": { description: Resource response } } }
-    post: { operationId: CreateResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }, requestBody: { content: { application/json: { schema: { type: object, additionalProperties: true } }, application/xml: { schema: { type: string } } } }, responses: { "201": { description: Created } } }
+    get: { operationId: ReadResource, x-emulators: { supported: true, parity: { enabled: true, safe: true } }, responses: { "200": { description: Resource response } } }
+    post: { operationId: CreateResource, x-emulators: { supported: true, parity: { enabled: true, safe: false } }, requestBody: { content: { application/json: { schema: { type: object, additionalProperties: true } }, application/xml: { schema: { type: string } } } }, responses: { "201": { description: Created } } }
   /1.0/kb/{resource}/{id}:
     parameters: [{ name: resource, in: path, required: true, schema: { type: string } }, { name: id, in: path, required: true, schema: { type: string } }]
-    get: { operationId: GetResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }, responses: { "200": { description: Resource response } } }
-    put: { operationId: UpdateResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }, requestBody: { content: { application/json: { schema: { type: object, additionalProperties: true } } } }, responses: { "204": { description: Updated } } }
-    delete: { operationId: DeleteResource, x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }, responses: { "204": { description: Deleted } } }
+    get: { operationId: GetResource, x-emulators: { supported: true, parity: { enabled: true, safe: true } }, responses: { "200": { description: Resource response } } }
+    put: { operationId: UpdateResource, x-emulators: { supported: true, parity: { enabled: true, safe: false } }, requestBody: { content: { application/json: { schema: { type: object, additionalProperties: true } } } }, responses: { "204": { description: Updated } } }
+    delete: { operationId: DeleteResource, x-emulators: { supported: true, parity: { enabled: true, safe: false } }, responses: { "204": { description: Deleted } } }
   /1.0/kb/subscriptions/{subscriptionId}/undoChangePlan:
     parameters: [{ name: subscriptionId, in: path, required: true, schema: { type: string } }]
     put:
       operationId: UndoChangeSubscriptionPlan
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
       responses:
         "204": { description: Pending plan change undone }
         "400": { description: Subscription has no pending plan change }
@@ -250,7 +250,7 @@ paths:
     parameters: [{ name: invoiceId, in: path, required: true, schema: { type: string } }]
     put:
       operationId: VoidInvoice
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: false } }
       responses:
         "204": { description: Invoice voided }
         "400": { description: Invoice is paid or already void }
@@ -259,7 +259,7 @@ paths:
     parameters: [{ name: accountId, in: path, required: true, schema: { type: string } }]
     get:
       operationId: GetAccountOverdue
-      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
+      x-emulators: { supported: true, parity: { enabled: true, safe: true } }
       responses:
         "200":
           description: Account overdue state (Kill Bill 0.24.10 OverdueStateJson)

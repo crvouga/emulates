@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-fcm",
+  "name": "@emulators/fcm",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Firebase Cloud Messaging HTTP v1 send API used by firebase-admin: fixture projects and registration tokens, an outbox, and a device inbox.",
+  "description": "Stateful emulator of the Firebase Cloud Messaging HTTP v1 send API used by firebase-admin: fixture projects and registration tokens, an outbox, and a device inbox.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -29,7 +29,7 @@
     }
   },
   "bin": {
-    "mockingbird-fcm": "./dist/cli.js"
+    "emulators-fcm": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -37,19 +37,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/fcm"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/fcm#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/fcm#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "service",
     "fcm",
     "firebase",
     "firebase-admin",
     "messaging"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -82,7 +82,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- fcm",
-        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -93,7 +93,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -109,24 +109,24 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
     "firebase-admin": "13.5.0",
     "firebase-admin-12": "npm:firebase-admin@12.7.0",
-    "@crvouga/mockingbird-testing": "workspace:*",
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-credentials": "workspace:*",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
-    "@crvouga/mockingbird-adapter-node": "workspace:*"
+    "@emulators/testing": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
+    "@emulators/parity": "workspace:*",
+    "@emulators/credentials": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/http-codec": "workspace:*",
+    "@emulators/adapter-node": "workspace:*"
   }
 }

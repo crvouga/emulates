@@ -1,19 +1,19 @@
-# @crvouga/mockingbird-service-vanta
+# @emulators/vanta
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Manage Vanta OAuth, paginated compliance records, evidence metadata and offboarding.
 
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-vanta
+bun add @emulators/vanta
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-vanta"
+import { createRuntime } from "@emulators/vanta"
 const vanta = createRuntime()
 const response = await vanta.fetch(new Request("http://vanta.test/v1/people?pageSize=10", {
   headers: { authorization: "Bearer mock_vanta_token" },
@@ -22,7 +22,7 @@ const { results } = await response.json()
 console.log(results.pageInfo)
 ```
 
-Run `mockingbird-vanta serve --port 12129` and inject `http://localhost:12129` as the
+Run `emulators-vanta serve --port 12129` and inject `http://localhost:12129` as the
 consumer's API origin. There is no universal Vanta SDK environment variable for this override;
 the requested consumer uses raw fetch. Credentials and records are synthetic only.
 
@@ -52,7 +52,7 @@ Read calls require all:read scope, submission/offboarding all:write, and upload 
 (each prefixed vanta-api.). Missing/invalid/expired resource bearer tokens return literal
 `Unauthorized` with application/json content type, matching an unauthenticated live probe.
 Consumers must not assume every error body is parseable JSON. Other documented failure classes
-use status plus message, with deterministic mock messages rather than exact vendor wording.
+use status plus message, with deterministic emulator messages rather than exact vendor wording.
 
 ### Controls and proof
 

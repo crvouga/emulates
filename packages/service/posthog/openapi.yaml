@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: PostHog feature flags, capture and management API (Mockingbird subset)
+  title: PostHog feature flags, capture and management API (Emulators subset)
   description: |
     Stateful mock subset of PostHog: remote flag evaluation (`/flags` v2 and the legacy
     `/decide` shape), remote config, event capture (`/batch/`, `/e/`, `/i/v0/e/`), session
@@ -15,7 +15,7 @@ info:
     bytes from posthog-js), base64 (`data=` form bodies), or as plain JSON; the contract
     declares the decoded JSON.
   version: "1"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Hand-authored from @posthog/core posthog-core-stateless (getFlags, sendBatch,
       getRemoteConfig, getSurveysStateless), posthog-js request.ts / posthog-featureflags.ts,
@@ -33,7 +33,7 @@ paths:
         `config=true` adds the remote-config fields. The project key is `token` (SDKs) or
         `api_key` (the EMR frontend's raw fetch).
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -85,7 +85,7 @@ paths:
         The legacy endpoint (the Python client sends `POST /decide/?v=3` with
         `{api_key, distinct_id}`). `v` < 4 answers the legacy maps; `v=4` the `flags` map.
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -135,7 +135,7 @@ paths:
     get:
       operationId: GetRemoteConfig
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -153,7 +153,7 @@ paths:
     get:
       operationId: GetRemoteConfigScript
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -172,7 +172,7 @@ paths:
       operationId: CaptureBatch
       description: "posthog-node and posthog-react-native flushes (Content-Encoding: gzip)."
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -213,7 +213,7 @@ paths:
       operationId: CaptureEvent
       description: One event, an array of events, or `{api_key, batch}` (posthog-js).
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -256,7 +256,7 @@ paths:
         The capture endpoint remote config advertises (`analytics.endpoint`); also our backend's
         website purchase sink (`{api_key, event, distinct_id, timestamp, uuid, properties}`).
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -297,7 +297,7 @@ paths:
       operationId: CaptureRecording
       description: Session-recording snapshots; counted, never stored.
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -319,7 +319,7 @@ paths:
     get:
       operationId: GetRecorderScript
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -342,7 +342,7 @@ paths:
     get:
       operationId: GetVersionedRecorderScript
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -358,7 +358,7 @@ paths:
     get:
       operationId: ListSurveys
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -387,7 +387,7 @@ paths:
     get:
       operationId: ListWebExperiments
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -419,7 +419,7 @@ paths:
       operationId: ListFeatureFlags
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -454,7 +454,7 @@ paths:
       operationId: CreateFeatureFlag
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -495,14 +495,14 @@ paths:
           reference flags they created, since resource identities are strings).
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: feature_flag
             missing: "999999"
     get:
       operationId: GetFeatureFlag
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: true, safe: true }
       responses:
@@ -517,7 +517,7 @@ paths:
       operationId: UpdateFeatureFlag
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -560,7 +560,7 @@ paths:
       operationId: ListExperiments
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: true, safe: true }
       parameters:
@@ -582,10 +582,10 @@ paths:
                   count: { type: integer }
                   next:
                     type: [string, "null"]
-                    x-mockingbird-volatile: { kind: url }
+                    x-emulators-volatile: { kind: url }
                   previous:
                     type: [string, "null"]
-                    x-mockingbird-volatile: { kind: url }
+                    x-emulators-volatile: { kind: url }
                   results:
                     type: array
                     items: { $ref: "#/components/schemas/Experiment" }
@@ -595,7 +595,7 @@ paths:
       operationId: CreateExperiment
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: true, safe: false }
       requestBody:
@@ -630,7 +630,7 @@ paths:
       operationId: GetExperiment
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: true, safe: true }
       responses:
@@ -645,7 +645,7 @@ paths:
       operationId: UpdateExperiment
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity: { enabled: true, safe: false }
       requestBody:
@@ -672,7 +672,7 @@ paths:
         `PUT /__admin/settings {"queryResults": [...]}`; `{results: []}` otherwise.
       security:
         - bearerAuth: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -783,10 +783,10 @@ components:
         archived: { type: boolean }
         created_at:
           type: string
-          x-mockingbird-volatile: { kind: timestamp }
+          x-emulators-volatile: { kind: timestamp }
         updated_at:
           type: string
-          x-mockingbird-volatile: { kind: timestamp }
+          x-emulators-volatile: { kind: timestamp }
     ErrorBody:
       type: object
       required: [type, code, detail]
@@ -907,11 +907,11 @@ components:
             type: string
         requestId:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         evaluatedAt:
           type: integer
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         config:
           type: object
@@ -1029,7 +1029,7 @@ components:
           type: integer
         key:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: feature_flag
             identity: true
         name:
@@ -1040,11 +1040,11 @@ components:
           type: boolean
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         version:
           type: integer
@@ -1070,11 +1070,11 @@ components:
           type: integer
         next:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: url
         previous:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: url
         results:
           type: array

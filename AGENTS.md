@@ -13,7 +13,8 @@ account, or any self-hosted service.
   it locally with keys from `.env.local`. `bun run secrets:doctor` shows which services have keys.
 - **Build cache** — turbo's local cache; CI keeps it in the GitHub Actions cache
   (`.github/actions/setup`). There is no remote cache or token.
-- **Hosting** — the docs site ships as the fleet service `mockingbird-docs`: `sites/docs/Dockerfile`
+- **Hosting** — the docs site ships as the fleet service `mockingbird-docs` (its pre-rename id, until
+  `crvouga/workspace` renames it to `emulators-docs`): `sites/docs/Dockerfile`
   (build context = repo root) is built and pushed to GHCR by `.github/workflows/publish.yml` on every
   push to `main`, then deployed by `crvouga/workspace`. Never deploy from Railway or push images by
   hand; the `services.yaml` entry lives in `crvouga/workspace`. Hosting contract:
@@ -27,14 +28,18 @@ hand ([README](scripts/worktree/README.md)).
 Agent commands (`/ci`, `/pr-ready`, `/parity-loop`, `/resolve-issues`) live in `.agents/commands/`;
 see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#agent-commands).
 
+- **Identity** — the project name, npm scope, repository and site live once in `project.ts`;
+  services publish as `packageName(<id>)` = `@emulators/<id>`. Former `@crvouga/mockingbird-*`
+  names appear only at the npm migration boundary (`scripts/release/lib.ts`, `docs/MIGRATING.md`).
+
 Agents in other projects report parity mismatches, missing features and bugs, and request new
 services, as GitHub issues labelled `agent-reported` ([docs/REPORTING_ISSUES.md](docs/REPORTING_ISSUES.md),
 templates in `.github/ISSUE_TEMPLATE/`, labels in `.github/labels.json`); `/resolve-issues` works
 that queue, by hand or unattended on GitHub as you (`bun github:resolve-issues`, which carries each
-issue to a green PR). Only public third-party vendor APIs get a mock: decline requests to mock a company's
+issue to a green PR). Only public third-party vendor APIs get an emulator: decline requests to emulate a company's
 own internal services, and keep fixtures and test data free of any real customer's name.
 
 `README.md` is the overview, generated from `sites/docs/src/lib/content.ts` and `docs/*.md`
-(`bun run readme:sync`). The catalog of mocks stays on the docs site; `llms.txt` indexes it
+(`bun run readme:sync`). The catalog of emulators stays on the docs site; `llms.txt` indexes it
 from each service's `package.json` (`bun run llms:sync`). `bun run check` fails when either
 file is stale.

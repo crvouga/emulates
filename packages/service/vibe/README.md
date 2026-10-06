@@ -1,19 +1,19 @@
-# @crvouga/mockingbird-service-vibe
+# @emulators/vibe
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP Vibe revision **2026-06-01** OAuth and asynchronous campaign-spend reports.
 
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-vibe
+bun add @emulators/vibe
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime, DEFAULT_ADVERTISER } from "@crvouga/mockingbird-service-vibe"
+import { createRuntime, DEFAULT_ADVERTISER } from "@emulators/vibe"
 const vibe = createRuntime({ rows: [{
   advertiser_id: DEFAULT_ADVERTISER, impression_date: "2026-01-01", spend: "12.50",
 }] })
@@ -26,7 +26,7 @@ const report = await response.json()
 console.log(report.id, report.status)
 ```
 
-Run `mockingbird-vibe serve --port 12128`, then inject `http://localhost:12128` as the
+Run `emulators-vibe serve --port 12128`, then inject `http://localhost:12128` as the
 consumer's API origin. Downloads point at this same origin. There is no universal vendor
 environment variable for that override; keep the consumer's production HTTPS policy intact.
 
@@ -79,7 +79,7 @@ invalid synthetic-token errors against the real endpoint. This probe passed and 
 
 Ad purchases, campaign mutation, attribution inference, production JWT signing, OAuth browser
 consent/refresh, CSV or non-DAY reports, metric aggregation, timezone conversion, and report
-filter expressions. Seed already-aggregated rows for the requested dimensions. The mock
+filter expressions. Seed already-aggregated rows for the requested dimensions. The emulator
 rejects CSV/non-DAY requests even though the vendor supports them; those are outside this
 initial consumer subset. It does not claim full vendor API or live rate-limit parity.
 

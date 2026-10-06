@@ -1,12 +1,12 @@
-# Amazon Lambda (Mockingbird subset) — operation support
+# Amazon Lambda (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **7**
-- supported by the mock: **0**
+- supported by the emulator: **0**
 - parity enabled: **0**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `AwsQuery` | `GET /` | ❌ unsupported | — | Vendor operations are not implemented in this scaffold. |
 | `AwsRpc` | `POST /` | ❌ unsupported | — | Vendor operations are not implemented in this scaffold. |

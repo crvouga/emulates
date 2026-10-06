@@ -22,7 +22,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 /**
  * Accept an already-parsed JSON/YAML value and return it typed as an {@link OpenAPIDocument}.
- * Performs the structural checks Mockingbird relies on (see {@link validateOpenAPIDocument}) and
+ * Performs the structural checks Emulators relies on (see {@link validateOpenAPIDocument}) and
  * throws {@link OpenAPIDocumentError} listing every problem.
  */
 export const parseOpenAPIDocument = (value: unknown): OpenAPIDocument => {
@@ -72,7 +72,7 @@ const templateParams = (path: string) =>
   [...path.matchAll(/\{([^}]+)\}/g)].map((m) => m[1] as string)
 
 /**
- * Mockingbird's document rules:
+ * The Emulators document rules:
  * - every operation has a unique `operationId`
  * - every `$ref` resolves
  * - every `{param}` in a path template has a matching required path parameter

@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
+} from "@emulators/service"
 import { document } from "./generated/openapi.js"
 import { OURA_NAMESPACE, OuraAPI, type OuraAPIOptions } from "./index.js"
 export const OURA_PRESETS: Record<string, FaultPreset> = {

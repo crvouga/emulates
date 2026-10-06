@@ -1,4 +1,4 @@
-import catalog from "virtual:mockingbird/catalog"
+import catalog from "virtual:emulators/catalog"
 import type { APIRoute } from "astro"
 import { CATEGORIES, type CategorySlug } from "../lib/categories.ts"
 import { initials } from "../lib/format.ts"
@@ -18,8 +18,8 @@ export interface PaletteEntry {
 }
 
 const PAGES: [string, string, string][] = [
-  ["/services", "Services", "Browse and filter every mock"],
-  ["/coverage", "Coverage", "Operations mocked per service, and every surface"],
+  ["/services", "Services", "Browse and filter every emulator"],
+  ["/coverage", "Coverage", "Operations emulated per service, and every surface"],
   ["/docs", "Docs", "Guides for using, testing and contributing"],
   ["/llms.txt", "llms.txt", "Index for coding agents"],
   ["/catalog.json", "catalog.json", "Machine-readable catalog"],

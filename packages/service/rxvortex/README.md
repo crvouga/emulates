@@ -1,34 +1,34 @@
-# @crvouga/mockingbird-service-rxvortex
+# @emulators/rxvortex
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of the **RxVortex (Strive)** compounding-pharmacy API for test suites: the
+Stateful emulator of the **RxVortex (Strive)** compounding-pharmacy API for test suites: the
 client-credentials token, order submit, status, cancel, the recovery lookup by sender order id,
 the preset catalog, and the signed status webhooks the pharmacy posts back. Orders move only
-when a test says so (an admin transition or an auto-advance path on the mock clock), so an eRx
+when a test says so (an admin transition or an auto-advance path on the emulator clock), so an eRx
 suite that waited up to 60 s on the real sandbox resolves in milliseconds.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/rxvortex/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/rxvortex/SUPPORT.md)
 - The vendor publishes no spec: the contract (`openapi.yaml`) is hand-authored from the wire
   shapes our consumer reads and writes, and every field fallback it relies on is served.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-rxvortex
+npm install -D @emulators/rxvortex
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-rxvortex serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulators-rxvortex serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
-Point `RXVORTEX_API_URL` at the mock. Set `RXVORTEX_WEBHOOK_SECRET` in the app and pass the same
+Point `RXVORTEX_API_URL` at the emulator. Set `RXVORTEX_WEBHOOK_SECRET` in the app and pass the same
 value as `--webhook-secret`.
 
 ```bash
-npx mockingbird-rxvortex serve --port 8791 \
+npx emulators-rxvortex serve --port 8791 \
   --webhook-url http://127.0.0.1:3000/prescriptions/webhooks/rxvortex \
   --webhook-secret "$RXVORTEX_WEBHOOK_SECRET" \
   --auto-advance "2000:Fill,Shipping,Delivered" \
@@ -41,7 +41,7 @@ response loads as-is. Only `catalog_id` and `medication_name` are required. `POS
 returns to these rows. Pass `--unknown-presets accept` to take any well-formed preset id instead.
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-rxvortex"
+import { createRuntime } from "@emulators/rxvortex"
 
 const rx = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/prescriptions/webhooks/rxvortex", secret: "whsec-test" },
@@ -69,7 +69,7 @@ await post("/__admin/orders/pay_123/transition", { to: "Delivered" })
 
 | Route | Behaviour |
 | --- | --- |
-| `POST /api/v1/generate-access-token` | JSON `{client_id, client_secret}` → `{access_token, token_type: "Bearer", expires_in: 86400}`. Any pair works unless `clients` is set (`PUT /__admin/settings`). Tokens stay valid 24 h on the mock clock; our client caches for 24 h and never refreshes on 401. |
+| `POST /api/v1/generate-access-token` | JSON `{client_id, client_secret}` → `{access_token, token_type: "Bearer", expires_in: 86400}`. Any pair works unless `clients` is set (`PUT /__admin/settings`). Tokens stay valid 24 h on the emulator clock; our client caches for 24 h and never refreshes on 401. |
 | `POST /api/v1/orders` | Validates the submit payload against the contract; a violation is 422 `{message, errors: {"patient.phone": ["…"]}}`. An inactive or unknown `preset_catalog_id` is 422 (under `unknownPresets: "accept"` an unknown UUID becomes an active catalog row named after the request's `medication_name`). A repeated `order.sender_order_id` is 409. Success: `{success: true, order_tracking_id: "RXV-…", sender_order_id, status: "Created"}` (the tracking id is always a string). |
 | `GET /api/v1/orders/{id}` | `id` is the tracking id **or** the sender order id (our payment id, the recovery lookup). Returns `rxstatus`, `orderstatus`, `shipping_status`, `delivered_date`, `trackingnumber`, `shippingservice`, `shippingcarrier`, `shipmenttrackingurl`, `cancellable`, and the id under `order_tracking_id`, `tracking_id` and `orderReferenceID`. |
 | `DELETE /api/v1/orders/{id}` | Cancels while `cancellable` (until shipped), emitting the webhook; otherwise 409. |
@@ -93,7 +93,7 @@ now, and `PUT /__admin/webhook-endpoints` sets per-namespace receivers.
 | `PUT /__admin/catalog` | `{items: [{catalog_id, medication_name, medication_strength?, package_size?, quantity?, quantity_units?, medication_form?, route?, states?, status?}], mode?: "replace" \| "merge"}` for the calling namespace (`replace` is the default; `merge` upserts by `catalog_id`). Answers `{count}`, the namespace's row count. `items` may also be sent as `data`. |
 | `GET /__admin/catalog` | The namespace's rows, as `{data: [...]}`. |
 | `PUT /__admin/settings` | `{tokenTtlSeconds?, staticTokens?, clients?, autoAdvance?: {afterMs, path} \| null, unknownPresets?: "reject" \| "accept"}` for the calling namespace. `unknownPresets` defaults to `reject`, as the sandbox does. `staticTokens` admits `RXVORTEX_API_TOKEN` (the catalog client's static bearer). |
-| `POST /__admin/tick` | Apply every auto-advance step that is due on the mock clock (the served mock also ticks every 100 ms). |
+| `POST /__admin/tick` | Apply every auto-advance step that is due on the emulator clock (the served emulator also ticks every 100 ms). |
 | `GET /__admin/orders` | The namespace's orders. |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /__admin/faults/presets`):
@@ -105,7 +105,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 ### Namespaces
 
 Our backend's `fetch` cannot add headers, so a namespace can be chosen three ways:
-`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `RXVORTEX_API_URL`, or by client id:
+`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on `RXVORTEX_API_URL`, or by client id:
 `PUT /__admin/credentials {"credentials": {"<RXVORTEX_CLIENT_ID>": "<namespace>"}}` (tokens carry
 the client id they were issued to).
 
@@ -122,8 +122,8 @@ the client id they were issued to).
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `RxVortexAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(id, {to, …})`, `tick()`, `orders()`. Options: `sqlite`, `now`, `namespace`, `catalog`, `settings`, `onWebhook`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `catalog`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `RxVortexAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(id, {to, …})`, `tick()`, `orders()`. Options: `sqlite`, `now`, `namespace`, `catalog`, `settings`, `onWebhook`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `catalog`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `RXVORTEX_PRESETS` | object | Every named fault preset. |
 | `RXVORTEX_NAMESPACE` | string | The service name, `"rxvortex"`. |
 | `tokenCredential` | function | The client id a bearer token was issued to (how credentials map to namespaces). |
@@ -133,4 +133,4 @@ the client id they were issued to).
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT`, `loadCatalogFile` (`./server`) | Node | Serve over `node:http` (auto-advance ticks every 100 ms); the `serve` CLI target; port 8791; read a `--catalog` file. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

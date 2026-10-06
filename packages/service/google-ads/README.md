@@ -1,15 +1,15 @@
-# @crvouga/mockingbird-service-google-ads
+# @emulators/google-ads
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-A **wip** portable mock for Google Ads API v25 and Google Analytics 4. It provides deterministic
+A **wip** portable emulator for Google Ads API v25 and Google Analytics 4. It provides deterministic
 GAQL reporting, campaign-budget mutations, click-conversion uploads, Measurement Protocol event
 collection, and Analytics Data reports using namespaced SQLite state and an injected clock.
 
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-google-ads
+bun add @emulators/google-ads
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ import {
   createRuntime,
   DEFAULT_CUSTOMER,
   DEFAULT_TOKEN,
-} from "@crvouga/mockingbird-service-google-ads"
+} from "@emulators/google-ads"
 
 const mock = createRuntime()
 const response = await mock.fetch(
@@ -43,7 +43,7 @@ the `measurement_id` and `api_secret` query parameters. The exported defaults ar
 safe for tests. Configure `tokens`, customers, campaigns, budgets, conversion actions, metrics,
 and Analytics properties through `createRuntime` options when a suite needs different fixtures.
 
-For parallel tests, send `x-mockingbird-namespace`, use the shared `/__admin/ns/{namespace}` path,
+For parallel tests, send `x-emulators-namespace`, use the shared `/__admin/ns/{namespace}` path,
 or register credentials with the shared admin API. State, pagination snapshots, IDs, clocks,
 faults, and resets are isolated by namespace.
 
@@ -65,7 +65,7 @@ support matrix is in [`SUPPORT.md`](SUPPORT.md).
 
 ## Controls and failures
 
-Service-specific controls are protected by the shared `x-mockingbird-admin-key` guard and live
+Service-specific controls are protected by the shared `x-emulators-admin-key` guard and live
 beside the shared health, state, clock, journal, fault, reset, and Timeline endpoints.
 
 | Control | Purpose |
@@ -93,7 +93,7 @@ The portable root exports `GoogleAdsAPI`, `createRuntime`, `document`, `supporte
 `DEFAULT_CUSTOMER`, `DEFAULT_CUSTOMERS`, `DEFAULT_BUDGETS`, `DEFAULT_CAMPAIGNS`, `DEFAULT_ACTIONS`,
 `DEFAULT_PROPERTY`, `DEFAULT_MEASUREMENT`, `DEFAULT_API_SECRET`, `createVaultKey`, `fingerprint`,
 and the public fixture/runtime option types. The Node `./server` entry exports `createServer`,
-`DEFAULT_PORT`, and server types. `mockingbird-google-ads serve` starts a listener.
+`DEFAULT_PORT`, and server types. `emulators-google-ads serve` starts a listener.
 
 ## Verification and scope
 
@@ -103,7 +103,7 @@ namespaces, resets, fault recovery, and the unmodified `google-auth-library` 11.
 path. Property tests exercise every parity-enabled operation and prove that a divergent transport
 is detected deterministically.
 
-The mock intentionally implements a bounded subset. It does not model the complete Google Ads
+The emulator intentionally implements a bounded subset. It does not model the complete Google Ads
 resource graph, every GAQL function, every Analytics dimension or metric, real Google identity,
 production quota allocation, billing, dashboards, attribution processing, or undocumented
 backend behavior. Normal operation is local and does not contact Google; only the explicit parity

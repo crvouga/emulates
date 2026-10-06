@@ -46,7 +46,7 @@ const call = (
   )
 
 describe("service contract", () => {
-  test("/__admin/health, the x-mockingbird header, and the admin route list", async () => {
+  test("/__admin/health, the x-emulators header, and the admin route list", async () => {
     const runtime = createRuntime()
     const health = await call(runtime, "/__admin/health")
     expect(health.status).toBe(200)
@@ -55,7 +55,7 @@ describe("service contract", () => {
       service: "flex",
       corpus: "flexCatalogMappings",
     })
-    expect(health.headers.get("x-mockingbird")).toMatch(/^flex@.+; ns=default$/)
+    expect(health.headers.get("x-emulators")).toMatch(/^flex@.+; ns=default$/)
     const routes = JSON.stringify(await (await call(runtime, "/__admin")).json())
     for (const route of [
       "PUT /products/:id",
@@ -76,7 +76,7 @@ describe("service contract", () => {
     const created = await call(runtime, "/v1/checkout/sessions", {
       key: "fsk_test_a",
       body: session("a"),
-      headers: { "x-mockingbird-namespace": "a" },
+      headers: { "x-emulators-namespace": "a" },
     })
     const id = ((await created.json()) as { checkout_session: { checkout_session_id: string } })
       .checkout_session.checkout_session_id
@@ -93,7 +93,7 @@ describe("service contract", () => {
     })
     const byKey = await call(runtime, `/v1/checkout/sessions/${id}`, { key: "fsk_test_a" })
     expect(byKey.status).toBe(200)
-    expect(byKey.headers.get("x-mockingbird")).toContain("ns=a")
+    expect(byKey.headers.get("x-emulators")).toContain("ns=a")
     // A reset of one namespace leaves the other alone (and the corpus survives resets).
     await call(runtime, "/__admin/reset?namespace=a", { method: "POST" })
     expect((await call(runtime, `/v1/checkout/sessions/${id}`, { key: "fsk_test_a" })).status).toBe(

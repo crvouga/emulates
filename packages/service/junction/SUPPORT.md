@@ -1,12 +1,12 @@
-# Junction API (Mockingbird subset) — operation support
+# Junction API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **40**
-- supported by the mock: **40**
+- supported by the emulator: **40**
 - parity enabled: **22**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `get_teams_users_v2_user_get` | `GET /v2/user` | ✅ supported | ✅ |  |
 | `create_user_v2_user_post` | `POST /v2/user` | ✅ supported | ✅ |  |

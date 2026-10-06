@@ -228,7 +228,7 @@ describe("S1.3 accounts", () => {
     ).toBe(200)
     const customer = await worker.customers.create({ email: "w1@example.com" })
     const inDefault = await fetch(`${base.origin}/v1/customers/${customer.id}`, {
-      headers: { authorization: "Bearer sk_test_workerOne", "x-mockingbird-namespace": "default" },
+      headers: { authorization: "Bearer sk_test_workerOne", "x-emulators-namespace": "default" },
     })
     expect(inDefault.status).toBe(404)
     const inW1 = await fetch(`${base.origin}/__admin/ns/w1/v1/customers/${customer.id}`, {

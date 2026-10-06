@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { encodeForm } from "@crvouga/mockingbird-http-codec"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { encodeForm } from "@emulators/http-codec"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { StripeAPI } from "./src/index.js"
 
@@ -12,7 +12,7 @@ import { StripeAPI } from "./src/index.js"
 
 const params = fcParameters(process.env)
 const HOST = "https://mock.stripe.local"
-const AUTH = { authorization: "Bearer sk_test_mockingbird" }
+const AUTH = { authorization: "Bearer sk_test_emulators" }
 const now = () => 1_700_000_000_000
 
 type Json = Record<string, unknown>

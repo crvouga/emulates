@@ -6,8 +6,8 @@ import {
   type FaultRule,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Food, RecipeSeed } from "./corpus.js"
 import { document } from "./generated/openapi.js"
 import { appIdCredential, EDAMAM_NAMESPACE, EdamamAPI } from "./index.js"
@@ -103,7 +103,7 @@ export type EdamamRuntime = ServiceRuntime<EdamamAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -197,7 +197,7 @@ const adminRoutes = (runtime: ServiceRuntime<EdamamAPI>): AdminRoutes => ({
 })
 
 /**
- * The Edamam mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The Edamam emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by application id
  * (`PUT /__admin/credentials {"credentials": {"<app_id>": "<namespace>"}}`), clock control,
  * fault presets and a request journal.

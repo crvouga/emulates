@@ -145,7 +145,7 @@ const faultResponse = (rule: FaultRule): Response => {
   const headers = { "content-type": "application/json", ...rule.headers }
   if (typeof rule.body === "string") return new Response(rule.body, { status, headers })
   if (rule.body === null) return new Response(null, { status, headers: rule.headers ?? {} })
-  const body = rule.body === undefined ? { detail: "Injected by Mockingbird" } : rule.body
+  const body = rule.body === undefined ? { detail: "Injected by Emulators" } : rule.body
   return new Response(JSON.stringify(body), { status, headers })
 }
 

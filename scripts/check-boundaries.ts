@@ -2,7 +2,7 @@
  * Workspace boundary gate.
  *
  * Runs from the repo root. Guards the intra-workspace dependency graph:
- *   1. every internal `@crvouga/mockingbird-*` dependency resolves to an
+ *   1. every internal `@emulators/*` dependency resolves to an
  *      actual workspace package (no dangling refs),
  *   2. the internal dependency graph is acyclic (no runtime cycles),
  *   3. a workspace package never depends on itself,
@@ -11,9 +11,10 @@
  *      for tests / scripts / benchmarks),
  *   5. a published package never needs a private one at runtime (npm consumers
  *      could not install it),
- *   6. every workspace package is named `@crvouga/mockingbird` or
- *      `@crvouga/mockingbird-<kebab-case>` (hard rule: one npm naming convention),
- *   7. only mock services (`@crvouga/mockingbird-service-<name>`) are published; a
+ *   6. every workspace package is named `@emulators/<kebab-case>`, and a service
+ *      under `packages/service/<id>` is `packageName(id)` from project.ts (hard
+ *      rule: one npm naming convention, derived from the stable package id),
+ *   7. only services (`@emulators/<id>`) are published; a
  *      service that imports private helper packages builds with
  *      scripts/bundle-service.ts, which inlines them into its `dist`.
  *      Postgres and SQLite bundle the same way from scripts/build.ts.
@@ -21,7 +22,8 @@
  *   bun run check:boundaries
  */
 import { existsSync, readdirSync } from "node:fs"
-import { join, relative } from "node:path"
+import { basename, dirname, join, relative } from "node:path"
+import { packageName, project } from "../project.ts"
 
 const root = join(import.meta.dir, "..")
 const errors: string[] = []
@@ -44,9 +46,8 @@ type Pkg = {
   build: string | undefined
 }
 
-const INTERNAL = /^@crvouga\/mockingbird(?:[-/].*)?$/
-const PACKAGE_NAME = /^@crvouga\/mockingbird(?:-[a-z0-9]+)*$/
-const SERVICE_NAME = /^@crvouga\/mockingbird-service-[a-z0-9]+(?:-[a-z0-9]+)*$/
+const isInternal = (specifier: string) => specifier.startsWith(`${project.npmScope}/`)
+const PACKAGE_NAME = new RegExp(`^${project.npmScope}/[a-z0-9]+(?:-[a-z0-9]+)*$`)
 const BUNDLE_BUILD = "bun ../../../scripts/bundle-service.ts"
 const BUILTIN = /^(?:(?:node|bun|deno):|bun$|stream\/web$|assert$)/
 const VALID_SPECIFIER = /^(?:@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*(?:\/[^\s"']+)*$/i
@@ -83,15 +84,15 @@ for (const dir of packageDirs) {
     dependencies?: Record<string, string>
     devDependencies?: Record<string, string>
     peerDependencies?: Record<string, string>
-    mockingbird?: { layer?: string; runtime?: string }
+    emulators?: { layer?: string; runtime?: string }
     scripts?: Record<string, string>
   }
   if (!pkg.name) continue
   packages.set(pkg.name, {
     dir,
     name: pkg.name,
-    layer: pkg.mockingbird?.layer ?? "unknown",
-    runtime: pkg.mockingbird?.runtime ?? "portable",
+    layer: pkg.emulators?.layer ?? "unknown",
+    runtime: pkg.emulators?.runtime ?? "portable",
     private: pkg.private === true,
     public: pkg.private !== true && pkg.publishConfig?.access === "public",
     dependencies: new Set(Object.keys(pkg.dependencies ?? {})),
@@ -107,16 +108,25 @@ console.log(`boundaries: ${packages.size} workspace packages`)
 for (const pkg of packages.values()) {
   if (!PACKAGE_NAME.test(pkg.name)) {
     fail(
-      `${relative(root, pkg.dir)}: package name "${pkg.name}" must be @crvouga/mockingbird or @crvouga/mockingbird-<kebab-case>`,
+      `${relative(root, pkg.dir)}: package name "${pkg.name}" must be ${project.npmScope}/<kebab-case>`,
     )
   }
 }
 
-// 7. only mock services are published.
+/** The service id a package directory declares, when it is `packages/service/<id>`. */
+const serviceId = (dir: string): string | null =>
+  relative(root, dirname(dir)) === join("packages", "service") ? basename(dir) : null
+
+// 7. only services are published, each under the name its id derives.
 for (const pkg of packages.values()) {
-  if (pkg.public && !SERVICE_NAME.test(pkg.name)) {
+  const id = serviceId(pkg.dir)
+  if (pkg.public && id === null) {
     fail(
-      `${pkg.name}: only mock services (@crvouga/mockingbird-service-<name>) are published — mark it "private": true`,
+      `${pkg.name}: only services (packages/service/<id>) are published — mark it "private": true`,
+    )
+  } else if (pkg.public && id !== null && pkg.name !== packageName(id)) {
+    fail(
+      `${relative(root, pkg.dir)}: published as "${pkg.name}", but its id derives "${packageName(id)}"`,
     )
   }
 }
@@ -134,7 +144,7 @@ const bundled = (pkg: Pkg): string[] =>
 // 1. internal deps resolve; 3. no self-dependency.
 for (const pkg of packages.values()) {
   for (const depName of [...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies]) {
-    if (!INTERNAL.test(depName)) continue
+    if (!isInternal(depName)) continue
     if (depName === pkg.name) {
       fail(`${pkg.name} depends on itself`)
     } else if (!packages.has(depName)) {
@@ -359,7 +369,7 @@ for (const file of files) {
     )
   }
   if (rel !== "packages/core/src/timeline.ts" && /\bclass\s+Timeline\b/.test(text)) {
-    fail(`${rel} declares a competing Timeline; extend @crvouga/mockingbird-core Timeline instead`)
+    fail(`${rel} declares a competing Timeline; extend @emulators/core Timeline instead`)
   }
   if (
     /^packages\/service\/(?!core\/)[^/]+\/src\/runtime\.ts$/.test(rel) &&
@@ -379,8 +389,8 @@ for (const file of files) {
     if (specifier.startsWith(".") || BUILTIN.test(specifier)) continue
 
     const dependency = packageRoot(specifier)
-    const isInternal = INTERNAL.test(dependency) || packages.has(dependency)
-    if (isInternal && !packages.has(dependency)) {
+    const internal = isInternal(dependency) || packages.has(dependency)
+    if (internal && !packages.has(dependency)) {
       fail(`${rel} imports "${specifier}" which is not a workspace package`)
       continue
     }

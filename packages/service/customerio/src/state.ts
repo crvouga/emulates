@@ -1,5 +1,5 @@
-import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 
 /** One transactional message (template) in the workspace, as `GET /v1/transactional` lists it. */
 export type TransactionalMessage = {

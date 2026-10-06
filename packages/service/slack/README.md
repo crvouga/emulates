@@ -1,26 +1,26 @@
-# @crvouga/mockingbird-service-slack
+# @emulators/slack
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of **Slack** for test suites: incoming webhooks, the Web API methods our apps
+Stateful emulator of **Slack** for test suites: incoming webhooks, the Web API methods our apps
 call, and the Socket Mode control plane Bolt needs in order to boot, with an **outbox** of
 everything the app "sent". A suite asserts that an alert fired
 (`GET /__admin/outbox?webhook=…` or `?channel=…`) without a real workspace, and drives the
 retry paths (429 with `retry-after`, 5xx) and the terminal ones (`no_text`, `no_service`,
 `channel_not_found`) with named presets.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/slack/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/slack/SUPPORT.md)
 - Slack publishes no maintained OpenAPI for these methods: the contract (`openapi.yaml`) is
   hand-authored from Slack's documented wire shapes and our consumers.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-slack
+npm install -D @emulators/slack
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-slack serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulators-slack serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -36,11 +36,11 @@ Bolt in Socket Mode uses that same `clientOptions.slackApiUrl` (Bolt copies it i
 on this process.
 
 ```bash
-npx mockingbird-slack serve --port 8808
+npx emulators-slack serve --port 8808
 ```
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-slack"
+import { createRuntime } from "@emulators/slack"
 
 const slack = createRuntime()
 await slack.fetch(
@@ -114,7 +114,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n, "params"?
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the webhook URL or API base, or by
+`x-emulators-namespace`, a `/__admin/ns/<name>` prefix on the webhook URL or API base, or by
 credential: `PUT /__admin/credentials {"credentials": {"xoxb-worker-a": "a", "T000/B000/XXXX": "b"}}`
 maps a bot token or a webhook's `T/B/X` path to a namespace.
 
@@ -122,7 +122,7 @@ maps a bot token or a webhook's `T/B/X` path to a namespace.
 
 - Inbound Events API and interactivity delivery. Socket Mode's connection lifecycle is
   modelled (`apps.connections.open`, `hello`, ping/pong, `disconnect`) so Bolt can boot and
-  shut down; the mock does not push events on connect. A `disconnect` envelope has no
+  shut down; the emulator does not push events on connect. A `disconnect` envelope has no
   reconnect URL, matching Slack's documented shape and `@slack/socket-mode@2.0.4`, which
   calls `apps.connections.open` again.
 - File uploads and downloads: `files.info` answers seeded metadata; the `files.slack.com` URLs
@@ -137,8 +137,8 @@ maps a bot token or a webhook's `T/B/X` path to a namespace.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `SlackAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `messages()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, outbox, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `SlackAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `messages()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, outbox, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `SLACK_PRESETS` | object | Every named fault preset. |
 | `SLACK_NAMESPACE` | string | The service name, `"slack"`. |
 | `slackCredential` | function | The bearer token, or a webhook's `T/B/X` path (how credentials map to namespaces). |
@@ -146,4 +146,4 @@ maps a bot token or a webhook's `T/B/X` path to a namespace.
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8808. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

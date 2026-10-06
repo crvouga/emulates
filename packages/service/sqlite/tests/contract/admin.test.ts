@@ -80,7 +80,7 @@ describe("sqlite admin", () => {
     expect(shell.headers.get("content-type")).toContain("text/html");
     const html = await shell.text();
     expect(html).toContain('data-admin-ui-library="antd"');
-    expect(html).toContain("MockingbirdAdmin.mount(");
+    expect(html).toContain("EmulatorsAdmin.mount(");
   });
 });
 
@@ -95,7 +95,7 @@ test("SQL admin uses the configured prefix for health, UI and query routes", asy
   expect((await admin.fetch(request("/_control/mock/sql/tables"))).status).toBe(401);
   const query = await admin.fetch(request("/_control/mock/sql/query", {
     method: "POST",
-    headers: { "content-type": "application/json", "x-mockingbird-admin-key": "locked" },
+    headers: { "content-type": "application/json", "x-emulators-admin-key": "locked" },
     body: JSON.stringify({ sql: "SELECT 1 AS value" }),
   }));
   expect(query.status).toBe(200);

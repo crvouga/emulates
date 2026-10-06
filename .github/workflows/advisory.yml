@@ -6,7 +6,7 @@
 #                     pr.yml's Static job; this only makes its findings readable in the PR.
 #   Live parity       parity.yml for each hot service whose dependency graph the PR changes: its
 #                     own package or any workspace package it depends on (scripts/ci-plan.ts, from
-#                     Turborepo's graph). A service's tier is `mockingbird.parityTier` in its
+#                     Turborepo's graph). A service's tier is `emulators.parityTier` in its
 #                     package.json; warm runs on a schedule and cold only on demand (see
 #                     scripts/parity-tiers.ts). It depends on live
 #                     vendors (rate limits, outages, drifting sandboxes), so it cannot gate a

@@ -35,7 +35,7 @@ if (
 )
   throw new Error("Explicit UUIDv4 --run-id required")
 const root = await realpath(resolve(import.meta.dirname, "../../../.."))
-const directory = resolve(root, ".mockingbird/github-oracle", runId)
+const directory = resolve(root, ".emulators/github-oracle", runId)
 await mkdir(directory, { recursive: true })
 if (!(await realpath(directory)).startsWith(root + sep))
   throw new Error("Oracle files must stay inside this project")
@@ -57,7 +57,7 @@ if (args.has("plan")) {
     writes: args.get("allow-writes") === true,
     notifications: args.get("allow-notifications") === true,
     cleanup: args.get("allow-cleanup") === true,
-    token: process.env.MOCKINGBIRD_GITHUB_TOKEN,
+    token: process.env.EMULATORS_GITHUB_TOKEN,
   }
   validateScope(plan, grants)
   if (args.get("gh-auth") === true) grants.token = await ghCredential()

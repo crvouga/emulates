@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -14,8 +14,8 @@ import {
   putObject,
   type S3Target,
   type Service,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { DailyState, type PresenceRecord, type RoomRecord, type Settings } from "./state.js"
@@ -30,9 +30,9 @@ import {
   verifySignature,
 } from "./tokens.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { S3Target } from "@crvouga/mockingbird-service"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { S3Target } from "@emulators/service"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type {

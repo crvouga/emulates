@@ -1,25 +1,25 @@
 #!/usr/bin/env node
 /**
- * `mockingbird-postgres serve --port <n>`: start the wire-protocol server (see ./index.ts).
+ * `emulators-postgres serve --port <n>`: start the wire-protocol server (see ./index.ts).
  *
- *   mockingbird-postgres serve                 # a free port on 127.0.0.1, printed as a URL
- *   mockingbird-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
- *   mockingbird-postgres serve --port 55432 --host 0.0.0.0 --password secret --log
+ *   emulators-postgres serve                 # a free port on 127.0.0.1, printed as a URL
+ *   emulators-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
+ *   emulators-postgres serve --port 55432 --host 0.0.0.0 --password secret --log
  *
  * The connection string it prints works with `pg`, `postgres.js`, JDBC and `psql`.
  */
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node";
+import { runCli, serveCommand } from "@emulators/adapter-node";
 import { serveTarget } from "../server.ts";
 import { type ServeOptions, serve } from "./index.ts";
 
-const usage = `mockingbird-postgres serve [postgres://URI] [--port <n>] [--host <h>] [--password <p>] [--server-version <v>] [--log]`;
+const usage = `emulators-postgres serve [postgres://URI] [--port <n>] [--host <h>] [--password <p>] [--server-version <v>] [--log]`;
 
 const args = process.argv.slice(2);
 if (args[0] === "serve" && args.includes("--config")) {
   process.exit(
     await runCli(
       {
-        bin: "mockingbird-postgres",
+        bin: "emulators-postgres",
         description: "Postgres and fleet server",
         commands: { serve: serveCommand(serveTarget) },
       },
@@ -79,7 +79,7 @@ if (log) {
 }
 
 const server = await serve(options);
-console.log(`mockingbird-postgres listening on ${server.connectionString}`);
+console.log(`emulators-postgres listening on ${server.connectionString}`);
 
 const stop = async () => {
   await server.close();

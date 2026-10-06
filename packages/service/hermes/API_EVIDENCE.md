@@ -1,6 +1,6 @@
 # Hermes peer-run API evidence
 
-Research for the public tracked-run mock; no Hermes runtime, inference, provider
+Research for the public tracked-run emulator; no Hermes runtime, inference, provider
 credentials, or Kanban dispatcher was executed. Source inspection is not observed
 parity. The package remains unimplemented until the later implementation stories.
 
@@ -12,7 +12,7 @@ Retrieved 2026-09-27. Required release: `v2026.8.31` of
 `6e8f8418e6378eb2617e4de074e13dedd091b8af` to commit
 `29112bef099274229cadff79cdff7bf7b99c4b77`. All pinned links below use that commit.
 Downloaded source copies are retained under the ignored project directory
-`.mockingbird/hermes-evidence/v2026.8.31/`; they were read, not imported or executed.
+`.emulators/hermes-evidence/v2026.8.31/`; they were read, not imported or executed.
 
 Context7 resolution selected `/nousresearch/hermes-agent`. Its advertised versions
 were `v2026.4.8`, `v2026.4.16`, and `v2026.6.5`; it did not advertise the target.
@@ -69,7 +69,7 @@ A `_request_agent_overrides`. Explicit truthy history must be an array of object
 with `role` and `content`; those values are coerced to strings. Explicit history
 wins over previous-response history. A missing previous-response record is ignored
 by this pinned run handler, unlike the separate Responses API. Transcript loading,
-model routing and execution are not inference requirements for the mock; retain
+model routing and execution are not inference requirements for the emulator; retain
 synthetic metadata and script public observations without executing them.
 
 A new run has an opaque `run_` plus UUID-hex ID. The POST response is exactly
@@ -94,7 +94,7 @@ adds `error`; approval state can add `approval`; completion can include
 
 Public states observed in source are `queued`, `running`, `waiting_for_approval`,
 `stopping`, `completed`, `failed`, `cancelled`, and `interrupted`. Only the latter
-four are terminal for durable replay. The mock can script observations without
+four are terminal for durable replay. The emulator can script observations without
 implementing tools, approval resolution, SSE, steering, or agent execution.
 
 ## Errors and overload
@@ -147,7 +147,7 @@ For ordinary API calls the ownership/replay scope is SHA-256 of
 the expected configured API key or the literal unauthenticated-listener fallback.
 It is not derived from arbitrary supplied bearer text. Hosted-room requests use a
 separate verified-claims scope (room/install/authority epoch/member/target/profile);
-room token generation and validation are excluded. The mock must model isolation
+room token generation and validation are excluded. The emulator must model isolation
 using explicit synthetic profile/identity controls, without persisting credentials
 or changing consumer authorization. [R `_run_idempotency_scope`.]
 
@@ -156,7 +156,7 @@ empty as absent, caps it at256 characters and rejects CR/LF/NUL. In the real
 adapter a nonempty key without configured API-key support gets403. The two header
 validation400 errors have only `message` and `type`, omitting `param` and `code`:
 `Invalid session key` or `Session key too long`. These facts must not become an
-unsolicited auth implementation in Mockingbird. The pinned run handler passes the
+unsolicited auth implementation in Emulators. The pinned run handler passes the
 memory key to the agent but does not derive `session_id` from it; the current-main
 Context7 excerpt does. [A `_parse_session_key_header`; R lines546–607.]
 
@@ -187,7 +187,7 @@ returns409 as above. [R lines1353–1422.]
 When a stopped executor returns `interrupted: true`, status becomes `cancelled`.
 If completion wins and returns a normal final result, it becomes `completed`,
 even after a stop request. Structured execution failure remains `failed`.
-Stopping queued work before agent creation also ends as cancelled. The mock must
+Stopping queued work before agent creation also ends as cancelled. The emulator must
 script these distinct outcomes and preserve pending work between acceptance and
 settlement. [R lines705–719 and858–927; T
 `test_completion_wins_before_uncooperative_stop_is_acknowledged`.]
@@ -263,7 +263,7 @@ Resolved `/nousresearch/hermes-agent` again and queried submission/polling field
 and validation. Context7 still lacks `v2026.8.31`; results cite current-main run
 handlers and programmatic-integration documentation. Its newer terminal flags
 (`completed`, `partial`, `turn_exit_reason`) and shutdown wording are not imported
-into this pinned mock. Re-fetched R at immutable commit
+into this pinned emulator. Re-fetched R at immutable commit
 `29112bef099274229cadff79cdff7bf7b99c4b77`; SHA-256 remains
 `048ae843592d701ff47437bd8edd47cd64ca6c0fdf88a71045bdb6fb337fbc63`.
 Re-read admission, `_set_run_status`, completion/failure and GET branches.
@@ -271,7 +271,7 @@ Re-read admission, `_set_run_status`, completion/failure and GET branches.
 The implemented subset admits keyless ordinary submissions, preserves session/model
 metadata, and polls stored public observations. Python JSON truthiness is retained
 for input/history validation. Non-object roots and malformed final message elements
-return explicit mock-only 501 responses because their upstream error behavior is
+return explicit emulator-only 501 responses because their upstream error behavior is
 not verified. Hosted rooms, nonempty idempotency keys and invalid memory headers
 also return explicit 501 responses at this stage. Valid memory keys are echoed;
 no credentials are checked or used as namespace identity.
@@ -379,7 +379,7 @@ conflict is returned. Hosted-room retention and SSE buffer expiry are excluded.
 
 Tests exercise exact equality and one millisecond beyond, cache recovery from
 durable rows, pruning versus cached survivors, active and interrupted states,
-progress persistence, restart and Timeline. The mock folds elapsed sweep ticks
+progress persistence, restart and Timeline. The emulator folds elapsed sweep ticks
 into the next admission/observation and offers an explicit single-sweep control;
 it does not start a background worker. This source-backed model remains subject
 to the independent runtime comparison in US-022.
@@ -393,7 +393,7 @@ lines7190–7208 returns429, rate_limit_error/rate_limit_exceeded and Retry-Afte
 the fixture message uses the pinned default limit10. The explicit presets do not
 implement automatic capacity accounting or gateway lifecycle.
 
-Response loss and poll delay are Mockingbird transport scenarios, not invented
+Response loss and poll delay are Emulators transport scenarios, not invented
 Hermes error responses. Scripted executor failure uses the existing pinned failed
 observation envelope. The native Node consumer uses literal HTTP contracts and no
 provider state helpers. Eligible self-parity and deliberate lifecycle divergence

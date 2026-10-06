@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Resend API (Mockingbird subset)
+  title: Resend API (Emulators subset)
   description: |
     Stateful mock subset of the Resend email API: send (with `Idempotency-Key`), retrieve a sent
     email, and the received-email (inbound) endpoints our care-chat hydration reads, including
     the attachment download URL. Trimmed from Resend's published API reference to what
     `resend@4.8.0` and our backend call.
   version: "1"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Trimmed from https://resend.com/docs/api-reference (emails/send-email, emails/retrieve-email,
       receiving/retrieve-received-email, receiving/list-attachments); request/response shapes
@@ -21,7 +21,7 @@ paths:
   /emails:
     get:
       operationId: ListEmails
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -85,7 +85,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     post:
       operationId: SendEmail
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -114,10 +114,10 @@ paths:
                 properties:
                   id:
                     type: string
-                    x-mockingbird-resource:
+                    x-emulators-resource:
                       type: email
                       identity: true
-                    x-mockingbird-volatile:
+                    x-emulators-volatile:
                       kind: id
         "400":
           description: Invalid idempotency key
@@ -150,12 +150,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: email
             missing: 00000000-0000-4000-8000-000000000000
     get:
       operationId: GetEmail
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -182,7 +182,7 @@ paths:
   /emails/receiving:
     get:
       operationId: ListReceivedEmails
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -249,7 +249,7 @@ paths:
       - $ref: "#/components/parameters/ReceivedEmailId"
     get:
       operationId: GetReceivedEmail
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -278,7 +278,7 @@ paths:
       - $ref: "#/components/parameters/ReceivedEmailId"
     get:
       operationId: ListReceivedEmailAttachments
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -320,7 +320,7 @@ paths:
         The `download_url` of a received attachment: unauthenticated (it stands in for Resend's
         signed CDN URL), the raw bytes with their content type and length.
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -331,7 +331,7 @@ paths:
           required: true
           schema:
             type: string
-            x-mockingbird-resource-ref:
+            x-emulators-resource-ref:
               type: received_attachment
               missing: 00000000-0000-4000-8000-000000000000
       responses:
@@ -361,7 +361,7 @@ components:
       required: true
       schema:
         type: string
-        x-mockingbird-resource-ref:
+        x-emulators-resource-ref:
           type: received_email
           missing: 00000000-0000-4000-8000-000000000000
   schemas:
@@ -466,10 +466,10 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: email
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         to:
           type: array
@@ -479,13 +479,13 @@ components:
           type: string
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         subject:
           type: string
         message_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         bcc:
           type: ["array", "null"]
@@ -510,10 +510,10 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: received_email
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         to:
           type: array
@@ -523,13 +523,13 @@ components:
           type: string
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         subject:
           type: ["string", "null"]
         message_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         bcc:
           type: array
@@ -551,7 +551,7 @@ components:
             properties:
               id:
                 type: string
-                x-mockingbird-volatile:
+                x-emulators-volatile:
                   kind: id
               filename:
                 type: string
@@ -572,7 +572,7 @@ components:
           enum: [email]
         id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         to:
           type: array
@@ -582,7 +582,7 @@ components:
           type: string
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         subject:
           type: string
@@ -627,10 +627,10 @@ components:
       properties:
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: received_attachment
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         filename:
           type: string
@@ -644,11 +644,11 @@ components:
           type: integer
         download_url:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: url
         expires_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     ReceivedEmail:
       type: object
@@ -659,10 +659,10 @@ components:
           enum: [email]
         id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: received_email
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         to:
           type: array
@@ -684,7 +684,7 @@ components:
             type: string
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         subject:
           type: ["string", "null"]

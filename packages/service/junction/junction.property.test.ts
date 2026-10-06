@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test"
-import { ParityError, parity } from "@crvouga/mockingbird-parity"
-import { Database } from "@crvouga/mockingbird-service-sqlite"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { ParityError, parity } from "@emulators/parity"
+import { Database } from "@emulators/sqlite"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { document, JunctionAPI, type JunctionWebhookEvent } from "./src/index.js"
 
 const params = fcParameters(process.env)
 const MOCK_HOST = "mock.junction.local"
-const AUTH = { "x-vital-api-key": "sk_us_mockingbird" }
+const AUTH = { "x-vital-api-key": "sk_us_emulators" }
 const now = () => 1_700_000_000_000
 
 describe("JunctionAPI", () => {

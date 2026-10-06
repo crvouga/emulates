@@ -1,6 +1,6 @@
 # Junction webhook parity receiver
 
-Junction webhook parity verifies that the real Junction sandbox and the mock publish identical webhook events (same set, same order, same exact payloads) after each parity walk. It needs a reachable receiver. The receiver is a Cloudflare Worker with a stable `workers.dev` URL and a Durable Object that keeps events isolated by parity run ID.
+Junction webhook parity verifies that the real Junction sandbox and the emulator publish identical webhook events (same set, same order, same exact payloads) after each parity walk. It needs a reachable receiver. The receiver is a Cloudflare Worker with a stable `workers.dev` URL and a Durable Object that keeps events isolated by parity run ID.
 
 ## Optional by default
 
@@ -17,7 +17,7 @@ bun run parity:junction
 
 The only required variable is:
 
-- `JUNCTION_WEBHOOK_RECEIVER_URL` — deployed Worker base URL, for example `https://mockingbird-junction-webhooks.<account>.workers.dev`.
+- `JUNCTION_WEBHOOK_RECEIVER_URL` — deployed Worker base URL, for example `https://emulators-junction-webhooks.<account>.workers.dev`.
 
 Cloudflare Wrangler credentials (`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`) are needed only to deploy the Worker.
 
@@ -35,14 +35,14 @@ For live Junction delivery, the local receiver must be reachable from the public
 
 ```sh
 bun run webhook:deploy
-export JUNCTION_WEBHOOK_RECEIVER_URL="https://mockingbird-junction-webhooks.<account>.workers.dev"
+export JUNCTION_WEBHOOK_RECEIVER_URL="https://emulators-junction-webhooks.<account>.workers.dev"
 bun run webhook:register
 ```
 
 `webhook:register` health-checks the receiver at `/__admin/health` and prints the exact webhook URL to register in the Junction sandbox dashboard:
 
 ```text
-https://mockingbird-junction-webhooks.<account>.workers.dev/junction/webhooks
+https://emulators-junction-webhooks.<account>.workers.dev/junction/webhooks
 ```
 
 plus the event types to enable:
@@ -57,11 +57,11 @@ Registration is dashboard-driven and does not require a Junction Management API 
 ## Receiver contract
 
 - `GET /__admin/health` — readiness probe.
-- `POST /junction/webhooks` — receives Junction events. The request must include `x-mockingbird-scope`; the receiver stores the exact JSON payload in arrival order.
+- `POST /junction/webhooks` — receives Junction events. The request must include `x-emulators-scope`; the receiver stores the exact JSON payload in arrival order.
 - `GET /events/{runId}` — returns the ordered events for one parity run.
 - `DELETE /events/{runId}` — clears one run's events.
 
-Run IDs isolate parallel parity processes. The parity runner compares real and mock events by count, order, and exact payload, and logs only event counts and event types.
+Run IDs isolate parallel parity processes. The parity runner compares real and emulator events by count, order, and exact payload, and logs only event counts and event types.
 
 ## Smoke testing
 
@@ -71,7 +71,7 @@ Before live parity, verify the Worker:
 curl -fsS "$JUNCTION_WEBHOOK_RECEIVER_URL/__admin/health"
 curl -i -X POST "$JUNCTION_WEBHOOK_RECEIVER_URL/junction/webhooks" \
   -H 'content-type: application/json' \
-  -H 'x-mockingbird-scope: smoke-test' \
+  -H 'x-emulators-scope: smoke-test' \
   -d '{"event_type":"labtest.order.created"}'
 curl -fsS "$JUNCTION_WEBHOOK_RECEIVER_URL/events/smoke-test"
 ```
@@ -80,7 +80,7 @@ Then run:
 
 ```sh
 bun run webhook:register
-JUNCTION_WEBHOOK_RECEIVER_URL="https://mockingbird-junction-webhooks.<account>.workers.dev" bun run parity:junction
+JUNCTION_WEBHOOK_RECEIVER_URL="https://emulators-junction-webhooks.<account>.workers.dev" bun run parity:junction
 ```
 
 ## Troubleshooting

@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-ses
+# @emulators/ses
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful local mock of Amazon Simple Email Service. ESM; Node 22+ or Bun 1.2+.
+Stateful local emulator of Amazon Simple Email Service. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-ses/server"
+import { createServer } from "@emulators/ses/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -28,7 +28,7 @@ No LocalStack run is recorded for this integration. The parity command is a boun
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-ses
+bun add @emulators/ses
 ```
 
 ## API

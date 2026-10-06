@@ -6,7 +6,7 @@
  * files. Each public package is tagged `<name>@<version>` at the commit it was
  * released from; package.json keeps the `0.0.0-development` placeholder.
  *
- * Only mock services (`@crvouga/mockingbird-service-<name>`) are public. The helper
+ * Only services (`@emulators/<id>`, from `packages/service/<id>`) are public. The helper
  * packages they build on are private and inlined into each service's bundle
  * (scripts/bundle-service.ts), so a service's sources are its own directory plus
  * every private workspace package its `src` reaches.
@@ -20,36 +20,62 @@
  * dependency-only release → patch. test/ci/chore/style never release on their own.
  */
 import { readFileSync } from "node:fs"
-import { join, relative } from "node:path"
+import { basename, join, relative } from "node:path"
 import { $ } from "bun"
+import { packageName, project, repositoryUrl } from "../../project.ts"
 
 export const root = join(import.meta.dir, "../..")
-export const REPO = "crvouga/mockingbird"
+export const REPO = project.repository
 export const WORKFLOW_FILE = "ci.yml"
 export const PLACEHOLDER_VERSION = "0.0.0-development"
 export const INITIAL_VERSION = "0.1.0"
 
+// ── Former names (npm migration boundary) ──────────────────────────
+//
+// The project was published as Mockingbird until the rename to Emulators. npm names are
+// immutable, so the former packages stay on npm, deprecated in favor of their successors.
+// docs/MIGRATING.md lists the full mapping.
+
+/** Every service was published as `@crvouga/mockingbird-service-<id>` before the rename. */
+export const formerServiceName = (id: string): string => `@crvouga/mockingbird-service-${id}`
+
+export const movedDeprecationMessage = (replacement: string): string =>
+  `This package has moved to ${replacement}. Install ${replacement} instead.`
+
 /** Archived standalone packages superseded by workspace packages. */
 export const LEGACY_PACKAGES = [
-  {
-    name: "@crvouga/postgres-mem",
-    repo: "crvouga/postgres-mem",
-    replacement: "@crvouga/mockingbird-service-postgres",
-  },
-  {
-    name: "@crvouga/sqlite-mem",
-    repo: "crvouga/sqlite-mem",
-    replacement: "@crvouga/mockingbird-service-sqlite",
-  },
+  { name: "@crvouga/postgres-mem", replacement: packageName("postgres") },
+  { name: "@crvouga/sqlite-mem", replacement: packageName("sqlite") },
 ] as const
 
 export const legacyDeprecationMessage = (replacement: string): string =>
-  `Moved to ${replacement} (https://github.com/${REPO}). This package is archived and no longer maintained.`
+  `Moved to ${replacement} (${repositoryUrl}). This package is archived and no longer maintained.`
 
-/** Packages once published from this repo whose workspace directory has since been deleted. */
-export const REMOVED_PACKAGES = ["@crvouga/mockingbird", "@crvouga/mockingbird-openbao"] as const
+/**
+ * Packages once published from this repo that have no successor: the umbrella package and
+ * helpers that are now private and bundled into every service.
+ */
+export const REMOVED_PACKAGES = [
+  "@crvouga/mockingbird",
+  ...[
+    "adapter-bun",
+    "adapter-node",
+    "canonicalize",
+    "commands",
+    "core",
+    "http-codec",
+    "model",
+    "openapi",
+    "openapi-arbitrary",
+    "openapi-metadata",
+    "openbao",
+    "parity",
+    "service",
+    "sqlite",
+  ].map((name) => `@crvouga/mockingbird-${name}`),
+] as const
 
-export const RETIRED_DEPRECATION_MESSAGE = `No longer published: Mockingbird now ships only its mock services (@crvouga/mockingbird-service-*), which bundle this code. See https://github.com/${REPO}.`
+export const RETIRED_DEPRECATION_MESSAGE = `No longer published: ${project.name} ships only its services (${project.npmScope}/*), which bundle this code. See ${repositoryUrl}.`
 
 export type Retired = {
   name: string
@@ -59,13 +85,18 @@ export type Retired = {
 }
 
 /**
- * npm packages this repo no longer publishes: the archived legacy packages, deleted
- * workspace packages, and every private workspace package (helpers are bundled into the
- * services, never published).
+ * npm packages this repo no longer publishes: every service's former name, the archived
+ * legacy packages, removed packages, and every private workspace package (helpers are
+ * bundled into the services, never published).
  * Releases deprecate the ones still live on npm; packages never published are skipped.
  */
 export function retiredPackages(packages: WorkspacePackage[]): Retired[] {
   return [
+    ...packages.flatMap((p) =>
+      p.formerName
+        ? [{ name: p.formerName, message: movedDeprecationMessage(p.name), requires: p.name }]
+        : [],
+    ),
     ...LEGACY_PACKAGES.map((l) => ({
       name: l.name,
       message: legacyDeprecationMessage(l.replacement),
@@ -99,9 +130,14 @@ export type WorkspacePackage = {
   runtimeDeps: string[]
   /** Directories whose changes release this package: its own plus the private packages it bundles. */
   sourceDirs: string[]
+  /** The npm name a public service was published under before the rename, if any. */
+  formerName?: string
 }
 
-const WORKSPACE_IMPORT = /\bfrom\s+["'](@crvouga\/mockingbird(?:-[a-z0-9-]+)?)(?:\/[^"']*)?["']/g
+const WORKSPACE_IMPORT = new RegExp(
+  `\\bfrom\\s+["'](${project.npmScope}/[a-z0-9-]+)(?:/[^"']*)?["']`,
+  "g",
+)
 
 /** Workspace packages imported by a package's shipped `src` (tests excluded). */
 function srcImports(dir: string): Set<string> {
@@ -157,6 +193,7 @@ export function discoverPackages(): WorkspacePackage[] {
   return [...found.values()]
     .map(({ deps, ...pkg }) => ({
       ...pkg,
+      ...(pkg.isPublic ? { formerName: formerServiceName(basename(pkg.dir)) } : {}),
       runtimeDeps: deps.filter((d) => found.has(d)),
       sourceDirs: pkg.isPublic
         ? [pkg.relDir, ...bundled(pkg.name).map((d) => found.get(d)?.relDir as string)]
@@ -397,9 +434,14 @@ export async function computePlan(): Promise<Plan> {
     const previous = await latestTaggedVersion(pkg.name)
     if (!previous) {
       // Never tagged: first release. If npm already has versions (e.g. a manual
-      // seed), release the next patch above them so provenance builds win.
-      const published = await npmVersions(pkg.name)
-      if (!Array.isArray(published)) throw new Error(`npm view ${pkg.name}: ${published.error}`)
+      // seed), release the next patch above them so provenance builds win. A renamed
+      // service continues its former name's version line.
+      const published: string[] = []
+      for (const name of [pkg.name, ...(pkg.formerName ? [pkg.formerName] : [])]) {
+        const versions = await npmVersions(name)
+        if (!Array.isArray(versions)) throw new Error(`npm view ${name}: ${versions.error}`)
+        published.push(...versions)
+      }
       const latest = published.sort((a, b) => Bun.semver.order(b, a))[0]
       const version = latest ? bumpVersion(latest, "patch") : INITIAL_VERSION
       releases.set(pkg.name, {

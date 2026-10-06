@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-openapi-codegen",
+  "name": "@emulators/openapi-codegen",
   "version": "0.1.0",
-  "description": "Turns a provider's openapi.yaml into a portable generated TypeScript module plus a SUPPORT.md coverage matrix; validates Mockingbird metadata.",
+  "description": "Turns a provider's openapi.yaml into a portable generated TypeScript module plus a SUPPORT.md coverage matrix; validates Emulators metadata.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/openapi/codegen"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/openapi/codegen#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/openapi/codegen#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "openapi",
     "codegen"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "node",
     "layer": "openapi"
   },
@@ -38,16 +38,16 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
     "yaml": "2.9.0"
   },
   "devDependencies": {
     "@types/node": "22.20.1",
     "fast-check": "4.9.0",
-    "@crvouga/mockingbird-testing": "workspace:*"
+    "@emulators/testing": "workspace:*"
   },
   "bin": {
-    "mockingbird-codegen": "./dist/cli.js"
+    "emulators-codegen": "./dist/cli.js"
   }
 }

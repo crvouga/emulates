@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -14,8 +14,8 @@ import {
   type S3Target,
   type Service,
   sigV4AccessKeyId,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import { durationFor, MP3_SAMPLE_RATES, mp3Audio, pcmTone } from "./audio.js"
 import {
@@ -36,8 +36,8 @@ import {
   type TranscriptScript,
 } from "./state.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export {
   durationFor,
   MP3_SAMPLE_RATES,
@@ -382,7 +382,7 @@ export class SpeechAPI implements FetchAPI {
       return speechError(
         400,
         "ValidationException",
-        `OutputFormat ${String(outputFormat)} is not modelled by the Mockingbird mock (pcm and mp3 are).`,
+        `OutputFormat ${String(outputFormat)} is not modelled by this emulator (pcm and mp3 are).`,
       )
     }
     const fallbackRate = outputFormat === "pcm" ? 16_000 : engine === "standard" ? 22_050 : 24_000
@@ -951,7 +951,7 @@ export class SpeechAPI implements FetchAPI {
           jsonRpcError(
             400,
             "UnknownOperationException",
-            `The operation ${target || "(none)"} is not modelled by the Mockingbird mock.`,
+            `The operation ${target || "(none)"} is not modelled by this emulator.`,
           ),
         )
     }

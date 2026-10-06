@@ -1,13 +1,13 @@
 /**
  * Per-package portability gate.
  *
- * Reads the package's `mockingbird.runtime` claim (portable | node | bun) and
+ * Reads the package's `emulators.runtime` claim (portable | node | bun) and
  * verifies the built `dist` bundle does not use APIs outside that runtime.
- * A service mock (`mockingbird.layer === "service"`) must claim `portable`: the
+ * A service emulator (`emulators.layer === "service"`) must claim `portable`: the
  * published entry runs in Node, Bun, browsers, and Workers. A `./server` or CLI
  * entry may still claim `node`.
  *
- * An entry point can claim a different runtime in `mockingbird.entries`, keyed by its
+ * An entry point can claim a different runtime in `emulators.entries`, keyed by its
  * dist name — `{ "server": "node", "cli": "node" }` lets a portable service ship a Node
  * listener and CLI. Each built file must then satisfy every runtime whose entry
  * reaches it through static imports, so a chunk shared with the portable main entry
@@ -38,21 +38,21 @@ const pkg = JSON.parse(await Bun.file(pkgPath).text()) as {
   name?: string
   exports?: Record<string, string | { default?: string; import?: string }>
   bin?: string | Record<string, string>
-  mockingbird?: { runtime?: string; entries?: Record<string, string>; layer?: string }
+  emulators?: { runtime?: string; entries?: Record<string, string>; layer?: string }
 }
 
 const name = pkg.name || "(unnamed)"
-const runtime = pkg.mockingbird?.runtime ?? "portable"
+const runtime = pkg.emulators?.runtime ?? "portable"
 
 if (!["portable", "node", "bun"].includes(runtime)) {
   fail(
-    `${name}: mockingbird.runtime must be one of portable | node | bun (got ${JSON.stringify(runtime)})`,
+    `${name}: emulators.runtime must be one of portable | node | bun (got ${JSON.stringify(runtime)})`,
   )
 }
 
-if (pkg.mockingbird?.layer === "service" && runtime !== "portable") {
+if (pkg.emulators?.layer === "service" && runtime !== "portable") {
   fail(
-    `${name}: service mocks are isomorphic, so mockingbird.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
+    `${name}: service emulators are isomorphic, so emulators.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
   )
 }
 
@@ -92,9 +92,9 @@ if (!existsSync(distDir)) {
   fail(`${name}: no dist/ — build first (bun run build) so portability can be checked`)
 }
 
-for (const [entry, claim] of Object.entries(pkg.mockingbird?.entries ?? {})) {
+for (const [entry, claim] of Object.entries(pkg.emulators?.entries ?? {})) {
   if (!["portable", "node", "bun"].includes(claim)) {
-    fail(`${name}: mockingbird.entries.${entry} must be portable | node | bun (got ${claim})`)
+    fail(`${name}: emulators.entries.${entry} must be portable | node | bun (got ${claim})`)
   }
 }
 
@@ -112,7 +112,7 @@ function checkEntry(rel: string, text: string, runtimes: Set<string>): void {
   }
 }
 
-const entryRuntimes = pkg.mockingbird?.entries ?? {}
+const entryRuntimes = pkg.emulators?.entries ?? {}
 console.log(
   `portability: ${name} (runtime=${runtime}${
     Object.keys(entryRuntimes).length > 0

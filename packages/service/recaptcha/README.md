@@ -1,21 +1,21 @@
-# @crvouga/mockingbird-service-recaptcha
+# @emulators/recaptcha
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-A WIP reCAPTCHA v3 mock: browser `grecaptcha.ready`/`execute`, deterministic single-use tokens,
+A WIP reCAPTCHA v3 emulator: browser `grecaptcha.ready`/`execute`, deterministic single-use tokens,
 and form-encoded Siteverify. The contract follows Google's [verification](https://developers.google.com/recaptcha/docs/verify)
 and [v3](https://developers.google.com/recaptcha/docs/v3) references. It does not contact Google.
 
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-recaptcha
+bun add @emulators/recaptcha
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-recaptcha"
+import { createRuntime } from "@emulators/recaptcha"
 
 const runtime = createRuntime()
 const issued = await runtime.fetch(new Request("http://mock.test/__admin/issue", {
@@ -30,7 +30,7 @@ const verified = await runtime.fetch(new Request("http://mock.test/recaptcha/api
 }))
 ```
 
-For HTTP, use `createServer` from the `/server` entry or `mockingbird-recaptcha serve`.
+For HTTP, use `createServer` from the `/server` entry or `emulators-recaptcha serve`.
 Override the browser script URL to `/recaptcha/api.js?render=mock_site` and the server
 verification URL to `/recaptcha/api/siteverify` on the local origin. The browser shim
 uses a local `/__admin/issue` request to obtain tokens; an admin-key-protected runtime
@@ -44,7 +44,7 @@ verification: the application checks its score threshold, expected action, and h
 `hostname` overrides, `executeError`, `expired`, `replayed`, and `errorCodes`.
 `GET /__admin/attempts` returns only time/result/error metadata, without tokens or secrets.
 Shared admin routes provide clock control, reset, Timeline history, namespaces, and faults.
-Namespace selection uses `x-mockingbird-namespace` or `/__admin/ns/<name>/…`.
+Namespace selection uses `x-emulators-namespace` or `/__admin/ns/<name>/…`.
 Custom `adminPrefix` relocates issuance and the shim's local target together.
 
 Presets: `human`, `bot`, `threshold_boundary`, `expired`, `replayed`, `script_failure`,

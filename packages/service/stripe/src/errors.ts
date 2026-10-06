@@ -1,4 +1,4 @@
-import { HttpError } from "@crvouga/mockingbird-service"
+import { HttpError } from "@emulators/service"
 
 export type StripeErrorType =
   | "invalid_request_error"

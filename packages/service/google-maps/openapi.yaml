@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Google Places, Geocoding and Maps JavaScript API (Mockingbird subset)
+  title: Google Places, Geocoding and Maps JavaScript API (Emulators subset)
   description: |
     The Google Maps Platform surface our member app calls: Places Autocomplete, Place Details
     and Find Place From Text (the legacy JSON web services), the Geocoding API, and the Maps
     JavaScript API loader (`/maps/api/js?libraries=places`). Every web-service answer is HTTP 200
     with Google's `status` field; the mock resolves addresses from a QA corpus.
   version: "1"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Hand-authored from Google's documented response shapes and the fields our consumer
       reads (address-autocomplete-native-rest.tsx, address-autocomplete-web.tsx,
@@ -18,7 +18,7 @@ paths:
   /maps/api/place/autocomplete/json:
     get:
       operationId: PlaceAutocomplete
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -66,7 +66,7 @@ paths:
   /maps/api/place/details/json:
     get:
       operationId: PlaceDetails
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -114,7 +114,7 @@ paths:
   /maps/api/geocode/json:
     get:
       operationId: Geocode
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -161,7 +161,7 @@ paths:
   /maps/api/place/findplacefromtext/json:
     get:
       operationId: FindPlaceFromText
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -210,7 +210,7 @@ paths:
         The Maps JavaScript API loader. The mock serves a shim defining google.maps.places
         (AutocompleteService, PlacesService, AutocompleteSessionToken, PlacesServiceStatus) and
         google.maps.Geocoder, backed by the REST operations above.
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: false
@@ -258,7 +258,7 @@ paths:
         key may also be sent as the `X-Goog-Api-Key` header. Responses are proto3 JSON (false
         booleans and empty lists omitted). Reference:
         https://developers.google.com/maps/documentation/address-validation/reference/rest/v1/TopLevel/validateAddress
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -385,7 +385,7 @@ components:
             $ref: "#/components/schemas/MatchedSubstring"
         place_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: place
             identity: true
         reference:

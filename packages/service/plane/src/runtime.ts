@@ -6,8 +6,8 @@ import {
   type RequestLog,
   type ServiceRuntime,
   type StateDeclaration,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { apiKeyCredential, PLANE_NAMESPACE, PlaneAPI } from "./index.js"
 import type { Settings, WorkItemTypeSeed } from "./state.js"
@@ -133,7 +133,7 @@ const PLANE_STATE: readonly StateDeclaration[] = [
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -220,7 +220,7 @@ const adminRoutes = (runtime: ServiceRuntime<PlaneAPI>): AdminRoutes => ({
 })
 
 /**
- * The Plane mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The Plane emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PLANE_ACCESS_TOKEN>": "<namespace>"}}`),
  * clock control, fault presets and a request journal.

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-ec2",
-    description: "stateful Amazon Elastic Compute Cloud mock",
+    bin: "emulators-ec2",
+    description: "Amazon Elastic Compute Cloud emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

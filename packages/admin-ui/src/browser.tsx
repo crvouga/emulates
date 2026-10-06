@@ -159,7 +159,7 @@ function CommandPalette({
         prefix={<SearchOutlined />}
         suffix={<Typography.Text keyboard>esc</Typography.Text>}
         aria-label="Admin command palette"
-        placeholder="Jump to a mock or screen…"
+        placeholder="Jump to an emulator or screen…"
         value={query}
         onChange={(event) => {
           setQuery(event.target.value)
@@ -183,7 +183,11 @@ function CommandPalette({
       <div style={{ borderTop: `1px solid ${colors.border}` }}>
         <div style={{ maxHeight: 440, overflowY: "auto", padding: 8 }} role="listbox">
           {visible.length === 0 ? (
-            <Result status="info" title="No commands found" subTitle="Try a mock or screen name." />
+            <Result
+              status="info"
+              title="No commands found"
+              subTitle="Try an emulator or screen name."
+            />
           ) : (
             visible.map((command, index) => (
               <button
@@ -230,7 +234,7 @@ function CommandPalette({
           style={{ borderTop: `1px solid ${colors.border}`, padding: "9px 14px" }}
         >
           <Typography.Text type="secondary">↑↓ Navigate · ↵ Open</Typography.Text>
-          <Typography.Text type="secondary">Mocks and admin screens</Typography.Text>
+          <Typography.Text type="secondary">Emulators and admin screens</Typography.Text>
         </Flex>
       </div>
     </Modal>
@@ -415,7 +419,7 @@ function Workspace({
   const apiConfig = apiConfigs.find((candidate) => candidate.id === apiId) ??
     apiConfigs[0] ?? { ...config, id: config.service, label: config.service }
   const [namespace, setNamespace] = useState(params.get("namespace") || "default")
-  const [key, setKey] = useState(params.get("admin_key") ?? remember("mockingbird-admin-key") ?? "")
+  const [key, setKey] = useState(params.get("admin_key") ?? remember("emulators-admin-key") ?? "")
   const [draftKey, setDraftKey] = useState(key)
   const [view, setView] = useState(location.hash.slice(1) || "overview")
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -424,8 +428,8 @@ function Workspace({
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight)
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(
-    remember("mockingbird-admin-theme") === "dark" ||
-      (remember("mockingbird-admin-theme") === null &&
+    remember("emulators-admin-theme") === "dark" ||
+      (remember("emulators-admin-theme") === null &&
         window.matchMedia("(prefers-color-scheme: dark)").matches),
   )
   const adminTheme = useMemo(() => shellTheme(dark), [dark])
@@ -456,7 +460,7 @@ function Workspace({
     }
   }, [host])
   useEffect(() => {
-    remember("mockingbird-admin-key", key)
+    remember("emulators-admin-key", key)
     if (params.has("admin_key")) {
       const url = new URL(location.href)
       url.searchParams.delete("admin_key")
@@ -512,7 +516,7 @@ function Workspace({
           screen.key === "overview"
             ? `Switch to ${candidate.label ?? candidate.service}`
             : `Open ${screen.label.toLocaleLowerCase()} for ${candidate.label ?? candidate.service}`,
-        keywords: `mock service admin ${candidate.id} ${candidate.service} ${screen.key}`,
+        keywords: `emulator mock service admin ${candidate.id} ${candidate.service} ${screen.key}`,
         icon: screen.icon,
         run: () => goTo(candidate.id, screen.key),
       })),
@@ -520,7 +524,7 @@ function Workspace({
     ...panelList.map((panel) => ({
       id: `${apiConfig.id}:${panel.id}`,
       label: `${apiConfig.label ?? apiConfig.service} · ${panel.title}`,
-      detail: panel.description ?? `Open ${panel.title} for the current mock`,
+      detail: panel.description ?? `Open ${panel.title} for the current emulator`,
       keywords: `extension panel ${apiConfig.id} ${panel.id} ${panel.kind ?? "panel"}`,
       icon: panel.kind === "sql" ? <TableOutlined /> : <AppstoreOutlined />,
       run: () => goTo(apiConfig.id, panel.id),
@@ -598,7 +602,7 @@ function Workspace({
                 <Flex align="center" gap="small">
                   {apiConfigs.length > 1 ? (
                     <Select
-                      aria-label="Mock"
+                      aria-label="Emulator"
                       showSearch
                       optionFilterProp="label"
                       variant="borderless"
@@ -662,7 +666,7 @@ function Workspace({
                   icon={dark ? <SunOutlined /> : <MoonOutlined />}
                   aria-label={dark ? "Use light theme" : "Use dark theme"}
                   onClick={() => {
-                    remember("mockingbird-admin-theme", dark ? "light" : "dark")
+                    remember("emulators-admin-theme", dark ? "light" : "dark")
                     setDark(!dark)
                   }}
                 />
@@ -780,6 +784,6 @@ function mountRoot(host: HTMLElement | null, render: (popupHost: HTMLElement) =>
     </Boundary>,
   )
   const dispose = () => root.unmount()
-  document.addEventListener("mockingbird:unmount", dispose, { once: true })
+  document.addEventListener("emulators:unmount", dispose, { once: true })
   window.addEventListener("pagehide", dispose, { once: true })
 }

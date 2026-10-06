@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
+import { jsonResponse, type OperationHandler } from "@emulators/service"
 import {
   assertCompatiblePrices,
   couponValidNow,
@@ -131,7 +131,7 @@ const chargeIn = (price: PriceRecord, currency: string | undefined, mode: string
     )
   if (mode === "subscription")
     throw invalidRequest(
-      "Subscription Checkout Sessions in a price's currency option are not modelled by this mock.",
+      "Subscription Checkout Sessions in a price's currency option are not modelled by this emulator.",
       "currency",
     )
   return { currency, unit_amount_decimal: option.unit_amount_decimal }

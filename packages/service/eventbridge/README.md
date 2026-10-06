@@ -1,6 +1,6 @@
-# @crvouga/mockingbird-service-eventbridge
+# @emulators/eventbridge
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 WIP AWS EventBridge control-plane discovery. Seeded rule and target reads use AWS JSON 1.1;
 no containers or infrastructure are executed. Follows the official
@@ -10,12 +10,12 @@ and [common errors](https://docs.aws.amazon.com/eventbridge/latest/APIReference/
 
 ## Install
 
-`bun add @crvouga/mockingbird-service-eventbridge`
+`bun add @emulators/eventbridge`
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-eventbridge/server"
+import { createServer } from "@emulators/eventbridge/server"
 const server = await createServer({
   rules: [{ rule: { Name: "nightly", Arn: "arn:aws:events:us-east-1:000000000000:rule/nightly" }, targets: [] }],
 })
@@ -24,7 +24,7 @@ const server = await createServer({
 await server.close()
 ```
 
-CLI: `mockingbird-eventbridge serve --port 12128`. Set your client factory's endpoint_url
+CLI: `emulators-eventbridge serve --port 12128`. Set your client factory's endpoint_url
 or AWS_ENDPOINT_URL_EVENTBRIDGE to that URL. The default instance has no rules.
 POST / dispatches X-Amz-Target AWSEvents.ListRules and AWSEvents.ListTargetsByRule.
 NamePrefix filters names; Limit (1–100) and NextToken paginate rules and targets.
@@ -39,7 +39,7 @@ The default bus always exists. Rule.EventBusName defaults to default.
 Target objects, including TaskDefinitionArn and awsvpcConfiguration, round-trip without execution.
 State collections: rules, buses, cursors and initialization marker.
 Shared /__admin provides health, state, reset, Timeline checkpoints, clock, journal, metrics and UI.
-Namespaces work via x-mockingbird-namespace, /__admin/ns/name and SigV4 access-key mappings
+Namespaces work via x-emulators-namespace, /__admin/ns/name and SigV4 access-key mappings
 set with PUT /__admin/credentials. No cryptographic signature or IAM evaluation is performed.
 The journal records metadata, not request bodies or credentials.
 
@@ -60,7 +60,7 @@ The SDK tests prove client compatibility, not live AWS equivalence.
 
 Rule/target mutation, event delivery, schedules, IAM policy evaluation, cryptographic SigV4
 validation, real execution, provisioning and deployment. Seeded resources are fixtures, not
-AWS accounts. Cursor strings and their one-hour mock-clock lifetime are deterministic local
+AWS accounts. Cursor strings and their one-hour emulator-clock lifetime are deterministic local
 stand-ins; AWS does not document a fixed lifetime or wire token format. Pagination binds
 arguments but does not freeze a snapshot of concurrent fixture edits. Result order is fixture
 insertion order, not a guarantee about AWS ordering. HTTP 429 is a test fault, not the normal

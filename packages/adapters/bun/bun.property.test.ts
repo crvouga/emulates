@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import fc from "fast-check"
 import { serve } from "./src/index.js"
 

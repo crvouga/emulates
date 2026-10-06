@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "mockingbird-route53",
-    description: "stateful Amazon Route 53 mock",
+    bin: "emulators-route53",
+    description: "Amazon Route 53 emulator",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

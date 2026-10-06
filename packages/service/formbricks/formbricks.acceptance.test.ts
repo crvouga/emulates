@@ -852,7 +852,7 @@ describe("served over HTTP", () => {
       expect(receiver.completed.map((c) => c.accountId)).toEqual(["acct_http"])
       expect(await client.loadWidget()).toBe(true)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-mockingbird")).toMatch(/^formbricks@/)
+      expect(health.headers.get("x-emulators")).toMatch(/^formbricks@/)
     } finally {
       await server.close()
       sink.stop(true)
@@ -871,12 +871,12 @@ describe("contract", () => {
       unknown[]
     >
     const viaHeader = await get(`${base}/api/v1/management/surveys`, {
-      "x-mockingbird-namespace": "a",
+      "x-emulators-namespace": "a",
     })
-    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/; ns=a$/)
+    expect(viaHeader.headers.get("x-emulators")).toMatch(/; ns=a$/)
     const viaPrefix = await get(`${base}/__admin/ns/b/api/v1/management/surveys`)
     expect(viaPrefix.status).toBe(viaHeader.status)
-    expect(viaPrefix.headers.get("x-mockingbird")).toMatch(/; ns=b$/)
+    expect(viaPrefix.headers.get("x-emulators")).toMatch(/; ns=b$/)
     expect(((await viaPrefix.json()) as Record<string, unknown[]>).data?.length).toBe(
       before.data?.length,
     )

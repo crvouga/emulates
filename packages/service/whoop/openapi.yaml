@@ -130,7 +130,7 @@
             ]
           }
         ],
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": true
           }
@@ -257,7 +257,7 @@
             ]
           }
         ],
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": true
           }
@@ -384,7 +384,7 @@
             ]
           }
         ],
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": true
           }
@@ -511,7 +511,7 @@
             ]
           }
         ],
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": true
           }
@@ -521,7 +521,7 @@
     "/oauth/oauth2/token": {
       "post": {
         "operationId": "OAuthToken",
-        "x-mockingbird": {
+        "x-emulators": {
           "parity": {
             "safe": false
           }
@@ -581,13 +581,13 @@
                   "properties": {
                     "access_token": {
                       "type": "string",
-                      "x-mockingbird-volatile": {
+                      "x-emulators-volatile": {
                         "kind": "token"
                       }
                     },
                     "refresh_token": {
                       "type": "string",
-                      "x-mockingbird-volatile": {
+                      "x-emulators-volatile": {
                         "kind": "token"
                       }
                     },

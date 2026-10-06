@@ -17,7 +17,7 @@ export class SentryAssertions {
       authorization: "Bearer fixture-rest-token",
       ...Object.fromEntries(new Headers(headers)),
     })
-    if (this.namespace) h.set("x-mockingbird-namespace", this.namespace)
+    if (this.namespace) h.set("x-emulators-namespace", this.namespace)
     if (body !== undefined && !h.has("content-type")) h.set("content-type", "application/json")
     return this.fetch(
       new Request(`${this.base}${path}`, {

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { listOperations } from "@crvouga/mockingbird-openapi"
-import { operationMetadata } from "@crvouga/mockingbird-openapi-metadata"
-import { ParityError, parity } from "@crvouga/mockingbird-parity"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { listOperations } from "@emulators/openapi"
+import { operationMetadata } from "@emulators/openapi-metadata"
+import { ParityError, parity } from "@emulators/parity"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { document, FlexAPI } from "./src/index.js"
 

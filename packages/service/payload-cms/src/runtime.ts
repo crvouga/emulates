@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import { PAYLOAD_CMS_NAMESPACE, PayloadCmsAPI, payloadCredential } from "./index.js"
 import type { PayloadDoc, Seed } from "./state.js"
@@ -98,7 +98,7 @@ export type PayloadCmsRuntime = ServiceRuntime<PayloadCmsAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "mockingbird_admin", message } })
+  json(status, { error: { type: "emulators_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -145,7 +145,7 @@ const adminRoutes = (runtime: ServiceRuntime<PayloadCmsAPI>): AdminRoutes => ({
 })
 
 /**
- * The Payload CMS mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
+ * The Payload CMS emulator with the full Emulators service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix (on `PAYLOAD_CMS_API_URL`), or by API key
  * / bearer token, clock control, fault presets and a request journal.
  */

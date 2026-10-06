@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-cloudformation
+# @emulators/cloudformation
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Transport scaffold for Amazon CloudFormation. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-cloudformation/server"
+import { createServer } from "@emulators/cloudformation/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -32,7 +32,7 @@ No vendor operations are implemented. Requests fail explicitly with `UnknownOper
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-cloudformation
+bun add @emulators/cloudformation
 ```
 
 ## API

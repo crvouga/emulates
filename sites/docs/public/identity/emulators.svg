@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Emulators">
+  <rect width="64" height="64" rx="14" fill="#14161a"/>
+  <rect x="13" y="13" width="26" height="26" rx="6" fill="none" stroke="#8b93a1" stroke-width="4"/>
+  <rect x="25" y="25" width="26" height="26" rx="6" fill="#14161a" stroke="#f4f5f7" stroke-width="4"/>
+</svg>

@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-redis
+# @emulators/redis
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 In-process Redis for tests. `createRedis()` is a pure TypeScript RESP store: call commands on
-`redis.client()`, or speak RESP to the TCP server (`mockingbird-redis`, or `serve` from
-`@crvouga/mockingbird-service-redis/server`). It is not an HTTP API mock and has no `createRuntime`.
+`redis.client()`, or speak RESP to the TCP server (`emulators-redis`, or `serve` from
+`@emulators/redis/server`). It is not an HTTP API emulator and has no `createRuntime`.
 `./server` also exports `serveTarget`, so `serve --config` can boot it: `GET /__admin/health` reports
 `service: redis`, and RESP listens on an ephemeral `redis://127.0.0.1:<port>` printed at startup.
-`mockingbird-redis` still binds `6379` unless `--port` is set.
+`emulators-redis` still binds `6379` unless `--port` is set.
 
 Replies follow the Redis command reference for a single standalone node and were spot-checked
 against Redis 8.4.0. The advertised version is Redis 7.2.4 so clients do not probe Redis 8 modules.
@@ -16,13 +16,13 @@ This package is a work in progress.
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-redis
+npm install -D @emulators/redis
 ```
 
 ## Usage
 
 ```ts
-import { createRedis, manualClock } from "@crvouga/mockingbird-service-redis"
+import { createRedis, manualClock } from "@emulators/redis"
 
 const clock = manualClock(1_700_000_000_000)
 const redis = createRedis({ clock })
@@ -39,7 +39,7 @@ one instance. `redis.advance(ms)` moves an injected clock. `redis.inspect()`, `r
 `ioredis` can connect to the TCP server unchanged. Cluster `MOVED` / `ASK` is not implemented:
 `CLUSTER` and `READONLY` answer that cluster support is disabled.
 
-`mockingbird-redis serve --config mockingbird.json` supervises mixed HTTP/Postgres/Redis fleets.
+`emulators-redis serve --config emulators.json` supervises mixed HTTP/Postgres/Redis fleets.
 See [fleet configuration and controls](../../../docs/FLEETS.md) for ephemeral discovery, namespace
 endpoints, readiness, shutdown and coordinated state controls.
 

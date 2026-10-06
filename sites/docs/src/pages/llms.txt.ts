@@ -1,4 +1,4 @@
-import catalog from "virtual:mockingbird/catalog"
+import catalog from "virtual:emulators/catalog"
 import type { APIRoute } from "astro"
 
 /** The repo's generated llms.txt, byte for byte: one index for agents, wherever they read it. */

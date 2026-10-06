@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler, opaqueToken } from "@crvouga/mockingbird-service"
+import { jsonResponse, type OperationHandler, opaqueToken } from "@emulators/service"
 import { cancelSubscription } from "./billing.js"
 import {
   invalidRequest,

@@ -1,4 +1,4 @@
-import { fromBase64 } from "@crvouga/mockingbird-service"
+import { fromBase64 } from "@emulators/service"
 
 /**
  * PostHog clients post the same JSON in several envelopes:

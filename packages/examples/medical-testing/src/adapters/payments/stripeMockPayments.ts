@@ -1,4 +1,4 @@
-import { createRuntime, type StripeWebhookEvent } from "@crvouga/mockingbird-service-stripe"
+import { createRuntime, type StripeWebhookEvent } from "@emulators/stripe"
 import type { HostedFlowStep } from "../../app/ports/hostedFlow.js"
 import type {
   CreateCheckoutSessionInput,
@@ -45,8 +45,8 @@ const verifyWebhookSignature = async (
 }
 
 /**
- * Implements `PaymentsClient` against Mockingbird's in-process Stripe mock.
- * The mock already ships a real, functional hosted checkout page at
+ * Implements `PaymentsClient` against the in-process Stripe emulator.
+ * The emulator already ships a real, functional hosted checkout page at
  * `GET/POST /c/pay/:sessionId` (card entry, decline handling, and a real
  * redirect to `success_url`/`cancel_url` on completion) — no extension of
  * the package was needed for this.

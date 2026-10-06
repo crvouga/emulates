@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, IdSequence } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Script } from "./scripts.js"
 
 /** Per-namespace knobs, set through `PUT /__admin/settings`; cleared on reset. */

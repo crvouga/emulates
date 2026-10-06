@@ -1,4 +1,4 @@
-import { clearNamespace, type SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { clearNamespace, type SqliteClient } from "@emulators/sqlite-client"
 import { awsParseXml, awsXml } from "./aws-xml.js"
 import { Collection } from "./collection.js"
 import { IdSequence } from "./ids.js"

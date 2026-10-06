@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: GitHub REST subset (Mockingbird)
+  title: GitHub REST subset (Emulators)
   version: 2026-03-10
   description: "Synthetic repository, commit-backed reference and pull-request subset; no Git transport or credential enforcement."
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     url: https://github.com/github/rest-api-description/blob/c6721f32a17a71397ae46be21be90d7f1a173b6e/descriptions/api.github.com/api.github.com.2026-03-10.json
     note: Source-pinned REST subset. See API_EVIDENCE.md for bounded live comparisons and remaining limitations.
 servers:
@@ -13,7 +13,7 @@ paths:
     get:
       operationId: repos/get
       summary: Get a seeded repository
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -52,7 +52,7 @@ paths:
     get:
       operationId: git/get-ref
       summary: Get a reference
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -110,7 +110,7 @@ paths:
     get:
       operationId: git/list-matching-refs
       summary: List matching references
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -171,7 +171,7 @@ paths:
     post:
       operationId: git/create-ref
       summary: Create a reference
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -265,7 +265,7 @@ paths:
     patch:
       operationId: git/update-ref
       summary: Update a reference
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -366,7 +366,7 @@ paths:
     get:
       operationId: pulls/list
       summary: List pull requests
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -471,7 +471,7 @@ paths:
     post:
       operationId: pulls/create
       summary: Create a pull request
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -572,17 +572,17 @@ paths:
                   *draft
                 issue:
                   type: integer
-                  x-mockingbird-unsupported:
+                  x-emulators-unsupported:
                     reason: Issue conversion is not implemented
                 head_repo:
                   type: string
-                  x-mockingbird-unsupported:
+                  x-emulators-unsupported:
                     reason: Cross-repository heads are not implemented
   "/repos/{owner}/{repo}/pulls/{pull_number}":
     get:
       operationId: pulls/get
       summary: Get a pull request
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -637,7 +637,7 @@ paths:
     patch:
       operationId: pulls/update
       summary: Update a pull request
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -759,7 +759,7 @@ components:
           type: integer
         node_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: repository
             identity: true
         name:
@@ -821,7 +821,7 @@ components:
           type: string
         code:
           type: string
-          const: mockingbird_unsupported
+          const: emulators_unsupported
     Reference:
       type: object
       required:

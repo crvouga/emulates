@@ -13,9 +13,9 @@
  * (`FC_NUM_RUNS`). The AgentCore harness needs a deployed harness, so it is skipped unless
  * `--include-harness` is passed.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
-import { signV4 } from "@crvouga/mockingbird-service"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
+import { signV4 } from "@emulators/service"
 import { BedrockAPI, document } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

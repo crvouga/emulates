@@ -1,4 +1,4 @@
-# Developing Mockingbird
+# Developing Emulators
 
 Working on this repo: requirements, how the packages are layered, and the quality gates every change passes.
 
@@ -8,7 +8,7 @@ Working on this repo: requirements, how the packages are layered, and the qualit
 - npm is required for the package-integrity gates (`bunx publint`, `bunx attw`); Bun runs the rest.
 
 ```bash
-git clone https://github.com/crvouga/mockingbird.git && cd mockingbird
+git clone https://github.com/crvouga/emulators.git && cd emulators
 bun run setup   # install, build every package, create .env.local from .env.example
 bun test
 ```
@@ -17,15 +17,15 @@ That is the whole onboarding: no secrets, no accounts, nothing self-hosted. `bun
 
 ## Packages
 
-**Naming (hard rule):** every package is `@crvouga/mockingbird-<kebab-case>`; the short names below drop that prefix. `bun run check:boundaries` fails CI on any other name.
+**Naming (hard rule):** every package is `@emulators/<kebab-case>`, and the short names below drop the scope. A published service is `@emulators/<id>`, where `<id>` is its directory under `packages/service/` (`packages/service/stripe` is `@emulators/stripe`); `packageName(id)` in [`project.ts`](../project.ts) derives it. `bun run check:boundaries` fails CI on any other name.
 
-**Publishing (hard rule):** only mock services (`service-<name>`) are published. Every other package is `"private": true`; a service that uses them builds with [`scripts/bundle-service.ts`](../scripts/bundle-service.ts), which inlines them (JavaScript and `.d.ts`) so the tarball needs nothing unpublished. `bun run check:boundaries` fails CI on a public non-service package.
+**Publishing (hard rule):** only the emulator services (`@emulators/<id>`) are published. Every other package is `"private": true`; a service that uses them builds with [`scripts/bundle-service.ts`](../scripts/bundle-service.ts), which inlines them (JavaScript and `.d.ts`) so the tarball needs nothing unpublished. `bun run check:boundaries` fails CI on a public non-service package.
 
 | Layer | Packages | Published |
 | --- | --- | --- |
-| Services | `service-stripe`, `service-junction`, `service-genebygene`, `service-medplum`, `service-postgres`, `service-sqlite`, and every vendor mock in the [catalog](https://mockingbird.chrisvouga.dev/services) | yes |
+| Services | `stripe`, `junction`, `genebygene`, `medplum`, `postgres`, `sqlite`, and every other emulator in the [catalog](https://emulators.chrisvouga.dev/services) | yes |
 | Core | `core` (`FetchAPI`), `service` (Hono dispatch keyed by `operationId`) | bundled |
-| Storage | `sqlite` (`SqliteClient` port, migrate runner, default `@crvouga/mockingbird-service-sqlite`) | bundled |
+| Storage | `sqlite-client` (`SqliteClient` port, migrate runner, default `@emulators/sqlite`) | bundled |
 | Contract | `openapi`, `openapi-metadata`, `openapi-arbitrary`, `openapi-codegen` | bundled / build tool |
 | Parity | `commands`, `model`, `canonicalize`, `parity` (runner) | bundled / tests |
 | Adapters | `adapter-node`, `adapter-bun` | tests only |
@@ -35,7 +35,7 @@ That is the whole onboarding: no secrets, no accounts, nothing self-hosted. `bun
 
 Every merge-blocking check is a single command you can run locally. `bun run check` runs the whole turbo graph; `bun run check:full` replicates the pull-request gate end-to-end (install + commitlint + check). Passing that gate is the release decision.
 
-CI runs the same turbo graph as `bun run check`, spread over parallel runners ([`scripts/ci-plan.ts`](../scripts/ci-plan.ts) splits it and fails if the split drifts from the `check` script): a **Static** job (format, lint, boundaries, generated-file drift) and four **Shard** jobs, each running build, typecheck, test, pack and portability for a quarter of the packages. **Consumer smoke** runs beside them. A **Changes** job reads Turborepo's dependency graph ([`scripts/affected.ts`](../scripts/affected.ts)) and hands each Shard only the packages a change reaches: each changed package plus everything that depends on it, transitively. A change to one mock runs that mock and its dependents, never an unrelated mock; a change to a shared package runs every dependent. A file that belongs to no package runs everything unless it is on a list of paths the shards do not read (agent docs, worktree config, other workflows), and a `bun.lock` change reaches only the workspaces whose own entry changed (everything, if an external package or the root moved). Inside the affected packages, turbo's content hashes replay whatever did not change. The required **Check** job passes when every job the change needed passed.
+CI runs the same turbo graph as `bun run check`, spread over parallel runners ([`scripts/ci-plan.ts`](../scripts/ci-plan.ts) splits it and fails if the split drifts from the `check` script): a **Static** job (format, lint, boundaries, generated-file drift) and four **Shard** jobs, each running build, typecheck, test, pack and portability for a quarter of the packages. **Consumer smoke** runs beside them. A **Changes** job reads Turborepo's dependency graph ([`scripts/affected.ts`](../scripts/affected.ts)) and hands each Shard only the packages a change reaches: each changed package plus everything that depends on it, transitively. A change to one emulator runs that emulator and its dependents, never an unrelated one; a change to a shared package runs every dependent. A file that belongs to no package runs everything unless it is on a list of paths the shards do not read (agent docs, worktree config, other workflows), and a `bun.lock` change reaches only the workspaces whose own entry changed (everything, if an external package or the root moved). Inside the affected packages, turbo's content hashes replay whatever did not change. The required **Check** job passes when every job the change needed passed.
 
 The GitHub Actions cache is the remote cache ([`.github/actions/setup`](../.github/actions/setup/action.yml)); there is no turbo token or server. The CI workflow also runs on every push to `main`, so `main` holds a warm turbo cache per job and a PR's first run replays everything it did not change. Each job saves only the task hashes it used, `node_modules` is cached from `main` only, and [`cache-cleanup.yml`](../.github/workflows/cache-cleanup.yml) deletes a PR's caches when it closes and trims `main`'s daily. Locally turbo uses the same cache directory on disk.
 
@@ -51,20 +51,20 @@ bun run check:full     # mirrors .github/workflows/pr.yml (the pull-request gate
 | --- | --- | --- |
 | Format | `bun run check:format` | [Biome](https://biomejs.dev) formatting |
 | Lint | `bun run lint` | Biome lint (types, style, complexity) |
-| Typecheck | `bun run typecheck` | `tsc` for every package. `@crvouga/mockingbird-service-conformance` proves each HTTP mock's `createRuntime` accepts `{ sqlite?, clock?, seed?, adminKey? }` and returns the shared `MockSurface` |
+| Typecheck | `bun run typecheck` | `tsc` for every package. `@emulators/service-conformance` proves each HTTP emulator's `createRuntime` accepts `{ sqlite?, clock?, seed?, adminKey? }` and returns the shared `MockSurface` |
 | Boundaries | `bun run check:boundaries` | Intra-workspace dep graph plus the state architecture: internal deps resolve, no cycles or self-deps, imports are declared, published dependency rules hold, and providers cannot bypass or reimplement the shared Timeline history coordinator |
 | Package integrity | `bun run pack:check` | `dist` + `exports` + `files`, tarball contents, [publint](https://publint.dev), [arethetypeswrong](https://arethetypeswrong.github.io) (ESM-only consumer resolution) |
-| Portability | `bun run portability` | Every service mock's published entry runs in Node, Bun, browsers, and Workers. The check fails when that entry uses a Node- or Bun-only API. A `./server` or CLI entry may use Node |
+| Portability | `bun run portability` | Every emulator's published entry runs in Node, Bun, browsers, and Workers. The check fails when that entry uses a Node- or Bun-only API. A `./server` or CLI entry may use Node |
 | Generate & OpenAPI | `bun run generate` / `bun run openapi:check` | Regenerate and verify provider contracts |
 | Test | `bun run test` | Contract, integration, unit, fuzz, and property suites (`FC_NUM_RUNS=40` in CI) |
 | Consumer docs | `bun run pack:check` | Every public package ships a README that opens with the shared epigraph from `sites/docs/src/lib/content.ts`, then `## Install`, `## Usage` (a TypeScript example) and `## API` listing every runtime export |
 | Consumer smoke | `bun run release:smoke` | Packs every public package like the release, `npm install`s the tarballs into a clean project, imports every entry point under Node, and typechecks them plus every README TypeScript example |
-| llms.txt | `bun run check:llms` | [`llms.txt`](../llms.txt) lists every published mock with the parity it declares (`bun run llms:sync` regenerates) |
-| README | `bun run check:readme` | [`README.md`](../README.md) is the overview, generated from `sites/docs/src/lib/content.ts` and these guides (`bun run readme:sync` regenerates). The catalog of mocks stays on the docs site. Never edit the README by hand |
-| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `mockingbird.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links). The site serves the same record at `/brands.json`; admin shells fetch `https://mockingbird.chrisvouga.dev/brands.json` instead of embedding it |
-| Docs site | `bun run docs:build` (part of `build`) | [`sites/docs`](../sites/docs) renders the same sources, sends every playground sample to a fresh mock, runs the quick start and SQL snippets, and fails on missing or stale service metadata |
+| llms.txt | `bun run check:llms` | [`llms.txt`](../llms.txt) lists every published emulator with the parity it declares (`bun run llms:sync` regenerates) |
+| README | `bun run check:readme` | [`README.md`](../README.md) is the overview, generated from `sites/docs/src/lib/content.ts` and these guides (`bun run readme:sync` regenerates). The catalog of emulators stays on the docs site. Never edit the README by hand |
+| Vendor branding | `bun run check:brands` | `sites/docs/src/data/brands.json` has a logo, color and description for every service's `emulators.vendor` (`bun run brands:sync` fetches them; `-- --all --links` refreshes all and checks the links). The site serves the same record at `/brands.json`; admin shells fetch `https://emulators.chrisvouga.dev/brands.json` instead of embedding it |
+| Docs site | `bun run docs:build` (part of `build`) | [`sites/docs`](../sites/docs) renders the same sources, sends every playground sample to a fresh emulator, runs the quick start and SQL snippets, and fails on missing or stale service metadata |
 | Agent commands | `bun run check:agents` | Every `.agents/commands/*.md` is symlinked into each agent harness (`bun run agents:sync` repairs) |
-| Parity tiers | `bun run check:parity-tiers` | Every service's `mockingbird.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
+| Parity tiers | `bun run check:parity-tiers` | Every service's `emulators.parityTier` is `hot`, `warm` or `cold` (absent means cold) |
 | Worktree lifecycle | `bun run check:worktree` | Every orchestrator's config (`.superset/`, `.super.engineering/`) runs the same [`scripts/worktree`](../scripts/worktree/README.md) setup, run and teardown (`bun run worktree:sync` regenerates) |
 | Scripts | `bun run check:scripts` | Every `scripts/**/*.ts` typechecks under the base tsconfig (`scripts/tsconfig.json`), and `bun test ./scripts` passes |
 | Workflows | `bun run check:workflows` | Every `.github/workflows/*.yml` passes a pinned, checksum-verified [actionlint](https://github.com/rhysd/actionlint) (its `run:` scripts through shellcheck when that is installed, as on GitHub's runners) |
@@ -122,7 +122,7 @@ comments when you want to read them.
 
 `/resolve-issues` works the queue of GitHub issues that agents in other projects file through
 [REPORTING_ISSUES.md](REPORTING_ISSUES.md) (label `agent-reported`): claim one, confirm the
-reported behavior against the oracle, add a regression test, fix the mock, and ship it through
+reported behavior against the oracle, add a regression test, fix the emulator, and ship it through
 `/pr-ready` with `Fixes #<n>`. `feature` requests become acceptance tests plus contract changes;
 `new-service` requests become new packages built through
 [AUTHORING_A_SERVICE.md](AUTHORING_A_SERVICE.md).
@@ -142,10 +142,14 @@ Published services use `publishConfig.access = "public"` and `publishConfig.prov
 
 The docs site (`sites/docs`) is hosted on the shared `crvouga/workspace` fleet as the service
 `mockingbird-docs` ([shared-infra contract §4](https://raw.githubusercontent.com/crvouga/workspace/main/llms.txt)).
+The fleet service id predates the rename and stays `mockingbird-docs` until `crvouga/workspace`
+renames it to `emulators-docs` (requested there); the service entry and
+[`.github/workflows/publish.yml`](../.github/workflows/publish.yml) are managed from that repo with
+OpenTofu, so neither is renamed here.
 [`sites/docs/Dockerfile`](../sites/docs/Dockerfile) builds the static Astro site and serves it
 with nginx on port 80. Its build context is the repo root, because the site renders every service
-package. On every push to `main`, [`.github/workflows/publish.yml`](../.github/workflows/publish.yml)
-calls the workspace's reusable workflow. That workflow pushes `ghcr.io/crvouga/chrisvouga-mockingbird-docs:<sha>`,
+package. On every push to `main`, `publish.yml` calls the workspace's reusable workflow. That workflow
+pushes `ghcr.io/crvouga/chrisvouga-mockingbird-docs:<sha>`,
 and then `crvouga/workspace` deploys that exact image and health-checks it. Railway never builds this repo.
 
-To check the image locally, run `docker build -f sites/docs/Dockerfile -t mockingbird-docs . && docker run --rm -p 8080:80 mockingbird-docs`.
+To check the image locally (`emulators-docs` is only a local tag), run `docker build -f sites/docs/Dockerfile -t emulators-docs . && docker run --rm -p 8080:80 emulators-docs`.

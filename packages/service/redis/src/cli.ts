@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
+import { runCli, serveCommand } from "@emulators/adapter-node"
 import { createRedis } from "./index.ts"
 import { serve, serveTarget } from "./server.ts"
 
-const usage = "mockingbird-redis [--port <n>] [--host <h>] [--password <p>]"
+const usage = "emulators-redis [--port <n>] [--host <h>] [--password <p>]"
 const args = process.argv.slice(2)
 if (args[0] === "serve" && args.includes("--config")) {
   process.exit(
     await runCli(
       {
-        bin: "mockingbird-redis",
+        bin: "emulators-redis",
         description: "Redis and fleet server",
         commands: { serve: serveCommand(serveTarget) },
       },

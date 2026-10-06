@@ -1,16 +1,16 @@
-# @crvouga/mockingbird-http-codec
+# @emulators/http-codec
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Emulators publishes only its emulator services (`@emulators/*`), which bundle this code. It is documented here for contributors to this repo.
 
-Content-type codecs used by Mockingbird's mock servers and differential runner: JSON, and
+Content-type codecs used by the emulator servers and differential runner: JSON, and
 Rails/PHP/Stripe-style bracket notation for `application/x-www-form-urlencoded` bodies and query
 strings (`address[city]=Paris`, `tags[]=x`, `items[0][name]=a`). Use it to encode requests for, or
-decode requests to, form-encoded APIs such as Stripe. You do not need it to use a provider mock.
+decode requests to, form-encoded APIs such as Stripe. You do not need it to use a provider emulator.
 
 ## Install
 
 ```bash
-npm install @crvouga/mockingbird-http-codec
+npm install @emulators/http-codec
 ```
 
 ESM only, portable (Node >=22, Bun >=1.2, browsers, workers). No dependencies.
@@ -24,7 +24,7 @@ import {
   encodeForm,
   FORM_MEDIA_TYPE,
   readBody,
-} from "@crvouga/mockingbird-http-codec"
+} from "@emulators/http-codec"
 
 const form = encodeForm({ email: "a@b.c", metadata: { plan: "pro" }, tags: ["x", "y"] })
 console.log(form) // email=a%40b.c&metadata%5Bplan%5D=pro&tags%5B0%5D=x&tags%5B1%5D=y
@@ -76,6 +76,6 @@ and `__proto__` keys become plain own properties (no prototype pollution).
 
 ## Related
 
-- `@crvouga/mockingbird-service`: uses this codec to hand operation handlers decoded bodies and queries.
+- `@emulators/service`: uses this codec to hand operation handlers decoded bodies and queries.
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

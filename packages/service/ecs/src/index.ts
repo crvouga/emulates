@@ -4,8 +4,8 @@ import {
   bootSqlite,
   Collection,
   IdSequence,
-} from "@crvouga/mockingbird-service"
-import { clearNamespace } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import { clearNamespace } from "@emulators/sqlite-client"
 
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { ECSRuntime, ECSRuntimeOptions } from "./runtime.js"
@@ -129,7 +129,8 @@ export class ECSAPI {
     const count = body.count ?? 1
     if (!Number.isInteger(count) || Number(count) < 1 || Number(count) > 10)
       return invalid("count must be between 1 and 10")
-    if (body.launchType !== "FARGATE") return invalid("This mock supports the FARGATE launch type")
+    if (body.launchType !== "FARGATE")
+      return invalid("This emulator supports the FARGATE launch type")
     if (
       body.clientToken !== undefined &&
       (typeof body.clientToken !== "string" || !/^[!-~]{1,64}$/.test(body.clientToken))

@@ -1,5 +1,5 @@
 import { createServer } from "node:http"
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 
 /** Options for {@link serve}. */
 export type NodeServeOptions = {
@@ -8,7 +8,7 @@ export type NodeServeOptions = {
 }
 
 /**
- * Serve any Mockingbird {@link FetchAPI} over `node:http`.
+ * Serve any Emulators {@link FetchAPI} over `node:http`.
  * Port defaults to `0`, so the OS assigns an ephemeral port (read from `server.address()`).
  */
 export const serve = async (api: FetchAPI, options: NodeServeOptions = {}) => {
@@ -39,7 +39,7 @@ export const serve = async (api: FetchAPI, options: NodeServeOptions = {}) => {
       response = await api.fetch(request)
     } catch (error) {
       // A `drop` fault: destroy the socket so the client sees the connection die.
-      if ((error as { code?: string }).code === "MOCKINGBIRD_DROP") {
+      if ((error as { code?: string }).code === "EMULATORS_DROP") {
         req.socket.destroy()
         return
       }
@@ -47,7 +47,7 @@ export const serve = async (api: FetchAPI, options: NodeServeOptions = {}) => {
       res.end(
         JSON.stringify({
           error: {
-            type: "mockingbird_internal",
+            type: "emulators_internal",
             message: error instanceof Error ? error.message : String(error),
           },
         }),

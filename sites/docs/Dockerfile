@@ -1,6 +1,6 @@
 # The docs site, hosted on the crvouga/workspace fleet (https://raw.githubusercontent.com/crvouga/workspace/main/llms.txt §4).
 # Build context is the repo root: the site renders every service package, so turbo builds them first.
-#   docker build -f sites/docs/Dockerfile -t mockingbird-docs . && docker run --rm -p 8080:80 mockingbird-docs
+#   docker build -f sites/docs/Dockerfile -t emulators-docs . && docker run --rm -p 8080:80 emulators-docs
 
 FROM oven/bun:1.4.0 AS bun
 
@@ -13,7 +13,7 @@ ENV HUSKY=0 TURBO_TELEMETRY_DISABLED=1
 COPY . .
 RUN bun install --frozen-lockfile
 # bunx is a separate symlink; only the bun binary is copied in above.
-RUN bun x turbo run build --filter=@crvouga/mockingbird-docs... --output-logs=errors-only
+RUN bun x turbo run build --filter=@emulators/docs... --output-logs=errors-only
 
 FROM oven/bun:1.4.0-slim
 WORKDIR /app/sites/docs

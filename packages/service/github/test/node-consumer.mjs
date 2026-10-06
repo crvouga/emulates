@@ -19,7 +19,7 @@ const call = (method, path, body) =>
         headers: {
           "content-type": "application/json",
           "content-length": bytes.length,
-          "x-mockingbird-namespace": "consumer",
+          "x-emulators-namespace": "consumer",
           "X-GitHub-Api-Version": "2026-03-10",
           "Idempotency-Key": "same-consumer-operation",
         },

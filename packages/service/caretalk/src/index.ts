@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -16,8 +16,8 @@ import {
   opaqueToken,
   type Service,
   toBase64,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import { DEFAULT_DOCTORS, type FullFormDto, type QuestionAnswer, US_STATES } from "./forms.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
@@ -29,8 +29,8 @@ import {
   type Settings,
 } from "./state.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export type { FormGroup, FullFormDto, Question, QuestionAnswer } from "./forms.js"
 export { DEFAULT_DOCTORS, DEFAULT_FORMS, US_STATES } from "./forms.js"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"

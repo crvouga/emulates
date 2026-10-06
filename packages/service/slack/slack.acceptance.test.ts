@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { createRuntime, SLACK_PRESETS, type SlackMessage } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -335,7 +335,7 @@ describe("S17 acceptance: request-intake SlackClient (the cheap methods)", () =>
     const { ts, channel } = await slack.postMessage({ channel: "C0ALERTS", text: "New request" })
     expect(channel).toBe("C0ALERTS")
     expect(await slack.permalink("C0ALERTS", ts)).toBe(
-      `https://mockingbird.slack.com/archives/C0ALERTS/p${ts.replace(".", "")}`,
+      `https://emulators.slack.com/archives/C0ALERTS/p${ts.replace(".", "")}`,
     )
     await expect(slack.permalink("C0ALERTS", "1.000000")).rejects.toThrow(
       "Slack chat.getPermalink failed: message_not_found",
@@ -516,7 +516,7 @@ describe("S17 contract", () => {
     expect(texts("c")).toEqual(["from c"])
     expect(texts("default")).toEqual([])
     const viaHeader = await runtime.fetch(
-      new Request(`${HOST}/__admin/outbox`, { headers: { "x-mockingbird-namespace": "a" } }),
+      new Request(`${HOST}/__admin/outbox`, { headers: { "x-emulators-namespace": "a" } }),
     )
     expect(((await viaHeader.json()) as { messages: unknown[] }).messages).toHaveLength(1)
   })
@@ -613,7 +613,7 @@ describe("served over HTTP", () => {
       }
       expect(outbox.messages.map((m) => m.text)).toEqual(["over the wire", "api over the wire"])
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-mockingbird")).toMatch(/^slack@/)
+      expect(health.headers.get("x-emulators")).toMatch(/^slack@/)
     } finally {
       await server.close()
     }

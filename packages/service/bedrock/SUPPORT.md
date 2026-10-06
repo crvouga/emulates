@@ -1,12 +1,12 @@
-# Amazon Bedrock Runtime + AgentCore harness (Mockingbird subset) — operation support
+# Amazon Bedrock Runtime + AgentCore harness (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **6**
-- supported by the mock: **5**
+- supported by the emulator: **5**
 - parity enabled: **4**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `Converse` | `POST /model/{modelId}/converse` | ✅ supported | ✅ |  |
 | `ConverseStream` | `POST /model/{modelId}/converse-stream` | ✅ supported | ✅ |  |

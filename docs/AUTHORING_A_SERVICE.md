@@ -1,16 +1,16 @@
-# Authoring a Mockingbird service
+# Authoring an emulator
 
-How to add a vendor mock to this repo. The reference implementation is
+How to add a vendor emulator to this repo. The reference implementation is
 [`packages/service/rxvortex`](../packages/service/rxvortex): copy its layout and patterns.
 
 ## Layout
 
 ```
 packages/service/<name>/
-  package.json            # @crvouga/mockingbird-service-<name>, bin mockingbird-<name>
+  package.json            # @emulators/<name>, bin emulators-<name>
   tsconfig.json           # includes src, test, *.test.ts
   tsconfig.build.json
-  openapi.yaml            # the vendor contract, with x-mockingbird annotations
+  openapi.yaml            # the vendor contract, with x-emulators annotations
   SUPPORT.md              # generated (bun run generate)
   DISCOVERY.md            # generated installed-package index for agents and tooling
   README.md               # the consumer/agent integration guide (see "Docs")
@@ -19,23 +19,23 @@ packages/service/<name>/
     index.ts              # <Name>API class (FetchAPI) + public exports
     runtime.ts            # createRuntime: presets, admin routes, webhooks, credential carrier
     server.ts             # createServer, serveTarget, DEFAULT_PORT (Node only)
-    cli.ts                # mockingbird-<name> serve
+    cli.ts                # emulators-<name> serve
     state.ts, …           # Collections, lifecycle, fixtures
   test/consumer.ts        # port of OUR consumer's client logic (the acceptance oracle)
   scripts/parity.ts       # live parity against the real sandbox (exits 2 without credentials)
   <name>.property.test.ts   # self-parity + divergence detection
   <name>.acceptance.test.ts # catalog acceptance criteria, through test/consumer.ts
-  <name>.sdk.test.ts        # the vendor's official SDK pointed at the mock (when one exists)
+  <name>.sdk.test.ts        # the vendor's official SDK pointed at the emulator (when one exists)
 ```
 
-## The service contract (what `@crvouga/mockingbird-service` gives you)
+## The service contract (what `@emulators/service` gives you)
 
 `createRuntime({ name, document, create, … })` wraps your API class in the standard contract:
 
-Every Mockingbird HTTP extension lives under one reserved prefix, default `/__admin`.
-Set `adminPrefix` on any mock's `createRuntime` / `createServer`, or use
-`serve --admin-prefix /_control/mock` (`MOCKINGBIRD_ADMIN_PREFIX`). It moves health,
-admin APIs, UI, signed mock downloads, and namespace base URLs together. Prefixes
+Every HTTP path an emulator adds beyond the vendor's lives under one reserved prefix, default `/__admin`.
+Set `adminPrefix` on any emulator's `createRuntime` / `createServer`, or use
+`serve --admin-prefix /_control/mock` (`EMULATORS_ADMIN_PREFIX`). It moves health,
+admin APIs, UI, signed downloads, and namespace base URLs together. Prefixes
 are absolute non-root paths of literal letters, digits, underscores and hyphens,
 without a trailing slash. The runtime rejects declared vendor routes that overlap
 the chosen literal tree; choose another prefix to resolve a collision. Vendor catch-all
@@ -44,41 +44,41 @@ prefix is never a vendor resource name. Change the prefix if a test needs that n
 All other paths belong to the vendor. `/health` and `/ns/<name>` have no compatibility aliases.
 
 Service admin routes are relative (`GET /settings`), never mounted separately.
-Signed transport stand-ins may declare `x-mockingbird-internal: true` on an OpenAPI
+Signed transport stand-ins may declare `x-emulators-internal: true` on an OpenAPI
 path under `/__admin/blobs/`; the runtime relocates it with the prefix while retaining
 its signature authentication, faults, logging and vendor response shape. Never put
-Mockingbird-specific paths into the vendor contract without that annotation.
+emulator-specific paths into the vendor contract without that annotation.
 
 | Contract item | How |
 | --- | --- |
-| `GET /__admin/health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-mockingbird` response header | automatic |
+| `GET /__admin/health`, `/__admin/*`, reset, Timeline checkpoints/branches (including legacy snapshot aliases), clock, metrics (with unmatched paths), journal (`GET /__admin/requests`), `x-emulators` response header | automatic |
 | State introspection | automatic. `GET /__admin/state` lists every collection: ones you declare with `state:`, every `Collection` hanging off the instance, and every name already stored. `POST /__admin/state/:collection` with `{ id?, value }` creates a row; `PUT` replaces, `PATCH` shallow-merges an object, `DELETE` removes it. A successful write checkpoints `main`. The same view is `runtime.state(namespace?)`. |
 | Admin UI | automatic at `GET /__admin/ui` (the HTML shell is not behind the admin key; `/__admin/ui/manifest` and the data routes are). Pass `adminUi.panels` to add a view (`id`, `title`, `html`, optional `script` called as `(root, api) => void`). Pass `adminUi.render({ service, defaultHtml })` to replace the document; call `defaultHtml()` to keep the shared shell. [`packages/service/plane`](../packages/service/plane) is the bespoke-panel example. |
-| Namespaces by header | automatic (`x-mockingbird-namespace`) |
+| Namespaces by header | automatic (`x-emulators-namespace`) |
 | Namespaces by path prefix | automatic: `/__admin/ns/<name>/…` is stripped and selects `<name>` |
 | Namespaces by credential | pass `credential: (request) => string \| undefined` (`bearerToken`, `basicAuth(r)?.username`, `sigV4AccessKeyId`, or your own); suites map credentials with `PUT /__admin/credentials {"credentials": {"<cred>": "<ns>"}}` |
 | Fault injection | automatic (`POST /__admin/faults {operationId?, method?, pathPrefix?, status?, body?, count?, rate?, latencyMs?, drop?, effect?}`) |
 | Fault presets | pass `presets: Record<string, FaultPreset>`; `POST /__admin/faults {"preset": "name", "count"?: n}`, `GET /__admin/faults/presets` |
 | Vendor misbehaviour a canned response can't express | a preset rule with `effect: "<name>"`; the handler checks `faultEffect(request, "<name>")` |
-| Socket drop ("unknown outcome") | a rule with `drop: true` (in-process `fetch` rejects with `TypeError`; served mock destroys the socket) |
+| Socket drop ("unknown outcome") | a rule with `drop: true` (in-process `fetch` rejects with `TypeError`; served emulator destroys the socket) |
 | Outbound webhooks | `createWebhookHub({ signer, endpoints, retryDelaysMs?, fetch? })` passed as `webhooks:`; adds `/__admin/webhooks`, `/webhooks/events`, `/webhooks/:id/replay`, `/webhooks/flush`, `/webhooks/faults`, `/webhook-endpoints`; presets can carry `webhook: {mode: duplicate\|reorder\|drop}`. Signers: `signers.svix()`, `signers.timestamped(header)`, `signers.twilio()`, `signers.header(name, fmt)`, `signers.custom(fn)`; primitives `hmac`, `signSvix`, `signTimestamped`, `signTwilio`. Timestamps are wall clock. |
 | Outbox (comms vendors) | `OutboxStore` in your state + `outboxAdminRoutes(runtime, (api) => api.outbox, filter?)` → `GET /__admin/outbox?to=&since=`; `extractLinks(html)`, `extractCodes(text, len)` |
 | Idempotency keys | `IdempotencyStore.run(key, requestFingerprint(method, path, body), {mismatch, conflict}, handler)` |
 | Request-body validation against your contract | `bodyIssues(context)` → `[{path, message, kind}]`; `issuesByField(issues)` for Laravel-style `errors`; `unsupportedMediaType(context)` for the vendor's `415` when a body's `content-type` is missing or not in the contract (never reported as "body required") |
-| Rejections in the log and journal | automatic: an entry with status ≥ 400 that the mock produced itself (not a fault) carries `request: {contentType, bodyBytes, transferEncoding}` (byte count from `content-length`, `null` for a streamed body) and the `issues` `bodyIssues` found, never the body |
+| Rejections in the log and journal | automatic: an entry with status ≥ 400 that the emulator produced itself (not a fault) carries `request: {contentType, bodyBytes, transferEncoding}` (byte count from `content-length`, `null` for a streamed body) and the `issues` `bodyIssues` found, never the body |
 | Write an object into the stack's S3 (s3rver) | `putObject({endpoint, bucket}, key, body, contentType)` (SigV4) |
 
 Handlers are keyed by `operationId` (`defineOperations<SupportedOperationId>({...})`). Use
 `createRuntime` returns a `MockSurface`. Extra methods (`tick`, a typed webhook hub, account
 directories) stay on the value; removing a shared member fails the typecheck.
-`packages/service/conformance` imports every HTTP mock's `createRuntime` and checks it is
+`packages/service/conformance` imports every HTTP emulator's `createRuntime` and checks it is
 `(options?: MockCreateOptions) => MockSurface`, then probes `/__admin/health`, `/__admin`, `/__admin/ui`,
-and `/__admin/state`. A new mock has to be added there. `defineMock` is the same check for a
+and `/__admin/state`. A new emulator has to be added there. `defineMock` is the same check for a
 runtime you build by hand. Service admin routes add keys beside the standard ones; a standard key
 keeps the shared handler.
 
 `Collection` for all durable or externally observable records (so reset and Timeline history cover
-them), `IdSequence` for deterministic ids, the injected `now` for every timestamp (the mock clock),
+them), `IdSequence` for deterministic ids, the injected `now` for every timestamp (the emulator's clock),
 and `annotateResponse(res, {ids})` to put touched resource ids in the journal. `Timeline` is the
 only permitted history/branch/checkpoint coordinator. Never add a provider-local snapshot map or
 rollback manager; use `withNamespaceRollback` for asynchronous atomic work that cannot stay inside
@@ -91,16 +91,16 @@ would echo back.
 ## The contract file (`openapi.yaml`)
 
 - Use the vendor's published spec when there is one (trim to what our consumer calls); otherwise
-  hand-author it from the consumer's wire shapes. Declare **every status the mock can return**
-  per operation (self-parity validates every mock response against the spec).
-- Request schemas are both the mock's validation rules and the parity generator's input: keep
+  hand-author it from the consumer's wire shapes. Declare **every status the emulator can return**
+  per operation (self-parity validates every emulator response against the spec).
+- Request schemas are both the emulator's validation rules and the parity generator's input: keep
   them as permissive as the real vendor (don't invent tight patterns our consumer would violate),
   but constrained enough that generated bodies are meaningful.
-- Annotate: `x-mockingbird-resource {type, identity: true}` on ids the API returns,
-  `x-mockingbird-resource-ref {type, missing}` on ids a request references,
-  `x-mockingbird-volatile {kind: id|timestamp|token|url|opaque}` on nondeterministic fields,
-  `x-mockingbird: {parity: {safe: false}}` on operations with real-world side effects (sends,
-  charges), `x-mockingbird: {supported: false, reason}` for what you deliberately skip.
+- Annotate: `x-emulators-resource {type, identity: true}` on ids the API returns,
+  `x-emulators-resource-ref {type, missing}` on ids a request references,
+  `x-emulators-volatile {kind: id|timestamp|token|url|opaque}` on nondeterministic fields,
+  `x-emulators: {parity: {safe: false}}` on operations with real-world side effects (sends,
+  charges), `x-emulators: {supported: false, reason}` for what you deliberately skip.
 - Non-JSON surfaces (HTML pages, JS shims, event streams, binary audio) are still operations in
   the spec; give them a plain `text/html` / `application/octet-stream` response and, if random
   walks can't meaningfully exercise them, `parity: {enabled: false, reason}`.
@@ -110,8 +110,8 @@ would echo back.
 ## Proof: the tests every service ships
 
 1. **Self-parity** (`<name>.property.test.ts`): two independent instances run the same random
-   OpenAPI-driven walks (`parity()` from `@crvouga/mockingbird-parity`, `includeUnsafe: true`) and
-   must agree after every command, with every mock response conforming to the spec. Assert that
+   OpenAPI-driven walks (`parity()` from `@emulators/parity`, `includeUnsafe: true`) and
+   must agree after every command, with every emulator response conforming to the spec. Assert that
    the walks exercised **every** parity-enabled operation. Add a "deliberately divergent instance
    is caught" test.
 2. **Acceptance** (`<name>.acceptance.test.ts`): every behaviour the service request asks for,
@@ -121,7 +121,7 @@ would echo back.
    request and the consumer code disagree, follow the code and note the discrepancy in a test
    comment.
 3. **SDK drop-in** (`<name>.sdk.test.ts`), when the consumer uses an official SDK: install the
-   exact version our consumer pins and point it at the mock (base URL / endpoint override /
+   exact version our consumer pins and point it at the emulator (base URL / endpoint override /
    custom fetch). Signature verification with the vendor's own verifier (`stripe.webhooks
    .constructEvent`, `svix`'s `Webhook.verify`, `twilio.validateRequest`) beats a re-implementation.
 4. **Contract/runtime**: `/__admin/health`, namespace isolation (header, `/__admin/ns/` prefix, credential),
@@ -134,7 +134,7 @@ would echo back.
    `<NAME>_*` secrets in the Parity workflow);
    without them print which keys are missing and `process.exit(2)`. Run only safe operations by
    default. Never print secret values; never send real messages, charges or orders to real people.
-   Declare `"parityTier": "cold"` in the package's `mockingbird` block (see
+   Declare `"parityTier": "cold"` in the package's `emulators` block (see
    [Parity tiers](TESTING.md#parity-tiers)); a new service starts cold.
 
 Use `fcParameters(process.env)` so `FC_SEED` / `FC_NUM_RUNS` replay failures, and keep each test
@@ -142,7 +142,7 @@ file under ~60 s.
 
 ## Docs
 
-`README.md` must start `# @crvouga/mockingbird-service-<name>`, then a blank line, then the
+`README.md` must start `# @emulators/<name>`, then a blank line, then the
 shared epigraph `EPIGRAPH` from `sites/docs/src/lib/content.ts` (pack-check prints the exact
 line). It must also contain `## Install`, `## Usage` (with a ```ts example), and `## API`
 listing **every runtime export** of every entry point. Also document: how to point the app at
@@ -151,10 +151,10 @@ not modelled** section.
 
 The docs site (`sites/docs`, `bun docs`) is built from the package itself: the README is the
 service page, the contract gives the operations list and coverage, and the built module runs in
-the page's playground. It reads these fields from the `mockingbird` block of `package.json`, and
+the page's playground. It reads these fields from the `emulators` block of `package.json`, and
 its build fails when they are missing or stale:
 
-Every published service also declares `mockingbird.discovery` in `package.json` and ships every
+Every published service also declares `emulators.discovery` in `package.json` and ships every
 file it names. Run `bun run service:discovery` at the repository root after adding or renaming a
 service. It generates `DISCOVERY.md`, records the behavior guide, exact capability evidence,
 contract, public types, oracle command, runtime introspection surfaces, and reporting contract,
@@ -166,13 +166,13 @@ fail closed if the index is stale, references a missing file, or an artifact is 
 | `category` | yes | A slug from `sites/docs/src/lib/categories.ts`, e.g. `"payments"` |
 | `displayName` | yes | The vendor's name as people write it, e.g. `"Customer.io"` |
 | `vendor.website` | yes | The vendor's homepage, e.g. `"https://stripe.com"` |
-| `vendor.docs` | no | The vendor API reference the mock follows |
+| `vendor.docs` | no | The vendor API reference the emulator follows |
 | `vendor.name` | no | The vendor's name when it differs from `displayName` (LlamaCloud is made by LlamaIndex) |
 | `vendor.description` | no | One line about the vendor; overrides the description fetched from its homepage |
 | `vendor.icon` / `vendor.logo` / `vendor.color` | no | Force a [Simple Icons](https://simpleicons.org) slug (`false` skips it), a logo URL, or a brand color, when the fetched ones are wrong |
-| `parity` | yes | A short statement, at most 80 characters, of the vendor surface this mock keeps in step, e.g. `"Payments, billing, and webhooks"`. The site, the README, `llms.txt` and `catalog.json` show it verbatim |
-| `playground.headers` | no | Credentials in the format the mock accepts (e.g. `sk_test_…`), sent with every playground request. The build sends every sample request to a fresh mock and fails if none succeed with them |
-| `playground.basicAuth` | no | `"user:pass"` for mocks that take HTTP Basic auth; the build sends it as `authorization: Basic <base64>`. Use it instead of a literal `Basic …` header, which secret scanners flag |
+| `parity` | yes | A short statement, at most 80 characters, of the vendor surface this emulator keeps in step, e.g. `"Payments, billing, and webhooks"`. The site, the README, `llms.txt` and `catalog.json` show it verbatim |
+| `playground.headers` | no | Credentials in the format the emulator accepts (e.g. `sk_test_…`), sent with every playground request. The build sends every sample request to a fresh emulator and fails if none succeed with them |
+| `playground.basicAuth` | no | `"user:pass"` for emulators that take HTTP Basic auth; the build sends it as `authorization: Basic <base64>`. Use it instead of a literal `Basic …` header, which secret scanners flag |
 | `playground.operation` | no | The operation the playground opens on; it must succeed with its sample request |
 
 After adding or editing `vendor`, run `bun run brands:sync`. It fetches the vendor's logo, brand
@@ -181,7 +181,7 @@ the site reads; `bun run check:brands` fails while they are stale. `bun run bran
 --links` refreshes every vendor and checks that each website and docs link still answers.
 
 The docs site publishes that record at `/brands.json`. Every admin shell fetches it when the page
-opens (logo, website, vendor API reference, and the service's page on this site). The mock bundles
+opens (logo, website, vendor API reference, and the service's page on this site). The emulator bundles
 do not contain it, so a docs deploy updates the chip in admins that are already published.
 
 Also add the package to `sites/docs/package.json` `devDependencies` (`"workspace:*"`) so turbo
@@ -200,12 +200,12 @@ bun test
 ## Bespoke interactive examples
 
 A service can attach any number of interactive examples to its docs page through
-`mockingbird.examples` in its `package.json`. Keep the implementation in that service's
+`emulators.examples` in its `package.json`. Keep the implementation in that service's
 `examples/` directory:
 
 ```json
 {
-  "mockingbird": {
+  "emulators": {
     "examples": [{
       "id": "google-login",
       "title": "Try a complete Google login",
@@ -227,10 +227,10 @@ Add `examples` to the service's typecheck includes and declare its dependencies 
 The docs render a launch button, lazy-load the component, and display highlighted source
 files. Example metadata also appears in `/catalog.json`. Use native accessible controls,
 respect the docs theme, and scope styles to the component (Shadow DOM works well). The
-example owns its mock instances, so repeated launches and different examples stay isolated.
+example owns its emulator instances, so repeated launches and different examples stay isolated.
 
 The OAuth example is a complete reference: `app.ts` runs Hono plus `oauth4webapi` and the
-actual OAuth mock through a local Fetch dispatcher; `transport.ts` handles virtual cookies
+actual OAuth emulator through a local Fetch dispatcher; `transport.ts` handles virtual cookies
 and redirects; `index.ts` pastes the app and provider HTML into the page and opens a separate provider window
 (with a dialog fallback when popups are blocked). Provider HTML forms use the same transport;
 the callback closes the provider surface and updates the app. Its application and transport modules run unchanged in
@@ -240,5 +240,5 @@ origins; it is not a general browser cookie-policy implementation.
 
 Browser Fetch also strips forbidden `Cookie`/`Set-Cookie` headers from synthetic objects.
 The reference example therefore uses an explicit local header envelope for cookies and
-origin, with no global Fetch patches. The OAuth mock's optional `cookieHeaders` setting
+origin, with no global Fetch patches. The OAuth emulator's optional `cookieHeaders` setting
 supports this envelope; normal HTTP mode continues to use standard headers.

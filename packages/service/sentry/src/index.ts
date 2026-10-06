@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -9,8 +9,8 @@ import {
   faultEffect,
   type OperationContext,
   type Service,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
   createCaptureKey,
@@ -635,7 +635,7 @@ export class SentryAPI implements FetchAPI {
     const offset = Number(match[1])
     if (!Number.isSafeInteger(offset)) return error(400, "Invalid cursor")
     const base = new URL(c.url)
-    const namespace = c.request.headers.get("x-mockingbird-namespace")
+    const namespace = c.request.headers.get("x-emulators-namespace")
     if (namespace && namespace !== "default")
       base.pathname = `${this.adminPrefix}/ns/${encodeURIComponent(namespace)}${base.pathname}`
     const link = (rel: string, position: number, results: boolean, previous: boolean) => {

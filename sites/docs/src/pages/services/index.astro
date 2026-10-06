@@ -1,21 +1,21 @@
 ---
-import catalog from "virtual:mockingbird/catalog"
-import BirdMark from "../../components/BirdMark.astro"
+import catalog from "virtual:emulators/catalog"
 import Icon from "../../components/Icon.astro"
+import Mark from "../../components/Mark.astro"
 import ServiceCard from "../../components/ServiceCard.astro"
 import Base from "../../layouts/Base.astro"
 
 const { services, categories, totals } = catalog
 ---
 
-<Base title="Services" description={`Search and filter ${totals.services} stateful mocks by category. Every mock runs in the browser, in a worker, and on a server.`}>
+<Base title="Services" description={`Search and filter ${totals.services} high-fidelity emulators by category. Every emulator runs in the browser, in a worker, and on a server.`}>
   <div class="container">
     <header class="page-head">
-      <span class="eyebrow">The field collection</span>
+      <span class="eyebrow">The catalog</span>
       <h1>Services</h1>
       <p class="lede">
-        {totals.services} stateful mocks. Each one declares the parity it keeps with its vendor.
-        Every mock is isomorphic: the same package runs in the browser, in a worker, and on a server.
+        {totals.services} high-fidelity emulators. Each one declares the parity it keeps with the real implementation.
+        Every emulator is isomorphic: the same package runs in the browser, in a worker, and on a server.
         Open one for a live playground backed by the real package.
       </p>
     </header>
@@ -63,7 +63,7 @@ const { services, categories, totals } = catalog
     </script>
 
     <div class="empty" data-empty hidden>
-      <BirdMark size={56} />
+      <Mark size={56} />
       <h2>No services match</h2>
       <p>Try a vendor name, a keyword or an operation id, or clear the filters.</p>
       <button type="button" class="btn btn-secondary btn-sm" data-clear>Clear filters</button>

@@ -341,10 +341,10 @@ describe("S25 CareTalk acceptance: our client against the mock", () => {
     expect(await worker("someone", `${API}/__admin/ns/a`).searchForPatient(probe)).not.toBe(false)
     const viaHeader = await runtime.fetch(
       new Request(`${API}/externalapi/States`, {
-        headers: { authorization: "Bearer ct-static-key", "x-mockingbird-namespace": "a" },
+        headers: { authorization: "Bearer ct-static-key", "x-emulators-namespace": "a" },
       }),
     )
-    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/^caretalk@.*; ns=a$/)
+    expect(viaHeader.headers.get("x-emulators")).toMatch(/^caretalk@.*; ns=a$/)
     const journal = await (
       await runtime.fetch(new Request(`${API}/__admin/requests?namespace=a`))
     ).json()
@@ -364,7 +364,7 @@ describe("served over HTTP", () => {
         101,
       )
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-mockingbird")).toMatch(/^caretalk@/)
+      expect(health.headers.get("x-emulators")).toMatch(/^caretalk@/)
     } finally {
       await server.close()
     }

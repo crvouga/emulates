@@ -4,7 +4,7 @@
  * checks that keep an id or refresh token from being used as an access token.
  */
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@crvouga/mockingbird-service"
+import { createClock } from "@emulators/service"
 import type { ProjectMembership } from "@medplum/fhirtypes"
 import { base64UrlDecode, decodeJwt } from "./src/auth/jwt.js"
 import {

@@ -1,12 +1,12 @@
-# Formbricks client + management API (Mockingbird subset) — operation support
+# Formbricks client + management API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **8**
-- supported by the mock: **8**
+- supported by the emulator: **8**
 - parity enabled: **8**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `GetEnvironmentState` | `GET /api/v1/client/{workspaceId}/environment` | ✅ supported | ✅ |  |
 | `CreateClientResponse` | `POST /api/v2/client/{workspaceId}/responses` | ✅ supported | ⚠️ unsafe (opt-in) |  |

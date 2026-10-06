@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import { JunctionAPI } from "./src/index.js"
 import {
@@ -13,7 +13,7 @@ import type { SeedSource } from "./src/seed-from.js"
 import { deterministicUuid, MOCK_TEAM_ID } from "./src/state.js"
 
 const params = fcParameters(process.env)
-const AUTH = { "x-vital-api-key": "sk_us_mockingbird" }
+const AUTH = { "x-vital-api-key": "sk_us_emulators" }
 const HOST = "https://junction.test"
 const now = () => 1_700_000_000_000
 

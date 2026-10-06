@@ -5,8 +5,8 @@ import {
   type RequestLog,
   type ServiceRuntime,
   createRuntime as serviceRuntime,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import { document } from "./generated/openapi.js"
 import {
   accessKeyCredential,

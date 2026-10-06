@@ -1,10 +1,5 @@
-import {
-  type APIOptions,
-  bootSqlite,
-  awsMd5 as md5,
-  sigV4AccessKeyId,
-} from "@crvouga/mockingbird-service"
-import { clearNamespace } from "@crvouga/mockingbird-sqlite"
+import { type APIOptions, bootSqlite, awsMd5 as md5, sigV4AccessKeyId } from "@emulators/service"
+import { clearNamespace } from "@emulators/sqlite-client"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import { type SqsMessage, type SqsMessageAttribute, type SqsQueue, SqsState } from "./state.js"
 

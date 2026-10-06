@@ -1,38 +1,38 @@
-# @crvouga/mockingbird-service-klaviyo
+# @emulators/klaviyo
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful mock of the **Klaviyo** events API for test suites: the JSON:API create-event endpoint
+Stateful emulator of the **Klaviyo** events API for test suites: the JSON:API create-event endpoint
 our backend posts `Ordered Product` and `Placed Order` to after checkout, the event reads, and an
 outbox a suite asserts on. Errors come back in Klaviyo's JSON:API `errors[]` shape, so the text
 our client throws (and logs) is the text the real API would produce.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/klaviyo/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulators/blob/main/packages/service/klaviyo/SUPPORT.md)
 - The contract (`openapi.yaml`) is trimmed from Klaviyo's published API (revision `2024-02-15`,
   the one our backend pins) to what our consumer sends.
 
 ## Install
 
 ```bash
-npm install -D @crvouga/mockingbird-service-klaviyo
+npm install -D @emulators/klaviyo
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx mockingbird-klaviyo serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx emulators-klaviyo serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
-Point `KLAVIYO_URL` (Joi-required, fully overridable) at the mock's event endpoint; any
+Point `KLAVIYO_URL` (Joi-required, fully overridable) at the emulator's event endpoint; any
 `KLAVIYO_API_KEY` works.
 
 ```bash
-npx mockingbird-klaviyo serve --port 8811
+npx emulators-klaviyo serve --port 8811
 # KLAVIYO_URL=http://127.0.0.1:8811/api/events/
 ```
 
 ```ts
-import { createRuntime } from "@crvouga/mockingbird-service-klaviyo"
+import { createRuntime } from "@emulators/klaviyo"
 
 const klaviyo = createRuntime()
 // …the app posts POST /api/events/ with Authorization: Klaviyo-API-Key <key>, revision: 2024-02-15…
@@ -66,14 +66,14 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 ### Namespaces
 
-`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix in `KLAVIYO_URL`, or by private key:
+`x-emulators-namespace`, a `/__admin/ns/<name>` prefix in `KLAVIYO_URL`, or by private key:
 `PUT /__admin/credentials {"credentials": {"<KLAVIYO_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled
 
 - Flows, lists, segments and campaigns: an event never triggers an email (use the outbox).
 - Profile-id validation: Klaviyo profile ids are Klaviyo-generated; our backend sends the user
-  token as `profile.data.id`, which the mock adopts as the profile id rather than rejecting.
+  token as `profile.data.id`, which the emulator adopts as the profile id rather than rejecting.
   Whether the real API accepts an unknown id is unverified (no sandbox credentials).
 - Pagination (`page[cursor]`), `filter`, `fields[…]` and `include` on reads.
 - Rate limits, except through the `throttled` preset.
@@ -82,8 +82,8 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `KlaviyoAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `events()`, `state`. Options: `sqlite`, `now`, `namespace`, `baseUrl`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, outbox). Options: `baseUrl`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `KlaviyoAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `events()`, `state`. Options: `sqlite`, `now`, `namespace`, `baseUrl`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, outbox). Options: `baseUrl`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `KLAVIYO_PRESETS` | object | Every named fault preset. |
 | `KLAVIYO_NAMESPACE` | string | The service name, `"klaviyo"`. |
 | `KLAVIYO_REVISION` | string | The API revision our backend sends, `"2024-02-15"`. |
@@ -92,4 +92,4 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8811. |
 
-Part of [mockingbird](https://github.com/crvouga/mockingbird).
+Part of [emulators](https://github.com/crvouga/emulators).

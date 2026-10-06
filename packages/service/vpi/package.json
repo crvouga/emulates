@@ -1,7 +1,7 @@
 {
-  "name": "@crvouga/mockingbird-service-vpi",
+  "name": "@emulators/vpi",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the VPI compounding pharmacy API: JWT authentication, products, clinic, patients, providers, saveNewPrescription drafts and the three paged prescription status lists.",
+  "description": "Stateful emulator of the VPI compounding pharmacy API: JWT authentication, products, clinic, patients, providers, saveNewPrescription drafts and the three paged prescription status lists.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "mockingbird-vpi": "./dist/cli.js"
+    "emulators-vpi": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,19 +34,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "url": "git+https://github.com/crvouga/emulators.git",
     "directory": "packages/service/vpi"
   },
-  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/vpi#readme",
+  "homepage": "https://github.com/crvouga/emulators/tree/main/packages/service/vpi#readme",
   "keywords": [
-    "mockingbird",
+    "emulators",
     "service",
     "vpi",
     "pharmacy",
     "erx",
     "compounding"
   ],
-  "mockingbird": {
+  "emulators": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -71,7 +71,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- vpi",
-        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from an Emulators checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -82,7 +82,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -98,23 +98,23 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@crvouga/mockingbird-testing": "workspace:*",
-    "@crvouga/mockingbird-service-sqlite": "workspace:*",
-    "@crvouga/mockingbird-parity": "workspace:*",
-    "@crvouga/mockingbird-credentials": "workspace:*",
-    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
-    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
-    "@crvouga/mockingbird-core": "workspace:*",
-    "@crvouga/mockingbird-sqlite": "workspace:*",
-    "@crvouga/mockingbird-openapi": "workspace:*",
-    "@crvouga/mockingbird-service": "workspace:*",
-    "@crvouga/mockingbird-http-codec": "workspace:*",
-    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@emulators/testing": "workspace:*",
+    "@emulators/sqlite": "workspace:*",
+    "@emulators/parity": "workspace:*",
+    "@emulators/credentials": "workspace:*",
+    "@emulators/openapi-codegen": "workspace:*",
+    "@emulators/openapi-metadata": "workspace:*",
+    "@emulators/core": "workspace:*",
+    "@emulators/sqlite-client": "workspace:*",
+    "@emulators/openapi": "workspace:*",
+    "@emulators/service": "workspace:*",
+    "@emulators/http-codec": "workspace:*",
+    "@emulators/adapter-node": "workspace:*",
     "zod": "3.25.76"
   }
 }

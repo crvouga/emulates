@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { CredentialError, loadCredentials } from "@emulators/credentials"
 import { createRuntime } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>
@@ -42,7 +42,7 @@ if (!live.ok || !Array.isArray(liveBody.data)) {
 
 const mock = createRuntime()
 const mocked = await mock.fetch(
-  new Request("http://meta.test/v26.0/act_mockingbird/insights?limit=1", {
+  new Request("http://meta.test/v26.0/act_emulators/insights?limit=1", {
     headers: { authorization: "Bearer meta_parity" },
   }),
 )

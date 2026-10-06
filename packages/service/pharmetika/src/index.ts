@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { FetchAPI } from "@emulators/core"
 import {
   type APIOptions,
   annotateResponse,
@@ -15,8 +15,8 @@ import {
   opaqueToken,
   type Service,
   stableStringify,
-} from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+} from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 import type { Hono } from "hono"
 import type { Clinic, MedicationTemplate } from "./catalog.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
@@ -34,8 +34,8 @@ import {
   SUBMITTED_STATUS,
 } from "./statuses.js"
 
-export type { FetchAPI } from "@crvouga/mockingbird-core"
-export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+export type { FetchAPI } from "@emulators/core"
+export type { SqliteClient } from "@emulators/sqlite-client"
 export type { Clinic, MedicationTemplate } from "./catalog.js"
 export { DEFAULT_CLINICS, DEFAULT_TEMPLATES } from "./catalog.js"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"

@@ -15,7 +15,7 @@ export interface Operation {
   /** Required query parameters, encoded, without the leading `?`. */
   query: string
   headers: Record<string, string>
-  /** The sample request, sent to a fresh instance of the mock at build time, answered 2xx/3xx. */
+  /** The sample request, sent to a fresh instance of the emulator at build time, answered 2xx/3xx. */
   verified: boolean
 }
 
@@ -58,7 +58,7 @@ export interface Service {
   description: string
   keywords: string[]
   category: string
-  /** The vendor surface this mock keeps in step, declared as `mockingbird.parity`. */
+  /** The vendor surface this emulator keeps in step, declared as `emulators.parity`. */
   parity: string
   kind: ServiceKind
   surfaces: {

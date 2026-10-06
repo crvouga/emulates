@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
-  title: RxVortex (Strive) pharmacy API (Mockingbird subset)
+  title: RxVortex (Strive) pharmacy API (Emulators subset)
   description: |
     Stateful mock subset of the RxVortex / Strive compounding-pharmacy API: client-credentials
     token, order submit, status, cancel, lookup by sender order id (recovery), and the preset
     catalog. Hand-authored from the consumer's adapters (the vendor publishes no spec).
   version: "1"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Hand-authored from the wire shapes our consumer reads and writes
       (rxvortex-auth.service.ts, rxvortex-fulfillment.adapter.ts, rxvortex-live.client.ts).
@@ -19,7 +19,7 @@ paths:
     post:
       operationId: GenerateAccessToken
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -62,7 +62,7 @@ paths:
   /api/v1/orders:
     post:
       operationId: CreateOrder
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -106,12 +106,12 @@ paths:
         description: The vendor order tracking id, or the sender order id (our payment id).
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: order
             missing: RXV-00000000-MISSING
     get:
       operationId: GetOrder
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -137,7 +137,7 @@ paths:
                 $ref: "#/components/schemas/ErrorBody"
     delete:
       operationId: CancelOrder
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -170,7 +170,7 @@ paths:
   /api/v1/preset-catalog-items:
     get:
       operationId: ListPresetCatalogItems
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -206,7 +206,7 @@ components:
       properties:
         access_token:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: token
         token_type:
           type: string
@@ -315,7 +315,7 @@ components:
           enum: [new]
         preset_catalog_id:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: catalog_item
             missing: 00000000-0000-4000-8000-000000000000
         sender_med_request_id:
@@ -446,10 +446,10 @@ components:
           type: string
         order_tracking_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: order
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         sender_order_id:
           type: string
@@ -471,15 +471,15 @@ components:
       properties:
         order_tracking_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         tracking_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         orderReferenceID:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         sender_order_id:
           type: string
@@ -503,11 +503,11 @@ components:
           type: boolean
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         updated_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     CancelResponse:
       type: object
@@ -519,7 +519,7 @@ components:
           type: string
         order_tracking_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         rxstatus:
           type: string
@@ -529,7 +529,7 @@ components:
       properties:
         catalog_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: catalog_item
             identity: true
         medication_name:

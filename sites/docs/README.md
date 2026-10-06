@@ -1,6 +1,6 @@
-# @crvouga/mockingbird-docs
+# @emulators/docs
 
-The Mockingbird documentation site: a static [Astro](https://astro.build) build with nothing
+The Emulators documentation site: a static [Astro](https://astro.build) build with nothing
 hand-maintained. Everything a page shows comes from the service packages at build time.
 
 ```bash
@@ -13,17 +13,17 @@ bun run docs:preview
 
 | On the site | Source |
 | --- | --- |
-| Name, category, parity, description, keywords | `packages/service/<name>/package.json` (`mockingbird.displayName`, `.category`, `.parity`) |
+| Name, category, parity, description, keywords | `packages/service/<name>/package.json` (`emulators.displayName`, `.category`, `.parity`) |
 | Service page body | The package `README.md`, rendered with Shiki; its relative links point at GitHub, links between services stay on the site |
 | Operations and coverage | The built module's `document`, `operationIds` and `supportedOperationIds` |
 | Surfaces | The module's exports (`createRuntime`, `Database`), `exports["./server"]` and `bin` |
 | Playground | The published module itself, bundled as a lazy chunk and run in the browser tab |
-| Sample requests | Generated from the contract's schemas, then sent to a fresh mock during the build; operations whose sample succeeds are marked |
+| Sample requests | Generated from the contract's schemas, then sent to a fresh emulator during the build; operations whose sample succeeds are marked |
 | SQL console snippets | `src/lib/sql.ts`, executed against the real engine during the build |
-| Field guide | `src/pages/identity.astro` shows the live tokens. The mark and Plate I are in `public/identity/`. The rules are [`docs/DESIGN.md`](../../docs/DESIGN.md), the sentence is `IDENTITY` in `src/lib/content.ts` |
+| Brand page | `src/pages/identity.astro` shows the mark and the live tokens. The mark is `public/identity/emulators.svg`, rendered by `src/components/Mark.astro`. The rules are [`docs/DESIGN.md`](../../docs/DESIGN.md); the name and sentence come from `project.ts` through `IDENTITY` in `src/lib/content.ts` |
 
 `integrations/catalog` does the reading (`load.ts`) and exposes it as two virtual modules:
-`virtual:mockingbird/catalog` for pages and `virtual:mockingbird/runtimes` (one `import()` per
+`virtual:emulators/catalog` for pages and `virtual:emulators/runtimes` (one `import()` per
 service). The build fails with a list of fixes when a package is missing a
 category, a display name or its docs dependency, or when declared playground credentials stop
 working. See [Docs in AUTHORING_A_SERVICE.md](../../docs/AUTHORING_A_SERVICE.md#docs).

@@ -8,8 +8,8 @@
  * By default only safe operations run (event reads); creating events writes to a real
  * account (and can trigger flows that email real people), so it needs `--include-unsafe`.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, KLAVIYO_REVISION, KlaviyoAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

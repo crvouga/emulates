@@ -5,8 +5,8 @@ import type {
   ParameterObject,
   ResponseObject,
   SchemaObject,
-} from "@crvouga/mockingbird-openapi"
-import { deref, resolveSchema } from "@crvouga/mockingbird-openapi"
+} from "@emulators/openapi"
+import { deref, resolveSchema } from "@emulators/openapi"
 import {
   EXTENSION_KEYS,
   type OperationExtension,
@@ -22,7 +22,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const extensionOf = (holder: object, key: string): unknown =>
   (holder as Record<string, unknown>)[key]
 
-/** Read `x-mockingbird` from an operation, applying defaults. */
+/** Read `x-emulators` from an operation, applying defaults. */
 export const operationMetadata = (operation: OperationObject): OperationMetadata => {
   const raw = extensionOf(operation, EXTENSION_KEYS.operation)
   const ext: OperationExtension = isRecord(raw) ? (raw as OperationExtension) : {}
@@ -69,7 +69,7 @@ const readUnsupported = (raw: unknown): SchemaMetadata["unsupported"] => {
 }
 
 /**
- * Read Mockingbird's schema-level extensions from a (resolved) schema or parameter.
+ * Read the Emulators schema-level extensions from a (resolved) schema or parameter.
  * Extensions on a `$ref` wrapper win over the target's, matching {@link resolveSchema}.
  */
 export const schemaMetadata = (holder: SchemaObject | ParameterObject): SchemaMetadata => ({
@@ -98,7 +98,7 @@ export const parameterMetadata = (
   }
 }
 
-/** Lower-cased names of response headers flagged with `x-mockingbird-parity-header: true`. */
+/** Lower-cased names of response headers flagged with `x-emulators-parity-header: true`. */
 export const parityHeaders = (document: OpenAPIDocument, response: ResponseObject): string[] => {
   const names: string[] = []
   for (const [name, raw] of Object.entries(response.headers ?? {})) {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { createHmac } from "node:crypto"
-import { fcParameters } from "@crvouga/mockingbird-testing"
+import { fcParameters } from "@emulators/testing"
 import fc from "fast-check"
 import addressParity from "./corpus/address-parity.json" with { type: "json" }
 import liveErrors from "./corpus/live-errors.json" with { type: "json" }
@@ -168,7 +168,7 @@ describe("S2.9 acceptance: our consumer's logic against the mock", () => {
       (r) => r.resultType === "nutrigenomics_comprehensive_report_json",
     )
     expect(String(json?.resultPayload)).toBe(
-      `s3://mockingbird-genebygene-results/default/${kit}.json`,
+      `s3://emulators-genebygene-results/default/${kit}.json`,
     )
     const payload = await fetchResultPayload(
       client,
@@ -609,7 +609,7 @@ const cents = (value: number) => Math.round(value * 100) / 100
 /** An `AddressDto` as our consumer sends it for a member (synthetic streets only). */
 const addr = (over: Record<string, unknown>): Record<string, unknown> => ({
   isCommercial: false,
-  recipientName: "Mockingbird Test",
+  recipientName: "Emulators Test",
   addressLine1: "1600 Amphitheatre Pkwy",
   addressLine2: null,
   addressLine3: null,
@@ -1383,7 +1383,7 @@ describe("issue #122: results", () => {
       "nutrigenomics_comprehensive_report_json",
     ])
     for (const row of rows) {
-      expect(String(row.resultPayload)).toStartWith("s3://mockingbird-genebygene-results/default/")
+      expect(String(row.resultPayload)).toStartWith("s3://emulators-genebygene-results/default/")
     }
     const completed = (await settle()).filter((e) => e.eventType === "GxG.Nucleus.Kit.Completed")
     expect(completed).toHaveLength(2)

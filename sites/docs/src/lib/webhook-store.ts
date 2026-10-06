@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite"
 import { mkdirSync } from "node:fs"
 import { dirname, resolve } from "node:path"
-import type { WebhookRow, WebhookStore } from "@crvouga/mockingbird-webhook-collector"
+import type { WebhookRow, WebhookStore } from "@emulators/webhook-collector"
 
 type StoredRow = Omit<WebhookRow, "headers" | "payload"> & { headers: string; payload: string }
 

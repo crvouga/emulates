@@ -5,7 +5,7 @@ import { createConnection } from "node:net"
 import { resolve } from "node:path"
 import { createServer } from "../dist/server.js"
 
-const dir = "/tmp/mockingbird-docker-sockets"
+const dir = "/tmp/emulators-docker-sockets"
 await mkdir(dir, { recursive: true })
 const socketPath = `${dir}/${crypto.randomUUID().slice(0, 8)}.sock`
 const server = await createServer({ socketPath, maxBodyBytes: 32, bodyTimeoutMs: 50 })

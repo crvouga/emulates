@@ -1,12 +1,12 @@
-# CareTalk external API (Mockingbird subset) — operation support
+# CareTalk external API (Emulators subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **9**
-- supported by the mock: **9**
+- supported by the emulator: **9**
 - parity enabled: **9**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ClientLogin` | `POST /externalapi/Auth/client-login` | ✅ supported | ✅ |  |
 | `GetForm` | `GET /externalapi/Forms/GetForm/{formName}` | ✅ supported | ✅ |  |

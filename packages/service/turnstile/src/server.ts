@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import { type Listening, listen, type ServeTarget } from "@emulators/adapter-node"
 import { createRuntime, type TurnstileRuntime, type TurnstileRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12126
 export type TurnstileServerOptions = TurnstileRuntimeOptions & { port?: number; host?: string }

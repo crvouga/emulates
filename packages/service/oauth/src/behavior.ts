@@ -1,5 +1,5 @@
-import { Collection, seedFrom } from "@crvouga/mockingbird-service"
-import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { Collection, seedFrom } from "@emulators/service"
+import type { SqliteClient } from "@emulators/sqlite-client"
 
 export type EdgeCase =
   | "hideEmail"

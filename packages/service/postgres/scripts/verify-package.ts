@@ -48,8 +48,8 @@ requireFile("package.json");
 
 const pkg = await Bun.file(join(root, "package.json")).json();
 
-if (pkg.name !== "@crvouga/mockingbird-service-postgres") {
-  fail(`package.json name must be "@crvouga/mockingbird-service-postgres" (got ${JSON.stringify(pkg.name)})`);
+if (pkg.name !== "@emulators/postgres") {
+  fail(`package.json name must be "@emulators/postgres" (got ${JSON.stringify(pkg.name)})`);
 }
 
 if (!pkg.exports?.["."]?.import || !pkg.exports?.["."]?.types) {

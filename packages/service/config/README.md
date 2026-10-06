@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-config
+# @emulators/config
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
 Transport scaffold for Amazon Config. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-config/server"
+import { createServer } from "@emulators/config/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -32,7 +32,7 @@ No vendor operations are implemented. Requests fail explicitly with `UnknownOper
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-config
+bun add @emulators/config
 ```
 
 ## API

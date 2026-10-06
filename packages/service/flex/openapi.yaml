@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Flex HSA/FSA payments API (Mockingbird subset)
+  title: Flex HSA/FSA payments API (Emulators subset)
   description: |
     Stateful mock subset of the Flex (withflex.com) payments API: products, checkout sessions
     (payment, subscription, off-session and setup modes), subscriptions, customers, setup
@@ -9,7 +9,7 @@ info:
     Hand-authored from the consumer's wire shapes and the Flex API reference
     (https://docs.withflex.com/api-reference); Flex publishes no machine-readable spec.
   version: "1"
-  x-mockingbird-upstream:
+  x-emulators-upstream:
     note: >-
       Hand-authored from the wire shapes our consumer reads and writes (flex-api.client.ts,
       flex-payment.types.ts, flex-product.types.ts, flex-webhook.service.ts,
@@ -25,7 +25,7 @@ paths:
   /v1/products:
     get:
       operationId: ListProducts
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -44,7 +44,7 @@ paths:
           description: The last product_id of the previous page.
           schema:
             type: string
-            x-mockingbird-resource-ref:
+            x-emulators-resource-ref:
               type: product
               missing: fprod_00000000000000000000000000
       responses:
@@ -60,7 +60,7 @@ paths:
           $ref: "#/components/responses/Error"
     post:
       operationId: CreateProduct
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -89,12 +89,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: product
             missing: fprod_00000000000000000000000000
     get:
       operationId: GetProduct
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -112,7 +112,7 @@ paths:
           $ref: "#/components/responses/Error"
     patch:
       operationId: UpdateProduct
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -139,7 +139,7 @@ paths:
   /v1/checkout/sessions:
     get:
       operationId: ListCheckoutSessions
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -175,7 +175,7 @@ paths:
           required: false
           schema:
             type: string
-            x-mockingbird-resource-ref:
+            x-emulators-resource-ref:
               type: checkout_session
               missing: fcs_00000000000000000000000000
       responses:
@@ -191,7 +191,7 @@ paths:
           $ref: "#/components/responses/Error"
     post:
       operationId: CreateCheckoutSession
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -235,12 +235,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: checkout_session
             missing: fcs_00000000000000000000000000
     get:
       operationId: GetCheckoutSession
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -276,12 +276,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: checkout_session
             missing: fcs_00000000000000000000000000
     post:
       operationId: RefundCheckoutSession
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -319,7 +319,7 @@ paths:
   /v1/customers:
     post:
       operationId: CreateCustomer
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -359,12 +359,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: setup_intent
             missing: fseti_00000000000000000000000000
     get:
       operationId: GetSetupIntent
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -395,12 +395,12 @@ paths:
         required: true
         schema:
           type: string
-          x-mockingbird-resource-ref:
+          x-emulators-resource-ref:
             type: subscription
             missing: fsub_00000000000000000000000000
     get:
       operationId: GetSubscription
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: true
@@ -427,7 +427,7 @@ paths:
     get:
       operationId: HostedCheckoutPage
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: false
@@ -455,7 +455,7 @@ paths:
     post:
       operationId: SubmitHostedCheckout
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: false
@@ -524,7 +524,7 @@ paths:
     get:
       operationId: CancelHostedCheckout
       security: []
-      x-mockingbird:
+      x-emulators:
         supported: true
         parity:
           enabled: false
@@ -587,10 +587,10 @@ components:
       properties:
         product_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: product
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         name:
           type: string
@@ -617,7 +617,7 @@ components:
             type: string
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     ProductEnvelope:
       type: object
@@ -690,7 +690,7 @@ components:
           properties:
             product:
               type: string
-              x-mockingbird-resource-ref:
+              x-emulators-resource-ref:
                 type: product
                 missing: fprod_00000000000000000000000000
             unit_amount:
@@ -765,7 +765,7 @@ components:
               maxLength: 255
             customer:
               type: string
-              x-mockingbird-resource-ref:
+              x-emulators-resource-ref:
                 type: customer
                 missing: fcus_00000000000000000000000000
             setup_future_use:
@@ -812,10 +812,10 @@ components:
       properties:
         customer_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: customer
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         first_name:
           type: ["string", "null"]
@@ -829,7 +829,7 @@ components:
           type: boolean
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     CustomerEnvelope:
       type: object
@@ -843,7 +843,7 @@ components:
       properties:
         payment_method_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         type:
           type: string
@@ -852,7 +852,7 @@ components:
           type: boolean
         customer:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
     PaymentIntent:
       type: object
@@ -860,7 +860,7 @@ components:
       properties:
         payment_intent_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         amount:
           type: integer
@@ -868,11 +868,11 @@ components:
           type: ["integer", "null"]
         customer:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         payment_method:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         status:
           type: string
@@ -884,7 +884,7 @@ components:
             - canceled
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     SetupIntent:
       type: object
@@ -892,7 +892,7 @@ components:
       properties:
         setup_intent_id:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         status:
           type: string
@@ -909,7 +909,7 @@ components:
             - type: "null"
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     SetupIntentEnvelope:
       type: object
@@ -934,7 +934,7 @@ components:
           properties:
             url:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: url
         provide_second_payment_method:
           type: object
@@ -942,7 +942,7 @@ components:
           properties:
             url:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: url
         provide_alternative_payment_method:
           type: object
@@ -950,7 +950,7 @@ components:
           properties:
             url:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: url
         payment_failed:
           type: object
@@ -964,7 +964,7 @@ components:
           properties:
             product:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: id
             unit_amount:
               type: integer
@@ -990,10 +990,10 @@ components:
       properties:
         checkout_session_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: checkout_session
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         client_reference_id:
           type: ["string", "null"]
@@ -1008,30 +1008,30 @@ components:
         customer:
           anyOf:
             - type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: id
             - $ref: "#/components/schemas/Customer"
             - type: "null"
         payment_intent:
           anyOf:
             - type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: id
             - $ref: "#/components/schemas/PaymentIntent"
             - type: "null"
         setup_intent:
           type: ["string", "null"]
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: setup_intent
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         mode:
           type: string
           enum: [payment, subscription, off_session, setup]
         subscription:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         subscription_data:
           anyOf:
@@ -1042,11 +1042,11 @@ components:
           enum: [open, paid, complete, canceled, expired]
         redirect_url:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: url
         url:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: url
         success_url:
           type: string
@@ -1076,11 +1076,11 @@ components:
           type: boolean
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         expires_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     CheckoutSessionEnvelope:
       type: object
@@ -1108,7 +1108,7 @@ components:
           properties:
             product:
               type: string
-              x-mockingbird-volatile:
+              x-emulators-volatile:
                 kind: id
             unit_amount:
               type: integer
@@ -1122,10 +1122,10 @@ components:
       properties:
         subscription_id:
           type: string
-          x-mockingbird-resource:
+          x-emulators-resource:
             type: subscription
             identity: true
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         status:
           type: string
@@ -1144,21 +1144,21 @@ components:
             $ref: "#/components/schemas/SubscriptionItem"
         customer:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         default_payment_method:
           type: ["string", "null"]
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: id
         cancel_at_period_end:
           type: boolean
         current_period_start:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         current_period_end:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
         canceled_at:
           type: ["string", "null"]
@@ -1170,7 +1170,7 @@ components:
           type: boolean
         created_at:
           type: string
-          x-mockingbird-volatile:
+          x-emulators-volatile:
             kind: timestamp
     SubscriptionEnvelope:
       type: object

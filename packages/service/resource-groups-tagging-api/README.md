@@ -1,13 +1,13 @@
-# @crvouga/mockingbird-service-resource-groups-tagging-api
+# @emulators/resource-groups-tagging-api
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Part of [Emulators](https://github.com/crvouga/emulators): high-fidelity, in-process emulators for APIs and databases.
 
-Stateful local mock of Amazon Resource Groups Tagging API. ESM; Node 22+ or Bun 1.2+.
+Stateful local emulator of Amazon Resource Groups Tagging API. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@crvouga/mockingbird-service-resource-groups-tagging-api/server"
+import { createServer } from "@emulators/resource-groups-tagging-api/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -28,7 +28,7 @@ No LocalStack run is recorded for this integration. The parity command is a boun
 ## Install
 
 ```sh
-bun add @crvouga/mockingbird-service-resource-groups-tagging-api
+bun add @emulators/resource-groups-tagging-api
 ```
 
 ## API

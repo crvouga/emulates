@@ -1,7 +1,7 @@
-# @crvouga/mockingbird-service-postgres discovery
+# @emulators/postgres discovery
 
 This is the installed-package index for coding agents and tooling. All relative links resolve
-inside `node_modules/@crvouga/mockingbird-service-postgres/`; no repository checkout is needed to discover the mock's
+inside `node_modules/@emulators/postgres/`; no repository checkout is needed to discover the emulator's
 supported surface or documented behavior.
 
 ## Capability and behavior sources
@@ -11,7 +11,7 @@ supported surface or documented behavior.
 | Behaviour and integration | [`README.md`](README.md) | Routes, state transitions, auth, webhooks, controls, presets and deliberate omissions. |
 | Exact capabilities | [`COMPATIBILITY.md`](COMPATIBILITY.md) | Supported, unsupported and parity-covered operations or commands, including reasons for gaps. |
 | Public API | [`dist/index.d.ts`](dist/index.d.ts) | The installed package's exact TypeScript exports and signatures. |
-| Package metadata | [`package.json`](package.json) | Runtime/entry-point claims, vendor links, parity scope/tier and `mockingbird.discovery`. |
+| Package metadata | [`package.json`](package.json) | Runtime/entry-point claims, vendor links, parity scope/tier and `emulators.discovery`. |
 
 Read these together: the contract/capability matrix says *what* is available, while the README
 defines stateful behavior, lifecycle rules, test controls, and intentional oracle differences.
@@ -26,7 +26,7 @@ consumer-side workaround.
 - Evidence model: Fail-closed differential contracts compare rows, types, errors, row counts and logical state.
 
 The npm package contains evidence summaries and the exact contract, not credentials or the
-repository-only parity harness. Self-parity/property and acceptance tests run in the Mockingbird
+repository-only parity harness. Self-parity/property and acceptance tests run in the Emulators
 repository; live parity is an additional oracle check, not a substitute for the packaged matrix.
 
 ## Runtime introspection
@@ -34,14 +34,14 @@ repository; live parity is an additional oracle check, not a substitute for the 
 - `README.md public test controls`
 - `COMPATIBILITY.md compatibility and divergence evidence`
 
-For HTTP services, use `x-mockingbird-namespace` (or the documented credential/path carrier) so
+For HTTP services, use `x-emulators-namespace` (or the documented credential/path carrier) so
 parallel tests do not share state. Admin state, journal, metrics and fault-preset endpoints are
 designed for assertions and diagnosis by consuming test suites.
 
 ## Report a mismatch or missing capability
 
-Follow the [agent reporting contract](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md). Include package version,
-operation/command, a minimal redacted request, actual mock result, expected oracle result or vendor
+Follow the [agent reporting contract](https://github.com/crvouga/emulators/blob/main/docs/REPORTING_ISSUES.md). Include package version,
+operation/command, a minimal redacted request, actual emulator result, expected oracle result or vendor
 documentation, and whether the mismatch appears in the matrix. Never include keys, tokens,
 customer data, prompts, PHI, card data, or unredacted recordings.
 

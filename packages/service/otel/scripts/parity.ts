@@ -9,8 +9,8 @@
  * Only the read-only O2 routes run (organizations, streams, schema, _search). The OTLP
  * receiver routes write telemetry into the real org, so they are never walked live.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
-import { parity } from "@crvouga/mockingbird-parity"
+import { CredentialError, createRedactor, loadCredentials } from "@emulators/credentials"
+import { parity } from "@emulators/parity"
 import { document, OtelAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

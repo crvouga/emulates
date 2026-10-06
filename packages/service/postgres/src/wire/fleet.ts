@@ -1,5 +1,5 @@
-import type { ConfigService, FleetChild } from "@crvouga/mockingbird-adapter-node";
-import { createClock, type Clock } from "@crvouga/mockingbird-service";
+import type { ConfigService, FleetChild } from "@emulators/adapter-node";
+import { createClock, type Clock } from "@emulators/service";
 import { Database } from "../api/database.ts";
 import type { Snapshot } from "../api/snapshot.ts";
 import type { ServerFaults } from "./connection.ts";
