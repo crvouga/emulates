@@ -24,6 +24,7 @@ const UNSCOPED_LISTS = [
   "ListTransactions",
   "ListSubscriptions",
   "ListEvents",
+  "ListNotificationSettings",
 ]
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

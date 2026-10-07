@@ -59,6 +59,11 @@ const WEIGHTS = {
   GetBusiness: 2,
   UpdateAddress: 2,
   UpdateBusiness: 2,
+  ListNotificationSettings: 3,
+  CreateNotificationSetting: 4,
+  GetNotificationSetting: 3,
+  UpdateNotificationSetting: 4,
+  CreateCustomerPortalSession: 4,
 }
 
 /** Every parity-enabled operation. */
@@ -106,7 +111,7 @@ describe("PaddleAPI", () => {
         log: () => {},
       })
       expect(report.walks).toBeGreaterThan(0)
-      expect(parityOperations).toHaveLength(37)
+      expect(parityOperations).toHaveLength(42)
       expect(Object.keys(report.exercised).sort()).toEqual(parityOperations)
     },
     { timeout: 180_000 },

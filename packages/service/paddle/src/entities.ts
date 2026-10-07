@@ -278,3 +278,40 @@ export type EventRecord = {
   notification_id: null
   data: Record<string, unknown>
 }
+
+export type NotificationTrafficSource = "platform" | "simulation" | "all"
+
+/** A vendor notification destination. `endpoint_secret_key` is stored always and disclosed on create only. */
+export type NotificationSettingRecord = {
+  id: string
+  description: string
+  type: "url" | "email"
+  destination: string
+  active: boolean
+  api_version: number
+  traffic_source: NotificationTrafficSource
+  include_sensitive_fields: boolean
+  /** Event type names. The wire view returns `{ name }` objects. */
+  subscribed_events: string[]
+  endpoint_secret_key: string
+  created_at: string
+  updated_at: string
+}
+
+export type PortalSubscriptionLinks = {
+  id: string
+  cancel_subscription: string
+  update_subscription_payment_method: string
+  update_subscription: string
+}
+
+/** A customer portal session. The links are temporary https URLs; no portal page is served. */
+export type PortalSessionRecord = {
+  id: string
+  customer_id: string
+  created_at: string
+  urls: {
+    general: { overview: string }
+    subscriptions: PortalSubscriptionLinks[]
+  }
+}
