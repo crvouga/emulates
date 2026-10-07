@@ -1,5 +1,5 @@
-import { Collection, opaqueToken } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, opaqueToken } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 export type ProjectRecord = {
   id: string

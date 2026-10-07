@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -11,15 +11,15 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
-import { CSS_RESET } from "@emulates/ui"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { type InquiryRecord, type InquiryStatus, PersonaState, type Settings } from "./state.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { InquiryRecord, InquiryStatus, Settings } from "./state.js"
@@ -145,7 +145,7 @@ const escapeHtml = (value: string) =>
 
 const html = (status: number, body: string) =>
   new Response(
-    `<!doctype html><html><head><meta charset="utf-8"><title>Persona (emulator)</title><style>${CSS_RESET}body{max-width:32rem;margin:2.5rem auto;padding:0 1.25rem}h1{font-size:1.5rem;font-weight:650;margin:0 0 .75rem}p{margin:0 0 .75rem}ul{display:grid;gap:.5rem;list-style:none;padding:0}</style></head><body>${body}</body></html>`,
+    `<!doctype html><html><head><meta charset="utf-8"><title>Persona (mock)</title><style>${CSS_RESET}body{max-width:32rem;margin:2.5rem auto;padding:0 1.25rem}h1{font-size:1.5rem;font-weight:650;margin:0 0 .75rem}p{margin:0 0 .75rem}ul{display:grid;gap:.5rem;list-style:none;padding:0}</style></head><body>${body}</body></html>`,
     {
       status,
       headers: { "content-type": "text/html; charset=utf-8" },

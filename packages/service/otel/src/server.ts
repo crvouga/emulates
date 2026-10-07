@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type OtelRuntime, type OtelRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-otel serve` listens on when none is given. */
+/** Port `mockingbird-otel serve` listens on when none is given. */
 export const DEFAULT_PORT = 8809
 
 export type OtelServerOptions = OtelRuntimeOptions & {

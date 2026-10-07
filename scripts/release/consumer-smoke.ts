@@ -8,7 +8,7 @@
  *   2. typechecks an import of every subpath with `moduleResolution: nodenext`,
  *   3. typechecks every ```ts example in every shipped README.md (the docs agents copy from),
  *   4. runs every `bin` with `--help`,
- *   5. boots every service that ships `./server` from one `emulates.json` through a
+ *   5. boots every service that ships `./server` from one `mockingbird.json` through a
  *      single service's CLI (`serve --config`), and probes each one's `/__admin/health`.
  * Catches what per-package checks cannot: a published package depending on an unpublished
  * one, a runtime import missing from `dependencies`, a private helper left out of a
@@ -19,10 +19,9 @@
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { basename, join } from "node:path"
+import { join } from "node:path"
 import { $ } from "bun"
 import type { EndpointManifest } from "../../packages/adapters/node/src/fleet-manifest.js"
-import { project } from "../../project.ts"
 import { discoverPackages, packedManifest, pinManifest, unresolvablePins } from "./lib.ts"
 
 const SMOKE_VERSION = "0.0.0-smoke"
@@ -53,7 +52,7 @@ type Manifest = {
 }
 
 const pkgs = discoverPackages().filter((p) => p.isPublic)
-const work = mkdtempSync(join(tmpdir(), "emulates-consumer-"))
+const work = mkdtempSync(join(tmpdir(), "mockingbird-consumer-"))
 const tarballs = join(work, "tarballs")
 const app = join(work, "app")
 const originals = new Map<string, string>()
@@ -96,7 +95,7 @@ try {
     join(app, "package.json"),
     JSON.stringify(
       {
-        name: "emulates-consumer-smoke",
+        name: "mockingbird-consumer-smoke",
         private: true,
         type: "module",
         dependencies: overrides,
@@ -153,7 +152,7 @@ try {
       ...readFileSync(readme, "utf8").matchAll(/^```(?:ts|typescript)\n([\s\S]*?)^```$/gm),
     ]
     blocks.forEach((block, i) => {
-      const file = `${basename(pkg.dir)}.readme.${i + 1}.ts`
+      const file = `${pkg.name.replace("@crvouga/", "")}.readme.${i + 1}.ts`
       writeFileSync(join(app, "examples", file), `${block[1]}\nexport {}\n`)
       examples++
     })
@@ -184,7 +183,7 @@ try {
   const ours = tsc.stdout
     .toString()
     .split("\n")
-    .filter((line) => /^(smoke\.ts|examples\/|node_modules\/@emulates\/)/.test(line))
+    .filter((line) => /^(smoke\.ts|examples\/|node_modules\/@crvouga\/)/.test(line))
   if (ours.length > 0) {
     console.error(ours.join("\n"))
     throw new Error(
@@ -226,7 +225,7 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
     ]),
   )
   const servers = names.filter((name) => "./server" in (manifests.get(name)?.exports ?? {}))
-  const services = servers.map((name) => name.slice(`${project.npmScope}/`.length))
+  const services = servers.map((name) => name.replace("@crvouga/mockingbird-service-", ""))
   const [launcher] = servers
   if (launcher === undefined) return
   // Run the bin's entry with node directly: `npx` would spawn it as a grandchild, which
@@ -235,7 +234,7 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
   const entry = typeof bin === "string" ? bin : Object.values(bin ?? {})[0]
   if (entry === undefined) throw new Error(`${launcher} declares no bin to serve with`)
   writeFileSync(
-    join(app, "emulates.json"),
+    join(app, "mockingbird.json"),
     JSON.stringify({
       log: "off",
       services: Object.fromEntries(services.map((s) => [s, { port: 0 }])),
@@ -248,7 +247,7 @@ async function serveConfigSmoke(app: string, names: string[]): Promise<void> {
       join(app, "node_modules", launcher, entry),
       "serve",
       "--config",
-      "emulates.json",
+      "mockingbird.json",
       "--ready-json",
     ],
     { cwd: app, stdout: "pipe", stderr: "pipe", stdin: "ignore" },

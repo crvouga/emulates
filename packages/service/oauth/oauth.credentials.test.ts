@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createLocalJWKSet, decodeProtectedHeader, jwtVerify } from "jose"
 import { createRuntime, OAuthAPI, type OAuthAPIOptions, type SigningKey } from "./src/index.js"
 

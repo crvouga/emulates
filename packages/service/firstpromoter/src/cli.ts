@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-firstpromoter",
-    description: "FirstPromoter v2 API emulator",
+    bin: "mockingbird-firstpromoter",
+    description: "stateful FirstPromoter v2 API mock",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

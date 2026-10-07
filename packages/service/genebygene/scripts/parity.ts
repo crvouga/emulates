@@ -28,8 +28,8 @@
  */
 import { readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { DELUXE_BUNDLE_ID } from "../src/corpus.js"
 import { document, GeneByGeneAPI, supportedOperationIds } from "../src/index.js"
 import { ADDRESS_CORPUS, menuFor, zoneFor } from "../src/shipping.js"
@@ -200,7 +200,7 @@ console.log("genebygene parity: address corpus")
 const productId = liveIds.has(DELUXE_BUNDLE_ID) ? DELUXE_BUNDLE_ID : STAGING_STANDARD_ID
 const address = (over: Json): Json => ({
   isCommercial: false,
-  recipientName: "Emulates Test",
+  recipientName: "Mockingbird Test",
   addressLine1: "",
   addressLine2: null,
   addressLine3: null,
@@ -310,7 +310,7 @@ for (const c of recording.cases) {
     items: [
       {
         productId,
-        placerOrderNumber: `emulates-parity:${Date.now()}`,
+        placerOrderNumber: `mockingbird-parity:${Date.now()}`,
         shipments: [
           { quantity: 1, address: address(c.address), courierServiceCode: c.courierServiceCode },
         ],
@@ -336,7 +336,7 @@ if (unsafe) {
     items: [
       {
         productId,
-        placerOrderNumber: `emulates-parity:${Date.now()}`,
+        placerOrderNumber: `mockingbird-parity:${Date.now()}`,
         shipments: [
           {
             quantity: 1,

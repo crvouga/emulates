@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type PharmetikaRuntime, type PharmetikaRuntimeOptions } from "./runtime.js"
 import type { WebhookVariant } from "./state.js"
 
-/** Port `emulates-pharmetika serve` listens on when none is given. */
+/** Port `mockingbird-pharmetika serve` listens on when none is given. */
 export const DEFAULT_PORT = 8801
 
 export type PharmetikaServerOptions = PharmetikaRuntimeOptions & {
@@ -107,6 +107,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: x-pmk-authentication-token: <token> (catalog also takes Basic or nothing)",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
   ],
 }

@@ -1,8 +1,8 @@
-# @emulates/openai
+# @crvouga/mockingbird-service-openai
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-A **wip**, portable, entirely local OpenAI emulator for Chat Completions, function tool loops,
+A **wip**, portable, entirely local OpenAI mock for Chat Completions, function tool loops,
 Chat SSE streams, embeddings, models, files and staged uploads. Verified with unmodified
 **openai 7.27.0**, **@ai-sdk/openai 4.0.83** and **ai 7.0.127** over Node HTTP.
 It makes no inference calls and requires no vendor account or billed API key.
@@ -10,13 +10,13 @@ It makes no inference calls and requires no vendor account or billed API key.
 ## Install
 
 ```sh
-bun add @emulates/openai
+bun add @crvouga/mockingbird-service-openai
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime, DEFAULT_TOKEN } from "@emulates/openai"
+import { createRuntime, DEFAULT_TOKEN } from "@crvouga/mockingbird-service-openai"
 
 const mock = createRuntime({
   scripts: [{
@@ -39,8 +39,8 @@ Use the explicit `.chat()` provider: the provider's default model uses the Respo
 ```js
 import { createOpenAI } from "@ai-sdk/openai"
 import { generateText } from "ai"
-import { createServer } from "@emulates/openai/server"
-import { DEFAULT_TOKEN } from "@emulates/openai"
+import { createServer } from "@crvouga/mockingbird-service-openai/server"
+import { DEFAULT_TOKEN } from "@crvouga/mockingbird-service-openai"
 
 const server = await createServer({
   scripts: [{ kind: "chat", message: { role: "assistant", content: "Fixture answer" } }],
@@ -54,7 +54,7 @@ try {
 ```
 
 `openai` also accepts `baseURL: server.url + "/v1"` and the fixture `apiKey`.
-The CLI is `emulates-openai serve --port 8813`. `createServer()` defaults to an ephemeral port.
+The CLI is `mockingbird-openai serve --port 8813`. `createServer()` defaults to an ephemeral port.
 
 ## Routes and persisted behavior
 
@@ -121,13 +121,13 @@ to 20 MiB and bounds files/uploads/parts locally; it is not a production quota.
 All records use SQLite Collections and IdSequence; lifecycle timestamps/expiry use the shared
 clock. Each namespace receives constructor `scripts`, `models`, `files` fixtures; reset restores
 them. Files accept `{ id?, filename, purpose, bytes: string | number[], expires_at? }`.
-Use `x-emulates-namespace`, `/__admin/ns/{namespace}/v1/...`, or shared credential registration
+Use `x-mockingbird-namespace`, `/__admin/ns/{namespace}/v1/...`, or shared credential registration
 for SDKs. Timeline branches/checkpoints reuse the shared runtime and keep their state isolated.
 
 ## Controls, failures and privacy
 
 `DEFAULT_ADMIN_KEY` is `fixture-openai-admin`. Admin data routes require
-`x-emulates-admin-key`; configure a nonempty `adminKey` to replace it. A custom `adminPrefix`
+`x-mockingbird-admin-key`; configure a nonempty `adminKey` to replace it. A custom `adminPrefix`
 relocates all controls and the namespace path carrier. Shared clock, fault, reset, journal,
 state, credential, metrics and Timeline routes remain available.
 
@@ -154,7 +154,7 @@ Presets fire once: `rate_limited` (429, Retry-After and retry-after-ms), `server
 `slow_response` (50 ms before dispatch). Canned errors/drop do not consume scripts.
 The reported raw client retries only network errors, 429 and 5xx. Official OpenAI SDK additionally
 retries 408/409 by its own policy; configure `maxRetries` when asserting attempts. Transport
-latency uses wall time, while resource lifecycle uses the emulator clock.
+latency uses wall time, while resource lifecycle uses the mock clock.
 
 ## API
 

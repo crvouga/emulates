@@ -1,12 +1,12 @@
-# Flex HSA/FSA payments API (Emulates subset) — operation support
+# Flex HSA/FSA payments API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **14**
-- supported by the emulator: **14**
+- supported by the mock: **14**
 - parity enabled: **11**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListProducts` | `GET /v1/products` | ✅ supported | ✅ |  |
 | `CreateProduct` | `POST /v1/products` | ✅ supported | ⚠️ unsafe (opt-in) |  |

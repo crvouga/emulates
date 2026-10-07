@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
-  title: Firebase Cloud Messaging HTTP v1 (Emulates subset)
+  title: Firebase Cloud Messaging HTTP v1 (Mockingbird subset)
   description: >
     Stateful mock of FCM HTTP v1 `projects.messages.send`, the send surface firebase-admin
     calls. Hand-authored from the FCM REST reference and firebase-admin 12.7.0 / 13.5.0.
     There is no FCM sandbox; projects, access tokens, and registration tokens are fixtures.
   version: v1
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     docs: https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send
     errors: https://firebase.google.com/docs/cloud-messaging/error-codes
 servers:
@@ -20,7 +20,7 @@ paths:
       description: >
         Send a message to a registration token. `validate_only: true` (firebase-admin
         `dryRun`) validates and returns a name without storing the message.
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -150,7 +150,7 @@ components:
         name:
           type: string
           description: projects/{project_id}/messages/{message_id}
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
     RpcStatus:
       type: object

@@ -482,7 +482,7 @@ describe("validation and isolation", () => {
     expect(runtime.instance("alpha").sent()).toEqual([])
     expect(runtime.instance("beta").sent()).toHaveLength(2)
     const betaOutcomes = await call("/__admin/outcomes", {
-      headers: { "x-emulates-namespace": "beta" },
+      headers: { "x-mockingbird-namespace": "beta" },
     })
     expect(await betaOutcomes.json()).toEqual({ accepted: 0, lost: 0, replayed: 0 })
   })

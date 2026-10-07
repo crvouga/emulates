@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Amazon S3 (Emulates subset)
+  title: Amazon S3 (Mockingbird subset)
   version: "2006-03-01"
   description: Path-style S3 REST contract used by AWS SDK v3.
 servers:
@@ -11,7 +11,7 @@ paths:
       - { name: bucket, in: path, required: true, schema: { type: string } }
     put:
       operationId: CreateBucket
-      x-emulates: { supported: true, parity: { safe: false } }
+      x-mockingbird: { supported: true, parity: { safe: false } }
       responses: { "200": { description: Created }, "400": { $ref: "#/components/responses/Error" }, "403": { $ref: "#/components/responses/Error" } }
     head:
       operationId: HeadBucket
@@ -23,7 +23,7 @@ paths:
         "404": { $ref: "#/components/responses/Error" }
     post:
       operationId: BucketPost
-      x-emulates: { supported: true, parity: { safe: false } }
+      x-mockingbird: { supported: true, parity: { safe: false } }
       responses: { "200": { description: DeleteObjects result, content: { application/xml: { schema: { type: string } } } }, "404": { $ref: "#/components/responses/Error" } }
   /{bucket}/{key}:
     parameters:
@@ -31,7 +31,7 @@ paths:
       - { name: key, in: path, required: true, schema: { type: string } }
     put:
       operationId: PutObject
-      x-emulates: { supported: true, parity: { safe: false } }
+      x-mockingbird: { supported: true, parity: { safe: false } }
       requestBody: { content: { application/octet-stream: { schema: { type: string, format: binary } } } }
       responses: { "200": { description: Stored }, "400": { $ref: "#/components/responses/Error" }, "403": { $ref: "#/components/responses/Error" }, "404": { $ref: "#/components/responses/Error" } }
     get:
@@ -42,11 +42,11 @@ paths:
       responses: { "200": { description: Object metadata }, "404": { description: Missing } }
     delete:
       operationId: DeleteObject
-      x-emulates: { supported: true, parity: { safe: false } }
+      x-mockingbird: { supported: true, parity: { safe: false } }
       responses: { "204": { description: Deleted }, "403": { $ref: "#/components/responses/Error" } }
     post:
       operationId: MultipartPost
-      x-emulates: { supported: true, parity: { enabled: false, reason: Multipart XML protocol. } }
+      x-mockingbird: { supported: true, parity: { enabled: false, reason: Multipart XML protocol. } }
       responses: { "200": { description: Multipart response, content: { application/xml: { schema: { type: string } } } }, "404": { $ref: "#/components/responses/Error" } }
 components:
   responses:

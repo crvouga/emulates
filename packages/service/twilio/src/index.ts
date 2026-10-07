@@ -1,5 +1,5 @@
-import type { FetchAPI } from "@emulates/core"
-import type { OpenAPIDocument } from "@emulates/openapi"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
+import type { OpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import {
   type APIOptions,
   annotateResponse,
@@ -15,8 +15,8 @@ import {
   type OperationContext,
   type Service,
   toBase64,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { e164Key, type LookupResult, lookup, lookupBody } from "./phone.js"
@@ -31,8 +31,8 @@ import {
 } from "./state.js"
 import { durationSeconds, mixDownToMono, readWav, synthesizeWav } from "./wav.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { LookupResult, ValidationError } from "./phone.js"

@@ -1,8 +1,8 @@
 {
-  "name": "@emulates/openapi-metadata",
+  "name": "@crvouga/mockingbird-openapi-metadata",
   "version": "0.0.0-development",
   "private": true,
-  "description": "The x-emulates-* OpenAPI extensions: types, readers, semantic validation and schema-guided value annotation (identities, volatile fields).",
+  "description": "Mockingbird's x-mockingbird-* OpenAPI extensions: types, readers, semantic validation and schema-guided value annotation (identities, volatile fields).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/openapi/metadata"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/openapi/metadata#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/openapi/metadata#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "openapi",
     "extensions"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "openapi-metadata"
   },
@@ -40,10 +40,10 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/openapi": "workspace:*"
+    "@crvouga/mockingbird-openapi": "workspace:*"
   },
   "devDependencies": {
-    "@emulates/testing": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

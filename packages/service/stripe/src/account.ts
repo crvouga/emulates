@@ -1,4 +1,4 @@
-import { opaqueToken } from "@emulates/service"
+import { opaqueToken } from "@crvouga/mockingbird-service"
 
 /**
  * Real Stripe partitions objects by account; the mock partitions by the bearer key that created

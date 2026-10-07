@@ -1,7 +1,7 @@
 /**
  * Anything that can answer a Fetch `Request` with a `Response`.
  *
- * Every Emulates service implements this, and every runtime adapter consumes it.
+ * Every Mockingbird service implements this, and every runtime adapter consumes it.
  * It is the only contract shared across the whole graph.
  */
 export interface FetchAPI {

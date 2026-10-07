@@ -1,10 +1,10 @@
 /// <reference types="node" />
-import type { ServeTarget } from "@emulates/adapter-node"
+import type { ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { type H2cListening, listenH2c } from "./h2c.js"
 import { type BedrockRuntime, type BedrockRuntimeOptions, createRuntime } from "./runtime.js"
 import { parseScript, type Script } from "./scripts.js"
 
-/** Port `emulates-bedrock serve` listens on when none is given. */
+/** Port `mockingbird-bedrock serve` listens on when none is given. */
 export const DEFAULT_PORT = 8796
 
 export type BedrockServerOptions = BedrockRuntimeOptions & {
@@ -48,7 +48,7 @@ const loadScripts = async (path: string): Promise<Script[]> => {
 
 /**
  * How `serve` builds the Bedrock mock from flags. `serve --config` in another service's CLI
- * listens over HTTP/1.1 only; `emulates-bedrock serve` listens with h2c as well.
+ * listens over HTTP/1.1 only; `mockingbird-bedrock serve` listens with h2c as well.
  */
 export const serveTarget: ServeTarget = {
   name: "bedrock",
@@ -81,7 +81,7 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "point the app at it: AWS_ENDPOINT_URL_BEDROCK_RUNTIME / AWS_ENDPOINT_URL_BEDROCK_AGENTCORE = this URL",
     "protocols: h2c (prior knowledge) and HTTP/1.1 on the same port",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AWS_ACCESS_KEY_ID>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AWS_ACCESS_KEY_ID>: <ns>}",
     "scripts: PUT /__admin/scripts {scripts: [{id, match, turns}]}",
   ],
 }

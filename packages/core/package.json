@@ -1,8 +1,8 @@
 {
-  "name": "@emulates/core",
+  "name": "@crvouga/mockingbird-core",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Universal contracts shared by Emulates packages: the Fetch-native API interface.",
+  "description": "Universal contracts shared by Mockingbird packages: the Fetch-native API interface.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/core#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/core#readme",
   "keywords": [
-    "emulates",
-    "emulator",
+    "mockingbird",
+    "mock",
     "fetch"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "core"
   },

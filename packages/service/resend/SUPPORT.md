@@ -1,12 +1,12 @@
-# Resend API (Emulates subset) — operation support
+# Resend API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **7**
-- supported by the emulator: **7**
+- supported by the mock: **7**
 - parity enabled: **7**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListEmails` | `GET /emails` | ✅ supported | ✅ |  |
 | `SendEmail` | `POST /emails` | ✅ supported | ⚠️ unsafe (opt-in) |  |

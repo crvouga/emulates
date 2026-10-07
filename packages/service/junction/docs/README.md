@@ -20,10 +20,10 @@ This directory is the local contract notebook for the Junction Lab Testing API i
 - [Behavior](./behavior.md) — concepts, lifecycle rules, status semantics, and integration guidance
 - [Support matrix](./support-matrix.md) — modeled, synthetic, and intentionally unsupported behavior
 - [drop-in readiness](./drop-in.md) — sealed corpus workflow, SDK-level proof, operation coverage
-- [Consumer follow-on](./qa-followon.md) — checklist for pointing a client suite at the emulator
+- [Consumer follow-on](./qa-followon.md) — checklist for pointing a client suite at the mock
 
 ## Scope
 
 The service focuses on the team-scoped user and Lab Testing workflow. Wearables, Sense, Junction Connect, Management API, ETL pipelines, and provider-specific lab account administration remain outside this package's implementation scope.
 
-The emulator uses deterministic identifiers and an injected clock. Result data, physician data, catalog entries, and the fixed team identifier are synthetic fixtures suitable for tests, not production data.
+The mock uses deterministic identifiers and an injected clock. Result data, physician data, catalog entries, and the fixed team identifier are synthetic fixtures suitable for tests, not production data.

@@ -1,12 +1,12 @@
-# Slack incoming webhooks and Web API (Emulates subset) — operation support
+# Slack incoming webhooks and Web API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **21**
-- supported by the emulator: **21**
+- supported by the mock: **21**
 - parity enabled: **21**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PostIncomingWebhook` | `POST /services/{team}/{bot}/{secret}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ChatPostMessage` | `POST /api/chat.postMessage` | ✅ supported | ⚠️ unsafe (opt-in) |  |

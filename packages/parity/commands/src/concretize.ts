@@ -1,4 +1,4 @@
-import { encodeBody, encodeFormPairs } from "@emulates/http-codec"
+import { encodeBody, encodeFormPairs } from "@crvouga/mockingbird-http-codec"
 import {
   defaultMissingId,
   type Placeholder,
@@ -6,12 +6,12 @@ import {
   type ResourceTable,
   resolvePlaceholders,
   type Side,
-} from "@emulates/model"
-import { expandPathTemplate, type HttpMethod } from "@emulates/openapi"
+} from "@crvouga/mockingbird-model"
+import { expandPathTemplate, type HttpMethod } from "@crvouga/mockingbird-openapi"
 import type { LogicalCommand } from "./command.js"
 import type { OperationPlan } from "./plan.js"
 
-/** Run-scoped values substituted for `x-emulates-scope` placeholders. */
+/** Run-scoped values substituted for `x-mockingbird-scope` placeholders. */
 export type Scope = {
   runId: string
   /** Seconds since epoch at the start of the current walk. */
@@ -60,7 +60,7 @@ export const resolveForSide = (
   deletedRefProbability = 0,
 ): unknown =>
   resolvePlaceholders(value, (placeholder: Placeholder) => {
-    switch (placeholder.$emulates) {
+    switch (placeholder.$mockingbird) {
       case "ref": {
         const ref = pickRef(table, placeholder.type, placeholder.pick, deletedRefProbability)
         const id = ref === undefined ? undefined : table.idOf(ref, side)

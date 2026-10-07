@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type MedplumRuntime, type MedplumRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-medplum serve` listens on when none is given (Medplum's own default). */
+/** Port `mockingbird-medplum serve` listens on when none is given (Medplum's own default). */
 export const DEFAULT_PORT = 8103
 
 export type MedplumServerOptions = Omit<MedplumRuntimeOptions, "baseUrl"> & {
@@ -107,7 +107,7 @@ export const serveTarget: ServeTarget = {
       "routes: /fhir/R4/…, /oauth2/token, /auth/login, /auth/me, /admin/projects/…, /healthcheck",
       `client credentials: ${info.project?.clientId} / ${info.project?.clientSecret} (project ${info.project?.id})`,
       `super admin: ${info.superAdmin.email} / ${info.superAdmin.password}`,
-      "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<clientId>: <ns>}",
+      "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<clientId>: <ns>}",
     ]
   },
 }

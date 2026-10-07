@@ -1556,7 +1556,7 @@ export const ACME_CORPUS: Corpus = {
       default_price: null,
     },
     {
-      id: "prod_emulates_recorded",
+      id: "prod_mockingbird_recorded",
       name: "Recorded price without a known product",
       active: true,
       description: null,
@@ -1976,7 +1976,7 @@ export const ACME_CORPUS: Corpus = {
     },
     {
       id: "price_1S623MGBBGmxLhdLpCY6JGPM",
-      product: "prod_emulates_recorded",
+      product: "prod_mockingbird_recorded",
       unit_amount: 0,
       currency: "usd",
       recurring: null,
@@ -2370,7 +2370,7 @@ export const ACME_CORPUS: Corpus = {
     },
     {
       id: "price_1ScrXkGBBGmxLhdLbBkeNwZT",
-      product: "prod_emulates_recorded",
+      product: "prod_mockingbird_recorded",
       unit_amount: 0,
       currency: "usd",
       recurring: null,
@@ -2381,7 +2381,7 @@ export const ACME_CORPUS: Corpus = {
     },
     {
       id: "price_1ScrXkGBBGmxLhdLhI37cmBt",
-      product: "prod_emulates_recorded",
+      product: "prod_mockingbird_recorded",
       unit_amount: 0,
       currency: "usd",
       recurring: null,
@@ -2392,7 +2392,7 @@ export const ACME_CORPUS: Corpus = {
     },
     {
       id: "price_1ScrXkGBBGmxLhdLjxFbqQgm",
-      product: "prod_emulates_recorded",
+      product: "prod_mockingbird_recorded",
       unit_amount: 0,
       currency: "usd",
       recurring: null,

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-pharmetika",
-    description: "Pharmetika provider-portal pharmacy API emulator",
+    bin: "mockingbird-pharmetika",
+    description: "stateful Pharmetika provider-portal pharmacy API mock",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

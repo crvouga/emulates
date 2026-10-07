@@ -11,7 +11,7 @@
  * branch-fixture labs (`nexus`, `mtl`, `crl`, `ihd`) have no catalog lab tests, so the
  * property suite seeds synthetic tests for them.
  */
-import { HttpError, opaqueToken } from "@emulates/service"
+import { HttpError, opaqueToken } from "@crvouga/mockingbird-service"
 import { TEAM_LABS } from "./catalog.js"
 import { deterministicUuid, MOCK_TEAM_ID } from "./state.js"
 

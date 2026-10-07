@@ -13,8 +13,8 @@
  * content are expected until a corpus is recorded; status codes, envelopes and error shapes
  * are what this run checks first.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, EdamamAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

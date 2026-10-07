@@ -1,5 +1,5 @@
 {
-  "name": "@emulates/testing",
+  "name": "@crvouga/mockingbird-testing",
   "version": "0.1.0",
   "private": true,
   "description": "Internal test glue: derive fast-check parameters from the environment (FC_SEED, FC_NUM_RUNS).",
@@ -12,7 +12,7 @@
       "default": "./dist/index.js"
     }
   },
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "testing"
   },

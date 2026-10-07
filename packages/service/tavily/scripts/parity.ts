@@ -1,4 +1,4 @@
-import { loadCredentials } from "@emulates/credentials"
+import { loadCredentials } from "@crvouga/mockingbird-credentials"
 import { TavilyAPI } from "../src/index.js"
 
 let apiKey: string

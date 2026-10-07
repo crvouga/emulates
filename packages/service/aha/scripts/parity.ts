@@ -11,8 +11,8 @@
  * `--include-unsafe` is passed (and even then, only against a staging URL).
  */
 import { createHmac } from "node:crypto"
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { AhaAPI, document } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

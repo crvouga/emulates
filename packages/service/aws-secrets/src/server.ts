@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { type AwsSecretsRuntime, type AwsSecretsRuntimeOptions, createRuntime } from "./runtime.js"
 export const DEFAULT_PORT = 8815
 export type AwsSecretsServerOptions = AwsSecretsRuntimeOptions & { port?: number; host?: string }

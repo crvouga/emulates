@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import {
   type ChatScript,
   createRuntime,
@@ -290,11 +290,11 @@ test("namespaces, reset, history branches and metadata retain no plaintext promp
   const b = consumer(runtime, "b")
   const response = await a.chat({ ...body, store: true })
   const id = (await response.json()).id
-  const checkpoint = response.headers.get("x-emulates-checkpoint")
+  const checkpoint = response.headers.get("x-mockingbird-checkpoint")
   expect(checkpoint).toBeTruthy()
   expect((await b.request(`/v1/chat/completions/${id}`)).status).toBe(404)
   const branch = await a.request(`/v1/chat/completions/${id}`, {
-    headers: { "x-emulates-branch": "fixture-branch", "x-emulates-at": checkpoint ?? "" },
+    headers: { "x-mockingbird-branch": "fixture-branch", "x-mockingbird-at": checkpoint ?? "" },
   })
   expect(branch.status).toBe(200)
   expect((await branch.json()).choices[0].message.content).toBe(script.message.content)
@@ -445,11 +445,11 @@ test("concurrent namespace writes, path and token carriers reset to constructor 
       await base.json(
         "/__admin/credentials",
         { credentials: [{ credential: DEFAULT_TOKEN, namespace: "parallel-b" }] },
-        { method: "PUT", headers: { "x-emulates-admin-key": "fixture-openai-admin" } },
+        { method: "PUT", headers: { "x-mockingbird-admin-key": "fixture-openai-admin" } },
       )
     ).status,
   ).toBe(200)
-  expect((await base.request("/v1/files/file_fixture")).headers.get("x-emulates")).toContain(
+  expect((await base.request("/v1/files/file_fixture")).headers.get("x-mockingbird")).toContain(
     "ns=parallel-b",
   )
 })

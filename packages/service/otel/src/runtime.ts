@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { adminRow, OTEL_NAMESPACE, OtelAPI, otelCredential } from "./index.js"
 import { formatKey, type Row } from "./otlp.js"
@@ -79,7 +79,7 @@ export type OtelRuntime = ServiceRuntime<OtelAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -170,7 +170,7 @@ const adminRoutes = (runtime: ServiceRuntime<OtelAPI>): AdminRoutes => {
         if (Date.now() >= deadline) {
           return json(408, {
             error: {
-              type: "emulates_admin",
+              type: "mockingbird_admin",
               message: `timed out after ${timeoutMs} ms: ${matched.length}/${count} ${kind}s matched`,
             },
             matched: matched.map(adminRow),
@@ -238,7 +238,7 @@ const adminRoutes = (runtime: ServiceRuntime<OtelAPI>): AdminRoutes => {
 }
 
 /**
- * The OTLP collector + OpenObserve search emulator with the full Emulates service contract:
+ * The OTLP collector + OpenObserve search mock with Mockingbird's full service contract:
  * `/__admin/health`, `/__admin/*` (logs, spans, wait), namespaces by header, by `/__admin/ns/<name>` path
  * prefix, or by credential (the OTLP bearer token or the O2 Basic username), clock control and
  * fault presets.

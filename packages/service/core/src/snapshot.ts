@@ -1,5 +1,5 @@
-import { Timeline } from "@emulates/core"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Timeline } from "@crvouga/mockingbird-core"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /**
  * A point-in-time copy of everything a service namespace holds.
@@ -22,12 +22,12 @@ export const snapshotNamespace = (sqlite: SqliteClient, namespace: string): Name
   namespace,
   records: sqlite
     .prepare(
-      "SELECT collection, id, seq, value FROM emulates_records WHERE namespace = ? ORDER BY collection, seq",
+      "SELECT collection, id, seq, value FROM mockingbird_records WHERE namespace = ? ORDER BY collection, seq",
     )
     .all<{ collection: string; id: string; seq: number; value: string }>(namespace),
   sequences: sqlite
     .prepare(
-      "SELECT name, kind, value FROM emulates_sequences WHERE namespace = ? ORDER BY name, kind",
+      "SELECT name, kind, value FROM mockingbird_sequences WHERE namespace = ? ORDER BY name, kind",
     )
     .all<{ name: string; kind: string; value: number }>(namespace),
 })
@@ -46,16 +46,16 @@ export const restoreNamespace = (
   snapshot: NamespaceSnapshot,
 ): void => {
   sqlite.transaction(() => {
-    sqlite.prepare("DELETE FROM emulates_records WHERE namespace = ?").run(namespace)
-    sqlite.prepare("DELETE FROM emulates_sequences WHERE namespace = ?").run(namespace)
+    sqlite.prepare("DELETE FROM mockingbird_records WHERE namespace = ?").run(namespace)
+    sqlite.prepare("DELETE FROM mockingbird_sequences WHERE namespace = ?").run(namespace)
     const record = sqlite.prepare(
-      "INSERT INTO emulates_records (namespace, collection, id, seq, value) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO mockingbird_records (namespace, collection, id, seq, value) VALUES (?, ?, ?, ?, ?)",
     )
     for (const row of snapshot.records) {
       record.run(namespace, row.collection, row.id, row.seq, row.value)
     }
     const sequence = sqlite.prepare(
-      "INSERT INTO emulates_sequences (namespace, name, kind, value) VALUES (?, ?, ?, ?)",
+      "INSERT INTO mockingbird_sequences (namespace, name, kind, value) VALUES (?, ?, ?, ?)",
     )
     for (const row of snapshot.sequences) {
       sequence.run(namespace, row.name, row.kind, row.value)

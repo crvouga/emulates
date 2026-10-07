@@ -6,7 +6,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { DEFAULT_ADMIN_KEY, OpenAIAPI, type OpenAIAPIOptions } from "./index.js"
 import { object } from "./state.js"
@@ -82,7 +82,7 @@ export type OpenAIRuntimeOptions = Omit<
 }
 export type OpenAIRuntime = ServiceRuntime<OpenAIAPI>
 const fail = (status: number, message: string) =>
-  Response.json({ error: { type: "emulates_admin", message } }, { status })
+  Response.json({ error: { type: "mockingbird_admin", message } }, { status })
 const routes = (runtime: OpenAIRuntime): AdminRoutes => ({
   "POST /scripts": ({ namespace, body }) => {
     try {

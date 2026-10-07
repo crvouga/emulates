@@ -1,13 +1,13 @@
-# @emulates/model
+# @crvouga/mockingbird-model
 
-> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-Provider-neutral symbolic resource model for differential testing. Generated commands never contain concrete ids: they say "customer #2", and each side of a comparison (`real` and `mock`) binds that handle to its own id in a `ResourceTable`; canonicalization then turns both ids back into `resource:customer:2`. You only need this directly if you are building your own differential runner or command executor — [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) uses it for you.
+Provider-neutral symbolic resource model for differential testing. Generated commands never contain concrete ids: they say "customer #2", and each side of a comparison (`real` and `mock`) binds that handle to its own id in a `ResourceTable`; canonicalization then turns both ids back into `resource:customer:2`. You only need this directly if you are building your own differential runner or command executor — [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) uses it for you.
 
 ## Install
 
 ```bash
-npm install -D @emulates/model
+npm install -D @crvouga/mockingbird-model
 ```
 
 No dependencies. ESM only, Node >= 22 or Bun >= 1.2.
@@ -22,7 +22,7 @@ import {
   refPlaceholder,
   ResourceTable,
   resolvePlaceholders,
-} from "@emulates/model"
+} from "@crvouga/mockingbird-model"
 
 const table = new ResourceTable()
 // Both sides created "the same" customer, with different concrete ids.
@@ -36,11 +36,11 @@ for (const side of ["real", "mock"] as const) {
   console.log(
     side,
     resolvePlaceholders(body, (placeholder) => {
-      if (placeholder.$emulates === "ref") {
+      if (placeholder.$mockingbird === "ref") {
         const ref = pickRef(table, placeholder.type, placeholder.pick)
         return ref === undefined ? undefined : table.idOf(ref, side)
       }
-      return placeholder.$emulates === "missing" ? "cus_does_not_exist" : placeholder.value
+      return placeholder.$mockingbird === "missing" ? "cus_does_not_exist" : placeholder.value
     }),
   )
 }
@@ -56,15 +56,15 @@ for (const side of ["real", "mock"] as const) {
 | `SIDES` | `readonly ["real", "mock"]` | Both sides of a comparison. |
 | `canonicalToken` | `(type, handle) => string` | `resource:<type>:<handle>`, identical on both sides. |
 | `describeRef` | `(ref: SymbolicRef) => string` | `"customer #2"`. |
-| `PLACEHOLDER_KEY` | `"$emulates"` | Marker key of placeholders embedded in generated values. |
+| `PLACEHOLDER_KEY` | `"$mockingbird"` | Marker key of placeholders embedded in generated values. |
 | `refPlaceholder` | `(type, pick: number) => Placeholder` | "The `pick`-th existing resource of `type`" (modulo count at execution time). |
 | `missingPlaceholder` | `(type, missing?: string) => Placeholder` | A well-formed id that exists on neither side. |
 | `scopePlaceholder` | `(value: string) => Placeholder` | A run-scoped value (`run-id`, `walk-start-unix`, `walk-start-iso`). |
-| `isPlaceholder` | `(value) => value is Placeholder` | Object with a string `$emulates` key. |
+| `isPlaceholder` | `(value) => value is Placeholder` | Object with a string `$mockingbird` key. |
 | `resolvePlaceholders` | `(value, resolve: (p: Placeholder) => unknown) => unknown` | Depth-first copy replacing every placeholder (safe for `__proto__` keys). |
 | `collectPlaceholders` | `(value, out?) => Placeholder[]` | Every placeholder in pre-order. |
 | `pickRef` | `(table, type, pick, deletedRefProbability = 0) => SymbolicRef \| undefined` | Resolve a `ref` pick against active handles, wrapping around; `undefined` if none exist. With a probability > 0, some picks (`pick % 100` below the threshold) also consider deleted resources. |
-| `defaultMissingId` | `(type) => string` | `emulates_missing_<type>`, used when the spec gives no `missing` id. |
+| `defaultMissingId` | `(type) => string` | `mockingbird_missing_<type>`, used when the spec gives no `missing` id. |
 
 `ResourceTable` methods:
 
@@ -84,8 +84,8 @@ Exported types: `Side` (`"real" | "mock"`), `SymbolicRef` (`{ type; handle }`), 
 
 ## Related
 
-- [`@emulates/commands`](https://www.npmjs.com/package/@emulates/commands) — generates commands containing these placeholders.
-- [`@emulates/canonicalize`](https://www.npmjs.com/package/@emulates/canonicalize) — rewrites ids to canonical tokens using the table.
-- [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — the runner that ties them together.
+- [`@crvouga/mockingbird-commands`](https://www.npmjs.com/package/@crvouga/mockingbird-commands) — generates commands containing these placeholders.
+- [`@crvouga/mockingbird-canonicalize`](https://www.npmjs.com/package/@crvouga/mockingbird-canonicalize) — rewrites ids to canonical tokens using the table.
+- [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) — the runner that ties them together.
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

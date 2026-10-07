@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   createRuntime,
@@ -52,7 +52,7 @@ const admin = (
 ) =>
   call(runtime, method, `/__admin${path}`, {
     ...(body !== undefined ? { body } : {}),
-    ...(ns ? { headers: { "x-emulates-namespace": ns } } : {}),
+    ...(ns ? { headers: { "x-mockingbird-namespace": ns } } : {}),
   })
 
 let seq = 0
@@ -130,7 +130,7 @@ describe("M4: sandbox limits are off by default", () => {
     const runtime = createRuntime()
     const set = await admin(runtime, "PUT", "/limits", { maxUsers: 1 }, "capped")
     expect((set.body.limits as Json).maxUsers).toBe(1)
-    const inCapped = { headers: { "x-emulates-namespace": "capped" } }
+    const inCapped = { headers: { "x-mockingbird-namespace": "capped" } }
     const create = (init = {}) =>
       call(runtime, "POST", "/v2/user", { body: { client_user_id: `ns-${++seq}` }, ...init })
     expect((await create(inCapped)).status).toBe(200)
@@ -341,7 +341,7 @@ describe("M6: inserting users and orders directly", () => {
       orders: [{ user_id: u, lab_test_id: LAB_TEST, status: "completed" }],
     }
     const runtime = createRuntime({ fixtures })
-    const inNs = { headers: { "x-emulates-namespace": "w2" } }
+    const inNs = { headers: { "x-mockingbird-namespace": "w2" } }
     for (const init of [{}, inNs]) {
       expect((await call(runtime, "GET", `/v2/user/${u}`, init)).status).toBe(200)
       const orders = await call(runtime, "GET", `/v3/orders?user_id=${u}`, init)
@@ -405,7 +405,7 @@ describe("M7: lenient identity", () => {
     expect(
       (await admin(runtime, "PUT", "/identity", { mode: "adopt-users" }, "loose")).status,
     ).toBe(200)
-    const loose = { headers: { "x-emulates-namespace": "loose" } }
+    const loose = { headers: { "x-mockingbird-namespace": "loose" } }
     const unknown = "c27f5d3a-5b9b-4fb2-9f86-4c9daebfc0d6"
     expect(
       (await call(runtime, "POST", "/v3/order", { body: orderBody(unknown), ...loose })).status,

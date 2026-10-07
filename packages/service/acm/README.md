@@ -1,13 +1,13 @@
-# @emulates/acm
+# @crvouga/mockingbird-service-acm
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful local emulator of Amazon Certificate Manager. ESM; Node 22+ or Bun 1.2+.
+Stateful local mock of Amazon Certificate Manager. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/acm/server"
+import { createServer } from "@crvouga/mockingbird-service-acm/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -28,7 +28,7 @@ No LocalStack run is recorded for this integration. The parity command is a boun
 ## Install
 
 ```sh
-bun add @emulates/acm
+bun add @crvouga/mockingbird-service-acm
 ```
 
 ## API

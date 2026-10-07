@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-hermes",
-    description: "Hermes peer-run API emulator (WIP: synthetic run lifecycle)",
+    bin: "mockingbird-hermes",
+    description: "Hermes peer-run API mock (WIP: synthetic run lifecycle)",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

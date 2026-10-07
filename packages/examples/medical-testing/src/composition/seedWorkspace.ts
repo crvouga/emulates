@@ -28,7 +28,7 @@ export const seedWorkspace = async (db: Db): Promise<void> => {
       const selected = tests.filter((test) =>
         ["Basic Metabolic Panel", "Lipid Panel"].includes(test.name),
       )
-      // Historical fixtures should not create unpaid sessions in the live payment emulator.
+      // Historical fixtures should not create unpaid sessions in the live payment mock.
       const orderId = crypto.randomUUID()
       await insertOrder(db, {
         id: orderId,

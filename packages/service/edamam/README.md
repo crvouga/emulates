@@ -1,15 +1,15 @@
-# @emulates/edamam
+# @crvouga/mockingbird-service-edamam
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of the **Edamam** APIs our apps call, answering from a built-in food and recipe
+Stateful mock of the **Edamam** APIs our apps call, answering from a built-in food and recipe
 corpus: the Food Database v2 parser (text and UPC), nutrients and image recognition, Nutrition
 Analysis (`nutrition-data`, `nutrition-details`), Recipe Search v2 (search with filters and
 `_cont` paging, by URI, by id), the Meal Planner v1 `select`, and Shopping List v2. Nutrition
 logging, barcode scans, photo logging, recipe search, meal plans and grocery lists then work in
 tests without Edamam keys, quotas or network.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/edamam/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/edamam/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from Edamam's per-API docs and our consumers:
   `metrics/adapters/outbound/edamam-nutrition.adapter.ts`,
   `meal-planning/adapters/outbound/edamam-meal-planning.adapter.ts`, and the Python chat
@@ -18,11 +18,11 @@ tests without Edamam keys, quotas or network.
 ## Install
 
 ```bash
-npm install -D @emulates/edamam
+npm install -D @crvouga/mockingbird-service-edamam
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-edamam serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx mockingbird-edamam serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -33,11 +33,11 @@ any values (`EDAMAM_FOOD_APP_ID/KEY` or `EDAMAM_APP_ID/KEY`, `EDAMAM_MEAL_APP_ID
 client's `edamam_*` settings); without them our adapters report `unavailable` and never call out.
 
 ```bash
-npx emulates-edamam serve --port 8824
+npx mockingbird-edamam serve --port 8824
 ```
 
 ```ts
-import { createRuntime } from "@emulates/edamam"
+import { createRuntime } from "@crvouga/mockingbird-service-edamam"
 
 const edamam = createRuntime()
 const parsed = await edamam.fetch(
@@ -91,7 +91,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `rate_
 
 ### Namespaces
 
-`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL (works for the nutrition adapter
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the base URL (works for the nutrition adapter
 and the Python client, which concatenate paths; the meal adapter resolves paths with
 `new URL(endpoint, base)`, which drops a prefix), or by application id:
 `PUT /__admin/credentials {"credentials": {"<app_id>": "<namespace>"}}`.
@@ -109,8 +109,8 @@ and the Python client, which concatenate paths; the meal adapter resolves paths 
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `EdamamAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `addFood(food)`, `addRecipe(seed)`, `recipes()`. Options: `sqlite`, `now`, `namespace`, `foods`, `recipes`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `foods`, `recipes`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `EdamamAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `addFood(food)`, `addRecipe(seed)`, `recipes()`. Options: `sqlite`, `now`, `namespace`, `foods`, `recipes`, `settings`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `foods`, `recipes`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `EDAMAM_PRESETS` | object | Every named fault preset. |
 | `EDAMAM_NAMESPACE` | string | The service name, `"edamam"`. |
 | `ACCOUNT_USER_HEADER` | string | `edamam-account-user`. |
@@ -124,4 +124,4 @@ and the Python client, which concatenate paths; the meal adapter resolves paths 
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--app`, `--require-account-user`); port 8824. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

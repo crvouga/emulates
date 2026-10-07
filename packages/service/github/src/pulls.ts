@@ -6,8 +6,8 @@ import {
   jsonRes,
   markMutationAccepted,
   type OperationHandler,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { type GitHubState, type Repository, record } from "./state.js"
 
 type Branch = { label: string; ref: string; sha: string; repo: Repository }
@@ -45,7 +45,7 @@ function invalid(field: string): never {
   throw new PullError(422, "Validation Failed", field)
 }
 function unsupported(feature: string): never {
-  throw new PullError(501, `Emulates does not model ${feature}`)
+  throw new PullError(501, `Mockingbird does not model ${feature}`)
 }
 const repoKey = (repo: Repository) => repo.full_name.toLowerCase()
 
@@ -284,7 +284,7 @@ export const pullHandlers = (
       } catch (error) {
         if (!(error instanceof PullError)) throw error
         if (error.status === 501)
-          return jsonRes(501, { code: "emulates_unsupported", message: error.message })
+          return jsonRes(501, { code: "mockingbird_unsupported", message: error.message })
         if (error.status === 422)
           return jsonRes(422, {
             message: "Validation Failed",

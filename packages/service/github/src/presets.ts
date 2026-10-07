@@ -1,4 +1,4 @@
-import type { FaultPreset, FaultRule } from "@emulates/service"
+import type { FaultPreset, FaultRule } from "@crvouga/mockingbird-service"
 
 const mutations = ["git/create-ref", "git/update-ref", "pulls/create", "pulls/update"]
 const reject = (rule: Omit<FaultRule, "id" | "operationId">) =>

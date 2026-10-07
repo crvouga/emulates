@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@emulates/openapi"
-import { createClock } from "@emulates/service"
+import { findOperation, responseForStatus, validateValue } from "@crvouga/mockingbird-openapi"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createRuntime, document, type HermesRuntime } from "./src/index.js"
 
 const send = (runtime: HermesRuntime, path: string, body?: unknown, namespace = "a") =>
   runtime.fetch(
     new Request(`http://hermes.mock${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
+      headers: { "content-type": "application/json", "x-mockingbird-namespace": namespace },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
   )
@@ -123,7 +123,7 @@ test("unverified malformed and unimplemented feature paths fail explicitly witho
   for (const body of [null, [], { input: [null] }, { input: "x", hosted_room_dispatch: {} }]) {
     const response = await send(runtime, "/v1/runs", body)
     expect(response.status).toBe(501)
-    expect(await response.json()).toMatchObject({ error: { type: "emulates_unsupported" } })
+    expect(await response.json()).toMatchObject({ error: { type: "mockingbird_unsupported" } })
   }
 })
 

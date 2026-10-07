@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -9,8 +9,8 @@ import {
   faultEffect,
   type OperationContext,
   type Service,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { AdsEngine } from "./ads.js"
 import { AnalyticsEngine, type AnalyticsEvent } from "./analytics.js"
 import { integer, invalid, present, Rejection, record, reject, rpcError } from "./errors.js"

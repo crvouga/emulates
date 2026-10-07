@@ -1,4 +1,4 @@
-import { CSS_RESET } from "@emulates/ui"
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import type { CheckoutSessionRecord } from "./state.js"
 import { detailsForNumber, HOSTED_PAGE_TEST_CARDS, type TestCardGroup } from "./test-tokens.js"
 
@@ -293,7 +293,7 @@ const SCRIPT = `(() => {
   formatCard(); formatExp(); formatZip();
 
   const autopay = $("stripe-mock-autopay");
-  const KEY = "emulates.checkout.autopay";
+  const KEY = "mockingbird.checkout.autopay";
   if (autopay) {
     try { autopay.checked = localStorage.getItem(KEY) === "1"; } catch {}
     autopay.addEventListener("change", () => { try { localStorage.setItem(KEY, autopay.checked ? "1" : "0"); } catch {} });

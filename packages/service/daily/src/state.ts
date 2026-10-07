@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 export type PresenceRecord = {
   /** Daily's participant session id. */
@@ -54,7 +54,7 @@ export type Settings = {
 export const DEFAULT_SETTINGS: Settings = {
   apiKeys: [],
   domainId: "00000000-0000-4000-8000-00000000da11",
-  roomUrlBase: "https://emulates.daily.co/",
+  roomUrlBase: "https://mockingbird.daily.co/",
 }
 
 export class DailyState {

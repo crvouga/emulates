@@ -1,6 +1,6 @@
 ---
 name: New service
-about: Request an emulator for a vendor API the catalog does not cover, specified as the behaviors you need.
+about: Request a mock for a vendor API the catalog does not cover, specified as the behaviors you need.
 title: "[new-service] <Vendor>: <API surface>"
 labels: agent-reported, new-service
 ---
@@ -20,9 +20,9 @@ labels: agent-reported, new-service
 ## How you will use it
 
 - Client: <official SDK name@exact version | raw fetch>
-- Pointing it at the emulator: <SDK option or env var, e.g. `ACME_BASE_URL`>
+- Pointing it at the mock: <SDK option or env var, e.g. `ACME_BASE_URL`>
 - Mode: <in-process createRuntime().fetch | served over HTTP>
-- Why you need an emulator: <e.g. the sandbox is paid, rate-limited, cannot force failures, sends real messages>
+- Why you need a mock: <e.g. the sandbox is paid, rate-limited, cannot force failures, sends real messages>
 
 ## Auth
 

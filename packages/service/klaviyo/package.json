@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/klaviyo",
+  "name": "@crvouga/mockingbird-service-klaviyo",
   "version": "0.0.0-development",
-  "description": "Stateful emulator of the Klaviyo events API: JSON:API event create (Ordered Product, Placed Order), event reads, unique_id dedupe, JSON:API errors and an outbox.",
+  "description": "Stateful mock of the Klaviyo events API: JSON:API event create (Ordered Product, Placed Order), event reads, unique_id dedupe, JSON:API errors and an outbox.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulates-klaviyo": "./dist/cli.js"
+    "mockingbird-klaviyo": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,19 +34,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/klaviyo"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/klaviyo#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/klaviyo#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "service",
     "klaviyo",
     "email-marketing",
     "events",
     "json-api"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -63,7 +63,7 @@
     "parityTier": "cold",
     "playground": {
       "headers": {
-        "authorization": "Klaviyo-API-Key pk_emulates",
+        "authorization": "Klaviyo-API-Key pk_mockingbird",
         "revision": "2024-02-15"
       }
     },
@@ -76,7 +76,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- klaviyo",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -87,7 +87,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -103,22 +103,22 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulates/testing": "workspace:*",
-    "@emulates/sqlite": "workspace:*",
-    "@emulates/parity": "workspace:*",
-    "@emulates/credentials": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/http-codec": "workspace:*",
-    "@emulates/adapter-node": "workspace:*"
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*"
   }
 }

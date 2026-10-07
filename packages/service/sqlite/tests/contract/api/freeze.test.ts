@@ -13,15 +13,15 @@ describe("public API exports", () => {
   test("package.json exports ., ./admin, ./socket and ./unstable", () => {
     const pkg = JSON.parse(readFileSync(join(import.meta.dir, "../../../package.json"), "utf8")) as {
       exports: Record<string, unknown>;
-      emulates?: { entries?: Record<string, string> };
+      mockingbird?: { entries?: Record<string, string> };
     };
     expect(Object.keys(pkg.exports).sort()).toEqual([".", "./admin", "./socket", "./unstable"]);
     // The socket server is a Node-only entry. Admin, main, and unstable stay portable.
-    expect(pkg.emulates?.entries).toEqual({ "socket/index": "node", "socket/cli": "node" });
+    expect(pkg.mockingbird?.entries).toEqual({ "socket/index": "node", "socket/cli": "node" });
   });
 
   test("deep package subpaths are not exported", async () => {
-    await expect(import("@emulates/sqlite/dist/api/database.js")).rejects.toBeDefined();
+    await expect(import("@crvouga/mockingbird-service-sqlite/dist/api/database.js")).rejects.toBeDefined();
   });
 });
 

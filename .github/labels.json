@@ -7,22 +7,22 @@
   {
     "name": "parity",
     "color": "d93f0b",
-    "description": "The emulator and its oracle answer the same requests differently"
+    "description": "The mock and its oracle answer the same requests differently"
   },
   {
     "name": "feature",
     "color": "0e8a16",
-    "description": "An existing emulator lacks an operation, parameter, event or behavior"
+    "description": "An existing mock lacks an operation, parameter, event or behavior"
   },
   {
     "name": "bug",
     "color": "d73a4a",
-    "description": "An emulator crashes, leaks state, contradicts its README, or does not build"
+    "description": "A mock crashes, leaks state, contradicts its README, or does not build"
   },
   {
     "name": "new-service",
     "color": "1d76db",
-    "description": "Request for a vendor API the catalog does not emulate yet"
+    "description": "Request for a vendor API the catalog does not mock yet"
   },
   {
     "name": "needs-info",

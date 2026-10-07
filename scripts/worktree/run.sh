@@ -20,7 +20,7 @@ echo $$ >"$DEV_PID_FILE"
 
 port="$(reserve_docs_port)"
 write_port_files "$port"
-export EMULATES_DOCS_PORT="$port"
+export MOCKINGBIRD_DOCS_PORT="$port"
 if [ -z "${NODE_OPTIONS:-}" ]; then
   export NODE_OPTIONS="--max-old-space-size=4096"
 fi

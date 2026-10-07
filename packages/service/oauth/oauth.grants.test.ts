@@ -14,7 +14,7 @@ const field = (html: string, name: string) =>
 const form = (path: string, body: Record<string, string>, ns?: string) =>
   new Request(origin + path, {
     method: "POST",
-    headers: ns ? { "x-emulates-namespace": ns } : {},
+    headers: ns ? { "x-mockingbird-namespace": ns } : {},
     body: new URLSearchParams(body),
   })
 const AUTHORIZE: Record<string, string> = { apple: "/auth/authorize", google: "/o/oauth2/v2/auth" }
@@ -41,7 +41,7 @@ async function authorize(
   })
   const start = await runtime.fetch(
     new Request(`${origin}${AUTHORIZE[provider] ?? "/authorize"}?${query}`, {
-      headers: options.ns ? { "x-emulates-namespace": options.ns } : {},
+      headers: options.ns ? { "x-mockingbird-namespace": options.ns } : {},
     }),
   )
   const tx = field(await start.text(), "transaction")
@@ -160,7 +160,7 @@ test("5. the admin route answers per account, per email and per client, and resp
   const byEmail = await admin(runtime, "/grants?clientId=app&email=ADA@example.test&namespace=a")
   expect(byEmail.body).toEqual(byId.body)
   const list = await admin(runtime, "/grants?clientId=app", {
-    headers: { "x-emulates-namespace": "a" },
+    headers: { "x-mockingbird-namespace": "a" },
   })
   expect(list.body.grants).toEqual([{ accountId: "ada", ...byId.body }])
   // Another namespace has not seen the authorization.

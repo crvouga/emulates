@@ -1,5 +1,5 @@
 {
-  "name": "@emulates/model",
+  "name": "@crvouga/mockingbird-model",
   "version": "0.0.0-development",
   "private": true,
   "description": "Provider-neutral symbolic resource model for differential testing: handles, per-side id tables, placeholders and canonical tokens.",
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/parity/model"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/parity/model#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/parity/model#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "parity",
     "model"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "parity"
   },
@@ -41,6 +41,6 @@
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulates/testing": "workspace:*"
+    "@crvouga/mockingbird-testing": "workspace:*"
   }
 }

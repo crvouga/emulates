@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { ParityError, type ParityOptions, parity } from "@emulates/parity"
-import { fcParameters } from "@emulates/testing"
+import { ParityError, type ParityOptions, parity } from "@crvouga/mockingbird-parity"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import { document, SentryAPI, supportedOperationIds } from "./src/index.js"
 
 const params = fcParameters(process.env)

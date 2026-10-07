@@ -1,10 +1,10 @@
 /// <reference types="node" />
 import { readFileSync } from "node:fs"
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { validateAccounts } from "./accounts.js"
 import { createRuntime, type StripeRuntime, type StripeRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-stripe serve` listens on when none is given. */
+/** Port `mockingbird-stripe serve` listens on when none is given. */
 export const DEFAULT_PORT = 12111
 
 export type StripeServerOptions = StripeRuntimeOptions & {

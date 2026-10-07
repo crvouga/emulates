@@ -34,13 +34,13 @@ const incomplete = (jwt: string) => ({
   headers: { authorization: `Bearer ${jwt}` },
 })
 
-describe("the Emulates service contract", () => {
-  test("/__admin/health, the x-emulates header, and /__admin lists the VPI routes", async () => {
+describe("the Mockingbird service contract", () => {
+  test("/__admin/health, the x-mockingbird header, and /__admin lists the VPI routes", async () => {
     const runtime = createRuntime()
     const health = await call(runtime, "/__admin/health")
     expect(health.status).toBe(200)
     expect(((await health.json()) as { service: string }).service).toBe("vpi")
-    expect(health.headers.get("x-emulates")).toMatch(/^vpi@.+; ns=default$/)
+    expect(health.headers.get("x-mockingbird")).toMatch(/^vpi@.+; ns=default$/)
     const index = await (await call(runtime, "/__admin")).text()
     for (const route of ["/prescriptions/:id/transition", "/patients", "/settings", "/catalog"]) {
       expect(index).toContain(route)
@@ -77,7 +77,7 @@ describe("the Emulates service contract", () => {
     const jwt = await login(runtime)
     const save = await call(runtime, "/__admin/patients", {
       body: { firstName: "Only", lastName: "InA", dateOfBirth: "1990-01-01" },
-      headers: { "x-emulates-namespace": "a" },
+      headers: { "x-mockingbird-namespace": "a" },
     })
     expect(save.status).toBe(201)
     const roster = async (prefix: string, headers: Record<string, string> = {}) =>
@@ -95,7 +95,7 @@ describe("the Emulates service contract", () => {
         ).json()) as { patients: unknown[] }
       ).patients.length
     expect(await roster("/__admin/ns/a")).toBe(2)
-    expect(await roster("", { "x-emulates-namespace": "a" })).toBe(2)
+    expect(await roster("", { "x-mockingbird-namespace": "a" })).toBe(2)
     expect(await roster("/__admin/ns/b")).toBe(1)
     expect(await roster("")).toBe(1)
     await call(runtime, "/__admin/reset?namespace=a", { method: "POST" })
@@ -108,14 +108,14 @@ describe("the Emulates service contract", () => {
     expect(await list.json()).toEqual([])
   })
 
-  test("admin errors use the emulates_admin shape; settings validate", async () => {
+  test("admin errors use the mockingbird_admin shape; settings validate", async () => {
     const runtime = createRuntime()
     const missing = await call(runtime, "/__admin/prescriptions/nope/transition", {
       body: { to: "Cancelled" },
     })
     expect(missing.status).toBe(404)
     expect(((await missing.json()) as { error: { type: string } }).error.type).toBe(
-      "emulates_admin",
+      "mockingbird_admin",
     )
     expect(
       (await call(runtime, "/__admin/settings", { method: "PUT", body: { statusEnvelope: "xml" } }))
@@ -133,7 +133,7 @@ describe("the Emulates service contract", () => {
     const jwt = await login(runtime)
     await call(runtime, "/__admin/faults", {
       body: { preset: "server_error" },
-      headers: { "x-emulates-namespace": "broken" },
+      headers: { "x-mockingbird-namespace": "broken" },
     })
     expect(
       (

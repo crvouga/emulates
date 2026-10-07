@@ -1,6 +1,6 @@
 # Testing and parity
 
-How every emulator is proven to behave like its vendor: differential contracts, property-based walks, and live parity against real sandboxes.
+How every mock is proven to behave like its vendor: differential contracts, property-based walks, and live parity against real sandboxes.
 
 Validation combines differential contracts, focused unit and integration tests, fuzzing, and
 **property-based testing (PBT)** with [fast-check](https://fast-check.dev/). Stateful API walks are
@@ -9,12 +9,12 @@ PostgreSQL oracles. Property failures shrink to a minimal reproduction.
 
 Two properties, same generator:
 
-1. **Self-parity** (CI, no credentials) — two independent emulator instances agree after every command, and every emulator response conforms to the spec.
-2. **Live parity** (`bun run parity`, sandbox keys required) — the same walk against the real sandbox / test API and a fresh emulator. Responses are canonicalized (volatile ids, timestamps, tokens) then compared.
+1. **Self-parity** (CI, no credentials) — two independent mock instances agree after every command, and every mock response conforms to the spec.
+2. **Live parity** (`bun run parity`, sandbox keys required) — the same walk against the real sandbox / test API and a fresh mock. Responses are canonicalized (volatile ids, timestamps, tokens) then compared.
 
 ```ts
-import { parity } from "@emulates/parity"
-import { document, StripeAPI } from "@emulates/stripe"
+import { parity } from "@crvouga/mockingbird-parity"
+import { document, StripeAPI } from "@crvouga/mockingbird-service-stripe"
 
 const now = () => 1_700_000_000_000
 const create = () => new StripeAPI({ now })
@@ -26,7 +26,7 @@ await parity({
   real: {
     baseUrl: "https://mock.stripe.local",
     allowedHosts: ["mock.stripe.local"],
-    headers: () => ({ authorization: "Bearer sk_test_emulates" }),
+    headers: () => ({ authorization: "Bearer sk_test_mockingbird" }),
     fetch: (request) => reference.fetch(request),
   },
   mock: { create },
@@ -41,7 +41,7 @@ FC_SEED=12345 FC_NUM_RUNS=100 bun test
 
 # Junction parity accepts explicit walk parameters
 bun parity -- --runs 10 --steps 10
-EMULATES_TRACE=1 bun run parity:stripe
+MOCKINGBIRD_TRACE=1 bun run parity:stripe
 ```
 
 `bun test` runs each package's appropriate test suite. `bun run parity` (and `parity:stripe` /
@@ -52,10 +52,10 @@ Credentials load from the environment (`.env.local`); without local keys, `bun r
 OpenAPI spec
   → command generator (valid + invalid + missing refs)
   → random stateful walk
-       ├─ emulator A  ─┐
-       └─ emulator B  ─┴─ self-parity (CI)
+       ├─ mock A  ─┐
+       └─ mock B  ─┴─ self-parity (CI)
        ├─ real sandbox ─┐
-       └─ emulator      ┴─ live parity (credentials)
+       └─ mock          ┴─ live parity (credentials)
   → canonicalize (strip ids / timestamps / tokens)
   → structural diff; shrink on failure
 ```
@@ -71,7 +71,7 @@ OpenAPI spec
 | `cd packages/service/oauth && bun run parity` | Google, Apple, Microsoft discovery/JWKS plus GitHub REST auth error | None; public, read-only metadata |
 | `bun run parity:service -- <name…> \| --all \| --tier=<tier>` | each service's sandbox | `<NAME>_*` in env; reports `parity`, `diverged`, or `no credentials` per service |
 | `bun run parity:remote -- <name…> \| --all \| --tier=<tier>` | each service's sandbox, on GitHub Actions | the repo's `<NAME>_*` secrets; nothing local. Dispatches the [Parity workflow](../.github/workflows/parity.yml) on the pushed branch and streams its log |
-| `bun run verify:junction` | Junction sandbox | `emulates-junction verify`: corpus drift plus a stateful scenario; also runs daily in the [Verify workflow](../.github/workflows/verify.yml) |
+| `bun run verify:junction` | Junction sandbox | `mockingbird-junction verify`: corpus drift plus a stateful scenario; also runs daily in the [Verify workflow](../.github/workflows/verify.yml) |
 
 ### Parity tiers
 
@@ -79,7 +79,7 @@ Live parity spends a vendor's rate limit, so each service declares how often it 
 `package.json` (`scripts/parity-tiers.ts` is the only reader):
 
 ```json
-"emulates": { "…": "…", "parityTier": "cold" }
+"mockingbird": { "…": "…", "parityTier": "cold" }
 ```
 
 | Tier | Runs | Where |
@@ -90,13 +90,13 @@ Live parity spends a vendor's rate limit, so each service declares how often it 
 
 A hot service runs only when its dependency graph changed: its own package, or any workspace
 package it depends on, directly or transitively (Turborepo's graph, read by
-`scripts/affected.ts`). Modifying emulator A never runs emulator B; modifying `core` runs every hot
+`scripts/affected.ts`). Modifying mock A never runs mock B; modifying `core` runs every hot
 service that depends on it. Edits that cannot change a result (`*.md`, tests) are ignored. Outside
 the graph, `tsconfig.base.json` (a turbo global dependency), `scripts/bundle-service*.ts`,
 `scripts/parity-service.ts` and a `bun.lock` change to an external package or to the root reach every
 hot service; a `bun.lock` change to one workspace's own entry reaches that service; root config,
 workflows and docs reach none. A service lists files it reads beyond its graph in
-`emulates.parityInputs` (junction: `PARITY_FAILURE_SEED_REGISTRY.json`).
+`mockingbird.parityInputs` (junction: `PARITY_FAILURE_SEED_REGISTRY.json`).
 
 A service with no `parityTier` is cold, and every service starts there. **To promote one, change
 that one value** (`cold` → `warm` → `hot`); no workflow names a service. A manual run takes any

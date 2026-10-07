@@ -1,5 +1,5 @@
 {
-  "name": "@emulates/support",
+  "name": "@crvouga/mockingbird-service-support",
   "version": "0.0.0-development",
   "description": "Work-in-progress Amazon Support API transport scaffold; vendor operations are not implemented.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulates-support": "./dist/cli.js"
+    "mockingbird-support": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,17 +34,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/support"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/support#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/support#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "aws",
     "support",
-    "emulator"
+    "mock"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -87,7 +87,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- support",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -98,7 +98,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -114,18 +114,18 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*"
+    "@crvouga/mockingbird-service-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@emulates/adapter-node": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/parity": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/testing": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

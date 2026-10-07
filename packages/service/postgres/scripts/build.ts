@@ -72,7 +72,7 @@ if (rewritten === 0) {
 // consumers need only the published Postgres package, as they do for /admin.
 const fleetTypes = await rollup({
   input: "dist/wire/fleet.d.ts",
-  external: (id) => !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("@emulates/"),
+  external: (id) => !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("@crvouga/mockingbird"),
   plugins: [dts({ respectExternal: true, tsconfig: "tsconfig.build.wire.json" })],
   onwarn: (warning) => {
     throw new Error(warning.message);

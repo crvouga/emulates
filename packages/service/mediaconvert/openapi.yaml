@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: AWS Elemental MediaConvert (Emulates subset)
+  title: AWS Elemental MediaConvert (Mockingbird subset)
   version: "2017-08-29"
   description: AWS REST-JSON contract used by the pinned MediaConvert client.
 servers:
@@ -9,7 +9,7 @@ paths:
   /2017-08-29/endpoints:
     post:
       operationId: DescribeEndpoints
-      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
       requestBody: { content: { application/json: { schema: { type: object, additionalProperties: true } } } }
       responses:
         "200": { description: Endpoint response, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -17,7 +17,7 @@ paths:
   /2017-08-29/jobs:
     post:
       operationId: CreateJob
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       requestBody: { required: true, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
       responses:
         "201": { description: Created job, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -27,13 +27,13 @@ paths:
       - { name: id, in: path, required: true, schema: { type: string } }
     get:
       operationId: GetJob
-      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
       responses:
         "200": { description: Job response, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
         "404": { description: Not found, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
     delete:
       operationId: CancelJob
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       responses:
         "202": { description: Canceled job, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
         "409": { description: Conflict, content: { application/json: { schema: { type: object, additionalProperties: true } } } }

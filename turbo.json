@@ -34,11 +34,11 @@
       "env": [
         "FC_SEED",
         "FC_NUM_RUNS",
-        "EMULATES_MAX_COMMANDS",
-        "EMULATES_TRACE",
-        "EMULATES_MEDPLUM_ORACLE",
-        "EMULATES_MEDPLUM_ORACLE_URL",
-        "EMULATES_MEDPLUM_VERSION",
+        "MOCKINGBIRD_MAX_COMMANDS",
+        "MOCKINGBIRD_TRACE",
+        "MOCKINGBIRD_MEDPLUM_ORACLE",
+        "MOCKINGBIRD_MEDPLUM_ORACLE_URL",
+        "MOCKINGBIRD_MEDPLUM_VERSION",
         "MEDPLUM_MOCK_CACHE_DIR"
       ],
       "inputs": ["$TURBO_DEFAULT$", "!README.md"],
@@ -63,8 +63,8 @@
       "passThroughEnv": [
         "FC_SEED",
         "FC_NUM_RUNS",
-        "EMULATES_MAX_COMMANDS",
-        "EMULATES_TRACE",
+        "MOCKINGBIRD_MAX_COMMANDS",
+        "MOCKINGBIRD_TRACE",
         "WEBHOOK_READ_TOKEN",
         "GENE_BY_GENE_*",
         "AHA_*",

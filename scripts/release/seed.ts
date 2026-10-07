@@ -1,7 +1,7 @@
 /**
  * Seed npm: reconcile the npm registry with origin/main, from your own npm login.
  *
- * Only emulator services (`@emulates/*`) are published; every other
+ * Only mock services (`@crvouga/mockingbird-service-*`) are published; every other
  * workspace package is private and bundled into the services. Reconciling means:
  *   - publish every service that is not on npm yet (Trusted Publishing (OIDC) cannot
  *     create packages, so a maintainer does it once with an interactive npm login),
@@ -54,7 +54,7 @@ function npmIsRecentEnough(version: string): boolean {
   return major > MIN_NPM[0] || (major === MIN_NPM[0] && minor >= MIN_NPM[1])
 }
 
-const scratch = mkdtempSync(join(tmpdir(), "emulates-seed-"))
+const scratch = mkdtempSync(join(tmpdir(), "mockingbird-seed-"))
 const worktree = join(scratch, "main")
 const env: Record<string, string | undefined> = { ...process.env }
 delete env.NODE_AUTH_TOKEN

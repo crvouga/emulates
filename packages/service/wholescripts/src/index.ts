@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -14,15 +14,15 @@ import {
   type OperationContext,
   opaqueToken,
   type Service,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { type Catalog, orderableSkus, unitPrice } from "./catalog.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { type OrderRecord, type Settings, type Tracking, WholescriptsState } from "./state.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type {
   Catalog,
   MedPaxDetails,

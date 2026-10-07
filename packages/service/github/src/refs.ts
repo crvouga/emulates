@@ -4,7 +4,7 @@ import {
   jsonRes,
   markMutationAccepted,
   type OperationHandler,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import { type GitHubState, RefError, record } from "./state.js"
 
 export const validRef = (value: string): boolean =>
@@ -46,8 +46,8 @@ export const refHandlers = (
           throw new RefError(422, "Reference name is not valid")
         if (ref.startsWith("refs/pull/"))
           return jsonRes(501, {
-            code: "emulates_unsupported",
-            message: "Emulates does not model provider-managed pull refs",
+            code: "mockingbird_unsupported",
+            message: "Mockingbird does not model provider-managed pull refs",
           })
         if (kind === "update" && input.force !== undefined && typeof input.force !== "boolean")
           throw new RefError(422, "Invalid request: force must be boolean")

@@ -5,8 +5,8 @@ import {
   isAdminPath,
   matchNamespacePath,
   resolveAdminPrefix,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { createRuntime, type OAuthRuntime, type OAuthRuntimeOptions } from "./runtime.js"
 import type { Provider } from "./types.js"
 
@@ -138,9 +138,9 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         isAdminPath(url.pathname, adminPrefix) &&
         !matchNamespacePath(url.pathname, adminPrefix) &&
         options.adminKey !== undefined &&
-        request.headers.get("x-emulates-admin-key") !== options.adminKey
+        request.headers.get("x-mockingbird-admin-key") !== options.adminKey
       )
-        return json({ error: { type: "emulates_admin", message: "invalid admin key" } }, 401)
+        return json({ error: { type: "mockingbird_admin", message: "invalid admin key" } }, 401)
       if (url.pathname === `${adminPrefix}/mounts` && request.method === "GET")
         return json({
           mounts: options.mounts.map(({ path, provider, issuer }) => ({ path, provider, issuer })),
@@ -150,7 +150,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
           url.searchParams.get("all") === "1"
             ? "*"
             : (url.searchParams.get("namespace") ??
-              request.headers.get("x-emulates-namespace") ??
+              request.headers.get("x-mockingbird-namespace") ??
               "default")
         await reset(namespace)
         return json({ status: "ok", mounts: [...runtimes.keys()], namespace })
@@ -162,7 +162,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         const selected = url.searchParams.get("mount")
         const runtime = selected && runtimes.get(selected)
         if (!runtime)
-          return json({ error: { type: "emulates_admin", message: "mount is required" } }, 400)
+          return json({ error: { type: "mockingbird_admin", message: "mount is required" } }, 400)
         url.searchParams.delete("mount")
         return runtime.fetch(new Request(url, request))
       }
@@ -174,7 +174,7 @@ export function createMultiRuntime(options: OAuthMultiRuntimeOptions): OAuthMult
         if (path !== mount && !path.startsWith(`${mount}/`)) continue
         return runtime.fetch(withoutMount(request, namespacePrefix, path.slice(mount.length)))
       }
-      return json({ error: { type: "emulates_not_found", message: "unknown OAuth mount" } }, 404)
+      return json({ error: { type: "mockingbird_not_found", message: "unknown OAuth mount" } }, 404)
     },
   }
 }

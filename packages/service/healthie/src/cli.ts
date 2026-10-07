@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-healthie",
-    description: "Healthie GraphQL API emulator",
+    bin: "mockingbird-healthie",
+    description: "stateful Healthie GraphQL API mock",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

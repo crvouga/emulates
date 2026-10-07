@@ -17,7 +17,7 @@ export const consumer = (
         ...init,
         headers: {
           authorization: `Bearer ${DEFAULT_TOKEN}`,
-          ...(namespace ? { "x-emulates-namespace": namespace } : {}),
+          ...(namespace ? { "x-mockingbird-namespace": namespace } : {}),
           ...Object.fromEntries(new Headers(init.headers)),
         },
       }),

@@ -48,7 +48,7 @@ const errorName = async (action: () => Promise<unknown>) => {
 
 export async function s3Scenario(endpoint: string) {
   const client = new S3Client({ ...config(endpoint), forcePathStyle: true })
-  const bucket = `emulates-parity-${crypto.randomUUID()}`
+  const bucket = `mockingbird-parity-${crypto.randomUUID()}`
   const keys: string[] = []
   try {
     await client.send(new CreateBucketCommand({ Bucket: bucket }))
@@ -233,7 +233,7 @@ export async function s3Scenario(endpoint: string) {
 
 export async function sqsScenario(endpoint: string) {
   const client = new SQSClient(config(endpoint))
-  const name = `emulates-parity-${crypto.randomUUID()}`
+  const name = `mockingbird-parity-${crypto.randomUUID()}`
   let QueueUrl: string | undefined
   let fifoUrl: string | undefined
   try {
@@ -355,7 +355,7 @@ export async function sqsScenario(endpoint: string) {
 export async function criticalParity(
   service: "s3" | "sqs",
   mockUrl: string,
-  oracleUrl = process.env.EMULATES_AWS_ORACLE_URL ?? "http://127.0.0.1:4566",
+  oracleUrl = process.env.MOCKINGBIRD_AWS_ORACLE_URL ?? "http://127.0.0.1:4566",
 ) {
   const host = new URL(oracleUrl).hostname
   if (

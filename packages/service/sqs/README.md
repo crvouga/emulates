@@ -1,23 +1,23 @@
-# @emulates/sqs
+# @crvouga/mockingbird-service-sqs
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful Amazon SQS emulator for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
+Stateful Amazon SQS mock for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
 
 ## Install
 
 ```bash
-npm install -D @emulates/sqs
+npm install -D @crvouga/mockingbird-service-sqs
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
 
 ## Usage
 
-Point `SQS_ENDPOINT_URL` or the AWS SDK `endpoint` option at the served emulator. Fixture SigV4 credentials are accepted.
+Point `SQS_ENDPOINT_URL` or the AWS SDK `endpoint` option at the served mock. Fixture SigV4 credentials are accepted.
 
 ```ts
-import { createServer } from "@emulates/sqs/server"
+import { createServer } from "@crvouga/mockingbird-service-sqs/server"
 
 const mock = await createServer({
   queues: [{ name: "jobs", attributes: { VisibilityTimeout: "30" } }],
@@ -34,7 +34,7 @@ Supported operations are CreateQueue, GetQueueUrl, GetQueueAttributes, SendMessa
 - `POST /__admin/queues/:name/drain` atomically empties one queue.
 - Fault presets are `throttled` and one-shot `unavailable`; generic faults can delay or duplicate a receive at the caller level.
 
-The shared runtime supplies reset, clock, journal, timeline, metrics, faults, and namespace isolation. Select a namespace through `x-emulates-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
+The shared runtime supplies reset, clock, journal, timeline, metrics, faults, and namespace isolation. Select a namespace through `x-mockingbird-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.
 
 ### Deliberately not modelled
 
@@ -44,7 +44,7 @@ Operations outside the surface listed above, IAM policy evaluation, server-side 
 
 - `SqsAPI`, `SqsAPIOptions`, `SqsSeedQueue`: AWS JSON handler and fixtures.
 - `SqsMessage`, `SqsMessageAttribute`, `SqsQueue`: state types.
-- `createRuntime`, `SqsRuntime`, `SqsRuntimeOptions`: full Emulates runtime.
+- `createRuntime`, `SqsRuntime`, `SqsRuntimeOptions`: full Mockingbird runtime.
 - `SQS_NAMESPACE`, `SQS_PRESETS`, `accessKeyCredential`: constants and controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.
 - `createServer`, `SqsServerOptions`, `DEFAULT_PORT`, `serveTarget` from `./server`: Node HTTP adapter and CLI integration.

@@ -1,6 +1,6 @@
-# @emulates/tavily
+# @crvouga/mockingbird-service-tavily
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP scripted Tavily search and extraction. No public URLs are fetched. Contract references:
 [Search](https://docs.tavily.com/documentation/api-reference/endpoint/search),
@@ -9,12 +9,12 @@ WIP scripted Tavily search and extraction. No public URLs are fetched. Contract 
 
 ## Install
 
-`bun add @emulates/tavily`
+`bun add @crvouga/mockingbird-service-tavily`
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/tavily/server"
+import { createServer } from "@crvouga/mockingbird-service-tavily/server"
 const server = await createServer({
   searches: [{ query: "fixture", results: [
     { title: "Example", url: "https://example.test", content: "Synthetic", score: 0.9 },
@@ -24,7 +24,7 @@ const server = await createServer({
 await server.close()
 ```
 
-CLI: `emulates-tavily serve --port 12130`. Configure the consumer factory's api_base_url;
+CLI: `mockingbird-tavily serve --port 12130`. Configure the consumer factory's api_base_url;
 the SDK has no required global endpoint environment variable. If your app reads TAVILY_API_KEY,
 set it to mock_tavily_key in local tests. HTTP authentication is Bearer, exactly as emitted by
 AsyncTavilyClient 0.7.17, not a JSON api_key body field.
@@ -46,7 +46,7 @@ Invalid/missing keys return 401 with detail.error. No real credentials belong in
 Search results may include scripted answer and response_time (numeric seconds, default zero).
 
 The standard /__admin provides state, reset, Timeline, clock, journal, metrics, health and UI.
-Namespaces: x-emulates-namespace, /__admin/ns/name and Bearer credential mapping through
+Namespaces: x-mockingbird-namespace, /__admin/ns/name and Bearer credential mapping through
 PUT /__admin/credentials. Journals contain metadata only, not query text, content or credentials.
 No webhooks are emitted. Presets: invalid_key, quota_exceeded, plan_limit, payg_limit,
 internal_error, timeout (one-second latency), connection_drop. Generic faults also support
@@ -55,7 +55,7 @@ deterministic latency. The clock is available for consumer workflows; no quota s
 ## Verification
 
 `bun test` runs acceptance, independent OpenAPI self-parity and divergence detection.
-`bun scripts/sdk.ts` runs exact tavily-python 0.7.17 using uv against the served emulator:
+`bun scripts/sdk.ts` runs exact tavily-python 0.7.17 using uv against the served mock:
 AsyncTavilyClient search/extract, InvalidAPIKeyError, UsageLimitExceededError, ForbiddenError and TimeoutError.
 No real API key or crawl is used. `bun run parity` requires TAVILY_API_KEY and sends only an invalid
 missing-query request to compare validation status, never a search or extraction. Missing credentials

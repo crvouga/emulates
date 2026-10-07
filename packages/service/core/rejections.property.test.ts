@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { parseOpenAPIDocument } from "@emulates/openapi"
-import { fcParameters } from "@emulates/testing"
+import { parseOpenAPIDocument } from "@crvouga/mockingbird-openapi"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   type BodyIssue,

@@ -27,7 +27,7 @@ const start = () =>
   })
 
 test("private protocol credentials are absent from readiness and aggregate health", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "emulates-credentials-"))
+  const dir = await mkdtemp(join(tmpdir(), "mockingbird-credentials-"))
   const connectionsFile = join(dir, "private.json")
   const readyFile = join(dir, "ready.json")
   const emitted: unknown[] = []

@@ -1,8 +1,8 @@
-# @emulates/medplum
+# @crvouga/mockingbird-service-medplum
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful, in-process emulator of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
+Stateful, in-process mock of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
 for test suites. It covers:
 
 - **FHIR R4 REST**: create, read, update, delete, conditional writes, JSON Patch, versioning and
@@ -24,16 +24,16 @@ the only Node-specific parts.
 
 Parity is proven against the real thing. Every scenario in `test/scenarios` (32 scenarios, 481
 exchanges: status, headers and body) and seeded random walks run against a self-hosted Medplum
-v5.1.37 and the emulator, and they must agree exchange by exchange. The oracle's recording replays
+v5.1.37 and the mock, and they must agree exchange by exchange. The oracle's recording replays
 in CI.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/medplum/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/medplum/SUPPORT.md)
 - Medplum docs: https://www.medplum.com/docs · FHIR R4: https://hl7.org/fhir/R4/
 
 ## Install
 
 ```bash
-npm install -D @emulates/medplum
+npm install -D @crvouga/mockingbird-service-medplum
 ```
 
 ESM only. Requires Node >= 22 or Bun >= 1.2 (any runtime with WebCrypto and
@@ -47,7 +47,7 @@ ESM only. Requires Node >= 22 or Bun >= 1.2 (any runtime with WebCrypto and
 ```ts
 import { MedplumClient } from "@medplum/core"
 import type { Patient } from "@medplum/fhirtypes"
-import { DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET, MedplumAPI } from "@emulates/medplum"
+import { DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET, MedplumAPI } from "@crvouga/mockingbird-service-medplum"
 
 const mock = new MedplumAPI() // answers as http://localhost:8103/
 const medplum = new MedplumClient({
@@ -68,16 +68,16 @@ await mock.reset() // back to the seeded state
 
 Every `MedplumAPI` seeds what a fresh self-hosted server seeds, which is the super admin
 (`admin@example.com` / `medplum_admin`) and the R4 base project. It also seeds a ready project,
-**Emulates** (`DEFAULT_PROJECT_ID`), with a project-admin client application
+**Mockingbird** (`DEFAULT_PROJECT_ID`), with a project-admin client application
 (`DEFAULT_CLIENT_ID` / `DEFAULT_CLIENT_SECRET`). Pass `project: false` to seed only what the
 server does.
 
-### `emulates-medplum serve`
+### `mockingbird-medplum serve`
 
 ```bash
-npx emulates-medplum serve                     # http://127.0.0.1:8103
-npx emulates-medplum serve --port 0 --client-id 0b9e4a5c-0000-4000-8000-00000000c1d1 --client-secret local
-npx emulates-medplum serve --help
+npx mockingbird-medplum serve                     # http://127.0.0.1:8103
+npx mockingbird-medplum serve --port 0 --client-id 0b9e4a5c-0000-4000-8000-00000000c1d1 --client-secret local
+npx mockingbird-medplum serve --help
 ```
 
 | Flag | Default | Meaning |
@@ -88,9 +88,9 @@ npx emulates-medplum serve --help
 | `--client-id <uuid>` / `--client-secret <secret>` | `DEFAULT_CLIENT_ID` / `DEFAULT_CLIENT_SECRET` | The default project's client application |
 | `--project-id <uuid>` | `DEFAULT_PROJECT_ID` | The default project's id |
 | `--super-admin-email <email>` / `--super-admin-password <password>` | `admin@example.com` / `medplum_admin` | The seeded super admin |
-| `--admin-key <key>` | open | Require `x-emulates-admin-key` on `/__admin/*` |
+| `--admin-key <key>` | open | Require `x-mockingbird-admin-key` on `/__admin/*` |
 | `--log <pretty\|json\|off>` | `pretty` | One line per request |
-| `--config <file>` | — | Serve every service in a `emulates.json` (use `"medplum"` as the service name) |
+| `--config <file>` | — | Serve every service in a `mockingbird.json` (use `"medplum"` as the service name) |
 
 It prints the listening address and the seeded client credentials. Point `MedplumClient`
 (`baseUrl: "http://127.0.0.1:8103/"`) or your backend's Medplum base URL at it.
@@ -99,7 +99,7 @@ It prints the listening address and the seeded client credentials. Point `Medplu
 
 ```ts
 import { MedplumClient } from "@medplum/core"
-import { createServer } from "@emulates/medplum/server"
+import { createServer } from "@crvouga/mockingbird-service-medplum/server"
 
 const server = await createServer() // any free port; the base URL is the listening address
 const medplum = new MedplumClient({ baseUrl: `${server.url}/` })
@@ -112,18 +112,18 @@ await server.close()
 
 ### `createRuntime` (any Fetch server)
 
-`createRuntime` is the whole served emulator as a single runtime-neutral `fetch(request)`. That
+`createRuntime` is the whole served mock as a single runtime-neutral `fetch(request)`. That
 includes health, the `/__admin/*` control plane, namespaces, the clock, faults and the request
 journal. Hand it to `Bun.serve`, a Worker or Deno, or call it directly:
 
 ```ts
-import { createRuntime } from "@emulates/medplum"
+import { createRuntime } from "@crvouga/mockingbird-service-medplum"
 
 const medplum = createRuntime({ baseUrl: "https://medplum.test/" })
 export default { fetch: (request: Request) => medplum.fetch(request) }
 ```
 
-Namespaces isolate data. A request picks one with `x-emulates-namespace: <name>`, with a
+Namespaces isolate data. A request picks one with `x-mockingbird-namespace: <name>`, with a
 `/__admin/ns/<name>/` base-URL prefix (`new MedplumClient({ baseUrl: "http://localhost:8103/__admin/ns/worker-1/" })`),
 or through its client id (`PUT /__admin/credentials {"credentials": {"<clientId>": "<namespace>"}}`).
 A client is recognized from Basic auth, from a bearer token's `client_id`, or from the
@@ -192,11 +192,11 @@ emulated.
 | Export | Description |
 | --- | --- |
 | `MedplumAPI` | Class. `new MedplumAPI(options?)`; `fetch(request: Request): Promise<Response>` is the Medplum server. |
-| `createRuntime` | `(options?: MedplumRuntimeOptions) => MedplumRuntime` — the served emulator with the Emulates service contract. |
+| `createRuntime` | `(options?: MedplumRuntimeOptions) => MedplumRuntime` — the served mock with the Mockingbird service contract. |
 | `MEDPLUM_PRESETS` | The fault presets above, as `Record<string, FaultPreset>`. |
 | `MEDPLUM_NAMESPACE` | `"medplum"` — the service name and default namespace. |
 | `document` | The vendored OpenAPI contract (`openapi.yaml`). |
-| `operationIds` / `supportedOperationIds` | Every operation id in the contract / the ones the emulator serves. |
+| `operationIds` / `supportedOperationIds` | Every operation id in the contract / the ones the mock serves. |
 | `DEFINITIONS_VERSION` | The `@medplum/definitions` release the embedded FHIR definitions come from. |
 | `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` | `"admin@example.com"` / `"medplum_admin"` — the server's seeded super admin. |
 | `SUPER_ADMIN_CLIENT_ID` / `SUPER_ADMIN_CLIENT_SECRET` | The super admin's client application (`client_credentials` as super admin). |
@@ -229,7 +229,7 @@ type MedplumAPIOptions = {
   now?: () => number        // clock for meta.lastUpdated, token lifetimes; default Date.now
   namespace?: string        // storage namespace; default "medplum"
   seed?: number | string    // seeds generated ids and secrets; default the namespace
-  sqlite?: SqliteClient     // default @emulates/sqlite
+  sqlite?: SqliteClient     // default @crvouga/mockingbird-service-sqlite
   superAdmin?: { email?, password?, clientId?, clientSecret? }
   project?: false | { id?, name?, clientId?, clientSecret?, clientAdmin?, users?: MedplumUserFixture[] }
   maxSearchOffset?: number  // largest _offset accepted; default unlimited, as on the server
@@ -238,24 +238,24 @@ type MedplumUserFixture = { email; password; firstName?; lastName?; profileType?
 type MedplumRuntimeOptions = Omit<MedplumAPIOptions, "now" | "namespace"> & { clock?; adminKey?; onLog?; journalSize? }
 ```
 
-Ids and secrets are deterministic per namespace and seed, so two emulators given the same requests
+Ids and secrets are deterministic per namespace and seed, so two mocks given the same requests
 return the same ids.
 
 ## Development
 
-For contributors to the Emulates repo only.
+For contributors to the mockingbird repo only.
 
 ```bash
 bun run test                          # unit, SDK, auth, runtime, property and recorded-oracle tests
 bun run portability                   # bundle for the browser platform and run it in workerd
 bun run parity                        # boot a self-hosted Medplum and run every scenario and random walks live
 bun run oracle:record                 # refresh test/fixtures/oracle-recording.json from the oracle
-EMULATES_MEDPLUM_ORACLE=1 bun test medplum.oracle.test.ts   # the live comparison as a test
-EMULATES_MEDPLUM_ORACLE_URL=http://127.0.0.1:8103/ bun test medplum.oracle.test.ts
+MOCKINGBIRD_MEDPLUM_ORACLE=1 bun test medplum.oracle.test.ts   # the live comparison as a test
+MOCKINGBIRD_MEDPLUM_ORACLE_URL=http://127.0.0.1:8103/ bun test medplum.oracle.test.ts
 ```
 
 The oracle (`oracle/`, dev-only) is the real Medplum server built from the pinned tag
-(`EMULATES_MEDPLUM_VERSION`, default `v5.1.37`) into `~/.cache/emulates/medplum-server`
+(`MOCKINGBIRD_MEDPLUM_VERSION`, default `v5.1.37`) into `~/.cache/mockingbird/medplum-server`
 (`MEDPLUM_MOCK_CACHE_DIR`). It runs on embedded Postgres and a `redis-server` on `PATH`. The
 first boot clones and builds it, which takes several minutes. After changing a scenario, run
 `bun run oracle:record`.
@@ -264,4 +264,4 @@ first boot clones and builds it, which takes several minutes. After changing a s
 in its README. `bun run generate` regenerates the operation table and the embedded definitions,
 and `generate:check` fails when they are stale.
 
-Part of [Emulates](https://github.com/crvouga/emulates) — agent integration guide: [README](https://github.com/crvouga/emulates#readme) · [llms.txt](https://github.com/crvouga/emulates/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md).
+Part of [mockingbird](https://github.com/crvouga/mockingbird) — agent integration guide: [README](https://github.com/crvouga/mockingbird#readme) · [llms.txt](https://github.com/crvouga/mockingbird/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md).

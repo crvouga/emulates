@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@emulates/service"
+import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
 import {
   advanceSchedule,
   applyPhase,

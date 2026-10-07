@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type PrismRuntime, type PrismRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-prism serve` listens on when none is given. */
+/** Port `mockingbird-prism serve` listens on when none is given. */
 export const DEFAULT_PORT = 8825
 
 export type PrismServerOptions = PrismRuntimeOptions & {
@@ -69,6 +69,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Bearer <PRISM_API_KEY>, Accept: application/json;v=1",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

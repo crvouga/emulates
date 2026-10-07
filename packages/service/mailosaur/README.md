@@ -1,25 +1,25 @@
-# @emulates/mailosaur
+# @crvouga/mockingbird-service-mailosaur
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of the **Mailosaur** email/SMS testing API for test suites, plus an HTTP ingest so
-anything that "sends" mail (the Resend emulator's `--forward-to-inbox`, the Twilio emulator, Cognito
+Stateful mock of the **Mailosaur** email/SMS testing API for test suites, plus an HTTP ingest so
+anything that "sends" mail (the Resend mock's `--forward-to-inbox`, the Twilio mock, Cognito
 hooks, a test) drops it into one inbox. The unmodified `mailosaur` SDK reads it: `messages.get`
 returns within ~20 ms of a message arriving instead of long-polling Mailosaur for up to 120 s,
 and `html.codes` / `text.codes` / `html.links` are parsed the way Mailosaur parses them.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/mailosaur/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/mailosaur/SUPPORT.md)
 - The vendor publishes no OpenAPI spec: `openapi.yaml` is hand-authored from `mailosaur@11.1.0`
   (the requests it sends and the fields its models read) and our consumer's client.
 
 ## Install
 
 ```bash
-npm install -D @emulates/mailosaur
+npm install -D @crvouga/mockingbird-service-mailosaur
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-mailosaur serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx mockingbird-mailosaur serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
@@ -28,25 +28,25 @@ any Fetch server.
 
 The SDK only speaks HTTPS (`https.request`, whatever the base URL's scheme) and **drops the base
 URL's port** (it passes only the hostname and path, so it always connects to 443). So a
-`MAILOSAUR_BASE_URL` alone (G-M1) only works if the emulator listens on 443. The emulator's secure port
-therefore also acts as an HTTP `CONNECT` proxy that tunnels **every** target into the emulator (never
+`MAILOSAUR_BASE_URL` alone (G-M1) only works if the mock listens on 443. The mock's secure port
+therefore also acts as an HTTP `CONNECT` proxy that tunnels **every** target into the mock (never
 to the network). The SDK honours `HTTPS_PROXY`, reading it once, when a client is constructed:
 
 ```bash
-npx emulates-mailosaur serve --port 8793 --tls-port 8794 --tls-cert-out /tmp/mailosaur-mock.pem
+npx mockingbird-mailosaur serve --port 8793 --tls-port 8794 --tls-cert-out /tmp/mailosaur-mock.pem
 # in the process that constructs the SDK client:
 HTTPS_PROXY=http://127.0.0.1:8794 NODE_EXTRA_CA_CERTS=/tmp/mailosaur-mock.pem
 ```
 
 With that, `new MailosaurClient(apiKey)` keeps its default `https://mailosaur.com/` and every
-call lands in the emulator. The generated certificate names `localhost`, `127.0.0.1` and
+call lands in the mock. The generated certificate names `localhost`, `127.0.0.1` and
 `mailosaur.com`. Set `HTTPS_PROXY` only around the SDK construction if the rest of the process
 must not see it, since other HTTP clients (axios) also read it and would be tunnelled into the
-emulator too. If the emulator can bind 443, `--tls-port 443` and `new MailosaurClient(key,
+mock too. If the mock can bind 443, `--tls-port 443` and `new MailosaurClient(key,
 "https://127.0.0.1/")` work without the proxy.
 
 ```js
-import { createServer } from "@emulates/mailosaur/server"
+import { createServer } from "@crvouga/mockingbird-service-mailosaur/server"
 import MailosaurClient from "mailosaur"
 
 const inbox = await createServer({ tls: true })
@@ -72,7 +72,7 @@ message.text?.codes?.[0]?.value // "604218"
 The inbox can also be read without the SDK, through the admin routes:
 
 ```ts
-import { createServer } from "@emulates/mailosaur/server"
+import { createServer } from "@crvouga/mockingbird-service-mailosaur/server"
 
 const inbox = await createServer()
 const response = await fetch(`${inbox.url}/__admin/ingest`, {
@@ -104,7 +104,7 @@ Auth is `Authorization: Basic base64(<api key>:)` (what the SDK sends); any key 
 
 **Servers** are implicit. A message's server is, in order: the ingest's `server`, the id in a
 `<server>.mailosaur.net` recipient, or `*` (visible from every server id). `receivedAfter` keeps
-messages received at or after the instant (on the emulator clock).
+messages received at or after the instant (on the mock clock).
 
 **Codes and links.** `codes[]` lists every distinct standalone run of 4–8 digits in the readable
 text (HTML without head, styles, scripts, tags; entities decoded), ignoring digits inside URLs.
@@ -129,16 +129,16 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 The SDK cannot add headers, so a namespace can be chosen by API key:
 `PUT /__admin/credentials {"credentials": {"<MAILOSAUR_API_KEY>": "<namespace>"}}`. Also
-`x-emulates-namespace` or a `/__admin/ns/<name>` prefix for raw HTTP callers. Ingest into a namespace
-with `x-emulates-namespace` (the Resend emulator forwards with its own namespace name).
+`x-mockingbird-namespace` or a `/__admin/ns/<name>` prefix for raw HTTP callers. Ingest into a namespace
+with `x-mockingbird-namespace` (the Resend mock forwards with its own namespace name).
 
 ### Deliberately not modelled
 
 - Real delivery: there is no SMTP listener. Mail arrives only through the ingest route,
-  `messages.create`, or another emulator's `--forward-to-inbox`.
+  `messages.create`, or another mock's `--forward-to-inbox`.
 - Servers, usage, devices (TOTP), previews, spam/deliverability analysis, forward and reply,
   and file downloads (attachment `url`s are placeholders; ingest keeps only attachment metadata).
-- Mailosaur's exact code detector is not published. The emulator's rule (standalone 4–8 digit runs,
+- Mailosaur's exact code detector is not published. The mock's rule (standalone 4–8 digit runs,
   not inside URLs) reproduces it for our templates (Cognito's "Your verification code is
   {####}.").
 - Server ids are not validated against an account; any 8-character id is an (empty) inbox.
@@ -147,8 +147,8 @@ with `x-emulates-namespace` (the Resend emulator forwards with its own namespace
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `MailosaurAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `ingest(input)`, `messages()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, ingest). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `MailosaurAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `ingest(input)`, `messages()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, ingest). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `MAILOSAUR_PRESETS` | object | Every named fault preset. |
 | `MAILOSAUR_NAMESPACE` | string | The service name, `"mailosaur"`. |
 | `ANY_SERVER` | string | `"*"`: the server of mail ingested without one (visible from every server id). |
@@ -160,4 +160,4 @@ with `x-emulates-namespace` (the Resend emulator forwards with its own namespace
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`, plus `tls: true` for the HTTPS + CONNECT door (`tlsUrl`, `proxyUrl`, `cert`); the `serve` CLI target (`--tls-port`, `--tls-cert`, `--tls-key`, `--tls-cert-out`, `--poll-delay`); port 8793. |
 | `selfSignedCertificate`, `CERTIFICATE_HOSTS` (`./server`) | Node | Generate the in-memory certificate the door presents, and the hosts it names. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

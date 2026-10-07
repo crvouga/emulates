@@ -1,6 +1,6 @@
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { listOperations } from "@emulates/openapi"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { listOperations } from "@crvouga/mockingbird-openapi"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, GoogleAdsAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

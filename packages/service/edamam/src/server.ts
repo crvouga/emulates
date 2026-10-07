@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type EdamamRuntime, type EdamamRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-edamam serve` listens on when none is given. */
+/** Port `mockingbird-edamam serve` listens on when none is given. */
 export const DEFAULT_PORT = 8824
 
 export type EdamamServerOptions = EdamamRuntimeOptions & {
@@ -62,6 +62,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: ?app_id=&app_key= (plus Basic app_id:app_key on the meal planner and shopping list)",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<app_id>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<app_id>: <ns>}",
   ],
 }

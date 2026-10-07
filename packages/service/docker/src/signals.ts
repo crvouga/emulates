@@ -59,6 +59,6 @@ export const stopTimeout = (raw: string | null, fallback: number): number => {
       `strconv.Atoi: parsing ${JSON.stringify(raw)}: ${syntax ? "value out of range" : "invalid syntax"}`,
     )
   if (!Number.isSafeInteger(Number(raw)))
-    throw new DockerInputError(501, "Emulates: timeout outside the supported safe integer range")
+    throw new DockerInputError(501, "Mockingbird: timeout outside the supported safe integer range")
   return Number(raw)
 }

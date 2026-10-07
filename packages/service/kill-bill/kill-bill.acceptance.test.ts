@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createRuntime, KillBillAPI } from "./src/index.js"
 import { createServer } from "./src/server.js"
 

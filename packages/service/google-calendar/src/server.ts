@@ -1,12 +1,12 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import {
   createRuntime,
   type GoogleCalendarRuntime,
   type GoogleCalendarRuntimeOptions,
 } from "./runtime.js"
 
-/** Port `emulates-google-calendar serve` listens on when none is given. */
+/** Port `mockingbird-google-calendar serve` listens on when none is given. */
 export const DEFAULT_PORT = 8820
 
 export type GoogleCalendarServerOptions = GoogleCalendarRuntimeOptions & {
@@ -75,6 +75,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "rootUrl: <this url>/ for googleapis; OAuth2Client endpoints: <this url>/token, <this url>/revoke",
     "sign in with authorization code 4/mock-<name> (→ <name>@example.com) or 4/mock-<email>",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<email>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<email>: <ns>}",
   ],
 }

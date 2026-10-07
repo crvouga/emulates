@@ -1,5 +1,5 @@
 ---
-import catalog from "virtual:emulates/catalog"
+import catalog from "virtual:mockingbird/catalog"
 import ExampleLauncher from "../../components/ExampleLauncher.astro"
 import Icon from "../../components/Icon.astro"
 import Base from "../../layouts/Base.astro"
@@ -35,7 +35,7 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
       <p class="live-note">
         Everything in the app — the Google/Apple OAuth sign-in, the shop, the Stripe checkout, the Junction
         fulfillment, and the Postgres-backed order history — runs entirely in this browser tab. The fullscreen view opens
-        on the example app, with one live admin UI whose global selector switches between every emulator the app is talking to. No server to start,
+        on the example app, with one live admin UI whose global selector switches between every mock the app is talking to. No server to start,
         and no real network call to Google, Apple, Stripe, or Junction.
       </p>
       <div class="example-capabilities">

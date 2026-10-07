@@ -1,13 +1,13 @@
-# @emulates/cloudwatch-logs
+# @crvouga/mockingbird-service-cloudwatch-logs
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful local emulator of Amazon CloudWatch Logs. ESM; Node 22+ or Bun 1.2+.
+Stateful local mock of Amazon CloudWatch Logs. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/cloudwatch-logs/server"
+import { createServer } from "@crvouga/mockingbird-service-cloudwatch-logs/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -28,7 +28,7 @@ No LocalStack run is recorded for this integration. The parity command is a boun
 ## Install
 
 ```sh
-bun add @emulates/cloudwatch-logs
+bun add @crvouga/mockingbird-service-cloudwatch-logs
 ```
 
 ## API

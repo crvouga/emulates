@@ -142,7 +142,9 @@ test("namespace headers, URL prefixes and credential bindings isolate concurrent
     runtime.credentials.set(DEFAULT_TOKEN, "default")
     const [x, y] = await Promise.all([a.put("race.bin", "x"), a.put("race.bin", "y")])
     expect([x.status, y.status].sort()).toEqual([200, 400])
-    expect((await admin(runtime, "/reset", {}, { "x-emulates-namespace": "a" })).status).toBe(200)
+    expect((await admin(runtime, "/reset", {}, { "x-mockingbird-namespace": "a" })).status).toBe(
+      200,
+    )
     expect((await a.head("shared.bin")).status).toBe(404)
     expect((await a.head("seed.txt")).status).toBe(200)
     expect((await b.head("shared.bin")).status).toBe(200)
@@ -295,7 +297,7 @@ test("vendor error envelopes, every catalog preset, custom reserved prefix, jour
     const write = await client.request("/api/blob/?pathname=seed.txt", {
       method: "PUT",
       headers: {
-        "x-emulates-branch": "fixture-branch",
+        "x-mockingbird-branch": "fixture-branch",
         "x-vercel-blob-access": "public",
         "x-allow-overwrite": "1",
       },
@@ -305,7 +307,7 @@ test("vendor error envelopes, every catalog preset, custom reserved prefix, jour
     expect(
       await (
         await runtime.fetch(
-          new Request(branch.url, { headers: { "x-emulates-branch": "fixture-branch" } }),
+          new Request(branch.url, { headers: { "x-mockingbird-branch": "fixture-branch" } }),
         )
       ).text(),
     ).toBe("fixture-branch")

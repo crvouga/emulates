@@ -6,7 +6,7 @@
  *
  * System fonts only. A web-font request would be a real network call.
  */
-import { scopeReset } from "@emulates/ui"
+import { scopeReset } from "@crvouga/mockingbird-ui"
 
 export const STYLES = `
 ${scopeReset(".cove-app")}

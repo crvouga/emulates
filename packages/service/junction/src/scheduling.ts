@@ -5,7 +5,12 @@
  * Slot data is generated deterministically (seeded by zip/site/date), so walks are
  * reproducible without any provider-side state.
  */
-import { HttpError, jsonRes, type OperationContext, opaqueToken } from "@emulates/service"
+import {
+  HttpError,
+  jsonRes,
+  type OperationContext,
+  opaqueToken,
+} from "@crvouga/mockingbird-service"
 import { isLinkedToTeam, type LabAccountRecord, labAccountById } from "./lab-accounts.js"
 import { orderMissing } from "./not-found.js"
 import type {
@@ -18,7 +23,7 @@ import type {
 
 /** Status of the unknown-ZIP error: unused by Junction, and not retried by HTTP clients. */
 export const UNKNOWN_ZIP_STATUS = 424
-export const UNKNOWN_ZIP_ERROR_TYPE = "EMULATES_UNKNOWN_ZIP"
+export const UNKNOWN_ZIP_ERROR_TYPE = "MOCKINGBIRD_UNKNOWN_ZIP"
 
 /**
  * In `corpus` geo mode, refuse a ZIP the corpus has no serviceability record for.
@@ -32,7 +37,7 @@ const requireCoveredZip = (state: JunctionState, zip: string): void => {
   throw new HttpError(UNKNOWN_ZIP_STATUS, {
     detail: {
       error_type: UNKNOWN_ZIP_ERROR_TYPE,
-      error_message: `ZIP ${zip} is not in the loaded Junction corpus (${String(state.coveredZips.size)} ZIPs covered). Record it with \`emulates-junction corpus pull --zip ${zip}\`, or serve with --geo synthetic to invent coverage.`,
+      error_message: `ZIP ${zip} is not in the loaded Junction corpus (${String(state.coveredZips.size)} ZIPs covered). Record it with \`mockingbird-junction corpus pull --zip ${zip}\`, or serve with --geo synthetic to invent coverage.`,
       zip_code: zip,
       corpus: state.corpusLabel ?? null,
     },

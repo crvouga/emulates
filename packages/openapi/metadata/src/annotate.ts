@@ -1,5 +1,5 @@
-import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
-import { jsonTypeOf, resolveSchema, schemaTypes, validateValue } from "@emulates/openapi"
+import type { OpenAPIDocument, SchemaObject } from "@crvouga/mockingbird-openapi"
+import { jsonTypeOf, resolveSchema, schemaTypes, validateValue } from "@crvouga/mockingbird-openapi"
 import { schemaMetadata } from "./read.js"
 import type { VolatileKind } from "./types.js"
 

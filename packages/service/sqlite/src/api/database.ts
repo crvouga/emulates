@@ -1,4 +1,4 @@
-import { type Checkpoint, Timeline } from "@emulates/core";
+import { type Checkpoint, Timeline } from "@crvouga/mockingbird-core";
 import { SqliteError } from "../errors/index.ts";
 import { parseUnits } from "../parser/index.ts";
 import {
@@ -64,7 +64,7 @@ export interface QueryOptions {
  *
  * @example
  * ```ts
- * import { Database } from "@emulates/sqlite";
+ * import { Database } from "@crvouga/mockingbird-service-sqlite";
  *
  * const db = new Database();
  * db.exec("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");

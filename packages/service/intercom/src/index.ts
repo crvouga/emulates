@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -15,8 +15,8 @@ import {
   type OperationContext,
   requestFingerprint,
   type Service,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
@@ -41,8 +41,8 @@ import {
   type Settings,
 } from "./state.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { Query } from "./query.js"
@@ -222,7 +222,7 @@ export class IntercomAPI implements FetchAPI {
         jsonRes(200, {
           type: "admin",
           id: "1000000",
-          name: "Emulates API",
+          name: "Mockingbird API",
           email: "api@mock.intercom.local",
           email_verified: true,
           has_inbox_seat: false,
@@ -230,7 +230,7 @@ export class IntercomAPI implements FetchAPI {
           app: {
             type: "app",
             id_code: this.state.workspaceId,
-            name: "Emulates",
+            name: "Mockingbird",
             created_at: 1_600_000_000,
             secure: false,
             identity_verification: false,

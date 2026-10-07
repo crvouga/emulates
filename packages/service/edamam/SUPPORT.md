@@ -1,12 +1,12 @@
-# Edamam APIs (Emulates subset) — operation support
+# Edamam APIs (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **10**
-- supported by the emulator: **10**
+- supported by the mock: **10**
 - parity enabled: **10**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `FoodParser` | `GET /api/food-database/v2/parser` | ✅ supported | ✅ |  |
 | `FoodNutrients` | `POST /api/food-database/v2/nutrients` | ✅ supported | ✅ |  |

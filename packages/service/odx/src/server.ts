@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type OdxRuntime, type OdxRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-odx serve` listens on when none is given. */
+/** Port `mockingbird-odx serve` listens on when none is given. */
 export const DEFAULT_PORT = 8817
 
 export type OdxServerOptions = OdxRuntimeOptions & {
@@ -66,6 +66,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: header ApiKey: <OPTIMAL_API_KEY>; point OPTIMAL_URL at this server",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<ApiKey>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<ApiKey>: <ns>}",
   ],
 }

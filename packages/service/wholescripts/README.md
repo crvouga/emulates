@@ -1,39 +1,39 @@
-# @emulates/wholescripts
+# @crvouga/mockingbird-service-wholescripts
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of the **Wholescripts** supplement fulfilment API for test suites: the product
+Stateful mock of the **Wholescripts** supplement fulfilment API for test suites: the product
 catalog, the private-label (MedPax) catalog, order submit, status polling and cancel. Orders
-move only when a test says so (an admin transition or an auto-advance path on the emulator clock).
+move only when a test says so (an admin transition or an auto-advance path on the mock clock).
 Wholescripts sends no webhooks, so the app sees each change on its next status poll.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/wholescripts/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/wholescripts/SUPPORT.md)
 - The vendor publishes no spec. The contract (`openapi.yaml`) is hand-authored from our
   consumers' zod schemas (backend and EMR `wholescripts.types.ts`) and the supplement scheduler's Python client.
 
 ## Install
 
 ```bash
-npm install -D @emulates/wholescripts
+npm install -D @crvouga/mockingbird-service-wholescripts
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-wholescripts serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx mockingbird-wholescripts serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
 
-Point `WHOLESCRIPTS_API_URL` at the emulator. It is read by the backend
+Point `WHOLESCRIPTS_API_URL` at the mock. It is read by the backend
 (`global-services/services/wholescripts`), the EMR (`services/wholescripts`) and the supplement scheduler
 (`supplement_management`). Any non-empty `WHOLESCRIPTS_USERNAME` / `WHOLESCRIPTS_PASSWORD`
 pair is accepted unless you pin one with `--username/--password`.
 
 ```bash
-npx emulates-wholescripts serve --port 8803 --auto-advance "2000:Processing,Complete"
+npx mockingbird-wholescripts serve --port 8803 --auto-advance "2000:Processing,Complete"
 ```
 
 ```ts
-import { createRuntime } from "@emulates/wholescripts"
+import { createRuntime } from "@crvouga/mockingbird-service-wholescripts"
 
 const ws = createRuntime()
 const auth = { authorization: `Basic ${btoa("acme:secret")}`, "content-type": "application/json" }
@@ -88,7 +88,7 @@ The backend and EMR do not map statuses.
 | `GET /__admin/orders` | The namespace's orders (SKUs and quantities only). |
 | `GET`/`PUT /__admin/catalog` | Read or replace `{products, medPaxPills, privateLabelCartons}` for the namespace. |
 | `GET`/`PUT /__admin/settings` | `{accounts?: [{username, password}], autoAdvance?: {afterMs, path} \| null}`. |
-| `POST /__admin/tick` | Apply every auto-advance step that is due on the emulator clock (the served emulator ticks every 100 ms). |
+| `POST /__admin/tick` | Apply every auto-advance step that is due on the mock clock (the served mock ticks every 100 ms). |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /__admin/faults/presets`):
 `submit_rejected` (200 `success: false`), `submit_timeout` (the order is placed, then the
@@ -98,7 +98,7 @@ connection drops: the scheduler's "order may have been placed" branch), `status_
 
 ### Namespaces
 
-`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `WHOLESCRIPTS_API_URL`, or by Basic
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `WHOLESCRIPTS_API_URL`, or by Basic
 username: `PUT /__admin/credentials {"credentials": {"<WHOLESCRIPTS_USERNAME>": "<namespace>"}}`.
 
 ### Corpus and seed data
@@ -123,8 +123,8 @@ recording exists; pass `catalog` (or `PUT /__admin/catalog`) to load recorded ro
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `WholescriptsAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(orderNumber, {to, …})`, `tick()`, `orders()`. Options: `sqlite`, `now`, `namespace`, `catalog`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `catalog`, `settings`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `WholescriptsAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(orderNumber, {to, …})`, `tick()`, `orders()`. Options: `sqlite`, `now`, `namespace`, `catalog`, `settings`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `catalog`, `settings`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `WHOLESCRIPTS_PRESETS` | object | Every named fault preset. |
 | `WHOLESCRIPTS_NAMESPACE` | string | The service name, `"wholescripts"`. |
 | `basicUsername` | function | The Basic username a request carries (how credentials map to namespaces). |
@@ -134,4 +134,4 @@ recording exists; pass `catalog` (or `PUT /__admin/catalog`) to load recorded ro
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http` (auto-advance ticks every 100 ms); the `serve` CLI target; port 8803. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

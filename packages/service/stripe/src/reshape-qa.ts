@@ -1,4 +1,4 @@
-import type { ExploreRng, ExploreState, LogicalCommand } from "@emulates/commands"
+import type { ExploreRng, ExploreState, LogicalCommand } from "@crvouga/mockingbird-commands"
 import {
   QA_AMOUNTS,
   QA_COUPON_CODES,

@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@emulates/sqlite-client"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { Collection } from "./collection.js"
 import type { AdminRoutes } from "./control.js"
 import type { ServiceInstance, ServiceRuntime } from "./runtime.js"
@@ -92,7 +92,7 @@ export const outboxAdminRoutes = <S extends ServiceInstance>(
     const since = parseSince(url.searchParams.get("since"))
     if (since === null) {
       return json(400, {
-        error: { type: "emulates_admin", message: "since: expected epoch ms or ISO-8601" },
+        error: { type: "mockingbird_admin", message: "since: expected epoch ms or ISO-8601" },
       })
     }
     const limit = url.searchParams.get("limit")
@@ -111,7 +111,7 @@ export const outboxAdminRoutes = <S extends ServiceInstance>(
     const item = pick(runtime.instance(namespace)).get(params.id as string)
     return item
       ? json(200, item)
-      : json(404, { error: { type: "emulates_admin", message: `no message ${params.id}` } })
+      : json(404, { error: { type: "mockingbird_admin", message: `no message ${params.id}` } })
   },
 })
 

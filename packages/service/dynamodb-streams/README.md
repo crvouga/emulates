@@ -1,13 +1,13 @@
-# @emulates/dynamodb-streams
+# @crvouga/mockingbird-service-dynamodb-streams
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 Transport scaffold for Amazon DynamoDB Streams. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/dynamodb-streams/server"
+import { createServer } from "@crvouga/mockingbird-service-dynamodb-streams/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -32,7 +32,7 @@ No vendor operations are implemented. Requests fail explicitly with `UnknownOper
 ## Install
 
 ```sh
-bun add @emulates/dynamodb-streams
+bun add @crvouga/mockingbird-service-dynamodb-streams
 ```
 
 ## API

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@emulates/openapi"
+import { findOperation, responseForStatus, validateValue } from "@crvouga/mockingbird-openapi"
 import { createRuntime, document, type HermesRuntime } from "./src/index.js"
 
 const call = (r: HermesRuntime, path: string, body?: unknown, key = "", ns = "default") =>
@@ -9,7 +9,7 @@ const call = (r: HermesRuntime, path: string, body?: unknown, key = "", ns = "de
       headers: {
         "content-type": "application/json",
         "Idempotency-Key": key,
-        "x-emulates-namespace": ns,
+        "x-mockingbird-namespace": ns,
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),

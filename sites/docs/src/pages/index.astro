@@ -1,13 +1,21 @@
 ---
-import catalog from "virtual:emulates/catalog"
+import catalog from "virtual:mockingbird/catalog"
 import Icon from "../components/Icon.astro"
 import Install from "../components/Install.astro"
 import BrowserStack from "../components/landing/BrowserStack.astro"
-import EmulatedServices from "../components/landing/EmulatedServices.astro"
-import Mark from "../components/Mark.astro"
+import MockedServices from "../components/landing/MockedServices.astro"
 import Monogram from "../components/Monogram.astro"
 import Base from "../layouts/Base.astro"
-import { AGENTS, CONTRACT, FEATURES, IDENTITY, PITCH, QUICK_START } from "../lib/content.ts"
+import {
+  AGENTS,
+  CONTRACT,
+  FEATURES,
+  HEADLINE,
+  IDENTITY,
+  PITCH,
+  PLATE_HREF,
+  QUICK_START,
+} from "../lib/content.ts"
 import { inline } from "../lib/inline.ts"
 
 const { totals } = catalog
@@ -16,28 +24,42 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 
 <Base>
   <section class="hero">
-    <div class="container hero-inner">
-      <p class="hero-kicker">
-        <Mark size={40} />
-        <a href="/services">{totals.services} services</a>
-      </p>
-      <h1>{IDENTITY.name}</h1>
-      <p class="tagline">{IDENTITY.tagline}</p>
-      <p class="lede" set:html={inline(PITCH)} />
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="/services">Browse services <Icon name="arrow-right" /></a>
-        <a class="btn btn-secondary" href="/why">Why {IDENTITY.name}</a>
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="species">
+          <em>Mimus polyglottos</em>
+          <a href="/services">{totals.services} mocks</a>
+        </p>
+        <h1>{HEADLINE.lead}<br /><em>{HEADLINE.accent}</em></h1>
+        <p class="note">{IDENTITY.note}</p>
+        <p class="lede" set:html={inline(PITCH)} />
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="/services">Browse services <Icon name="arrow-right" /></a>
+          <a class="btn btn-secondary" href="/why">Why Mockingbird</a>
+        </div>
+        <div class="hero-install">
+          <Install pkg={QUICK_START.package} />
+        </div>
       </div>
-      <div class="hero-install">
-        <Install pkg={QUICK_START.package} />
-      </div>
+      <figure class="plate">
+        <img
+          src={PLATE_HREF}
+          width="1536"
+          height="1024"
+          alt="Northern mockingbird on a fruiting branch: gray above, pale below, two white bars on the wing, a long tail."
+        />
+        <figcaption>
+          <span>Plate I</span>
+          <span>Northern mockingbird, singing a call it learned</span>
+        </figcaption>
+      </figure>
     </div>
   </section>
 
   <div class="container">
     <section class="stats" aria-label="By the numbers">
-    <a href="/services"><strong>{totals.services}</strong><span>services</span></a>
-    <a href="/coverage"><strong>{totals.opsSupported}</strong><span>vendor operations emulated</span></a>
+    <a href="/services"><strong>{totals.services}</strong><span>mocks</span></a>
+    <a href="/coverage"><strong>{totals.opsSupported}</strong><span>vendor operations mocked</span></a>
     <div><strong>0</strong><span>network calls</span></div>
   </section>
   </div>
@@ -46,9 +68,9 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     <div class="section-head">
       <span class="eyebrow">What it does</span>
       <h2>A stand-in for every service your app calls.</h2>
-      <p>Each third-party API your app depends on gets a high-fidelity emulator that runs in your process. Your code and the vendor's SDK stay the same; the requests just never leave.</p>
+      <p>Each third-party API your app depends on gets a faithful mock that runs in your process. Your code and the vendor's SDK stay the same; the requests just never leave.</p>
     </div>
-    <EmulatedServices />
+    <MockedServices />
   </section>
 
   <section class="section container">
@@ -71,7 +93,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     <div class="section-head">
       <span class="eyebrow">Full stack, in a browser tab</span>
       <h2>Build and test a whole app with no server.</h2>
-      <p>Emulates run wherever JavaScript does, so an app's client, its API, and every vendor it calls can share one browser tab.</p>
+      <p>Mocks run wherever JavaScript does, so an app's client, its API, and every vendor it calls can share one browser tab.</p>
     </div>
     <BrowserStack />
   </section>
@@ -79,8 +101,8 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
   <section class="section container">
     <div class="section-head">
       <span class="eyebrow">Why it works</span>
-      <h2>Emulates, not mocks.</h2>
-      <p>A hand-written mock returns whatever you guessed. An emulator is driven by the vendor's contract, keeps real state, and is checked against the real implementation.</p>
+      <h2>Test doubles that don't drift from the vendor.</h2>
+      <p>Hand-written stubs return whatever you guessed. Mockingbird mocks are driven by the vendor's contract and checked against it.</p>
     </div>
     <div class="values">
       {
@@ -182,19 +204,28 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     padding-block: 56px 28px;
   }
 
-  .hero-inner {
-    max-width: 820px;
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 48px;
+    align-items: start;
   }
 
-  .hero-kicker {
+  .species {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 14px;
+    align-items: baseline;
+    gap: 8px 16px;
     margin: 0;
+    color: var(--clay);
   }
 
-  .hero-kicker a {
+  .species em {
+    font-family: var(--font-display);
+    font-size: 17px;
+  }
+
+  .species a {
     color: var(--fg-muted);
     font-size: 13px;
     text-decoration: underline;
@@ -202,7 +233,7 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     text-underline-offset: 3px;
   }
 
-  .hero-kicker a:hover {
+  .species a:hover {
     color: var(--fg);
   }
 
@@ -219,14 +250,19 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
     font-weight: 600;
   }
 
-  .tagline {
-    margin-top: 16px;
-    max-width: 30ch;
-    font-family: var(--font-display);
-    font-size: clamp(22px, 2.6vw, 30px);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 500;
     color: var(--clay);
+  }
+
+  .note {
+    margin-top: 18px;
+    max-width: 42ch;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.45;
   }
 
   .hero .lede {
@@ -245,6 +281,43 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
   .hero-install {
     margin-top: 28px;
     max-width: 480px;
+  }
+
+  .plate {
+    margin: 0;
+    padding: 12px 12px 0;
+    border: 1px solid #243f34;
+    background: #f3eee4;
+  }
+
+  .plate img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    background: #111;
+  }
+
+  .plate figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 2px 12px;
+    color: #5c675f;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  .plate figcaption span:first-child {
+    flex: none;
+    color: #8d4a32;
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
   .window :global(.code) {
@@ -592,8 +665,12 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
   }
 
   @media (max-width: 960px) {
+    .hero-grid,
     .agents {
       grid-template-columns: minmax(0, 1fr);
+    }
+    .plate {
+      max-width: 640px;
     }
   }
 

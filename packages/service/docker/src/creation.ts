@@ -1,11 +1,11 @@
-import type { IdSequence } from "@emulates/service"
+import type { IdSequence } from "@crvouga/mockingbird-service"
 import { DockerInputError, type DockerState, record, zeroTime } from "./state.js"
 
 const fail = (field: string): never => {
   throw new DockerInputError(400, `invalid ${field}`)
 }
 const unsupported = (field: string): never => {
-  throw new DockerInputError(501, `Emulates: unsupported create field ${field}`)
+  throw new DockerInputError(501, `Mockingbird: unsupported create field ${field}`)
 }
 const arrayFields = ["Cmd", "Entrypoint", "Env"]
 const stringFields = ["Image", "WorkingDir", "User", "StopSignal", "Hostname", "Domainname"]
@@ -189,9 +189,10 @@ export const createContainer = (
     id = [...ids.next("", 32)].map((c) => c.charCodeAt(0).toString(16)).join("")
   } while (
     state.containers.has(id) ||
-    (!name && state.containers.list().some((c) => c.value.name === `emulates_${id.slice(0, 12)}`))
+    (!name &&
+      state.containers.list().some((c) => c.value.name === `mockingbird_${id.slice(0, 12)}`))
   )
-  name ||= `emulates_${id.slice(0, 12)}`
+  name ||= `mockingbird_${id.slice(0, 12)}`
   config.Hostname ||= id.slice(0, 12)
   state.containers.insert(id, {
     id,

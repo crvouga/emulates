@@ -1,6 +1,6 @@
 import { createConnection, createServer, type Server, type Socket } from "node:net"
-import type { ConfigService, FleetChild } from "@emulates/adapter-node"
-import { matchNamespacePath, resolveAdminPrefix } from "@emulates/service"
+import type { ConfigService, FleetChild } from "@crvouga/mockingbird-adapter-node"
+import { matchNamespacePath, resolveAdminPrefix } from "@crvouga/mockingbird-service"
 import { createRedis, type Redis, RedisConnectionError } from "./engine.ts"
 import { asCommand, encodeReply, type Reply, RespParser } from "./protocol.ts"
 

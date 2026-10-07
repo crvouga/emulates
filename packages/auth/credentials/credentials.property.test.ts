@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import { CredentialError, createRedactor, leaks, loadCredentials } from "./src/index.js"
 

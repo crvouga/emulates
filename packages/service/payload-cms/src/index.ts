@@ -1,5 +1,5 @@
-import type { FetchAPI } from "@emulates/core"
-import { decodeFormPairs } from "@emulates/http-codec"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
+import { decodeFormPairs } from "@crvouga/mockingbird-http-codec"
 import {
   type APIOptions,
   annotateResponse,
@@ -13,8 +13,8 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import {
@@ -25,8 +25,8 @@ import {
   type Seed,
 } from "./state.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { CollectionRecord, PayloadDoc, Seed } from "./state.js"

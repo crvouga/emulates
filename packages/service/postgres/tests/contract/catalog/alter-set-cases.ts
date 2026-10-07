@@ -1,7 +1,7 @@
 import type { CatalogCase } from "./run.ts";
 
 export const ALTER_SET_CASES: CatalogCase[] = [
-  // regression: emulates-postgres-set-default (#319)
+  // regression: mockingbird-postgres-set-default (#319)
   {
     id: "DDL-alter-set-01",
     kind: "sequence",
@@ -12,7 +12,7 @@ export const ALTER_SET_CASES: CatalogCase[] = [
       { sql: "SELECT v FROM t", query: true },
     ],
   },
-  // regression: emulates-postgres-set-not-null (#318)
+  // regression: mockingbird-postgres-set-not-null (#318)
   {
     id: "DDL-alter-set-02",
     kind: "sequence",

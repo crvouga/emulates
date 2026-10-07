@@ -11,13 +11,13 @@ const PING_TIMEOUT_MS = 1000
  * Path of the `redis-server` binary to spawn. Defaults to whatever is on
  * `PATH`; override when the binary lives somewhere unusual.
  */
-const binaryPath = (): string => process.env.EMULATES_REDIS_SERVER ?? "redis-server"
+const binaryPath = (): string => process.env.MOCKINGBIRD_REDIS_SERVER ?? "redis-server"
 
 const missingBinaryError = (command: string, cause: unknown): Error =>
   new Error(
-    `failed to spawn "${command}". @emulates/medplum needs a redis-server binary on PATH ` +
+    `failed to spawn "${command}". @crvouga/mockingbird-service-medplum needs a redis-server binary on PATH ` +
       `(macOS: brew install redis, Debian/Ubuntu: apt-get install redis-server), or set ` +
-      `EMULATES_REDIS_SERVER to its path. Cause: ${String(cause)}`,
+      `MOCKINGBIRD_REDIS_SERVER to its path. Cause: ${String(cause)}`,
   )
 
 /** Send `PING` over a raw socket and resolve true when the server answers `+PONG`. */

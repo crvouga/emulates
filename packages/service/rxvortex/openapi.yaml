@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
-  title: RxVortex (Strive) pharmacy API (Emulates subset)
+  title: RxVortex (Strive) pharmacy API (Mockingbird subset)
   description: |
     Stateful mock subset of the RxVortex / Strive compounding-pharmacy API: client-credentials
     token, order submit, status, cancel, lookup by sender order id (recovery), and the preset
     catalog. Hand-authored from the consumer's adapters (the vendor publishes no spec).
   version: "1"
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     note: >-
       Hand-authored from the wire shapes our consumer reads and writes
       (rxvortex-auth.service.ts, rxvortex-fulfillment.adapter.ts, rxvortex-live.client.ts).
@@ -19,7 +19,7 @@ paths:
     post:
       operationId: GenerateAccessToken
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -62,7 +62,7 @@ paths:
   /api/v1/orders:
     post:
       operationId: CreateOrder
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -106,12 +106,12 @@ paths:
         description: The vendor order tracking id, or the sender order id (our payment id).
         schema:
           type: string
-          x-emulates-resource-ref:
+          x-mockingbird-resource-ref:
             type: order
             missing: RXV-00000000-MISSING
     get:
       operationId: GetOrder
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -137,7 +137,7 @@ paths:
                 $ref: "#/components/schemas/ErrorBody"
     delete:
       operationId: CancelOrder
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -170,7 +170,7 @@ paths:
   /api/v1/preset-catalog-items:
     get:
       operationId: ListPresetCatalogItems
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -206,7 +206,7 @@ components:
       properties:
         access_token:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: token
         token_type:
           type: string
@@ -315,7 +315,7 @@ components:
           enum: [new]
         preset_catalog_id:
           type: string
-          x-emulates-resource-ref:
+          x-mockingbird-resource-ref:
             type: catalog_item
             missing: 00000000-0000-4000-8000-000000000000
         sender_med_request_id:
@@ -446,10 +446,10 @@ components:
           type: string
         order_tracking_id:
           type: string
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: order
             identity: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         sender_order_id:
           type: string
@@ -471,15 +471,15 @@ components:
       properties:
         order_tracking_id:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         tracking_id:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderReferenceID:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         sender_order_id:
           type: string
@@ -503,11 +503,11 @@ components:
           type: boolean
         created_at:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         updated_at:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
     CancelResponse:
       type: object
@@ -519,7 +519,7 @@ components:
           type: string
         order_tracking_id:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         rxstatus:
           type: string
@@ -529,7 +529,7 @@ components:
       properties:
         catalog_id:
           type: string
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: catalog_item
             identity: true
         medication_name:

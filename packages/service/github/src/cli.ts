@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-github",
-    description: "GitHub REST API emulator (WIP: synthetic repository observations)",
+    bin: "mockingbird-github",
+    description: "GitHub REST API API mock (WIP: synthetic repository observations)",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { findOperation, responseForStatus, validateValue } from "@emulates/openapi"
-import { createClock } from "@emulates/service"
+import { findOperation, responseForStatus, validateValue } from "@crvouga/mockingbird-openapi"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createRuntime, document } from "./src/index.js"
 import { createServer } from "./src/server.js"
 
@@ -54,7 +54,7 @@ test("clock and faults preserve repository observations and namespace isolation"
   const configure = await runtime.fetch(
     new Request("http://github.mock/__admin/faults", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-emulates-namespace": "a" },
+      headers: { "content-type": "application/json", "x-mockingbird-namespace": "a" },
       body: JSON.stringify({
         operationId: "repos/get",
         status: 503,
@@ -67,7 +67,7 @@ test("clock and faults preserve repository observations and namespace isolation"
   const read = (namespace: string) =>
     runtime.fetch(
       new Request("http://github.mock/repos/synthetic-org/example", {
-        headers: { "x-emulates-namespace": namespace },
+        headers: { "x-mockingbird-namespace": namespace },
       }),
     )
   expect((await read("b")).status).toBe(404)
@@ -88,6 +88,6 @@ test("CLI help advertises the shared serve command", async () => {
   ])
   expect(code).toBe(0)
   expect(err).toBe("")
-  expect(out).toContain("emulates-github")
+  expect(out).toContain("mockingbird-github")
   expect(out).toContain("serve")
 })

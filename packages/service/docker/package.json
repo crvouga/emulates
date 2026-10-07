@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/docker",
+  "name": "@crvouga/mockingbird-service-docker",
   "version": "0.0.0-development",
-  "description": "Stateful Docker Engine API v1.52 emulator with portable controls and Node transport.",
+  "description": "Stateful Docker Engine API v1.52 mock with portable controls and Node transport.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -30,7 +30,7 @@
     }
   },
   "bin": {
-    "emulates-docker": "./dist/cli.js"
+    "mockingbird-docker": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -38,17 +38,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/docker"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/docker#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/docker#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "service",
     "docker",
     "containers"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -78,7 +78,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- docker",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -89,7 +89,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -104,20 +104,20 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulates/testing": "workspace:*",
-    "@emulates/sqlite": "workspace:*",
-    "@emulates/parity": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/adapter-node": "workspace:*"
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*"
   }
 }

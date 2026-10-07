@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **3**
-- supported by the emulator: **3**
+- supported by the mock: **3**
 - parity enabled: **2**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `SearchPhotos` | `GET /search/photos` | ✅ supported | ✅ |  |
 | `TrackDownload` | `GET /photos/{id}/download` | ✅ supported | ⚠️ unsafe (opt-in) |  |

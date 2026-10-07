@@ -1,12 +1,12 @@
-# Wholescripts supplement fulfilment API (Emulates subset) — operation support
+# Wholescripts supplement fulfilment API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **5**
-- supported by the emulator: **5**
+- supported by the mock: **5**
 - parity enabled: **5**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `GetPrivateLabelProductList` | `GET /api/Orders/PrivateLabelProductList` | ✅ supported | ✅ |  |
 | `GetProductList` | `GET /api/Orders/ProductList` | ✅ supported | ✅ |  |

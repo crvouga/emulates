@@ -1,5 +1,5 @@
-import { Collection, seedFrom } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, seedFrom } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { base64url, Signer } from "./crypto.js"
 
 /** A caller-supplied RS256 signing key pair. `kid` is published in the JWKS and token headers. */

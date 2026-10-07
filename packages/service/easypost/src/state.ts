@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /** Every `status` a Tracker can report (EasyPost's documented enum). */
 export const TRACKER_STATUSES = [

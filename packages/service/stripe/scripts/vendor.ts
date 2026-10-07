@@ -2,9 +2,9 @@
  * Vendor the supported subset of Stripe's official OpenAPI spec into `openapi.yaml`.
  *
  * Source: https://github.com/stripe/openapi (spec3.json), pinned by commit below. Only the
- * operations Emulates implements are kept, together with the component schemas they
+ * operations Mockingbird implements are kept, together with the component schemas they
  * transitively reference. Expandable fields are collapsed to their unexpanded (id-only) shape
- * because the mock never expands. Emulates metadata is layered on top so the differential
+ * because the mock never expands. Mockingbird metadata is layered on top so the differential
  * runner knows identities, references, volatile fields and unsupported parameters.
  *
  * Run with `bun run vendor` inside packages/service/stripe (network access required).
@@ -45,43 +45,43 @@ const fetchUpstream = async (): Promise<Json> => {
 
 // --- metadata helpers -------------------------------------------------------------------------
 
-const identity = (type: string) => ({ "x-emulates-resource": { type, identity: true } })
-const ref = (type: string, missing: string) => ({ "x-emulates-resource-ref": { type, missing } })
+const identity = (type: string) => ({ "x-mockingbird-resource": { type, identity: true } })
+const ref = (type: string, missing: string) => ({ "x-mockingbird-resource-ref": { type, missing } })
 const volatile = (kind: "id" | "timestamp" | "token" | "url" | "account" | "opaque") => ({
-  "x-emulates-volatile": { kind },
+  "x-mockingbird-volatile": { kind },
 })
-const unsupported = (reason: string) => ({ "x-emulates-unsupported": { reason } })
+const unsupported = (reason: string) => ({ "x-mockingbird-unsupported": { reason } })
 const scope = (value: "run-id" | "walk-start-unix" | "walk-start-iso") => ({
-  "x-emulates-scope": { value },
+  "x-mockingbird-scope": { value },
 })
 
 const MISSING = {
-  customer: "cus_emulates_missing",
-  product: "prod_emulates_missing",
-  price: "price_emulates_missing",
-  payment_method: "pm_emulates_missing",
-  payment_intent: "pi_emulates_missing",
-  setup_intent: "seti_emulates_missing",
-  charge: "ch_emulates_missing",
-  refund: "re_emulates_missing",
-  dispute: "dp_emulates_missing",
-  invoice: "in_emulates_missing",
-  invoice_payment: "inpay_emulates_missing",
-  invoiceitem: "ii_emulates_missing",
-  subscription: "sub_emulates_missing",
-  subscription_item: "si_emulates_missing",
-  schedule: "sub_sched_emulates_missing",
-  coupon: "coupon_emulates_missing",
-  promotion_code: "promo_emulates_missing",
-  event: "evt_emulates_missing",
-  session: "cs_emulates_missing",
-  transaction: "cbtxn_emulates_missing",
-  intent: "pi_emulates_missing",
-  test_clock: "clock_emulates_missing",
-  webhook_endpoint: "we_emulates_missing",
-  balance_transaction: "txn_emulates_missing",
-  configuration: "bpc_emulates_missing",
-  portal_session: "bps_emulates_missing",
+  customer: "cus_mockingbird_missing",
+  product: "prod_mockingbird_missing",
+  price: "price_mockingbird_missing",
+  payment_method: "pm_mockingbird_missing",
+  payment_intent: "pi_mockingbird_missing",
+  setup_intent: "seti_mockingbird_missing",
+  charge: "ch_mockingbird_missing",
+  refund: "re_mockingbird_missing",
+  dispute: "dp_mockingbird_missing",
+  invoice: "in_mockingbird_missing",
+  invoice_payment: "inpay_mockingbird_missing",
+  invoiceitem: "ii_mockingbird_missing",
+  subscription: "sub_mockingbird_missing",
+  subscription_item: "si_mockingbird_missing",
+  schedule: "sub_sched_mockingbird_missing",
+  coupon: "coupon_mockingbird_missing",
+  promotion_code: "promo_mockingbird_missing",
+  event: "evt_mockingbird_missing",
+  session: "cs_mockingbird_missing",
+  transaction: "cbtxn_mockingbird_missing",
+  intent: "pi_mockingbird_missing",
+  test_clock: "clock_mockingbird_missing",
+  webhook_endpoint: "we_mockingbird_missing",
+  balance_transaction: "txn_mockingbird_missing",
+  configuration: "bpc_mockingbird_missing",
+  portal_session: "bps_mockingbird_missing",
 } as const
 
 /** The generator only needs a handful of currencies; the mock still knows Stripe's full list. */
@@ -1835,7 +1835,7 @@ const applyShape = (schema: Schema, shape: Shape, label: string) => {
       edit !== null &&
       parent &&
       isObject(parent.properties) &&
-      Object.keys(edit).some((k) => !k.startsWith("x-emulates"))
+      Object.keys(edit).some((k) => !k.startsWith("x-mockingbird"))
     ) {
       holder = parent.properties
       holder[key] = {}
@@ -1850,7 +1850,7 @@ const applyShape = (schema: Schema, shape: Shape, label: string) => {
       continue
     }
     const existing = holder[key] as Schema
-    const replacesSchema = Object.keys(edit).some((k) => !k.startsWith("x-emulates"))
+    const replacesSchema = Object.keys(edit).some((k) => !k.startsWith("x-mockingbird"))
     holder[key] = replacesSchema ? { ...edit } : { ...existing, ...edit }
   }
 }
@@ -1951,13 +1951,13 @@ const shapeExpand = (operation: Json, operationId: string) => {
   apply(expand)
 }
 
-/** Operation-level Emulates metadata driven by the allowlist entry. */
+/** Operation-level Mockingbird metadata driven by the allowlist entry. */
 const stampOperation = (operation: Json, config: OperationConfig, label: string) => {
   const supported = config.supported ?? true
   const parity = config.parity ?? supported
   if ((!supported || !parity) && config.reason === undefined)
     throw new Error(`${label}: unsupported/parity-disabled operations need a reason`)
-  operation["x-emulates"] = {
+  operation["x-mockingbird"] = {
     supported,
     ...(config.reason === undefined ? {} : { reason: config.reason }),
     parity: {
@@ -1989,7 +1989,7 @@ const parityHeaders = (operation: Json) => {
     response.headers = {
       "content-type": {
         schema: { type: "string", enum: ["application/json"] },
-        "x-emulates-parity-header": true,
+        "x-mockingbird-parity-header": true,
       },
     }
   }
@@ -1999,7 +1999,7 @@ const parityHeaders = (operation: Json) => {
     headers: {
       "content-type": {
         schema: { type: "string", enum: ["text/html"] },
-        "x-emulates-parity-header": true,
+        "x-mockingbird-parity-header": true,
       },
     },
     content: { "text/html": { schema: { type: "string" } } },
@@ -2383,9 +2383,9 @@ const main = async () => {
   const document = {
     openapi: "3.1.0",
     info: {
-      title: "Stripe API (Emulates subset)",
+      title: "Stripe API (Mockingbird subset)",
       version: String(info.version),
-      "x-emulates-upstream": { ...UPSTREAM, url: `https://github.com/${UPSTREAM.repository}` },
+      "x-mockingbird-upstream": { ...UPSTREAM, url: `https://github.com/${UPSTREAM.repository}` },
     },
     servers: [{ url: "https://api.stripe.com/" }],
     security: [{ bearerAuth: [] }],

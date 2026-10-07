@@ -3,7 +3,7 @@ dist/
 .turbo/
 .husky/_
 *.tgz
-.emulators/
+.mockingbird/
 .env
 .env.*
 !.env.example

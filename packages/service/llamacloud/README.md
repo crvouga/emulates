@@ -1,32 +1,32 @@
-# @emulates/llamacloud
+# @crvouga/mockingbird-service-llamacloud
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of the **LlamaCloud** platform API (LlamaIndex's managed indexes) for test suites:
+Stateful mock of the **LlamaCloud** platform API (LlamaIndex's managed indexes) for test suites:
 project and pipeline lookup, pipeline documents (list, get, insert, upsert, delete), and
 retrieval. Retrieval is deterministic: a scripted answer when a test sets one, otherwise a
 term-overlap ranking over the documents in the pipeline. The chat knowledge tools
 (`search_health_knowledge`, `search_faq`) and the EMR chatbot-admin knowledge CRUD run against
 it with no vendor account, no embeddings and no nondeterminism.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/llamacloud/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/llamacloud/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from the official Python client's wire models
   (llama-cloud 0.1.45) and our backend adapter.
 
 ## Install
 
 ```bash
-npm install -D @emulates/llamacloud
+npm install -D @crvouga/mockingbird-service-llamacloud
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-llamacloud serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx mockingbird-llamacloud serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
 ```bash
-npx emulates-llamacloud serve --port 8805 --index acme-member-kb-v1 --project Default
+npx mockingbird-llamacloud serve --port 8805 --index acme-member-kb-v1 --project Default
 ```
 
 Point the app at it:
@@ -37,7 +37,7 @@ Point the app at it:
 | Python chat service (`llama_cloud_services`) | `LLAMA_CLOUD_BASE_URL=http://127.0.0.1:8805` (no `/api/v1`; verified below, no code change needed) |
 
 ```ts
-import { createRuntime } from "@emulates/llamacloud"
+import { createRuntime } from "@crvouga/mockingbird-service-llamacloud"
 
 const llama = createRuntime({ pipelines: [{ name: "acme-member-kb-v1", projectName: "Default" }] })
 const admin = (path: string, body: unknown) =>
@@ -97,7 +97,7 @@ The catalog listed this as unverified. It has now been checked against the insta
 llama-cloud-services **0.6.88**, llama-cloud **0.1.45** and llama-index-core **0.14.10**, the
 versions the consumer app's Python chat service pins. The wheels were read, and
 `llamacloud.sdk.test.ts` runs that service's real `LlamaCloudClient` file on the real SDK against the
-served emulator. `LlamaCloudIndex(name, project_name=…, api_key=…)` followed by
+served mock. `LlamaCloudIndex(name, project_name=…, api_key=…)` followed by
 `.as_retriever(similarity_top_k=5).aretrieve(q)` makes these calls:
 
 1. `GET /api/v1/projects?project_name=<name>`: `resolve_project`. No match raises
@@ -112,7 +112,7 @@ The base URL comes from `base_url` or `LLAMA_CLOUD_BASE_URL`, falling back to
 `https://api.cloud.llamaindex.ai` (`llama_index.core.ingestion.api_utils.get_client`). The
 client passes no `base_url`, so setting the environment variable is enough. The SDK's pydantic models
 are strict: `Pipeline.status` must be `CREATED` or `DELETING`, and `embedding_config` is
-required. The emulator satisfies both, and the SDK test fails if a shape drifts.
+required. The mock satisfies both, and the SDK test fails if a shape drifts.
 
 **Discrepancy:** the Python client's `llamacloud_project_name` defaults to `"default"` (lowercase). The
 backend's default is `"Default"`. Project lookup is exact, so it needs
@@ -124,8 +124,8 @@ To run the SDK test:
 ```bash
 uv venv /tmp/llama && VIRTUAL_ENV=/tmp/llama uv pip install \
   llama-cloud-services==0.6.88 llama-cloud==0.1.45 llama-index-core==0.14.10
-EMULATES_LLAMACLOUD_PYTHON=/tmp/llama/bin/python \
-  EMULATES_LLAMACLOUD_PY_CLIENT=/path/to/llamacloud_client.py bun test llamacloud.sdk
+MOCKINGBIRD_LLAMACLOUD_PYTHON=/tmp/llama/bin/python \
+  MOCKINGBIRD_LLAMACLOUD_PY_CLIENT=/path/to/llamacloud_client.py bun test llamacloud.sdk
 ```
 
 ### Admin (beyond the standard contract)
@@ -156,7 +156,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 Neither consumer can add headers, so a namespace can be chosen three ways:
 
-- the `x-emulates-namespace` header;
+- the `x-mockingbird-namespace` header;
 - a `/__admin/ns/<name>` prefix on the base URL;
 - the API key: `PUT /__admin/credentials {"credentials": {"<LLAMACLOUD_API_KEY>": "<namespace>"}}`.
 
@@ -178,8 +178,8 @@ never records queries, document text or titles.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `LlamaCloudAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `documents(pipeline)`, `addRule(rule)`, `rules()`, `clearRules()`, `state`. Options: `sqlite`, `now`, `namespace`, `pipelines`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `pipelines`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `LlamaCloudAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `documents(pipeline)`, `addRule(rule)`, `rules()`, `clearRules()`, `state`. Options: `sqlite`, `now`, `namespace`, `pipelines`, `settings`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `pipelines`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `LLAMACLOUD_PRESETS` | object | Every named fault preset. |
 | `LLAMACLOUD_NAMESPACE` | string | The service name, `"llamacloud"`. |
 | `DEFAULT_PIPELINES`, `DEFAULT_PIPELINE_NAME`, `DEFAULT_PROJECT_NAME`, `DEFAULT_SETTINGS` | values | The seed: `acme-member-kb-v1` in `Default`, top-k 5, any key. |
@@ -188,4 +188,4 @@ never records queries, document text or titles.
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--index`, `--project`, `--api-key`); port 8805. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

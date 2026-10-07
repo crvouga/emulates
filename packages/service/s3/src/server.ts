@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type S3Runtime, type S3RuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 8812
 export type S3ServerOptions = S3RuntimeOptions & { port?: number; host?: string }

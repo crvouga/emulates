@@ -3,7 +3,7 @@
   "info": {
     "title": "Local scripted OpenAI API",
     "version": "0.1.0",
-    "x-emulates-upstream": {
+    "x-mockingbird-upstream": {
       "note": "Hand-authored bounded Chat/embeddings/files/uploads subset from official OpenAI docs and real SDKs openai7.27.0, @ai-sdk/openai4.0.83/ai7.0.127. No billed inference."
     }
   },
@@ -336,7 +336,7 @@
             }
           }
         },
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -856,7 +856,7 @@
             "fixtureKey": []
           }
         ],
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -1081,7 +1081,7 @@
             }
           }
         },
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -1557,7 +1557,7 @@
             "fixtureKey": []
           }
         ],
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false,
             "enabled": false,
@@ -2103,7 +2103,7 @@
             "fixtureKey": []
           }
         ],
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -2272,7 +2272,7 @@
             "fixtureKey": []
           }
         ],
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true,
             "enabled": false,
@@ -2489,7 +2489,7 @@
             }
           }
         },
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -2657,7 +2657,7 @@
             "fixtureKey": []
           }
         ],
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false,
             "enabled": false,
@@ -2872,7 +2872,7 @@
             }
           }
         },
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -3040,7 +3040,7 @@
             "fixtureKey": []
           }
         ],
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -3100,7 +3100,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-emulates-resource": {
+            "x-mockingbird-resource": {
               "type": "toolCall",
               "identity": true
             }
@@ -3174,7 +3174,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-emulates-resource": {
+            "x-mockingbird-resource": {
               "type": "chat",
               "identity": true
             }
@@ -3184,7 +3184,7 @@
           },
           "created": {
             "type": "integer",
-            "x-emulates-volatile": {
+            "x-mockingbird-volatile": {
               "kind": "timestamp"
             }
           },
@@ -3276,7 +3276,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-emulates-resource": {
+            "x-mockingbird-resource": {
               "type": "model",
               "identity": true
             }
@@ -3286,7 +3286,7 @@
           },
           "created": {
             "type": "integer",
-            "x-emulates-volatile": {
+            "x-mockingbird-volatile": {
               "kind": "timestamp"
             }
           },
@@ -3307,7 +3307,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-emulates-resource": {
+            "x-mockingbird-resource": {
               "type": "file",
               "identity": true
             }
@@ -3321,7 +3321,7 @@
           },
           "created_at": {
             "type": "integer",
-            "x-emulates-volatile": {
+            "x-mockingbird-volatile": {
               "kind": "timestamp"
             }
           },
@@ -3341,7 +3341,7 @@
           },
           "expires_at": {
             "type": "integer",
-            "x-emulates-volatile": {
+            "x-mockingbird-volatile": {
               "kind": "timestamp"
             }
           }
@@ -3362,7 +3362,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-emulates-resource": {
+            "x-mockingbird-resource": {
               "type": "upload",
               "identity": true
             }
@@ -3376,13 +3376,13 @@
           },
           "created_at": {
             "type": "integer",
-            "x-emulates-volatile": {
+            "x-mockingbird-volatile": {
               "kind": "timestamp"
             }
           },
           "expires_at": {
             "type": "integer",
-            "x-emulates-volatile": {
+            "x-mockingbird-volatile": {
               "kind": "timestamp"
             }
           },
@@ -3422,7 +3422,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "x-emulates-resource": {
+            "x-mockingbird-resource": {
               "type": "part",
               "identity": true
             }
@@ -3432,7 +3432,7 @@
           },
           "created_at": {
             "type": "integer",
-            "x-emulates-volatile": {
+            "x-mockingbird-volatile": {
               "kind": "timestamp"
             }
           },

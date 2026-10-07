@@ -1,26 +1,26 @@
-# @emulates/service
+# @crvouga/mockingbird-service
 
-> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-The generic runtime behind every Emulates provider emulator: turns an OpenAPI document plus one handler
+The generic runtime behind every Mockingbird provider mock: turns an OpenAPI document plus one handler
 per `operationId` into a Fetch-native `FetchAPI` (Hono routing), with SQLite-backed collections,
 deterministic ids, bracket-decoded queries/bodies and schema-driven form parsing. Use it to build a
-emulator for an API Emulates does not ship. To emulator Stripe, Junction, etc., install that provider
-package (e.g. `@emulates/stripe`) instead.
+mock for an API Mockingbird does not ship. To mock Stripe, Junction, etc., install that provider
+package (e.g. `@crvouga/mockingbird-service-stripe`) instead.
 
 ## Install
 
 ```bash
-npm install @emulates/service @emulates/openapi
+npm install @crvouga/mockingbird-service @crvouga/mockingbird-openapi
 ```
 
-ESM only (Node >=22, Bun >=1.2, workers). `@emulates/openapi` provides
+ESM only (Node >=22, Bun >=1.2, workers). `@crvouga/mockingbird-openapi` provides
 `parseOpenAPIDocument` and the `OpenAPIDocument` type used below.
 
 ## Usage
 
 ```ts
-import { parseOpenAPIDocument } from "@emulates/openapi"
+import { parseOpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import {
   bootSqlite,
   Collection,
@@ -29,7 +29,7 @@ import {
   HttpError,
   IdSequence,
   jsonRes,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 
 const document = parseOpenAPIDocument({
   openapi: "3.1.0",
@@ -92,7 +92,7 @@ await api.reset() // wipes every record and id sequence in the "widgets" namespa
 ```
 
 `createService` throws `OperationRegistryError` unless handlers match the document exactly: one per
-supported operation, none for unknown ids or operations marked `x-emulates: { supported: false }`
+supported operation, none for unknown ids or operations marked `x-mockingbird: { supported: false }`
 (those answer via `unsupported`, else `notFound`). Static path segments win over parameters
 (`/v1/widgets/search` beats `/v1/widgets/{id}`). `before` runs only for supported operations, after
 the body is read.
@@ -107,7 +107,7 @@ the body is read.
 | `verifyOperations` | `(document, handlers) => string[]` | Registry problems (missing, extra, unsupported-with-handler, duplicate ids); `[]` if consistent. |
 | `OperationRegistryError` | `class extends Error { problems: string[] }` | Thrown by `createService` when `verifyOperations` finds problems. |
 | `Collection` | `new Collection<T>(sqlite, namespace, name)` | JSON records by id: `get`, `has`, `insert` (upsert; moves to newest), `update` (keeps position; `undefined` if missing), `delete`, `list({ where?, order?: "newest" \| "oldest" })` (default newest first), `count()`, `nextSequence`. |
-| `IdSequence` | `new IdSequence(sqlite, namespace, salt = "emulates")` | `next(prefix, length = 14)` gives deterministic ids like `cus_` + 14 alphanumerics, stable for a given history. |
+| `IdSequence` | `new IdSequence(sqlite, namespace, salt = "mockingbird")` | `next(prefix, length = 14)` gives deterministic ids like `cus_` + 14 alphanumerics, stable for a given history. |
 | `opaqueToken` | `(input: string, length: number) => string` | Deterministic alphanumeric token derived from `input` (non-cryptographic). |
 | `jsonRes` | `(status, body, headers?) => Response` | JSON response with `content-type: application/json`. |
 | `jsonResponse` | alias of `jsonRes` | |
@@ -116,12 +116,12 @@ the body is read.
 | `codePointLength` | `(value: string) => number` | String length in Unicode code points (JSON Schema `maxLength` semantics). |
 | `parseForm` | `(document, schema, raw: FormValue \| undefined, path?) => ParsedForm` | Validate and coerce a bracket-decoded form value against an OpenAPI schema. |
 | `sortIssues` | `(issues: FormIssue[]) => FormIssue[]` | Stable sort: `unknown`, then `missing`, then value errors. |
-| `EMULATES_HEADER` | `"x-emulates"` | Set by `createRuntime` on every response: `<service>@<version>; ns=<namespace>`. |
+| `MOCKINGBIRD_HEADER` | `"x-mockingbird"` | Set by `createRuntime` on every response: `<service>@<version>; ns=<namespace>`. |
 | `PACKAGE_VERSION` / `UNRELEASED_VERSION` | `string` | The bundled service's version (stamped by `release:publish`); `"0.0.0-development"` from source. |
 | `createJournal` | `(size = 1000) => Journal` | Per-namespace ring buffer of request logs behind `GET /__admin/requests`. |
 | `annotateResponse` / `responseNotes` | `(response, { ids?, adopted?, issues? }) => Response` | Attach the ids a handler touched (and, on a rejection, the body issues behind it) to a response for the journal and log, without changing what the client sees. |
 | `createRuntime` | `(options: RuntimeOptions) => ServiceRuntime` | Wrap a service in the full contract: `/__admin/health`, `/__admin/*`, namespaces (header, `/__admin/ns/<name>/…` prefix, or `credential`-mapped via `PUT /__admin/credentials`), clock, faults and `presets`, metrics, journal, optional `webhooks` hub, `GET /__admin/state`, and `GET /__admin/ui`. |
-| `BRANCH_HEADER` / `AT_HEADER` / `CHECKPOINT_HEADER` | HTTP header constants | `x-emulates-branch` selects an isolated branch; `x-emulates-at` reads/forks from a checkpoint; successful mutations return `x-emulates-checkpoint`. Omitting them preserves normal behavior. |
+| `BRANCH_HEADER` / `AT_HEADER` / `CHECKPOINT_HEADER` | HTTP header constants | `x-mockingbird-branch` selects an isolated branch; `x-mockingbird-at` reads/forks from a checkpoint; successful mutations return `x-mockingbird-checkpoint`. Omitting them preserves normal behavior. |
 | `faultEffect` / `faultEffects` | `(request, name?) => params \| list` | The `effect` fault rules that fired for a request, so a handler can switch on a named vendor misbehaviour. |
 | `DroppedConnectionError` | `class extends TypeError` | What an in-process `runtime.fetch` throws for a `drop: true` fault; the Node adapter destroys the socket instead. |
 | `bearerToken` / `basicAuth` / `sigV4AccessKeyId` / `anyCredential` | `(request) => …` | Read a vendor credential (for the runtime's `credential` hook). |
@@ -130,14 +130,14 @@ the body is read.
 | `signers` | `{ none, svix, timestamped, twilio, header, custom }` | Vendor signature schemes for the hub. |
 | `webhookAdminRoutes` | `(hub) => AdminRoutes` | `/__admin/webhooks*` and `/__admin/webhook-endpoints` (added automatically when `webhooks` is passed to `createRuntime`). |
 | `hmac` / `sha` / `signSvix` / `signTimestamped` / `signTwilio` / `svixSecretBytes` / `timingSafeEqual` / `toHex` / `toBase64` / `fromBase64` | | WebCrypto signing primitives. |
-| `OutboxStore` / `outboxAdminRoutes` / `parseSince` | | What a comms emulator "sent", per namespace, and `GET /__admin/outbox?to=&since=`. |
+| `OutboxStore` / `outboxAdminRoutes` / `parseSince` | | What a comms mock "sent", per namespace, and `GET /__admin/outbox?to=&since=`. |
 | `extractLinks` / `extractCodes` | `(html) => string[]`, `(text, length?) => string[]` | Links and numeric codes in a message. |
 | `IdempotencyStore` / `requestFingerprint` / `stableStringify` | | Idempotency keys: replay, mismatch error, in-flight conflict. |
 | `bodyIssues` / `issuesByField` | `(context) => BodyIssue[]` | Validate the body against the operation's contract schema for the media type it sent; group issues Laravel-style. Each issue has a `kind`: `media_type` (a present body whose `content-type` is missing or not one the contract lists — never "required"), `syntax`, `required` (an empty body), `schema`. |
 | `unsupportedMediaType` | `(context, { includeEmpty? }) => { mediaType, accepted } \| undefined` | The `415` case on its own: the request's media type and the ones the operation accepts (`application/*+json` wildcards understood). `includeEmpty` treats an empty body the way ASP.NET Core does (the header alone decides). |
 | `putObject` / `signV4` | | SigV4-signed S3 `PutObject` (for vendors that hand the app an `s3://` object). |
 | `defineMock` | `<T extends MockSurface>(runtime: T) => T` | Prove a runtime has the shared surface and keep its extra methods. `createRuntime` already returns one. |
-| `STANDARD_ADMIN_ROUTES` | `readonly string[]` | The `/__admin` keys every emulator answers. Service routes add keys beside these. |
+| `STANDARD_ADMIN_ROUTES` | `readonly string[]` | The `/__admin` keys every mock answers. Service routes add keys beside these. |
 | `assertAdminUi` | `(ui?: AdminUi) => void` | Reject a panel or extension id, a reserved view name, or an empty title before the shell mounts it. Called by `createRuntime`. |
 | `inspectState` | `(scope) => StateView` | Collections for one namespace: declarations, `Collection` fields on the instance, and stored names, with field kinds sampled from rows. |
 | `STATE_FIELD_KINDS` | `"string" \| "number" \| …` | The kinds a state field can report. |
@@ -148,8 +148,8 @@ Types:
 - `Service`: `FetchAPI & { app: Hono; sqlite; namespace; reset(): Promise<void> }`.
 - `OperationContext` (handler argument): `{ request; url; params; query: FormObject; body: DecodedBody; sqlite; namespace; operation; now }`.
 - `OperationHandler`: `(context) => Response | Promise<Response>`; `OperationHandlers`: `Record<string, OperationHandler>`.
-- `APIOptions`: `{ sqlite?: SqliteClient; now?: () => number }`, the options every provider emulator accepts.
-- `ServiceRuntime`: also exposes `state(namespace?)` (the same collection view as `GET /__admin/state`), `checkpoint(namespace?, branch?)`, `branch(name, { namespace?, at? })`, `checkout(id, { namespace?, branch? })`, and `timeline(namespace?)`. Equivalent HTTP control routes are `GET /__admin/timeline`, `POST /__admin/checkpoints`, `POST /__admin/branches/:name`, and `POST /__admin/branches/:name/checkout`. `RuntimeOptions.state` declares collections before any row exists. `RuntimeOptions.adminUi` adds `panels`, first-class `extensions` (`panel` markup or the built-in `sql` table explorer), or replaces `GET /__admin/ui`. The SQL engines mount that explorer through `@emulates/service/admin`.
+- `APIOptions`: `{ sqlite?: SqliteClient; now?: () => number }`, the options every provider mock accepts.
+- `ServiceRuntime`: also exposes `state(namespace?)` (the same collection view as `GET /__admin/state`), `checkpoint(namespace?, branch?)`, `branch(name, { namespace?, at? })`, `checkout(id, { namespace?, branch? })`, and `timeline(namespace?)`. Equivalent HTTP control routes are `GET /__admin/timeline`, `POST /__admin/checkpoints`, `POST /__admin/branches/:name`, and `POST /__admin/branches/:name/checkout`. `RuntimeOptions.state` declares collections before any row exists. `RuntimeOptions.adminUi` adds `panels`, first-class `extensions` (`panel` markup or the built-in `sql` table explorer), or replaces `GET /__admin/ui`. The SQL engines mount that explorer through `@crvouga/mockingbird-service/admin`.
 - `RuntimeIO`: injectable `wallNow`, `monotonicNow`, and `sleep`; pass a partial value as `RuntimeOptions.io` for fully controlled observations and fault delays. `WebhookHubOptions` likewise accepts `now`, `id`, `schedule`, `cancel`, and `fetch`.
 
 Provider state must live in the shared `Collection` storage and receives version history only from
@@ -162,13 +162,13 @@ enforces this rule.
 
 ## Related
 
-- `@emulates/core`: the `FetchAPI` contract `Service` implements.
-- `@emulates/sqlite-client`: the `SqliteClient` port and migrations.
-- `@emulates/http-codec`: the body/query codecs behind `OperationContext`.
-- `@emulates/openapi`, `@emulates/openapi-metadata`: document parsing and `x-emulates` metadata.
-- `@emulates/adapter-node` / `@emulates/adapter-bun`: serve the result over HTTP.
+- `@crvouga/mockingbird-core`: the `FetchAPI` contract `Service` implements.
+- `@crvouga/mockingbird-sqlite`: the `SqliteClient` port and migrations.
+- `@crvouga/mockingbird-http-codec`: the body/query codecs behind `OperationContext`.
+- `@crvouga/mockingbird-openapi`, `@crvouga/mockingbird-openapi-metadata`: document parsing and `x-mockingbird` metadata.
+- `@crvouga/mockingbird-adapter-node` / `@crvouga/mockingbird-adapter-bun`: serve the result over HTTP.
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).
 
 ### Accepted mutations and response loss
 
@@ -200,7 +200,7 @@ The annotation is private object metadata, not a client-controlled header.
 ### Slash-bearing terminal path parameters
 
 Operations can opt into a terminal parameter spanning multiple path segments with
-`x-emulates: { path: { parameter: "ref" } }`. The named placeholder must be the
+`x-mockingbird: { path: { parameter: "ref" } }`. The named placeholder must be the
 last entire segment of the OpenAPI path. Add `allowEmpty: true` when the provider
 also accepts an omitted suffix (with or without its preceding slash). The handler
 receives the decoded parameter, or an empty string for that omitted suffix.

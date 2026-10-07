@@ -1,39 +1,39 @@
-# @emulates/otel
+# @crvouga/mockingbird-service-otel
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of an **OTLP/HTTP collector** in front of the **OpenObserve (O2) search API**,
+Stateful mock of an **OTLP/HTTP collector** in front of the **OpenObserve (O2) search API**,
 over one store. Local and E2E runs stop exporting to production telemetry infrastructure, and a
 test can assert on structured events: emit through the real OpenTelemetry SDK, then read the
 log back with the same SQL our ops feed and investigation agent send ("the reconcile cron
 emitted `initial_credit_reconcile_completed` with `granted=1`").
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/otel/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/otel/SUPPORT.md)
 - OTLP/HTTP follows opentelemetry-proto v1; the O2 routes follow OpenObserve's API, trimmed to
   what our clients call.
 
 ## Install
 
 ```bash
-npm install -D @emulates/otel
+npm install -D @crvouga/mockingbird-service-otel
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies, no protobuf library (a minimal
-wire-format decoder is built in). Serve it with `npx emulates-otel serve`, `createServer`
+wire-format decoder is built in). Serve it with `npx mockingbird-otel serve`, `createServer`
 from `./server` (Node), or `createRuntime` with any Fetch server.
 
 ## Usage
 
-Point `OTEL_EXPORTER_OTLP_ENDPOINT` at the emulator and set `OTEL_TRACES_SAMPLER_ARG=1` (our SDK
-samples 10% of root spans otherwise). Point `O2_BASE_URL` at the same emulator; `O2_BASIC_AUTH` is
+Point `OTEL_EXPORTER_OTLP_ENDPOINT` at the mock and set `OTEL_TRACES_SAMPLER_ARG=1` (our SDK
+samples 10% of root spans otherwise). Point `O2_BASE_URL` at the same mock; `O2_BASIC_AUTH` is
 any base64 `user:password` unless `--search-auth` is set.
 
 ```bash
-npx emulates-otel serve --port 8809 --ingest-token "$OTEL_AUTH_TOKEN"
+npx mockingbird-otel serve --port 8809 --ingest-token "$OTEL_AUTH_TOKEN"
 ```
 
 ```ts
-import { createRuntime } from "@emulates/otel"
+import { createRuntime } from "@crvouga/mockingbird-service-otel"
 
 const otel = createRuntime()
 const call = (path: string, init: RequestInit) => otel.fetch(new Request(`http://otel.test${path}`, init))
@@ -142,7 +142,7 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 
 ### Namespaces
 
-`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the endpoint and base URL, or by credential:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the endpoint and base URL, or by credential:
 `PUT /__admin/credentials {"credentials": {"<OTEL_AUTH_TOKEN>": "w1", "<O2 username>": "w1"}}`
 (map both so a worker's exports and searches meet).
 
@@ -161,8 +161,8 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `OtelAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `logs()`, `spans()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, wait, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `OtelAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `logs()`, `spans()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, wait, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `OTEL_PRESETS` | object | Every named fault preset. |
 | `OTEL_NAMESPACE` | string | The service name, `"otel"`. |
 | `otelCredential` | function | The OTLP bearer token or the O2 Basic username (how credentials map to namespaces). |
@@ -174,4 +174,4 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8809. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

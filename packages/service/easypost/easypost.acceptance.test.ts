@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   createRuntime,
@@ -200,10 +200,10 @@ describe("S25 EasyPost acceptance: our tracking lookup against the mock", () => 
     expect((await as(KEY, `${API}/__admin/ns/a`)).status).toBe("delivered")
     const viaHeader = await runtime.fetch(
       new Request(`${API}/v2/trackers?tracking_code=${UPS}`, {
-        headers: { authorization: `Basic ${btoa(`${KEY}:`)}`, "x-emulates-namespace": "a" },
+        headers: { authorization: `Basic ${btoa(`${KEY}:`)}`, "x-mockingbird-namespace": "a" },
       }),
     )
-    expect(viaHeader.headers.get("x-emulates")).toMatch(/^easypost@.*; ns=a$/)
+    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/^easypost@.*; ns=a$/)
     expect(((await viaHeader.json()) as { trackers: unknown[] }).trackers).toHaveLength(1)
   })
 
@@ -241,7 +241,7 @@ describe("served over HTTP", () => {
       })
       expect(result).toMatchObject({ status: "delivered", carrier: "USPS" })
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulates")).toMatch(/^easypost@/)
+      expect(health.headers.get("x-mockingbird")).toMatch(/^easypost@/)
     } finally {
       await server.close()
     }

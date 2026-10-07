@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { ResourceTable } from "@emulates/model"
+import { ResourceTable } from "@crvouga/mockingbird-model"
 import { compareStripeWebhooks, stripeEventsForRequests } from "./webhook-oracle.js"
 
 const event = (type: string, id: string, status: string) => ({

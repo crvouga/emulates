@@ -1,16 +1,16 @@
-# @emulates/adapter-node
+# @crvouga/mockingbird-adapter-node
 
-> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-Serve any Emulates `FetchAPI` (a provider emulator such as `StripeAPI`, or your own) as a real HTTP
+Serve any Mockingbird `FetchAPI` (a provider mock such as `StripeAPI`, or your own) as a real HTTP
 server over `node:http`. Use it when the code under test needs a URL (a subprocess, a browser, an
-SDK you cannot hand a `fetch`). If you can inject `fetch`, call the emulator's `fetch` directly instead;
-on Bun, `@emulates/adapter-bun` is lighter.
+SDK you cannot hand a `fetch`). If you can inject `fetch`, call the mock's `fetch` directly instead;
+on Bun, `@crvouga/mockingbird-adapter-bun` is lighter.
 
 ## Install
 
 ```bash
-npm install @emulates/adapter-node
+npm install @crvouga/mockingbird-adapter-node
 ```
 
 Requires Node >=22 (also runs on Bun, which implements `node:http`). ESM only.
@@ -19,10 +19,10 @@ Requires Node >=22 (also runs on Bun, which implements `node:http`). ESM only.
 
 ```ts
 import type { AddressInfo } from "node:net"
-import { serve } from "@emulates/adapter-node"
-import type { FetchAPI } from "@emulates/core"
+import { serve } from "@crvouga/mockingbird-adapter-node"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 
-// Any FetchAPI works, e.g. `new StripeAPI()` from @emulates/stripe.
+// Any FetchAPI works, e.g. `new StripeAPI()` from @crvouga/mockingbird-service-stripe.
 const api: FetchAPI = {
   fetch: async (request) =>
     Response.json({ method: request.method, url: request.url, body: await request.text() }),
@@ -64,7 +64,7 @@ Behavior:
 
 ## Related
 
-- `@emulates/core`: the `FetchAPI` contract.
-- `@emulates/adapter-bun`: the same adapter for `Bun.serve`.
+- `@crvouga/mockingbird-core`: the `FetchAPI` contract.
+- `@crvouga/mockingbird-adapter-bun`: the same adapter for `Bun.serve`.
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

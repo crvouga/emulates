@@ -9,7 +9,7 @@
  *   FCM_PROJECT_ID
  *   FCM_ACCESS_TOKEN
  */
-import { CredentialError, loadCredentials } from "@emulates/credentials"
+import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
 
 try {
   await loadCredentials(

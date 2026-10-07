@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
-  title: Hermes Agent peer runs (Emulates)
+  title: Hermes Agent peer runs (Mockingbird)
   version: "2026.8.31"
   description: Pinned public peer-run submission and polling with explicit synthetic
     observations. No agent or inference executes.
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     url: https://github.com/NousResearch/hermes-agent/blob/29112bef099274229cadff79cdff7bf7b99c4b77/gateway/platforms/api_server_runs.py
     note: Pinned v2026.8.31 route inventory; see API_EVIDENCE.md for researched behavior.
 servers:
@@ -14,7 +14,7 @@ paths:
     post:
       operationId: RunCreate
       summary: Admit a synthetic tracked run
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -47,7 +47,7 @@ paths:
                 properties:
                   run_id:
                     type: string
-                    x-emulates-resource:
+                    x-mockingbird-resource:
                       type: run
                       identity: true
                   status:
@@ -99,7 +99,7 @@ paths:
     get:
       operationId: RunGet
       summary: Poll a tracked run without advancing execution
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -110,7 +110,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: run
       responses:
         "200":
@@ -129,7 +129,7 @@ paths:
     post:
       operationId: RunStop
       summary: Request run interruption without assuming execution has settled
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -140,7 +140,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: run
       responses:
         "200":
@@ -175,7 +175,7 @@ paths:
     get:
       operationId: RunEvents
       summary: Stream run events
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: SSE is outside the public peer-run mock subset.
         parity:
@@ -190,7 +190,7 @@ paths:
             type: string
       responses:
         "501":
-          description: Explicit Emulates-only unsupported operation
+          description: Explicit Mockingbird-only unsupported operation
           content:
             application/json:
               schema:
@@ -199,7 +199,7 @@ paths:
     post:
       operationId: RunApproval
       summary: Resolve run approval
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Host tool approval execution is outside this mock.
         parity:
@@ -214,7 +214,7 @@ paths:
             type: string
       responses:
         "501":
-          description: Explicit Emulates-only unsupported operation
+          description: Explicit Mockingbird-only unsupported operation
           content:
             application/json:
               schema:
@@ -223,7 +223,7 @@ paths:
     post:
       operationId: RunSteer
       summary: Steer active execution
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Agent execution and steering are outside this mock.
         parity:
@@ -238,7 +238,7 @@ paths:
             type: string
       responses:
         "501":
-          description: Explicit Emulates-only unsupported operation
+          description: Explicit Mockingbird-only unsupported operation
           content:
             application/json:
               schema:
@@ -334,7 +334,7 @@ components:
               type: string
             type:
               type: string
-              const: emulates_unsupported
+              const: mockingbird_unsupported
             param:
               type: "null"
             code:

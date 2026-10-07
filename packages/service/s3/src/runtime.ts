@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, S3_NAMESPACE, S3API } from "./index.js"
 import type { S3SeedObject } from "./state.js"
@@ -118,7 +118,7 @@ const admin = (runtime: ServiceRuntime<S3API>): AdminRoutes => ({
     )
       return Response.json(
         {
-          error: { type: "emulates_admin", message: "bucket, key and string body are required" },
+          error: { type: "mockingbird_admin", message: "bucket, key and string body are required" },
         },
         { status: 400 },
       )
@@ -143,7 +143,7 @@ const admin = (runtime: ServiceRuntime<S3API>): AdminRoutes => ({
           headers: { "content-type": object.contentType ?? "application/octet-stream" },
         })
       : Response.json(
-          { error: { type: "emulates_admin", message: "object not found" } },
+          { error: { type: "mockingbird_admin", message: "object not found" } },
           { status: 404 },
         )
   },

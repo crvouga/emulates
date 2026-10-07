@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type EasyPostRuntime, type EasyPostRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-easypost serve` listens on when none is given. */
+/** Port `mockingbird-easypost serve` listens on when none is given. */
 export const DEFAULT_PORT = 8818
 
 export type EasyPostServerOptions = EasyPostRuntimeOptions & {
@@ -54,6 +54,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: Authorization: Basic base64(<api key>:)",
     "test codes: EZ1000000001 pre_transit … EZ4000000004 delivered … EZ7000000007 unknown",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

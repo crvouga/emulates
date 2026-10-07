@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
-  title: OTLP/HTTP collector and OpenObserve search (Emulates subset)
+  title: OTLP/HTTP collector and OpenObserve search (Mockingbird subset)
   description: |
     An OTLP/HTTP receiver (traces, logs, metrics; JSON and protobuf) in front of the
     OpenObserve (O2) search API, over one store: a test emits a span or a structured `event`
     log and queries it back with the same SQL our clients send.
   version: '1'
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     note: OTLP/HTTP per opentelemetry-proto v1 (https://opentelemetry.io/docs/specs/otlp/); the O2 routes
       follow OpenObserve's API (/api-doc/openapi.json, v0.92) trimmed to what our clients call.
 servers:
@@ -19,7 +19,7 @@ paths:
     post:
       operationId: ExportTraces
       summary: OTLP/HTTP trace export (ExportTraceServiceRequest)
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -102,7 +102,7 @@ paths:
     post:
       operationId: ExportLogs
       summary: OTLP/HTTP log export (ExportLogsServiceRequest)
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -185,7 +185,7 @@ paths:
     post:
       operationId: ExportMetrics
       summary: 'OTLP/HTTP metrics export: accepted and counted, never stored'
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -270,7 +270,7 @@ paths:
       summary: 'O2: the organizations the Basic user belongs to (display name → identifier)'
       security:
       - basicAuth: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -297,7 +297,7 @@ paths:
       description: The org **identifier** (not its display name)
       schema:
         type: string
-        x-emulates-resource-ref:
+        x-mockingbird-resource-ref:
           type: organization
           missing: no-such-org
     get:
@@ -305,7 +305,7 @@ paths:
       summary: 'O2: the org''s streams of one type'
       security:
       - basicAuth: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -341,7 +341,7 @@ paths:
       description: The org **identifier** (not its display name)
       schema:
         type: string
-        x-emulates-resource-ref:
+        x-mockingbird-resource-ref:
           type: organization
           missing: no-such-org
     - name: stream
@@ -357,7 +357,7 @@ paths:
       summary: 'O2: a stream''s schema (`schema[].name` are the queryable, lowercased, flattened fields)'
       security:
       - basicAuth: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -399,7 +399,7 @@ paths:
       description: The org **identifier** (not its display name)
       schema:
         type: string
-        x-emulates-resource-ref:
+        x-mockingbird-resource-ref:
           type: organization
           missing: no-such-org
     post:
@@ -407,7 +407,7 @@ paths:
       summary: 'O2: SQL search over a stream'
       security:
       - basicAuth: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -771,7 +771,7 @@ components:
                 type: integer
               identifier:
                 type: string
-                x-emulates-resource:
+                x-mockingbird-resource:
                   type: organization
                   identity: true
               name:
@@ -844,7 +844,7 @@ components:
       properties:
         took:
           type: integer
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: opaque
         hits:
           type: array

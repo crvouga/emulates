@@ -1,12 +1,12 @@
-# Hermes Agent peer runs (Emulates) — operation support
+# Hermes Agent peer runs (Mockingbird) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **6**
-- supported by the emulator: **3**
+- supported by the mock: **3**
 - parity enabled: **3**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `RunCreate` | `POST /v1/runs` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `RunGet` | `GET /v1/runs/{run_id}` | ✅ supported | ✅ |  |

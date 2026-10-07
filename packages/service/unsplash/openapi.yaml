@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Unsplash search subset
   version: v1
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     url: https://unsplash.com/documentation
 servers:
   - url: https://api.unsplash.com
@@ -30,7 +30,7 @@ paths:
                   results: { type: array, items: { $ref: '#/components/schemas/photo' } }
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
-      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
   /photos/{id}/download:
     get:
       operationId: TrackDownload
@@ -44,9 +44,9 @@ paths:
               schema: { type: object, required: [url], properties: { url: { type: string, format: uri } } }
         '401': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
   /__admin/blobs/{id}:
-    x-emulates-internal: true
+    x-mockingbird-internal: true
     get:
       operationId: GetImage
       parameters:
@@ -54,7 +54,7 @@ paths:
       responses:
         '200': { description: Synthetic image bytes, content: { 'application/octet-stream': { schema: { type: string } } } }
         '404': { $ref: '#/components/responses/Error' }
-      x-emulates: { supported: true, parity: { enabled: false, reason: Local binary image fixture, safe: true } }
+      x-mockingbird: { supported: true, parity: { enabled: false, reason: Local binary image fixture, safe: true } }
 components:
   responses:
     Error:

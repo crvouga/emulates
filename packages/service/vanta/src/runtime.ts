@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { VANTA_NAMESPACE, VantaAPI, type VantaAPIOptions } from "./index.js"
 export const VANTA_PRESETS: Record<string, FaultPreset> = {

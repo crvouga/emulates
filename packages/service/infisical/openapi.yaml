@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Infisical Universal Auth and v3 raw secrets
   version: 0.0.0
-  x-emulates-upstream: Infisical server
+  x-mockingbird-upstream: Infisical server
     70e06365043ae3b6f49ef6c95a8b9997b20f4a34; @infisical/sdk 3.0.91
 servers:
   - url: https://app.infisical.com
@@ -85,7 +85,7 @@ paths:
               required:
                 - clientId
                 - clientSecret
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           safe: false
@@ -156,7 +156,7 @@ paths:
                 accessToken: *a1
               required:
                 - accessToken
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           safe: false
@@ -273,7 +273,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           safe: true
@@ -362,7 +362,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           safe: true
@@ -455,7 +455,7 @@ paths:
               required:
                 - environment
                 - secretValue
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           safe: false
@@ -534,7 +534,7 @@ paths:
                 newSecretName: *a1
               required:
                 - environment
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           safe: false
@@ -549,7 +549,7 @@ components:
       properties:
         reqId:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         statusCode:
           type: integer
@@ -571,7 +571,7 @@ components:
       properties:
         id:
           type: string
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: secret
             identity: true
         _id: *a1
@@ -606,11 +606,11 @@ components:
           additionalProperties: *a1
         createdAt:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         updatedAt:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         secretValueHidden:
           type: boolean
@@ -635,7 +635,7 @@ components:
       properties:
         accessToken:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: token
         expiresIn:
           type: integer

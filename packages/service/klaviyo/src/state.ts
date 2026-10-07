@@ -1,5 +1,5 @@
-import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence, type OutboxItem, OutboxStore } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /**
  * One event as Klaviyo stores it, which doubles as the outbox entry a suite asserts on:

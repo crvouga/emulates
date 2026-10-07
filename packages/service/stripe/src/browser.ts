@@ -1,5 +1,5 @@
-import type { OperationContext, OperationHandler } from "@emulates/service"
-import { CSS_RESET } from "@emulates/ui"
+import type { OperationContext, OperationHandler } from "@crvouga/mockingbird-service"
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import { afterIntentSucceeded } from "./billing.js"
 import { portalChange, runPortalAction } from "./billing-portal.js"
 import {

@@ -3,7 +3,7 @@
  * (`turbo query`: every package's transitive workspace dependencies, from the package.json
  * `dependencies`, `devDependencies` and peers). scripts/ci-plan.ts uses it to scope a pull request:
  * a package is affected when a file in it or in anything it depends on changed, so a change to
- * emulator A never reaches emulator B, and a change to a shared package reaches every dependent.
+ * mock A never reaches mock B, and a change to a shared package reaches every dependent.
  *
  * Files that belong to no package (root config, scripts) are the caller's call, and `bun.lock` is
  * read here: Turborepo does not diff bun's lockfile, so `lockfileImpact` does.

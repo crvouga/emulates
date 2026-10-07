@@ -1,38 +1,38 @@
-# @emulates/easypost
+# @crvouga/mockingbird-service-easypost
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of the **EasyPost** trackers API for test suites: `POST /v2/trackers` (create or
+Stateful mock of the **EasyPost** trackers API for test suites: `POST /v2/trackers` (create or
 re-use a tracker for a tracking code), `GET /v2/trackers/{id}` and `GET /v2/trackers`. EasyPost's
 documented test tracking codes answer their fixed statuses, and any other code moves through
 admin transitions, so the genomics admin's shipping-leg states can be driven deterministically.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/easypost/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/easypost/SUPPORT.md)
 - The contract (`openapi.yaml`) is trimmed from EasyPost's published reference to what our
   tracking lookup (`packages/lib/src/shipment-tracking-status/easypost-client.ts`) calls.
 
 ## Install
 
 ```bash
-npm install -D @emulates/easypost
+npm install -D @crvouga/mockingbird-service-easypost
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-easypost serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx mockingbird-easypost serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
 The app hardcodes `https://api.easypost.com/v2/trackers` (seam **G-Y1**: add a base-URL env to
-`easypost-client.ts`). Point that base URL at the emulator; `EASYPOST_API_KEY` can be any value
+`easypost-client.ts`). Point that base URL at the mock; `EASYPOST_API_KEY` can be any value
 (`--api-key` restricts it).
 
 ```bash
-npx emulates-easypost serve --port 8818
+npx mockingbird-easypost serve --port 8818
 ```
 
 ```ts
-import { createRuntime } from "@emulates/easypost"
+import { createRuntime } from "@crvouga/mockingbird-service-easypost"
 
 const easypost = createRuntime()
 const auth = { authorization: `Basic ${btoa("EZTK_test:")}` }
@@ -88,7 +88,7 @@ records `unknown` and warns), `slow` (5 s).
 
 ### Namespaces
 
-`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the base URL, or by API key:
 `PUT /__admin/credentials {"credentials": {"<EASYPOST_API_KEY>": "<namespace>"}}`.
 
 ### Deliberately not modelled
@@ -103,17 +103,17 @@ records `unknown` and warns), `slow` (5 s).
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `EasyPostAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(idOrCode, {status, …}, carrier?)`, `trackers()`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `EasyPostAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(idOrCode, {status, …}, carrier?)`, `trackers()`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `EASYPOST_PRESETS` | object | Every named fault preset. |
 | `EASYPOST_NAMESPACE` | string | The service name, `"easypost"`. |
 | `TEST_TRACKING_CODES` | object | EasyPost's test codes and the status / detail each answers. |
 | `TRACKER_STATUSES` | array | Every Tracker `status`. |
 | `apiKeyCredential` | function | The API key from `Basic base64(key:)` (how credentials map to namespaces). |
-| `detectCarrier` | function | The carrier the emulator assigns a code with no carrier given. |
+| `detectCarrier` | function | The carrier the mock assigns a code with no carrier given. |
 | `easyPostError` | function | Build an EasyPost error response `{error: {code, message, errors}}`. |
 | `isTrackerStatus` | function | Whether a value is a Tracker status. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8818. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

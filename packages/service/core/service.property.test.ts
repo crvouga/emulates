@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test"
-import { type OpenAPIDocument, parseOpenAPIDocument, type SchemaObject } from "@emulates/openapi"
-import { createDefaultSqlite, type SqliteClient } from "@emulates/sqlite-client"
-import { fcParameters } from "@emulates/testing"
+import {
+  type OpenAPIDocument,
+  parseOpenAPIDocument,
+  type SchemaObject,
+} from "@crvouga/mockingbird-openapi"
+import { createDefaultSqlite, type SqliteClient } from "@crvouga/mockingbird-sqlite"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   bootSqlite,
@@ -36,7 +40,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
       get: { operationId: "things.retrieve", responses: { "200": { description: "ok" } } },
       delete: {
         operationId: "things.delete",
-        "x-emulates": { supported: false, reason: "not yet" },
+        "x-mockingbird": { supported: false, reason: "not yet" },
         responses: { "200": { description: "ok" } },
       },
     },

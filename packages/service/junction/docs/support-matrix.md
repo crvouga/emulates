@@ -39,7 +39,7 @@ Status meanings:
 | Webhook persistence | Modeled | `src/state.ts` | Events are retained in SQLite order. |
 | Webhook retries and delivery attempts | Modeled | `src/state.ts` | Seeded schedule with optional jitter. |
 | Webhook signatures/Svix headers | Out of scope | — | Delivery transport is callback-based in this package. |
-| Rate limiting and 429/503 fault injection | Planned | — | Useful for parity but not part of the baseline emulator. |
+| Rate limiting and 429/503 fault injection | Planned | — | Useful for parity but not part of the baseline mock. |
 | Wearables, Sense, Connect, Management API, ETL | Out of scope | — | See the Junction documentation index for those products. |
 
 The matrix is deliberately explicit: unsupported behavior should fail clearly or remain absent rather than return a misleading successful response.

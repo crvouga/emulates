@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { Database } from "@emulates/sqlite"
-import { fcParameters } from "@emulates/testing"
+import { Database } from "@crvouga/mockingbird-service-sqlite"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   CORE_MIGRATIONS,
@@ -44,9 +44,8 @@ describe("migrate", () => {
           migrateCore(sqlite)
           const first = listAppliedMigrations(sqlite)
           expect(first).toEqual(CORE_MIGRATIONS.map((m) => m.id))
-          expect(tableExists(sqlite, "emulates_records")).toBe(true)
-          expect(tableExists(sqlite, "emulates_sequences")).toBe(true)
-          expect(tableExists(sqlite, "emulators_records")).toBe(false)
+          expect(tableExists(sqlite, "mockingbird_records")).toBe(true)
+          expect(tableExists(sqlite, "mockingbird_sequences")).toBe(true)
 
           migrateCore(sqlite)
           expect(listAppliedMigrations(sqlite)).toEqual(first)
@@ -71,38 +70,43 @@ describe("migrate", () => {
 })
 
 describe("migrateCore legacy names", () => {
-  test("renames tables created under the former emulators_ names", () => {
-    const sqlite = createDefaultSqlite()
-    sqlite.exec(`
-      CREATE TABLE schema_migrations (id TEXT PRIMARY KEY NOT NULL, applied_at INTEGER NOT NULL);
-      INSERT INTO schema_migrations (id, applied_at) VALUES ('20260322_core_records_sequences', 1);
-      CREATE TABLE emulators_records (
-        namespace TEXT NOT NULL,
-        collection TEXT NOT NULL,
-        id TEXT NOT NULL,
-        seq INTEGER NOT NULL,
-        value TEXT NOT NULL,
-        PRIMARY KEY (namespace, collection, id)
-      );
-      CREATE INDEX emulators_records_seq ON emulators_records (namespace, collection, seq);
-      CREATE TABLE emulators_sequences (
-        namespace TEXT NOT NULL,
-        name TEXT NOT NULL,
-        kind TEXT NOT NULL,
-        value INTEGER NOT NULL,
-        PRIMARY KEY (namespace, name, kind)
-      );
-      INSERT INTO emulators_records (namespace, collection, id, seq, value) VALUES ('ns', 'customers', 'cus_1', 1, '{}');
-    `)
-    migrateCore(sqlite)
-    expect(tableExists(sqlite, "emulates_records")).toBe(true)
-    expect(tableExists(sqlite, "emulators_records")).toBe(false)
-    expect(tableExists(sqlite, "emulates_sequences")).toBe(true)
-    expect(tableExists(sqlite, "emulators_sequences")).toBe(false)
-    const row = sqlite
-      .prepare("SELECT id FROM emulates_records WHERE namespace = ?")
-      .get<{ id: string }>("ns")
-    expect(row?.id).toBe("cus_1")
+  const legacySchema = (prefix: "emulates" | "emulators") => `
+    CREATE TABLE schema_migrations (id TEXT PRIMARY KEY NOT NULL, applied_at INTEGER NOT NULL);
+    INSERT INTO schema_migrations (id, applied_at) VALUES ('20260322_core_records_sequences', 1);
+    CREATE TABLE ${prefix}_records (
+      namespace TEXT NOT NULL,
+      collection TEXT NOT NULL,
+      id TEXT NOT NULL,
+      seq INTEGER NOT NULL,
+      value TEXT NOT NULL,
+      PRIMARY KEY (namespace, collection, id)
+    );
+    CREATE INDEX ${prefix}_records_seq ON ${prefix}_records (namespace, collection, seq);
+    CREATE TABLE ${prefix}_sequences (
+      namespace TEXT NOT NULL,
+      name TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      value INTEGER NOT NULL,
+      PRIMARY KEY (namespace, name, kind)
+    );
+    INSERT INTO ${prefix}_records (namespace, collection, id, seq, value)
+      VALUES ('ns', 'customers', 'cus_1', 1, '{}');
+  `
+
+  test("renames tables created under emulates_ or emulators_ back to mockingbird_", () => {
+    for (const prefix of ["emulates", "emulators"] as const) {
+      const sqlite = createDefaultSqlite()
+      sqlite.exec(legacySchema(prefix))
+      migrateCore(sqlite)
+      expect(tableExists(sqlite, "mockingbird_records")).toBe(true)
+      expect(tableExists(sqlite, "mockingbird_sequences")).toBe(true)
+      expect(tableExists(sqlite, `${prefix}_records`)).toBe(false)
+      expect(tableExists(sqlite, `${prefix}_sequences`)).toBe(false)
+      const row = sqlite
+        .prepare("SELECT id FROM mockingbird_records WHERE namespace = ?")
+        .get<{ id: string }>("ns")
+      expect(row?.id).toBe("cus_1")
+    }
   })
 })
 

@@ -1,12 +1,12 @@
-# PostHog feature flags, capture and management API (Emulates subset) — operation support
+# PostHog feature flags, capture and management API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **21**
-- supported by the emulator: **21**
+- supported by the mock: **21**
 - parity enabled: **21**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `EvaluateFlags` | `POST /flags` | ✅ supported | ✅ |  |
 | `Decide` | `POST /decide` | ✅ supported | ✅ |  |

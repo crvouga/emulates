@@ -1,16 +1,16 @@
 {
-  "name": "@emulates/admin-ui",
+  "name": "@crvouga/mockingbird-admin-ui",
   "version": "0.0.0-development",
   "private": true,
   "type": "module",
-  "description": "The self-contained React and Ant Design admin client shared by every emulator.",
+  "description": "The self-contained React and Ant Design admin client shared by every mock.",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
   },
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "ui"
   },

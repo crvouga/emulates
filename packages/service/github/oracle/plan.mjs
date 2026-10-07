@@ -30,7 +30,7 @@ export function preparePlan({ repository, runId, apiVersion, comparedOperations 
     JSON.stringify(comparedOperations) !== JSON.stringify(operations)
   )
     throw new Error("Explicit supported nine-operation subset required in documented order")
-  const prefix = `emulates-oracle/${runId}`
+  const prefix = `mockingbird-oracle/${runId}`
   return {
     repository,
     runId,
@@ -39,7 +39,7 @@ export function preparePlan({ repository, runId, apiVersion, comparedOperations 
     origin: "https://api.github.com",
     branches: { base: `${prefix}/base`, head: `${prefix}/head` },
     file: `${prefix}.txt`,
-    title: `Emulates oracle ${runId}`,
+    title: `Mockingbird oracle ${runId}`,
     fixtureOperations: ["git/get-commit", "git/create-tree", "git/create-commit"],
     cleanupOperations: [
       "pulls/update:close-owned-pr",
@@ -71,5 +71,5 @@ export function validateExecution(plan, grants) {
   validateScope(plan, grants)
   const { token } = grants
   if (typeof token !== "string" || token.trim() === "")
-    throw new Error("Missing credential key: EMULATES_GITHUB_TOKEN")
+    throw new Error("Missing credential key: MOCKINGBIRD_GITHUB_TOKEN")
 }

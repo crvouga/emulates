@@ -1,4 +1,4 @@
-import { jsonRes, type OperationContext } from "@emulates/service"
+import { jsonRes, type OperationContext } from "@crvouga/mockingbird-service"
 import { fromFilters, restView } from "./flags.js"
 import type { ExperimentRecord, PostHogState } from "./state.js"
 
@@ -128,7 +128,7 @@ export const experimentOperations = (
         .map((row) => row.value)
       const page = (at: number) => {
         const url = new URL(context.url)
-        const namespace = context.request.headers.get("x-emulates-namespace")
+        const namespace = context.request.headers.get("x-mockingbird-namespace")
         url.pathname = `${namespace ? `${adminPrefix}/ns/${encodeURIComponent(namespace)}` : ""}${context.url.pathname.replace(/\/$/, "")}/`
         url.searchParams.set("limit", String(limit))
         url.searchParams.set("offset", String(at))

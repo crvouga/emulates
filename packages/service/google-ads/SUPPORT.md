@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **8**
-- supported by the emulator: **8**
+- supported by the mock: **8**
 - parity enabled: **8**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `SearchGoogleAds` | `POST /v25/customers/{customerId}/googleAds:search` | ✅ supported | ✅ |  |
 | `SearchStreamGoogleAds` | `POST /v25/customers/{customerId}/googleAds:searchStream` | ✅ supported | ✅ |  |

@@ -12,8 +12,8 @@
  * experiments, recorder): capture writes events into the project and the management API needs
  * a personal key, so `--include-unsafe` adds capture only.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, PostHogAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>
@@ -38,7 +38,7 @@ try {
 
 const baseUrl = credentials.values.POSTHOG_HOST.replace(/\/$/, "")
 const realToken = credentials.values.POSTHOG_PROJECT_TOKEN
-const MOCK_TOKEN = "phc_emulates_parity"
+const MOCK_TOKEN = "phc_mockingbird_parity"
 
 /** Put `token` everywhere a PostHog request carries a project key. */
 const withToken =

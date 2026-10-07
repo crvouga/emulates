@@ -12,7 +12,7 @@ const call = (
   r.fetch(
     new Request(`http://docker.local${path}`, {
       method,
-      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
+      headers: { "content-type": "application/json", "x-mockingbird-namespace": namespace },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
   )
@@ -216,7 +216,7 @@ test("accepted faults and restore cleanup stay within the selected branch and na
     .fetch(
       new Request(`http://docker.local/containers/${id}/stop`, {
         method: "POST",
-        headers: { "x-emulates-branch": "experiment", "x-emulates-at": before.id },
+        headers: { "x-mockingbird-branch": "experiment", "x-mockingbird-at": before.id },
       }),
     )
     .then(
@@ -232,7 +232,7 @@ test("accepted faults and restore cleanup stay within the selected branch and na
     r.fetch(
       new Request(`http://docker.local${path}`, {
         method,
-        headers: { "x-emulates-branch": "experiment" },
+        headers: { "x-mockingbird-branch": "experiment" },
       }),
     )
   const mainWait = (await call(r, `/containers/${id}/wait`)).json().then(

@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 export type LiveKitTrack = {
   sid: string

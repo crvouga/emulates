@@ -1,9 +1,14 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import type { ExploreRng, ExploreState, LogicalCommand, Scope } from "@emulates/commands"
-import type { FetchAPI } from "@emulates/core"
-import { createRedactor, loadCredentials } from "@emulates/credentials"
-import { DEFAULT_PROPERTY_RUNS, parity, type SeedCacheEntry, seedParity } from "@emulates/parity"
+import type { ExploreRng, ExploreState, LogicalCommand, Scope } from "@crvouga/mockingbird-commands"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
+import { createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import {
+  DEFAULT_PROPERTY_RUNS,
+  parity,
+  type SeedCacheEntry,
+  seedParity,
+} from "@crvouga/mockingbird-parity"
 import {
   COVERAGE_ZIPS,
   PHLEBOTOMY_AVAILABILITY_ZIPS,
@@ -244,7 +249,7 @@ const cleanup = async ({
       await real.fetch(
         new Request(`${real.baseUrl}/v2/user/${id}`, {
           method: "DELETE",
-          headers: { ...authHeaders, "x-emulates-scope": scope.runId },
+          headers: { ...authHeaders, "x-mockingbird-scope": scope.runId },
         }),
       )
       await Bun.sleep(DEFAULT_MIN_INTERVAL_MS)
@@ -364,7 +369,7 @@ const runSeed = async (seed: number | undefined) => {
         fetch: withTestkitSettlement((request: Request) => retrySandbox5xx(request)),
         headers: () => ({
           ...authHeaders,
-          "x-emulates-scope": Bun.env.EMULATES_SCOPE ?? "junction-parity",
+          "x-mockingbird-scope": Bun.env.MOCKINGBIRD_SCOPE ?? "junction-parity",
         }),
         minIntervalMs: DEFAULT_MIN_INTERVAL_MS,
       },
@@ -375,7 +380,7 @@ const runSeed = async (seed: number | undefined) => {
           api.fetch = withTestkitSettlement(fetch)
           return api
         },
-        headers: () => ({ "x-vital-api-key": "sk_us_emulates" }),
+        headers: () => ({ "x-vital-api-key": "sk_us_mockingbird" }),
       },
       ...(webhookParity === undefined ? {} : { webhooks: webhookParity }),
       redact: createRedactor(credentials.secrets),
@@ -577,7 +582,7 @@ const probeLabAccounts = async () => {
     body: unknown
   }[] = []
   const created = await call("POST", "/v2/user", {
-    client_user_id: `emulates-lab-account-probe-${Date.now().toString(36)}`,
+    client_user_id: `mockingbird-lab-account-probe-${Date.now().toString(36)}`,
   })
   const userId = (created.body as { user_id?: string } | null)?.user_id
   if (typeof userId !== "string") {
@@ -595,7 +600,7 @@ const probeLabAccounts = async () => {
     const reply = await call("POST", "/v3/order", {
       user_id: userId,
       patient_details: {
-        first_name: "Emulates",
+        first_name: "Mockingbird",
         last_name: "Probe",
         dob: "1990-01-01",
         gender: "female",

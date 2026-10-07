@@ -1,12 +1,12 @@
-# Nucleus API v2.0 (Gene by Gene), vendored for Emulates — operation support
+# Nucleus API v2.0 (Gene by Gene), vendored for Mockingbird — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **51**
-- supported by the emulator: **30**
+- supported by the mock: **30**
 - parity enabled: **29**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListAttributeDefinitions` | `GET /api/v2/attributes` | ✅ supported | ✅ |  |
 | `ListAttributeDefinitionsByEntityType` | `GET /api/v2/attributes/{entityType}` | ❌ unsupported | — | Our consumer never calls this endpoint (GXG/transport/gxg-client.ts). |

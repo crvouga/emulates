@@ -1,5 +1,5 @@
 {
-  "name": "@emulates/webhook-collector",
+  "name": "@crvouga/mockingbird-webhook-collector",
   "version": "0.0.0-development",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@emulates/service": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
     "hono": "4.11.9"
   }
 }

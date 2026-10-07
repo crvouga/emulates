@@ -31,11 +31,11 @@ const gql = (
 const json = async (response: Response) => (await response.json()) as Record<string, any>
 
 describe("the service contract", () => {
-  test("/__admin/health, the x-emulates header, and every documented preset listed", async () => {
+  test("/__admin/health, the x-mockingbird header, and every documented preset listed", async () => {
     const runtime = createRuntime()
     const health = await runtime.fetch(new Request(`${HOST}/__admin/health`))
     expect(await health.json()).toMatchObject({ status: "ok", service: "healthie" })
-    expect(health.headers.get("x-emulates")).toMatch(/^healthie@.+; ns=default$/)
+    expect(health.headers.get("x-mockingbird")).toMatch(/^healthie@.+; ns=default$/)
     const presets = await json(await runtime.fetch(new Request(`${HOST}/__admin/faults/presets`)))
     const names = JSON.stringify(presets)
     for (const name of Object.keys(HEALTHIE_PRESETS)) expect(names).toContain(name)
@@ -63,12 +63,12 @@ describe("the service contract", () => {
           }),
         )
       ).data.user.metadata
-    await update({ "x-emulates-namespace": "one" })
-    expect(await read({ "x-emulates-namespace": "one" })).toBe("ns-marker")
+    await update({ "x-mockingbird-namespace": "one" })
+    expect(await read({ "x-mockingbird-namespace": "one" })).toBe("ns-marker")
     expect(await read({})).not.toBe("ns-marker")
     await update({}, "/__admin/ns/two/graphql")
     expect(await read({}, "/__admin/ns/two/graphql")).toBe("ns-marker")
-    expect(await read({ "x-emulates-namespace": "one" })).toBe("ns-marker")
+    expect(await read({ "x-mockingbird-namespace": "one" })).toBe("ns-marker")
 
     // A document uploaded under /__admin/ns/three comes back with a /__admin/ns/three download URL.
     const form = new FormData()

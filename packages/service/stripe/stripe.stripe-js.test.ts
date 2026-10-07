@@ -115,7 +115,7 @@ const enter = (input: FakeElement, value: string) => {
 describe("Stripe.js card Elements", () => {
   test("split Elements render one unlabeled semantic control each", () => {
     const browser = loadStripeJs()
-    const elements = browser.Stripe("pk_test_emulates").elements()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
 
     for (const [type, name, testId] of [
       ["cardNumber", "card", "stripe-mock-card"],
@@ -135,7 +135,7 @@ describe("Stripe.js card Elements", () => {
 
   test("the combined card Element renders card details once and honors hidePostalCode", () => {
     const browser = loadStripeJs()
-    const elements = browser.Stripe("pk_test_emulates").elements()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
     const shown = browser.host("#shown")
     const hidden = browser.host("#hidden")
 
@@ -157,7 +157,7 @@ describe("Stripe.js card Elements", () => {
 
   test("the cardNumber Element tokenizes values from sibling split Elements", () => {
     const browser = loadStripeJs()
-    const elements = browser.Stripe("pk_test_emulates").elements()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
     const numberHost = browser.host("#number")
     const expiryHost = browser.host("#expiry")
     const cvcHost = browser.host("#cvc")
@@ -184,7 +184,7 @@ describe("Stripe.js card Elements", () => {
 
   test("change events track empty, complete, errors, formatting, and card brand", () => {
     const browser = loadStripeJs()
-    const elements = browser.Stripe("pk_test_emulates").elements()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
     const host = browser.host("#number")
     const number = elements.create("cardNumber")
     const changes: Array<Record<string, unknown>> = []
@@ -220,7 +220,7 @@ describe("Stripe.js card Elements", () => {
 
   test("expiry and CVC inputs format and validate according to the card brand", () => {
     const browser = loadStripeJs()
-    const elements = browser.Stripe("pk_test_emulates").elements()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
     const numberHost = browser.host("#number")
     const expiryHost = browser.host("#expiry")
     const cvcHost = browser.host("#cvc")
@@ -255,7 +255,7 @@ describe("Stripe.js card Elements", () => {
 
   test("createToken rejects missing and invalid split values without substituting defaults", async () => {
     const browser = loadStripeJs()
-    const stripe = browser.Stripe("pk_test_emulates")
+    const stripe = browser.Stripe("pk_test_mockingbird")
     const elements = stripe.elements()
     const numberHost = browser.host("#number")
     const expiryHost = browser.host("#expiry")
@@ -283,7 +283,7 @@ describe("Stripe.js card Elements", () => {
 
   test("focus, blur, clear, and update keep Element state events coherent", () => {
     const browser = loadStripeJs()
-    const elements = browser.Stripe("pk_test_emulates").elements()
+    const elements = browser.Stripe("pk_test_mockingbird").elements()
     const host = browser.host("#number")
     const number = elements.create("cardNumber")
     const events: string[] = []

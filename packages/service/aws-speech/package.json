@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/aws-speech",
+  "name": "@crvouga/mockingbird-service-aws-speech",
   "version": "0.0.0-development",
-  "description": "Stateful emulator of AWS Polly (SynthesizeSpeech, StartSpeechSynthesisStream) and Transcribe (streaming over h2c, batch jobs), with exact event-stream framing and scripted transcripts.",
+  "description": "Stateful mock of AWS Polly (SynthesizeSpeech, StartSpeechSynthesisStream) and Transcribe (streaming over h2c, batch jobs), with exact event-stream framing and scripted transcripts.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulates-aws-speech": "./dist/cli.js"
+    "mockingbird-aws-speech": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,12 +34,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/aws-speech"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/aws-speech#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/aws-speech#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "service",
     "aws",
     "polly",
@@ -49,7 +49,7 @@
     "stt",
     "eventstream"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -73,7 +73,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- aws-speech",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -84,7 +84,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -100,25 +100,25 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "@aws-sdk/client-polly": "3.1132.0",
     "@aws-sdk/client-transcribe": "3.1132.0",
     "@aws-sdk/client-transcribe-streaming": "3.1132.0",
-    "@emulates/adapter-node": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/http-codec": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/credentials": "workspace:*",
-    "@emulates/parity": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/sqlite": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/testing": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
     "@smithy/eventstream-codec": "4.5.2",
     "fast-check": "4.9.0",
     "mpg123-decoder": "1.0.3"

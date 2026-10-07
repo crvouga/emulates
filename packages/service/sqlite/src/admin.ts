@@ -4,8 +4,8 @@
  *
  * @module
  */
-// Relative on purpose. A package dependency on @emulates/service makes a
-// Turbo build cycle: that package depends on @emulates/sqlite-client, which depends
+// Relative on purpose. A package dependency on @crvouga/mockingbird-service makes a
+// Turbo build cycle: that package depends on @crvouga/mockingbird-sqlite, which depends
 // on this package. The admin bundle inlines this module.
 import {
   createEngineAdmin,

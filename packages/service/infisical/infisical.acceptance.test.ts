@@ -427,7 +427,7 @@ test("Timeline branches decrypt inherited secrets and credentials while isolatin
     expect(
       (await client.admin("POST", "/branches/fixture-branch", { at: checkpoint.id })).status,
     ).toBe(201)
-    const branchHeaders = { "x-emulates-branch": "fixture-branch" }
+    const branchHeaders = { "x-mockingbird-branch": "fixture-branch" }
     const original = await client.request(
       "GET",
       "/api/v3/secrets/raw/ROOT_VALUE?workspaceId=fixture-project&environment=dev",

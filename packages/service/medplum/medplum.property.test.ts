@@ -10,8 +10,8 @@
  * - transactions (with the `transaction-bundles` feature): an invalid entry rolls back all.
  */
 import { describe, expect, test } from "bun:test"
-import { parity } from "@emulates/parity"
-import { fcParameters } from "@emulates/testing"
+import { parity } from "@crvouga/mockingbird-parity"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import type { Bundle, Patient } from "@medplum/fhirtypes"
 import fc from "fast-check"
 import {
@@ -311,7 +311,7 @@ describe("transactions", () => {
           await api.putResource({
             resourceType: "Project",
             id: DEFAULT_PROJECT_ID,
-            name: "Emulates",
+            name: "Mockingbird",
             strictMode: true,
             features: ["transaction-bundles"],
           } as never)

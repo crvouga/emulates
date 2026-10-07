@@ -1,4 +1,4 @@
-import type { FaultPreset } from "@emulates/service"
+import type { FaultPreset } from "@crvouga/mockingbird-service"
 
 export const presets: Record<string, FaultPreset> = {}
 for (const [name, operationId] of Object.entries({

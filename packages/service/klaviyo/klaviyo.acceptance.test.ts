@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import { createRuntime, KLAVIYO_PRESETS, type KlaviyoEvent } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -258,7 +258,7 @@ describe("served over HTTP", () => {
       }
       expect(outbox.messages).toHaveLength(2)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulates")).toMatch(/^klaviyo@/)
+      expect(health.headers.get("x-mockingbird")).toMatch(/^klaviyo@/)
       expect(((await health.json()) as { status: string }).status).toBe("ok")
     } finally {
       await server.close()
@@ -278,11 +278,11 @@ describe("contract", () => {
     const base = "http://mock.local"
     // Seed state in namespace "a" through the header, then compare with "b" and the default.
     const before = (await (await get(`${base}/api/events/`)).json()) as Record<string, unknown[]>
-    const viaHeader = await get(`${base}/api/events/`, { "x-emulates-namespace": "a" })
-    expect(viaHeader.headers.get("x-emulates")).toMatch(/; ns=a$/)
+    const viaHeader = await get(`${base}/api/events/`, { "x-mockingbird-namespace": "a" })
+    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/; ns=a$/)
     const viaPrefix = await get(`${base}/__admin/ns/b/api/events/`)
     expect(viaPrefix.status).toBe(viaHeader.status)
-    expect(viaPrefix.headers.get("x-emulates")).toMatch(/; ns=b$/)
+    expect(viaPrefix.headers.get("x-mockingbird")).toMatch(/; ns=b$/)
     expect(((await viaPrefix.json()) as Record<string, unknown[]>).data?.length).toBe(
       before.data?.length,
     )

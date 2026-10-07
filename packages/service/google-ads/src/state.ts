@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { sha256 } from "@noble/hashes/sha2.js"
 import { int64, integer, invalid, present, record, text } from "./errors.js"
 import type { Sealed, Vault } from "./vault.js"

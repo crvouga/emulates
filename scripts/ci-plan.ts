@@ -89,8 +89,8 @@ const PARITY_IRRELEVANT = ["**/*.md", "**/*.test.ts", "**/tests/**", "**/test/**
 /**
  * Files outside every package that every service's live parity run reads: how a service is
  * bundled and how the runner drives it. (turbo.json's `globalDependencies` and `bun.lock` are
- * handled separately, and a service's own extras are its `emulates.parityInputs`.) Root config,
- * workflows and docs are not here: they do not change what an emulator answers, and running every hot
+ * handled separately, and a service's own extras are its `mockingbird.parityInputs`.) Root config,
+ * workflows and docs are not here: they do not change what a mock answers, and running every hot
  * service's live parity for them is the load the tiers exist to avoid.
  */
 const PARITY_GLOBAL = [

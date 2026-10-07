@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { createHmac } from "node:crypto"
-import { type OpenAPIDocument, parseOpenAPIDocument } from "@emulates/openapi"
-import { fcParameters } from "@emulates/testing"
+import { type OpenAPIDocument, parseOpenAPIDocument } from "@crvouga/mockingbird-openapi"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   basicAuth,
@@ -119,7 +119,7 @@ describe("namespace carriers", () => {
     const { runtime } = notesRuntime()
     const made = await runtime.fetch(create("hi", {}, "http://mock.local/__admin/ns/w1"))
     expect(made.status).toBe(200)
-    expect(made.headers.get("x-emulates")).toContain("ns=w1")
+    expect(made.headers.get("x-mockingbird")).toContain("ns=w1")
     expect(
       await (await runtime.fetch(list({}, "http://mock.local/__admin/ns/w1"))).json(),
     ).toHaveLength(1)

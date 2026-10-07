@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite } from "@emulates/service"
-import { clearNamespace } from "@emulates/sqlite-client"
+import { type APIOptions, bootSqlite } from "@crvouga/mockingbird-service"
+import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
   type Account,
@@ -264,7 +264,7 @@ export class KillBillAPI {
     }
   }
   private audit(request: Request, objectType: string, objectId: string) {
-    const createdBy = request.headers.get("x-killbill-createdby") ?? "emulates"
+    const createdBy = request.headers.get("x-killbill-createdby") ?? "mockingbird"
     const id = this.state.ids.next("audit-", 24)
     this.state.audits.insert(id, {
       id,
@@ -397,7 +397,7 @@ export class KillBillAPI {
     }
     if (offset + size < total) {
       const next = new URL(url)
-      const namespace = request.headers.get("x-emulates-namespace")
+      const namespace = request.headers.get("x-mockingbird-namespace")
       if (namespace && namespace !== "default")
         next.pathname = `${this.options.adminPrefix ?? "/__admin"}/ns/${encodeURIComponent(namespace)}${url.pathname}`
       next.searchParams.set("offset", String(offset + size))
@@ -564,7 +564,7 @@ export class KillBillAPI {
       amount: money(amount),
       currency: payment.currency,
       ...(status === "PAYMENT_FAILURE"
-        ? { gatewayErrorCode: "DECLINED", gatewayErrorMsg: "Emulates declined payment" }
+        ? { gatewayErrorCode: "DECLINED", gatewayErrorMsg: "Mockingbird declined payment" }
         : {}),
     }
     return transaction

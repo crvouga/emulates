@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@emulates/sqlite-client"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { Collection } from "./collection.js"
 
 /**

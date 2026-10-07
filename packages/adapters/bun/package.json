@@ -1,8 +1,8 @@
 {
-  "name": "@emulates/adapter-bun",
+  "name": "@crvouga/mockingbird-adapter-bun",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Serve any Emulates FetchAPI with Bun.serve.",
+  "description": "Serve any Mockingbird FetchAPI with Bun.serve.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/adapters/bun"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/adapters/bun#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/adapters/bun#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "adapter",
     "bun"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "bun",
     "layer": "adapter"
   },
@@ -40,11 +40,11 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/core": "workspace:*"
+    "@crvouga/mockingbird-core": "workspace:*"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulates/testing": "workspace:*"
+    "@crvouga/mockingbird-testing": "workspace:*"
   },
   "peerDependencies": {
     "@types/bun": ">=1.2.0"

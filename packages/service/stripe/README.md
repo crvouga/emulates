@@ -1,8 +1,8 @@
-# @emulates/stripe
+# @crvouga/mockingbird-service-stripe
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful, in-process emulator of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
+Stateful, in-process mock of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
 chosen by API key, customers and balances, payment methods, payment and setup intents, charges,
 refunds, disputes, checkout (with a hosted page and a Stripe.js stand-in), the customer portal
 (configurations, sessions and the hosted portal page), invoices, subscriptions that renew, pause,
@@ -13,13 +13,13 @@ fanned out to every matching endpoint. Responses are rendered at the caller's `S
 differential property tests against Stripe test mode.
 
 - Operation coverage (119 of 123 operations in the vendored spec, with reasons for each gap):
-  [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/stripe/SUPPORT.md)
+  [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/stripe/SUPPORT.md)
 - Stripe API reference: https://docs.stripe.com/api · Upstream OpenAPI: https://github.com/stripe/openapi
 
 ## Install
 
 ```bash
-npm install -D @emulates/stripe
+npm install -D @crvouga/mockingbird-service-stripe
 ```
 
 ESM only. Requires Node >= 22 or Bun >= 1.2. No native dependencies: state lives in an in-memory
@@ -28,14 +28,14 @@ SQLite engine (pure TypeScript, bundled in).
 ## Usage
 
 ```bash
-npx emulates-stripe serve                  # http://127.0.0.1:12111
-npx emulates-stripe serve --accounts accounts.json --admin-key local-admin
-npx emulates-stripe serve --config emulates.json   # every service in one process
+npx mockingbird-stripe serve                  # http://127.0.0.1:12111
+npx mockingbird-stripe serve --accounts accounts.json --admin-key local-admin
+npx mockingbird-stripe serve --config mockingbird.json   # every service in one process
 ```
 
 ```js
 import Stripe from "stripe"
-import { createServer } from "@emulates/stripe/server"
+import { createServer } from "@crvouga/mockingbird-service-stripe/server"
 
 const server = await createServer({
   accounts: [
@@ -60,7 +60,7 @@ await server.close()
 Or over raw HTTP, the way any Stripe client talks to it:
 
 ```ts
-import { createServer } from "@emulates/stripe/server"
+import { createServer } from "@crvouga/mockingbird-service-stripe/server"
 
 const server = await createServer()
 const response = await fetch(`${server.url}/v1/customers`, {
@@ -81,8 +81,8 @@ stripe-node accepts `host`, `port` and `protocol`; route every `new Stripe(...)`
 factory reading `STRIPE_API_HOST` / `STRIPE_API_PORT` / `STRIPE_API_PROTOCOL` (the catalog's G-S1),
 and give raw `fetch('https://api.stripe.com…')` call sites the same base URL. Keys must look like
 test keys (`sk_test_…`, `rk_test_…`; `pk_test_…` for the Stripe.js stand-in). Point the browser at
-the emulator's `GET /v3` instead of `https://js.stripe.com/v3` (G-S3); `session.url` already points at
-the emulator's hosted page.
+the mock's `GET /v3` instead of `https://js.stripe.com/v3` (G-S3); `session.url` already points at
+the mock's hosted page.
 
 ### Accounts and namespaces
 
@@ -100,7 +100,7 @@ State is partitioned by **account**, and the account is chosen by API key:
   (see Lifecycles and the clock); unset fields use `createRuntime({lifecycle: {paymentRetries}})`.
 
 **Namespaces** isolate parallel workers; each namespace has its own copy of every account. Carriers:
-the `x-emulates-namespace` header, the `/__admin/ns/<namespace>/…` path prefix, or **by API key**:
+the `x-mockingbird-namespace` header, the `/__admin/ns/<namespace>/…` path prefix, or **by API key**:
 `PUT /__admin/credentials {"credentials": {"sk_test_worker1": "w1"}}` (stripe-node cannot add
 headers). Hosted-page URLs carry the `/__admin/ns/<namespace>` prefix so the browser lands in the same one.
 
@@ -118,7 +118,7 @@ invoice (or `latest_invoice.payments` on a subscription), `GET /v1/invoice_payme
 `GET /v1/invoice_payments/{id}`. One default payment per invoice that has a PaymentIntent, derived from
 the invoice; a $0 invoice has none, and payment records are not modelled. `charge.refunds` appears only with `expand[]=refunds` at
 every one of these versions. `GET /v1/invoices/upcoming` answers at the older versions and returns
-Stripe's "deprecated" 404 at basil and later. Expansion is generic (any path through ids the emulator
+Stripe's "deprecated" 404 at basil and later. Expansion is generic (any path through ids the mock
 holds, ancestors included); Stripe's own rules are enforced: a non-expandable first segment is
 `This property cannot be expanded (metadata).` and more than four levels is
 `property_expansion_max_depth` (verified against test mode at all three versions).
@@ -160,8 +160,8 @@ Events emitted: `customer.*`, `payment_method.attached|detached|updated`,
 
 ### Lifecycles and the clock
 
-`POST /__admin/clock {"advance": "32d"}` (or `set`) moves the emulator clock and immediately runs every
-clock-driven lifecycle, so their webhooks fire at once; the served emulator also ticks every second.
+`POST /__admin/clock {"advance": "32d"}` (or `set`) moves the mock clock and immediately runs every
+clock-driven lifecycle, so their webhooks fire at once; the served mock also ticks every second.
 
 - **Renewals**: past `current_period_end` a subscription cycles — a `subscription_cycle` invoice is
   finalized and charged off-session to the default payment method, then `invoice.paid` +
@@ -268,7 +268,7 @@ payment methods; anything else is Stripe's 401.
 
 ### Customer portal
 
-`POST /v1/billing_portal/sessions` returns a `url` on the emulator (`/p/session/:id`, in place of
+`POST /v1/billing_portal/sessions` returns a `url` on the mock (`/p/session/:id`, in place of
 billing.stripe.com) where the customer manages their billing, as the session's configuration allows:
 
 - **Configurations**: `POST|GET /v1/billing_portal/configurations[/:id]`
@@ -359,11 +359,11 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 ## API
 
 `StripeAPI` is the engine; `createRuntime` wraps it in the service contract. From
-`@emulates/stripe`:
+`@crvouga/mockingbird-service-stripe`:
 
 | Export | Description |
 | --- | --- |
-| `createRuntime` | `(options?) => StripeRuntime` — the emulator with the full contract. Options: `accounts`, `webhooks {endpoints, retryDelaysMs, fetch}`, `corpus`, `publicUrl`, `webhookApiVersion`, `lifecycle`, `tickMs`, `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `onWebhook`. The runtime adds `webhooks`, `accounts`, `tick()`, `stop()`. |
+| `createRuntime` | `(options?) => StripeRuntime` — the mock with the full contract. Options: `accounts`, `webhooks {endpoints, retryDelaysMs, fetch}`, `corpus`, `publicUrl`, `webhookApiVersion`, `lifecycle`, `tickMs`, `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `onWebhook`. The runtime adds `webhooks`, `accounts`, `tick()`, `stop()`. |
 | `StripeAPI` | Class; `new StripeAPI(options?)` implements `fetch(request)`. Members: `reset()`, `tick(force?)`, `webhookEvents(account?)`, `webhookDeliveryAttempts(account?)`, `apiWebhookEndpoints()`, `accountIds()`, `scopeFor(account)`, `importStateFrom(source)`, `accounts`, `app`, `sqlite`. |
 | `STRIPE_PRESETS` | The named fault presets above. |
 | `AccountDirectory` | Keys → accounts (`configure`, `accountFor`, `config`, `list`, `resolve`). |
@@ -378,9 +378,9 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 | `TEST_PAYMENT_METHOD_IDS` | Every modelled magic `pm_card_…`. |
 | `TEST_CARD_NUMBERS` | Every modelled test card number. |
 | `STRIPE_NAMESPACE` | `"stripe"` — SQLite namespace of every record. |
-| `document` | The vendored OpenAPI document (Emulates subset). |
+| `document` | The vendored OpenAPI document (Mockingbird subset). |
 | `operationIds` | Every `operationId` in `document`. |
-| `supportedOperationIds` | The ones the emulator implements. |
+| `supportedOperationIds` | The ones the mock implements. |
 | `QA_SURFACE_OPS` | Operations the parity walks cover (supported, minus the browser pages). |
 | `QA_METADATA` | Pinned metadata values the parity walks send. |
 | `QA_AMOUNTS` | Pinned amounts in cents. |
@@ -391,7 +391,7 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 | `QA_COUPON_CODES` | Promotion codes the walks use. |
 | `reshapeQaCommand` | Parity-walk hook pinning sampled commands onto those values. |
 
-From `@emulates/stripe/server` (Node): `createServer(options?)` (runtime options
+From `@crvouga/mockingbird-service-stripe/server` (Node): `createServer(options?)` (runtime options
 plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the `serve` wiring:
 `--accounts`, `--webhook-url`, `--webhook-secret`, `--public-url`) and `DEFAULT_PORT` (`12111`).
 
@@ -415,7 +415,7 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
   `tiers` and `custom_unit_amount`, and subscription-mode sessions in a non-default currency, are
   refused with a 400; subscriptions and invoices always bill in the price's own currency.
 - **Webhook endpoint `api_version`**: payloads render at the account's version, not per endpoint.
-- **Live keys** (`sk_live_…`) are refused with Stripe's 401: the emulator is test mode only.
+- **Live keys** (`sk_live_…`) are refused with Stripe's 401: the mock is test mode only.
 - Operations marked unsupported in SUPPORT.md (charge create/update, checkout session update,
   dispute evidence).
 - Rate-limit, 5xx and permission bodies come from presets, worded as Stripe words them but not
@@ -423,7 +423,7 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
 
 ## Development
 
-For contributors to the Emulates repo only; these scripts are not shipped in the npm package.
+For contributors to the mockingbird repo only; these scripts are not shipped in the npm package.
 
 ```bash
 bun test                   # self-parity, acceptance (via test/consumer.ts), stripe-node drop-in, contract
@@ -438,4 +438,4 @@ or the repo secret via `bun run parity:remote -- stripe`) and exits 2 without on
 leaves out account-global ones (account profile, lifetime balance, lingering test clocks and
 webhook endpoints).
 
-Part of [Emulates](https://github.com/crvouga/emulates) — agent integration guide: [README](https://github.com/crvouga/emulates#readme) · [llms.txt](https://github.com/crvouga/emulates/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md).
+Part of [mockingbird](https://github.com/crvouga/mockingbird) — agent integration guide: [README](https://github.com/crvouga/mockingbird#readme) · [llms.txt](https://github.com/crvouga/mockingbird/blob/main/llms.txt) · [report an issue or request a feature](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md).

@@ -5,7 +5,7 @@ paths:
   /search:
     post:
       operationId: Search
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       requestBody:
         required: true
         content:
@@ -45,7 +45,7 @@ paths:
                         content: { type: string }
                         score: { type: number }
                   response_time: { type: number }
-                  request_id: { type: string, x-emulates-volatile: { kind: id } }
+                  request_id: { type: string, x-mockingbird-volatile: { kind: id } }
         "400": { $ref: "#/components/responses/Error" }
         "401": { $ref: "#/components/responses/Error" }
         "422": { $ref: "#/components/responses/Validation" }
@@ -56,7 +56,7 @@ paths:
   /extract:
     post:
       operationId: Extract
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       requestBody:
         required: true
         content:
@@ -81,7 +81,7 @@ paths:
                   results: { type: array, items: { type: object, required: [url, raw_content], properties: { url: { type: string }, raw_content: { type: string }, images: { type: array, items: { type: string } } } } }
                   failed_results: { type: array, items: { type: object, required: [url, error], properties: { url: { type: string }, error: { type: string } } } }
                   response_time: { type: number }
-                  request_id: { type: string, x-emulates-volatile: { kind: id } }
+                  request_id: { type: string, x-mockingbird-volatile: { kind: id } }
         "400": { $ref: "#/components/responses/Error" }
         "401": { $ref: "#/components/responses/Error" }
         "422": { $ref: "#/components/responses/Validation" }

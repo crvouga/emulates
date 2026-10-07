@@ -1,8 +1,8 @@
 {
-  "name": "@emulates/parity",
+  "name": "@crvouga/mockingbird-parity",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Differential property-based test runner: executes generated API walks against a real sandbox API and a Emulates emulator, comparing every canonicalised response.",
+  "description": "Differential property-based test runner: executes generated API walks against a real sandbox API and a Mockingbird mock, comparing every canonicalised response.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/parity/runner"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/parity/runner#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/parity/runner#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "parity",
     "runner"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "parity"
   },
@@ -40,17 +40,17 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/core": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/openapi-arbitrary": "workspace:*",
-    "@emulates/model": "workspace:*",
-    "@emulates/commands": "workspace:*",
-    "@emulates/canonicalize": "workspace:*",
-    "@emulates/http-codec": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-openapi-arbitrary": "workspace:*",
+    "@crvouga/mockingbird-model": "workspace:*",
+    "@crvouga/mockingbird-commands": "workspace:*",
+    "@crvouga/mockingbird-canonicalize": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
     "fast-check": "4.9.0"
   },
   "devDependencies": {
-    "@emulates/testing": "workspace:*"
+    "@crvouga/mockingbird-testing": "workspace:*"
   }
 }

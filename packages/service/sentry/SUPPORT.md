@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **12**
-- supported by the emulator: **12**
+- supported by the mock: **12**
 - parity enabled: **10**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `IngestEnvelope` | `POST /api/{project}/envelope/` | ✅ supported | ❌ disabled | Envelope byte lengths and mixed binary items require the dedicated official SDK and codec acceptance tests. |
 | `StoreEvent` | `POST /api/{project}/store/` | ✅ supported | ⚠️ unsafe (opt-in) |  |

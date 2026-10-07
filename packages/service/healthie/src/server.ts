@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import {
   createRuntime,
   DEFAULT_WEBHOOK_IP,
@@ -7,7 +7,7 @@ import {
   type HealthieRuntimeOptions,
 } from "./runtime.js"
 
-/** Port `emulates-healthie serve` listens on when none is given. */
+/** Port `mockingbird-healthie serve` listens on when none is given. */
 export const DEFAULT_PORT = 8816
 
 export type HealthieServerOptions = HealthieRuntimeOptions & {
@@ -81,6 +81,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "GraphQL: POST /graphql (JSON or multipart), Authorization: Bearer|Basic <api key>, AuthorizationSource: API",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/graphql, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/graphql, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

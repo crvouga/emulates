@@ -21,7 +21,7 @@ import {
   which,
 } from "./lib.ts"
 
-console.log("emulates secrets doctor")
+console.log("mockingbird secrets doctor")
 console.log("==========================")
 console.log("Source of truth: GitHub Actions repo secrets. Values are never printed.")
 console.log("Nothing here is needed to build, test, or run `bun run check`.")

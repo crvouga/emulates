@@ -32,7 +32,7 @@ test("AWS writes are observable, namespace isolated, and cleared by reset", asyn
         headers: {
           "content-type": "application/x-amz-json-1.1",
           "x-amz-target": `Fixture.${operation}`,
-          "x-emulates-namespace": namespace,
+          "x-mockingbird-namespace": namespace,
         },
         body: JSON.stringify(input),
       }),

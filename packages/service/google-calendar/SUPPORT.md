@@ -1,12 +1,12 @@
-# Google Calendar v3 + Google OAuth (Emulates subset) — operation support
+# Google Calendar v3 + Google OAuth (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **12**
-- supported by the emulator: **12**
+- supported by the mock: **12**
 - parity enabled: **12**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `OAuthToken` | `POST /token` | ✅ supported | ✅ |  |
 | `OAuthRevoke` | `POST /revoke` | ✅ supported | ✅ |  |

@@ -1,4 +1,4 @@
-import { HttpError, jsonRes, type OperationContext } from "@emulates/service"
+import { HttpError, jsonRes, type OperationContext } from "@crvouga/mockingbird-service"
 import { checkUserQuota } from "./limits.js"
 import { missing } from "./not-found.js"
 import type { JunctionState, UserRecord } from "./state.js"

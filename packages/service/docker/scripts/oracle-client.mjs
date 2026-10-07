@@ -172,7 +172,7 @@ export const attach = (endpoint, id) =>
 export const owned = (record, intent, options) =>
   record?.Name === `/${intent.name}` &&
   record.Image === options.image &&
-  record.Config?.Labels?.["emulates.oracle"] === options.runId &&
+  record.Config?.Labels?.["mockingbird.oracle"] === options.runId &&
   /^[a-f0-9]{64}$/.test(record.Id ?? "") &&
   (!intent.id || record.Id === intent.id)
 

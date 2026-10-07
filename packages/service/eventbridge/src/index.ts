@@ -4,8 +4,8 @@ import {
   bootSqlite,
   Collection,
   IdSequence,
-} from "@emulates/service"
-import { clearNamespace } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { EventBridgeRuntime, EventBridgeRuntimeOptions } from "./runtime.js"

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { readFile } from "node:fs/promises"
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { OAUTH_SCENARIOS, type OAuthScenario } from "./behavior.js"
 import {
   createMultiRuntime,

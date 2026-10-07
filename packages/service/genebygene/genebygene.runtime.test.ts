@@ -49,7 +49,7 @@ describe("service contract", () => {
       service: "genebygene",
       corpus: "gxg-2026-06",
     })
-    expect(health.headers.get("x-emulates")).toMatch(/^genebygene@.*; ns=default$/)
+    expect(health.headers.get("x-mockingbird")).toMatch(/^genebygene@.*; ns=default$/)
     const vendor = await runtime.fetch(new Request("http://mock.local/api/v2/products"))
     expect(vendor.status).toBe(401)
     expect(vendor.headers.get("www-authenticate")).toBe('Bearer error="invalid_token"')
@@ -369,7 +369,7 @@ for (const adminPrefix of ["/__admin", "/_control/mock"]) {
     const done = await runtime.fetch(
       new Request(`http://mock.local${adminPrefix}/kits/${kit}/transition`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-emulates-admin-key": "locked" },
+        headers: { "content-type": "application/json", "x-mockingbird-admin-key": "locked" },
         body: JSON.stringify({ to: "Completed", fixture: "ancestry" }),
       }),
     )
@@ -388,7 +388,7 @@ for (const adminPrefix of ["/__admin", "/_control/mock"]) {
       old.pathname = old.pathname.replace(adminPrefix, "/__admin")
       const response = await runtime.fetch(new Request(old))
       expect(response.status).toBe(404)
-      expect(response.headers.get("x-emulates")).toContain("genebygene@")
+      expect(response.headers.get("x-mockingbird")).toContain("genebygene@")
     }
     expect((await runtime.fetch(new Request("http://mock.local/__blob/old"))).status).not.toBe(200)
   })

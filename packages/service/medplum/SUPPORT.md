@@ -1,12 +1,12 @@
-# Medplum API (Emulates contract) — operation support
+# Medplum API (Mockingbird contract) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **52**
-- supported by the emulator: **52**
+- supported by the mock: **52**
 - parity enabled: **5**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `GetRoot` | `GET /` | ✅ supported | ❌ disabled | Static server root; covered by the server scenarios. |
 | `GetHealthcheck` | `GET /healthcheck` | ✅ supported | ❌ disabled | Reports the host (platform, runtime) the server runs on. |

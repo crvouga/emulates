@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createLocalJWKSet, decodeJwt, exportJWK, generateKeyPair, jwtVerify } from "jose"
 import { createRuntime, OAuthAPI, type OAuthAPIOptions } from "./src/index.js"
 
@@ -241,7 +241,7 @@ test("admin routes trigger notifications, await delivery, and validate input", a
     runtime.fetch(
       new Request(`${origin}/__admin${path}`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-emulates-admin-key": key },
+        headers: { "content-type": "application/json", "x-mockingbird-admin-key": key },
         body: JSON.stringify(body),
       }),
     )

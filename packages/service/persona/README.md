@@ -1,30 +1,30 @@
-# @emulates/persona
+# @crvouga/mockingbird-service-persona
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of **Persona**'s identity-verification API for test suites: create an inquiry,
+Stateful mock of **Persona**'s identity-verification API for test suites: create an inquiry,
 the "reusable inquiry" list lookup, fetch one inquiry, the hosted flow page members are sent
 to, and the `Persona-Signature`-signed events Persona posts back. Inquiries move only when a
 test says so (an admin action or a click on the hosted page), so the Rx consultation's ID
 verification step (flag `rx-id-verification`) runs without a real sandbox or a real selfie.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/persona/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/persona/SUPPORT.md)
 - Persona publishes no OpenAPI document: the contract (`openapi.yaml`) is hand-authored from
   Persona's API reference (JSON:API, `Persona-Version: 2023-01-05`) and our EMR's zod schemas.
 
 ## Install
 
 ```bash
-npm install -D @emulates/persona
+npm install -D @crvouga/mockingbird-service-persona
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-persona serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx mockingbird-persona serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
-Point the EMR at the emulator (all of these are required in `E/config/env.ts`):
+Point the EMR at the mock (all of these are required in `E/config/env.ts`):
 
 | EMR env | Value |
 | --- | --- |
@@ -35,13 +35,13 @@ Point the EMR at the emulator (all of these are required in `E/config/env.ts`):
 | `PERSONA_WEBHOOK_SECRET` | the value passed as `--webhook-secret` |
 
 ```bash
-npx emulates-persona serve --port 8815 \
+npx mockingbird-persona serve --port 8815 \
   --webhook-url http://127.0.0.1:4000/v1/identify-verification/webhook \
   --webhook-secret "$PERSONA_WEBHOOK_SECRET"
 ```
 
 ```ts
-import { createRuntime } from "@emulates/persona"
+import { createRuntime } from "@crvouga/mockingbird-service-persona"
 
 const persona = createRuntime({
   webhooks: { url: "http://127.0.0.1:4000/v1/identify-verification/webhook", secret: "wbhsec_test" },
@@ -114,7 +114,7 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 
 ### Namespaces
 
-`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on `PERSONA_API_URL` and
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on `PERSONA_API_URL` and
 `PERSONA_WEB_INQUIRY_URL` (the hosted page's links keep it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<PERSONA_API_KEY>": "<namespace>"}}`.
 
@@ -122,7 +122,7 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 
 - Our EMR acts only on `status === "completed"` (`updateIdentityVerificationForPatient`);
   `approved`/`declined` events are parsed and ignored. So a declined inquiry has already marked
-  the member verified at `completed`. The emulator sends both events so suites can see that.
+  the member verified at `completed`. The mock sends both events so suites can see that.
 - Our receiver compares signatures with `crypto.timingSafeEqual`, which throws on a length
   mismatch: a wrong-length `v1=` is an uncaught 500, not a 401 (`signature-faults` `short`).
 - There is no official Persona Node SDK in our consumer (plain `fetch`), so there is no SDK
@@ -141,8 +141,8 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PersonaAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(id, action)`, `inquiries()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `onWebhook`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `PersonaAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(id, action)`, `inquiries()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `onWebhook`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `PERSONA_PRESETS` | object | Every named fault preset. |
 | `PERSONA_SIGNATURE_HEADER` | string | `"Persona-Signature"`. |
 | `PERSONA_NAMESPACE`, `PERSONA_VERSION` | string | `"persona"`, `"2023-01-05"`. |
@@ -153,4 +153,4 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target; port 8815. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

@@ -77,7 +77,7 @@ for (const behavior of [
     expect(logs[0]?.accepted).toBe(accepted ? true : undefined)
     if (accepted) expect(logs[0]?.checkpoint).toBe(head.id)
     if (behavior === "accepted-success")
-      expect(result.headers.get("x-emulates-checkpoint")).toBe(head.id)
+      expect(result.headers.get("x-mockingbird-checkpoint")).toBe(head.id)
     runtime.checkout(head.id)
     expect(runtime.instance().records.get("item")).toEqual(accepted ? { value: 1 } : undefined)
   })

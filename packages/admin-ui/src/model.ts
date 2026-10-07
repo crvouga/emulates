@@ -1,5 +1,5 @@
 export type AdminApiConfig = {
-  /** Stable key used by the global emulator selector. */
+  /** Stable key used by the global mock selector. */
   id: string
   /** Human-readable selector label. Defaults to `service`. */
   label?: string

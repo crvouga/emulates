@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **7**
-- supported by the emulator: **7**
+- supported by the mock: **7**
 - parity enabled: **3**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PutBlob` | `PUT /api/blob/` | ✅ supported | ❌ disabled | Raw bytes or action-dependent multipart requests are verified with the official SDK and binary HTTP acceptance tests. |
 | `ReadBlobStore` | `GET /api/blob` | ✅ supported | ✅ |  |

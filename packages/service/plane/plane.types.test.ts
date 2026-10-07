@@ -37,7 +37,7 @@ const harness = () => {
         headers: {
           "content-type": "application/json",
           "x-api-key": key,
-          "x-emulates-namespace": namespace,
+          "x-mockingbird-namespace": namespace,
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       }),

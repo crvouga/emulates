@@ -8,8 +8,8 @@ import {
   parseSince,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { requestToken } from "./body.js"
 import { ACME_FLAG_STATE } from "./flag-state-fixture.js"
 import { adminView, type FlagSpec, parseFlagSpec } from "./flags.js"
@@ -94,7 +94,7 @@ export type PostHogRuntime = ServiceRuntime<PostHogAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -241,7 +241,7 @@ const adminRoutes = (runtime: ServiceRuntime<PostHogAPI>): AdminRoutes => {
 }
 
 /**
- * The PostHog emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, clock,
+ * The PostHog mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, clock,
  * fault presets and a request journal. PostHog SDKs cannot add headers, so a namespace is
  * chosen by the `/__admin/ns/<name>` host prefix (`POSTHOG_HOST=http://127.0.0.1:8795/__admin/ns/w1`), or by
  * project token: `PUT /__admin/credentials {"credentials": {"<phc_token>": "<namespace>"}}`.

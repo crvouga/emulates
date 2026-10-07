@@ -40,7 +40,7 @@ def main():
         parser.error("explicit --allow-disposable-state is required")
     root = Path(__file__).resolve().parents[4]
     state = Path(args.state).resolve()
-    state.relative_to(root / ".emulates" / "hermes-oracle")
+    state.relative_to(root / ".mockingbird" / "hermes-oracle")
     if not state.parent.is_dir():
         parser.error("create a fresh oracle state directory before launch")
     source = Path(args.sources).resolve()

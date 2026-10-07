@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, TEXTRACT_NAMESPACE, TextractAPI } from "./index.js"
 import type { TextractCorpus, TextractJobStatus } from "./state.js"
@@ -57,7 +57,7 @@ export type TextractRuntimeOptions = {
 }
 export type TextractRuntime = ServiceRuntime<TextractAPI> & { readonly webhooks: WebhookHub }
 const problem = (status: number, message: string) =>
-  Response.json({ error: { type: "emulates_admin", message } }, { status })
+  Response.json({ error: { type: "mockingbird_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<TextractAPI>): AdminRoutes => ({
   "GET /corpora": ({ namespace }) =>
     Response.json({

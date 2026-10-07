@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite, Collection, seedFrom } from "@emulates/service"
-import { clearNamespace } from "@emulates/sqlite-client"
+import { type APIOptions, bootSqlite, Collection, seedFrom } from "@crvouga/mockingbird-service"
+import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { type BehaviorInput, BehaviorState, type OAuthBehavior } from "./behavior.js"
 import { type CredentialOptions, Credentials } from "./credentials.js"
 import { halfHash, hash, type Signer, verifyAppleSecret } from "./crypto.js"
@@ -830,7 +830,7 @@ export class OAuthAPI {
     if (request.method === "GET" && path === "/")
       return page(
         "Identity sandbox",
-        '<span class="eyebrow">Emulates Identity</span><h1 id="title">Make sign-in<br>feel real.</h1><p>Your identity sandbox is ready. Start sign-in from your application to choose an account, create a new identity, and review access.</p><div class="account"><span class="avatar" aria-hidden="true">✓</span><span class="identity"><strong>Ready when you are</strong><small>OAuth 2.0 · OpenID Connect</small></span></div>',
+        '<span class="eyebrow">Mockingbird Identity</span><h1 id="title">Make sign-in<br>feel real.</h1><p>Your identity sandbox is ready. Start sign-in from your application to choose an account, create a new identity, and review access.</p><div class="account"><span class="avatar" aria-hidden="true">✓</span><span class="identity"><strong>Ready when you are</strong><small>OAuth 2.0 · OpenID Connect</small></span></div>',
         200,
         undefined,
         this.credentials.nonce(),

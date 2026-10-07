@@ -9,8 +9,8 @@
  * By default only safe operations run (list and get inquiries); creating an inquiry writes to
  * the sandbox, so it needs `--include-unsafe`. The hosted flow pages are never walked.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, PersonaAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

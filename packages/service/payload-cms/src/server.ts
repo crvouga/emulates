@@ -1,10 +1,10 @@
 /// <reference types="node" />
 import { readFile } from "node:fs/promises"
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type PayloadCmsRuntime, type PayloadCmsRuntimeOptions } from "./runtime.js"
 import type { Seed } from "./state.js"
 
-/** Port `emulates-payload-cms serve` listens on when none is given. */
+/** Port `mockingbird-payload-cms serve` listens on when none is given. */
 export const DEFAULT_PORT = 8822
 
 export type PayloadCmsServerOptions = PayloadCmsRuntimeOptions & {
@@ -57,6 +57,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "reads: GET /api/<collection>?where[field][op]=…&limit=&page=&sort=, GET /api/<collection>/<id>",
-    "namespaces: x-emulates-namespace, or a /__admin/ns/<name> suffix on PAYLOAD_CMS_API_URL",
+    "namespaces: x-mockingbird-namespace, or a /__admin/ns/<name> suffix on PAYLOAD_CMS_API_URL",
   ],
 }

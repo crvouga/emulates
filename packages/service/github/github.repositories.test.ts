@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite"
 import { expect, test } from "bun:test"
-import type { SqliteStatement } from "@emulates/sqlite-client"
+import type { SqliteStatement } from "@crvouga/mockingbird-sqlite"
 import { createRuntime } from "./src/index.js"
 
 const seed = {
@@ -22,7 +22,7 @@ const request = (
   runtime.fetch(
     new Request(`http://github.mock${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { "content-type": "application/json", "x-emulates-namespace": namespace },
+      headers: { "content-type": "application/json", "x-mockingbird-namespace": namespace },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
   )
@@ -102,7 +102,7 @@ test("Timeline restores repository and ancestry, journal omits synthetic body an
   await request(runtime, "/__admin/github/repositories", seed)
   await runtime.fetch(
     new Request("http://github.mock/repos/synthetic-org/example?secret=synthetic-query", {
-      headers: { authorization: "Bearer synthetic-key", "x-emulates-namespace": "a" },
+      headers: { authorization: "Bearer synthetic-key", "x-mockingbird-namespace": "a" },
     }),
   )
   const journal = JSON.stringify(runtime.journal.list({ namespace: "a" }))
@@ -140,7 +140,7 @@ test("owner identity is shared and version limitations remain explicit", async (
     }),
   )
   expect(unsupported.status).toBe(501)
-  expect(await unsupported.json()).toMatchObject({ code: "emulates_unsupported" })
+  expect(await unsupported.json()).toMatchObject({ code: "mockingbird_unsupported" })
   const health = await request(runtime, "/__admin/health")
   expect(health.status).toBe(200)
   expect(await health.json()).toMatchObject({ service: "github" })
@@ -199,6 +199,6 @@ test("deep cyclic ancestry returns a structured error without partial state", as
     branches: { main: id(100000) },
   })
   expect(response.status).toBe(400)
-  expect(await response.json()).toMatchObject({ code: "emulates_seed_invalid" })
+  expect(await response.json()).toMatchObject({ code: "mockingbird_seed_invalid" })
   expect((await request(runtime, "/repos/synthetic-org/example")).status).toBe(404)
 })

@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { rpcBody } from "./errors.js"
 import { document, FCM_NAMESPACE, FcmAPI, type FcmAPIOptions, type OutboxQuery } from "./index.js"
 import {
@@ -102,7 +102,7 @@ const json = (status: number, body: unknown) =>
   })
 
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 
 const outboxQuery = (url: URL): OutboxQuery => {
   const since = url.searchParams.get("since")

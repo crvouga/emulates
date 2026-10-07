@@ -1,12 +1,12 @@
-# Emulates OAuth & Social Login — operation support
+# Mockingbird OAuth & Social Login — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **32**
-- supported by the emulator: **32**
+- supported by the mock: **32**
 - parity enabled: **4**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `Discovery` | `GET /.well-known/openid-configuration` | ✅ supported | ✅ | Google, Apple and Microsoft discovery metadata is checked against their public live endpoints by scripts/parity.ts. |
 | `Jwks` | `GET /jwks` | ✅ supported | ❌ disabled | Interactive OAuth transactions are exercised by protocol and independent JOSE tests. |

@@ -1,4 +1,4 @@
-// Copied verbatim from @emulates/bedrock/src/eventstream.ts (published services cannot share
+// Copied verbatim from @crvouga/mockingbird-service-bedrock/src/eventstream.ts (published services cannot share
 // source without a runtime dependency on each other). Keep the two copies identical.
 /**
  * AWS event-stream framing (`application/vnd.amazon.eventstream`), both directions.

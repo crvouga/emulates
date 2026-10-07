@@ -1,15 +1,15 @@
-# @emulates/adapter-bun
+# @crvouga/mockingbird-adapter-bun
 
-> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-Serve any Emulates `FetchAPI` (a provider emulator such as `StripeAPI`, or your own) as a real HTTP
+Serve any Mockingbird `FetchAPI` (a provider mock such as `StripeAPI`, or your own) as a real HTTP
 server with `Bun.serve`. Use it on Bun when the code under test needs a URL rather than an injected
-`fetch`. On Node, use `@emulates/adapter-node` instead.
+`fetch`. On Node, use `@crvouga/mockingbird-adapter-node` instead.
 
 ## Install
 
 ```bash
-npm install @emulates/adapter-bun
+npm install @crvouga/mockingbird-adapter-bun
 ```
 
 Bun >=1.2 only: the runtime code calls the global `Bun.serve`. ESM only.
@@ -24,10 +24,10 @@ npm install -D @types/bun
 ## Usage
 
 ```ts
-import { serve } from "@emulates/adapter-bun"
-import type { FetchAPI } from "@emulates/core"
+import { serve } from "@crvouga/mockingbird-adapter-bun"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 
-// Any FetchAPI works, e.g. `new StripeAPI()` from @emulates/stripe.
+// Any FetchAPI works, e.g. `new StripeAPI()` from @crvouga/mockingbird-service-stripe.
 const api: FetchAPI = {
   fetch: async (request) => Response.json({ method: request.method, url: request.url }),
 }
@@ -58,7 +58,7 @@ Requests and responses pass through unchanged (Bun is Fetch-native), so streamin
 
 ## Related
 
-- `@emulates/core`: the `FetchAPI` contract.
-- `@emulates/adapter-node`: the same adapter for `node:http`.
+- `@crvouga/mockingbird-core`: the `FetchAPI` contract.
+- `@crvouga/mockingbird-adapter-node`: the same adapter for `node:http`.
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

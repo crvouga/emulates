@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks"
 import type { IncomingMessage } from "node:http"
 import { STATUS_CODES } from "node:http"
 import type { Duplex } from "node:stream"
-import { annotateResponse, jsonRes } from "@emulates/service"
+import { annotateResponse, jsonRes } from "@crvouga/mockingbird-service"
 import type { DockerAPI } from "./index.js"
 import { booleanQuery } from "./observations.js"
 import type { DockerRuntime } from "./runtime.js"
@@ -34,7 +34,7 @@ export const createAttachHandshake = (
   const admission = new AsyncLocalStorage<Admission>()
   const prepare = (api: DockerAPI, request: Request): Response => {
     const context = admission.getStore()
-    if (!context) return jsonRes(501, { message: "Emulates: attach requires Node HTTP upgrade" })
+    if (!context) return jsonRes(501, { message: "Mockingbird: attach requires Node HTTP upgrade" })
     const url = new URL(request.url)
     if (
       !booleanQuery(url, "stream") ||
@@ -44,7 +44,7 @@ export const createAttachHandshake = (
         (key) => !["stream", "logs", "stdin", "stdout", "stderr"].includes(key),
       )
     )
-      return jsonRes(501, { message: "Emulates: attach mode is not implemented" })
+      return jsonRes(501, { message: "Mockingbird: attach mode is not implemented" })
     const match = /^\/containers\/([^/]+)\/attach$/.exec(url.pathname)
     if (!match?.[1]) return jsonRes(404, { message: "page not found" })
     let name: string
@@ -66,13 +66,13 @@ export const createAttachHandshake = (
           `container ${name} is restarting, wait until the container is running`,
         )
       if (c.config?.Tty === true)
-        return jsonRes(501, { message: "Emulates: TTY attach is not implemented" })
+        return jsonRes(501, { message: "Mockingbird: TTY attach is not implemented" })
       context.selection = {
         api,
         generation: api.generation,
         containerId: c.id,
-        namespace: request.headers.get("x-emulates-namespace") ?? "default",
-        branch: request.headers.get("x-emulates-branch") ?? "main",
+        namespace: request.headers.get("x-mockingbird-namespace") ?? "default",
+        branch: request.headers.get("x-mockingbird-branch") ?? "main",
         stdin: booleanQuery(url, "stdin") && c.config?.OpenStdin === true,
         stdinOnce: c.config?.StdinOnce === true,
         stdout: booleanQuery(url, "stdout"),

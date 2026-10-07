@@ -1,4 +1,4 @@
-import type { OpenAPIDocument } from "@emulates/openapi"
+import type { OpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import fc from "fast-check"
 import {
   type CommandArbitraryOptions,

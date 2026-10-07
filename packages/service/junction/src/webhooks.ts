@@ -1,4 +1,4 @@
-import { opaqueToken } from "@emulates/service"
+import { opaqueToken } from "@crvouga/mockingbird-service"
 import { type JunctionWebhookEvent, WEBHOOK_RETRY_DELAYS_MS } from "./state.js"
 
 /**

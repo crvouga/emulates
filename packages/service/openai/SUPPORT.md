@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **16**
-- supported by the emulator: **16**
+- supported by the mock: **16**
 - parity enabled: **13**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListChatCompletions` | `GET /v1/chat/completions` | ✅ supported | ✅ |  |
 | `CreateChatCompletion` | `POST /v1/chat/completions` | ✅ supported | ⚠️ unsafe (opt-in) |  |

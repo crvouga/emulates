@@ -1,19 +1,19 @@
-# @emulates/unsplash
+# @crvouga/mockingbird-service-unsplash
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP Unsplash v1 photo search with deterministic results and synthetic local image bytes.
 
 ## Install
 
 ```sh
-bun add @emulates/unsplash
+bun add @crvouga/mockingbird-service-unsplash
 ```
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulates/unsplash"
+import { createRuntime } from "@crvouga/mockingbird-service-unsplash"
 
 const unsplash = createRuntime()
 const response = await unsplash.fetch(new Request(
@@ -24,7 +24,7 @@ const { results } = await response.json()
 const image = await unsplash.fetch(new Request(results[0].urls.regular))
 ```
 
-For a separate application process, run `emulates-unsplash serve --port 12125`.
+For a separate application process, run `mockingbird-unsplash serve --port 12125`.
 Replace the consumer's search origin with `http://localhost:12125`; no standard vendor
 base-URL environment variable exists. Accepts `client_id=mock_unsplash_key` or
 `Authorization: Client-ID mock_unsplash_key`. Configure other synthetic keys with
@@ -52,7 +52,7 @@ custom `adminPrefix`, so a browser can load them without copying the request's c
 The shared `/__admin/state/photos` and `/__admin/state/downloads` routes inspect/seed state.
 Reset restores constructor fixtures and clears download counts. Timeline, clock,
 request journal, latency and one-shot fault rules use the shared admin contract.
-Namespaces are selected by `x-emulates-namespace`, `/__admin/ns/{name}`, or mapped
+Namespaces are selected by `x-mockingbird-namespace`, `/__admin/ns/{name}`, or mapped
 access keys via `PUT /__admin/credentials`. Query credentials are not put into the journal
 or pagination links; when following links, reapply authentication.
 

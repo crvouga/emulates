@@ -1,13 +1,13 @@
-# @emulates/livekit
+# @crvouga/mockingbird-service-livekit
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful LiveKit emulator for `livekit-server-sdk`. It serves Twirp JSON room and agent-dispatch APIs, validates genuine HS256 LiveKit grants, models participant/track/data state, exposes deterministic SIP and egress controls, and emits correctly signed lifecycle webhooks.
+Stateful LiveKit mock for `livekit-server-sdk`. It serves Twirp JSON room and agent-dispatch APIs, validates genuine HS256 LiveKit grants, models participant/track/data state, exposes deterministic SIP and egress controls, and emits correctly signed lifecycle webhooks.
 
 ## Install
 
 ```bash
-npm install -D @emulates/livekit
+npm install -D @crvouga/mockingbird-service-livekit
 ```
 
 ESM only. Node 22+ or Bun 1.2+.
@@ -15,7 +15,7 @@ ESM only. Node 22+ or Bun 1.2+.
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/livekit/server"
+import { createServer } from "@crvouga/mockingbird-service-livekit/server"
 
 const mock = await createServer({
   keys: { fixture: "fixture-secret-that-is-at-least-32-chars" },
@@ -25,7 +25,7 @@ const health = await fetch(`${mock.url}/__admin/health`)
 
 Point `RoomServiceClient` at `mock.url`. Supported RoomService calls include CreateRoom, ListRooms, DeleteRoom, UpdateRoomMetadata, ListParticipants, GetParticipant, RemoveParticipant, UpdateParticipant, MutePublishedTrack, and SendData. Room creation is idempotent by name and participant identity is unique within a room.
 
-`AgentDispatchClient` uses the same URL and genuine `roomAdmin` JWTs for `createDispatch`, `listDispatch`, `getDispatch`, and `deleteDispatch`. Both snake_case and camelCase request fields work. A dispatch creates a missing room, starts with no assigned jobs, and preserves its agent name and opaque metadata. Lists read shared room dispatch state, with an optional dispatch-id filter; deleting a dispatch removes its membership. Deleting or expiring a room removes its dispatches. Dispatch/job timestamps are emulator-clock Unix seconds encoded as protobuf JSON strings (the SDK exposes bigint values). Tests exercise the existing 2.19.1 SDK and the reporter's exact 2.19.0 over HTTP.
+`AgentDispatchClient` uses the same URL and genuine `roomAdmin` JWTs for `createDispatch`, `listDispatch`, `getDispatch`, and `deleteDispatch`. Both snake_case and camelCase request fields work. A dispatch creates a missing room, starts with no assigned jobs, and preserves its agent name and opaque metadata. Lists read shared room dispatch state, with an optional dispatch-id filter; deleting a dispatch removes its membership. Deleting or expiring a room removes its dispatches. Dispatch/job timestamps are mock-clock Unix seconds encoded as protobuf JSON strings (the SDK exposes bigint values). Tests exercise the existing 2.19.1 SDK and the reporter's exact 2.19.0 over HTTP.
 
 ## Controls
 
