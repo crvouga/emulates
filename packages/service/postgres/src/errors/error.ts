@@ -170,5 +170,11 @@ export function unsupported(what: string): PostgresError {
 }
 
 export function isPostgresError(err: unknown): err is PostgresError {
-  return err instanceof PostgresError;
+  if (err instanceof PostgresError) return true;
+  // The published package bundles this class twice (the engine entry and the wire
+  // server). A PostgresError thrown by one copy fails `instanceof` in the other,
+  // so clients would see SQLSTATE XX000. Recognize the public shape either way.
+  if (!(err instanceof Error) || err.name !== "PostgresError") return false;
+  const sqlState = (err as { sqlState?: unknown }).sqlState;
+  return typeof sqlState === "string" && /^[0-9A-Z]{5}$/.test(sqlState);
 }

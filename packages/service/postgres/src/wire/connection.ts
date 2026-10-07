@@ -1,14 +1,14 @@
 import type { Socket } from "node:net";
-import type { BindValue } from "../api/bind.ts";
+import { type BindValue, bindValueToTyped } from "../api/bind.ts";
 import type { Database } from "../api/database.ts";
 import type { TextResultSet } from "../api/statement.ts";
-import type { CopyStmt } from "../ast/nodes.ts";
-import { PostgresError } from "../errors/error.ts";
+import type { CopyStmt, Expr } from "../ast/nodes.ts";
+import { isPostgresError, PostgresError } from "../errors/error.ts";
 import { executeCopyFromData } from "../executor/session.ts";
 import { EngineCtx } from "../expressions/context.ts";
 import { parse as parseSql } from "../parser/index.ts";
 import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
-import { typeOid } from "../types/value.ts";
+import { datumText, typeOid, UTC_OUTPUT } from "../types/value.ts";
 import { type Cluster, LockWait, type Session } from "./cluster.ts";
 import {
   type ByteReader,
@@ -109,11 +109,55 @@ const identifier = (quoted: string | undefined, plain: string | undefined): stri
 const ROW_LOCK =
   /\s+for\s+(?:no\s+key\s+update|key\s+share|update|share)(?:\s+of\s+(?:(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s*,\s*(?:(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?))*)?(?:\s+(nowait|skip\s+locked))?\s*$/i;
 const LIMIT = /\s+limit\s+(\d+)(?:\s+offset\s+(\d+))?\s*$/i;
-const FROM_TABLE = /\bfrom\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)/i;
-const UPDATE_TARGET =
-  /^update\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s+(?:as\s+)?(?:"[^"]+"|[A-Za-z_][\w$]*))?\s+set\s+[\s\S]*?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$/i;
-const DELETE_TARGET =
-  /^delete\s+from\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s+(?:as\s+)?(?:"[^"]+"|[A-Za-z_][\w$]*))?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$/i;
+const SQL_NAME = String.raw`(?:"[^"]+"|[A-Za-z_][\w$]*)`;
+const SQL_RELATION = String.raw`(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?`;
+const FROM_TABLE = new RegExp(String.raw`\bfrom\s+(${SQL_RELATION})`, "i");
+const UPDATE_TARGET = new RegExp(
+  String.raw`^update\s+(${SQL_RELATION})(?:\s+(?:as\s+)?(${SQL_NAME}))?\s+set\s+[\s\S]*?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$`,
+  "i",
+);
+const DELETE_TARGET = new RegExp(
+  String.raw`^delete\s+from\s+(${SQL_RELATION})(?:\s+(?:as\s+)?(${SQL_NAME}))?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$`,
+  "i",
+);
+
+/**
+ * Row-lock probe for UPDATE / DELETE. The alias has to survive: `UPDATE t AS ap`
+ * is locked with `SELECT * FROM t AS ap`, or `ap.column` in WHERE is unknown.
+ */
+const lockedMutationQuery = (sql: string): string | null => {
+  const match = UPDATE_TARGET.exec(sql) ?? DELETE_TARGET.exec(sql);
+  const relation = match?.[1];
+  if (!relation) return null;
+  const alias = match?.[2];
+  const where = match?.[3];
+  const from = alias ? `${relation} AS ${alias}` : relation;
+  return `SELECT * FROM ${from}${where ? ` WHERE ${where}` : ""}`;
+};
+
+/** Text form of a literal or bound parameter, matching the row-lock identity. */
+const lockLiteral = (expr: Expr | undefined, params: readonly BindValue[]): string | null | undefined => {
+  if (!expr) return undefined;
+  switch (expr.type) {
+    case "null_lit":
+      return null;
+    case "string_lit":
+      return expr.value;
+    case "bool_lit":
+      return expr.value ? "t" : "f";
+    case "number_lit":
+      return expr.raw.replace(/^\+/, "");
+    case "param": {
+      const value = params[expr.index - 1];
+      if (value === undefined) return undefined;
+      const typed = bindValueToTyped(value, expr.index - 1);
+      if (typed.v === null) return null;
+      return datumText(typed.t, typed.v, UTC_OUTPUT);
+    }
+    default:
+      return undefined;
+  }
+};
 
 const TYPLEN: Record<string, number> = {
   bool: 1,
@@ -138,7 +182,7 @@ const pgError = (category: "internal" | "syntax", message: string, code: string)
 
 /** ErrorResponse fields for an engine error, with what the message names (constraint, table, column). */
 const errorFields = (error: unknown): ErrorFields => {
-  if (error instanceof PostgresError) {
+  if (isPostgresError(error)) {
     const message = error.message;
     const fields: ErrorFields = { code: error.sqlState, message };
     const constraint = /constraint "([^"]+)"/.exec(message)?.[1];
@@ -569,8 +613,8 @@ export class Connection implements Session {
       return outcome;
     } catch (error) {
       if (this.inTransaction) this.aborted = true;
-      if (error instanceof PostgresError && error.sqlState === "40P01") this.cluster.unlockAll(this, true);
-      const status = error instanceof PostgresError ? error.sqlState : "XX000";
+      if (isPostgresError(error) && error.sqlState === "40P01") this.cluster.unlockAll(this, true);
+      const status = isPostgresError(error) ? error.sqlState : "XX000";
       this.options.onLog?.({ pid: this.pid, sql: text, durationMs: performance.now() - started, status });
       throw error;
     }
@@ -780,14 +824,49 @@ export class Connection implements Session {
     });
   }
 
+  /**
+   * Hold the primary key until the transaction ends. PostgreSQL's unique index makes a
+   * second `INSERT` of the same key wait; `ON CONFLICT DO UPDATE` then sees the committed row.
+   * Without this, each session's workspace inserts the key and commit replay raises 23505.
+   */
+  private lockInsertedPrimaryKey(db: Database, text: string, params: readonly BindValue[]): void {
+    let statements: ReturnType<typeof parseSql>;
+    try {
+      statements = parseSql(text);
+    } catch {
+      return;
+    }
+    const stmt = statements.length === 1 ? statements[0] : undefined;
+    if (stmt?.type !== "insert" || stmt.source === "default_values" || stmt.source.body.type !== "values") return;
+    if (!stmt.columns) return;
+    const table = db.state.findTable(stmt.table);
+    const primary = table?.constraints.find((constraint) => constraint.kind === "primary_key");
+    if (!primary || primary.columns.length === 0) return;
+    const indexes = primary.columns.map((column) => stmt.columns?.indexOf(column) ?? -1);
+    if (indexes.some((index) => index < 0)) return;
+    const identities: (string | null)[][] = [];
+    for (const row of stmt.source.body.rows) {
+      const identity: (string | null)[] = [];
+      for (const index of indexes) {
+        const value = lockLiteral(row[index], params);
+        if (value === undefined) return;
+        identity.push(value);
+      }
+      identities.push(identity);
+    }
+    const relation = stmt.table.join(".");
+    for (const identity of identities) {
+      const key = `row:${this.databaseName}:${relation}:${JSON.stringify(identity)}`;
+      if (!this.cluster.tryLock(this, key, true)) throw new LockWait(key);
+    }
+  }
+
   private runQuery(db: Database, text: string, params: BindValue[]): TextResultSet {
     const lock = ROW_LOCK.exec(text);
     if (!lock) {
-      const mutation = UPDATE_TARGET.exec(text) ?? DELETE_TARGET.exec(text);
-      if (mutation) {
-        const lockQuery = `SELECT * FROM ${mutation[1]}${mutation[2] ? ` WHERE ${mutation[2]}` : ""}`;
-        this.lockRows(db, lockQuery, params, "wait");
-      }
+      const lockQuery = lockedMutationQuery(text);
+      if (lockQuery) this.lockRows(db, lockQuery, params, "wait");
+      this.lockInsertedPrimaryKey(db, text, params);
       return db.prepare(text).textResult(...params);
     }
 
