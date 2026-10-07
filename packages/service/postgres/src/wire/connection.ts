@@ -4,6 +4,7 @@ import type { Database } from "../api/database.ts";
 import type { TextResultSet } from "../api/statement.ts";
 import type { CopyStmt, Expr } from "../ast/nodes.ts";
 import { isPostgresError, PostgresError } from "../errors/error.ts";
+import { inferColumnName } from "../executor/relation.ts";
 import { executeCopyFromData } from "../executor/session.ts";
 import { EngineCtx } from "../expressions/context.ts";
 import { parse as parseSql } from "../parser/index.ts";
@@ -309,6 +310,51 @@ const decodeParam = (oid: number, format: number, bytes: Uint8Array | null): Bin
       throw pgError("internal", `binary parameter format is not supported for type oid ${oid}`, "0A000");
   }
 };
+
+/**
+ * Column layout of `INSERT`/`UPDATE`/`DELETE ... RETURNING`, without running the write.
+ * `RETURNING *` is the target table. A qualifier that is not that table is left undescribed.
+ */
+function returningShape(db: Database, sql: string): TextResultSet | null {
+  let statements: ReturnType<typeof parseSql>;
+  try {
+    statements = parseSql(sql);
+  } catch {
+    return null;
+  }
+  const stmt = statements.length === 1 ? statements[0] : undefined;
+  if (!stmt || (stmt.type !== "insert" && stmt.type !== "update" && stmt.type !== "delete")) return null;
+  const targets = stmt.returning;
+  if (!targets || targets.length === 0) return null;
+  const table = db.state.findTable(stmt.table);
+  if (!table) return null;
+  const label = stmt.alias ?? table.name;
+  const columns: string[] = [];
+  const columnTypes: string[] = [];
+  for (const target of targets) {
+    if (target.expr.type === "star") {
+      const qualifier = target.expr.table?.at(-1);
+      if (qualifier !== undefined && qualifier !== label && qualifier !== table.name) return null;
+      for (const column of table.columns) {
+        columns.push(column.name);
+        columnTypes.push(column.type.id);
+      }
+      continue;
+    }
+    if (target.expr.type === "colref") {
+      const name = target.expr.parts.at(-1) ?? "?column?";
+      const column = table.columns.find((item) => item.name === name);
+      columns.push(target.alias ?? name);
+      columnTypes.push(column?.type.id ?? "text");
+      continue;
+    }
+    columns.push(target.alias ?? inferColumnName(target.expr));
+    columnTypes.push("text");
+  }
+  if (columns.length === 0) return null;
+  const command = stmt.type === "insert" ? "INSERT" : stmt.type === "update" ? "UPDATE" : "DELETE";
+  return { columns, columnTypes, rows: [], rowCount: 0, command };
+}
 
 /**
  * One client connection: the protocol state machine over the shared {@link Cluster}.
@@ -1271,11 +1317,16 @@ export class Connection implements Session {
   }
 
   /**
-   * The row shape of a statement that returns rows, for Describe on a statement: a trial run with
-   * null parameters inside a transaction that is rolled back. Anything else (or a trial that
-   * fails) is described as returning no data.
+   * The row shape of a statement that returns rows, for Describe on a statement.
+   * `INSERT`/`UPDATE`/`DELETE ... RETURNING` is described from the catalog: a trial run binds
+   * nulls and fails NOT NULL, and Describe would answer NoData. Bun then reads one DataRow cell
+   * and treats the rest of the message as a broken protocol frame.
+   * Other row-returning statements are a trial run with null parameters, rolled back. A trial
+   * that fails is described as returning no data.
    */
   private async shapeOf(prepared: Prepared): Promise<TextResultSet | null> {
+    const described = returningShape(this.database, prepared.sql);
+    if (described) return described;
     if (!RETURNS_ROWS.test(prepared.sql)) return null;
     const db = this.database;
     await this.cluster.acquireTurn(this);
