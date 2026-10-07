@@ -525,3 +525,136 @@ describe("served over HTTP", () => {
     ).rejects.toThrow("pdl_ntfset_")
   })
 })
+
+describe("portal sessions and notification settings", () => {
+  test("a customer portal session is a distinct temporary https link", async () => {
+    const { call, json } = harness()
+    const customer = await json<Envelope<{ id: string }>>("/customers", {
+      body: { email: "portal@example.com" },
+    })
+    const first = await json<
+      Envelope<{ id: string; customer_id: string; urls: { general: { overview: string } } }>
+    >(`/customers/${customer.data.id}/portal-sessions`, { body: {} })
+    expect(first.data.customer_id).toBe(customer.data.id)
+    expect(new URL(first.data.urls.general.overview).protocol).toBe("https:")
+    const second = await json<Envelope<{ id: string }>>(
+      `/customers/${customer.data.id}/portal-sessions`,
+      { body: {} },
+    )
+    expect(second.data.id).not.toBe(first.data.id)
+    const missing = await call("/customers/ctm_00000000000000000000000000/portal-sessions", {
+      body: {},
+    })
+    expect(missing.status).toBe(404)
+  })
+
+  test("notification settings are created, moved and listed without repeating the secret", async () => {
+    const { json } = harness()
+    const empty = await json<Envelope<{ id: string }[]>>("/notification-settings")
+    expect(empty.data).toEqual([])
+    const created = await json<
+      Envelope<{ id: string; endpoint_secret_key?: string; destination: string }>
+    >("/notification-settings", {
+      body: {
+        description: "Example webhook",
+        destination: "https://example.com/callback",
+        type: "url",
+        active: true,
+        subscribed_events: ["subscription.updated"],
+      },
+    })
+    expect(created.data.endpoint_secret_key).toMatch(/^pdl_ntfset_[A-Za-z0-9]+$/)
+    const moved = await json<Envelope<{ endpoint_secret_key?: string; destination: string }>>(
+      `/notification-settings/${created.data.id}`,
+      { method: "PATCH", body: { destination: "https://example.com/new-callback" } },
+    )
+    expect(moved.data.destination).toBe("https://example.com/new-callback")
+    expect(moved.data.endpoint_secret_key).toBeUndefined()
+    const listed =
+      await json<
+        Envelope<
+          {
+            destination: string
+            endpoint_secret_key?: string
+            subscribed_events: { name: string }[]
+          }[]
+        >
+      >("/notification-settings")
+    expect(listed.data).toHaveLength(1)
+    expect(listed.data[0]?.destination).toBe("https://example.com/new-callback")
+    expect(listed.data[0]?.endpoint_secret_key).toBeUndefined()
+    expect(listed.data[0]?.subscribed_events).toEqual([{ name: "subscription.updated" }])
+  })
+
+  test("an active url destination receives only its events, signed with its own secret", async () => {
+    const seen: { url: string; headers: Headers; body: string }[] = []
+    const { runtime, call, json } = harness({
+      webhooks: {
+        url: "http://backend.local/webhooks/paddle",
+        secret: SECRET,
+        fetch: async (request) => {
+          seen.push({ url: request.url, headers: request.headers, body: await request.text() })
+          return Response.json({ ok: true })
+        },
+      },
+    })
+    const created = await json<Envelope<{ endpoint_secret_key: string }>>(
+      "/notification-settings",
+      {
+        body: {
+          description: "Customers",
+          destination: "https://example.com/callback",
+          type: "url",
+          active: true,
+          subscribed_events: ["customer.created"],
+        },
+      },
+    )
+    await call("/__admin/webhook-endpoints", {
+      method: "PUT",
+      body: [
+        {
+          url: "https://admin.example/hook",
+          secret: "pdl_ntfset_admin_test_secret",
+          events: ["customer.created"],
+        },
+      ],
+    })
+    await call("/customers", { body: { email: "ada@example.com" } })
+    await runtime.webhooks.idle()
+    const to = (url: string) => seen.filter((delivery) => delivery.url === url)
+    expect(to("https://example.com/callback")).toHaveLength(1)
+    expect(to("https://admin.example/hook")).toHaveLength(1)
+    expect(to("http://backend.local/webhooks/paddle")).toHaveLength(1)
+    const delivery = to("https://example.com/callback")[0] as { headers: Headers; body: string }
+    const signature = delivery.headers.get("Paddle-Signature") as string
+    const [ts, h1] = signature.split(";").map((part) => part.split("=")[1] as string)
+    expect(h1).toBe(
+      createHmac("sha256", created.data.endpoint_secret_key)
+        .update(`${ts}:${delivery.body}`)
+        .digest("hex"),
+    )
+    expect(JSON.parse(delivery.body).event_type).toBe("customer.created")
+
+    await call(
+      `/notification-settings/${(await json<Envelope<{ id: string }[]>>("/notification-settings")).data[0]?.id}`,
+      {
+        method: "PATCH",
+        body: { active: false },
+      },
+    )
+    const before = seen.length
+    await call("/customers", { body: { email: "grace@example.com" } })
+    await runtime.webhooks.idle()
+    const added = seen.slice(before)
+    expect(added.map((delivery) => delivery.url)).not.toContain("https://example.com/callback")
+    expect(added.map((delivery) => delivery.url)).toContain("https://admin.example/hook")
+
+    await call("/__admin/webhook-endpoints", { method: "DELETE" })
+    const afterDelete = seen.length
+    await call("/customers", { body: { email: "grace2@example.com" } })
+    await runtime.webhooks.idle()
+    const remaining = seen.slice(afterDelete).map((delivery) => delivery.url)
+    expect(remaining).toEqual(["http://backend.local/webhooks/paddle"])
+  })
+})

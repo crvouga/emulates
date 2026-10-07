@@ -30,9 +30,11 @@ import type {
   CustomerRecord,
   EventRecord,
   LineItem,
+  NotificationSettingRecord,
   PaymentAttempt,
   PendingCharge,
   Period,
+  PortalSessionRecord,
   PriceRecord,
   ProductRecord,
   ScheduledChange,
@@ -68,8 +70,11 @@ export type {
   CustomerRecord,
   EventRecord,
   LineItem,
+  NotificationSettingRecord,
+  NotificationTrafficSource,
   PaymentAttempt,
   Period,
+  PortalSessionRecord,
   PreviewDetails,
   PriceRecord,
   ProductRecord,
@@ -163,6 +168,13 @@ export type PaddleAPIOptions = APIOptions & {
   /** Called with every event the account produces (the body a webhook would carry). */
   onEvent?: (event: EventRecord) => void
   /**
+   * Active URL notification destinations, replaced whenever they change. The runtime registers
+   * them on the webhook hub without dropping admin-configured endpoints.
+   */
+  onDestinations?: (
+    endpoints: { id: string; url: string; secret: string; events: string[] }[],
+  ) => void
+  /**
    * Seed the fixture account (`seedFixtures`) on construction when the namespace is empty, and
    * again after every `reset()`. Fixture events are recorded (`GET /events`) but not passed to
    * `onEvent`: they are the account's pre-existing state, not new activity.
@@ -200,6 +212,7 @@ export class PaddleAPI implements FetchAPI {
   private readonly publicNamespace: string | undefined
   private readonly paymentLink: string | undefined
   private readonly onEvent: PaddleAPIOptions["onEvent"]
+  private readonly onDestinations: PaddleAPIOptions["onDestinations"]
   private readonly fixtures: boolean
   private readonly requestIds = new WeakMap<Request, string>()
   private requestCounter = 0
@@ -214,6 +227,7 @@ export class PaddleAPI implements FetchAPI {
     this.publicNamespace = options.publicNamespace
     this.paymentLink = options.paymentLink
     this.onEvent = options.onEvent
+    this.onDestinations = options.onDestinations
     this.fixtures = options.fixtures === true
     this.state = new PaddleState(sqlite, namespace)
     const handlers = defineOperations<SupportedOperationId>({
@@ -254,6 +268,11 @@ export class PaddleAPI implements FetchAPI {
       CancelSubscription: (c) => this.cancelSubscription(c),
       CreateSubscriptionCharge: (c) => this.chargeSubscription(c),
       ListEvents: (c) => this.listEvents(c),
+      ListNotificationSettings: (c) => this.listNotificationSettings(c),
+      CreateNotificationSetting: (c) => this.createNotificationSetting(c),
+      GetNotificationSetting: (c) => this.getNotificationSetting(c),
+      UpdateNotificationSetting: (c) => this.updateNotificationSetting(c),
+      CreateCustomerPortalSession: (c) => this.createPortalSession(c),
     })
     this.service = createService({
       document,
@@ -307,6 +326,7 @@ export class PaddleAPI implements FetchAPI {
   async reset(): Promise<void> {
     await this.service.reset()
     if (this.fixtures) this.seedFixtures()
+    this.syncDestinations()
   }
 
   /** Every event the account produced, oldest first. */
@@ -2763,6 +2783,163 @@ export class PaddleAPI implements FetchAPI {
       this.requestId(context.request),
       page.pagination,
     )
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // Notification destinations and customer portal sessions
+
+  private syncDestinations(): void {
+    const endpoints = this.state.notificationSettings
+      .list({ order: "oldest" })
+      .map((row) => row.value)
+      .filter((setting) => setting.active && setting.type === "url")
+      .map((setting) => ({
+        id: setting.id,
+        url: setting.destination,
+        secret: setting.endpoint_secret_key,
+        events: [...setting.subscribed_events],
+      }))
+    this.onDestinations?.(endpoints)
+  }
+
+  private eventNames(value: unknown): string[] {
+    if (!Array.isArray(value)) return []
+    const names = value.map((item) =>
+      typeof item === "string" ? item : String((item as { name?: unknown }).name ?? ""),
+    )
+    return [...new Set(names.filter((name) => name !== ""))]
+  }
+
+  private notificationView(setting: NotificationSettingRecord, discloseSecret: boolean) {
+    const { endpoint_secret_key: secret, subscribed_events: names, ...rest } = setting
+    return {
+      ...rest,
+      subscribed_events: names.map((name) => ({ name })),
+      ...(discloseSecret ? { endpoint_secret_key: secret } : {}),
+    }
+  }
+
+  private mustNotificationSetting(id: string): NotificationSettingRecord {
+    const setting = this.state.notificationSettings.get(id)
+    if (!setting) throw notFound(id)
+    return setting
+  }
+
+  private listNotificationSettings(context: OperationContext): Response {
+    const rows = this.state.notificationSettings
+      .list()
+      .map((row) => this.notificationView(row.value, false))
+    return this.page(context, rows)
+  }
+
+  private createNotificationSetting(context: OperationContext): Response {
+    const body = this.body(context)
+    const at = this.iso()
+    const setting: NotificationSettingRecord = {
+      id: this.state.nextId("notification_setting"),
+      description: String(body.description),
+      type: body.type === "email" ? "email" : "url",
+      destination: String(body.destination),
+      active: typeof body.active === "boolean" ? body.active : true,
+      api_version: typeof body.api_version === "number" ? body.api_version : 1,
+      traffic_source:
+        body.traffic_source === "simulation" || body.traffic_source === "all"
+          ? body.traffic_source
+          : "platform",
+      include_sensitive_fields: body.include_sensitive_fields === true,
+      subscribed_events: this.eventNames(body.subscribed_events),
+      endpoint_secret_key: this.state.nextToken("pdl_ntfset_", 26),
+      created_at: at,
+      updated_at: at,
+    }
+    this.state.notificationSettings.insert(setting.id, setting)
+    this.syncDestinations()
+    return this.ok(context, 201, this.notificationView(setting, true), {
+      notificationSettingId: setting.id,
+    })
+  }
+
+  private getNotificationSetting(context: OperationContext): Response {
+    const setting = this.mustNotificationSetting(context.params.notification_setting_id ?? "")
+    return this.ok(context, 200, this.notificationView(setting, false), {
+      notificationSettingId: setting.id,
+    })
+  }
+
+  private updateNotificationSetting(context: OperationContext): Response {
+    const current = this.mustNotificationSetting(context.params.notification_setting_id ?? "")
+    const body = this.body(context)
+    const updated: NotificationSettingRecord = {
+      ...current,
+      ...(body.description !== undefined ? { description: String(body.description) } : {}),
+      ...(body.type === "url" || body.type === "email" ? { type: body.type } : {}),
+      ...(body.destination !== undefined ? { destination: String(body.destination) } : {}),
+      ...(typeof body.active === "boolean" ? { active: body.active } : {}),
+      ...(typeof body.api_version === "number" ? { api_version: body.api_version } : {}),
+      ...(body.traffic_source === "platform" ||
+      body.traffic_source === "simulation" ||
+      body.traffic_source === "all"
+        ? { traffic_source: body.traffic_source }
+        : {}),
+      ...(typeof body.include_sensitive_fields === "boolean"
+        ? { include_sensitive_fields: body.include_sensitive_fields }
+        : {}),
+      ...(body.subscribed_events !== undefined
+        ? { subscribed_events: this.eventNames(body.subscribed_events) }
+        : {}),
+      updated_at: this.iso(),
+    }
+    this.state.notificationSettings.update(updated.id, updated)
+    this.syncDestinations()
+    return this.ok(context, 200, this.notificationView(updated, false), {
+      notificationSettingId: updated.id,
+    })
+  }
+
+  private portalLink(sessionId: string, token: string, page: string): string {
+    return `https://sandbox-customer-portal.paddle.com/${sessionId}/${page}?token=${token}`
+  }
+
+  private createPortalSession(context: OperationContext): Response {
+    const customerId = context.params.customer_id ?? ""
+    this.mustCustomer(customerId)
+    const body = this.body(context)
+    const requested = Array.isArray(body.subscription_ids) ? body.subscription_ids.map(String) : []
+    const subscriptions = requested.map((id) => {
+      const subscription = this.state.subscriptions.get(id)
+      if (!subscription) throw notFound(id)
+      if (subscription.customer_id !== customerId) {
+        throw invalidField([
+          {
+            field: "subscription_ids",
+            message: `subscription_ids: subscription ${id} is not for this customer`,
+          },
+        ])
+      }
+      return id
+    })
+    const id = this.state.nextId("portal_session")
+    const token = this.state.nextToken("cpls_", 24)
+    const session: PortalSessionRecord = {
+      id,
+      customer_id: customerId,
+      created_at: this.iso(),
+      urls: {
+        general: { overview: this.portalLink(id, token, "overview") },
+        subscriptions: subscriptions.map((subscriptionId) => ({
+          id: subscriptionId,
+          cancel_subscription: this.portalLink(id, token, `${subscriptionId}/cancel`),
+          update_subscription_payment_method: this.portalLink(
+            id,
+            token,
+            `${subscriptionId}/payment-method`,
+          ),
+          update_subscription: this.portalLink(id, token, `${subscriptionId}/update`),
+        })),
+      },
+    }
+    this.state.portalSessions.insert(session.id, session)
+    return this.ok(context, 201, session, { portalSessionId: session.id, customerId })
   }
 
   // ---------------------------------------------------------------------------------------

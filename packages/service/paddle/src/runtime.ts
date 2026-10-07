@@ -190,6 +190,23 @@ export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime
     ...(send ? { fetch: send } : {}),
     endpoints: options.webhooks ? [endpoint as WebhookEndpoint] : [],
   })
+  // Vendor notification destinations and `PUT /__admin/webhook-endpoints` share one namespace
+  // list. Each writer replaces only its own entries.
+  const adminEndpoints = new Map<string, WebhookEndpoint[]>()
+  const destinationEndpoints = new Map<string, WebhookEndpoint[]>()
+  const setOwn = hub.setEndpoints.bind(hub)
+  const applyEndpoints = (namespace: string): WebhookEndpoint[] =>
+    setOwn(namespace, [
+      ...(adminEndpoints.get(namespace) ?? []),
+      ...(destinationEndpoints.get(namespace) ?? []),
+    ])
+  hub.setEndpoints = (namespace, endpoints) => {
+    adminEndpoints.set(
+      namespace,
+      endpoints.filter((candidate) => !candidate.id?.startsWith("ntfset_")),
+    )
+    return applyEndpoints(namespace)
+  }
   const runtime = createServiceRuntime<PaddleAPI>({
     name: PADDLE_NAMESPACE,
     document,
@@ -219,6 +236,10 @@ export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime
             body: { ...event, notification_id: event.event_id.replace(/^evt_/, "ntf_") },
             tags: { event: event.event_type.split(".")[0] ?? event.event_type },
           })
+        },
+        onDestinations: (endpoints) => {
+          destinationEndpoints.set(publicNamespace, endpoints)
+          applyEndpoints(publicNamespace)
         },
       })
       return api
