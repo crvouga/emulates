@@ -5,7 +5,9 @@ import type {
   BusinessRecord,
   CustomerRecord,
   EventRecord,
+  NotificationSettingRecord,
   PendingCharge,
+  PortalSessionRecord,
   PriceRecord,
   ProductRecord,
   SubscriptionRecord,
@@ -23,6 +25,8 @@ export const ID_PREFIX = {
   subscription: "sub",
   event: "evt",
   notification: "ntf",
+  notification_setting: "ntfset",
+  portal_session: "cpls",
   line_item: "txnitm",
   payment_attempt: "payatt",
   payment_method: "paymtd",
@@ -42,6 +46,8 @@ export class PaddleState {
   /** Queued one-time charges per subscription id. */
   readonly pendingCharges: Collection<PendingCharge[]>
   readonly events: Collection<EventRecord>
+  readonly notificationSettings: Collection<NotificationSettingRecord>
+  readonly portalSessions: Collection<PortalSessionRecord>
   private readonly ids: IdSequence
 
   constructor(sqlite: SqliteClient, namespace: string) {
@@ -54,6 +60,8 @@ export class PaddleState {
     this.subscriptions = new Collection(sqlite, namespace, "subscriptions")
     this.pendingCharges = new Collection(sqlite, namespace, "pending_charges")
     this.events = new Collection(sqlite, namespace, "events")
+    this.notificationSettings = new Collection(sqlite, namespace, "notification_settings")
+    this.portalSessions = new Collection(sqlite, namespace, "portal_sessions")
     this.ids = new IdSequence(sqlite, namespace, "paddle")
   }
 

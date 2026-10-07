@@ -2,9 +2,9 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **48**
-- supported by the mock: **37**
-- parity enabled: **37**
+- operations in spec: **50**
+- supported by the mock: **42**
+- parity enabled: **42**
 
 | operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
@@ -49,10 +49,12 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `PreviewSubscriptionCharge` | `POST /subscriptions/{subscription_id}/charge/preview` | ❌ unsupported | — | One-time charge previews are not modelled; create the charge instead. |
 | `GetSubscriptionPaymentMethodChangeTransaction` | `GET /subscriptions/{subscription_id}/update-payment-method-transaction` | ❌ unsupported | — | Payment method changes go through the hosted checkout, which the mock does not serve. |
 | `ListEvents` | `GET /events` | ✅ supported | ✅ |  |
-| `ListNotificationSettings` | `GET /notification-settings` | ❌ unsupported | — | Notification destinations are configured on the mock (`--webhook-url`, `PUT /__admin/webhook-endpoints`), not through the API. |
-| `CreateNotificationSetting` | `POST /notification-settings` | ❌ unsupported | — | Notification destinations are configured on the mock (`--webhook-url`, `PUT /__admin/webhook-endpoints`), not through the API. |
+| `ListNotificationSettings` | `GET /notification-settings` | ✅ supported | ✅ |  |
+| `CreateNotificationSetting` | `POST /notification-settings` | ✅ supported | ⚠️ unsafe (opt-in) |  |
+| `GetNotificationSetting` | `GET /notification-settings/{notification_setting_id}` | ✅ supported | ✅ |  |
+| `UpdateNotificationSetting` | `PATCH /notification-settings/{notification_setting_id}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ListDiscounts` | `GET /discounts` | ❌ unsupported | — | Discounts are not modelled; totals carry a zero discount. |
 | `CreateDiscount` | `POST /discounts` | ❌ unsupported | — | Discounts are not modelled; totals carry a zero discount. |
 | `ListAdjustments` | `GET /adjustments` | ❌ unsupported | — | Refunds and credits (adjustments) are not modelled. |
 | `CreateAdjustment` | `POST /adjustments` | ❌ unsupported | — | Refunds and credits (adjustments) are not modelled. |
-| `CreateCustomerPortalSession` | `POST /customers/{customer_id}/portal-sessions` | ❌ unsupported | — | The hosted customer portal is not served; `management_urls` on a subscription point at placeholder links. |
+| `CreateCustomerPortalSession` | `POST /customers/{customer_id}/portal-sessions` | ✅ supported | ⚠️ unsafe (opt-in) |  |

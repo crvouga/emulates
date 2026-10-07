@@ -184,13 +184,27 @@ const adminRoutes =
  */
 export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime => {
   const { retryDelaysMs, fetch: send, ...endpoint } = options.webhooks ?? { url: "" }
+  // Distinct from `we_<namespace>_N`, which `setEndpoints` assigns to admin endpoints.
+  const configuredId = "we_configured"
   const hub = createWebhookHub({
     signer: paddleSigner(),
     ...(retryDelaysMs ? { retryDelaysMs } : {}),
     ...(send ? { fetch: send } : {}),
-    endpoints: options.webhooks ? [endpoint as WebhookEndpoint] : [],
+    endpoints: options.webhooks ? [{ ...endpoint, id: configuredId } as WebhookEndpoint] : [],
   })
-  const runtime = createServiceRuntime<PaddleAPI>({
+  // Admin endpoints live in the webhook hub (snapshotted with it). Vendor destinations are
+  // read back from the notification-settings collection on every write, so neither list
+  // replaces the other and a timeline restore keeps both.
+  let runtime: ServiceRuntime<PaddleAPI> | undefined
+  const setOwn = hub.setEndpoints.bind(hub)
+  const isAdmin = (candidate: WebhookEndpoint) =>
+    candidate.id !== configuredId && !candidate.id?.startsWith("ntfset_")
+  hub.setEndpoints = (namespace, endpoints) =>
+    setOwn(namespace, [
+      ...endpoints.filter(isAdmin),
+      ...(runtime?.instance(namespace).notificationDestinations() ?? []),
+    ])
+  const runtimeBuilt = createServiceRuntime<PaddleAPI>({
     name: PADDLE_NAMESPACE,
     document,
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
@@ -220,6 +234,10 @@ export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime
             tags: { event: event.event_type.split(".")[0] ?? event.event_type },
           })
         },
+        onDestinations: (endpoints) => {
+          const admin = hub.endpoints(publicNamespace).filter(isAdmin)
+          setOwn(publicNamespace, [...admin, ...endpoints])
+        },
       })
       return api
     },
@@ -230,5 +248,6 @@ export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime
     }),
     admin: (base) => adminRoutes()(base),
   })
-  return Object.assign(runtime, { webhooks: hub })
+  runtime = runtimeBuilt
+  return Object.assign(runtimeBuilt, { webhooks: hub })
 }

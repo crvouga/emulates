@@ -194,11 +194,15 @@ map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_
 - **Proration.** Changing a subscription's items with a `*_immediately` mode bills what the
   change adds in full, credits nothing for what it removes; the next-period modes bill nothing now. `PATCH /subscriptions/{id}/preview` and
   `…/charge/preview` are unsupported.
-- **The hosted checkout, customer portal and Paddle.js.** `checkout.url` and `management_urls`
-  are links, not pages; `POST /__admin/checkout` and `…/pay` replace the checkout.
-- **Payment methods and payment method changes**, payouts, reports, simulations, notification
-  settings through the API (endpoints are configured on the mock), invoice revisions, the
-  `imported` events, API key events and client tokens.
+- **The hosted checkout, customer portal pages and Paddle.js.** `checkout.url`, `management_urls`
+  and portal-session links are URLs, not pages; `POST /__admin/checkout` and `…/pay` replace the
+  checkout. `POST /customers/{id}/portal-sessions` returns the temporary https session links.
+- **Payment methods and payment method changes**, payouts, reports, simulations, invoice
+  revisions, the `imported` events, API key events and client tokens.
+- **Notification destinations** are the vendor API (`GET|POST /notification-settings`,
+  `GET|PATCH /notification-settings/{id}`). An active `url` destination is delivered with its
+  own `pdl_ntfset_…` secret. The secret is returned on create only. `--webhook-url` and
+  `PUT /__admin/webhook-endpoints` stay as extra receivers and are not replaced by the vendor list.
 - **Time.** Nothing renews on its own: call `…/renew` (or `…/payment-failed`) when the test's
   clock reaches `next_billed_at`. Retry schedules for past-due subscriptions are not modelled.
 - **Rate limits**, except through `rate_limited`. Legacy (pre-2025) API key formats are
@@ -215,7 +219,7 @@ map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_
 | `PADDLE_NAMESPACE` | string | The service name, `"paddle"`. |
 | `AUTH_TOKEN_TTL_MS` | number | The advertised lifetime of a customer auth token (30 min). |
 | `PaddleError` | class | The error a billing method throws: `status`, `code`, `detail`, `errors?`, `toResponse(requestId)`. |
-| `PaddleState` | class | The SQLite-backed collections (`customers`, `addresses`, `businesses`, `products`, `prices`, `transactions`, `subscriptions`, `events`) and `nextId(kind)`. |
+| `PaddleState` | class | The SQLite-backed collections (`customers`, `addresses`, `businesses`, `products`, `prices`, `transactions`, `subscriptions`, `events`, `notificationSettings`, `portalSessions`) and `nextId(kind)`. |
 | `ID_PREFIX` | object | Paddle's id prefix per entity (`customer: "ctm"`, `price: "pri"`, …). |
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--webhook-url`, `--webhook-secret`, `--payment-link`, `--fixtures`); port 8795. |

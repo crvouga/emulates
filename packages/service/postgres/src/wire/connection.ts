@@ -1,14 +1,15 @@
 import type { Socket } from "node:net";
-import type { BindValue } from "../api/bind.ts";
+import { type BindValue, bindValueToTyped } from "../api/bind.ts";
 import type { Database } from "../api/database.ts";
 import type { TextResultSet } from "../api/statement.ts";
-import type { CopyStmt } from "../ast/nodes.ts";
-import { PostgresError } from "../errors/error.ts";
+import type { CopyStmt, Expr } from "../ast/nodes.ts";
+import { isPostgresError, PostgresError } from "../errors/error.ts";
+import { inferColumnName } from "../executor/relation.ts";
 import { executeCopyFromData } from "../executor/session.ts";
 import { EngineCtx } from "../expressions/context.ts";
 import { parse as parseSql } from "../parser/index.ts";
 import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
-import { typeOid } from "../types/value.ts";
+import { datumText, typeOid, UTC_OUTPUT } from "../types/value.ts";
 import { type Cluster, LockWait, type Session } from "./cluster.ts";
 import {
   type ByteReader,
@@ -109,11 +110,55 @@ const identifier = (quoted: string | undefined, plain: string | undefined): stri
 const ROW_LOCK =
   /\s+for\s+(?:no\s+key\s+update|key\s+share|update|share)(?:\s+of\s+(?:(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s*,\s*(?:(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?))*)?(?:\s+(nowait|skip\s+locked))?\s*$/i;
 const LIMIT = /\s+limit\s+(\d+)(?:\s+offset\s+(\d+))?\s*$/i;
-const FROM_TABLE = /\bfrom\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)/i;
-const UPDATE_TARGET =
-  /^update\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s+(?:as\s+)?(?:"[^"]+"|[A-Za-z_][\w$]*))?\s+set\s+[\s\S]*?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$/i;
-const DELETE_TARGET =
-  /^delete\s+from\s+((?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?)(?:\s+(?:as\s+)?(?:"[^"]+"|[A-Za-z_][\w$]*))?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$/i;
+const SQL_NAME = String.raw`(?:"[^"]+"|[A-Za-z_][\w$]*)`;
+const SQL_RELATION = String.raw`(?:"[^"]+"|[A-Za-z_][\w$]*)(?:\.(?:"[^"]+"|[A-Za-z_][\w$]*))?`;
+const FROM_TABLE = new RegExp(String.raw`\bfrom\s+(${SQL_RELATION})`, "i");
+const UPDATE_TARGET = new RegExp(
+  String.raw`^update\s+(${SQL_RELATION})(?:\s+(?:as\s+)?(${SQL_NAME}))?\s+set\s+[\s\S]*?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$`,
+  "i",
+);
+const DELETE_TARGET = new RegExp(
+  String.raw`^delete\s+from\s+(${SQL_RELATION})(?:\s+(?:as\s+)?(${SQL_NAME}))?(?:\s+where\s+([\s\S]*?))?(?:\s+returning\s+[\s\S]*)?$`,
+  "i",
+);
+
+/**
+ * Row-lock probe for UPDATE / DELETE. The alias has to survive: `UPDATE t AS ap`
+ * is locked with `SELECT * FROM t AS ap`, or `ap.column` in WHERE is unknown.
+ */
+const lockedMutationQuery = (sql: string): string | null => {
+  const match = UPDATE_TARGET.exec(sql) ?? DELETE_TARGET.exec(sql);
+  const relation = match?.[1];
+  if (!relation) return null;
+  const alias = match?.[2];
+  const where = match?.[3];
+  const from = alias ? `${relation} AS ${alias}` : relation;
+  return `SELECT * FROM ${from}${where ? ` WHERE ${where}` : ""}`;
+};
+
+/** Text form of a literal or bound parameter, matching the row-lock identity. */
+const lockLiteral = (expr: Expr | undefined, params: readonly BindValue[]): string | null | undefined => {
+  if (!expr) return undefined;
+  switch (expr.type) {
+    case "null_lit":
+      return null;
+    case "string_lit":
+      return expr.value;
+    case "bool_lit":
+      return expr.value ? "t" : "f";
+    case "number_lit":
+      return expr.raw.replace(/^\+/, "");
+    case "param": {
+      const value = params[expr.index - 1];
+      if (value === undefined) return undefined;
+      const typed = bindValueToTyped(value, expr.index - 1);
+      if (typed.v === null) return null;
+      return datumText(typed.t, typed.v, UTC_OUTPUT);
+    }
+    default:
+      return undefined;
+  }
+};
 
 const TYPLEN: Record<string, number> = {
   bool: 1,
@@ -138,7 +183,7 @@ const pgError = (category: "internal" | "syntax", message: string, code: string)
 
 /** ErrorResponse fields for an engine error, with what the message names (constraint, table, column). */
 const errorFields = (error: unknown): ErrorFields => {
-  if (error instanceof PostgresError) {
+  if (isPostgresError(error)) {
     const message = error.message;
     const fields: ErrorFields = { code: error.sqlState, message };
     const constraint = /constraint "([^"]+)"/.exec(message)?.[1];
@@ -265,6 +310,51 @@ const decodeParam = (oid: number, format: number, bytes: Uint8Array | null): Bin
       throw pgError("internal", `binary parameter format is not supported for type oid ${oid}`, "0A000");
   }
 };
+
+/**
+ * Column layout of `INSERT`/`UPDATE`/`DELETE ... RETURNING`, without running the write.
+ * `RETURNING *` is the target table. A qualifier that is not that table is left undescribed.
+ */
+function returningShape(db: Database, sql: string): TextResultSet | null {
+  let statements: ReturnType<typeof parseSql>;
+  try {
+    statements = parseSql(sql);
+  } catch {
+    return null;
+  }
+  const stmt = statements.length === 1 ? statements[0] : undefined;
+  if (!stmt || (stmt.type !== "insert" && stmt.type !== "update" && stmt.type !== "delete")) return null;
+  const targets = stmt.returning;
+  if (!targets || targets.length === 0) return null;
+  const table = db.state.findTable(stmt.table);
+  if (!table) return null;
+  const label = stmt.alias ?? table.name;
+  const columns: string[] = [];
+  const columnTypes: string[] = [];
+  for (const target of targets) {
+    if (target.expr.type === "star") {
+      const qualifier = target.expr.table?.at(-1);
+      if (qualifier !== undefined && qualifier !== label && qualifier !== table.name) return null;
+      for (const column of table.columns) {
+        columns.push(column.name);
+        columnTypes.push(column.type.id);
+      }
+      continue;
+    }
+    if (target.expr.type === "colref") {
+      const name = target.expr.parts.at(-1) ?? "?column?";
+      const column = table.columns.find((item) => item.name === name);
+      columns.push(target.alias ?? name);
+      columnTypes.push(column?.type.id ?? "text");
+      continue;
+    }
+    columns.push(target.alias ?? inferColumnName(target.expr));
+    columnTypes.push("text");
+  }
+  if (columns.length === 0) return null;
+  const command = stmt.type === "insert" ? "INSERT" : stmt.type === "update" ? "UPDATE" : "DELETE";
+  return { columns, columnTypes, rows: [], rowCount: 0, command };
+}
 
 /**
  * One client connection: the protocol state machine over the shared {@link Cluster}.
@@ -569,8 +659,8 @@ export class Connection implements Session {
       return outcome;
     } catch (error) {
       if (this.inTransaction) this.aborted = true;
-      if (error instanceof PostgresError && error.sqlState === "40P01") this.cluster.unlockAll(this, true);
-      const status = error instanceof PostgresError ? error.sqlState : "XX000";
+      if (isPostgresError(error) && error.sqlState === "40P01") this.cluster.unlockAll(this, true);
+      const status = isPostgresError(error) ? error.sqlState : "XX000";
       this.options.onLog?.({ pid: this.pid, sql: text, durationMs: performance.now() - started, status });
       throw error;
     }
@@ -780,14 +870,49 @@ export class Connection implements Session {
     });
   }
 
+  /**
+   * Hold the primary key until the transaction ends. PostgreSQL's unique index makes a
+   * second `INSERT` of the same key wait; `ON CONFLICT DO UPDATE` then sees the committed row.
+   * Without this, each session's workspace inserts the key and commit replay raises 23505.
+   */
+  private lockInsertedPrimaryKey(db: Database, text: string, params: readonly BindValue[]): void {
+    let statements: ReturnType<typeof parseSql>;
+    try {
+      statements = parseSql(text);
+    } catch {
+      return;
+    }
+    const stmt = statements.length === 1 ? statements[0] : undefined;
+    if (stmt?.type !== "insert" || stmt.source === "default_values" || stmt.source.body.type !== "values") return;
+    if (!stmt.columns) return;
+    const table = db.state.findTable(stmt.table);
+    const primary = table?.constraints.find((constraint) => constraint.kind === "primary_key");
+    if (!primary || primary.columns.length === 0) return;
+    const indexes = primary.columns.map((column) => stmt.columns?.indexOf(column) ?? -1);
+    if (indexes.some((index) => index < 0)) return;
+    const identities: (string | null)[][] = [];
+    for (const row of stmt.source.body.rows) {
+      const identity: (string | null)[] = [];
+      for (const index of indexes) {
+        const value = lockLiteral(row[index], params);
+        if (value === undefined) return;
+        identity.push(value);
+      }
+      identities.push(identity);
+    }
+    const relation = stmt.table.join(".");
+    for (const identity of identities) {
+      const key = `row:${this.databaseName}:${relation}:${JSON.stringify(identity)}`;
+      if (!this.cluster.tryLock(this, key, true)) throw new LockWait(key);
+    }
+  }
+
   private runQuery(db: Database, text: string, params: BindValue[]): TextResultSet {
     const lock = ROW_LOCK.exec(text);
     if (!lock) {
-      const mutation = UPDATE_TARGET.exec(text) ?? DELETE_TARGET.exec(text);
-      if (mutation) {
-        const lockQuery = `SELECT * FROM ${mutation[1]}${mutation[2] ? ` WHERE ${mutation[2]}` : ""}`;
-        this.lockRows(db, lockQuery, params, "wait");
-      }
+      const lockQuery = lockedMutationQuery(text);
+      if (lockQuery) this.lockRows(db, lockQuery, params, "wait");
+      this.lockInsertedPrimaryKey(db, text, params);
       return db.prepare(text).textResult(...params);
     }
 
@@ -1192,11 +1317,16 @@ export class Connection implements Session {
   }
 
   /**
-   * The row shape of a statement that returns rows, for Describe on a statement: a trial run with
-   * null parameters inside a transaction that is rolled back. Anything else (or a trial that
-   * fails) is described as returning no data.
+   * The row shape of a statement that returns rows, for Describe on a statement.
+   * `INSERT`/`UPDATE`/`DELETE ... RETURNING` is described from the catalog: a trial run binds
+   * nulls and fails NOT NULL, and Describe would answer NoData. Bun then reads one DataRow cell
+   * and treats the rest of the message as a broken protocol frame.
+   * Other row-returning statements are a trial run with null parameters, rolled back. A trial
+   * that fails is described as returning no data.
    */
   private async shapeOf(prepared: Prepared): Promise<TextResultSet | null> {
+    const described = returningShape(this.database, prepared.sql);
+    if (described) return described;
     if (!RETURNS_ROWS.test(prepared.sql)) return null;
     const db = this.database;
     await this.cluster.acquireTurn(this);
