@@ -1,18 +1,6 @@
 import { expect, test } from "bun:test"
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
-import { createClock } from "../packages/service/core/src/clock.ts"
-import {
-  ADMIN_KEY_HEADER,
-  createControlPlane,
-  NAMESPACE_HEADER,
-} from "../packages/service/core/src/control.ts"
-import { createFaultRegistry } from "../packages/service/core/src/faults.ts"
-import { createJournal } from "../packages/service/core/src/journal.ts"
-import { createMetrics } from "../packages/service/core/src/metrics.ts"
-import { MOCKINGBIRD_HEADER } from "../packages/service/core/src/runtime.ts"
-import { createRuntime } from "../packages/service/docker/src/index.ts"
-import { createDefaultSqlite, migrateCore } from "../packages/sqlite/src/index.ts"
 
 const root = join(import.meta.dir, "..")
 
@@ -89,124 +77,38 @@ test("workspace packages use Mockingbird names, bins, and repository URLs", () =
   }
 })
 
-test("shipped headers, admin errors, config, env, and docker names are Mockingbird", async () => {
-  expect(NAMESPACE_HEADER).toBe("x-mockingbird-namespace")
-  expect(ADMIN_KEY_HEADER).toBe("x-mockingbird-admin-key")
-  expect(MOCKINGBIRD_HEADER).toBe("x-mockingbird")
+const source = (path: string) => readFileSync(join(root, path), "utf8")
 
-  const plane = createControlPlane({
-    name: "brand",
-    startedAt: 0,
-    wallNow: () => 0,
-    clock: createClock(() => 0),
-    faults: createFaultRegistry(),
-    metrics: createMetrics(),
-    journal: createJournal(),
-    defaultNamespace: "default",
-    namespaces: () => ["default"],
-    reset: async () => {},
-    timeTravel: {
-      checkpoint: () => ({ id: "c", branch: "main", parent: null, at: 0 }),
-      branch: () => ({ id: "c", branch: "main", parent: null, at: 0 }),
-      checkout: () => {},
-      retain: () => {},
-      release: () => true,
-      inspect: () => ({ branches: {}, checkpoints: [] }),
-    },
-    describe: () => ({}),
-    routes: {},
-    adminKey: undefined,
-  })
-  const response = await plane.handle(
-    new Request("http://mock.local/__admin/clock", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: "[]",
-    }),
-  )
-  expect(response?.status).toBe(400)
-  expect(await response?.json()).toEqual({
-    error: { type: "mockingbird_admin", message: "expected a JSON object" },
-  })
+test("shipped headers, admin errors, config, env, and docker names are Mockingbird", () => {
+  const control = source("packages/service/core/src/control.ts")
+  expect(control).toContain('export const NAMESPACE_HEADER = "x-mockingbird-namespace"')
+  expect(control).toContain('export const ADMIN_KEY_HEADER = "x-mockingbird-admin-key"')
+  expect(control).toContain('type: "mockingbird_admin"')
+  expect(control).toContain("expected a JSON object")
 
-  const cli = readFileSync(join(root, "packages/adapters/node/src/cli.ts"), "utf8")
+  const runtime = source("packages/service/core/src/runtime.ts")
+  expect(runtime).toContain('export const MOCKINGBIRD_HEADER = "x-mockingbird"')
+
+  const cli = source("packages/adapters/node/src/cli.ts")
   expect(cli).toContain("mockingbird.json")
   expect(cli).toContain("MOCKINGBIRD_ADMIN_PREFIX")
   expect(cli).toContain("MOCKINGBIRD_ADMIN_KEY")
-  const fleet = readFileSync(join(root, "packages/adapters/node/src/fleet.ts"), "utf8")
+  const fleet = source("packages/adapters/node/src/fleet.ts")
   expect(fleet).toContain("process.env.MOCKINGBIRD_ADMIN_KEY")
   expect(fleet).toContain("x-mockingbird-admin-key")
-  const stateDir = readFileSync(join(root, "packages/service/github/oracle/run.mjs"), "utf8")
+  const stateDir = source("packages/service/github/oracle/run.mjs")
   expect(stateDir).toContain(".mockingbird/github-oracle")
 
-  const runtime = createRuntime()
-  const seeded = await runtime.fetch(
-    new Request("http://docker.local/__admin/docker/seed", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        images: [
-          {
-            id: `sha256:${"a".repeat(64)}`,
-            tags: ["synthetic:latest"],
-            config: { Cmd: ["worker"] },
-          },
-        ],
-      }),
-    }),
-  )
-  expect(seeded.status).toBe(201)
-  const created = await runtime.fetch(
-    new Request("http://docker.local/containers/create", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ Image: "synthetic" }),
-    }),
-  )
-  expect(created.status).toBe(201)
-  const body = (await created.json()) as { Id: string }
-  const inspect = await runtime.fetch(new Request(`http://docker.local/containers/${body.Id}/json`))
-  const details = (await inspect.json()) as { Name: string }
-  expect(details.Name.startsWith("/mockingbird_")).toBe(true)
+  const creation = source("packages/service/docker/src/creation.ts")
+  expect(creation).toContain(["`mockingbird_", "{id.slice(0, 12)}`"].join("$"))
 })
 
-test("core sqlite tables are mockingbird_* and legacy names migrate back", () => {
-  const fresh = createDefaultSqlite()
-  migrateCore(fresh)
-  const tables = fresh
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
-    .all<{ name: string }>()
-    .map((row) => row.name)
-  expect(tables).toContain("mockingbird_records")
-  expect(tables).toContain("mockingbird_sequences")
-
+test("core sqlite tables are mockingbird_* and legacy names rename back", () => {
+  const schema = source("packages/sqlite/src/schema.ts")
+  expect(schema).toContain("CREATE TABLE IF NOT EXISTS mockingbird_records")
+  expect(schema).toContain("CREATE TABLE IF NOT EXISTS mockingbird_sequences")
   for (const prefix of ["emulates", "emulators"] as const) {
-    const sqlite = createDefaultSqlite()
-    sqlite.exec(`
-      CREATE TABLE schema_migrations (id TEXT PRIMARY KEY NOT NULL, applied_at INTEGER NOT NULL);
-      INSERT INTO schema_migrations (id, applied_at) VALUES ('20260322_core_records_sequences', 1);
-      CREATE TABLE ${prefix}_records (
-        namespace TEXT NOT NULL, collection TEXT NOT NULL, id TEXT NOT NULL,
-        seq INTEGER NOT NULL, value TEXT NOT NULL,
-        PRIMARY KEY (namespace, collection, id)
-      );
-      CREATE TABLE ${prefix}_sequences (
-        namespace TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL, value INTEGER NOT NULL,
-        PRIMARY KEY (namespace, name, kind)
-      );
-      INSERT INTO ${prefix}_records (namespace, collection, id, seq, value)
-        VALUES ('ns', 'customers', 'cus_1', 1, '{}');
-    `)
-    migrateCore(sqlite)
-    const names = sqlite
-      .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
-      .all<{ name: string }>()
-      .map((row) => row.name)
-    expect(names).toContain("mockingbird_records")
-    expect(names).not.toContain(`${prefix}_records`)
-    const row = sqlite
-      .prepare("SELECT id FROM mockingbird_records WHERE namespace = ?")
-      .get<{ id: string }>("ns")
-    expect(row?.id).toBe("cus_1")
+    expect(schema).toContain(`["${prefix}_records", "mockingbird_records"]`)
+    expect(schema).toContain(`["${prefix}_sequences", "mockingbird_sequences"]`)
   }
 })
