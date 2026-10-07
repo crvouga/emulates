@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@emulates/credentials"
+import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
 import { TurnstileAPI } from "../src/index.js"
 
 let secret: string

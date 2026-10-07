@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   createRuntime,
@@ -106,7 +106,7 @@ let userSeq = 0
 const createUser = async (target: { fetch(request: Request): Promise<Response> }, ns?: string) => {
   const res = await call(target, "POST", "/v2/user", {
     body: { client_user_id: `team-user-${++userSeq}` },
-    ...(ns ? { headers: { "x-emulates-namespace": ns } } : {}),
+    ...(ns ? { headers: { "x-mockingbird-namespace": ns } } : {}),
   })
   expect(res.status).toBe(200)
   return res.body.user_id as string
@@ -145,7 +145,7 @@ const admin = (
 ) =>
   call(runtime, method, `/__admin${path}`, {
     ...(body !== undefined ? { body } : {}),
-    ...(ns ? { headers: { "x-emulates-namespace": ns } } : {}),
+    ...(ns ? { headers: { "x-mockingbird-namespace": ns } } : {}),
   })
 
 describe("M1: availability reads resolve lab accounts from the live list", () => {
@@ -383,7 +383,7 @@ describe("M3: lab-account configuration ergonomics", () => {
     for (const [body, message] of cases) {
       const res = await admin(runtime, "POST", "/lab-accounts", body)
       expect(res.status).toBe(400)
-      expect((res.body.error as Json).type).toBe("emulates_admin")
+      expect((res.body.error as Json).type).toBe("mockingbird_admin")
       expect((res.body.error as Json).message as string).toMatch(message)
     }
   })

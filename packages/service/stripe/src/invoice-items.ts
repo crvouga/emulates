@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler } from "@emulates/service"
+import { jsonResponse, type OperationHandler } from "@crvouga/mockingbird-service"
 import { recomputeInvoice } from "./billing.js"
 import { invalidRequest, parameterMissing, resourceMissing, StripeError } from "./errors.js"
 import { optionalString, parseUnitAmountDecimal } from "./fields.js"

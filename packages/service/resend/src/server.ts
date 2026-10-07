@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type ResendRuntime, type ResendRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-resend serve` listens on when none is given. */
+/** Port `mockingbird-resend serve` listens on when none is given. */
 export const DEFAULT_PORT = 8794
 
 export type ResendServerOptions = ResendRuntimeOptions & {
@@ -48,7 +48,7 @@ export const serveTarget: ServeTarget = {
       type: "string",
       value: "<url>",
       description:
-        "Copy every sent email into a Mailosaur emulator (its POST /__admin/ingest), e.g. http://127.0.0.1:8793",
+        "Copy every sent email into a Mailosaur mock (its POST /__admin/ingest), e.g. http://127.0.0.1:8793",
     },
   },
   create: (values, common) => {
@@ -79,6 +79,6 @@ export const serveTarget: ServeTarget = {
     "auth: Authorization: Bearer re_… (any key); set RESEND_BASE_URL before importing resend",
     "outbox: GET /__admin/outbox?to=&tag=category:<v>, GET /__admin/outbox/:id/links",
     "inbound: POST /__admin/inbound {from, to, subject, text?, html?, attachments?} → email.received",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<api key>: <ns>}",
   ],
 }

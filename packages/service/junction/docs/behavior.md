@@ -14,7 +14,7 @@
 ## Scheduling
 
 Availability is generated deterministically from the zip code, start date, and provider (or
-PSC site codes), so identical inputs return identical slots on independent emulator instances.
+PSC site codes), so identical inputs return identical slots on independent mock instances.
 
 1. Check serviceability (`GET /v3/order/area/info`) and, for PSC, site info
    (`GET /v3/order/psc/info`).
@@ -33,7 +33,7 @@ PSC site codes), so identical inputs return identical slots on independent emula
 6. Cancelling the order cascades to its active appointment.
 
 Booking keys are single-use, modality-bound, and expire one hour before the slot start.
-Unknown, consumed, expired, or wrong-modality keys are rejected with `400`. The emulator keeps
+Unknown, consumed, expired, or wrong-modality keys are rejected with `400`. The mock keeps
 one active appointment per order, mirroring real provider duplicate-booking protection.
 
 ## Ordering
@@ -78,7 +78,7 @@ Cancellation and completion must update the order status, event history, last ev
 clock passes `due_at` — and an optional `simulationFlags` body (`interpretation`,
 `result_types`, `has_missing_results`) that is projected onto the order and results when
 the call advances state. The real API responds `200` with the JSON body `"Success"`, and
-the emulator matches.
+the mock matches.
 
 Observed sandbox semantics (api.sandbox.tryvital.io):
 
@@ -97,7 +97,7 @@ Observed sandbox semantics (api.sandbox.tryvital.io):
 
 ## Results
 
-- Partial results can be available while an order or transaction is active; the emulator returns
+- Partial results can be available while an order or transaction is active; the mock returns
   an empty result set until the order reaches `sample_with_lab` or `completed`.
 - Final transaction results should be fetched after the transaction reaches `completed`.
 - Transaction results combine findings from all related orders.
@@ -109,7 +109,7 @@ Observed sandbox semantics (api.sandbox.tryvital.io):
 - PDFs (`/result/pdf`, `/requisition/pdf`) are minimal deterministic `%PDF-` documents —
   enough for content-type and byte-shape checks, not renderable reports.
 
-The current emulator returns deterministic structured synthetic markers. It does not represent real PHI, laboratory values, or real PDFs.
+The current mock returns deterministic structured synthetic markers. It does not represent real PHI, laboratory values, or real PDFs.
 
 ## Webhooks
 
@@ -119,19 +119,19 @@ Webhook delivery is at-least-once. Consumers must deduplicate and tolerate retri
 
 Junction's documented retry schedule is eight attempts: immediate, 5 seconds, 5 minutes, 30 minutes, 2 hours, 5 hours, 10 hours, and another 10 hours. A 2xx response within roughly 15 seconds acknowledges delivery; non-2xx responses, redirects, and timeouts fail the attempt.
 
-This emulator exposes deterministic delivery records and can add seeded jitter around retry times so model-based tests exercise delayed, duplicate, and reordered delivery without becoming irreproducible.
+This mock exposes deterministic delivery records and can add seeded jitter around retry times so model-based tests exercise delayed, duplicate, and reordered delivery without becoming irreproducible.
 
 ## Operational behavior
 
 - Sandbox and production have separate keys and team configuration.
 - Lab coverage depends on modality, laboratory, and patient ZIP code.
 - Junction may return 429 or 503 under infrastructure stress; idempotent requests should be retried with backoff.
-- The emulator does not emulate a global rate limit, but parity tests may inject provider delay and failure.
+- The mock does not emulate a global rate limit, but parity tests may inject provider delay and failure.
 - API and webhook identifiers must be correlated with application identifiers by the consumer.
 
 ## Lab accounts and the team
 
-- The emulator answers as one team (`teamId` option, `--team-id`, else the team a version-2 corpus
+- The mock answers as one team (`teamId` option, `--team-id`, else the team a version-2 corpus
   recorded, else `MOCK_TEAM_ID`). `team_id_allowlist` is checked against it by `create_order`,
   the lab-account listing and availability reads that take `lab_account_id`, all against the same
   live account list.
@@ -139,7 +139,7 @@ This emulator exposes deterministic delivery records and can add seeded jitter a
   `400 {"detail": "Lab account is not linked to your team"}`.
 - **Open question: empty allowlists.** Junction's own platform accounts (Quest, Labcorp,
   BioReference; `org_id: null`) carry `team_id_allowlist: []` and appear in a real team's listing,
-  so the emulator lists them and treats them as linked. Ordering through one — explicitly, or as one of
+  so the mock lists them and treats them as linked. Ordering through one — explicitly, or as one of
   several active accounts for a lab when `lab_account_id` is omitted — has not been observed.
   `verify --orders` runs both cases whenever the corpus has such an account; record the outcome
   here when it does.

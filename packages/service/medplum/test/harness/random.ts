@@ -240,7 +240,7 @@ const request = (
       method,
       headers: {
         authorization: `Bearer ${side.token}`,
-        "user-agent": "emulates-parity/1.0",
+        "user-agent": "mockingbird-parity/1.0",
         ...(body !== undefined ? { "content-type": contentType } : {}),
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),

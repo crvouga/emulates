@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type IntercomRuntime, type IntercomRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-intercom serve` listens on when none is given. */
+/** Port `mockingbird-intercom serve` listens on when none is given. */
 export const DEFAULT_PORT = 8807
 
 export type IntercomServerOptions = IntercomRuntimeOptions & {
@@ -89,6 +89,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Bearer <INTERCOM_ACCESS_TOKEN>, Intercom-Version: 2.11",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<token>: <ns>}",
   ],
 }

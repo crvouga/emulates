@@ -1,12 +1,12 @@
-# LlamaCloud platform API (Emulates subset) — operation support
+# LlamaCloud platform API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **10**
-- supported by the emulator: **10**
+- supported by the mock: **10**
 - parity enabled: **10**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListProjects` | `GET /api/v1/projects` | ✅ supported | ✅ |  |
 | `GetProject` | `GET /api/v1/projects/{project_id}` | ✅ supported | ✅ |  |

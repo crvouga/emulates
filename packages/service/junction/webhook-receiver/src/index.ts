@@ -20,7 +20,7 @@ const json = (status: number, body: unknown) =>
 
 const runIdFromRequest = (request: Request) => {
   const runId =
-    request.headers.get("x-emulates-scope") ?? new URL(request.url).searchParams.get("run_id")
+    request.headers.get("x-mockingbird-scope") ?? new URL(request.url).searchParams.get("run_id")
   return runId?.trim() || undefined
 }
 

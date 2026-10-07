@@ -48,8 +48,8 @@ requireFile("package.json");
 
 const pkg = await Bun.file(join(root, "package.json")).json();
 
-if (pkg.name !== "@emulates/sqlite") {
-  fail(`package.json name must be "@emulates/sqlite" (got ${JSON.stringify(pkg.name)})`);
+if (pkg.name !== "@crvouga/mockingbird-service-sqlite") {
+  fail(`package.json name must be "@crvouga/mockingbird-service-sqlite" (got ${JSON.stringify(pkg.name)})`);
 }
 
 if (!pkg.exports?.["."]?.import || !pkg.exports?.["."]?.types) {

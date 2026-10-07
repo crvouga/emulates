@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/oauth",
+  "name": "@crvouga/mockingbird-service-oauth",
   "version": "0.0.0-development",
-  "description": "Social-login emulator with Google, Apple, Microsoft, GitHub and generic OIDC profiles, private relay identities, reproducible edge cases, signed tokens and an accessible UI.",
+  "description": "Social-login mock with Google, Apple, Microsoft, GitHub and generic OIDC profiles, private relay identities, reproducible edge cases, signed tokens and an accessible UI.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulates-oauth": "./dist/cli.js"
+    "mockingbird-oauth": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,23 +34,23 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/oauth"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/oauth#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/oauth#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "oauth",
     "openid-connect",
     "google",
     "apple",
     "social-login",
-    "emulator",
+    "mock",
     "microsoft",
     "github",
     "fault-injection"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -71,7 +71,7 @@
       {
         "id": "google-login",
         "title": "Try a complete OAuth login",
-        "description": "Choose popup or redirect, sign in through OAuth Emulator, and return to an example app. The client, Hono server, and provider all run in process.",
+        "description": "Choose popup or redirect, sign in through OAuth Mock, and return to an example app. The client, Hono server, and provider all run in process.",
         "entry": "examples/google-login/index.ts",
         "sources": [
           "examples/google-login/app.ts",
@@ -90,7 +90,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- oauth",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -101,7 +101,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -117,17 +117,17 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*"
+    "@crvouga/mockingbird-service-sqlite": "workspace:*"
   },
   "devDependencies": {
-    "@emulates/adapter-node": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/ui": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/testing": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
     "fast-check": "4.5.3",
     "jose": "6.1.3",
     "oauth4webapi": "3.8.8",

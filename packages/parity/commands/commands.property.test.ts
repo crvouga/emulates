@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test"
-import { decodeForm } from "@emulates/http-codec"
-import { collectPlaceholders, ResourceTable } from "@emulates/model"
-import { type OpenAPIDocument, parseOpenAPIDocument, validateValue } from "@emulates/openapi"
-import { fcParameters } from "@emulates/testing"
+import { decodeForm } from "@crvouga/mockingbird-http-codec"
+import { collectPlaceholders, ResourceTable } from "@crvouga/mockingbird-model"
+import {
+  type OpenAPIDocument,
+  parseOpenAPIDocument,
+  validateValue,
+} from "@crvouga/mockingbird-openapi"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   commandArbitrary,
@@ -35,11 +39,11 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
                   metadata: {
                     type: "object",
                     properties: {
-                      run: { type: "string", "x-emulates-scope": { value: "run-id" } },
+                      run: { type: "string", "x-mockingbird-scope": { value: "run-id" } },
                     },
                     required: ["run"],
                   },
-                  legacy: { type: "string", "x-emulates-unsupported": true },
+                  legacy: { type: "string", "x-mockingbird-unsupported": true },
                 },
               },
             },
@@ -62,7 +66,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
             schema: {
               type: "object",
               properties: {
-                gte: { type: "integer", "x-emulates-scope": { value: "walk-start-unix" } },
+                gte: { type: "integer", "x-mockingbird-scope": { value: "walk-start-unix" } },
               },
               required: ["gte"],
             },
@@ -92,7 +96,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
           in: "path",
           required: true,
           schema: { type: "string" },
-          "x-emulates-resource-ref": { type: "customer", missing: "cus_missing" },
+          "x-mockingbird-resource-ref": { type: "customer", missing: "cus_missing" },
         },
       ],
       get: {
@@ -106,7 +110,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
       },
       delete: {
         operationId: "customers.delete",
-        "x-emulates": { parity: { safe: false, reason: "destructive" } },
+        "x-mockingbird": { parity: { safe: false, reason: "destructive" } },
         responses: { "200": { description: "ok" } },
       },
     },
@@ -121,7 +125,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
                 type: "object",
                 required: ["customer", "amount"],
                 properties: {
-                  customer: { type: "string", "x-emulates-resource-ref": { type: "customer" } },
+                  customer: { type: "string", "x-mockingbird-resource-ref": { type: "customer" } },
                   amount: { type: "integer", minimum: 0 },
                 },
               },
@@ -139,7 +143,7 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
     "/v1/unsupported": {
       get: {
         operationId: "unsupported.get",
-        "x-emulates": { supported: false, reason: "n/a" },
+        "x-mockingbird": { supported: false, reason: "n/a" },
         responses: { "200": { description: "ok" } },
       },
     },
@@ -149,17 +153,17 @@ const document: OpenAPIDocument = parseOpenAPIDocument({
       customer: {
         type: "object",
         properties: {
-          id: { type: "string", "x-emulates-resource": { type: "customer", identity: true } },
+          id: { type: "string", "x-mockingbird-resource": { type: "customer", identity: true } },
           name: { type: "string" },
         },
       },
       price: {
         type: "object",
         properties: {
-          id: { type: "string", "x-emulates-resource": { type: "price", identity: true } },
+          id: { type: "string", "x-mockingbird-resource": { type: "price", identity: true } },
           customer: {
             type: "string",
-            "x-emulates-resource": { type: "customer", identity: true },
+            "x-mockingbird-resource": { type: "customer", identity: true },
           },
         },
       },
@@ -294,8 +298,8 @@ describe("commandArbitrary", () => {
           expect(real.path.replaceAll("realcus_", "cus_")).toBe(
             mock.path.replaceAll("mockcus_", "cus_"),
           )
-          expect(JSON.stringify(real.query)).not.toContain("$emulates")
-          expect(JSON.stringify(real.body ?? "")).not.toContain("$emulates")
+          expect(JSON.stringify(real.query)).not.toContain("$mockingbird")
+          expect(JSON.stringify(real.body ?? "")).not.toContain("$mockingbird")
           const request = toRequest(real, "https://api.example.test/base/", {
             authorization: "Bearer x",
           })
@@ -361,7 +365,7 @@ describe("commandArbitrary", () => {
           const table = new ResourceTable()
           table.register("customer", { real: "cus_real", mock: "cus_mock" })
           const real = concretize(command, plan, table, "real", scope)
-          if (placeholder.$emulates === "missing")
+          if (placeholder.$mockingbird === "missing")
             expect(real.path).toBe("/v1/customers/cus_missing")
           else expect(real.path).toBe("/v1/customers/cus_real")
         },

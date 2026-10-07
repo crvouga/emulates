@@ -6,8 +6,8 @@
     "baseUrl": ".",
     "lib": ["ES2022", "DOM", "DOM.Iterable", "DOM.AsyncIterable"],
     "paths": {
-      "@emulates/sqlite-client": ["../../sqlite/src/index.ts"],
-      "@emulates/sqlite": ["./src/index.ts"]
+      "@crvouga/mockingbird-sqlite": ["../../sqlite/src/index.ts"],
+      "@crvouga/mockingbird-service-sqlite": ["./src/index.ts"]
     }
   },
   "include": ["src/admin.ts"],

@@ -1,5 +1,5 @@
-import { Collection } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { DEFAULT_FOODS, DEFAULT_RECIPES, type Food, type RecipeSeed } from "./corpus.js"
 
 /** What `nutrients-from-image` recognises, when a test pins it. */

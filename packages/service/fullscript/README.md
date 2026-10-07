@@ -1,15 +1,15 @@
-# @emulates/fullscript
+# @crvouga/mockingbird-service-fullscript
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of the **Fullscript** lab-ordering API for test suites: per-practitioner OAuth
+Stateful mock of the **Fullscript** lab-ordering API for test suites: per-practitioner OAuth
 (consent redirect, `authorization_code` and rotating `refresh_token` grants, revoke), the
 clinic, embeddable session grants, lab orders with tests and results, lab-order events, expiring
 result PDFs, and `Fullscript-Signature` webhooks with the challenge acknowledgement our receiver
 implements. Lab orders move forward only, through exactly Fullscript's states, when a test says
 so.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/fullscript/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/fullscript/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from the EMR consumer
   (`fullscript-api-client.ts`, `fullscript-event-model.ts`, `fullscript-webhook-signature.ts`,
   `routers/v1/fullscript/webhook-controller.ts`, `fullscript-result-storage.ts`).
@@ -17,31 +17,31 @@ so.
 ## Install
 
 ```bash
-npm install -D @emulates/fullscript
+npm install -D @crvouga/mockingbird-service-fullscript
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-fullscript serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx mockingbird-fullscript serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
 
-With `FEATURE_FULLSCRIPT_LABS_ENABLED=true`, point `FULLSCRIPT_API_URL` at the emulator and
+With `FEATURE_FULLSCRIPT_LABS_ENABLED=true`, point `FULLSCRIPT_API_URL` at the mock and
 `FULLSCRIPT_OAUTH_AUTHORIZE_URL` at its `/oauth/authorize`; set `FULLSCRIPT_WEBHOOK_SECRET` and
 `FULLSCRIPT_WEBHOOK_CHALLENGE_KEY` and pass the same values as `--webhook-secret` /
 `--webhook-challenge`. The EMR validates these URLs as **https** and downloads result PDFs only
 over https from allowlisted hosts (by default `fullscript.com`, `fullscript.io` and
-`FULLSCRIPT_API_URL`'s host, which is where the emulator serves them), so front the emulator with TLS or
+`FULLSCRIPT_API_URL`'s host, which is where the mock serves them), so front the mock with TLS or
 set `--results-base-url`.
 
 ```bash
-npx emulates-fullscript serve --port 8819 \
+npx mockingbird-fullscript serve --port 8819 \
   --webhook-url http://127.0.0.1:4000/v1/fullscript/webhooks \
   --webhook-secret "$FULLSCRIPT_WEBHOOK_SECRET" --webhook-challenge "$FULLSCRIPT_WEBHOOK_CHALLENGE_KEY"
 ```
 
 ```ts
-import { createRuntime } from "@emulates/fullscript"
+import { createRuntime } from "@crvouga/mockingbird-service-fullscript"
 
 const fullscript = createRuntime({
   webhooks: { url: "http://127.0.0.1:4000/v1/fullscript/webhooks", secret: "whsec", challenge: "chal" },
@@ -114,7 +114,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `token
 ### Namespaces
 
 A `/__admin/ns/<name>/` suffix on `FULLSCRIPT_API_URL` (our client resolves relative `api/…` paths, so
-the prefix survives, and PDF URLs keep it), `x-emulates-namespace`, or by OAuth client for
+the prefix survives, and PDF URLs keep it), `x-mockingbird-namespace`, or by OAuth client for
 API calls (`PUT /__admin/credentials {"credentials": {"<FULLSCRIPT_CLIENT_ID>": "<ns>"}}`;
 tokens carry the client they were issued to). Token requests carry the client only in their
 body, so they need the prefix or the header.
@@ -130,8 +130,8 @@ body, so they need the prefix or the header.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `FullscriptAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `issueCode(practitionerId, clientId, redirectUri)`, `createOrder(input)`, `transition(orderId, state)`, `seedOrder(seed)`, `labOrders()`, `eventsList()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `orders`, `onEvent`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, challenge?, retryDelaysMs?, fetch?}`, `settings`, `orders`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `FullscriptAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `issueCode(practitionerId, clientId, redirectUri)`, `createOrder(input)`, `transition(orderId, state)`, `seedOrder(seed)`, `labOrders()`, `eventsList()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `orders`, `onEvent`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, challenge?, retryDelaysMs?, fetch?}`, `settings`, `orders`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `FULLSCRIPT_PRESETS` | object | Every named fault preset. |
 | `FULLSCRIPT_NAMESPACE` | string | The service name, `"fullscript"`. |
 | `SIGNATURE_HEADER` | string | `Fullscript-Signature`. |
@@ -145,4 +145,4 @@ body, so they need the prefix or the header.
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--webhook-url`, `--webhook-secret`, `--webhook-challenge`, `--client`, `--results-base-url`); port 8819. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

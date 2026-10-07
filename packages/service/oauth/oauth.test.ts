@@ -424,7 +424,7 @@ describe("service integration", () => {
 
     const adminHeaders = {
       "content-type": "application/json",
-      "x-emulates-admin-key": "fixture-admin",
+      "x-mockingbird-admin-key": "fixture-admin",
     }
     const registered = await runtime.fetch(
       new Request(`${issuer}/__admin/ns/native/__admin/clients`, {

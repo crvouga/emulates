@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { operationMetadata } from "@emulates/openapi-metadata"
-import { ParityError, parity } from "@emulates/parity"
-import { fcParameters } from "@emulates/testing"
+import { operationMetadata } from "@crvouga/mockingbird-openapi-metadata"
+import { ParityError, parity } from "@crvouga/mockingbird-parity"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import { document, PaddleAPI } from "./src/index.js"
 

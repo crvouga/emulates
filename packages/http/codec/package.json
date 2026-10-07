@@ -1,8 +1,8 @@
 {
-  "name": "@emulates/http-codec",
+  "name": "@crvouga/mockingbird-http-codec",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Content-type codecs shared by the emulator servers and differential runner: JSON and bracket-notation form encoding.",
+  "description": "Content-type codecs shared by Mockingbird's mock servers and differential runner: JSON and bracket-notation form encoding.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/http/codec"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/http/codec#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/http/codec#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "form-urlencoded",
     "codec"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "http-codec"
   },
@@ -40,7 +40,7 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "devDependencies": {
-    "@emulates/testing": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
     "fast-check": "4.9.0"
   }
 }

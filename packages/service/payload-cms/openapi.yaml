@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
-  title: Payload CMS REST API (Emulates subset)
+  title: Payload CMS REST API (Mockingbird subset)
   description: |
     Stateful mock subset of Payload CMS's auto-generated collection REST API: find documents
     (with a `where` query subset, `limit`, `page`, `sort`) and find one by id. Hand-authored
     from Payload's REST API docs and the consumer's response type (payload-cms-response.type.ts).
   version: "2"
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     note: >-
       Shapes from https://payloadcms.com/docs/rest-api/overview and
       https://payloadcms.com/docs/queries/overview; the consumer is
@@ -28,7 +28,7 @@ paths:
         Paginated find. `where[<field>][<operator>]=<value>` supports equals, not_equals, in,
         not_in, exists, greater_than(_equal), less_than(_equal), like, contains, and nested
         `where[and|or][<i>]…`. Only the consumer's filters are declared here for parity walks.
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -102,7 +102,7 @@ paths:
           pattern: "^[1-5]$"
     get:
       operationId: FindDocumentById
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -150,11 +150,11 @@ components:
           type: ["string", "null"]
         createdAt:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         updatedAt:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
     PaginatedDocs:
       type: object

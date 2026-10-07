@@ -1,5 +1,5 @@
-import { Collection } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { canonicalFingerprintInput, sha256 } from "./fingerprint.js"
 import { HermesError, type HermesRuns, type RunRecord, record, terminal } from "./runs.js"
 

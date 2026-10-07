@@ -1,8 +1,8 @@
-/* Emulates docs — one stylesheet, no framework. Tokens first, then base, then components.
-   The palette: paper, ink, live oak, clay, sage.
-   Rules live in docs/DESIGN.md. The live tokens are shown at /identity. */
+/* Mockingbird docs — one stylesheet, no framework. Tokens first, then base, then components.
+   The palette is the northern mockingbird and its plate: paper, ink, live oak, clay, sage.
+   Rules live in docs/DESIGN.md. Specimens live at /identity. */
 
-@import "@emulates/ui/reset.css";
+@import "@crvouga/mockingbird-ui/reset.css";
 
 :root {
   color-scheme: light;
@@ -18,7 +18,7 @@
   --fg-subtle: #5c675f;
   --fg-faint: #7a847c;
 
-  /* Live oak fills an action. Clay is the second voice: labels, the title's second phrase, the current page. */
+  /* Live oak fills an action. Clay is the song: labels, the title's second phrase, the current page. */
   --accent: #243f34;
   --accent-hover: #1a3028;
   --accent-fg: #f7f4ee;
@@ -27,7 +27,7 @@
   --accent-ring: rgb(36 63 52 / 0.35);
   --clay: #8d4a32;
   --sage: #7d8a80;
-  --highlight: #c6a15a;
+  --eye: #c6a15a;
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 
   --ok: #15803d;
@@ -83,7 +83,7 @@
   --accent-ring: rgb(213 224 204 / 0.4);
   --clay: #e2b094;
   --sage: #8aa08e;
-  --highlight: #e2c98a;
+  --eye: #e2c98a;
 
   --ok: #4ade80;
   --ok-soft: #0f2418;
@@ -1155,8 +1155,8 @@ kbd {
   max-width: 680px;
 }
 
-/* Two rules, thick then thin. Header and footer use the same pair. */
-.double-rule {
+/* Two rules, thick then thin: the mockingbird's wing bars. Header and footer use the same pair. */
+.wingbar {
   height: 7px;
   background-image: linear-gradient(var(--fg), var(--fg)), linear-gradient(var(--fg), var(--fg));
   background-repeat: no-repeat;

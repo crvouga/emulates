@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-daily",
-    description: "Daily.co REST API emulator",
+    bin: "mockingbird-daily",
+    description: "stateful Daily.co REST API mock",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

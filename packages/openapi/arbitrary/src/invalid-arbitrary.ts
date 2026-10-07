@@ -1,5 +1,5 @@
-import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
-import { resolveSchema, schemaTypes, validateValue } from "@emulates/openapi"
+import type { OpenAPIDocument, SchemaObject } from "@crvouga/mockingbird-openapi"
+import { resolveSchema, schemaTypes, validateValue } from "@crvouga/mockingbird-openapi"
 import fc from "fast-check"
 import {
   type SchemaArbitraryOptions,
@@ -251,7 +251,7 @@ export const invalidSchemaArbitrary = (
       } else if (site.violation === "unexpected-property") {
         mutated = setAt(value, site.valuePath, (current) =>
           typeof current === "object" && current !== null && !Array.isArray(current)
-            ? { ...current, emulates_unexpected: "x" }
+            ? { ...current, mockingbird_unexpected: "x" }
             : undefined,
         )
       } else {

@@ -9,7 +9,7 @@
     "/v2/usercollection/workout": {
       "get": {
         "operationId": "ListWorkout",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true
           }
@@ -142,7 +142,7 @@
     "/v2/usercollection/sleep": {
       "get": {
         "operationId": "ListSleep",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true
           }
@@ -272,7 +272,7 @@
     "/v2/usercollection/heartrate": {
       "get": {
         "operationId": "ListHeartrate",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true
           }
@@ -402,7 +402,7 @@
     "/v2/usercollection/daily_activity": {
       "get": {
         "operationId": "ListDailyActivity",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true
           }
@@ -532,7 +532,7 @@
     "/v2/usercollection/daily_spo2": {
       "get": {
         "operationId": "ListDailySpo2",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true
           }
@@ -662,7 +662,7 @@
     "/v2/usercollection/daily_readiness": {
       "get": {
         "operationId": "ListDailyReadiness",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true
           }
@@ -792,7 +792,7 @@
     "/v2/usercollection/daily_sleep": {
       "get": {
         "operationId": "ListDailySleep",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": true
           }
@@ -922,7 +922,7 @@
     "/oauth/token": {
       "post": {
         "operationId": "OAuthToken",
-        "x-emulates": {
+        "x-mockingbird": {
           "parity": {
             "safe": false
           }
@@ -979,13 +979,13 @@
                   "properties": {
                     "access_token": {
                       "type": "string",
-                      "x-emulates-volatile": {
+                      "x-mockingbird-volatile": {
                         "kind": "token"
                       }
                     },
                     "refresh_token": {
                       "type": "string",
-                      "x-emulates-volatile": {
+                      "x-mockingbird-volatile": {
                         "kind": "token"
                       }
                     },

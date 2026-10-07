@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 
 /// <reference types="node" />
-import { type CliCommand, type CliValues, runCli, serveCommand } from "@emulates/adapter-node"
-import type { RequestLog } from "@emulates/service"
-import { resolveAdminPrefix } from "@emulates/service"
+import {
+  type CliCommand,
+  type CliValues,
+  runCli,
+  serveCommand,
+} from "@crvouga/mockingbird-adapter-node"
+import type { RequestLog } from "@crvouga/mockingbird-service"
+import { resolveAdminPrefix } from "@crvouga/mockingbird-service"
 import { listenH2c } from "./h2c.js"
 import { serveTarget } from "./server.js"
 
@@ -38,9 +43,9 @@ const serve: CliCommand = {
       return 2
     }
     const adminPrefix = resolveAdminPrefix(
-      text(values["admin-prefix"]) ?? process.env.EMULATES_ADMIN_PREFIX,
+      text(values["admin-prefix"]) ?? process.env.MOCKINGBIRD_ADMIN_PREFIX,
     )
-    const adminKey = text(values["admin-key"]) ?? process.env.EMULATES_ADMIN_KEY
+    const adminKey = text(values["admin-key"]) ?? process.env.MOCKINGBIRD_ADMIN_KEY
     const seed = text(values.seed)
     const port = text(values.port)
     try {
@@ -54,10 +59,10 @@ const serve: CliCommand = {
         port: port === undefined ? serveTarget.defaultPort : Number.parseInt(port, 10),
         host: text(values.host) ?? "127.0.0.1",
       })
-      console.log(`aws-speech emulator listening on ${listening.url} (h2c + HTTP/1.1)`)
+      console.log(`aws-speech mock listening on ${listening.url} (h2c + HTTP/1.1)`)
       console.log(`aws-speech health: GET ${listening.url}${adminPrefix}/health`)
       console.log(
-        `aws-speech admin: ${listening.url}${adminPrefix} (${adminKey ? "x-emulates-admin-key required" : "open — pass --admin-key to lock"})`,
+        `aws-speech admin: ${listening.url}${adminPrefix} (${adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
       )
       console.log(`aws-speech admin ui: ${listening.url}${adminPrefix}/ui`)
       for (const line of serveTarget.banner?.(runtime) ?? [])
@@ -79,8 +84,8 @@ const serve: CliCommand = {
 
 const code = await runCli(
   {
-    bin: "emulates-aws-speech",
-    description: "AWS Polly + Transcribe (streaming and batch) emulator",
+    bin: "mockingbird-aws-speech",
+    description: "stateful AWS Polly + Transcribe (streaming and batch) mock",
     commands: { serve },
   },
   process.argv.slice(2),

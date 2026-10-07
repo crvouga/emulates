@@ -1,4 +1,4 @@
-import type { ExploreRng, ExploreState, LogicalCommand } from "@emulates/commands"
+import type { ExploreRng, ExploreState, LogicalCommand } from "@crvouga/mockingbird-commands"
 import {
   availabilityAddressForZip,
   COVERAGE_ORDER_ADDRESSES,
@@ -91,13 +91,13 @@ export const reshapeCoverageGeoCommand = (
           (typeof entry === "object" &&
             entry !== null &&
             !Array.isArray(entry) &&
-            (entry as Record<string, unknown>).$emulates === "ref"),
+            (entry as Record<string, unknown>).$mockingbird === "ref"),
       ) ??
       (typeof raw.lab_test_id === "string" ||
       (typeof raw.lab_test_id === "object" &&
         raw.lab_test_id !== null &&
         !Array.isArray(raw.lab_test_id) &&
-        (raw.lab_test_id as Record<string, unknown>).$emulates === "ref")
+        (raw.lab_test_id as Record<string, unknown>).$mockingbird === "ref")
         ? raw.lab_test_id
         : undefined)
     // Junction and the mock default collection_method to the panel's native method.

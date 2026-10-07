@@ -1,5 +1,5 @@
 {
-  "name": "@emulates/postgres-example-react",
+  "name": "@crvouga/mockingbird-service-postgres-example-react",
   "private": true,
   "version": "0.0.0",
   "type": "module",

@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-google-maps",
-    description:
-      "Google Places / Geocoding / Maps JavaScript API emulator over a QA address corpus",
+    bin: "mockingbird-google-maps",
+    description: "Google Places / Geocoding / Maps JavaScript API mock over a QA address corpus",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

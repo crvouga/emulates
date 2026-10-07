@@ -10,8 +10,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, MEDIACONVERT_NAMESPACE, MediaConvertAPI } from "./index.js"
 import type { MediaConvertJobStatus } from "./state.js"
@@ -60,7 +60,7 @@ export type MediaConvertRuntime = ServiceRuntime<MediaConvertAPI> & {
   readonly webhooks: WebhookHub
 }
 const problem = (status: number, message: string) =>
-  Response.json({ error: { type: "emulates_admin", message } }, { status })
+  Response.json({ error: { type: "mockingbird_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<MediaConvertAPI>): AdminRoutes => ({
   "GET /jobs": ({ namespace }) =>
     Response.json({

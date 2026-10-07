@@ -1,5 +1,5 @@
-import { Collection } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /** A referral reward a campaign gives the referred friend (our checkout reads its coupon). */
 export type CampaignReward = {

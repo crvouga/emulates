@@ -1,12 +1,12 @@
-# Fullscript API (Emulates subset) — operation support
+# Fullscript API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **10**
-- supported by the emulator: **10**
+- supported by the mock: **10**
 - parity enabled: **8**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `OAuthToken` | `POST /api/oauth/token` | ✅ supported | ✅ |  |
 | `OAuthRevoke` | `POST /api/oauth/revoke` | ✅ supported | ⚠️ unsafe (opt-in) |  |

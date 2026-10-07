@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createRuntime } from "./src/index.js"
 
 const a = "a".repeat(40),
@@ -33,7 +33,7 @@ const setup = () => {
         method,
         headers: {
           "content-type": "application/json",
-          "x-emulates-namespace": namespace,
+          "x-mockingbird-namespace": namespace,
           ...extra,
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -270,7 +270,7 @@ test("invalid JSON and non-object updates do not mutate a PR", async () => {
   const invalid = await runtime.fetch(
     new Request(`http://github.mock${root}/pulls/1`, {
       method: "PATCH",
-      headers: { "content-type": "application/json", "x-emulates-namespace": "a" },
+      headers: { "content-type": "application/json", "x-mockingbird-namespace": "a" },
       body: "{",
     }),
   )

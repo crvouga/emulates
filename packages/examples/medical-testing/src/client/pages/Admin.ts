@@ -1,4 +1,4 @@
-import { membersClientSource } from "@emulates/admin-ui"
+import { membersClientSource } from "@crvouga/mockingbird-admin-ui"
 import { html } from "htm/preact"
 import { useEffect, useRef } from "preact/hooks"
 import { PERMISSIONS, ROLES } from "../../app/model.js"

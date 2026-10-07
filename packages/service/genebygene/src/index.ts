@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -18,8 +18,8 @@ import {
   type Service,
   toBase64,
   unsupportedMediaType,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import {
   ATTRIBUTE_DEFINITIONS,
@@ -82,9 +82,9 @@ import {
   type ShippedEntry,
 } from "./webhooks.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { S3Target } from "@emulates/service"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { S3Target } from "@crvouga/mockingbird-service"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { Catalog } from "./corpus.js"
 export {
   ATTRIBUTE_DEFINITIONS,

@@ -2,7 +2,7 @@
 
 The TypeScript sources of [`@medplum/fhir-router`](https://github.com/medplum/medplum/tree/v5.1.37/packages/fhir-router/src)
 at tag `v5.1.37` — the exact router the self-hosted Medplum server dispatches FHIR REST through —
-copied so the emulator routes requests the same way without depending on the published package
+copied so the mock routes requests the same way without depending on the published package
 (which pulls in `@medplum/definitions`, ~95 MB, and uses Node's `Buffer`).
 
 Licensed under the Apache License 2.0 (`LICENSE.txt`), Copyright Orangebot, Inc. and Medplum

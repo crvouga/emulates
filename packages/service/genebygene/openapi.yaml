@@ -2,10 +2,10 @@
 # edit the overlay in that script, not this file, then `bun run generate`.
 openapi: 3.0.1
 info:
-  title: "Nucleus API v2.0 (Gene by Gene), vendored for Emulates"
+  title: "Nucleus API v2.0 (Gene by Gene), vendored for Mockingbird"
   version: "2.0"
-  description: "Gene by Gene's Nucleus API v2, vendored from the Swagger document our consumer commits\n(`GXG/transport/spec/gxg-openapi.json`, source https://demo-api.genebygene.com/swagger/v2/swagger.json)\nby `scripts/vendor-openapi.ts`, with operationIds, Emulates annotations, the fields the live\nAPI returns but Swagger omits, the auth host's `/connect/token`, and the mock's `/__admin/blobs/{key}`."
-  x-emulates-upstream:
+  description: "Gene by Gene's Nucleus API v2, vendored from the Swagger document our consumer commits\n(`GXG/transport/spec/gxg-openapi.json`, source https://demo-api.genebygene.com/swagger/v2/swagger.json)\nby `scripts/vendor-openapi.ts`, with operationIds, Mockingbird annotations, the fields the live\nAPI returns but Swagger omits, the auth host's `/connect/token`, and the mock's `/__admin/blobs/{key}`."
+  x-mockingbird-upstream:
     swagger: https://demo-api.genebygene.com/swagger/v2/swagger.json
     docs: https://api.genebygene.com/assets/GxG%20API%20Services%20Developer%20Guide%202022.pdf
     stagingApi: https://staging-api.genebygene.com
@@ -49,7 +49,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListAttributeDefinitions
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   "/api/v2/attributes/{entityType}":
@@ -83,7 +83,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListAttributeDefinitionsByEntityType
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   /api/v2/attributes/groups:
@@ -116,7 +116,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListAttributeGroups
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/attributes/groups/{name}":
@@ -148,7 +148,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: GetAttributeGroup
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   /api/v2/ehr/order:
@@ -188,7 +188,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CreateEhrOrder
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: HL7 ORM ordering path; our consumer orders through POST /api/v2/orders only.
   /api/v2/ehr/results:
@@ -227,7 +227,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: GetEhrResults
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: HL7 ORU results path; our consumer reads results through /api/v2/results.
   /api/v2/eventTypes:
@@ -239,7 +239,7 @@ paths:
           in: query
           schema:
             type: string
-            x-emulates-unsupported:
+            x-mockingbird-unsupported:
               reason: Staging matches event-type names with SQL LIKE under a collation that ignores some characters.
       responses:
         "200":
@@ -269,7 +269,7 @@ paths:
         "500":
           description: Internal Server Error (often with an empty body).
       operationId: ListEventTypes
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /api/v2/fulfillments:
@@ -286,7 +286,7 @@ paths:
           in: query
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: order
               missing: 00000000-0000-4000-8000-000000000000
         - name: fulfillmentId
@@ -329,7 +329,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListFulfillments
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /api/v2/fulfillments/actions/updateShipmentAddress:
@@ -385,7 +385,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: UpdateShipmentAddress
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: changes where a real kit ships."
@@ -401,7 +401,7 @@ paths:
           schema:
             type: string
             format: uuid
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: fulfillment
               missing: 00000000-0000-4000-8000-000000000000
       responses:
@@ -435,7 +435,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CancelFulfillment
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: cancels a real fulfillment."
@@ -489,7 +489,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/.ErrorDto"
       operationId: GetShippingOptions
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /api/v2/kitorderlines:
@@ -502,14 +502,14 @@ paths:
           in: query
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: kit
               missing: WB000000
         - name: orderId
           in: query
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: order
               missing: 00000000-0000-4000-8000-000000000000
         - name: orderLineId
@@ -582,7 +582,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListKitOrderLines
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
     delete:
@@ -617,7 +617,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CancelKitOrderLinesBulk
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: "Our consumer cancels per kit (DELETE /api/v2/kits/{kitNumber}/orderLines), never in bulk."
   /api/v2/kitorderlines/kits:
@@ -701,7 +701,7 @@ paths:
         "500":
           description: Internal Server Error (often with an empty body).
       operationId: ListKitOrderLineKits
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /api/v2/kitorderlines/download:
@@ -763,7 +763,7 @@ paths:
         "200":
           description: Success
       operationId: DownloadKitOrderLines
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   /api/v2/kits:
@@ -821,7 +821,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListKits
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   "/api/v2/kits/{kitNumber}":
@@ -835,7 +835,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: kit
               missing: WB000000
       responses:
@@ -866,7 +866,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: GetKit
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
     delete:
@@ -893,7 +893,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: DeleteKit
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/kits/{kitNumber}/orderLines":
@@ -907,7 +907,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: kit
               missing: WB000000
       responses:
@@ -936,7 +936,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CancelKitOrderLines
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: cancels a real kit."
@@ -974,7 +974,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: SetKitGender
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: "Superseded by PATCH /api/v2/kits/{kitNumber}/attributes, which our consumer uses."
   "/api/v2/kits/{kitNumber}/orders":
@@ -1006,7 +1006,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListKitOrders
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/kits/{kitNumber}/results":
@@ -1020,7 +1020,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: kit
               missing: WB000000
       responses:
@@ -1051,7 +1051,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: GetKitResults
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   "/api/v2/kits/{kitNumber}/attributes":
@@ -1065,7 +1065,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: kit
               missing: WB000000
       requestBody:
@@ -1120,7 +1120,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: SetKitAttributes
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: writes demographics onto a real kit."
@@ -1148,7 +1148,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ClearKitAttributes
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/kits/{kitNumber}/attributes/{name}={value}":
@@ -1190,7 +1190,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: SetKitAttribute
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/kits/{kitNumber}/attribute/{attributeName}":
@@ -1221,7 +1221,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: DeleteKitAttribute
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   /api/v2/kits/actions/uploadKitAttributesCSV:
@@ -1232,7 +1232,7 @@ paths:
         "200":
           description: Success
       operationId: UploadKitAttributesCsv
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/kits/actions/{kitNumber}/uploadDocuments/{documentType}":
@@ -1268,7 +1268,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: UploadKitDocument
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   /api/v2/notificationSubscriptions:
@@ -1309,7 +1309,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListNotificationSubscriptions
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
     post:
@@ -1357,7 +1357,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CreateNotificationSubscription
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: registers a live webhook on the shared tenant."
@@ -1373,7 +1373,7 @@ paths:
           schema:
             type: string
             format: uuid
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: subscription
               missing: 00000000-0000-4000-8000-000000000000
       responses:
@@ -1404,7 +1404,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: GetNotificationSubscription
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
     patch:
@@ -1417,7 +1417,7 @@ paths:
           required: true
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: subscription
               missing: 00000000-0000-4000-8000-000000000000
       requestBody:
@@ -1463,7 +1463,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: UpdateNotificationSubscription
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: repoints a live webhook."
@@ -1478,7 +1478,7 @@ paths:
           schema:
             type: string
             format: uuid
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: subscription
               missing: 00000000-0000-4000-8000-000000000000
       responses:
@@ -1505,7 +1505,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: DeleteNotificationSubscription
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: deletes a live webhook."
@@ -1541,7 +1541,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ResetNotificationSubscriptionSecret
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer rotates a secret by deleting and re-creating the subscription.
   "/api/v2/notificationSubscriptions/user/{id}/tenant/{tenantId}":
@@ -1564,7 +1564,7 @@ paths:
         "200":
           description: Success
       operationId: ListUserNotificationSubscriptions
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/orderLines/{id}":
@@ -1579,7 +1579,7 @@ paths:
           schema:
             type: string
             format: uuid
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: orderLine
               missing: 00000000-0000-4000-8000-000000000000
       responses:
@@ -1616,7 +1616,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: GetOrderLine
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
     delete:
@@ -1630,7 +1630,7 @@ paths:
           schema:
             type: string
             format: uuid
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: orderLine
               missing: 00000000-0000-4000-8000-000000000000
       responses:
@@ -1671,7 +1671,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CancelOrderLine
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: cancels a real order line."
@@ -1727,7 +1727,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListOrderLineKits
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   /api/v2/orders:
@@ -1790,7 +1790,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListOrders
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
     post:
@@ -1838,7 +1838,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CreateOrder
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: places a real order (and ships a kit)."
@@ -1854,7 +1854,7 @@ paths:
           schema:
             type: string
             format: uuid
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: order
               missing: 00000000-0000-4000-8000-000000000000
       responses:
@@ -1885,7 +1885,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: GetOrder
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /api/v2/orders/actions/createOrderForExistingKits:
@@ -1934,7 +1934,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: CreateOrderForExistingKits
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: false
           reason: "Unsafe against a real tenant: places a real lab order."
@@ -1948,20 +1948,20 @@ paths:
           in: query
           schema:
             type: string
-            x-emulates-unsupported:
+            x-mockingbird-unsupported:
               reason: "Staging matches product codes with SQL LIKE, and no response carries a code."
         - name: productId
           in: query
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: product
               missing: 00000000-0000-4000-8000-000000000000
         - name: productType
           in: query
           schema:
             type: string
-            x-emulates-unsupported:
+            x-mockingbird-unsupported:
               reason: Staging matches product types with SQL LIKE under a collation that ignores some characters.
       responses:
         "200":
@@ -1993,7 +1993,7 @@ paths:
         "500":
           description: Internal Server Error - An internal server error occurred.
       operationId: ListProducts
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /api/v2/results:
@@ -2005,7 +2005,7 @@ paths:
           in: query
           schema:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: kit
               missing: WB000000
         - name: offset
@@ -2056,7 +2056,7 @@ paths:
         "500":
           description: Internal Server Error (often with an empty body).
       operationId: ListResults
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
     post:
@@ -2080,7 +2080,7 @@ paths:
         "200":
           description: Success
       operationId: AddKitResult
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Lab-side result ingestion; the mock publishes results through POST /__admin/kits/:kitNumber/transition.
   /api/v2/results/search:
@@ -2184,7 +2184,7 @@ paths:
         "500":
           description: Internal Server Error (often with an empty body).
       operationId: SearchResults
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /api/v2/results/csvDownloads:
@@ -2260,7 +2260,7 @@ paths:
         "200":
           description: Success
       operationId: DownloadResultsCsv
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   "/api/v2/results/results/{resultId}/url":
@@ -2278,7 +2278,7 @@ paths:
         "200":
           description: Success
       operationId: GetResultUrl
-      x-emulates:
+      x-mockingbird:
         supported: false
         reason: Our consumer never calls this endpoint (GXG/transport/gxg-client.ts).
   /api/v2/results/results/presignedUrl:
@@ -2339,7 +2339,7 @@ paths:
         "500":
           description: Internal Server Error (often with an empty body).
       operationId: GetResultPresignedUrl
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
   /connect/token:
@@ -2350,7 +2350,7 @@ paths:
       operationId: PostConnectToken
       security:
         []
-      x-emulates:
+      x-mockingbird:
         parity:
           safe: true
       requestBody:
@@ -2410,15 +2410,15 @@ paths:
         "500":
           description: Internal Server Error
   "/__admin/blobs/{key}":
-    x-emulates-internal: true
+    x-mockingbird-internal: true
     get:
       tags:
-        - Emulates
+        - Mockingbird
       summary: "Result bytes behind a presignedUrl (the mock's stand-in for the S3 presigned GET; not a GxG endpoint)"
       operationId: GetResultBlob
       security:
         []
-      x-emulates:
+      x-mockingbird:
         parity:
           enabled: false
           reason: "Mock-only route; the real presigned URL points at S3, not the API host."
@@ -2803,15 +2803,15 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: fulfillment
             identity: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderLineId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         quantity:
           type: integer
@@ -3039,7 +3039,7 @@ components:
             - type: object
               enum:
                 - isCommercial: false
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 1600 Amphitheatre Pkwy
                   addressLine2: null
                   city: Mountain View
@@ -3049,7 +3049,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: true
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 1 Unlisted County Road 9
                   addressLine2: null
                   city: Nowhere
@@ -3059,7 +3059,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: true
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 1445 N Loop W
                   addressLine2: null
                   city: Houston
@@ -3069,7 +3069,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: false
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 501 N 5th St
                   addressLine2: null
                   city: Phoenix
@@ -3079,7 +3079,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: false
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 350 Fifth Avenue
                   addressLine2: null
                   city: New York
@@ -3089,7 +3089,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: true
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 4440 County Road 000
                   addressLine2: null
                   city: Valles Mines
@@ -3099,7 +3099,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: true
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 1 Infinite Loop
                   addressLine2: null
                   city: Cupertino
@@ -3109,7 +3109,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: false
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 1 Unlisted County Road 9
                   addressLine2: null
                   city: Nowhere
@@ -3119,7 +3119,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: false
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: 825 Fort Street
                   addressLine2: null
                   city: Honolulu
@@ -3129,7 +3129,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: false
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                   addressLine2: null
                   city: Nowhere
@@ -3139,7 +3139,7 @@ components:
                   email: test@example.com
                   phone: "+15555550100"
                 - isCommercial: false
-                  recipientName: Emulates Test
+                  recipientName: Mockingbird Test
                   addressLine1: PO Box 100
                   addressLine2: null
                   city: Nowhere
@@ -3155,8 +3155,8 @@ components:
         productId:
           type: string
           format: uuid
-          x-emulates-resource-ref:
-            &x-emulates-resource-ref
+          x-mockingbird-resource-ref:
+            &x-mockingbird-resource-ref
             type: product
             missing: 00000000-0000-4000-8000-000000000000
       additionalProperties: false
@@ -3178,7 +3178,7 @@ components:
         estimatedShipDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         estimatedPrice:
           type: number
@@ -3187,7 +3187,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         attributes:
           type: object
@@ -3283,7 +3283,7 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         displayName:
           type: string
@@ -3603,7 +3603,7 @@ components:
         kitNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         gender:
           type: string
@@ -3611,7 +3611,7 @@ components:
         tenantId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: account
         currentStatuses:
           type: array
@@ -3630,12 +3630,12 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
       additionalProperties: false
     .KitOrderLineDto:
@@ -3644,7 +3644,7 @@ components:
         kitNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         gender:
           type: string
@@ -3675,17 +3675,17 @@ components:
         orderLineId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         orderLines:
           type: array
@@ -3701,14 +3701,14 @@ components:
           type: string
           format: date-time
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         kitEffectiveDate:
           type: string
           description: Last Status Date
           format: date-time
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
       additionalProperties: false
     .KitOrderLineResultDto:
@@ -3717,7 +3717,7 @@ components:
         resultPayload:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: url
         resultType:
           type: string
@@ -3725,22 +3725,22 @@ components:
         resultDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         orderLineId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         resultid:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
       additionalProperties: false
     .KitOrderLineStatusDto:
@@ -3752,7 +3752,7 @@ components:
         effectiveDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         errorMessage:
           type: string
@@ -3787,23 +3787,23 @@ components:
         orderLineId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         fulfillmentId:
           type: string
           format: uuid
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         fulfillment:
           $ref: "#/components/schemas/.FulfillmentDto"
@@ -3825,7 +3825,7 @@ components:
         kitNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         gender:
           type: string
@@ -3852,7 +3852,7 @@ components:
         kitNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         gender:
           type: string
@@ -3974,10 +3974,10 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: subscription
             identity: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         displayName:
           type: string
@@ -3985,7 +3985,7 @@ components:
         tenantId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: account
         type:
           type: string
@@ -3996,7 +3996,7 @@ components:
         secret:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: token
         interval:
           type: integer
@@ -4513,15 +4513,15 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: order
             identity: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         orderLines:
           type: array
@@ -4535,15 +4535,15 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: orderLine
             identity: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         productId:
           type: string
@@ -4583,10 +4583,10 @@ components:
           nullable: true
           items:
             type: string
-            x-emulates-resource:
+            x-mockingbird-resource:
               type: kit
               identity: true
-            x-emulates-volatile:
+            x-mockingbird-volatile:
               kind: id
       additionalProperties: false
     .PD1:
@@ -4966,7 +4966,7 @@ components:
               type: string
         traceId:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
       additionalProperties:
         {}
@@ -4976,7 +4976,7 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: product
             identity: true
         name:
@@ -5039,7 +5039,7 @@ components:
         resultPayload:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: url
         resultType:
           type: string
@@ -5050,27 +5050,27 @@ components:
         resultDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         orderLineId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         kitNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         resultId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
       additionalProperties: false
     .ResultsStatusListDto:
@@ -5085,12 +5085,12 @@ components:
         resultPayload:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: url
         resultDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
       additionalProperties: false
     .Root:
@@ -5111,10 +5111,10 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-resource:
+          x-mockingbird-resource:
             type: shipment
             identity: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         isReturnShipment:
           type: boolean
@@ -5123,7 +5123,7 @@ components:
         trackingNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: opaque
         shippingInstruction:
           type: string
@@ -5131,7 +5131,7 @@ components:
         reference1:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: opaque
         price:
           type: number
@@ -5475,13 +5475,13 @@ components:
         productId:
           type: string
           format: uuid
-          x-emulates-resource-ref:
-            *x-emulates-resource-ref
+          x-mockingbird-resource-ref:
+            *x-mockingbird-resource-ref
         kitNumbers:
           type: array
           items:
             type: string
-            x-emulates-resource-ref:
+            x-mockingbird-resource-ref:
               type: kit
               missing: WB000000
           nullable: false
@@ -5506,8 +5506,8 @@ components:
           type: string
           description: Unique identification of the product to be ordered
           format: uuid
-          x-emulates-resource-ref:
-            *x-emulates-resource-ref
+          x-mockingbird-resource-ref:
+            *x-mockingbird-resource-ref
         quantity:
           type: integer
           description: "Quantity of the product to be ordered. \r\nOmit this property if a list of shipments is provided (as in the case of third-party logistic order)."
@@ -5607,7 +5607,7 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-resource-ref:
+          x-mockingbird-resource-ref:
             type: shipment
             missing: 00000000-0000-4000-8000-000000000000
         isReturnShipment:
@@ -5671,12 +5671,12 @@ components:
         id:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderBy:
           type: string
@@ -5684,7 +5684,7 @@ components:
         orderDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         notes:
           type: string
@@ -5707,12 +5707,12 @@ components:
           type: string
           format: date-time
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         trackingNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: opaque
         quantity:
           type: integer
@@ -5891,17 +5891,17 @@ components:
         kitNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         orderLineId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         firstName:
           type: string
@@ -5915,7 +5915,7 @@ components:
         resultId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         resultType:
           type: string
@@ -5926,12 +5926,12 @@ components:
         resultDate:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
         resultPayload:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: url
     ResultsSearchPaginatedList:
       type: object
@@ -5963,17 +5963,17 @@ components:
       properties:
         presignedUrl:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: url
         resultId:
           type: string
           format: uuid
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         kitNumber:
           type: string
           nullable: true
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         resultType:
           type: string
@@ -5981,7 +5981,7 @@ components:
         expiresAt:
           type: string
           format: date-time
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: timestamp
     TokenResponse:
       type: object
@@ -5993,7 +5993,7 @@ components:
       properties:
         access_token:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: token
         expires_in:
           type: integer

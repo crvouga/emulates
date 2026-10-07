@@ -9,8 +9,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { AHA_NAMESPACE, AhaAPI, apiKeyCredential, type TransitionInput } from "./index.js"
 import type { ApiCredential, AutoSchedule, Settings } from "./state.js"
@@ -104,7 +104,7 @@ export type AhaRuntime = ServiceRuntime<AhaAPI> & {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -208,7 +208,7 @@ const adminRoutes = (runtime: ServiceRuntime<AhaAPI>): AdminRoutes => ({
 })
 
 /**
- * The AHA emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * The AHA mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, namespaces
  * by header, by `/__admin/ns/<name>` prefix on `AHA_API_URL`, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<AHA_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets, webhooks and a request journal.

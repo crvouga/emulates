@@ -1,8 +1,8 @@
-# @emulates/google-maps
+# @crvouga/mockingbird-service-google-maps
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Emulator of the **Google Maps Platform** surface our member app uses for addresses: Places
+Mock of the **Google Maps Platform** surface our member app uses for addresses: Places
 Autocomplete, Place Details and Find Place From Text (the JSON web services), the Geocoding API,
 a **Maps JavaScript API shim** (`/maps/api/js?libraries=places`) exposing
 `google.maps.places.*` and `google.maps.Geocoder` over the same data, and the **Address
@@ -11,7 +11,7 @@ checks. Answers come from a corpus
 matching our QA fixtures, so the address step that waits 5 s for Google predictions (and then
 falls back to manual entry) resolves instantly and deterministically.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/google-maps/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/google-maps/SUPPORT.md)
 - Google publishes no OpenAPI document for these endpoints: `openapi.yaml` is hand-authored
   from Google's documented shapes and the fields our consumer reads. Address Validation follows
   the [REST reference](https://developers.google.com/maps/documentation/address-validation/reference/rest/v1/TopLevel/validateAddress)
@@ -20,11 +20,11 @@ falls back to manual entry) resolves instantly and deterministically.
 ## Install
 
 ```bash
-npm install -D @emulates/google-maps
+npm install -D @crvouga/mockingbird-service-google-maps
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-google-maps serve`, `createServer` from `./server` (Node), or `createRuntime`
+`npx mockingbird-google-maps serve`, `createServer` from `./server` (Node), or `createRuntime`
 with any Fetch server.
 
 ## Usage
@@ -32,16 +32,16 @@ with any Fetch server.
 The app hardcodes `https://maps.googleapis.com` (seam **G-Y1**: a base-URL env for
 `M/lib/ui/address-autocomplete/address-autocomplete-native-rest.tsx`,
 `M/features/bloodwork/shared/lab-finder/use-geocoded-address.ts` and
-`M/lib/ui/google-maps/load-google-maps-script.ts`). Until it lands, rewrite that host to the emulator
+`M/lib/ui/google-maps/load-google-maps-script.ts`). Until it lands, rewrite that host to the mock
 in the stack's web dist (`stack-web-dist.ts`), as for PostHog. `PLACES_KEY` can be any non-empty
 string unless you restrict keys.
 
 ```bash
-npx emulates-google-maps serve --port 8814 --api-key "$PLACES_KEY"
+npx mockingbird-google-maps serve --port 8814 --api-key "$PLACES_KEY"
 ```
 
 ```ts
-import { createRuntime } from "@emulates/google-maps"
+import { createRuntime } from "@crvouga/mockingbird-service-google-maps"
 
 const maps = createRuntime()
 const get = async (path: string) =>
@@ -62,11 +62,11 @@ maps.applyPreset("autocomplete_over_query_limit", "default", { count: 2 })
 ### Address Validation
 
 Google serves it from a different host, `https://addressvalidation.googleapis.com`; the paths do
-not collide, so one emulator serves both. Point the server-side client's Address Validation base URL
-at the emulator (or at `<mock>/__admin/ns/<namespace>`), with the key as `?key=` (or `X-Goog-Api-Key`).
+not collide, so one mock serves both. Point the server-side client's Address Validation base URL
+at the mock (or at `<mock>/__admin/ns/<namespace>`), with the key as `?key=` (or `X-Goog-Api-Key`).
 
 ```ts
-import { createRuntime } from "@emulates/google-maps"
+import { createRuntime } from "@crvouga/mockingbird-service-google-maps"
 
 const maps = createRuntime()
 const response = await maps.fetch(
@@ -93,7 +93,7 @@ maps.applyPreset("address_validation_dpv_n", "default", { count: 1 })
 ```
 
 On web, load `<mock>/maps/api/js?key=…&libraries=places` exactly as the app loads Google's
-script; the shim calls back into the emulator's REST endpoints on the same origin and namespace.
+script; the shim calls back into the mock's REST endpoints on the same origin and namespace.
 
 ### Routes
 
@@ -171,7 +171,7 @@ counts `ValidateAddress` on its own.
 
 ### Namespaces
 
-`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the base URL (the JS shim served under a
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the base URL (the JS shim served under a
 prefix calls back through it), or by API key:
 `PUT /__admin/credentials {"credentials": {"<PLACES_KEY>": "<namespace>"}}` (the `key` query
 parameter, or `X-Goog-Api-Key` for Address Validation, is the credential). The request journal
@@ -223,8 +223,8 @@ records operation, status, the resolved `placeId` and the `sessionToken`, and fo
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `GoogleMapsAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `corpus()`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `corpus`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, journal). Options: `corpus`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `GoogleMapsAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `corpus()`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `corpus`, `settings`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, journal). Options: `corpus`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `GOOGLE_MAPS_PRESETS` | object | Every named fault preset. |
 | `GOOGLE_MAPS_NAMESPACE` | string | The service name, `"google-maps"`. |
 | `keyCredential` | function | The `key` query parameter (or `X-Goog-Api-Key` header) of a request (how API keys map to namespaces). |
@@ -237,4 +237,4 @@ records operation, status, the resolved `placeId` and the `sessionToken`, and fo
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--api-key`, `--public-url`); port 8814. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

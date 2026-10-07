@@ -390,7 +390,7 @@ describe("contract", () => {
 
   test("/__admin/health and every documented preset", async () => {
     const health = await fetch(`${server.url}/__admin/health`)
-    expect(health.headers.get("x-emulates")).toMatch(/^aws-speech@/)
+    expect(health.headers.get("x-mockingbird")).toMatch(/^aws-speech@/)
     expect(((await health.json()) as { service: string }).service).toBe("aws-speech")
     const listed = (await admin("/faults/presets")) as { presets: { name: string }[] }
     expect(listed.presets.map((p) => p.name).sort()).toEqual(Object.keys(SPEECH_PRESETS).sort())

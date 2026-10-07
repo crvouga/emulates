@@ -1,12 +1,12 @@
-# Paddle Billing API (Emulates subset) — operation support
+# Paddle Billing API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **48**
-- supported by the emulator: **37**
+- supported by the mock: **37**
 - parity enabled: **37**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListCustomers` | `GET /customers` | ✅ supported | ✅ |  |
 | `CreateCustomer` | `POST /customers` | ✅ supported | ⚠️ unsafe (opt-in) |  |

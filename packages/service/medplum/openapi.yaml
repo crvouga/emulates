@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Medplum API (Emulates contract)
+  title: Medplum API (Mockingbird contract)
   description: |
     The surface of a self-hosted Medplum server (v5.1.37) that the mock implements: FHIR R4 REST
     (every resource type, through Medplum's own FHIR router), OAuth2 and the auth API, the project
@@ -10,7 +10,7 @@ info:
     typed schema, used by the random parity walks. Behaviour is proven against a real self-hosted
     server by the scenario recordings and random differential walks in `scripts/parity.ts`.
   version: "5.1.37"
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     docs: https://www.medplum.com/docs/api
     selfHosting: https://www.medplum.com/docs/self-hosting/install-from-scratch
     source: https://github.com/medplum/medplum/tree/v5.1.37/packages/server
@@ -24,7 +24,7 @@ paths:
     get:
       operationId: GetRoot
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Static server root; covered by the server scenarios." }
       responses:
@@ -33,7 +33,7 @@ paths:
     get:
       operationId: GetHealthcheck
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Reports the host (platform, runtime) the server runs on." }
       responses:
@@ -42,7 +42,7 @@ paths:
     get:
       operationId: GetRobots
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Static text; covered by the server scenarios." }
       responses:
@@ -51,7 +51,7 @@ paths:
     get:
       operationId: GetJwks
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Signing keys are generated per server." }
       responses:
@@ -60,7 +60,7 @@ paths:
     get:
       operationId: GetOpenIdConfiguration
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Discovery document; endpoints are the server's own." }
       responses:
@@ -69,7 +69,7 @@ paths:
     get:
       operationId: GetSmartConfiguration
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Discovery document; endpoints are the server's own." }
       responses:
@@ -78,7 +78,7 @@ paths:
     post:
       operationId: PostAuthLogin
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Password flows are covered by the auth scenarios." }
       requestBody:
@@ -92,7 +92,7 @@ paths:
     post:
       operationId: PostAuthProfile
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Multi-membership login step." }
       requestBody:
@@ -104,7 +104,7 @@ paths:
   /auth/me:
     get:
       operationId: GetAuthMe
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the auth and admin scenarios." }
       responses:
@@ -114,7 +114,7 @@ paths:
     post:
       operationId: PostOauth2Token
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Tokens are minted per call; covered by the auth scenarios." }
       requestBody:
@@ -126,14 +126,14 @@ paths:
   /oauth2/userinfo:
     get:
       operationId: GetOauth2UserInfo
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the auth scenarios." }
       responses:
         "200": { description: OpenID claims, content: { application/json: { schema: { type: object } } } }
     post:
       operationId: PostOauth2UserInfo
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the auth scenarios." }
       responses:
@@ -141,14 +141,14 @@ paths:
   /oauth2/logout:
     get:
       operationId: GetOauth2Logout
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Revokes the caller's login." }
       responses:
         "200": { description: Logged out, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     post:
       operationId: PostOauth2Logout
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Revokes the caller's login." }
       responses:
@@ -156,7 +156,7 @@ paths:
   /admin/projects/{projectId}:
     get:
       operationId: GetAdminProject
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Project admins only; covered by the admin scenarios." }
       parameters: [{ $ref: "#/components/parameters/projectId" }]
@@ -166,7 +166,7 @@ paths:
   /admin/projects/{projectId}/client:
     post:
       operationId: PostAdminProjectClient
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Creates credentials; covered by the admin scenarios." }
       parameters: [{ $ref: "#/components/parameters/projectId" }]
@@ -180,7 +180,7 @@ paths:
   /admin/projects/{projectId}/invite:
     post:
       operationId: PostAdminProjectInvite
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Creates users; covered by the admin scenarios." }
       parameters: [{ $ref: "#/components/parameters/projectId" }]
@@ -195,7 +195,7 @@ paths:
   /admin/projects/{projectId}/settings:
     post:
       operationId: PostAdminProjectSettings
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Rewrites the caller's project." }
       parameters: [{ $ref: "#/components/parameters/projectId" }]
@@ -204,7 +204,7 @@ paths:
   /admin/projects/{projectId}/secrets:
     post:
       operationId: PostAdminProjectSecrets
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Rewrites the caller's project." }
       parameters: [{ $ref: "#/components/parameters/projectId" }]
@@ -213,7 +213,7 @@ paths:
   /admin/projects/{projectId}/sites:
     post:
       operationId: PostAdminProjectSites
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Rewrites the caller's project." }
       parameters: [{ $ref: "#/components/parameters/projectId" }]
@@ -222,7 +222,7 @@ paths:
   /admin/projects/{projectId}/members/{membershipId}:
     get:
       operationId: GetAdminProjectMember
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the admin scenarios." }
       parameters: [{ $ref: "#/components/parameters/projectId" }, { $ref: "#/components/parameters/membershipId" }]
@@ -231,7 +231,7 @@ paths:
         "403": { description: Not in the caller's project, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     post:
       operationId: PostAdminProjectMember
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Rewrites a membership." }
       parameters: [{ $ref: "#/components/parameters/projectId" }, { $ref: "#/components/parameters/membershipId" }]
@@ -239,7 +239,7 @@ paths:
         "200": { description: The updated ProjectMembership, content: { application/json: { schema: { type: object } } } }
     delete:
       operationId: DeleteAdminProjectMember
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Removes a member (and a project-scoped user)." }
       parameters: [{ $ref: "#/components/parameters/projectId" }, { $ref: "#/components/parameters/membershipId" }]
@@ -249,7 +249,7 @@ paths:
     get:
       operationId: GetStorageBinary
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Presigned URLs carry a per-server signature; covered by the binary scenario." }
       parameters:
@@ -262,7 +262,7 @@ paths:
   /fhir/R4:
     get:
       operationId: FhirSearchSystem
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the search scenarios." }
       responses:
@@ -270,7 +270,7 @@ paths:
         "400": { description: Bad search, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     post:
       operationId: FhirBatch
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the batch and transaction scenarios." }
       requestBody:
@@ -283,7 +283,7 @@ paths:
     get:
       operationId: FhirCapabilities
       security: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the auth scenarios (compared in full)." }
       responses:
@@ -291,7 +291,7 @@ paths:
   /fhir/R4/$graphql:
     post:
       operationId: FhirGraphql
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the graphql scenario." }
       requestBody:
@@ -303,7 +303,7 @@ paths:
   /fhir/R4/Binary:
     post:
       operationId: FhirBinaryUpload
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the binary scenario." }
       requestBody:
@@ -314,7 +314,7 @@ paths:
   /fhir/R4/Binary/{id}:
     get:
       operationId: FhirBinaryRead
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the binary scenario." }
       parameters: [{ $ref: "#/components/parameters/id" }]
@@ -323,7 +323,7 @@ paths:
         "404": { description: Not found, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     put:
       operationId: FhirBinaryReplace
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the binary scenario." }
       parameters: [{ $ref: "#/components/parameters/id" }]
@@ -335,7 +335,7 @@ paths:
   /fhir/R4/Patient:
     get:
       operationId: SearchPatient
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: true }
       parameters:
@@ -349,7 +349,7 @@ paths:
         "400": { description: Bad search, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     post:
       operationId: CreatePatient
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: true }
       requestBody:
@@ -361,7 +361,7 @@ paths:
   /fhir/R4/Patient/{id}:
     get:
       operationId: ReadPatient
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: true }
       parameters: [{ $ref: "#/components/parameters/patientId" }]
@@ -371,7 +371,7 @@ paths:
         "410": { description: Deleted, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     put:
       operationId: UpdatePatient
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "The body must carry the id from the path; covered by the random differential walks." }
       parameters: [{ $ref: "#/components/parameters/patientId" }]
@@ -384,7 +384,7 @@ paths:
         "404": { description: Not found, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     delete:
       operationId: DeletePatient
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: true }
       parameters: [{ $ref: "#/components/parameters/patientId" }]
@@ -394,7 +394,7 @@ paths:
   /fhir/R4/Patient/{id}/_history:
     get:
       operationId: ReadPatientHistory
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: true }
       parameters: [{ $ref: "#/components/parameters/patientId" }]
@@ -404,7 +404,7 @@ paths:
   /fhir/R4/Patient/{id}/$everything:
     get:
       operationId: PatientEverything
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the resource variety scenario." }
       parameters: [{ $ref: "#/components/parameters/id" }]
@@ -414,7 +414,7 @@ paths:
   /fhir/R4/{resourceType}:
     get:
       operationId: FhirSearch
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Every resource type; covered by the search scenarios and random walks." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }]
@@ -424,7 +424,7 @@ paths:
         "403": { description: Not permitted, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     post:
       operationId: FhirCreate
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Every resource type; covered by the scenarios and random walks." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }]
@@ -438,7 +438,7 @@ paths:
         "412": { description: Conditional create matched several, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     put:
       operationId: FhirConditionalUpdate
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the conditional scenario." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }]
@@ -451,7 +451,7 @@ paths:
         "412": { description: Matched several, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     patch:
       operationId: FhirConditionalPatch
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the conditional scenario." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }]
@@ -463,7 +463,7 @@ paths:
         "404": { description: Nothing matched, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     delete:
       operationId: FhirConditionalDelete
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the conditional scenario." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }]
@@ -473,7 +473,7 @@ paths:
   /fhir/R4/{resourceType}/_search:
     post:
       operationId: FhirSearchPost
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the search scenarios." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }]
@@ -485,7 +485,7 @@ paths:
   /fhir/R4/{resourceType}/$validate:
     post:
       operationId: FhirValidate
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the server scenarios." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }]
@@ -498,7 +498,7 @@ paths:
   /fhir/R4/{resourceType}/{id}:
     get:
       operationId: FhirRead
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Every resource type; covered by the scenarios and random walks." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }, { $ref: "#/components/parameters/id" }]
@@ -508,7 +508,7 @@ paths:
         "410": { description: Deleted, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     put:
       operationId: FhirUpdate
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the scenarios and random walks." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }, { $ref: "#/components/parameters/id" }]
@@ -521,7 +521,7 @@ paths:
         "412": { description: If-Match mismatch, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     patch:
       operationId: FhirPatch
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the patch scenario and random walks." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }, { $ref: "#/components/parameters/id" }]
@@ -533,7 +533,7 @@ paths:
         "400": { description: Invalid patch, content: { application/fhir+json: { schema: { $ref: "#/components/schemas/OperationOutcome" } } } }
     delete:
       operationId: FhirDelete
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Covered by the scenarios and random walks." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }, { $ref: "#/components/parameters/id" }]
@@ -542,7 +542,7 @@ paths:
   /fhir/R4/{resourceType}/{id}/_history:
     get:
       operationId: FhirHistory
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the scenarios and random walks." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }, { $ref: "#/components/parameters/id" }]
@@ -551,7 +551,7 @@ paths:
   /fhir/R4/{resourceType}/{id}/_history/{versionId}:
     get:
       operationId: FhirVersionRead
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: true, reason: "Covered by the CRUD scenarios." }
       parameters:
@@ -564,7 +564,7 @@ paths:
   /fhir/R4/{resourceType}/{id}/$expunge:
     post:
       operationId: FhirExpunge
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: false, safe: false, reason: "Super admin only; erases history." }
       parameters: [{ $ref: "#/components/parameters/resourceType" }, { $ref: "#/components/parameters/id" }]
@@ -586,7 +586,7 @@ components:
       required: true
       schema:
         type: string
-        x-emulates-resource-ref: { type: patient, missing: not_found }
+        x-mockingbird-resource-ref: { type: patient, missing: not_found }
   schemas:
     HealthStatus:
       type: object
@@ -612,7 +612,7 @@ components:
       required: [login]
       properties:
         login: { type: string }
-        code: { type: string, x-emulates-volatile: { kind: token } }
+        code: { type: string, x-mockingbird-volatile: { kind: token } }
         memberships: { type: array, items: { type: object } }
     TokenRequest:
       type: object
@@ -632,9 +632,9 @@ components:
         token_type: { type: string, enum: [Bearer] }
         expires_in: { type: integer }
         scope: { type: string }
-        access_token: { type: string, x-emulates-volatile: { kind: token } }
-        id_token: { type: string, x-emulates-volatile: { kind: token } }
-        refresh_token: { type: string, x-emulates-volatile: { kind: token } }
+        access_token: { type: string, x-mockingbird-volatile: { kind: token } }
+        id_token: { type: string, x-mockingbird-volatile: { kind: token } }
+        refresh_token: { type: string, x-mockingbird-volatile: { kind: token } }
         project: { type: object }
         profile: { type: object }
     OAuthError:
@@ -667,8 +667,8 @@ components:
     Meta:
       type: object
       properties:
-        versionId: { type: string, x-emulates-volatile: { kind: id } }
-        lastUpdated: { type: string, format: date-time, x-emulates-volatile: { kind: timestamp } }
+        versionId: { type: string, x-mockingbird-volatile: { kind: id } }
+        lastUpdated: { type: string, format: date-time, x-mockingbird-volatile: { kind: timestamp } }
     # Request side: the enums and caps narrow what the walker generates, not what the server
     # takes; any non-blank string and any number of parts are accepted and echoed as sent.
     HumanName:
@@ -703,7 +703,7 @@ components:
         resourceType: { type: string, enum: [Patient] }
         id:
           type: string
-          x-emulates-resource: { type: patient, identity: true }
+          x-mockingbird-resource: { type: patient, identity: true }
         meta: { $ref: "#/components/schemas/Meta" }
         active: { type: boolean }
         gender: { type: string }

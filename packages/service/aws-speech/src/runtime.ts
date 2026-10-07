@@ -6,8 +6,8 @@ import {
   type RequestLog,
   type S3Target,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, SPEECH_NAMESPACE, SpeechAPI } from "./index.js"
 import type { Settings, TranscriptScript } from "./state.js"
@@ -115,7 +115,7 @@ export type SpeechRuntime = ServiceRuntime<SpeechAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -226,7 +226,7 @@ const adminRoutes = (runtime: ServiceRuntime<SpeechAPI>): AdminRoutes => {
 }
 
 /**
- * The Polly + Transcribe emulator with the full Emulates service contract: `/__admin/health`,
+ * The Polly + Transcribe mock with Mockingbird's full service contract: `/__admin/health`,
  * `/__admin/*`, namespaces by header, by `/__admin/ns/<name>` prefix, or by SigV4 access key id
  * (`PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`), the
  * mock clock (batch jobs complete on it), fault presets and a metadata-only journal.

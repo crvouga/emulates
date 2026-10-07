@@ -1,5 +1,5 @@
 {
-  "name": "@emulates/openapi-arbitrary",
+  "name": "@crvouga/mockingbird-openapi-arbitrary",
   "version": "0.0.0-development",
   "private": true,
   "description": "OpenAPI / JSON Schema to fast-check arbitraries: boundary-weighted valid values and single-violation invalid values.",
@@ -18,17 +18,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/openapi/arbitrary"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/openapi/arbitrary#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/openapi/arbitrary#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "openapi",
     "json-schema",
     "fast-check"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "openapi-arbitrary"
   },
@@ -41,10 +41,10 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
     "fast-check": "4.9.0"
   },
   "devDependencies": {
-    "@emulates/testing": "workspace:*"
+    "@crvouga/mockingbird-testing": "workspace:*"
   }
 }

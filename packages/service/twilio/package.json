@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/twilio",
+  "name": "@crvouga/mockingbird-service-twilio",
   "version": "0.0.0-development",
-  "description": "Stateful emulator of Twilio Verify, Lookup v2, Messaging and Recordings on one port, with signed inbound SMS and voice webhooks (Emulates service contract).",
+  "description": "Stateful mock of Twilio Verify, Lookup v2, Messaging and Recordings on one port, with signed inbound SMS and voice webhooks (Mockingbird service contract).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulates-twilio": "./dist/cli.js"
+    "mockingbird-twilio": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,21 +34,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/twilio"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/twilio#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/twilio#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "service",
     "twilio",
     "verify",
     "otp",
     "lookup",
     "sms",
-    "emulator"
+    "mock"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -77,7 +77,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- twilio",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -88,7 +88,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -104,24 +104,24 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
     "hono": "4.11.9",
     "libphonenumber-js": "1.13.4"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulates/testing": "workspace:*",
-    "@emulates/sqlite": "workspace:*",
-    "@emulates/parity": "workspace:*",
-    "@emulates/credentials": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/http-codec": "workspace:*",
-    "@emulates/adapter-node": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
     "twilio": "5.10.0",
     "twilio-reconciliation": "npm:twilio@5.13.1"
   }

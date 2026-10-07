@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type TwilioRuntime, type TwilioRuntimeOptions } from "./runtime.js"
 
-/** Port `emulates-twilio serve` listens on when none is given. */
+/** Port `mockingbird-twilio serve` listens on when none is given. */
 export const DEFAULT_PORT = 8798
 
 export type TwilioServerOptions = TwilioRuntimeOptions & {
@@ -97,6 +97,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "routes: /lookups/v2/…, /verify/v2/…, /api/2010-04-01/… (the Twilio host as a path prefix)",
     "auth: Basic AccountSid:AuthToken; OTP: GET /__admin/verify/<e164>/latest",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AccountSid>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AccountSid>: <ns>}",
   ],
 }

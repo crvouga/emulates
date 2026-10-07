@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { Database, Snapshot } from "../../../src/index.ts";
 
-// regression: emulates-postgres-index-statistics
+// regression: mockingbird-postgres-index-statistics
 test("actual unique index scans update usage while constraint validation does not", () => {
   const database = new Database();
   let restored: Database | undefined;

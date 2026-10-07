@@ -1,25 +1,25 @@
-# @emulates/ecs
+# @crvouga/mockingbird-service-ecs
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP AWS ECS Fargate RunTask control-plane emulator. It records task acceptance; it never starts
+WIP AWS ECS Fargate RunTask control-plane mock. It records task acceptance; it never starts
 containers. Wire contract follows [RunTask](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_RunTask.html).
 
 ## Install
 
-`bun add @emulates/ecs`
+`bun add @crvouga/mockingbird-service-ecs`
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/ecs/server"
+import { createServer } from "@crvouga/mockingbird-service-ecs/server"
 const server = await createServer()
 // boto3.client("ecs", endpoint_url=server.url, region_name="us-east-1",
 //              aws_access_key_id="fixture", aws_secret_access_key="fixture")
 await server.close()
 ```
 
-CLI: `emulates-ecs serve --port 12129`. Point the application factory's endpoint_url or
+CLI: `mockingbird-ecs serve --port 12129`. Point the application factory's endpoint_url or
 AWS_ENDPOINT_URL_ECS at the server. POST / with X-Amz-Target
 AmazonEC2ContainerServiceV20141113.RunTask accepts AWS JSON 1.1.
 The default fixtures are cluster default and task definition fixture:1 with container app.
@@ -37,12 +37,12 @@ Read accepted tasks from tasks and request metadata (network configuration, task
 from requests. Seed placementFailures with AWS Failure objects to script partial placement:
 each RunTask takes up to count failures in insertion order and accepts the remaining task count.
 Failures persist until deleted/reset; this is a test control, not a capacity simulator.
-Tasks remain PROVISIONING with desiredStatus RUNNING; createdAt uses the emulator clock.
+Tasks remain PROVISIONING with desiredStatus RUNNING; createdAt uses the mock clock.
 Identical clientToken retries within a cluster return the same result for 24 hours;
 changed parameters return ConflictException with associated resourceIds. Tokens are resettable state.
 
 Shared /__admin provides health, UI, state, reset, Timeline checkpoints, clock, journal and metrics.
-Namespace carriers: x-emulates-namespace, /__admin/ns/name and SigV4 access-key mappings via
+Namespace carriers: x-mockingbird-namespace, /__admin/ns/name and SigV4 access-key mappings via
 PUT /__admin/credentials. Signature verification and IAM policy evaluation are not performed.
 Journal entries omit bodies and credentials. No webhooks are emitted.
 Presets: access_denied (AWS 400), throttled (400), rate_limited (explicit HTTP 429 test fault),
@@ -51,7 +51,7 @@ internal_error (500), connection_drop. Shared faults also support deterministic 
 ## Verification
 
 `bun test` runs acceptance and OpenAPI-driven self-parity with divergence detection.
-`bun scripts/sdk.ts` uses uv to install and run exact boto3 1.43.56 against the served emulator:
+`bun scripts/sdk.ts` uses uv to install and run exact boto3 1.43.56 against the served mock:
 successful RunTask, preserved overrides, idempotency, missing resources and SDK exceptions.
 This proves SDK compatibility, not live AWS equivalence. `bun run parity` exits 2 because this
 package only models a billable compute-creating operation; no live request is issued implicitly.
@@ -65,7 +65,7 @@ task-definition or cluster mutations and other ECS operations. Nested overrides 
 commands and environment are passed through, not comprehensively validated. No subnet reachability,
 image validity or resource-capacity simulation. Fargate is the only modeled launch type.
 Task ids and platformVersion LATEST are local stand-ins, not exact AWS-generated ids/resolved versions.
-The idempotency lifetime is 24 hours while emulator tasks remain uncompleted; shorter post-stop expiry
+The idempotency lifetime is 24 hours while mock tasks remain uncompleted; shorter post-stop expiry
 and task-stop response rewriting are outside this surface.
 
 ## API

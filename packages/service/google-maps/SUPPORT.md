@@ -1,12 +1,12 @@
-# Google Places, Geocoding and Maps JavaScript API (Emulates subset) — operation support
+# Google Places, Geocoding and Maps JavaScript API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **6**
-- supported by the emulator: **6**
+- supported by the mock: **6**
 - parity enabled: **5**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PlaceAutocomplete` | `GET /maps/api/place/autocomplete/json` | ✅ supported | ✅ |  |
 | `PlaceDetails` | `GET /maps/api/place/details/json` | ✅ supported | ✅ |  |

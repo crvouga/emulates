@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { WHOOP_NAMESPACE, WhoopAPI, type WhoopAPIOptions } from "./index.js"
 export const WHOOP_PRESETS: Record<string, FaultPreset> = {

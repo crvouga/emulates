@@ -1,4 +1,4 @@
-import { Database, Snapshot } from "@emulates/postgres";
+import { Database, Snapshot } from "@crvouga/mockingbird-service-postgres";
 
 export const STORAGE_KEY = "postgres-mem-example-snapshot";
 

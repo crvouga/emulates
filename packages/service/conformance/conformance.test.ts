@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { STANDARD_ADMIN_ROUTES } from "@emulates/service"
+import { STANDARD_ADMIN_ROUTES } from "@crvouga/mockingbird-service"
 
 const servicesRoot = join(import.meta.dir, "..")
 const skip = new Set(["core", "sqlite", "postgres", "conformance"])
@@ -21,7 +21,9 @@ const surface = readFileSync(join(import.meta.dir, "src", "surface.ts"), "utf8")
 
 describe("surface", () => {
   test("every HTTP mock is named in the type proof", () => {
-    const missing = httpMocks().filter((name) => !surface.includes(`@emulates/${name}`))
+    const missing = httpMocks().filter(
+      (name) => !surface.includes(`@crvouga/mockingbird-service-${name}`),
+    )
     expect(missing).toEqual([])
   })
 })
@@ -37,7 +39,7 @@ const call = async (
       method,
       headers: {
         "content-type": "application/json",
-        "x-emulates-admin-key": "conformance-fixture-admin",
+        "x-mockingbird-admin-key": "conformance-fixture-admin",
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     }),
@@ -77,7 +79,7 @@ for (const adminPrefix of ["/__admin", "/_control/mock"])
 
           const ui = await call(runtime, "GET", `${adminPrefix}/ui`)
           const html = await ui.text()
-          if (ui.status !== 200 || !html.includes("data-emulates-admin")) {
+          if (ui.status !== 200 || !html.includes("data-mockingbird-admin")) {
             failures.push(`${name}: admin ui`)
           }
 

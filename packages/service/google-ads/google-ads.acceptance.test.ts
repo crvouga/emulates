@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import { present, record } from "./src/errors.js"
 import {
   createRuntime,
@@ -23,7 +23,7 @@ const consumer = (r: ReturnType<typeof runtime>, ns?: string) =>
     r.fetch(
       ns
         ? new Request(req, {
-            headers: { ...Object.fromEntries(req.headers), "x-emulates-namespace": ns },
+            headers: { ...Object.fromEntries(req.headers), "x-mockingbird-namespace": ns },
           })
         : req,
     ),
@@ -39,9 +39,9 @@ const admin = (
     new Request(`http://mock.local/__admin${path}`, {
       method,
       headers: {
-        "x-emulates-admin-key": DEFAULT_ADMIN_KEY,
+        "x-mockingbird-admin-key": DEFAULT_ADMIN_KEY,
         "content-type": "application/json",
-        ...(ns ? { "x-emulates-namespace": ns } : {}),
+        ...(ns ? { "x-mockingbird-namespace": ns } : {}),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),

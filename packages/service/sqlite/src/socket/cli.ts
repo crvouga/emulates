@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * `emulates-sqlite serve`: start the length-prefixed JSON socket (see ./index.ts).
+ * `mockingbird-sqlite serve`: start the length-prefixed JSON socket (see ./index.ts).
  *
- *   emulates-sqlite serve
- *   emulates-sqlite serve sqlite://127.0.0.1:0/app
+ *   mockingbird-sqlite serve
+ *   mockingbird-sqlite serve sqlite://127.0.0.1:0/app
  *
  * The stock `sqlite3` CLI cannot attach to this socket. Use `connect()` from
- * `@emulates/sqlite/socket`.
+ * `@crvouga/mockingbird-service-sqlite/socket`.
  */
 import { type SocketServeOptions, serve } from "./index.ts";
 
-const usage = `emulates-sqlite serve [sqlite://URI] [--port <n>] [--host <h>]
+const usage = `mockingbird-sqlite serve [sqlite://URI] [--port <n>] [--host <h>]
 
-The stock sqlite3 CLI cannot attach. Use connect() from @emulates/sqlite/socket.`;
+The stock sqlite3 CLI cannot attach. Use connect() from @crvouga/mockingbird-service-sqlite/socket.`;
 
 const args = process.argv.slice(2);
 if (args[0] !== "serve") {
@@ -50,8 +50,8 @@ for (let i = 1; i < args.length; i++) {
 }
 
 const server = await serve(options);
-console.log(`emulates-sqlite listening on ${server.url}`);
-console.error("sqlite3 cannot attach to this socket; use @emulates/sqlite/socket connect()");
+console.log(`mockingbird-sqlite listening on ${server.url}`);
+console.error("sqlite3 cannot attach to this socket; use @crvouga/mockingbird-service-sqlite/socket connect()");
 
 const stop = async () => {
   await server.close();

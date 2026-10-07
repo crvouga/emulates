@@ -110,7 +110,7 @@ export const runOracle = async (options) => {
         WorkingDir: "/",
         OpenStdin: true,
         Tty: false,
-        Labels: { "emulates.oracle": options.runId },
+        Labels: { "mockingbird.oracle": options.runId },
         HostConfig: { NetworkMode: "none" },
       }
       const created = await jsonRequest(real, "POST", `/v1.52/containers/create?name=${name}`, body)

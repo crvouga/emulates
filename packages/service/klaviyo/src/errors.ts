@@ -1,4 +1,4 @@
-import { opaqueToken } from "@emulates/service"
+import { opaqueToken } from "@crvouga/mockingbird-service"
 
 /** The private key in `Authorization: Klaviyo-API-Key <key>`, or `undefined`. */
 export const klaviyoApiKey = (request: Request): string | undefined => {

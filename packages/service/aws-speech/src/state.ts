@@ -1,5 +1,5 @@
-import { Collection } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /**
  * A scripted transcript (`PUT /__admin/transcripts`): what Transcribe "hears". Audio bytes

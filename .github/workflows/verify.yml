@@ -1,5 +1,5 @@
 # Differential verification of the Junction mock against the real Junction sandbox:
-# `emulators-junction verify` replays the shipped corpus (drift) and a stateful scenario
+# `mockingbird-junction verify` replays the shipped corpus (drift) and a stateful scenario
 # (users, catalog, serviceability, orders) against both and fails on any divergence.
 #
 # Not a required check — it depends on a live vendor. The sandbox key is the
@@ -42,7 +42,7 @@ jobs:
 
       - name: Build verifier dependencies
         timeout-minutes: 10
-        run: bunx turbo run build --filter='@emulators/junction^...' --output-logs=errors-only
+        run: bunx turbo run build --filter='@crvouga/mockingbird-service-junction^...' --output-logs=errors-only
 
       # Manual maintenance only: scheduled verification always checks the committed corpus.
       - name: Refresh sandbox corpus
@@ -52,7 +52,7 @@ jobs:
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}
         run: bun run --cwd packages/service/junction corpus:record -- --force
 
-      - name: emulators-junction verify (shipped corpus, with orders)
+      - name: mockingbird-junction verify (shipped corpus, with orders)
         timeout-minutes: 15
         env:
           JUNCTION_API_KEY: ${{ secrets.JUNCTION_API_KEY }}

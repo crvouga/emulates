@@ -9,7 +9,7 @@ export const consumer = (
         ...init,
         headers: {
           authorization: `Bearer ${DEFAULT_TOKEN}`,
-          ...(namespace ? { "x-emulates-namespace": namespace } : {}),
+          ...(namespace ? { "x-mockingbird-namespace": namespace } : {}),
           ...Object.fromEntries(new Headers(init.headers)),
         },
       }),
@@ -26,8 +26,8 @@ export const consumer = (
     })
   const admin = (path: string, body?: unknown) =>
     body === undefined
-      ? request(`/__admin${path}`, { headers: { "x-emulates-admin-key": DEFAULT_ADMIN_KEY } })
-      : json(`/__admin${path}`, body, { headers: { "x-emulates-admin-key": DEFAULT_ADMIN_KEY } })
+      ? request(`/__admin${path}`, { headers: { "x-mockingbird-admin-key": DEFAULT_ADMIN_KEY } })
+      : json(`/__admin${path}`, body, { headers: { "x-mockingbird-admin-key": DEFAULT_ADMIN_KEY } })
   return {
     request,
     json,

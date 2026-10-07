@@ -1,9 +1,9 @@
-import catalog from "virtual:emulates/catalog"
+import catalog from "virtual:mockingbird/catalog"
 import type { APIRoute } from "astro"
 
 export const GET: APIRoute = () => {
   const parts = [
-    "# Emulates",
+    "# Mockingbird",
     "",
     "Every service README, generated from the packages. The HTML site is a view of this same text.",
     "",

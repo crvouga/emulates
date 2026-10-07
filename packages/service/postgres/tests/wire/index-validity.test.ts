@@ -3,7 +3,7 @@ import pg from "pg";
 import { Database, Snapshot } from "../../src/index.ts";
 import { serve } from "../../src/wire/index.ts";
 
-// regression: emulates-postgres-index-validity (#326)
+// regression: mockingbird-postgres-index-validity (#326)
 test("wire failures retain invalid concurrent indexes across snapshot encoding", async () => {
   const database = new Database();
   const server = await serve({ database });

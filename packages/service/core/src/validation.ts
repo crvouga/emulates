@@ -1,5 +1,10 @@
-import { mediaTypeOf } from "@emulates/http-codec"
-import { deref, resolveSchema, type SchemaObject, validateValue } from "@emulates/openapi"
+import { mediaTypeOf } from "@crvouga/mockingbird-http-codec"
+import {
+  deref,
+  resolveSchema,
+  type SchemaObject,
+  validateValue,
+} from "@crvouga/mockingbird-openapi"
 import type { OperationContext } from "./service.js"
 
 /**

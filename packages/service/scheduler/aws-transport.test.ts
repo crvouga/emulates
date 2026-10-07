@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createRuntime } from "./src/index.js"
 
 test("AWS transport rejects unsupported operations and malformed JSON", async () => {
@@ -33,7 +33,7 @@ test("AWS writes are observable, namespace isolated, and cleared by reset", asyn
         headers: {
           "content-type": "application/x-amz-json-1.1",
           "x-amz-target": `Fixture.${operation}`,
-          "x-emulates-namespace": namespace,
+          "x-mockingbird-namespace": namespace,
         },
         body: JSON.stringify(input),
       }),

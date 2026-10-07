@@ -11,8 +11,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { type AccountConfig, AccountDirectory, validateAccounts } from "./accounts.js"
 import { completeSession } from "./checkout.js"
 import { STRIPE_NAMESPACE } from "./constants.js"
@@ -46,7 +46,7 @@ const API_ERROR = {
 const PERMISSION_ERROR = {
   error: {
     message:
-      "The provided key 'rk_test_*********' does not have the required permissions for this endpoint on account 'acct_emulates'.",
+      "The provided key 'rk_test_*********' does not have the required permissions for this endpoint on account 'acct_mockingbird'.",
     type: "invalid_request_error",
   },
 }
@@ -142,7 +142,7 @@ export type StripeRuntimeOptions = {
   seed?: number | string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Require `x-emulates-admin-key` on `/__admin/*`. */
+  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Called in-process with every event the mock records. */
@@ -195,7 +195,7 @@ export type StripeRuntime = ServiceRuntime<StripeAPI> & {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -222,7 +222,7 @@ const guard = (run: () => Response): Response => {
 }
 
 /**
- * The Stripe emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`, namespaces
+ * The Stripe mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`, namespaces
  * by header, by `/__admin/ns/<name>` path prefix, or by API key (`PUT /__admin/credentials`), accounts
  * by key (`PUT /__admin/accounts`), clock control that drives renewals and expiries, fault
  * presets, and signed webhooks (`Stripe-Signature`) fanned out to every matching endpoint.

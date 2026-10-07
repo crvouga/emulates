@@ -1,11 +1,11 @@
 /**
- * The Emulates service contract around the Medplum emulator: `/__admin/health`, the `x-emulates`
+ * The Mockingbird service contract around the Medplum mock: `/__admin/health`, the `x-mockingbird`
  * stamp, namespaces (header, `/__admin/ns/<name>/` prefix, client credentials), per-namespace reset,
  * snapshot/restore, the controllable clock, fault presets, the request journal and metrics,
  * and the `/__admin/medplum/*` backdoors.
  */
 import { describe, expect, test } from "bun:test"
-import { createClock, DroppedConnectionError } from "@emulates/service"
+import { createClock, DroppedConnectionError } from "@crvouga/mockingbird-service"
 import {
   createRuntime,
   DEFAULT_CLIENT_ID,
@@ -83,25 +83,25 @@ describe("service contract", () => {
     expect((await call(runtime, "/healthcheck")).body.ok).toBe(true)
   })
 
-  test("every response is stamped x-emulates with the namespace", async () => {
+  test("every response is stamped x-mockingbird with the namespace", async () => {
     const runtime = createRuntime()
     const response = await runtime.fetch(
-      new Request(`${BASE}/healthcheck`, { headers: { "x-emulates-namespace": "w1" } }),
+      new Request(`${BASE}/healthcheck`, { headers: { "x-mockingbird-namespace": "w1" } }),
     )
-    expect(response.headers.get("x-emulates")).toMatch(/^medplum@.+; ns=w1$/)
+    expect(response.headers.get("x-mockingbird")).toMatch(/^medplum@.+; ns=w1$/)
   })
 
   test("namespaces keep workers apart, and tokens do not cross them", async () => {
     const runtime = createRuntime()
-    const one = await signIn(runtime, { "x-emulates-namespace": "one" })
-    const two = await signIn(runtime, { "x-emulates-namespace": "two" })
-    await createPatient(runtime, one, "OnlyInOne", { "x-emulates-namespace": "one" })
+    const one = await signIn(runtime, { "x-mockingbird-namespace": "one" })
+    const two = await signIn(runtime, { "x-mockingbird-namespace": "two" })
+    await createPatient(runtime, one, "OnlyInOne", { "x-mockingbird-namespace": "one" })
     const inTwo = await call(runtime, "/fhir/R4/Patient?name=onlyinone&_total=accurate", {
-      headers: fhir(two, { "x-emulates-namespace": "two" }),
+      headers: fhir(two, { "x-mockingbird-namespace": "two" }),
     })
     expect(inTwo.body.total).toBe(0)
     const crossed = await call(runtime, "/fhir/R4/Patient", {
-      headers: fhir(one, { "x-emulates-namespace": "two" }),
+      headers: fhir(one, { "x-mockingbird-namespace": "two" }),
     })
     expect(crossed.status).toBe(401)
   })
@@ -159,7 +159,7 @@ describe("service contract", () => {
     const token = await signIn(runtime, {}, "7d0f5b8e-1c1c-4c1c-8c1c-0000000000a1", "worker-secret")
     const created = await createPatient(runtime, token, "Mapped")
     expect(created.status).toBe(201)
-    expect(created.headers.get("x-emulates")).toContain("ns=mapped")
+    expect(created.headers.get("x-mockingbird")).toContain("ns=mapped")
     const basic = await call(runtime, "/fhir/R4/Patient?name=mapped&_total=accurate", {
       headers: {
         authorization: `Basic ${btoa("7d0f5b8e-1c1c-4c1c-8c1c-0000000000a1:worker-secret")}`,
@@ -170,23 +170,23 @@ describe("service contract", () => {
 
   test("reset clears one namespace and reseeds it; the other keeps its data", async () => {
     const runtime = createRuntime()
-    const a = await signIn(runtime, { "x-emulates-namespace": "a" })
-    const b = await signIn(runtime, { "x-emulates-namespace": "b" })
-    await createPatient(runtime, a, "Keep", { "x-emulates-namespace": "a" })
-    await createPatient(runtime, b, "Drop", { "x-emulates-namespace": "b" })
+    const a = await signIn(runtime, { "x-mockingbird-namespace": "a" })
+    const b = await signIn(runtime, { "x-mockingbird-namespace": "b" })
+    await createPatient(runtime, a, "Keep", { "x-mockingbird-namespace": "a" })
+    await createPatient(runtime, b, "Drop", { "x-mockingbird-namespace": "b" })
     expect((await call(runtime, "/__admin/reset?namespace=b", { method: "POST" })).status).toBe(200)
-    const again = await signIn(runtime, { "x-emulates-namespace": "b" })
+    const again = await signIn(runtime, { "x-mockingbird-namespace": "b" })
     expect(
       (
         await call(runtime, "/fhir/R4/Patient?_total=accurate", {
-          headers: fhir(again, { "x-emulates-namespace": "b" }),
+          headers: fhir(again, { "x-mockingbird-namespace": "b" }),
         })
       ).body.total,
     ).toBe(0)
     expect(
       (
         await call(runtime, "/fhir/R4/Patient?_total=accurate", {
-          headers: fhir(a, { "x-emulates-namespace": "a" }),
+          headers: fhir(a, { "x-mockingbird-namespace": "a" }),
         })
       ).body.total,
     ).toBe(1)
@@ -345,7 +345,7 @@ describe("service contract", () => {
     expect(
       (
         await call(runtime, "/__admin/medplum", {
-          headers: { "x-emulates-admin-key": "sekrit" },
+          headers: { "x-mockingbird-admin-key": "sekrit" },
         })
       ).status,
     ).toBe(200)

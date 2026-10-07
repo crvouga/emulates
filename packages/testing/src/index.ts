@@ -1,6 +1,6 @@
 import type fc from "fast-check"
 
-/** Env-var names honoured by every Emulates property suite. */
+/** Env-var names honoured by every Mockingbird property suite. */
 export const FC_SEED = "FC_SEED"
 export const FC_NUM_RUNS = "FC_NUM_RUNS"
 

@@ -18,7 +18,7 @@ No image is pulled,
 built, tagged, or deleted. No volumes, host mounts or published ports are used;
 created containers use `NetworkMode: none`. The harness creates at most three
 containers named `<run-id>-attach`, `<run-id>-stop`, and `<run-id>-kill`, with the
-`emulates.oracle=<run-id>` label. The run ID must be `mb-oracle-` followed by
+`mockingbird.oracle=<run-id>` label. The run ID must be `mb-oracle-` followed by
 32 lowercase hexadecimal characters; generate a fresh one for each run.
 
 Before creating anything, the harness checks the actual Engine version/OS, image
@@ -59,7 +59,7 @@ Engine version; do not require downgrading the user's host.
 The JSON report records actual Engine/API/platform information, immutable image,
 normalized comparisons, cleanup results and gaps. Exit status is nonzero on a
 comparison, setup or cleanup failure. Preserve that report under the project's
-ignored `.emulates/` directory, then summarize verified evidence in
+ignored `.mockingbird/` directory, then summarize verified evidence in
 `API_EVIDENCE.md`; do not turn absent execution into a passing result.
 
 Comparisons cover create/start/remove HTTP statuses, inspect execution state,
@@ -67,7 +67,7 @@ wait exit code, attach upgrade headers and stdout/stderr bytes. Multiplexed outp
 is decoded independently and concatenated by channel, removing arbitrary frame
 and packet boundaries. Output bytes are recorded as base64. Container IDs,
 timestamps, daemon-specific metadata and cross-channel interleaving are not
-compared. The emulator's completion control scripts the known exit behavior; it does
+compared. The mock's completion control scripts the known exit behavior; it does
 not execute the image. Tests of image execution or host isolation are not implied.
 
 The harness performs no daemon restart or live-restore operation. Existing

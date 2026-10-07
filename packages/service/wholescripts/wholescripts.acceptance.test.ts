@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import { createRuntime, MEDPAX_BOX_SKU, WHOLESCRIPTS_PRESETS } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -379,7 +379,7 @@ describe("served over HTTP", () => {
       }
       expect(status.status).toBe("shipped")
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulates")).toMatch(/^wholescripts@/)
+      expect(health.headers.get("x-mockingbird")).toMatch(/^wholescripts@/)
 
       // A dropped submit destroys the socket: plain fetch rejects, the order still exists.
       server.runtime.applyPreset("submit_timeout", "default", { count: 1 })

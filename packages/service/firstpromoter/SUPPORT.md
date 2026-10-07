@@ -1,12 +1,12 @@
-# FirstPromoter API v2 (Emulates subset) — operation support
+# FirstPromoter API v2 (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **16**
-- supported by the emulator: **16**
+- supported by the mock: **16**
 - parity enabled: **16**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `TrackSignup` | `POST /v2/track/signup` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ListPromoters` | `GET /v2/company/promoters` | ✅ supported | ✅ |  |

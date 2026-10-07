@@ -1,29 +1,29 @@
-# @emulates/bedrock
+# @crvouga/mockingbird-service-bedrock
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful, scriptable emulator of **Amazon Bedrock Runtime** for test suites: `Converse`,
+Stateful, scriptable mock of **Amazon Bedrock Runtime** for test suites: `Converse`,
 `ConverseStream` (byte-exact `application/vnd.amazon.eventstream` frames), `InvokeModel`
 (Anthropic Messages bodies and Titan text embeddings), `InvokeModelWithBidirectionalStream`
 (Nova Sonic over HTTP/2 duplex), and the AgentCore `InvokeHarness` event stream.
 
-The emulator never generates language. It replays **scripts**: a test says "when the chat model
+The mock never generates language. It replays **scripts**: a test says "when the chat model
 sees *dizzy* with `report_rx_symptom` available, emit this `toolUse`; after the tool result
 comes back, say this". Chat turns, approval cards, guardrail blocks, structured output and
 throttles become deterministic and take milliseconds.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/bedrock/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/bedrock/SUPPORT.md)
 - Proven with the official clients our consumer pins: `@aws-sdk/client-bedrock-runtime@3.1132.0`,
   `@aws-sdk/client-bedrock-agentcore@3.1074.0`, `@ai-sdk/amazon-bedrock@4.0.176` + `ai@6.0.283`.
 
 ## Install
 
 ```bash
-npm install -D @emulates/bedrock
+npm install -D @crvouga/mockingbird-service-bedrock
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-bedrock serve` (h2c + HTTP/1.1 on one port), `createServer` from `./server`,
+`npx mockingbird-bedrock serve` (h2c + HTTP/1.1 on one port), `createServer` from `./server`,
 or `createRuntime` with any Fetch server (HTTP/1.1 only — see below).
 
 ## Usage
@@ -31,13 +31,13 @@ or `createRuntime` with any Fetch server (HTTP/1.1 only — see below).
 Point the app at it. No code change: every client honours the endpoint variables.
 
 ```bash
-npx emulates-bedrock serve --port 8796
+npx mockingbird-bedrock serve --port 8796
 export AWS_ENDPOINT_URL_BEDROCK_RUNTIME=http://127.0.0.1:8796    # SDK v3, AI SDK, botocore
 export AWS_ENDPOINT_URL_BEDROCK_AGENTCORE=http://127.0.0.1:8796  # AgentCore InvokeHarness
 ```
 
 ```ts
-import { createServer } from "@emulates/bedrock/server"
+import { createServer } from "@crvouga/mockingbird-service-bedrock/server"
 
 const bedrock = await createServer({ port: 8796 })
 await fetch(`${bedrock.url}/__admin/scripts`, {
@@ -72,7 +72,7 @@ await bedrock.close()
 
 The AWS SDK v3 clients for Bedrock Runtime default to `NodeHttp2Handler`: against an
 `http://` endpoint they speak **h2c** (cleartext HTTP/2 with prior knowledge), and Nova Sonic
-needs HTTP/2 duplex. The AI SDK and AgentCore use HTTP/1.1. `emulates-bedrock serve` and
+needs HTTP/2 duplex. The AI SDK and AgentCore use HTTP/1.1. `mockingbird-bedrock serve` and
 `createServer` sniff each connection's first bytes and serve both on one port. (`serve
 --config` from another service's CLI, and `createRuntime` behind a plain Fetch server, speak
 HTTP/1.1 only — fine for the AI SDK, not for the SDK v3 Bedrock client.)
@@ -112,7 +112,7 @@ how many calls it answers.
   conversation starts over. `expectToolResult: {name}` makes a turn answer only when the last
   user message carries that tool's result. Nova Sonic counts answers within the session.
 - **A turn** is any of: `text` (streamed in `chunkSize`-character deltas, `delayMsPerChunk`
-  emulator-clock ms apart), `reasoning`, `toolUse` (`{name, input, toolUseId?}` or a list), `json`
+  mock-clock ms apart), `reasoning`, `toolUse` (`{name, input, toolUseId?}` or a list), `json`
   (structured output, rendered in the form the request asked for — see below), `guardrail`
   (`true` or `{text, trace}`: `guardrail_intervened` with Bedrock's refusal text and a trace),
   `toolResult` (harness), `userTranscript` (Nova Sonic), `stopReason`, `usage`, `fault`.
@@ -140,11 +140,11 @@ applies to every model and harness call in the calling namespace):
 | `mid_stream_throttling` | the same with a `throttlingException` frame |
 | `validation_exception` / `validation` | 400 `ValidationException` |
 | `max_tokens` | output cut in half, `stopReason: "max_tokens"` |
-| `latency` (`latencyMs`) | the response starts after 2 s on the emulator clock |
+| `latency` (`latencyMs`) | the response starts after 2 s on the mock clock |
 | `truncated_frame` | the stream stops half-way through a frame (both decoders throw) |
 | `model_timeout`, `service_unavailable`, `access_denied`, `internal_server` | 408 / 503 / 403 / 500 with the matching `x-amzn-ErrorType` |
 
-Chunk pacing and latency wait on the **emulator clock**: freeze it (`POST /__admin/clock
+Chunk pacing and latency wait on the **mock clock**: freeze it (`POST /__admin/clock
 {"freeze": true}`) and advance it to release each chunk, so time-to-first-token tests are exact.
 
 ### Admin (beyond the standard contract)
@@ -164,7 +164,7 @@ The request journal (`GET /__admin/requests`) records per call only `modelId`, `
 
 ### Namespaces
 
-`x-emulates-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or by credential: the SDKs
+`x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the endpoint URL, or by credential: the SDKs
 cannot add headers, so map each worker's access key id:
 `PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`.
 
@@ -182,13 +182,13 @@ cannot add headers, so map each worker's access key id:
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `BedrockAPI` | class | The in-process emulator: `fetch`, `reset`, `scripts()`, `putScripts(scripts, replace?)`, `removeScripts(id?)`, `stats()`. Options: `sqlite`, `now`, `namespace`, `settings`, `scripts`, `sleep`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, SigV4 credentials, presets, scripts). Options: `settings`, `scripts`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `BedrockAPI` | class | The in-process mock: `fetch`, `reset`, `scripts()`, `putScripts(scripts, replace?)`, `removeScripts(id?)`, `stats()`. Options: `sqlite`, `now`, `namespace`, `settings`, `scripts`, `sleep`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, SigV4 credentials, presets, scripts). Options: `settings`, `scripts`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `BEDROCK_PRESETS` | object | Every named fault preset. |
 | `BEDROCK_NAMESPACE` | string | The service name, `"bedrock"`. |
 | `bedrockError` | function | A Bedrock error response (`status`, `x-amzn-ErrorType`, `{message}`). |
 | `accessKeyCredential` | function | The SigV4 access key id of a request (how credentials map to namespaces). |
-| `clockSleep` | function | A sleep that waits on a (possibly frozen) emulator clock. |
+| `clockSleep` | function | A sleep that waits on a (possibly frozen) mock clock. |
 | `titanEmbedding` | function | The deterministic unit vector Titan answers with. |
 | `sampleSchema` | function | The minimal instance of a JSON Schema (the unscripted structured output). |
 | `parseScript` | function | Validate one script (what `PUT /__admin/scripts` runs). |
@@ -198,4 +198,4 @@ cannot add headers, so map each worker's access key id:
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT`, `listenH2c` (`./server`) | Node | Serve h2c + HTTP/1.1 on one port; the `serve` CLI target; port 8796; the dual-protocol listener for any Fetch handler. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

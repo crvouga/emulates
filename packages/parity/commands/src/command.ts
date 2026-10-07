@@ -1,20 +1,24 @@
-import { FORM_MEDIA_TYPE } from "@emulates/http-codec"
+import { FORM_MEDIA_TYPE } from "@crvouga/mockingbird-http-codec"
 import {
   collectPlaceholders,
   missingPlaceholder,
   refPlaceholder,
   scopePlaceholder,
-} from "@emulates/model"
-import type { OpenAPIDocument, ParameterObject, SchemaObject } from "@emulates/openapi"
-import { resolveSchema, walkSchema } from "@emulates/openapi"
+} from "@crvouga/mockingbird-model"
+import type { OpenAPIDocument, ParameterObject, SchemaObject } from "@crvouga/mockingbird-openapi"
+import { resolveSchema, walkSchema } from "@crvouga/mockingbird-openapi"
 import {
   invalidSchemaArbitrary,
   type Mutation,
   mutationSites,
   type Override,
   schemaArbitrary,
-} from "@emulates/openapi-arbitrary"
-import { parameterMetadata, type SchemaMetadata, schemaMetadata } from "@emulates/openapi-metadata"
+} from "@crvouga/mockingbird-openapi-arbitrary"
+import {
+  parameterMetadata,
+  type SchemaMetadata,
+  schemaMetadata,
+} from "@crvouga/mockingbird-openapi-metadata"
 import fc from "fast-check"
 import type { OperationPlan } from "./plan.js"
 
@@ -238,7 +242,7 @@ const PRODUCER_WEIGHT = 2
 export const referencedTypes = (command: LogicalCommand): string[] => {
   const types = new Set<string>()
   for (const placeholder of collectPlaceholders([command.parameters, command.body])) {
-    if (placeholder.$emulates === "ref") types.add(placeholder.type)
+    if (placeholder.$mockingbird === "ref") types.add(placeholder.type)
   }
   return [...types].sort()
 }
@@ -249,8 +253,8 @@ export const isEligible = (command: LogicalCommand, count: (type: string) => num
 
 const compact = (value: unknown) => {
   const text = JSON.stringify(value, (_, v: unknown) =>
-    typeof v === "object" && v !== null && "$emulates" in v
-      ? `<${(v as { $emulates: string }).$emulates}${"type" in v ? `:${String((v as { type: unknown }).type)}` : ""}${"pick" in v ? `#${String((v as { pick: unknown }).pick)}` : ""}>`
+    typeof v === "object" && v !== null && "$mockingbird" in v
+      ? `<${(v as { $mockingbird: string }).$mockingbird}${"type" in v ? `:${String((v as { type: unknown }).type)}` : ""}${"pick" in v ? `#${String((v as { pick: unknown }).pick)}` : ""}>`
       : v,
   )
   return text === undefined ? "" : text

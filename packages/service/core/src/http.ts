@@ -1,4 +1,4 @@
-import { JSON_MEDIA_TYPE } from "@emulates/http-codec"
+import { JSON_MEDIA_TYPE } from "@crvouga/mockingbird-http-codec"
 
 /** JSON response with a normalised content type. */
 export const jsonRes = (

@@ -5,7 +5,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { AIRTABLE_NAMESPACE, AirtableAPI, type AirtableAPIOptions } from "./index.js"
 export const AIRTABLE_PRESETS: Record<string, FaultPreset> = {

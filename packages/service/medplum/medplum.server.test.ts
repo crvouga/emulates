@@ -1,5 +1,5 @@
 /**
- * The Node entries: `createServer()` over `node:http`, and the `emulates-medplum serve`
+ * The Node entries: `createServer()` over `node:http`, and the `mockingbird-medplum serve`
  * CLI from the built `dist/cli.js`, driven over real sockets.
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
@@ -48,7 +48,7 @@ describe("createServer", () => {
 
 const cli = join(import.meta.dir, "dist", "cli.js")
 
-describe.skipIf(!existsSync(cli))("emulates-medplum serve", () => {
+describe.skipIf(!existsSync(cli))("mockingbird-medplum serve", () => {
   let child: ChildProcess
   let output = ""
   const port = 18000 + Math.floor(Math.random() * 1000)
@@ -84,7 +84,7 @@ describe.skipIf(!existsSync(cli))("emulates-medplum serve", () => {
       try {
         if (
           (await fetch(`http://127.0.0.1:${port}/__admin/health`)).ok &&
-          output.includes("emulator listening on")
+          output.includes("mock listening on")
         )
           return
       } catch {
@@ -100,7 +100,7 @@ describe.skipIf(!existsSync(cli))("emulates-medplum serve", () => {
   })
 
   test("announces the credentials it seeded", () => {
-    expect(output).toContain(`medplum emulator listening on http://127.0.0.1:${port}`)
+    expect(output).toContain(`medplum mock listening on http://127.0.0.1:${port}`)
     expect(output).toContain(
       "client credentials: 0b9e4a5c-0000-4000-8000-00000000c1d1 / cli-secret",
     )

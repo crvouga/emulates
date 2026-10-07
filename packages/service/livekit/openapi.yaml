@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: LiveKit Server API (Emulates subset)
+  title: LiveKit Server API (Mockingbird subset)
   version: "2.19.1"
   description: Twirp JSON room, participant, agent dispatch, egress, and SIP contract.
 servers:
@@ -12,7 +12,7 @@ paths:
       description: Agent dispatch with a signed roomAdmin JWT; protobuf JSON names accept snake_case or camelCase.
       security:
         - bearerAuth: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: false }
       requestBody:
@@ -37,7 +37,7 @@ paths:
       description: Agent dispatch with a signed roomAdmin JWT; protobuf JSON names accept snake_case or camelCase.
       security:
         - bearerAuth: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: true }
       requestBody:
@@ -62,7 +62,7 @@ paths:
       description: Agent dispatch with a signed roomAdmin JWT; protobuf JSON names accept snake_case or camelCase.
       security:
         - bearerAuth: []
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity: { enabled: true, safe: false }
       requestBody:
@@ -84,7 +84,7 @@ paths:
   /twirp/livekit.RoomService/{method}:
     post:
       operationId: RoomService
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - { name: method, in: path, required: true, schema: { type: string } }
         - { name: Authorization, in: header, required: true, schema: { type: string } }
@@ -95,7 +95,7 @@ paths:
   /twirp/livekit.Egress/{method}:
     post:
       operationId: EgressService
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - { name: method, in: path, required: true, schema: { type: string } }
       requestBody: { required: true, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -104,7 +104,7 @@ paths:
   /twirp/livekit.SIP/{method}:
     post:
       operationId: SipService
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
       parameters:
         - { name: method, in: path, required: true, schema: { type: string } }
       requestBody: { required: true, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
@@ -146,10 +146,10 @@ components:
         room: { $ref: "#/components/schemas/RoomName" }
         dispatchId:
           type: string
-          x-emulates-resource-ref: { type: agent_dispatch, missing: AD_missing }
+          x-mockingbird-resource-ref: { type: agent_dispatch, missing: AD_missing }
         dispatch_id:
           type: string
-          x-emulates-resource-ref: { type: agent_dispatch, missing: AD_missing }
+          x-mockingbird-resource-ref: { type: agent_dispatch, missing: AD_missing }
     DeleteDispatchRequest:
       allOf:
         - $ref: "#/components/schemas/ListDispatchRequest"
@@ -163,7 +163,7 @@ components:
       properties:
         id:
           type: string
-          x-emulates-resource: { type: agent_dispatch, identity: true }
+          x-mockingbird-resource: { type: agent_dispatch, identity: true }
         agentName: { type: string }
         room: { type: string }
         metadata: { type: string }
@@ -174,11 +174,11 @@ components:
             createdAt:
               type: string
               pattern: "^[0-9]+$"
-              x-emulates-volatile: { kind: timestamp }
+              x-mockingbird-volatile: { kind: timestamp }
             deletedAt:
               type: string
               pattern: "^[0-9]+$"
-              x-emulates-volatile: { kind: timestamp }
+              x-mockingbird-volatile: { kind: timestamp }
             jobs:
               type: array
               items: { $ref: "#/components/schemas/AgentJob" }

@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test"
-import { listOperations } from "@emulates/openapi"
-import { operationMetadata } from "@emulates/openapi-metadata"
-import { ParityError, parity } from "@emulates/parity"
-import { Database } from "@emulates/sqlite"
-import { fcParameters } from "@emulates/testing"
+import { listOperations } from "@crvouga/mockingbird-openapi"
+import { operationMetadata } from "@crvouga/mockingbird-openapi-metadata"
+import { ParityError, parity } from "@crvouga/mockingbird-parity"
+import { Database } from "@crvouga/mockingbird-service-sqlite"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import { document, StripeAPI } from "./src/index.js"
 
 const params = fcParameters(process.env)
 
 const MOCK_HOST = "mock.stripe.local"
-const AUTH = { authorization: "Bearer sk_test_emulates" }
+const AUTH = { authorization: "Bearer sk_test_mockingbird" }
 const now = () => 1_700_000_000_000
 
 /**
@@ -348,7 +348,7 @@ describe("StripeAPI", () => {
         const stripe = new StripeAPI({ sqlite, now })
         sqlite
           .prepare(
-            `INSERT INTO emulates_records (namespace, collection, id, seq, value)
+            `INSERT INTO mockingbird_records (namespace, collection, id, seq, value)
              VALUES ('other', 'keep', '1', 1, ?)`,
           )
           .run(JSON.stringify({ seq: 1, value: "keep" }))
@@ -372,7 +372,7 @@ describe("StripeAPI", () => {
         expect(gone.status).toBe(404)
         const other = sqlite
           .prepare(
-            "SELECT value FROM emulates_records WHERE namespace = 'other' AND collection = 'keep' AND id = '1'",
+            "SELECT value FROM mockingbird_records WHERE namespace = 'other' AND collection = 'keep' AND id = '1'",
           )
           .get<{ value: string }>()
         expect(other).toBeDefined()

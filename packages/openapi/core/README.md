@@ -1,13 +1,13 @@
-# @emulates/openapi
+# @crvouga/mockingbird-openapi
 
-> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-Dependency-free OpenAPI 3.0/3.1 toolkit used across Emulates: structural document validation, local `$ref` resolution, operation discovery, path templating, schema traversal, and JSON Schema instance validation. Use it directly when you need to inspect or validate an OpenAPI document or check a value against one of its schemas; if you only want parity testing, [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) uses it for you.
+Dependency-free OpenAPI 3.0/3.1 toolkit used across Mockingbird: structural document validation, local `$ref` resolution, operation discovery, path templating, schema traversal, and JSON Schema instance validation. Use it directly when you need to inspect or validate an OpenAPI document or check a value against one of its schemas; if you only want parity testing, [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) uses it for you.
 
 ## Install
 
 ```bash
-npm install @emulates/openapi
+npm install @crvouga/mockingbird-openapi
 ```
 
 ESM only, Node >= 22 or Bun >= 1.2. No runtime dependencies. Documents must be already-parsed objects (parse YAML yourself).
@@ -22,7 +22,7 @@ import {
   parseOpenAPIDocument,
   responseForStatus,
   validateValue,
-} from "@emulates/openapi"
+} from "@crvouga/mockingbird-openapi"
 
 // Throws OpenAPIDocumentError listing every problem (bad $ref, duplicate operationId, ...).
 const document = parseOpenAPIDocument({
@@ -72,7 +72,7 @@ Documents and operations:
 | Export | Signature | Description |
 | --- | --- | --- |
 | `parseOpenAPIDocument` | `(value: unknown) => OpenAPIDocument` | Checks `openapi` is 3.0.x/3.1.x, `info.title`/`info.version`, `paths`, then runs `validateOpenAPIDocument`. Throws `OpenAPIDocumentError`. |
-| `validateOpenAPIDocument` | `(document) => string[]` | Emulates rules: every `$ref` resolves, every operation has a unique `operationId` and at least one response, path template params and declared path params match and are `required`. Empty array when valid. |
+| `validateOpenAPIDocument` | `(document) => string[]` | Mockingbird's rules: every `$ref` resolves, every operation has a unique `operationId` and at least one response, path template params and declared path params match and are `required`. Empty array when valid. |
 | `OpenAPIDocumentError` | `class extends Error { issues: string[] }` | Thrown by `parseOpenAPIDocument`. |
 | `listOperations` | `(document) => Operation[]` | Every operation in path, then method order. Parameters are merged (operation wins over path item) and `$ref`s in parameters, request body and responses are resolved. Operations without `operationId` are skipped. |
 | `findOperation` | `(document, operationId) => Operation \| undefined` | Look up one operation. |
@@ -108,8 +108,8 @@ Exported types: `OpenAPIDocument`, `Operation` (`{ operationId, method, path, op
 
 ## Related
 
-- [`@emulates/openapi-metadata`](https://www.npmjs.com/package/@emulates/openapi-metadata) — reads the `x-emulates-*` extensions.
-- [`@emulates/openapi-arbitrary`](https://www.npmjs.com/package/@emulates/openapi-arbitrary) — fast-check arbitraries from schemas.
-- [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — differential parity runner.
+- [`@crvouga/mockingbird-openapi-metadata`](https://www.npmjs.com/package/@crvouga/mockingbird-openapi-metadata) — reads Mockingbird's `x-mockingbird-*` extensions.
+- [`@crvouga/mockingbird-openapi-arbitrary`](https://www.npmjs.com/package/@crvouga/mockingbird-openapi-arbitrary) — fast-check arbitraries from schemas.
+- [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) — differential parity runner.
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

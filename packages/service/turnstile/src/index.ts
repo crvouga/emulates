@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   bootSqlite,
@@ -10,7 +10,7 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 

@@ -1,8 +1,13 @@
-import type { DecodedBody } from "@emulates/http-codec"
-import { canonicalToken, type ResourceTable, type Side } from "@emulates/model"
-import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
-import { jsonTypeOf } from "@emulates/openapi"
-import { type Annotation, annotateValue, type JsonPath, pathKey } from "@emulates/openapi-metadata"
+import type { DecodedBody } from "@crvouga/mockingbird-http-codec"
+import { canonicalToken, type ResourceTable, type Side } from "@crvouga/mockingbird-model"
+import type { OpenAPIDocument, SchemaObject } from "@crvouga/mockingbird-openapi"
+import { jsonTypeOf } from "@crvouga/mockingbird-openapi"
+import {
+  type Annotation,
+  annotateValue,
+  type JsonPath,
+  pathKey,
+} from "@crvouga/mockingbird-openapi-metadata"
 
 /** One side of a differential comparison, already decoded. */
 export type Exchange = {

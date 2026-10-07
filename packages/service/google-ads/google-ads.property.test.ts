@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test"
-import { type JsonValue, listOperations } from "@emulates/openapi"
-import { operationMetadata } from "@emulates/openapi-metadata"
-import { ParityError, parity } from "@emulates/parity"
-import { fcParameters } from "@emulates/testing"
+import { type JsonValue, listOperations } from "@crvouga/mockingbird-openapi"
+import { operationMetadata } from "@crvouga/mockingbird-openapi-metadata"
+import { ParityError, parity } from "@crvouga/mockingbird-parity"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import { DEFAULT_TOKEN, document, GoogleAdsAPI } from "./src/index.js"
 
 const headers = () => ({ authorization: `Bearer ${DEFAULT_TOKEN}` })

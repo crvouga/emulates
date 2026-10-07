@@ -1,4 +1,4 @@
-import { extractCodes } from "@emulates/service"
+import { extractCodes } from "@crvouga/mockingbird-service"
 
 /**
  * How Mailosaur turns a raw message into the parsed `html` / `text` content its SDK models read:

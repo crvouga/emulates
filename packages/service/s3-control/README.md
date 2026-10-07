@@ -1,13 +1,13 @@
-# @emulates/s3-control
+# @crvouga/mockingbird-service-s3-control
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 Transport scaffold for Amazon S3 Control. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/s3-control/server"
+import { createServer } from "@crvouga/mockingbird-service-s3-control/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -32,7 +32,7 @@ No vendor operations are implemented. Requests fail explicitly with `UnknownOper
 ## Install
 
 ```sh
-bun add @emulates/s3-control
+bun add @crvouga/mockingbird-service-s3-control
 ```
 
 ## API

@@ -13,8 +13,8 @@ import {
   signers,
   type WebhookEndpoint,
   type WebhookHub,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { type InboundInput, RESEND_NAMESPACE, ResendAPI, type SendOutcomeEvent } from "./index.js"
 import type { SentEmail } from "./state.js"
@@ -132,7 +132,7 @@ export type ForwardTarget = {
   url: string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Its `x-emulates-admin-key`, when it has one. */
+  /** Its `x-mockingbird-admin-key`, when it has one. */
   adminKey?: string
   /** Give up on a forward after this long (the send still succeeds). Default 2000 ms. */
   timeoutMs?: number
@@ -158,8 +158,8 @@ export const forwardToInbox = async (
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-emulates-namespace": namespace,
-          ...(target.adminKey ? { "x-emulates-admin-key": target.adminKey } : {}),
+          "x-mockingbird-namespace": namespace,
+          ...(target.adminKey ? { "x-mockingbird-admin-key": target.adminKey } : {}),
         },
         body: JSON.stringify({
           from: email.from,
@@ -207,7 +207,7 @@ export type ResendRuntime = ServiceRuntime<ResendAPI> & {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 const isAddressList = (value: unknown) =>
@@ -284,7 +284,7 @@ const adminRoutes =
   })
 
 /**
- * The Resend emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
+ * The Resend mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<RESEND_API_KEY>": "<namespace>"}}`),
  * clock control, fault presets, an outbox, Svix-signed inbound webhooks and a request journal.

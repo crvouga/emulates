@@ -44,9 +44,9 @@ export const assertAdminPrefixAvailable = (prefix: string, paths: readonly strin
 }
 
 /** Carries the admin key, which is separate from any vendor credential. */
-export const ADMIN_KEY_HEADER = "x-emulates-admin-key"
+export const ADMIN_KEY_HEADER = "x-mockingbird-admin-key"
 /** Selects the isolated namespace a request reads and writes. */
-export const NAMESPACE_HEADER = "x-emulates-namespace"
+export const NAMESPACE_HEADER = "x-mockingbird-namespace"
 
 export type AdminRequest = {
   request: Request
@@ -124,7 +124,7 @@ const json = (status: number, body: unknown): Response =>
 
 /** Admin errors use one documented shape, distinct from any vendor's error body. */
 const adminError = (status: number, message: string): Response =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 
 const UNITS: Record<string, number> = {
   ms: 1,

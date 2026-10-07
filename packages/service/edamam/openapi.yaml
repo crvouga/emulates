@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Edamam APIs (Emulates subset)
+  title: Edamam APIs (Mockingbird subset)
   description: 'Stateful mock subset of Edamam''s Food Database v2 (parser, nutrients, image), Nutrition
     Analysis (nutrition-data, nutrition-details), Recipe Search v2 (search, by-uri, by id), Meal Planner
     v1 (select) and Shopping List v2, over a built-in corpus. Hand-authored from Edamam''s docs and the
@@ -8,7 +8,7 @@ info:
 
     '
   version: '2'
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     note: Edamam publishes per-API docs, no single OpenAPI; shapes trimmed to the fields our consumers
       read (zod schemas in edamam-nutrition.adapter.ts and edamam-meal-planning.schemas.ts).
 servers:
@@ -19,7 +19,7 @@ paths:
       operationId: FoodParser
       description: 'Parse a food description (`ingr`) or look up a barcode (`upc`): `parsed` (the best
         match with quantity and measure) and `hints` (every related food with its measures).'
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -132,7 +132,7 @@ paths:
     post:
       operationId: FoodNutrients
       description: Full nutrition for foods at given measures.
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -175,7 +175,7 @@ paths:
     post:
       operationId: FoodFromImage
       description: Recognise a plated meal from an image (beta).
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -225,7 +225,7 @@ paths:
     get:
       operationId: NutritionData
       description: Nutrition analysis of one ingredient line.
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -281,7 +281,7 @@ paths:
     post:
       operationId: NutritionDetails
       description: Nutrition analysis of a recipe (ingredient lines).
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -330,7 +330,7 @@ paths:
     get:
       operationId: RecipeSearch
       description: Recipe search v2 (20 per page, `_links.next` carries `_cont`).
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -492,7 +492,7 @@ paths:
     get:
       operationId: RecipesByUri
       description: Recipes by URI (up to 20 `uri` parameters).
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -546,7 +546,7 @@ paths:
     get:
       operationId: RecipeById
       description: One recipe (the `_links.self` target).
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -601,7 +601,7 @@ paths:
     post:
       operationId: MealPlanSelect
       description: Select recipes for `size` days of a plan (Basic auth plus app_id/app_key).
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -659,7 +659,7 @@ paths:
     post:
       operationId: ShoppingList
       description: Aggregate the ingredients of recipes into a shopping list (optionally a cart link).
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: true
@@ -895,7 +895,7 @@ components:
       properties:
         href:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: url
         title:
           type: string
@@ -986,7 +986,7 @@ components:
       properties:
         uri:
           type: string
-          x-emulates-volatile:
+          x-mockingbird-volatile:
             kind: id
         calories:
           type: number

@@ -1,30 +1,30 @@
-# @emulates/whoop
+# @crvouga/mockingbird-service-whoop
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP WHOOP v2 emulator for synthetic workout, sleep, recovery and cycle synchronization.
+WIP WHOOP v2 mock for synthetic workout, sleep, recovery and cycle synchronization.
 
 ## Install
 
-`bun add @emulates/whoop`
+`bun add @crvouga/mockingbird-service-whoop`
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulates/whoop"
+import { createRuntime } from "@crvouga/mockingbird-service-whoop"
 const runtime = createRuntime()
 const response = await runtime.fetch(new Request("http://whoop.test/developer/v2/activity/workout", {
   headers: { authorization: "Bearer mock_whoop_token" },
 }))
 ```
 
-Run `emulates-whoop serve --port 12129`. Inject the local origin plus `/developer` as the consumer API base, and the origin alone as OAuth base. Consumer endpoint wiring is separate from this emulator.
+Run `mockingbird-whoop serve --port 12129`. Inject the local origin plus `/developer` as the consumer API base, and the origin alone as OAuth base. Consumer endpoint wiring is separate from this mock.
 
 ## Routes and state
 
-POST `/oauth/oauth2/token` accepts form-encoded authorization-code or refresh-token grants with client credentials. Seed `clients`, `codes`, and `grants` via options or admin state. Default emulator client: `mock_client` / `mock_client_secret`; default bearer `mock_whoop_token` and refresh `mock_whoop_refresh`. The default grant has all four read scopes and `offline`. Codes bind client, optional redirect and optional S256 PKCE challenge. Codes are single-use, including concurrent exchanges. New tokens expire after 3600 seconds (`tokenTtlSeconds` is configurable). Refresh invalidates both old access and refresh tokens, keeps the same user/scopes, and issues a refresh token only for an offline grant.
+POST `/oauth/oauth2/token` accepts form-encoded authorization-code or refresh-token grants with client credentials. Seed `clients`, `codes`, and `grants` via options or admin state. Default mock client: `mock_client` / `mock_client_secret`; default bearer `mock_whoop_token` and refresh `mock_whoop_refresh`. The default grant has all four read scopes and `offline`. Codes bind client, optional redirect and optional S256 PKCE challenge. Codes are single-use, including concurrent exchanges. New tokens expire after 3600 seconds (`tokenTtlSeconds` is configurable). Refresh invalidates both old access and refresh tokens, keeps the same user/scopes, and issues a refresh token only for an offline grant.
 
-GET `/developer/v2/activity/workout`, `/developer/v2/activity/sleep`, `/developer/v2/recovery`, `/developer/v2/cycle` return `{records,next_token}`. `limit` defaults to 10, maximum 25; `nextToken` continues pages. Results sort newest start first; `start` includes equal timestamps, `end` excludes equal starts and defaults to emulator now. The collection time-window implementation uses start timestamps, including activities spanning the end instant. Scope names are `read:workout`, `read:sleep`, `read:recovery`, `read:cycles`.
+GET `/developer/v2/activity/workout`, `/developer/v2/activity/sleep`, `/developer/v2/recovery`, `/developer/v2/cycle` return `{records,next_token}`. `limit` defaults to 10, maximum 25; `nextToken` continues pages. Results sort newest start first; `start` includes equal timestamps, `end` excludes equal starts and defaults to mock now. The collection time-window implementation uses start timestamps, including activities spanning the end instant. Scope names are `read:workout`, `read:sleep`, `read:recovery`, `read:cycles`.
 
 Seed `records: [{key,userId,collection,data}]`; `data` is a synthetic provider-shaped record. **Recovery has `cycle_id` and `sleep_id`, not `id`, `start`, or `end`**: seed a matching sleep record to supply its time window. This corrects the issue's generic recovery field list using the official schema. Missing related-sleep fixtures are excluded. Cycle ids remain numbers; workout/sleep ids remain UUIDs. Metrics and score states are passed through, preserving null or absent metrics. Distinct storage keys can model duplicate vendor records. Cursor internals are local stand-ins; consumers must retain the same query while paginating.
 

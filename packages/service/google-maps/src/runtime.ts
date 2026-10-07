@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { type CorpusAddress, DEFAULT_CORPUS } from "./corpus.js"
 import { document } from "./generated/openapi.js"
 import { GOOGLE_MAPS_NAMESPACE, GoogleMapsAPI, keyCredential } from "./index.js"
@@ -145,7 +145,7 @@ export type GoogleMapsRuntime = ServiceRuntime<GoogleMapsAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -279,7 +279,7 @@ const adminRoutes = (runtime: ServiceRuntime<GoogleMapsAPI>): AdminRoutes => ({
 })
 
 /**
- * The Google Maps emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
+ * The Google Maps mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PLACES_KEY>": "<namespace>"}}`), clock control,
  * fault presets and a request journal. Google Maps sends no webhooks.

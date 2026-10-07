@@ -4,8 +4,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { accessKey, type PhotoFixture, UNSPLASH_NAMESPACE, UnsplashAPI } from "./index.js"
 export const UNSPLASH_PRESETS: Record<string, FaultPreset> = {

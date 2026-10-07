@@ -1,12 +1,12 @@
-# GitHub REST subset (Emulates) — operation support
+# GitHub REST subset (Mockingbird) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **9**
-- supported by the emulator: **9**
+- supported by the mock: **9**
 - parity enabled: **9**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `repos/get` | `GET /repos/{owner}/{repo}` | ✅ supported | ✅ |  |
 | `git/get-ref` | `GET /repos/{owner}/{repo}/git/ref/{ref}` | ✅ supported | ✅ |  |

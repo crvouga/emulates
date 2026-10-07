@@ -1,4 +1,4 @@
-import { CredentialError, loadCredentials } from "@emulates/credentials"
+import { CredentialError, loadCredentials } from "@crvouga/mockingbird-credentials"
 import { BrevoAPI } from "../src/index.js"
 
 let key: string
@@ -16,7 +16,7 @@ try {
   throw error
 }
 // Only a nonexistent synthetic address is queried; no contacts are created or changed.
-const path = "/v3/contacts/emulates-parity-nonexistent%40example.invalid?identifierType=email_id"
+const path = "/v3/contacts/mockingbird-parity-nonexistent%40example.invalid?identifierType=email_id"
 const live = await fetch(`https://api.brevo.com${path}`, { headers: { "api-key": key } })
 const mock = await new BrevoAPI().fetch(
   new Request(`http://brevo.test${path}`, { headers: { "api-key": "mock_brevo_key" } }),

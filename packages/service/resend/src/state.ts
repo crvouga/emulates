@@ -1,5 +1,5 @@
-import { Collection, IdempotencyStore, IdSequence, OutboxStore } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdempotencyStore, IdSequence, OutboxStore } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /**
  * One email the app "sent" (`POST /emails`): what `GET /__admin/outbox` returns. `to`, `cc` and

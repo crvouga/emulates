@@ -7,7 +7,7 @@ const result = await build({
   entryPoints: ["src/browser.tsx"],
   bundle: true,
   format: "iife",
-  globalName: "EmulatesAdmin",
+  globalName: "MockingbirdAdmin",
   platform: "browser",
   target: "es2022",
   jsx: "automatic",

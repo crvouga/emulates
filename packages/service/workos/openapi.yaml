@@ -6,7 +6,7 @@ paths:
   /user_management/authorize:
     get:
       operationId: Authorize
-      x-emulates:
+      x-mockingbird:
         parity: { enabled: false, reason: Browser redirect requires registered client and callback, safe: false }
       parameters:
         - { name: client_id, in: query, required: true, schema: { type: string } }
@@ -24,7 +24,7 @@ paths:
   /user_management/authenticate:
     post:
       operationId: Authenticate
-      x-emulates: { parity: { safe: false } }
+      x-mockingbird: { parity: { safe: false } }
       requestBody:
         required: true
         content:
@@ -50,8 +50,8 @@ paths:
                 required: [user, access_token, refresh_token]
                 properties:
                   user: { $ref: '#/components/schemas/User' }
-                  access_token: { type: string, x-emulates-volatile: { kind: token } }
-                  refresh_token: { type: string, x-emulates-volatile: { kind: token } }
+                  access_token: { type: string, x-mockingbird-volatile: { kind: token } }
+                  refresh_token: { type: string, x-mockingbird-volatile: { kind: token } }
                   organization_id: { type: string }
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
@@ -96,7 +96,7 @@ paths:
                 type: object
                 required: [keys]
                 properties:
-                  keys: { type: array, items: { type: object, x-emulates-volatile: { kind: opaque } } }
+                  keys: { type: array, items: { type: object, x-mockingbird-volatile: { kind: opaque } } }
         '404': { $ref: '#/components/responses/Error' }
 components:
   responses:
@@ -111,11 +111,11 @@ components:
       required: [object, id, email, first_name, last_name, metadata, email_verified, created_at, updated_at]
       properties:
         object: { type: string, enum: [user] }
-        id: { type: string, x-emulates-resource: { type: user, identity: true } }
+        id: { type: string, x-mockingbird-resource: { type: user, identity: true } }
         email: { type: string }
         first_name: { type: [string, 'null'] }
         last_name: { type: [string, 'null'] }
         metadata: { type: object, additionalProperties: { type: string } }
         email_verified: { type: boolean }
-        created_at: { type: string, x-emulates-volatile: { kind: timestamp } }
-        updated_at: { type: string, x-emulates-volatile: { kind: timestamp } }
+        created_at: { type: string, x-mockingbird-volatile: { kind: timestamp } }
+        updated_at: { type: string, x-mockingbird-volatile: { kind: timestamp } }

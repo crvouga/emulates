@@ -954,7 +954,7 @@ function cloneState(state: ProcessingState): ProcessingState {
   };
 }
 
-// Emulates: portable replacement for `Buffer.from(data, 'base64').toString('utf8')`.
+// Mockingbird: portable replacement for `Buffer.from(data, 'base64').toString('utf8')`.
 function decodeBase64Utf8(data: string): string {
   const binary = atob(data);
   const bytes = new Uint8Array(binary.length);

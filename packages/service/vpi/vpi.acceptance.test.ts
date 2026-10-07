@@ -545,7 +545,7 @@ describe("served over HTTP", () => {
       expect(shipped?.fulfillmentStatus).toBe("shipped")
       expect(shipped?.trackingNumber).toMatch(/^1Z/)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulates")).toMatch(/^vpi@/)
+      expect(health.headers.get("x-mockingbird")).toMatch(/^vpi@/)
     } finally {
       await server.close()
     }

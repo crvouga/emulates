@@ -2,7 +2,7 @@
  * Restrictions the Junction sandbox imposes that production does not. The mock exists
  * to escape them, so every one is off unless a suite asks for it.
  */
-import { HttpError } from "@emulates/service"
+import { HttpError } from "@crvouga/mockingbird-service"
 
 /** Key prefixes of sandbox team keys. `corpus pull` and `verify` refuse any other key. */
 export const SANDBOX_KEY_PREFIXES = ["sk_us_", "sk_eu_"] as const

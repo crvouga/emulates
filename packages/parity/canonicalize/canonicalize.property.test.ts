@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { canonicalToken, ResourceTable } from "@emulates/model"
-import type { OpenAPIDocument, SchemaObject } from "@emulates/openapi"
-import { fcParameters } from "@emulates/testing"
+import { canonicalToken, ResourceTable } from "@crvouga/mockingbird-model"
+import type { OpenAPIDocument, SchemaObject } from "@crvouga/mockingbird-openapi"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   canonicalizeExchange,
@@ -25,12 +25,12 @@ const document: OpenAPIDocument = {
       customer: {
         type: "object",
         properties: {
-          id: { type: "string", "x-emulates-resource": { type: "customer", identity: true } },
-          created: { type: "integer", "x-emulates-volatile": { kind: "timestamp" } },
+          id: { type: "string", "x-mockingbird-resource": { type: "customer", identity: true } },
+          created: { type: "integer", "x-mockingbird-volatile": { kind: "timestamp" } },
           name: { type: ["string", "null"] },
           default_price: {
             type: ["string", "null"],
-            "x-emulates-resource": { type: "price", identity: true },
+            "x-mockingbird-resource": { type: "price", identity: true },
           },
         },
       } as SchemaObject,

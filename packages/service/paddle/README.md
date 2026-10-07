@@ -1,38 +1,38 @@
-# @emulates/paddle
+# @crvouga/mockingbird-service-paddle
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful emulator of the **Paddle Billing** API for test suites. Customers, addresses, businesses,
+Stateful mock of the **Paddle Billing** API for test suites. Customers, addresses, businesses,
 products and prices behave as Paddle's do (validation, `invalid_field` errors, `include=`,
 cursor pagination). Transactions carry **computed totals**. Subscriptions are created the way
-Paddle creates them, when a transaction with recurring prices is paid, and the emulator's admin
+Paddle creates them, when a transaction with recurring prices is paid, and the mock's admin
 routes stand in for the hosted checkout and the billing engine: **pay a transaction, complete a
 checkout in one call, run a renewal, fail a payment**. Every change produces the event Paddle
 would emit, listed at `GET /events` and delivered as a `Paddle-Signature` webhook that the
 official SDK's `paddle.webhooks.unmarshal` verifies.
 
-- Operation coverage: [SUPPORT.md](https://github.com/crvouga/emulates/blob/main/packages/service/paddle/SUPPORT.md)
+- Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/paddle/SUPPORT.md)
 - `openapi.yaml` is hand-authored from Paddle's API reference and the wire types of
   `@paddle/paddle-node-sdk@3.10.0`.
 
 ## Install
 
 ```bash
-npm install -D @emulates/paddle
+npm install -D @crvouga/mockingbird-service-paddle
 ```
 
 ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
-`npx emulates-paddle serve`, `createServer` from `./server` (Node), or `createRuntime` with
+`npx mockingbird-paddle serve`, `createServer` from `./server` (Node), or `createRuntime` with
 any Fetch server.
 
 ## Usage
 
 The SDK maps `environment` to a base URL and otherwise uses the value verbatim, so point it at
-the emulator by passing the emulator's URL as the environment. Give the app the same `pdl_ntfset_…`
+the mock by passing the mock's URL as the environment. Give the app the same `pdl_ntfset_…`
 secret as `--webhook-secret`.
 
 ```bash
-npx emulates-paddle serve --port 8795 --fixtures \
+npx mockingbird-paddle serve --port 8795 --fixtures \
   --webhook-url http://127.0.0.1:3000/webhooks/paddle \
   --webhook-secret "$PADDLE_WEBHOOK_SECRET" \
   --payment-link https://pay.example.com/checkout
@@ -40,7 +40,7 @@ PADDLE_API_BASE_URL=http://127.0.0.1:8795 node app.js
 ```
 
 ```js
-import { createServer } from "@emulates/paddle/server"
+import { createServer } from "@crvouga/mockingbird-service-paddle/server"
 import { Paddle } from "@paddle/paddle-node-sdk"
 
 const mock = await createServer({ paymentLink: "https://pay.example.com/checkout" })
@@ -74,7 +74,7 @@ await mock.close()
 Without the SDK, the same over HTTP:
 
 ```ts
-import { createServer } from "@emulates/paddle/server"
+import { createServer } from "@crvouga/mockingbird-service-paddle/server"
 
 const mock = await createServer({ fixtures: true })
 const headers = { authorization: "Bearer pdl_sdbx_apikey_test", "content-type": "application/json" }
@@ -112,7 +112,7 @@ transactions 30; more than the maximum gets the maximum, as Paddle documents) an
 | `PATCH /transactions/{id}` | `draft` and `ready` transactions take every create field again (totals are recomputed); `billed` and `past_due` ones only `{status: "canceled"}`; anything else is 400 `transaction_immutable`. |
 | `POST /transactions/preview` | Totals for `{items, customer_id?, address_id?, currency_code?, address?: {country_code}}` without storing anything (non-catalog `price` objects are priced, not created); `include_in_totals: false` items are listed, not summed. |
 | `GET /transactions/{id}/invoice` | `{url}` for `billed`, `paid` and `completed` transactions; else 400 `transaction_invoice_not_available`. |
-| `GET /subscriptions`, `GET /subscriptions/{id}` | Filters: `id`, `customer_id`, `address_id`, `price_id`, `status`, `collection_mode`, `scheduled_change_action`; `include=next_transaction,recurring_transaction_details` embeds the previews. `management_urls` are placeholder links on the emulator's origin. |
+| `GET /subscriptions`, `GET /subscriptions/{id}` | Filters: `id`, `customer_id`, `address_id`, `price_id`, `status`, `collection_mode`, `scheduled_change_action`; `include=next_transaction,recurring_transaction_details` embeds the previews. `management_urls` are placeholder links on the mock's origin. |
 | `PATCH /subscriptions/{id}` | `custom_data`, `next_billed_at`, `collection_mode` + `billing_details`, `customer_id`/`address_id`/`business_id`, `scheduled_change: null` (removes a scheduled pause or cancel), and `items` with a required `proration_billing_mode`: `*_immediately` modes bill what the change adds (new prices, quantity increases) in full at once as a `subscription_update` transaction, with no proration and no credit for what it removes; the other modes bill nothing now. Canceled subscriptions are 400 `subscription_update_when_canceled`. |
 | `POST /subscriptions/{id}/activate` | `trialing` → `active`: bills the first period now and starts the billing cycle. |
 | `POST /subscriptions/{id}/pause` | `{effective_from?: next_billing_period (default) \| immediately, resume_at?}`. Scheduled: `scheduled_change: {action: "pause", effective_at: next_billed_at}`. Immediate: `paused`, `paused_at`, no `next_billed_at`; with `resume_at` a `resume` change is scheduled. |
@@ -166,7 +166,7 @@ Types: `customer|address|business|product|price.created|updated`, `transaction.c
 billed|paid|completed|canceled|payment_failed|past_due|updated`, `subscription.created|
 activated|trialing|updated|paused|resumed|canceled|past_due`. Each delivery carries
 `Paddle-Signature: ts=<unix seconds>;h1=<hex HMAC-SHA256(secret, "<ts>:<raw body>")>` with a
-wall-clock `ts` (even when the emulator clock moves), which `paddle.webhooks.unmarshal(body,
+wall-clock `ts` (even when the mock clock moves), which `paddle.webhooks.unmarshal(body,
 secret, signature)` and `isSignatureValid` accept. Non-2xx answers are retried (immediately,
 5 s, 5 min, 30 min, 2 h). `GET /__admin/webhooks`, `…/events`, `…/flush`, `…/:id/replay` and
 `PUT /__admin/webhook-endpoints` (per-namespace receivers, `events: ["subscription.*"]`-style
@@ -183,7 +183,7 @@ answers 500 `internal_error`), `bad_gateway_html` (reads answer a 502 HTML page)
 
 `new Paddle(key)` cannot add a namespace header on its own (it can with `customHeaders`), so
 map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_API_KEY>":
-"<namespace>"}}`. Also `x-emulates-namespace`, or a `/__admin/ns/<name>` prefix on the base URL
+"<namespace>"}}`. Also `x-mockingbird-namespace`, or a `/__admin/ns/<name>` prefix on the base URL
 (`meta.pagination.next` keeps it).
 
 ### Deliberately not modelled
@@ -197,7 +197,7 @@ map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_
 - **The hosted checkout, customer portal and Paddle.js.** `checkout.url` and `management_urls`
   are links, not pages; `POST /__admin/checkout` and `…/pay` replace the checkout.
 - **Payment methods and payment method changes**, payouts, reports, simulations, notification
-  settings through the API (endpoints are configured on the emulator), invoice revisions, the
+  settings through the API (endpoints are configured on the mock), invoice revisions, the
   `imported` events, API key events and client tokens.
 - **Time.** Nothing renews on its own: call `…/renew` (or `…/payment-failed`) when the test's
   clock reaches `next_billed_at`. Retry schedules for past-due subscriptions are not modelled.
@@ -208,8 +208,8 @@ map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PaddleAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `events()`, `state`, and the billing methods the admin routes call: `createCustomer`, `createAddress`, `createBusiness`, `createProduct`, `createPrice`, `createTransaction`, `payTransaction`, `checkout`, `renewSubscription`, `failPayment`, `seedFixtures`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `paymentLink`, `onEvent`, `fixtures`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, `Paddle-Signature` webhooks, checkout and billing routes). Options: `webhooks: {url, secret, events?, retryDelaysMs?, fetch?}`, `paymentLink`, `fixtures`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `PaddleAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `events()`, `state`, and the billing methods the admin routes call: `createCustomer`, `createAddress`, `createBusiness`, `createProduct`, `createPrice`, `createTransaction`, `payTransaction`, `checkout`, `renewSubscription`, `failPayment`, `seedFixtures`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `paymentLink`, `onEvent`, `fixtures`. |
+| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, `Paddle-Signature` webhooks, checkout and billing routes). Options: `webhooks: {url, secret, events?, retryDelaysMs?, fetch?}`, `paymentLink`, `fixtures`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `paddleSigner` | function | The `Paddle-Signature` webhook signer (`ts=…;h1=…`). |
 | `PADDLE_PRESETS` | object | Every named fault preset. |
 | `PADDLE_NAMESPACE` | string | The service name, `"paddle"`. |
@@ -220,4 +220,4 @@ map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--webhook-url`, `--webhook-secret`, `--payment-link`, `--fixtures`); port 8795. |
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

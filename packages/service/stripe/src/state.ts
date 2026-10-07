@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 export type Metadata = Record<string, string>
 
@@ -817,7 +817,7 @@ export class StripeState {
   accounts(account?: string): AccountState[] {
     if (account !== undefined) return [this.for(account)]
     const stored = this.sqlite
-      .prepare("SELECT DISTINCT collection FROM emulates_records WHERE namespace = ?")
+      .prepare("SELECT DISTINCT collection FROM mockingbird_records WHERE namespace = ?")
       .all<{ collection: string }>(this.namespace)
       .map((row) => row.collection.split("@")[1])
       .filter((name): name is string => name !== undefined && name !== "")
@@ -832,10 +832,10 @@ export class StripeState {
   importFrom(source: StripeState): void {
     for (const partition of source.accounts()) this.for(partition.account).importFrom(partition)
     const sequences = source.sqlite
-      .prepare("SELECT name, kind, value FROM emulates_sequences WHERE namespace = ?")
+      .prepare("SELECT name, kind, value FROM mockingbird_sequences WHERE namespace = ?")
       .all<{ name: string; kind: string; value: number }>(source.namespace)
     const upsert = this.sqlite.prepare(
-      `INSERT INTO emulates_sequences (namespace, name, kind, value) VALUES (?, ?, ?, ?)
+      `INSERT INTO mockingbird_sequences (namespace, name, kind, value) VALUES (?, ?, ?, ?)
        ON CONFLICT(namespace, name, kind) DO UPDATE SET value = excluded.value`,
     )
     for (const sequence of sequences)
@@ -844,7 +844,7 @@ export class StripeState {
 
   async requestLogUrl() {
     const id = this.ids.next("req_")
-    return `https://dashboard.stripe.com/acct_emulates/test/workbench/logs?object=${id}`
+    return `https://dashboard.stripe.com/acct_mockingbird/test/workbench/logs?object=${id}`
   }
 }
 

@@ -1,4 +1,4 @@
-import { jsonRes } from "@emulates/service"
+import { jsonRes } from "@crvouga/mockingbird-service"
 import type {
   CommissionBatch,
   CommissionRecord,

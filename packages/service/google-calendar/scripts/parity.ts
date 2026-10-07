@@ -12,8 +12,8 @@
  * test account. The walk's own token-endpoint calls use mock-only codes, so on the real side
  * they exercise Google's invalid_grant answers.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, GoogleCalendarAPI, issueAccessToken } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

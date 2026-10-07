@@ -1,4 +1,4 @@
-import { loadCredentials } from "@emulates/credentials"
+import { loadCredentials } from "@crvouga/mockingbird-credentials"
 
 const credentials = await loadCredentials(
   {

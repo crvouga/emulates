@@ -1,16 +1,16 @@
-# @emulates/canonicalize
+# @crvouga/mockingbird-canonicalize
 
-> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-Strict, provider-neutral canonicalization of HTTP exchanges for differential comparison. It rewrites resource ids to symbolic tokens (`resource:customer:1`), collapses fields the spec marks volatile (`volatile:timestamp:integer`), keeps only declared parity headers, and reports a strict structural diff. You only need this directly if you are building your own differential runner — [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) uses it for you.
+Strict, provider-neutral canonicalization of HTTP exchanges for differential comparison. It rewrites resource ids to symbolic tokens (`resource:customer:1`), collapses fields the spec marks volatile (`volatile:timestamp:integer`), keeps only declared parity headers, and reports a strict structural diff. You only need this directly if you are building your own differential runner — [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) uses it for you.
 
 ## Install
 
 ```bash
-npm install -D @emulates/canonicalize
+npm install -D @crvouga/mockingbird-canonicalize
 ```
 
-ESM only, Node >= 22 or Bun >= 1.2. Exchanges carry bodies decoded by `readBody` from [`@emulates/http-codec`](https://www.npmjs.com/package/@emulates/http-codec).
+ESM only, Node >= 22 or Bun >= 1.2. Exchanges carry bodies decoded by `readBody` from [`@crvouga/mockingbird-http-codec`](https://www.npmjs.com/package/@crvouga/mockingbird-http-codec).
 
 ## Usage
 
@@ -21,16 +21,16 @@ import {
   type Exchange,
   formatDifference,
   structuralDiff,
-} from "@emulates/canonicalize"
-import { ResourceTable, type Side } from "@emulates/model"
-import { parseOpenAPIDocument, type SchemaObject } from "@emulates/openapi"
+} from "@crvouga/mockingbird-canonicalize"
+import { ResourceTable, type Side } from "@crvouga/mockingbird-model"
+import { parseOpenAPIDocument, type SchemaObject } from "@crvouga/mockingbird-openapi"
 
 const document = parseOpenAPIDocument({ openapi: "3.1.0", info: { title: "t", version: "1" }, paths: {} })
 const schema: SchemaObject = {
   type: "object",
   properties: {
-    id: { type: "string", "x-emulates-resource": { type: "customer", identity: true } },
-    created: { type: "integer", "x-emulates-volatile": { kind: "timestamp" } },
+    id: { type: "string", "x-mockingbird-resource": { type: "customer", identity: true } },
+    created: { type: "integer", "x-mockingbird-volatile": { kind: "timestamp" } },
     url: { type: "string" },
     balance: { type: "integer" },
   },
@@ -75,14 +75,14 @@ for (const difference of differences) console.log(formatDifference(difference))
 | `formatDifference` | `(difference, labels = ["real", "mock"]) => string` | One line such as `$.body.value.balance: real=0 mock=1`. |
 | `formatPath` | `(path: JsonPath) => string` | `$`, `$.a[0].b`. |
 
-`CanonicalizeOptions`: `document`, `schema` (response schema for this status/media type; without one every value is compared strictly), `parityHeaders` (lower-cased header names that take part — see `x-emulates-parity-header` / `parityHeaders()` in `@emulates/openapi-metadata`), `side` (`"real" | "mock"`), `table` (`ResourceTable`).
+`CanonicalizeOptions`: `document`, `schema` (response schema for this status/media type; without one every value is compared strictly), `parityHeaders` (lower-cased header names that take part — see `x-mockingbird-parity-header` / `parityHeaders()` in `@crvouga/mockingbird-openapi-metadata`), `side` (`"real" | "mock"`), `table` (`ResourceTable`).
 
 Exported types: `Exchange` (`{ status; headers (lower-cased); body: DecodedBody }`), `CanonicalExchange`, `CanonicalBody` (`empty | json | form | text | bytes | invalid`), `CanonicalizeOptions`, `DiscoveredIdentity` (`{ path; type; real; mock }`), `Difference` (`type | value | length | missing-left | missing-right`, each with a `path`).
 
 ## Related
 
-- [`@emulates/model`](https://www.npmjs.com/package/@emulates/model) — `ResourceTable`.
-- [`@emulates/openapi-metadata`](https://www.npmjs.com/package/@emulates/openapi-metadata) — the `x-emulates-resource` / `x-emulates-volatile` annotations this reads.
-- [`@emulates/parity`](https://www.npmjs.com/package/@emulates/parity) — the runner.
+- [`@crvouga/mockingbird-model`](https://www.npmjs.com/package/@crvouga/mockingbird-model) — `ResourceTable`.
+- [`@crvouga/mockingbird-openapi-metadata`](https://www.npmjs.com/package/@crvouga/mockingbird-openapi-metadata) — the `x-mockingbird-resource` / `x-mockingbird-volatile` annotations this reads.
+- [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) — the runner.
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

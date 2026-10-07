@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-infisical",
-    description: "Infisical machine identity and secret API emulator",
+    bin: "mockingbird-infisical",
+    description: "stateful Infisical machine identity and secret API mock",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

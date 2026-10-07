@@ -1,12 +1,12 @@
-# Twilio Verify, Lookup, Messaging and Recordings (Emulates subset) — operation support
+# Twilio Verify, Lookup, Messaging and Recordings (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **11**
-- supported by the emulator: **11**
+- supported by the mock: **11**
 - parity enabled: **11**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `FetchPhoneNumber` | `GET /lookups/v2/PhoneNumbers/{PhoneNumber}` | ✅ supported | ✅ |  |
 | `CreateVerification` | `POST /verify/v2/Services/{ServiceSid}/Verifications` | ✅ supported | ⚠️ unsafe (opt-in) |  |

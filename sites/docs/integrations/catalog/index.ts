@@ -3,17 +3,17 @@ import type { AstroIntegration } from "astro"
 import type { Catalog } from "../../src/lib/types.ts"
 import { type CatalogPaths, loadCatalog, watchedFiles } from "./load.ts"
 
-const CATALOG_ID = "virtual:emulates/catalog"
-const EXAMPLES_ID = "virtual:emulates/examples"
-const RUNTIMES_ID = "virtual:emulates/runtimes"
+const CATALOG_ID = "virtual:mockingbird/catalog"
+const EXAMPLES_ID = "virtual:mockingbird/examples"
+const RUNTIMES_ID = "virtual:mockingbird/runtimes"
 
 /**
  * Reads the service packages (package.json, README.md and the built module) at build time and
  * exposes them as virtual modules. Nothing the site shows is copied or hand-maintained.
  *
- * - `virtual:emulates/catalog`: the whole catalog, for pages (server side only).
- * - `virtual:emulates/runtimes`: a lazy `import()` per service, so each
- *   emulator becomes its own chunk that loads only when a playground starts it.
+ * - `virtual:mockingbird/catalog`: the whole catalog, for pages (server side only).
+ * - `virtual:mockingbird/runtimes`: a lazy `import()` per service, so each
+ *   mock becomes its own chunk that loads only when a playground starts it.
  */
 export function catalog(paths: CatalogPaths): AstroIntegration {
   let cached: Promise<Catalog> | undefined
@@ -23,7 +23,7 @@ export function catalog(paths: CatalogPaths): AstroIntegration {
   }
 
   const plugin = {
-    name: "emulates-catalog",
+    name: "mockingbird-catalog",
     resolveId(id: string) {
       return id === CATALOG_ID || id === RUNTIMES_ID || id === EXAMPLES_ID ? `\0${id}` : undefined
     },
@@ -80,7 +80,7 @@ export function catalog(paths: CatalogPaths): AstroIntegration {
   }
 
   return {
-    name: "emulates-catalog",
+    name: "mockingbird-catalog",
     hooks: {
       "astro:config:setup": ({ updateConfig }) => {
         updateConfig({ vite: { plugins: [plugin] } })

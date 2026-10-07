@@ -2,18 +2,16 @@
  * Trusted Publisher health for every npm package associated with this repo.
  *
  * Association is the logged-in account's packages whose registry repository is
- * crvouga/emulates (or a former name, crvouga/emulators or crvouga/mockingbird),
- * plus every public workspace package (including one that is not on npm yet).
- * npm can only record a publisher on a package that already exists, and direct
- * `npm publish` from this repo's Release workflow needs a GitHub Actions publisher
- * for crvouga/emulates, workflow ci.yml, with no
+ * crvouga/mockingbird, plus every public workspace package (including one that
+ * is not on npm yet). npm can only record a publisher on a package that already
+ * exists, and direct `npm publish` from this repo's Release workflow needs a
+ * GitHub Actions publisher for crvouga/mockingbird, workflow ci.yml, with no
  * environment and permission to publish (not stage-only). The fix is the
  * package access page.
  */
 import { existsSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
-import { project } from "../../project.ts"
 import { discoverPackages, REPO, root, WORKFLOW_FILE } from "../release/lib.ts"
 import type { HealthFinding, HealthGroup, HealthReport } from "./report.ts"
 import { promptWebAuth, type WebChallenge, webChallenge } from "./web-auth.ts"
@@ -46,7 +44,7 @@ export type PackageTrust = {
 export type PublisherGap = "missing" | "stage-only" | "environment" | "not-published"
 
 const GAP_SUMMARY: Record<PublisherGap, string> = {
-  missing: `No GitHub Actions publisher for ${REPO} ${WORKFLOW_FILE}. On the access page add one and allow npm publish. Organization ${REPO.split("/")[0]}, repository ${REPO.split("/")[1]}, workflow filename ${WORKFLOW_FILE}, environment empty.`,
+  missing: `No GitHub Actions publisher for ${REPO} ${WORKFLOW_FILE}. On the access page add one and allow npm publish. Organization crvouga, repository mockingbird, workflow filename ci.yml, environment empty.`,
   "stage-only":
     "GitHub Actions publisher does not allow npm publish (stage only). On the access page, allow npm publish.",
   environment:
@@ -64,16 +62,13 @@ export function registryPackagePath(name: string): string {
   return name.replaceAll("/", "%2f")
 }
 
-/** Former GitHub names for this repo. Older packages still declare them. */
-const FORMER_REPOSITORIES = ["crvouga/emulators", "crvouga/mockingbird"] as const
-
 /**
- * `github.com/crvouga/emulates` or `github:crvouga/emulates`, plus {@link FORMER_REPOSITORIES},
- * including `.git` and a trailing path. A longer repo name such as `emulates-extra` does not match.
+ * `github.com/crvouga/mockingbird` or `github:crvouga/mockingbird`, including
+ * `.git` and a trailing path. A longer repo name such as `mockingbird-extra`
+ * does not match.
  */
-const PROJECT_REPOSITORY = new RegExp(
-  `(?:^|[/:@])(?:github\\.com[:/]|github:)(?:${[REPO, ...FORMER_REPOSITORIES].map((r) => r.replace("/", "\\/")).join("|")})(?:\\.git)?(?=$|[/#?])`,
-)
+const PROJECT_REPOSITORY =
+  /(?:^|[/:@])(?:github\.com[:/]|github:)crvouga\/mockingbird(?:\.git)?(?=$|[/#?])/
 
 function repositoryText(repository: unknown): string | undefined {
   if (typeof repository === "string") return repository
@@ -90,13 +85,9 @@ export function repositoryMatchesProject(repository: unknown): boolean {
   return text !== undefined && PROJECT_REPOSITORY.test(text.trim())
 }
 
-/** Names this repo publishes (`@emulates/…`) or used to publish (`@crvouga/mockingbird…`). */
+/** Names this repo publishes or used to publish (`@crvouga/mockingbird` and `-…`). */
 export function isProjectPackageName(name: string): boolean {
-  return (
-    name.startsWith(`${project.npmScope}/`) ||
-    name === "@crvouga/mockingbird" ||
-    name.startsWith("@crvouga/mockingbird-")
-  )
+  return name === `@${REPO}` || name.startsWith(`@${REPO}-`)
 }
 
 export type AccountPackument = {

@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { sha256 } from "@noble/hashes/sha2.js"
 export const DEFAULT_TOKEN = "vercel_blob_rw_fixture_fixture"
 export const DEFAULT_STORE_ID = "fixture"

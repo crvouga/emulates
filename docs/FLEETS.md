@@ -1,6 +1,6 @@
 # Fleets
 
-One service CLI can supervise installed HTTP emulators, PostgreSQL wire servers and Redis RESP
+One service CLI can supervise installed HTTP mocks, PostgreSQL wire servers and Redis RESP
 servers. Every listener starts before readiness is published; a boot failure names the service,
 closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes the whole fleet.
 
@@ -23,16 +23,16 @@ closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes 
 ```
 
 ```sh
-emulates-stripe serve --config emulates.json --ready-file ready.json --ready-json
+mockingbird-stripe serve --config mockingbird.json --ready-file ready.json --ready-json
 ```
 
 Set top-level `adminPrefix` (default `/__admin`) to move the aggregate API and all
 HTTP children together. A service entry may override `adminPrefix`. CLI
-`--admin-prefix` and `EMULATES_ADMIN_PREFIX` also apply; ready manifests always
+`--admin-prefix` and `MOCKINGBIRD_ADMIN_PREFIX` also apply; ready manifests always
 report the actual URLs. Aggregate controls are under `<adminPrefix>/fleet`, and
 readiness is `<adminPrefix>/health`. Old `/__fleet` and `/health` routes are removed.
 
-HTTP namespace selection uses `x-emulates-namespace` or `/__admin/ns/{name}`. Protocol namespaces
+HTTP namespace selection uses `x-mockingbird-namespace` or `/__admin/ns/{name}`. Protocol namespaces
 must be declared in the config; each gets its own engine and listener. Use the URL from
 `services[name].namespaces.endpoints[namespace]`. This isolates scripts, Pub/Sub, faults and
 clocks as well as records. Within one Redis endpoint, `SELECT` retains Redis's logical-database
@@ -54,12 +54,12 @@ Public URLs omit passwords. `--connections-file private.json` writes credential-
 connection URLs to a separate file, atomically and with mode 0600. Keep configuration and this
 private payload outside tracked files. PostgreSQL accepts `user`, `password` and `database`;
 Redis accepts `password`. Protocol seeds are numeric. An admin key belongs in the config's
-`adminKey` field or `EMULATES_ADMIN_KEY`; it is never part of discovery.
+`adminKey` field or `MOCKINGBIRD_ADMIN_KEY`; it is never part of discovery.
 
 ## Fleet controls
 
 Call these paths under the manifest's `adminBase`. Every control request requires
-`x-emulates-admin-key` when a fleet admin key is configured.
+`x-mockingbird-admin-key` when a fleet admin key is configured.
 
 | Method | Path relative to `adminBase` | Behavior |
 | --- | --- | --- |

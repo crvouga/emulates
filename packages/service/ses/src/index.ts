@@ -11,7 +11,7 @@ import {
   awsRecord,
   awsRequired,
   awsXml,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 
 export type { Runtime, RuntimeOptions } from "./runtime.js"

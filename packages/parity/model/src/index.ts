@@ -137,7 +137,7 @@ export class ResourceTable {
 }
 
 /** Marker key used for placeholders embedded in generated values. */
-export const PLACEHOLDER_KEY = "$emulates"
+export const PLACEHOLDER_KEY = "$mockingbird"
 
 /**
  * Values that the generator leaves symbolic and the executor resolves per side:
@@ -217,4 +217,4 @@ export const pickRef = (
 
 /** Deterministic, obviously-fake id for `missing` placeholders when the spec supplies none. */
 export const defaultMissingId = (type: string) =>
-  `emulates_missing_${type.replace(/[^a-zA-Z0-9]/g, "_")}`
+  `mockingbird_missing_${type.replace(/[^a-zA-Z0-9]/g, "_")}`

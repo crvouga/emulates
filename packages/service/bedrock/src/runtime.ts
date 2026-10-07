@@ -5,8 +5,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, BEDROCK_NAMESPACE, BedrockAPI, clockSleep } from "./index.js"
 import { parseScript, type Script } from "./scripts.js"
@@ -43,7 +43,7 @@ export const BEDROCK_PRESETS: Record<string, FaultPreset> = {
   ),
   validation_exception: everyCall("400 ValidationException", { type: "validation" }),
   max_tokens: everyCall("Output cut in half and stopReason max_tokens", { type: "max_tokens" }),
-  latency: everyCall("2 s (emulator clock) before the response starts", {
+  latency: everyCall("2 s (mock clock) before the response starts", {
     type: "latency",
     latencyMs: 2_000,
   }),
@@ -76,7 +76,7 @@ export type BedrockRuntime = ServiceRuntime<BedrockAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -141,7 +141,7 @@ const adminRoutes = (runtime: ServiceRuntime<BedrockAPI>): AdminRoutes => {
 }
 
 /**
- * The Bedrock emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
+ * The Bedrock mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by SigV4 access key id
  * (`PUT /__admin/credentials {"credentials": {"<AWS_ACCESS_KEY_ID>": "<namespace>"}}`),
  * clock control (script pacing runs on it), fault presets, scripts and a request journal

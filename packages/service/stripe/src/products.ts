@@ -1,4 +1,8 @@
-import { jsonResponse, type OperationContext, type OperationHandler } from "@emulates/service"
+import {
+  jsonResponse,
+  type OperationContext,
+  type OperationHandler,
+} from "@crvouga/mockingbird-service"
 import {
   invalidRequest,
   parameterInvalidEmpty,

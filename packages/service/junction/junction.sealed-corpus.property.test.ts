@@ -19,7 +19,7 @@ const sealedKeys = Object.keys(corpus.observations).filter(
 )
 const sealedIndex = fc.integer({ min: 0, max: sealedKeys.length - 1 })
 
-const auth = { "x-vital-api-key": "sk_us_emulates" }
+const auth = { "x-vital-api-key": "sk_us_mockingbird" }
 const get = (api: JunctionAPI, key: string) => {
   const [method = "GET", target = "/"] = key.split(" ")
   return api.fetch(new Request(`https://junction.test${target}`, { method, headers: auth }))

@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Amazon CloudFormation (Emulates subset)
+  title: Amazon CloudFormation (Mockingbird subset)
   version: "1.0.0"
   description: AWS protocol transport; README lists the implemented AWS operations.
 servers:
@@ -9,32 +9,32 @@ paths:
   /:
     post:
       operationId: AwsRpc
-      x-emulates: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
       responses: { "200": { description: AWS protocol response }, "400": { description: AWS protocol error } }
     get:
       operationId: AwsQuery
-      x-emulates: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
       responses: { "200": { description: AWS query response } }
   /{path}:
     parameters:
       - { name: path, in: path, required: true, schema: { type: string } }
     get:
       operationId: AwsRestGet
-      x-emulates: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
       responses: { "200": { description: AWS REST response } }
     put:
       operationId: AwsRestPut
-      x-emulates: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
       responses: { "200": { description: AWS REST response } }
     post:
       operationId: AwsRestPost
-      x-emulates: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
       responses: { "200": { description: AWS REST response } }
     patch:
       operationId: AwsRestPatch
-      x-emulates: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
       responses: { "200": { description: AWS REST response } }
     delete:
       operationId: AwsRestDelete
-      x-emulates: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
+      x-mockingbird: { supported: false, reason: Vendor operations are not implemented in this scaffold., parity: { enabled: false, reason: Use the stateful LocalStack scenario runner. } }
       responses: { "200": { description: AWS REST response } }

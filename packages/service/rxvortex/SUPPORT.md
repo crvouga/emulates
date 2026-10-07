@@ -1,12 +1,12 @@
-# RxVortex (Strive) pharmacy API (Emulates subset) — operation support
+# RxVortex (Strive) pharmacy API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **5**
-- supported by the emulator: **5**
+- supported by the mock: **5**
 - parity enabled: **5**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `GenerateAccessToken` | `POST /api/v1/generate-access-token` | ✅ supported | ✅ |  |
 | `CreateOrder` | `POST /api/v1/orders` | ✅ supported | ⚠️ unsafe (opt-in) |  |

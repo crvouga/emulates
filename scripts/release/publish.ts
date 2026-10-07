@@ -20,7 +20,6 @@
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { chdir } from "node:process"
 import { $ } from "bun"
 import { VERSION_PLACEHOLDER } from "../bundle-service-version.ts"
 import {
@@ -46,11 +45,6 @@ const argv = process.argv.slice(2)
 const dryRun = argv.includes("--dry-run")
 const local = argv.includes("--local")
 const inCi = process.env.GITHUB_ACTIONS === "true"
-
-// Bun's shell calls getcwd() even for a command that sets .cwd(), and throws
-// ENOENT if this process's directory was removed (oven-sh/bun#23589). The repo
-// root is still there: move into it before any `$`.
-chdir(root)
 
 if (!dryRun && !inCi && !local) {
   console.error("release:publish: runs in CI. Use --dry-run to preview, or --local to bootstrap.")
@@ -84,7 +78,7 @@ for (const pkg of plan.packages) {
   originals.set(pkg.manifestPath, raw)
   writeFileSync(pkg.manifestPath, pinManifest(raw, version, plan.versions))
   // Bundles carry VERSION_PLACEHOLDER (scripts/bundle-service.ts) where the service reports
-  // its version, e.g. the `x-emulates` header; stamp the version being published.
+  // its version, e.g. the `x-mockingbird` header; stamp the version being published.
   const dist = join(pkg.dir, "dist")
   if (!existsSync(dist)) continue
   for (const file of readdirSync(dist, { recursive: true, encoding: "utf8" })) {
@@ -107,7 +101,7 @@ for (const release of plan.releases) {
   changelogs.push(path)
 }
 
-const packDir = mkdtempSync(join(tmpdir(), "emulates-release-"))
+const packDir = mkdtempSync(join(tmpdir(), "mockingbird-release-"))
 const failed = new Set<string>()
 /** Never-published packages that need the interactive local seed. */
 const needsSeed: string[] = []
@@ -264,9 +258,8 @@ async function deprecateRetiredPackages(): Promise<void> {
       const replacement = await npmVersions(retired.requires)
       if (!Array.isArray(replacement) || replacement.length === 0) continue
     }
-    // Re-deprecate when the message changed (e.g. it still names a former package).
     const current = await $`npm view ${retired.name} deprecated`.quiet().nothrow()
-    if (current.exitCode !== 0 || current.stdout.toString().trim() === retired.message) continue
+    if (current.exitCode !== 0 || current.stdout.toString().trim() !== "") continue
     if (dryRun || !local) {
       console.log(`${dryRun ? "would deprecate" : "run release:seed to deprecate"} ${retired.name}`)
       continue

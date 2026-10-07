@@ -1,4 +1,4 @@
-import type { SqliteClient } from "@emulates/sqlite-client"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -37,20 +37,20 @@ export class IdSequence {
   constructor(
     private readonly sqlite: SqliteClient,
     private readonly namespace: string,
-    private readonly salt = "emulates",
+    private readonly salt = "mockingbird",
   ) {}
 
   next(prefix: string, length = 14): string {
     return this.sqlite.transaction(() => {
       const row = this.sqlite
         .prepare(
-          "SELECT value FROM emulates_sequences WHERE namespace = ? AND name = ? AND kind = 'id'",
+          "SELECT value FROM mockingbird_sequences WHERE namespace = ? AND name = ? AND kind = 'id'",
         )
         .get<{ value: number }>(this.namespace, prefix)
       const value = (row?.value ?? 0) + 1
       this.sqlite
         .prepare(
-          `INSERT INTO emulates_sequences (namespace, name, kind, value) VALUES (?, ?, 'id', ?)
+          `INSERT INTO mockingbird_sequences (namespace, name, kind, value) VALUES (?, ?, 'id', ?)
            ON CONFLICT(namespace, name, kind) DO UPDATE SET value = excluded.value`,
         )
         .run(this.namespace, prefix, value)

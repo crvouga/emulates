@@ -101,7 +101,10 @@ test("attach uses shared namespace, branch, faults and read-only history", async
   try {
     const response = await exchange(
       server,
-      request().replace("Host: docker.mock", "Host: docker.mock\r\nx-emulates-branch: alternate"),
+      request().replace(
+        "Host: docker.mock",
+        "Host: docker.mock\r\nx-mockingbird-branch: alternate",
+      ),
     )
     expect(response.header).toContain("101 UPGRADED")
     expect(server.runtime.timeline().head("main")?.id).toBe(before.id)

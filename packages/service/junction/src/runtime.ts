@@ -3,8 +3,8 @@ import {
   createRuntime as createServiceRuntime,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { junctionAdminRoutes, junctionFaultPresets } from "./admin.js"
 import type { IdentityMode, JunctionFixtures } from "./fixtures.js"
 import { document } from "./generated/openapi.js"
@@ -23,7 +23,7 @@ import {
 export type JunctionRuntimeOptions = {
   /**
    * Recorded vendor data every namespace starts from. The served mock loads the corpus
-   * shipped at `@emulates/junction/corpus` unless told otherwise.
+   * shipped at `@crvouga/mockingbird-service-junction/corpus` unless told otherwise.
    */
   corpus?: SealedCorpus
   /** Default: `corpus` when a corpus is loaded, otherwise `synthetic`. */
@@ -55,7 +55,7 @@ export type JunctionRuntimeOptions = {
   seed?: number | string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Require `x-emulates-admin-key` on `/__admin/*`. */
+  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
 }
@@ -66,9 +66,9 @@ export type JunctionRuntime = ServiceRuntime<JunctionAPI> & {
 }
 
 /**
- * The Junction emulator with the full Emulates service contract: unauthenticated
+ * The Junction mock with Mockingbird's full service contract: unauthenticated
  * `/__admin/health`, the `/__admin/*` control plane, per-request namespaces
- * (`x-emulates-namespace`), clock control, fault injection and request metrics.
+ * (`x-mockingbird-namespace`), clock control, fault injection and request metrics.
  * Runtime-neutral: serve it with any Fetch-native server, or use `./server` for Node.
  */
 export const createRuntime = (options: JunctionRuntimeOptions = {}): JunctionRuntime => {

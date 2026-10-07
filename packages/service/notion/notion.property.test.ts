@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { ParityError, parity } from "@emulates/parity"
-import { fcParameters } from "@emulates/testing"
+import { ParityError, parity } from "@crvouga/mockingbird-parity"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import { document, NotionAPI, supportedOperationIds } from "./src/index.js"
 
 const baseUrl = "https://notion.test",

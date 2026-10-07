@@ -6,7 +6,7 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
+} from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
 import { InfisicalAPI, type InfisicalAPIOptions, object } from "./index.js"
 import { DEFAULT_ADMIN_KEY, type Grant, normalizePath, type ProjectTree } from "./state.js"
@@ -59,7 +59,7 @@ export type InfisicalRuntimeOptions = Omit<
 }
 export type InfisicalRuntime = ServiceRuntime<InfisicalAPI>
 const adminError = (status: number, message: string): Response =>
-  Response.json({ error: { type: "emulates_admin", message } }, { status })
+  Response.json({ error: { type: "mockingbird_admin", message } }, { status })
 const routes = (runtime: InfisicalRuntime): AdminRoutes => ({
   "GET /project-tree": ({ namespace }) => {
     const api = runtime.instance(namespace)

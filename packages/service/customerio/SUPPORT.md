@@ -1,12 +1,12 @@
-# Customer.io CDP + App API (Emulates subset) — operation support
+# Customer.io CDP + App API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **14**
-- supported by the emulator: **14**
+- supported by the mock: **14**
 - parity enabled: **14**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `CdpIdentify` | `POST /v1/identify` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `CdpTrack` | `POST /v1/track` | ✅ supported | ⚠️ unsafe (opt-in) |  |

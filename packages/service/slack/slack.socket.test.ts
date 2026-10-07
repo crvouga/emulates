@@ -26,7 +26,7 @@ type Connection = {
 
 const connections = async (base: string, namespace?: string): Promise<Connection[]> => {
   const headers: Record<string, string> = {}
-  if (namespace) headers["x-emulates-namespace"] = namespace
+  if (namespace) headers["x-mockingbird-namespace"] = namespace
   const body = (await (await fetch(`${base}/__admin/socket/connections`, { headers })).json()) as {
     connections: Connection[]
   }
@@ -40,7 +40,7 @@ const open = async (
 ) => {
   const headers: Record<string, string> = { "content-type": "application/json; charset=utf-8" }
   if (token) headers.authorization = `Bearer ${token}`
-  if (namespace) headers["x-emulates-namespace"] = namespace
+  if (namespace) headers["x-mockingbird-namespace"] = namespace
   const response = await fetchImpl(
     new Request(`${HOST}/api/apps.connections.open`, {
       method: "POST",
@@ -85,7 +85,7 @@ describe("Socket Mode", () => {
         method: "PUT",
         headers: {
           "content-type": "application/json",
-          "x-emulates-namespace": "a",
+          "x-mockingbird-namespace": "a",
         },
         body: JSON.stringify({ appId: "A0WORKSPACEA", appTokens: [APP_A] }),
       }),
@@ -102,7 +102,7 @@ describe("Socket Mode", () => {
     const rows = await (
       await runtime.fetch(
         new Request(`${HOST}/__admin/socket/connections`, {
-          headers: { "x-emulates-namespace": "a" },
+          headers: { "x-mockingbird-namespace": "a" },
         }),
       )
     ).json()
@@ -122,7 +122,7 @@ describe("Socket Mode", () => {
         method: "PUT",
         headers: {
           "content-type": "application/json",
-          "x-emulates-namespace": "a",
+          "x-mockingbird-namespace": "a",
         },
         body: JSON.stringify({
           appTokens: [APP_A],
@@ -147,7 +147,7 @@ describe("Socket Mode", () => {
         method: "POST",
         headers: {
           "content-type": "application/x-www-form-urlencoded",
-          "x-emulates-namespace": "a",
+          "x-mockingbird-namespace": "a",
         },
         body: `token=${APP_A}`,
       }),
@@ -164,7 +164,7 @@ describe("Socket Mode", () => {
     const rows = await (
       await runtime.fetch(
         new Request(`${HOST}/__admin/socket/connections`, {
-          headers: { "x-emulates-namespace": "a" },
+          headers: { "x-mockingbird-namespace": "a" },
         }),
       )
     ).json()
@@ -395,7 +395,7 @@ describe("Socket Mode", () => {
         method: "PUT",
         headers: {
           "content-type": "application/json",
-          "x-emulates-namespace": namespace,
+          "x-mockingbird-namespace": namespace,
         },
         body: JSON.stringify({
           appId,
@@ -453,7 +453,7 @@ describe("Socket Mode", () => {
       expect(updated.ts).toBe(posted.ts)
       const outbox = (await (
         await fetch(`${server.url}/__admin/outbox?channel=C0DESK`, {
-          headers: { "x-emulates-namespace": "a" },
+          headers: { "x-mockingbird-namespace": "a" },
         })
       ).json()) as {
         messages: {
@@ -487,14 +487,14 @@ describe("Socket Mode", () => {
       const threaded = (await (
         await fetch(
           `${server.url}/__admin/outbox?thread_ts=${encodeURIComponent(posted.ts as string)}`,
-          { headers: { "x-emulates-namespace": "a" } },
+          { headers: { "x-mockingbird-namespace": "a" } },
         )
       ).json()) as { messages: { ts: string }[] }
       expect(threaded.messages.map((message) => message.ts)).toEqual([reply.ts as string])
 
       await fetch(`${server.url}/__admin/socket/disconnect`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-emulates-namespace": "a" },
+        headers: { "content-type": "application/json", "x-mockingbird-namespace": "a" },
         body: JSON.stringify({ reason: "warning" }),
       })
       await delay(100)
@@ -507,7 +507,7 @@ describe("Socket Mode", () => {
       expect(still.ok).toBe(true)
       const outboxB = (await (
         await fetch(`${server.url}/__admin/outbox`, {
-          headers: { "x-emulates-namespace": "b" },
+          headers: { "x-mockingbird-namespace": "b" },
         })
       ).json()) as { messages: { text: string | null; workspace: string }[] }
       expect(outboxB.messages.map((message) => message.text)).toEqual(["b still up"])

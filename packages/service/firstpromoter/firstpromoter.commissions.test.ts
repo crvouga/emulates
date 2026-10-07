@@ -27,7 +27,7 @@ const harness = () => {
         method,
         headers: {
           "content-type": "application/json",
-          "x-emulates-namespace": namespace,
+          "x-mockingbird-namespace": namespace,
           ...(auth ? { authorization: "Bearer fixture", "account-id": "fixture" } : {}),
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),

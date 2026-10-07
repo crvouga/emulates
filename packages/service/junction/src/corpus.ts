@@ -7,7 +7,7 @@ import { parseSealedCorpus, type SealedCorpus } from "./sealed-corpus.js"
  *
  * Its catalog is the recording team's, not yours — lab-test ids differ per team. To
  * serve your own catalog and lab accounts, record your team with
- * `emulates-junction corpus pull` and load that file instead.
+ * `mockingbird-junction corpus pull` and load that file instead.
  *
  * A separate entry point, so importing the mock does not parse megabytes of JSON.
  */

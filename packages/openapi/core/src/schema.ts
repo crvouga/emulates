@@ -142,8 +142,8 @@ const FORMAT_PATTERNS: Record<string, RegExp> = {
 const graphemeLength = (value: string) => [...value].length
 
 /**
- * Validate `value` against `schema`. Supports the JSON Schema subset Emulates generates from
- * (see `@emulates/openapi-arbitrary`). Returns an empty array when valid.
+ * Validate `value` against `schema`. Supports the JSON Schema subset Mockingbird generates from
+ * (see `@crvouga/mockingbird-openapi-arbitrary`). Returns an empty array when valid.
  */
 export const validateValue = (
   document: OpenAPIDocument,

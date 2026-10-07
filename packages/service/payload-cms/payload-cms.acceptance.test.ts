@@ -195,9 +195,9 @@ describe("S25 Payload CMS acceptance: our referral-content client against the mo
       "Give $150, Get Rewarded",
     )
     const viaHeader = await runtime.fetch(
-      new Request(`${API}/api/marketing/2`, { headers: { "x-emulates-namespace": "w1" } }),
+      new Request(`${API}/api/marketing/2`, { headers: { "x-mockingbird-namespace": "w1" } }),
     )
-    expect(viaHeader.headers.get("x-emulates")).toMatch(/^payload-cms@.*; ns=w1$/)
+    expect(viaHeader.headers.get("x-mockingbird")).toMatch(/^payload-cms@.*; ns=w1$/)
     expect(((await viaHeader.json()) as { cardTitle: string }).cardTitle).toBe("Worker one")
     const journal = await (
       await runtime.fetch(new Request(`${API}/__admin/requests?namespace=w1`))
@@ -213,7 +213,7 @@ describe("served over HTTP", () => {
       const consumer = new PayloadCmsConsumer(server.url, (input, init) => fetch(input, init))
       expect((await consumer.getReferralContent()).card.title).toBe("Give $150, Get Rewarded")
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulates")).toMatch(/^payload-cms@/)
+      expect(health.headers.get("x-mockingbird")).toMatch(/^payload-cms@/)
     } finally {
       await server.close()
     }

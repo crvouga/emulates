@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import fc from "fast-check"
 import { JunctionAPI } from "./src/index.js"
 
-const auth = { "x-vital-api-key": "sk_us_emulates" }
+const auth = { "x-vital-api-key": "sk_us_mockingbird" }
 const host = "https://junction.test"
 const now = () => 1_700_000_000_000
 const request = (api: JunctionAPI, path: string, init: RequestInit = {}) =>

@@ -1,10 +1,10 @@
 ---
 /**
  * Landing figure: your app calls the same third-party services it always does, but each call
- * lands on that vendor's emulator inside your process. The real APIs sit outside the boundary,
- * never called. Every row is the same height so the connectors line up with the emulators.
+ * lands on that vendor's mock inside your process. The real APIs sit outside the boundary,
+ * never called. Every row is the same height so the connectors line up with the mocks.
  */
-import catalog from "virtual:emulates/catalog"
+import catalog from "virtual:mockingbird/catalog"
 import VendorLogo from "./VendorLogo.astro"
 
 /** Service name → the host the real SDK would call. */
@@ -31,7 +31,7 @@ const rows = SERVICES.map(([name, host], i) => {
 })
 ---
 
-<figure class="figure" aria-label="Your app calls Stripe, Twilio, OpenAI, Slack, Resend and S3. Each call reaches an emulator of that service inside your process; the real APIs are never called.">
+<figure class="figure" aria-label="Your app calls Stripe, Twilio, OpenAI, Slack, Resend and S3. Each call reaches a Mockingbird mock of that service inside your process; the real APIs are never called.">
   <div class="grid" style={`--rows:${rows.length};--row:${ROW}px`}>
     <div class="process">
       <span class="process-label">Your process</span>
@@ -39,21 +39,21 @@ const rows = SERVICES.map(([name, host], i) => {
       <div class="app">
         <span class="kicker">Your app</span>
         <strong>Unchanged code</strong>
-        <span class="note">Same SDKs, same calls, base URL pointed at the emulator</span>
+        <span class="note">Same SDKs, same calls, base URL pointed at the mock</span>
       </div>
 
       <svg class="wires" viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" aria-hidden="true">
         {rows.map((r) => <path class="wire" d={r.path} />)}
       </svg>
 
-      <ul class="emulates">
+      <ul class="mocks">
         {
           rows.map((r) => (
             <li>
               <VendorLogo service={r.service} size={42} />
               <span class="name">
                 {r.service.brand.vendor}
-                <small>emulator</small>
+                <small>mock</small>
               </span>
             </li>
           ))
@@ -166,7 +166,7 @@ const rows = SERVICES.map(([name, host], i) => {
     vector-effect: non-scaling-stroke;
   }
 
-  .emulates,
+  .mocks,
   .real ul {
     display: grid;
     grid-auto-rows: var(--row);
@@ -175,7 +175,7 @@ const rows = SERVICES.map(([name, host], i) => {
     list-style: none;
   }
 
-  .emulates li {
+  .mocks li {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -301,7 +301,7 @@ const rows = SERVICES.map(([name, host], i) => {
     .wires {
       display: none;
     }
-    .emulates {
+    .mocks {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-auto-rows: auto;
       gap: 16px 12px;

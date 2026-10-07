@@ -1,5 +1,5 @@
-import { Collection, type OutboxItem, OutboxStore, opaqueToken } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, type OutboxItem, OutboxStore, opaqueToken } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 export type ContactRecord = {
   id: string

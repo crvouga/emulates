@@ -1,12 +1,12 @@
-# Persona API (Emulates subset) — operation support
+# Persona API (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **5**
-- supported by the emulator: **5**
+- supported by the mock: **5**
 - parity enabled: **3**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListInquiries` | `GET /inquiries` | ✅ supported | ✅ |  |
 | `CreateInquiry` | `POST /inquiries` | ✅ supported | ⚠️ unsafe (opt-in) |  |

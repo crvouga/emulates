@@ -170,7 +170,7 @@ pull-request check (Release runs only after merge). A failing check blocks this 
 like any other.
 
 Advisory checks (`advisory` in the output: lint annotations, live parity) never block and are
-never waited on. A red one is still worth reading: live parity divergence is an emulator bug to fix or
+never waited on. A red one is still worth reading: live parity divergence is a mock bug to fix or
 report, unless the vendor sandbox itself failed.
 
 - exit 4 (`pending`/`timedOut`) → not done; run `checks` again.
@@ -215,7 +215,7 @@ Each incident has its `id`, `detector`, `commit`, `file`, `line`, and whether th
    user** the incident link and that the credential must be rotated — rotation is theirs to do,
    and a rotated secret is the only real fix once it has been pushed. Never mark a real
    credential as ignored.
-2. **A test fixture or false positive** (a made-up value that only an emulator accepts):
+2. **A test fixture or false positive** (a made-up value that only a mock accepts):
    - Change the fixture so it no longer looks like a credential, and commit that fix.
    - If the flagged commit is **not pushed**, fold the fix into it (step 3) so the value never
      reaches the remote.

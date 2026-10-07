@@ -1,12 +1,12 @@
-# Amazon Cognito Identity Provider (Emulates subset) — operation support
+# Amazon Cognito Identity Provider (Mockingbird subset) — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **3**
-- supported by the emulator: **3**
+- supported by the mock: **3**
 - parity enabled: **1**
 
-| operationId | route | emulator | parity | notes |
+| operationId | route | mock | parity | notes |
 | --- | --- | --- | --- | --- |
 | `CognitoRpc` | `POST /` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `Discovery` | `GET /{poolId}/.well-known/openid-configuration` | ✅ supported | ❌ disabled | Local issuer metadata. |

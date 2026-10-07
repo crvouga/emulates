@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Meta Marketing and Conversions APIs (Emulates subset)
+  title: Meta Marketing and Conversions APIs (Mockingbird subset)
   version: v26.0
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     repository: facebook/facebook-nodejs-business-sdk
     file: src/objects
     url: https://github.com/facebook/facebook-nodejs-business-sdk
@@ -21,7 +21,7 @@ paths:
           schema: { type: string, minLength: 1, maxLength: 100 }
         - name: access_token
           in: query
-          schema: { type: string, minLength: 1, maxLength: 5000, x-emulates-volatile: { kind: token } }
+          schema: { type: string, minLength: 1, maxLength: 5000, x-mockingbird-volatile: { kind: token } }
       requestBody:
         required: true
         content:
@@ -47,7 +47,7 @@ paths:
         '401': { $ref: '#/components/responses/GraphError' }
         '429': { $ref: '#/components/responses/GraphError' }
         '500': { $ref: '#/components/responses/GraphError' }
-      x-emulates:
+      x-mockingbird:
         supported: true
         parity:
           enabled: false
@@ -63,7 +63,7 @@ paths:
           schema: { type: string, minLength: 1, maxLength: 100 }
         - name: access_token
           in: query
-          schema: { type: string, minLength: 1, maxLength: 5000, x-emulates-volatile: { kind: token } }
+          schema: { type: string, minLength: 1, maxLength: 5000, x-mockingbird-volatile: { kind: token } }
         - name: fields
           in: query
           schema: { type: string, maxLength: 2000 }
@@ -78,7 +78,7 @@ paths:
           schema: { type: integer, minimum: 1, maximum: 100 }
         - name: after
           in: query
-          schema: { type: string, maxLength: 100, x-emulates-volatile: { kind: token } }
+          schema: { type: string, maxLength: 100, x-mockingbird-volatile: { kind: token } }
       responses:
         '200':
           description: Insight rows
@@ -89,7 +89,7 @@ paths:
         '401': { $ref: '#/components/responses/GraphError' }
         '429': { $ref: '#/components/responses/GraphError' }
         '500': { $ref: '#/components/responses/GraphError' }
-      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
   /v26.0/{object_id}:
     get:
       operationId: GetMarketingObject
@@ -101,10 +101,10 @@ paths:
             type: string
             minLength: 1
             maxLength: 100
-            x-emulates-resource-ref: { type: marketing_object, missing: obj_missing }
+            x-mockingbird-resource-ref: { type: marketing_object, missing: obj_missing }
         - name: access_token
           in: query
-          schema: { type: string, minLength: 1, maxLength: 5000, x-emulates-volatile: { kind: token } }
+          schema: { type: string, minLength: 1, maxLength: 5000, x-mockingbird-volatile: { kind: token } }
         - name: fields
           in: query
           schema: { type: string, maxLength: 1000 }
@@ -119,7 +119,7 @@ paths:
         '404': { $ref: '#/components/responses/GraphError' }
         '429': { $ref: '#/components/responses/GraphError' }
         '500': { $ref: '#/components/responses/GraphError' }
-      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer }
@@ -151,12 +151,12 @@ components:
       properties:
         events_received: { type: integer, minimum: 0 }
         messages: { type: array, items: { type: string } }
-        fbtrace_id: { type: string, x-emulates-volatile: { kind: id } }
+        fbtrace_id: { type: string, x-mockingbird-volatile: { kind: id } }
     marketing_object:
       type: object
       required: [id, name, status]
       properties:
-        id: { type: string, x-emulates-resource: { type: marketing_object, identity: true } }
+        id: { type: string, x-mockingbird-resource: { type: marketing_object, identity: true } }
         name: { type: string }
         status: { type: string }
         objective: { type: string }
@@ -195,9 +195,9 @@ components:
               type: object
               required: [before, after]
               properties:
-                before: { type: string, x-emulates-volatile: { kind: token } }
-                after: { type: string, x-emulates-volatile: { kind: token } }
-            next: { type: string, x-emulates-volatile: { kind: url } }
+                before: { type: string, x-mockingbird-volatile: { kind: token } }
+                after: { type: string, x-mockingbird-volatile: { kind: token } }
+            next: { type: string, x-mockingbird-volatile: { kind: url } }
     graph_error:
       type: object
       required: [error]
@@ -211,4 +211,4 @@ components:
             code: { type: integer }
             error_subcode: { type: integer }
             is_transient: { type: boolean }
-            fbtrace_id: { type: string, x-emulates-volatile: { kind: id } }
+            fbtrace_id: { type: string, x-mockingbird-volatile: { kind: id } }

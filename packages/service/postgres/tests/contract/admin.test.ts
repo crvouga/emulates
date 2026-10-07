@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { STANDARD_ADMIN_ROUTES } from "@emulates/service";
+import { STANDARD_ADMIN_ROUTES } from "@crvouga/mockingbird-service";
 import { createAdmin } from "../../src/admin.ts";
 import { Database } from "../../src/index.ts";
 
@@ -85,7 +85,7 @@ describe("postgres admin", () => {
     expect(shell.headers.get("content-type")).toContain("text/html");
     const html = await shell.text();
     expect(html).toContain('data-admin-ui-library="antd"');
-    expect(html).toContain("EmulatesAdmin.mount(");
+    expect(html).toContain("MockingbirdAdmin.mount(");
   });
 });
 
@@ -100,7 +100,7 @@ test("SQL admin uses the configured prefix for health, UI and query routes", asy
   expect((await admin.fetch(request("/_control/mock/sql/tables"))).status).toBe(401);
   const query = await admin.fetch(request("/_control/mock/sql/query", {
     method: "POST",
-    headers: { "content-type": "application/json", "x-emulates-admin-key": "locked" },
+    headers: { "content-type": "application/json", "x-mockingbird-admin-key": "locked" },
     body: JSON.stringify({ sql: "SELECT 1 AS value" }),
   }));
   expect(query.status).toBe(200);

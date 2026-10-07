@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { listOperations, type OpenAPIDocument } from "@emulates/openapi"
+import { listOperations, type OpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import { bootSqlite, createService } from "./src/index.js"
 import { operationPath } from "./src/path.js"
 

@@ -22,7 +22,7 @@ const make = (adminPrefix?: string, routes?: AdminRoutes) =>
 const call = (runtime: ReturnType<typeof make>, path: string, key?: string) =>
   runtime.fetch(
     new Request(`http://mock.local${path}`, {
-      ...(key === undefined ? {} : { headers: { "x-emulates-admin-key": key } }),
+      ...(key === undefined ? {} : { headers: { "x-mockingbird-admin-key": key } }),
     }),
   )
 
@@ -61,7 +61,7 @@ for (const prefix of ["/__admin", "/_control/mock"]) {
       const missing = await runtime.fetch(
         new Request(`http://mock.local${prefix}/faults/presets/missing`, {
           method: "POST",
-          headers: { "x-emulates-admin-key": "admin-secret" },
+          headers: { "x-mockingbird-admin-key": "admin-secret" },
         }),
       )
       expect(missing.status).toBe(404)

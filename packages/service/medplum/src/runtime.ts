@@ -6,8 +6,8 @@ import {
   NAMESPACE_HEADER,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { MEDPLUM_VERSION, tooManyRequests, unauthorized } from "@medplum/core"
 import type { Resource } from "@medplum/fhirtypes"
 import { MedplumAPI, type MedplumAPIOptions, type MedplumUserFixture } from "./api.js"
@@ -91,7 +91,7 @@ export type MedplumRuntimeOptions = Omit<
   seed?: number | string
   /** Prefix for all internal HTTP paths. Default /__admin. */
   adminPrefix?: string
-  /** Require `x-emulates-admin-key` on `/__admin/*`. */
+  /** Require `x-mockingbird-admin-key` on `/__admin/*`. */
   adminKey?: string
   onLog?: (entry: RequestLog) => void
   /** Requests each namespace's journal keeps (`GET /__admin/requests`). Default 1000. */
@@ -103,7 +103,7 @@ export type MedplumRuntime = ServiceRuntime<MedplumAPI>
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -198,7 +198,7 @@ const adminRoutes = (runtime: ServiceRuntime<MedplumAPI>): AdminRoutes => ({
       const issue = (error as { outcome?: unknown })?.outcome
       return json(400, {
         error: {
-          type: "emulates_admin",
+          type: "mockingbird_admin",
           message: error instanceof Error ? error.message : String(error),
           outcome: issue,
         },
@@ -216,10 +216,10 @@ const adminRoutes = (runtime: ServiceRuntime<MedplumAPI>): AdminRoutes => ({
 })
 
 /**
- * The Medplum emulator with the full Emulates service contract: unauthenticated `/__admin/health`, the
+ * The Medplum mock with Mockingbird's full service contract: unauthenticated `/__admin/health`, the
  * `/__admin/*` control plane (reset, snapshot/restore, clock, faults, journal, metrics, plus
  * `/__admin/medplum/*` for clients, users, tokens and seed resources), and per-request
- * namespaces — by `x-emulates-namespace`, by `/__admin/ns/<name>/` base URL prefix, or by client:
+ * namespaces — by `x-mockingbird-namespace`, by `/__admin/ns/<name>/` base URL prefix, or by client:
  * `PUT /__admin/credentials {"credentials": {"<clientId>": "<namespace>"}}`.
  *
  * Runtime-neutral: serve it with any Fetch-native server (`./server` for Node).

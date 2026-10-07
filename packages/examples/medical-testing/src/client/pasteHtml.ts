@@ -45,7 +45,7 @@ let pasteSequence = 0
 /** Scope a full document's CSS so it applies only inside one light-DOM host. */
 export const scopeEmbeddedCss = (
   css: string,
-  scopeSelector = '[data-emulates-paste="test"]',
+  scopeSelector = '[data-mockingbird-paste="test"]',
 ): string => {
   let out = ""
   let cursor = 0
@@ -149,8 +149,8 @@ export const pasteHtml = (
   for (const style of parsed.querySelectorAll("style")) style.remove()
 
   const pasteId = `p${++pasteSequence}`
-  const scopeSelector = `[data-emulates-paste="${pasteId}"]`
-  host.dataset.emulatesPaste = pasteId
+  const scopeSelector = `[data-mockingbird-paste="${pasteId}"]`
+  host.dataset.mockingbirdPaste = pasteId
   host.replaceChildren()
   const style = owner.createElement("style")
   style.textContent = scopeEmbeddedCss(css, scopeSelector)
@@ -245,14 +245,14 @@ export const pasteHtml = (
 
   return () => {
     // Framework clients unmount their roots before their document is detached.
-    host.dispatchEvent(new Event("emulates:unmount"))
+    host.dispatchEvent(new Event("mockingbird:unmount"))
     detach()
     for (const item of windowListeners)
       window.removeEventListener(item.type, item.listener, item.options)
     for (const item of hostListeners)
       host.removeEventListener(item.type, item.listener, item.options)
     host.replaceChildren()
-    delete host.dataset.emulatesPaste
+    delete host.dataset.mockingbirdPaste
   }
 }
 

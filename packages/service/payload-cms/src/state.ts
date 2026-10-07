@@ -1,5 +1,5 @@
-import { Collection } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /** A Payload document: an integer id, timestamps, and whatever fields its collection has. */
 export type PayloadDoc = {

@@ -1,4 +1,4 @@
-# Infrastructure and orchestration emulators
+# Infrastructure and orchestration mocks
 
 This document defines the boundaries and planned evidence for the Docker Engine,
 Hermes peer-run, and GitHub REST packages.
@@ -14,9 +14,9 @@ versioned `API_EVIDENCE.md` will define the supported subset.
 
 | Planned package | Public provider behavior | Explicit exclusions |
 | --- | --- | --- |
-| `@emulates/docker` | Engine discovery, container observations and lifecycle, retained HTTP, Unix sockets, non-TTY attach upgrade and streams | Container execution, builds, host isolation, cgroup enforcement, socket/process provenance; exec, logs, events and TTY modes outside the researched subset |
-| `@emulates/hermes` | Pinned public peer-run submission, polling, stopping, fingerprinting, scoped replay, interruption and retention | Agent execution, inference, Python dispatcher compatibility, Kanban attempts, consumer intake policy and credential enforcement |
-| `@emulates/github` | Repository observations, references over seeded commits/ancestry, PR operations, pagination and uncertain-write observations | Git transport, App token issuance, real authorization or branch-rule enforcement, consumer publication journals and invented atomicity/idempotency guarantees |
+| `@crvouga/mockingbird-service-docker` | Engine discovery, container observations and lifecycle, retained HTTP, Unix sockets, non-TTY attach upgrade and streams | Container execution, builds, host isolation, cgroup enforcement, socket/process provenance; exec, logs, events and TTY modes outside the researched subset |
+| `@crvouga/mockingbird-service-hermes` | Pinned public peer-run submission, polling, stopping, fingerprinting, scoped replay, interruption and retention | Agent execution, inference, Python dispatcher compatibility, Kanban attempts, consumer intake policy and credential enforcement |
+| `@crvouga/mockingbird-service-github` | Repository observations, references over seeded commits/ancestry, PR operations, pagination and uncertain-write observations | Git transport, App token issuance, real authorization or branch-rule enforcement, consumer publication journals and invented atomicity/idempotency guarantees |
 
 Docker API v1.52 attach paths and unversioned `/info` are observed consumer inputs,
 not proof of an installed Engine version. US-002 must reconcile them with the
@@ -27,8 +27,8 @@ provider behavior is specified from memory in this boundary document.
 
 All packages use the standard health, reset, namespace, clock, fault, metrics and
 metadata-only journal controls described in
-[Authoring an emulator](AUTHORING_A_SERVICE.md#the-service-contract-what-emulatesservice-gives-you).
-Scenario controls belong to the emulators' admin/runtime interfaces; they must not
+[Authoring a service](AUTHORING_A_SERVICE.md#the-service-contract-what-crvougamockingbird-service-gives-you).
+Scenario controls belong to Mockingbird admin/runtime interfaces; they must not
 masquerade as vendor endpoints. Synthetic identity scopes and scripted denied
 responses are observations for tests and do not implement authentication policy.
 Fixtures contain generic synthetic data, never real customers, credentials,
@@ -41,10 +41,10 @@ report their evidence separately.
 
 | Class | What it establishes | What it cannot establish |
 | --- | --- | --- |
-| `portable` | Deterministic Fetch/runtime state and contract behavior in the emulator, including independent local HTTP consumers where applicable | Vendor fidelity from self-parity alone; OS or process guarantees |
+| `portable` | Deterministic Fetch/runtime state and contract behavior in the mock, including independent local HTTP consumers where applicable | Vendor fidelity from self-parity alone; OS or process guarantees |
 | `socket` | Node transport behavior through a package-owned raw HTTP/Unix-socket/attach consumer | Host provenance, confinement, or a real daemon's restart behavior |
 | `oracle` | Recorded comparisons with the explicit real provider/version and authorized disposable resources | Operations, versions or failure modes not actually exercised |
-| `external-consumer` | Evidence owned by the consuming application or native host | An Emulates delivery dependency or a guarantee supplied by a fixture |
+| `external-consumer` | Evidence owned by the consuming application or native host | A Mockingbird delivery dependency or a guarantee supplied by a fixture |
 
 Scenario IDs are stable references for future tests and evidence records. The story
 column points to the required implementation/verification owner; it is not an
@@ -100,7 +100,7 @@ consumer intake IDs remain separate identities.
 These requirements belong to the
 [separate Initiative handoff](../tasks/avengers-initiative-mock-integration-handoff.md).
 No edits, execution or test results in Initiative are needed to complete US-001
-or any other Emulates story.
+or any other Mockingbird story.
 
 | ID | Class | External responsibility | Handoff |
 | --- | --- | --- | --- |

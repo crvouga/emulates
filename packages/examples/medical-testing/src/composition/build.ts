@@ -15,7 +15,7 @@ import { seedWorkspace } from "./seedWorkspace.js"
 
 export type { MockAdmin }
 
-/** The running app plus the live admin fetch for every emulator it is talking to. */
+/** The running app plus the live admin fetch for every mock it is talking to. */
 export type Demo = {
   app: Hono<AppEnv>
   db: Db
@@ -25,7 +25,7 @@ export type Demo = {
 
 /**
  * Wires a fresh instance of the whole app together: builds every adapter
- * (each one backed by an in-process emulator), builds the `Db` and
+ * (each one backed by an in-process Mockingbird mock), builds the `Db` and
  * seeds the catalog through it, and constructs the Hono app from nothing
  * but ports. This is the ONLY place that imports from both `app/` and
  * `adapters/` — see `server.ts` and `browser.ts` for the two ways it gets

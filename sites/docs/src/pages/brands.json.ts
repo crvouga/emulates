@@ -1,4 +1,4 @@
-import catalog from "virtual:emulates/catalog"
+import catalog from "virtual:mockingbird/catalog"
 import type { APIRoute } from "astro"
 import { adminBrands } from "../lib/admin-brands.ts"
 

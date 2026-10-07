@@ -6,8 +6,8 @@ import {
   type FaultPreset,
   type RequestLog,
   type ServiceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { PRISM_NAMESPACE, PrismAPI } from "./index.js"
 import { type AutoAdvance, type Settings, STAGES, type Stage } from "./state.js"
@@ -89,7 +89,7 @@ export type PrismRuntime = ServiceRuntime<PrismAPI> & {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const adminError = (status: number, message: string) =>
-  json(status, { error: { type: "emulates_admin", message } })
+  json(status, { error: { type: "mockingbird_admin", message } })
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
@@ -144,7 +144,7 @@ const adminRoutes = (runtime: ServiceRuntime<PrismAPI>): AdminRoutes => ({
 })
 
 /**
- * The Prism emulator with the full Emulates service contract: `/__admin/health`, `/__admin/*`,
+ * The Prism mock with Mockingbird's full service contract: `/__admin/health`, `/__admin/*`,
  * namespaces by header, by `/__admin/ns/<name>` path prefix, or by API key
  * (`PUT /__admin/credentials {"credentials": {"<PRISM_API_KEY>": "<namespace>"}}`), clock
  * control, fault presets and a request journal.

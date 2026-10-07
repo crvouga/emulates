@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/bedrock",
+  "name": "@crvouga/mockingbird-service-bedrock",
   "version": "0.0.0-development",
-  "description": "Stateful, scriptable emulator of AWS Bedrock Runtime (Converse, ConverseStream, InvokeModel incl. Titan embeddings, Nova Sonic bidirectional streams over h2c) and AgentCore InvokeHarness, with exact event-stream framing.",
+  "description": "Stateful, scriptable mock of AWS Bedrock Runtime (Converse, ConverseStream, InvokeModel incl. Titan embeddings, Nova Sonic bidirectional streams over h2c) and AgentCore InvokeHarness, with exact event-stream framing.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulates-bedrock": "./dist/cli.js"
+    "mockingbird-bedrock": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,12 +34,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/bedrock"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/bedrock#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/bedrock#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "service",
     "bedrock",
     "aws",
@@ -50,7 +50,7 @@
     "agentcore",
     "titan"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -74,7 +74,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- bedrock",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -85,7 +85,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -101,25 +101,25 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "@ai-sdk/amazon-bedrock": "4.0.176",
     "@aws-sdk/client-bedrock-agentcore": "3.1074.0",
     "@aws-sdk/client-bedrock-runtime": "3.1132.0",
-    "@emulates/adapter-node": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/http-codec": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/credentials": "workspace:*",
-    "@emulates/parity": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/sqlite": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/testing": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
     "@smithy/eventstream-codec": "4.5.2",
     "ai": "6.0.283",
     "fast-check": "4.9.0",

@@ -1,5 +1,5 @@
-import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@emulates/service"
-import { clearNamespace } from "@emulates/sqlite-client"
+import { type APIOptions, bootSqlite, sigV4AccessKeyId } from "@crvouga/mockingbird-service"
+import { clearNamespace } from "@crvouga/mockingbird-sqlite"
 import { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 import {
   type Execution,
@@ -215,7 +215,7 @@ export class StepFunctionsAPI {
           ...(execution.traceHeader ? { traceHeader: execution.traceHeader } : {}),
         })
         if (execution.taskToken) {
-          this.event(execution, "TaskScheduled", { resource: "emulates:callback" })
+          this.event(execution, "TaskScheduled", { resource: "mockingbird:callback" })
           this.event(execution, "TaskStarted", { taskToken: execution.taskToken })
         }
         return this.response({ executionArn, startDate: execution.startDate / 1000 })

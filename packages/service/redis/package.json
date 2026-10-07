@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/redis",
+  "name": "@crvouga/mockingbird-service-redis",
   "version": "0.0.0-development",
-  "description": "In-process Redis RESP server for tests: strings, hashes, lists, sets, sorted sets, streams, transactions, pub/sub, and a Lua subset, with an injected clock. Not an HTTP emulator.",
+  "description": "In-process Redis RESP server for tests: strings, hashes, lists, sets, sorted sets, streams, transactions, pub/sub, and a Lua subset, with an injected clock. Not an HTTP mock.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -24,7 +24,7 @@
     }
   },
   "bin": {
-    "emulates-redis": "./dist/cli.js"
+    "mockingbird-redis": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -32,17 +32,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/redis"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/redis#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/redis#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "redis",
     "resp",
-    "emulator"
+    "mock"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -74,7 +74,7 @@
         "README.md public test controls",
         "SUPPORT.md compatibility and divergence evidence"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -88,9 +88,9 @@
     "parity:bullmq": "bun scripts/bullmq-parity.ts"
   },
   "devDependencies": {
-    "@emulates/adapter-node": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/credentials": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
     "bullmq": "5.67.1",
     "ioredis": "5.11.1",
     "ioredis-5-9": "npm:ioredis@5.9.2"

@@ -1,5 +1,5 @@
-import { Collection, IdSequence, opaqueToken } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence, opaqueToken } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import {
   EXPECTED_RESULTS,
   type ExpectedResult,
@@ -268,7 +268,7 @@ export type ResultFixture = {
  * How serviceability reads answer a ZIP the loaded corpus has no record for.
  *
  * - `synthetic`: invent plausible coverage. Right for property tests that walk random ZIPs.
- * - `corpus`: refuse with a documented Emulates error. Right for a mock standing in for
+ * - `corpus`: refuse with a documented Mockingbird error. Right for a mock standing in for
  *   the vendor, where invented coverage would silently disagree with production.
  */
 export type GeoMode = "synthetic" | "corpus"

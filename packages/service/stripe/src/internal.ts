@@ -1,4 +1,4 @@
-import { faultEffect, type OperationContext, opaqueToken } from "@emulates/service"
+import { faultEffect, type OperationContext, opaqueToken } from "@crvouga/mockingbird-service"
 import type { AccountDirectory, PaymentRetryPolicy } from "./accounts.js"
 import { requestInfo } from "./context.js"
 import { invalidRequest, parameterMissing, resourceMissing } from "./errors.js"

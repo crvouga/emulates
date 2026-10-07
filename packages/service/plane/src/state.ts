@@ -1,5 +1,5 @@
-import { Collection, IdSequence, opaqueToken } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence, opaqueToken } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 export type StateGroup = "backlog" | "unstarted" | "started" | "completed" | "cancelled" | "triage"
 

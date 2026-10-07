@@ -18,7 +18,7 @@ const grants = (plan) => ({
 test("plan constrains repository, version, operation subset and unique owned branches", () => {
   const plan = preparePlan(input)
   assert.notEqual(plan.branches.head, plan.branches.base)
-  assert.ok(plan.branches.head.startsWith("emulates-oracle/"))
+  assert.ok(plan.branches.head.startsWith("mockingbird-oracle/"))
   assert.deepEqual(plan.limits, {
     trees: 2,
     commits: 2,
@@ -51,7 +51,7 @@ test("execution requires exact unchanged plan and all grants before credential u
   )
   assert.throws(
     () => validateExecution(plan, { ...grants(plan), token: "" }),
-    /Missing credential key: EMULATES_GITHUB_TOKEN/,
+    /Missing credential key: MOCKINGBIRD_GITHUB_TOKEN/,
   )
 })
 
@@ -258,7 +258,7 @@ for (const mode of ["lost-pr-ack", "changed-pr-identity"])
     assert.equal(fixture.calls.filter((call) => call.method === "DELETE").length, 0)
     assert.ok(
       report.cleanup
-        .filter((item) => item.resource.startsWith("emulates-oracle/"))
+        .filter((item) => item.resource.startsWith("mockingbird-oracle/"))
         .every((item) => item.result.startsWith("preserved")),
     )
     assert.ok(!JSON.stringify(report).includes("synthetic-test-token"))

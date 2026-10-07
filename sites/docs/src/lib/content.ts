@@ -4,12 +4,12 @@
  * markdown only: backticks, **bold** and [links](url).
  */
 
-import { project, repositoryUrl } from "../../../../project.ts"
-
 /** Identity art lives in the repo, under the docs site's public directory. */
 const DOCS_PUBLIC = "sites/docs/public/"
+const HOME = "https://github.com/crvouga/mockingbird"
 
-export const MARK_REPO_PATH = `${DOCS_PUBLIC}identity/${project.slug}.svg`
+export const MARK_REPO_PATH = `${DOCS_PUBLIC}identity/mockingbird.png`
+export const PLATE_REPO_PATH = `${DOCS_PUBLIC}identity/mockingbird-field.webp`
 
 function docsPublicHref(repoFile: string): string {
   if (!repoFile.startsWith(DOCS_PUBLIC)) {
@@ -20,21 +20,24 @@ function docsPublicHref(repoFile: string): string {
 
 /** Path the docs site serves for `MARK_REPO_PATH`. */
 export const MARK_HREF = docsPublicHref(MARK_REPO_PATH)
+/** Path the docs site serves for `PLATE_REPO_PATH`. */
+export const PLATE_HREF = docsPublicHref(PLATE_REPO_PATH)
 
-/** Shared identity for the site, GitHub and the READMEs published to npm. Edit project.ts, not this. */
+/** Shared identity for the site, GitHub and the READMEs published to npm. */
 export const IDENTITY = {
-  name: project.name,
-  tagline: project.description,
+  name: "Mockingbird",
+  tagline: "Familiar calls. Faithful echoes.",
+  note: "Like its namesake, Mockingbird learns a familiar call and answers in kind. Real API shapes, stateful behavior, right inside your tests.",
   /** The mark on `main`. The README image uses this address; `check:readme` requires the file in this repo. */
-  mark: `${repositoryUrl.replace("https://github.com/", "https://raw.githubusercontent.com/")}/main/${MARK_REPO_PATH}`,
-  guide: `${repositoryUrl}/blob/main/docs/DESIGN.md`,
-  home: repositoryUrl,
+  mark: `${HOME.replace("https://github.com/", "https://raw.githubusercontent.com/")}/main/${MARK_REPO_PATH}`,
+  guide: `${HOME}/blob/main/docs/DESIGN.md`,
+  home: HOME,
   /** Public docs site, including the service catalog at `/services`. */
-  docs: project.site,
+  docs: "https://mockingbird.chrisvouga.dev",
 }
 
 /** Opening line of every published package README. `pack:check` requires it verbatim. */
-export const EPIGRAPH = `> Part of [${IDENTITY.name}](${IDENTITY.home}): ${IDENTITY.tagline.charAt(0).toLowerCase()}${IDENTITY.tagline.slice(1)}`
+export const EPIGRAPH = `> ${IDENTITY.tagline} Part of [${IDENTITY.name}](${IDENTITY.home}).`
 
 /**
  * Single toggle for the "use at your own risk" banner shown at the top of the README and every
@@ -42,50 +45,55 @@ export const EPIGRAPH = `> Part of [${IDENTITY.name}](${IDENTITY.home}): ${IDENT
  */
 export const RISK_DISCLAIMER = {
   enabled: false,
-  text: "**Use at your own risk.** Emulates is under active development — APIs, behavior and package names may change without notice.",
+  text: "**Use at your own risk.** Mockingbird is under active development — APIs, behavior and package names may change without notice.",
+}
+
+export const HEADLINE = {
+  lead: "Familiar calls.",
+  accent: "Faithful echoes.",
 }
 
 export const PITCH =
-  "Each emulator speaks a vendor's real API or a database's real wire protocol, keeps state like the real thing, and runs in your process. Point the official SDK or driver at it and most tests run fast, offline and deterministically, without a live vendor sandbox. Differential tests check every emulator against the real implementation."
+  "Mockingbird is a catalog of stateful test doubles for third-party HTTP APIs and SQL databases. Each one speaks the vendor's real surface, keeps state, and runs in-process."
 
 export const FEATURES = [
   {
     icon: "plug",
-    title: "Real SDK and API compatibility",
-    body: "Each emulator answers the provider's own paths, headers, status codes and error envelopes through `fetch(Request) → Response`, and the database emulators speak the real wire protocol. Point the official SDK or driver at it unchanged.",
+    title: "The vendor's real surface",
+    body: "Each mock answers the provider's own paths, headers, status codes and error envelopes through `fetch(Request) → Response`. Point the official SDK at it.",
   },
   {
     icon: "layers",
-    title: "Stateful behavior",
+    title: "State that behaves",
     body: "Records persist in an in-memory SQL engine. Created customers can be listed, orders move through their lifecycle, webhooks fire, and reset or snapshot takes one call.",
   },
   {
-    icon: "globe",
-    title: "Runs locally, in-process",
-    body: "No container or server to start: the emulator runs inside your test process. The same isomorphic package runs in Node, Bun, browsers and Workers; the playgrounds on this site run it in your browser tab.",
+    icon: "shield",
+    title: "Checked against the real thing",
+    body: "Random walks generated from each vendored OpenAPI contract run against two mock instances in CI, and against the live sandbox when credentials exist.",
   },
   {
     icon: "zap",
-    title: "Fast, deterministic tests",
-    body: "No network round trips, rate limits or shared test accounts, and no live vendor sandbox for most tests. Seeded randomness, an injectable clock and per-namespace isolation make every run replay exactly.",
+    title: "No network, no waiting",
+    body: "Everything runs in your test process. No sandbox keys, rate limits, shared test accounts or flaky round trips.",
   },
   {
-    icon: "shield",
-    title: "Parity checked against the real thing",
-    body: "Differential tests send the same requests to the emulator and to the real implementation (the vendor's sandbox or the real database engine) and compare the answers. Random walks generated from each vendored OpenAPI contract run in CI.",
+    icon: "globe",
+    title: "Runs anywhere JavaScript runs",
+    body: "Every mock is isomorphic: the same package runs in Node, Bun, browsers, and Workers. The playgrounds on this site run that package in your browser tab.",
   },
   {
     icon: "terminal",
     title: "One contract for every service",
-    body: "Every HTTP emulator shares `/__admin/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
+    body: "Every HTTP mock shares `/__admin/health`, `/__admin` reset, snapshots, clock control, fault injection, request journals, collection introspection, an admin UI, and per-namespace isolation.",
   },
 ] as const
 
 /** Executed against the real package during the docs build: it must log a 2xx status first. */
 export const QUICK_START = {
-  package: "@emulates/stripe",
+  package: "@crvouga/mockingbird-service-stripe",
   file: "stripe.test.ts",
-  code: `import { createRuntime } from "@emulates/stripe"
+  code: `import { createRuntime } from "@crvouga/mockingbird-service-stripe"
 
 const stripe = createRuntime()
 
@@ -93,7 +101,7 @@ const res = await stripe.fetch(
   new Request("https://api.stripe.com/v1/customers", {
     method: "POST",
     headers: {
-      authorization: "Bearer sk_test_emulates",
+      authorization: "Bearer sk_test_mockingbird",
       "content-type": "application/x-www-form-urlencoded",
     },
     body: "email=ada@example.com",
@@ -106,7 +114,7 @@ const customer = await res.json() // { id: "cus_…", object: "customer", email:
 // State persists: the customer is there when you list customers.
 const list = await stripe.fetch(
   new Request("https://api.stripe.com/v1/customers", {
-    headers: { authorization: "Bearer sk_test_emulates" },
+    headers: { authorization: "Bearer sk_test_mockingbird" },
   }),
 )
 console.log((await list.json()).data[0].id === customer.id) // true`,
@@ -114,29 +122,29 @@ console.log((await list.json()).data[0].id === customer.id) // true`,
 
 export const CONTRACT = {
   intro:
-    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`EMULATES_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.",
-  serve: `npx emulates-junction serve --port 8787                # one service
-npx emulates-junction serve --config emulates.json  # every service in the config`,
+    "Every HTTP service ships an in-process `fetch`, a Node server and a CLI, and all answer the same control surface, so a stack learns it once. Every internal path is under `/__admin` by default. Set `adminPrefix` or `serve --admin-prefix` (`MOCKINGBIRD_ADMIN_PREFIX`) to relocate the entire tree; `/health` and `/ns` aliases are removed.",
+  serve: `npx mockingbird-junction serve --port 8787                # one service
+npx mockingbird-junction serve --config mockingbird.json  # every service in the config`,
   rows: [
     [
-      "`createRuntime()` · `createServer()` (`./server`) · `emulates-<service> serve`",
-      "The emulator as one runtime-neutral `fetch`, or a listening server from Node or the CLI",
+      "`createRuntime()` · `createServer()` (`./server`) · `mockingbird-<service> serve`",
+      "The mock as one runtime-neutral `fetch`, or a listening server from Node or the CLI",
     ],
     ["`GET /__admin/health`", "Unauthenticated readiness probe, outside the vendor's auth gate"],
     [
-      "`/__admin/*` (`x-emulates-admin-key` optional)",
+      "`/__admin/*` (`x-mockingbird-admin-key` optional)",
       "Reset, snapshot and restore, clock control, fault injection, a request journal, metrics with unmatched-route counts, plus service-specific routes",
     ],
     [
       "`GET /__admin/state`",
-      "The collections in the selected namespace: declared shape, live `Collection` fields, and stored rows. Create, replace, merge, and delete records through the same paths on every emulator",
+      "The collections in the selected namespace: declared shape, live `Collection` fields, and stored rows. Create, replace, merge, and delete records through the same paths on every mock",
     ],
     [
       "`GET /__admin/ui`",
-      "The shared admin UI. An emulator can add panels or replace the document; the shell still reads the same state API. Its header fetches that service's logo, website, and docs from the docs site when the page opens",
+      "The shared admin UI. A mock can add panels or replace the document; the shell still reads the same state API. Its header fetches that service's logo, website, and docs from the docs site when the page opens",
     ],
     [
-      "`x-emulates-namespace`",
+      "`x-mockingbird-namespace`",
       "Per-request isolation: parallel workers share one process without sharing data",
     ],
     [
@@ -157,11 +165,11 @@ npx emulates-junction serve --config emulates.json  # every service in the confi
   }
 }`,
   configNote:
-    "`emulates.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.",
+    "`mockingbird.json` names services by their package suffix. HTTP services, PostgreSQL and Redis share a supervisor with ephemeral ports, readiness discovery and namespace controls. Use `--ready-file` or `--ready-json` to discover endpoints; see [Fleets](docs/FLEETS.md). SQLite remains an in-process engine.",
 }
 
 export const AGENTS =
-  "Every npm package ships an agent index at `node_modules/<package>/DISCOVERY.md`. It points to the local behavior guide, exact capability matrix, machine-readable contract or compatibility evidence, public types, parity oracle, runtime introspection, and issue-reporting contract. [`llms.txt`](llms.txt) indexes those files with the parity each service declares, and the docs site publishes the same source material as markdown and JSON. When an emulator diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
+  "Every npm package ships an agent index at `node_modules/<package>/DISCOVERY.md`. It points to the local behavior guide, exact capability matrix, machine-readable contract or compatibility evidence, public types, parity oracle, runtime introspection, and issue-reporting contract. [`llms.txt`](llms.txt) indexes those files with the parity each service declares, and the docs site publishes the same source material as markdown and JSON. When a mock diverges from the real API, lacks a feature you call, or the vendor you need is not in the catalog, file an issue: [the filing guide](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md) gives the title format, templates and the behavior spec for feature and service requests."
 
 /** Guides in `docs/`, in the order the README and the site list them. Others follow by name. */
 export const GUIDE_ORDER = [

@@ -1,17 +1,17 @@
-# @emulates/github
+# @crvouga/mockingbird-service-github
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP GitHub REST emulator targeting `X-GitHub-Api-Version: 2026-03-10`.
+WIP GitHub REST mock targeting `X-GitHub-Api-Version: 2026-03-10`.
 Repository observations, commit-backed references, and same-repository pull-request
-create/get/list/update are implemented. Unsupported features return emulator-only 501.
+create/get/list/update are implemented. Unsupported features return mock-only 501.
 [API_EVIDENCE.md](API_EVIDENCE.md) pins the source and distinguishes research from
 runtime verification. [SUPPORT.md](SUPPORT.md) is generated from the contract.
 
 ## Install
 
 ```sh
-bun add @emulates/github
+bun add @crvouga/mockingbird-service-github
 ```
 
 ## API
@@ -21,12 +21,12 @@ The portable entry exports `GitHubAPI`, `createRuntime`, `GITHUB_NAMESPACE`,
 Types include `GitHubAPIOptions`, `GitHubRuntime`, `GitHubRuntimeOptions`,
 `Repository`, `Commit`, `PullRequest`, `OperationId`, and `SupportedOperationId`.
 The Node-only `/server` entry exports `createServer`, `DEFAULT_PORT`, `serveTarget`,
-`GitHubServerOptions`, and `GitHubServer`. The executable is `emulates-github`.
+`GitHubServerOptions`, and `GitHubServer`. The executable is `mockingbird-github`.
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulates/github"
+import { createRuntime } from "@crvouga/mockingbird-service-github"
 
 const github = createRuntime({ seed: 42 })
 await github.fetch(new Request("http://github.mock/__admin/github/repositories", {
@@ -75,16 +75,16 @@ All requests above stay inside the local Fetch runtime. The branch target must
 already exist in the synthetic commit graph; this is not a Git push.
 
 `createRuntime` adds health, namespaces, clock, scoped faults, redacted request
-journal and shared Timeline. Select a namespace with `x-emulates-namespace`
+journal and shared Timeline. Select a namespace with `x-mockingbird-namespace`
 or `/__admin/ns/<name>/...` consistently on seed and provider requests. Reset removes
 repository, owner, ancestry and branch state in that namespace; diagnostic history
 and fault settings retain their shared runtime lifetimes. Checkpoints restore
 all stored provider state through the shared Timeline.
 
 `GitHubAPI` is the portable provider-only Fetch/Hono entry; `createServer` from
-`@emulates/github/server` exposes Node HTTP and returns a
+`@crvouga/mockingbird-service-github/server` exposes Node HTTP and returns a
 `close` function. Programmatic servers default to an ephemeral loopback port.
-The CLI is `emulates-github serve --port 8828`.
+The CLI is `mockingbird-github serve --port 8828`.
 
 ## Synthetic setup and boundaries
 
@@ -95,7 +95,7 @@ empty synthetic repository. Every parent and branch target must be seeded; cycle
 duplicates and an absent default branch in a nonempty branch map are rejected.
 Validation completes before mutation; existing repositories cannot be overwritten
 by this control. Use a fresh namespace or reset for a different fixture.
-These are emulator fixture constraints, not GitHub REST request rules.
+These are mock fixture constraints, not GitHub REST request rules.
 
 Seeds create organization owners only. Same-owner repositories share owner
 identity. Repository lookup is case-insensitive; branch names preserve case.
@@ -105,8 +105,8 @@ coverage are not claimed. Missing repositories return a provider-shaped 404.
 No credential-based namespace mapping or authorization policy is implemented.
 
 The selected API version is returned in `x-github-api-version-selected`. Omitting
-the request header selects this emulator's 2026-03-10 contract, unlike GitHub's current
-2022-11-28 default. Other versions return emulator-only 501, not a claimed provider
+the request header selects this mock's 2026-03-10 contract, unlike GitHub's current
+2022-11-28 default. Other versions return mock-only 501, not a claimed provider
 error. This is an explicit single-version test double.
 
 No Git transport, real commit creation, token issuance, GitHub App identity,
@@ -194,7 +194,7 @@ shared runtime lifetime and are not rewound by provider-state checkout.
 
 To model a separate intervening actor, call `POST /__admin/github/refs/move` with
 `{ "owner": "synthetic-org", "repo": "example", "ref": "refs/heads/topic", "sha": "<seeded SHA>" }`
-between a client's read and write. This emulator-only control requires an existing
+between a client's read and write. This mock-only control requires an existing
 branch and a seeded fast-forward target, creates a separate checkpoint, and
 returns `simulated: true`. It cannot create refs, force rewrites or mutate another
 namespace. Invalid controls leave state/history unchanged. Subsequent writes use
@@ -205,7 +205,7 @@ This control models interleaving, not atomic publication or real branch enforcem
 
 `bun test` includes seeded self-parity for all nine operations and successful
 per-operation response checks. A deliberately divergent, schema-valid repository
-observation must fail the parity comparator. These are two isolated emulator instances;
+observation must fail the parity comparator. These are two isolated mock instances;
 self-parity is not evidence that GitHub matches this implementation.
 
 `test/node-consumer.mjs` uses native Node HTTP and literal public contracts against
@@ -227,9 +227,9 @@ all nine operations after repairing the empty-body update mismatch found in its
 first run. Each run closed its fixture PR and deleted its two unchanged fixture
 branches; closed PR history and Git objects remain. The runner is available only
 in the repository checkout; see the
-[oracle guide](https://github.com/crvouga/emulates/tree/main/packages/service/github/oracle).
+[oracle guide](https://github.com/crvouga/mockingbird/tree/main/packages/service/github/oracle).
 It requires a reviewed manifest and explicit writes/notifications/cleanup approval,
-plus `EMULATES_GITHUB_TOKEN` or explicitly selected authenticated `gh` usage.
+plus `MOCKINGBIRD_GITHUB_TOKEN` or explicitly selected authenticated `gh` usage.
 Ordinary package tests never invoke it.
 
 This evidence covers selected identity/state/ref/PR fields and two error cases.
@@ -239,4 +239,4 @@ package remains **WIP**. Scripted denied responses do not prove GitHub App ident
 token permissions, branch protection or rulesets. There is no Git transport or
 token issuance, no expected-old-SHA compare-and-swap, and no atomic transaction
 covering ref movement and PR publication. Consumer reconciliation policy and
-cross-component Initiative acceptance remain outside this emulator.
+cross-component Initiative acceptance remain outside this mock.

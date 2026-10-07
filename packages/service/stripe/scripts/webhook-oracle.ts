@@ -1,10 +1,10 @@
-import { replaceKnownIds } from "@emulates/canonicalize"
-import type { ResourceTable, Side } from "@emulates/model"
+import { replaceKnownIds } from "@crvouga/mockingbird-canonicalize"
+import type { ResourceTable, Side } from "@crvouga/mockingbird-model"
 import {
   createWebhookCollector,
   type WebhookRow,
   type WebhookStore,
-} from "@emulates/webhook-collector"
+} from "@crvouga/mockingbird-webhook-collector"
 
 type JsonObject = Record<string, unknown>
 const record = (value: unknown): JsonObject | undefined =>

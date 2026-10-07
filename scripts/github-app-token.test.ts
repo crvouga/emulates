@@ -7,7 +7,7 @@ import {
   reachProblems,
 } from "./github-app-token.ts"
 
-const repo = "owner/emulates"
+const repo = "owner/mockingbird"
 const installation = (over: Partial<Installation> = {}): Installation => ({
   id: 1,
   repository_selection: "selected",
@@ -17,7 +17,7 @@ const installation = (over: Partial<Installation> = {}): Installation => ({
 
 test("a token on this repository alone, with the agents' permissions, passes", () => {
   expect(reachProblems([installation()], [repo], repo)).toEqual([])
-  expect(reachProblems([installation()], [repo.toUpperCase()], repo)).toEqual([])
+  expect(reachProblems([installation()], ["Owner/Mockingbird"], repo)).toEqual([])
   // Fewer permissions than the app asks for is fine.
   expect(
     reachProblems([installation({ permissions: { metadata: "read" } })], [repo], repo),
@@ -26,18 +26,18 @@ test("a token on this repository alone, with the agents' permissions, passes", (
 
 test("a token that reaches another repository is refused", () => {
   expect(reachProblems([installation()], [repo, "owner/other"], repo)).toEqual([
-    "it reaches owner/emulates, owner/other, not owner/emulates alone",
+    "it reaches owner/mockingbird, owner/other, not owner/mockingbird alone",
   ])
   expect(reachProblems([installation()], ["owner/other"], repo)).toHaveLength(1)
   expect(reachProblems([installation()], [], repo)).toEqual([
-    "it reaches no repository, not owner/emulates alone",
+    "it reaches no repository, not owner/mockingbird alone",
   ])
 })
 
 test("an app installed on every repository, or twice, is refused", () => {
   expect(
     reachProblems([installation({ repository_selection: "all" })], [repo], repo),
-  ).toContainEqual("the app is installed on all repositories, not only owner/emulates")
+  ).toContainEqual("the app is installed on all repositories, not only owner/mockingbird")
   expect(reachProblems([installation(), installation({ id: 2 })], [repo], repo)).toContainEqual(
     "it reaches 2 installations of the app, not exactly one",
   )

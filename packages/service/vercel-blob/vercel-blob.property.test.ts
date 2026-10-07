@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
-import type { OperationObject } from "@emulates/openapi"
-import { ParityError, parity } from "@emulates/parity"
-import { fcParameters } from "@emulates/testing"
+import type { OperationObject } from "@crvouga/mockingbird-openapi"
+import { ParityError, parity } from "@crvouga/mockingbird-parity"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import { DEFAULT_TOKEN, document, VercelBlobAPI } from "./src/index.js"
 
 const headers = () => ({

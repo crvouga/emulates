@@ -1,4 +1,4 @@
-import { jsonResponse, type OperationHandler, opaqueToken } from "@emulates/service"
+import { jsonResponse, type OperationHandler, opaqueToken } from "@crvouga/mockingbird-service"
 import { parameterMissing, resourceMissing } from "./errors.js"
 import {
   booleanOf,

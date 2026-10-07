@@ -10,8 +10,8 @@
  * By default only safe operations run (token, catalog, order lookups); order submit and cancel
  * reach a real pharmacy queue, so they need `--include-unsafe`.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, RxVortexAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

@@ -1,24 +1,24 @@
-# @emulates/oura
+# @crvouga/mockingbird-service-oura
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP Oura v2 collection and OAuth emulator for synthetic wearable synchronization tests.
+WIP Oura v2 collection and OAuth mock for synthetic wearable synchronization tests.
 
 ## Install
 
-`bun add @emulates/oura`
+`bun add @crvouga/mockingbird-service-oura`
 
 ## Usage
 
 ```ts
-import { createRuntime } from "@emulates/oura"
+import { createRuntime } from "@crvouga/mockingbird-service-oura"
 const runtime = createRuntime({ pageSize: 2 })
 const response = await runtime.fetch(new Request("http://oura.test/v2/usercollection/workout", {
   headers: { authorization: "Bearer mock_oura_token" },
 }))
 ```
 
-Run `emulates-oura serve --port 12128`; inject this origin into the consumer's API and OAuth configuration (the issue's provider strategies otherwise hard-code production). Acceptance tests use a Fetch port. `bun scripts/python-smoke.ts` (requires `uv`) additionally exercises the actual requests 2.32.5 and httpx 0.28.1 libraries over local HTTP, including token refresh and error handling; it does not exercise private consumer source.
+Run `mockingbird-oura serve --port 12128`; inject this origin into the consumer's API and OAuth configuration (the issue's provider strategies otherwise hard-code production). Acceptance tests use a Fetch port. `bun scripts/python-smoke.ts` (requires `uv`) additionally exercises the actual requests 2.32.5 and httpx 0.28.1 libraries over local HTTP, including token refresh and error handling; it does not exercise private consumer source.
 
 ## Routes and state
 
@@ -26,11 +26,11 @@ POST `/oauth/token` accepts URL-encoded authorization code or refresh grants, Ba
 
 GET `/v2/usercollection/{workout,sleep,heartrate,daily_activity,daily_spo2,daily_readiness,daily_sleep}` returns `{data,next_token}`. Heart rate uses `start_datetime/end_datetime`; others use `start_date/end_date` against `day`. Fixture windows include both endpoints, omitted bounds are unbounded. These boundary/default choices are deterministic local fixture semantics, not verified live edge-case parity. Never invent an id for heart-rate samples. Fixtures retain every supplied metric, including nulls. Scope checks use `workout`, `daily`, `heartrate`, `spo2`.
 
-Seed `records` rows `{key,userId,collection,data}`. Keys identify storage rows, not vendor ids; distinct keys can deliberately carry duplicate provider data. `pageSize` controls deterministic insertion-order pages. Consumers must retain the same collection/window while paginating; the emulator's row-key cursors do not bind or validate the query. No promised vendor cursor format/order. Set `tokenTtlSeconds` for newly issued tokens.
+Seed `records` rows `{key,userId,collection,data}`. Keys identify storage rows, not vendor ids; distinct keys can deliberately carry duplicate provider data. `pageSize` controls deterministic insertion-order pages. Consumers must retain the same collection/window while paginating; the mock's row-key cursors do not bind or validate the query. No promised vendor cursor format/order. Set `tokenTtlSeconds` for newly issued tokens.
 
 ## Test controls
 
-Standard `/__admin/health`, `/state`, `/reset`, `/requests`, `/clock`, Timeline checkpoints and faults are available under `/__admin` (relocatable via `adminPrefix`). Header `x-emulates-namespace`, `/__admin/ns/<name>` paths and credential mappings isolate data. Journals contain metadata, never OAuth bodies or wearable payloads. Presets: `unauthorized`, `rate_limited`, `server_error`, `connection_drop`; generic faults add latency. Quota and server-error bodies are explicitly scripted fixtures, not live quota simulations. No webhooks in this surface.
+Standard `/__admin/health`, `/state`, `/reset`, `/requests`, `/clock`, Timeline checkpoints and faults are available under `/__admin` (relocatable via `adminPrefix`). Header `x-mockingbird-namespace`, `/__admin/ns/<name>` paths and credential mappings isolate data. Journals contain metadata, never OAuth bodies or wearable payloads. Presets: `unauthorized`, `rate_limited`, `server_error`, `connection_drop`; generic faults add latency. Quota and server-error bodies are explicitly scripted fixtures, not live quota simulations. No webhooks in this surface.
 
 ## Oracle and tests
 

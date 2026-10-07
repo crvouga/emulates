@@ -1,5 +1,5 @@
-import { Collection } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { type Catalog, DEFAULT_CATALOG } from "./catalog.js"
 
 export type Tracking = { trackingNumber: string; carrier: string; trackingUrl?: string }

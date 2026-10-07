@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { runInNewContext } from "node:vm"
-import { createClock } from "@emulates/service"
+import { createClock } from "@crvouga/mockingbird-service"
 import { createRuntime } from "./src/index.js"
 import { createServer } from "./src/server.js"
 import { accepted, verify } from "./test/consumer.js"
@@ -124,7 +124,7 @@ describe("reCAPTCHA v3", () => {
     expect((await verify(fetchImpl, ORIGIN, token)).success).toBe(false)
     const inA = ((input: RequestInfo | URL, init?: RequestInit) => {
       const request = new Request(input, init)
-      request.headers.set("x-emulates-namespace", "a")
+      request.headers.set("x-mockingbird-namespace", "a")
       return runtime.fetch(request)
     }) as typeof fetch
     expect((await verify(inA, ORIGIN, token)).success).toBe(true)

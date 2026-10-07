@@ -25,7 +25,7 @@ export interface RunResult {
  *
  * @example
  * ```ts
- * import { Database } from "@emulates/sqlite";
+ * import { Database } from "@crvouga/mockingbird-service-sqlite";
  *
  * const db = new Database();
  * db.exec("CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT)");

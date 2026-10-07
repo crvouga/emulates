@@ -1,5 +1,5 @@
-import { Collection, withNamespaceRollback } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, withNamespaceRollback } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Resource } from "@medplum/fhirtypes"
 
 /** The id of the system "project" server-owned resources live in (`systemResourceProjectId`). */
@@ -28,7 +28,7 @@ export type HistoryRow = {
 }
 
 /**
- * The mock's FHIR storage for one namespace, on the shared Emulates SQLite tables so the
+ * The mock's FHIR storage for one namespace, on the shared Mockingbird SQLite tables so the
  * runtime's reset, snapshot and restore cover it. Each resource type gets its own collection
  * (like the server's per-type tables); writes move a row to the end of its type's scan order,
  * which is how Postgres's heap order behaves for a searched table without `_sort`.
@@ -114,7 +114,7 @@ export class FhirStore {
   resourceTypes(): string[] {
     const rows = this.sqlite
       .prepare(
-        "SELECT DISTINCT collection FROM emulates_records WHERE namespace = ? AND collection LIKE 'fhir:%'",
+        "SELECT DISTINCT collection FROM mockingbird_records WHERE namespace = ? AND collection LIKE 'fhir:%'",
       )
       .all<{ collection: string }>(this.namespace)
     return rows.map((row) => row.collection.slice("fhir:".length)).sort()

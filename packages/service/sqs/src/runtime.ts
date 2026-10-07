@@ -5,8 +5,8 @@ import {
   type RequestLog,
   type ServiceRuntime,
   createRuntime as serviceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { accessKeyCredential, SQS_NAMESPACE, SqsAPI, type SqsSeedQueue } from "./index.js"
 
@@ -71,14 +71,14 @@ const admin = (runtime: ServiceRuntime<SqsAPI>): AdminRoutes => ({
     } | null
     if (!input || typeof input.queue !== "string" || typeof input.body !== "string")
       return Response.json(
-        { error: { type: "emulates_admin", message: "queue and body are required" } },
+        { error: { type: "mockingbird_admin", message: "queue and body are required" } },
         { status: 400 },
       )
     const api = runtime.instance(namespace)
     const queue = api.state.queues.get(input.queue)
     if (!queue)
       return Response.json(
-        { error: { type: "emulates_admin", message: "queue not found" } },
+        { error: { type: "mockingbird_admin", message: "queue not found" } },
         { status: 404 },
       )
     const result = await api.enqueue(queue, {
@@ -100,7 +100,7 @@ const admin = (runtime: ServiceRuntime<SqsAPI>): AdminRoutes => ({
     if (!message || !Number.isInteger(count) || count < 0)
       return Response.json(
         {
-          error: { type: "emulates_admin", message: "message and non-negative count required" },
+          error: { type: "mockingbird_admin", message: "message and non-negative count required" },
         },
         { status: 400 },
       )
@@ -112,7 +112,7 @@ const admin = (runtime: ServiceRuntime<SqsAPI>): AdminRoutes => ({
     const message = api.state.messages.get(params.id as string)
     if (!message)
       return Response.json(
-        { error: { type: "emulates_admin", message: "message not found" } },
+        { error: { type: "mockingbird_admin", message: "message not found" } },
         { status: 404 },
       )
     api.state.messages.insert(message.id, { ...message, visibleAt: runtime.clock.now() })

@@ -1,20 +1,20 @@
-# @emulates/sqlite-client
+# @crvouga/mockingbird-sqlite
 
-> **Internal package — not published to npm.** Emulates publishes only its emulator services (`@emulates/*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-The synchronous `SqliteClient` port every Emulates emulator stores its state in, plus the default
+The synchronous `SqliteClient` port every Mockingbird mock stores its state in, plus the default
 client and an idempotent migration runner. Use it to type the optional `sqlite` option you pass to a
-provider emulator (to share one database, or to inspect state), or when building a custom service. You
-do not need it just to use an emulator: omit `sqlite` and each emulator creates its own in-memory database.
+provider mock (to share one database, or to inspect state), or when building a custom service. You
+do not need it just to use a mock: omit `sqlite` and each mock creates its own in-memory database.
 
 ## Install
 
 ```bash
-npm install @emulates/sqlite-client
+npm install @crvouga/mockingbird-sqlite
 ```
 
 ESM only, portable (Node >=22, Bun >=1.2, browsers). The default client is the pure-TypeScript
-in-memory `@emulates/sqlite`, installed as a dependency.
+in-memory `@crvouga/mockingbird-service-sqlite`, installed as a dependency.
 
 ## Usage
 
@@ -27,13 +27,13 @@ import {
   migrateCore,
   resolveSqlite,
   type SqliteClient,
-} from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-sqlite"
 
 // A fresh in-memory database. Any client with exec/prepare/transaction also works
-// (better-sqlite3, a wrapped bun:sqlite, @emulates/sqlite's Database).
+// (better-sqlite3, a wrapped bun:sqlite, @crvouga/mockingbird-service-sqlite's Database).
 const sqlite: SqliteClient = resolveSqlite(undefined) // same as createDefaultSqlite()
 
-migrateCore(sqlite) // emulates_records + emulates_sequences; mocks do this on boot
+migrateCore(sqlite) // mockingbird_records + mockingbird_sequences; mocks do this on boot
 
 const migrations: Migration[] = [
   { id: "001_kv", sql: "CREATE TABLE kv (k TEXT PRIMARY KEY, v INTEGER NOT NULL)" },
@@ -49,7 +49,7 @@ console.log(row?.v) // 1
 
 // Share one client between mocks: each mock keeps its records in its own namespace.
 const shared = createDefaultSqlite()
-void shared // e.g. new StripeAPI({ sqlite: shared }) from @emulates/stripe
+void shared // e.g. new StripeAPI({ sqlite: shared }) from @crvouga/mockingbird-service-stripe
 ```
 
 All methods are synchronous; do not `await` them.
@@ -58,13 +58,13 @@ All methods are synchronous; do not `await` them.
 
 | Export | Signature | Description |
 | --- | --- | --- |
-| `createDefaultSqlite` | `() => SqliteClient` | New in-memory `@emulates/sqlite` `Database`. |
+| `createDefaultSqlite` | `() => SqliteClient` | New in-memory `@crvouga/mockingbird-service-sqlite` `Database`. |
 | `resolveSqlite` | `(sqlite?: SqliteClient) => SqliteClient` | Return the injected client, or `createDefaultSqlite()`. |
 | `migrate` | `(sqlite, migrations: readonly Migration[]) => void` | Apply pending migrations in order, all in one transaction. Idempotent by `id`. |
 | `listAppliedMigrations` | `(sqlite) => string[]` | Applied ids ordered by `applied_at` (whole seconds), then `id`. Migrations applied in the same second come back sorted by id, not in application order. |
-| `CORE_MIGRATIONS` | `readonly Migration[]` | Core schema: `emulates_records` (namespaced JSON records) and `emulates_sequences`. |
+| `CORE_MIGRATIONS` | `readonly Migration[]` | Core schema: `mockingbird_records` (namespaced JSON records) and `mockingbird_sequences`. |
 | `migrateCore` | `(sqlite) => void` | `migrate(sqlite, CORE_MIGRATIONS)`. |
-| `clearNamespace` | `(sqlite, namespace: string) => void` | Delete every record and sequence in a namespace (what an emulator's `reset()` does). |
+| `clearNamespace` | `(sqlite, namespace: string) => void` | Delete every record and sequence in a namespace (what a mock's `reset()` does). |
 
 Types:
 
@@ -78,7 +78,7 @@ Types:
 
 ## Related
 
-- `@emulates/sqlite`: the default in-memory SQLite engine.
-- `@emulates/service`: `bootSqlite`, `Collection` and `IdSequence` on top of this port.
+- `@crvouga/mockingbird-service-sqlite`: the default in-memory SQLite engine.
+- `@crvouga/mockingbird-service`: `bootSqlite`, `Collection` and `IdSequence` on top of this port.
 
-Part of [Emulates](https://github.com/crvouga/emulates).
+Part of [mockingbird](https://github.com/crvouga/mockingbird).

@@ -17,8 +17,8 @@ import {
 } from "amazon-cognito-identity-js"
 import { createServer } from "./src/server.js"
 
-const poolId = "us-east-1_emulates"
-const clientId = "emulates-client"
+const poolId = "us-east-1_mockingbird"
+const clientId = "mockingbird-client"
 
 describe("official Cognito clients", () => {
   test("AWS SDK admin lifecycle, groups, pagination, JWT auth and revocation", async () => {

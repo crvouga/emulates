@@ -5,8 +5,8 @@ import {
   type RequestLog,
   type ServiceRuntime,
   createRuntime as serviceRuntime,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import {
   AWS_SECRETS_NAMESPACE,
@@ -47,7 +47,7 @@ export type AwsSecretsRuntimeOptions = {
 }
 export type AwsSecretsRuntime = ServiceRuntime<AwsSecretsAPI>
 const error = (status: number, message: string) =>
-  Response.json({ error: { type: "emulates_admin", message } }, { status })
+  Response.json({ error: { type: "mockingbird_admin", message } }, { status })
 const admin = (runtime: ServiceRuntime<AwsSecretsAPI>): AdminRoutes => ({
   "GET /secrets": ({ namespace }) =>
     Response.json({

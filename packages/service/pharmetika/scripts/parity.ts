@@ -10,8 +10,8 @@
  * template catalog). Patient create, submit, EPCS prepare and cancel reach a real pharmacy
  * queue, so they need `--include-unsafe` — never run that against production.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, PharmetikaAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

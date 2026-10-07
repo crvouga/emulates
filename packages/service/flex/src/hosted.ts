@@ -1,4 +1,4 @@
-import { CSS_RESET } from "@emulates/ui"
+import { CSS_RESET } from "@crvouga/mockingbird-ui"
 import type { NextActionType, SessionRecord } from "./state.js"
 
 /** Test cards the hosted page recognises (spaces are ignored). */
@@ -126,7 +126,7 @@ ${items ? `<ul>${items}</ul>` : ""}`
 /** The card form: contact fields, then the card, then Pay. */
 export const cardPage = (input: PageInput) =>
   layout(
-    "Flex checkout (Emulates)",
+    "Flex checkout (Mockingbird)",
     `${summary(input)}
 ${alert(input.error)}
 <form method="post" action="" data-testid="flex-mock-form">
@@ -171,7 +171,7 @@ export const nextActionPage = (input: PageInput, type: NextActionType) => {
     })
   }
   return layout(
-    "Letter of medical necessity (Emulates)",
+    "Letter of medical necessity (Mockingbird)",
     `${summary(input)}
 ${alert(input.error)}
 <p data-testid="flex-mock-lmn">One of these items needs a letter of medical necessity. Answer the short questionnaire to finish paying.</p>
@@ -186,14 +186,14 @@ ${cancelLink(input.session)}`,
 /** A session that can no longer be paid (complete, expired, canceled). */
 export const closedPage = (session: SessionRecord) =>
   layout(
-    "Flex checkout (Emulates)",
+    "Flex checkout (Mockingbird)",
     `<h1>This checkout is ${escapeHtml(session.status)}</h1>
 <p data-testid="flex-mock-closed" data-status="${escapeHtml(session.status)}">Nothing more to pay here.</p>`,
   )
 
 export const notFoundPage = () =>
   layout(
-    "Flex checkout (Emulates)",
+    "Flex checkout (Mockingbird)",
     `<h1>Checkout not found</h1><p data-testid="flex-mock-not-found">This link is invalid.</p>`,
   )
 

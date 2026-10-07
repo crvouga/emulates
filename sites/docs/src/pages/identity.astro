@@ -1,43 +1,45 @@
 ---
+import BirdMark from "../components/BirdMark.astro"
 import Icon from "../components/Icon.astro"
-import Mark from "../components/Mark.astro"
 import Base from "../layouts/Base.astro"
-import { IDENTITY, MARK_REPO_PATH } from "../lib/content.ts"
+import { IDENTITY, PLATE_HREF } from "../lib/content.ts"
 
 const swatches = [
-  { name: "Paper", token: "--bg", note: "The page" },
-  { name: "Ink", token: "--fg", note: "Text and rules" },
+  { name: "Paper", token: "--bg", note: "The notebook" },
+  { name: "Ink", token: "--fg", note: "Text, wing bars" },
   { name: "Live oak", token: "--accent", note: "A filled action" },
-  { name: "Clay", token: "--clay", note: "Labels, the current page" },
-  { name: "Sage", token: "--sage", note: "A strong border" },
-  { name: "Highlight", token: "--highlight", note: "One highlight. Never a fill" },
+  { name: "Clay", token: "--clay", note: "The song. Labels, the current page" },
+  { name: "Sage", token: "--sage", note: "Plumage. A strong border" },
+  { name: "Eye", token: "--eye", note: "One highlight. Never a fill" },
 ]
 ---
 
-<Base title="Brand" description={`The ${IDENTITY.name} mark, sentence, colors and type.`}>
+<Base title="Field guide" description={IDENTITY.note}>
   <div class="container">
     <header class="page-head">
-      <span class="eyebrow">Identity</span>
-      <h1>Brand</h1>
-      <p class="lede">The mark, the sentence, and the live design tokens. The written rules are the <a href="/docs/design">Design guide</a>.</p>
+      <span class="eyebrow">Mimus polyglottos</span>
+      <h1>Field guide</h1>
+      <p class="lede">{IDENTITY.note}</p>
     </header>
 
-    <div class="marks">
-      <figure class="mark-card">
-        <Mark size={160} />
+    <div class="specimens">
+      <figure class="mark-plate">
+        <BirdMark size={160} />
         <figcaption>
           <span>The mark</span>
-          <span>Favicon, header, footer, README. <code>{MARK_REPO_PATH}</code></span>
+          <span>Favicon, header, README.</span>
         </figcaption>
       </figure>
-      <figure class="mark-card">
-        <div class="lockup">
-          <Mark size={56} />
-          <span>{IDENTITY.name}</span>
-        </div>
+      <figure class="field-plate">
+        <img
+          src={PLATE_HREF}
+          width="1536"
+          height="1024"
+          alt="Northern mockingbird on a fruiting branch: gray above, pale below, two white bars on the wing, a long tail."
+        />
         <figcaption>
-          <span>The lockup</span>
-          <span>The mark beside the name, as in the site header.</span>
+          <span>Plate I</span>
+          <span>The specimen stays on paper in both themes.</span>
         </figcaption>
       </figure>
     </div>
@@ -47,7 +49,7 @@ const swatches = [
         <span class="eyebrow">The sentence</span>
         <h2>{IDENTITY.tagline}</h2>
         <p>
-          The name and that sentence are <code>project.name</code> and <code>project.description</code> in <code>project.ts</code>, exposed to the site as <code>IDENTITY</code>. The GitHub README, <code>llms.txt</code>, and the first line of every package on npm are generated or checked from it.
+          That sentence is <code>IDENTITY</code> in <code>sites/docs/src/lib/content.ts</code>. The GitHub README, <code>llms.txt</code>, and the first line of every package on npm are generated or checked from it.
           The written rules are the <a href="/docs/design">Design guide</a>, the same file GitHub renders.
         </p>
       </div>
@@ -56,7 +58,7 @@ const swatches = [
     <section class="block">
       <div class="section-head">
         <span class="eyebrow">Color</span>
-        <h2>Paper, ink, and two accents.</h2>
+        <h2>Drawn from the bird, not from a template.</h2>
         <p>These are the live tokens. Switch theme and the chips follow. The hex values in the Design guide are the light theme.</p>
       </div>
       <ul class="swatches">
@@ -78,11 +80,11 @@ const swatches = [
     <section class="block">
       <div class="section-head">
         <span class="eyebrow">Type</span>
-        <h2>A serif for headings. A sans for the tools.</h2>
+        <h2>A serif for the entry. A sans for the tools.</h2>
       </div>
       <div class="type">
-        <p class="display">{IDENTITY.name}</p>
-        <p class="sub">{IDENTITY.tagline}</p>
+        <p class="display">Familiar calls. <em>Faithful echoes.</em></p>
+        <p class="latin"><em>Mimus polyglottos</em> — many-tongued mimic.</p>
         <p class="ui">Interface text is Avenir Next, then the system sans. Code stays in the system mono. No webfont is loaded.</p>
       </div>
     </section>
@@ -90,15 +92,15 @@ const swatches = [
     <section class="block">
       <div class="section-head">
         <span class="eyebrow">Motifs</span>
-        <h2>Double rules, flat cards, labels.</h2>
+        <h2>Wing bars, specimens, annotation.</h2>
       </div>
       <div class="motif">
         <div>
-          <div class="double-rule" aria-hidden="true"></div>
+          <div class="wingbar" aria-hidden="true"></div>
           <p>Two rules, thick then thin. The header, the footer, and a prose heading all close with them.</p>
         </div>
-        <div class="card-sample">
-          <strong>Card</strong>
+        <div class="specimen">
+          <strong>Specimen</strong>
           <p>A paper rectangle. Almost no radius, no lift. Hover draws a clay bar on the leading edge.</p>
         </div>
       </div>
@@ -107,64 +109,55 @@ const swatches = [
         <a class="btn btn-secondary" href="/docs">Secondary</a>
         <span class="badge badge-ok"><span class="dot"></span>Ok</span>
         <span class="badge badge-warn">Note</span>
-        <span class="badge">A badge stays a label</span>
+        <span class="badge">Annotation stays a label</span>
       </div>
     </section>
   </div>
 </Base>
 
 <style>
-  .marks {
+  .specimens {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);
     gap: 28px;
-    align-items: stretch;
+    align-items: start;
   }
 
-  .mark-card {
+  .mark-plate,
+  .field-plate {
+    margin: 0;
+    padding: 12px 12px 0;
+    border: 1px solid #243f34;
+    background: #f3eee4;
+  }
+
+  .mark-plate {
     display: grid;
     justify-items: center;
-    align-content: space-between;
-    gap: 12px;
-    margin: 0;
-    padding: 24px 16px 0;
-    border: 1px solid var(--border);
-    background: var(--bg-elevated);
   }
 
-  .lockup {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding-top: 52px;
-    font-family: var(--font-display);
-    font-size: 40px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+  .field-plate img {
+    width: 100%;
+    height: auto;
   }
 
-  .mark-card figcaption {
+  .mark-plate figcaption,
+  .field-plate figcaption {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    justify-self: stretch;
-    padding: 10px 2px 14px;
-    color: var(--fg-subtle);
+    padding: 10px 2px 12px;
+    color: #5c675f;
     font-size: 13px;
   }
 
-  .mark-card figcaption span:first-child {
-    color: var(--clay);
+  .mark-plate figcaption span:first-child,
+  .field-plate figcaption span:first-child {
+    color: #8d4a32;
     font-size: 11px;
     font-weight: 650;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-  }
-
-  .page-head :global(a) {
-    color: var(--accent-soft-fg);
-    text-decoration: underline;
-    text-underline-offset: 3px;
   }
 
   .block {
@@ -235,11 +228,16 @@ const swatches = [
     letter-spacing: -0.03em;
   }
 
-  .sub {
-    margin-top: 10px;
+  .display em,
+  .latin {
     font-family: var(--font-display);
-    font-size: 20px;
+    font-style: italic;
     color: var(--clay);
+  }
+
+  .latin {
+    margin-top: 10px;
+    font-size: 18px;
   }
 
   .ui {
@@ -259,19 +257,19 @@ const swatches = [
     color: var(--fg-muted);
   }
 
-  .card-sample {
+  .specimen {
     padding: 16px;
     border: 1px solid var(--border);
     background: var(--bg-elevated);
     transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
   }
 
-  .card-sample:hover {
+  .specimen:hover {
     border-color: var(--fg);
     box-shadow: inset 3px 0 0 var(--clay);
   }
 
-  .card-sample strong {
+  .specimen strong {
     font-family: var(--font-display);
     font-size: 18px;
   }
@@ -285,7 +283,7 @@ const swatches = [
   }
 
   @media (max-width: 800px) {
-    .marks,
+    .specimens,
     .motif {
       grid-template-columns: 1fr;
     }

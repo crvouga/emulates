@@ -1,12 +1,12 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import {
   createRuntime,
   type WholescriptsRuntime,
   type WholescriptsRuntimeOptions,
 } from "./runtime.js"
 
-/** Port `emulates-wholescripts serve` listens on when none is given. */
+/** Port `mockingbird-wholescripts serve` listens on when none is given. */
 export const DEFAULT_PORT = 8803
 
 export type WholescriptsServerOptions = WholescriptsRuntimeOptions & {
@@ -89,6 +89,6 @@ export const serveTarget: ServeTarget = {
   },
   banner: () => [
     "auth: Authorization: Basic <WHOLESCRIPTS_USERNAME:WHOLESCRIPTS_PASSWORD> (any pair unless --username/--password)",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<username>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<username>: <ns>}",
   ],
 }

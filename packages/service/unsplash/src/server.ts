@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type UnsplashRuntime, type UnsplashRuntimeOptions } from "./runtime.js"
 export const DEFAULT_PORT = 12125
 export type UnsplashServerOptions = UnsplashRuntimeOptions & { port?: number; host?: string }

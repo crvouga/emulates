@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@emulates/adapter-node"
+import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
 import { type AhaRuntime, type AhaRuntimeOptions, createRuntime } from "./runtime.js"
 import type { Settings } from "./state.js"
 
-/** Port `emulates-aha serve` listens on when none is given. */
+/** Port `mockingbird-aha serve` listens on when none is given. */
 export const DEFAULT_PORT = 8799
 
 export type AhaServerOptions = AhaRuntimeOptions & {
@@ -69,7 +69,7 @@ export const serveTarget: ServeTarget = {
     "auto-schedule": {
       type: "string",
       value: "<ms>",
-      description: "Emit Scheduled this many ms (emulator clock) after each create-order",
+      description: "Emit Scheduled this many ms (mock clock) after each create-order",
     },
   },
   create: (values, common) => {
@@ -104,6 +104,6 @@ export const serveTarget: ServeTarget = {
   banner: () => [
     "auth: X-API-KEY + X-TIMESTAMP + X-SIGNATURE (HMAC), or legacy X-<Partner>-Auth-Key",
     "webhooks: POST /__admin/orders/<AC-n>/transition {status, drawStatus?, scheduledAt?, timeZone?}",
-    "namespaces: x-emulates-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AHA_API_KEY>: <ns>}",
+    "namespaces: x-mockingbird-namespace, /__admin/ns/<name>/…, or PUT /__admin/credentials {<AHA_API_KEY>: <ns>}",
   ],
 }

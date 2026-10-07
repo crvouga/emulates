@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import {
   canonicalToken,
@@ -145,7 +145,7 @@ describe("placeholders", () => {
         let calls = 0
         const resolved = resolvePlaceholders(value, (p) => {
           calls++
-          return `<${p.$emulates}>`
+          return `<${p.$mockingbird}>`
         })
         expect(calls).toBe(placeholders.length)
         expect(collectPlaceholders(resolved)).toEqual([])
@@ -163,7 +163,7 @@ describe("placeholders", () => {
           typeof value === "object" &&
             value !== null &&
             !Array.isArray(value) &&
-            typeof (value as Record<string, unknown>).$emulates === "string",
+            typeof (value as Record<string, unknown>).$mockingbird === "string",
         )
       }),
       fcParameters(process.env),

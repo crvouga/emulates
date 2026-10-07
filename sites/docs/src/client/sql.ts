@@ -1,4 +1,4 @@
-import { loaders } from "virtual:emulates/runtimes"
+import { loaders } from "virtual:mockingbird/runtimes"
 import { type Snippet, splitStatements } from "../lib/sql.ts"
 import { escapeHtml, highlightSql } from "./render.ts"
 

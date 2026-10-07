@@ -32,7 +32,7 @@ const record = args.includes("--record")
 const filter = flag("--filter")
 const oracleUrl = flag("--oracle-url")
 const runs = Number(flag("--runs") ?? process.env.FC_NUM_RUNS ?? 12)
-const steps = Number(flag("--steps") ?? process.env.EMULATES_MAX_COMMANDS ?? 30)
+const steps = Number(flag("--steps") ?? process.env.MOCKINGBIRD_MAX_COMMANDS ?? 30)
 const seed = Number(flag("--seed") ?? process.env.FC_SEED ?? Date.now() % 0x7fffffff)
 
 let stop = async () => {}

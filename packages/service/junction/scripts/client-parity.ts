@@ -1,8 +1,8 @@
 import { type Vital, VitalClient } from "@tryvital/vital-node"
 import { JunctionAPI } from "../src/index.js"
 
-const apiKey = process.env.JUNCTION_API_KEY ?? "sk_us_emulates"
-const baseUrl = process.env.JUNCTION_MOCK_BASE_URL ?? "https://junction.emulates.local"
+const apiKey = process.env.JUNCTION_API_KEY ?? "sk_us_mockingbird"
+const baseUrl = process.env.JUNCTION_MOCK_BASE_URL ?? "https://junction.mockingbird.local"
 
 const withMockFetch = async <T>(api: JunctionAPI, run: (client: VitalClient) => Promise<T>) => {
   const originalFetch = globalThis.fetch

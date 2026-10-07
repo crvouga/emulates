@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { createHmac } from "node:crypto"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import { createRuntime, ELEMENTS, ODX_PRESETS, SIGNATURE_HEADER } from "./src/index.js"
 import { createServer } from "./src/server.js"
@@ -525,7 +525,7 @@ describe("served over HTTP", () => {
         ).status,
       ).toBe(201)
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulates")).toMatch(/^odx@/)
+      expect(health.headers.get("x-mockingbird")).toMatch(/^odx@/)
     } finally {
       await server.close()
       sink.stop(true)

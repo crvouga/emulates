@@ -1,4 +1,4 @@
-import type { FaultPreset } from "@emulates/service"
+import type { FaultPreset } from "@crvouga/mockingbird-service"
 
 /** Explicit scenarios, not automatic capacity management or real gateway state. */
 export const presets: Record<string, FaultPreset> = {

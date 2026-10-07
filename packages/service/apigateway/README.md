@@ -1,13 +1,13 @@
-# @emulates/apigateway
+# @crvouga/mockingbird-service-apigateway
 
-> Part of [Emulates](https://github.com/crvouga/emulates): high-fidelity, in-process emulators for APIs and databases.
+> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 Transport scaffold for Amazon API Gateway REST API. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
-import { createServer } from "@emulates/apigateway/server"
+import { createServer } from "@crvouga/mockingbird-service-apigateway/server"
 const mock = await createServer()
 // AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
 // Await mock.close() after the test.
@@ -32,7 +32,7 @@ No vendor operations are implemented. Requests fail explicitly with `UnknownOper
 ## Install
 
 ```sh
-bun add @emulates/apigateway
+bun add @crvouga/mockingbird-service-apigateway
 ```
 
 ## API

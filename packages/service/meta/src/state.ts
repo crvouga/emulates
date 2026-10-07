@@ -1,5 +1,5 @@
-import { Collection, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 export type MetaEvent = {
   id: string
@@ -68,14 +68,14 @@ export class MetaState {
     }
     const fixtures: MarketingObject[] = [
       {
-        id: "cmp_emulates",
+        id: "cmp_mockingbird",
         kind: "campaign",
-        name: "Emulates launch",
+        name: "Mockingbird launch",
         status: "ACTIVE",
         objective: "OUTCOME_SALES",
       },
-      { id: "set_emulates", kind: "adset", name: "Synthetic audience", status: "ACTIVE" },
-      { id: "ad_emulates", kind: "ad", name: "Synthetic creative", status: "ACTIVE" },
+      { id: "set_mockingbird", kind: "adset", name: "Synthetic audience", status: "ACTIVE" },
+      { id: "ad_mockingbird", kind: "ad", name: "Synthetic creative", status: "ACTIVE" },
     ]
     for (const fixture of fixtures)
       if (!this.objects.has(fixture.id)) this.objects.insert(fixture.id, fixture)
@@ -85,11 +85,11 @@ export class MetaState {
       if (!this.insights.has(id))
         this.insights.insert(id, {
           id,
-          account_id: "act_emulates",
+          account_id: "act_mockingbird",
           date_start: date,
           date_stop: date,
-          campaign_id: "cmp_emulates",
-          campaign_name: "Emulates launch",
+          campaign_id: "cmp_mockingbird",
+          campaign_name: "Mockingbird launch",
           impressions: String(day * 100),
           clicks: String(day * 10),
           spend: String(day * 12.5),

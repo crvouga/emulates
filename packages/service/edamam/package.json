@@ -1,7 +1,7 @@
 {
-  "name": "@emulates/edamam",
+  "name": "@crvouga/mockingbird-service-edamam",
   "version": "0.0.0-development",
-  "description": "Stateful emulator of the Edamam APIs our apps call: food-database parser, nutrients and image analysis, nutrition analysis, recipe search v2, meal-planner select and shopping lists, over a built-in food and recipe corpus.",
+  "description": "Stateful mock of the Edamam APIs our apps call: food-database parser, nutrients and image analysis, nutrition analysis, recipe search v2, meal-planner select and shopping lists, over a built-in food and recipe corpus.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,7 @@
     }
   },
   "bin": {
-    "emulates-edamam": "./dist/cli.js"
+    "mockingbird-edamam": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -34,19 +34,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/edamam"
   },
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/edamam#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/edamam#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "service",
     "edamam",
     "nutrition",
     "recipes",
     "meal-planning"
   ],
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -70,7 +70,7 @@
       "oracle": {
         "kind": "Live vendor API or sandbox",
         "command": "bun run parity:service -- edamam",
-        "note": "Run from an Emulates checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
       },
       "introspection": [
         "GET /__admin/health",
@@ -81,7 +81,7 @@
         "GET /__admin/faults/presets",
         "GET /__admin/ui"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "scripts": {
@@ -97,23 +97,23 @@
     "pack:check": "bun ../../../scripts/pack-check.ts"
   },
   "dependencies": {
-    "@emulates/sqlite": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
     "hono": "4.11.9"
   },
   "devDependencies": {
     "fast-check": "4.9.0",
-    "@emulates/testing": "workspace:*",
-    "@emulates/sqlite": "workspace:*",
-    "@emulates/parity": "workspace:*",
-    "@emulates/credentials": "workspace:*",
-    "@emulates/openapi-codegen": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/sqlite-client": "workspace:*",
-    "@emulates/openapi": "workspace:*",
-    "@emulates/service": "workspace:*",
-    "@emulates/http-codec": "workspace:*",
-    "@emulates/adapter-node": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-http-codec": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
     "zod": "3.25.76"
   }
 }

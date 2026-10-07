@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { fcParameters } from "@emulates/testing"
+import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
 import { decodeJwt } from "jose"
 import { OAuthAPI, type OAuthAPIOptions, type Provider } from "./src/index.js"

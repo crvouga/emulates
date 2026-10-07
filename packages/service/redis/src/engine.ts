@@ -1160,7 +1160,7 @@ export class Redis {
           "# Server",
           `redis_version:${VERSION}`,
           "redis_mode:standalone",
-          "os:emulates",
+          "os:mockingbird",
           "arch_bits:64",
           "tcp_port:6379",
           "uptime_in_seconds:0",

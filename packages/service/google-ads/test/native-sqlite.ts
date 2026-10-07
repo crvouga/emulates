@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite"
-import type { SqliteClient, SqliteValue } from "@emulates/sqlite-client"
+import type { SqliteClient, SqliteValue } from "@crvouga/mockingbird-sqlite"
 /** Real SQLite keeps the 21000-record paging fixture practical; other tests use the portable engine. */
 export function nativeSqlite(): SqliteClient & { close(): void } {
   const db = new Database(":memory:")

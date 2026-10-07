@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -12,8 +12,8 @@ import {
   jsonRes,
   type OperationContext,
   type Service,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { logRows, metricCount, type Row, spanRows } from "./otlp.js"
@@ -26,8 +26,8 @@ import {
 import { execute, parseSql, referencedColumns, SqlError } from "./sql.js"
 import { OtelState, type Settings, type StoredRow, type StreamType } from "./state.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export type { IngestedRow, Row, Scalar } from "./otlp.js"
@@ -248,7 +248,7 @@ export class OtelAPI implements FetchAPI {
       const key = kind === "traces" ? "rejectedSpans" : "rejectedLogRecords"
       return ok({
         [key]: String(rows.length),
-        errorMessage: String(rejected.message ?? "rejected by Emulates partial_success"),
+        errorMessage: String(rejected.message ?? "rejected by Mockingbird partial_success"),
       })
     }
     const stream = context.request.headers.get("stream-name")?.trim() || "default"

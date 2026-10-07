@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /// <reference types="node" />
-import { runCli, serveCommand } from "@emulates/adapter-node"
+import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node"
 import { serveTarget } from "./server.js"
 
 const code = await runCli(
   {
-    bin: "emulates-scheduler",
-    description: "Amazon EventBridge Scheduler emulator",
+    bin: "mockingbird-scheduler",
+    description: "stateful Amazon EventBridge Scheduler mock",
     commands: { serve: serveCommand(serveTarget) },
   },
   process.argv.slice(2),

@@ -16,8 +16,8 @@
  * Ave" to "North Central Avenue" in long_name). For Address Validation compare the verdict class
  * and DPV code: ZIP+4 digits, footnotes and the USPS record are synthesized.
  */
-import { CredentialError, createRedactor, loadCredentials } from "@emulates/credentials"
-import { parity } from "@emulates/parity"
+import { CredentialError, createRedactor, loadCredentials } from "@crvouga/mockingbird-credentials"
+import { parity } from "@crvouga/mockingbird-parity"
 import { document, GoogleMapsAPI } from "../src/index.js"
 
 let credentials: Awaited<ReturnType<typeof loadCredentials>>

@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -16,8 +16,8 @@ import {
   opaqueToken,
   type Service,
   toBase64,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { RESULT_PDF } from "./pdf.js"
@@ -32,8 +32,8 @@ import {
   stateRank,
 } from "./state.js"
 
-export type { FetchAPI } from "@emulates/core"
-export type { SqliteClient } from "@emulates/sqlite-client"
+export type { FetchAPI } from "@crvouga/mockingbird-core"
+export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 export type { OperationId, SupportedOperationId } from "./generated/openapi.js"
 export { document, operationIds, supportedOperationIds } from "./generated/openapi.js"
 export { RESULT_PDF } from "./pdf.js"
@@ -618,12 +618,12 @@ export class FullscriptAPI implements FetchAPI {
     const order = this.state.orders.get(orderId)
     if (!order)
       throw new HttpError(404, {
-        error: { type: "emulates_admin", message: `no lab order ${orderId}` },
+        error: { type: "mockingbird_admin", message: `no lab order ${orderId}` },
       })
     if (stateRank(to) <= stateRank(order.state)) {
       throw new HttpError(409, {
         error: {
-          type: "emulates_admin",
+          type: "mockingbird_admin",
           message: `lab orders only move forward: ${order.state} → ${to} is not allowed`,
         },
       })

@@ -1,4 +1,4 @@
-import type { FetchAPI } from "@emulates/core"
+import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
   type APIOptions,
   annotateResponse,
@@ -11,8 +11,8 @@ import {
   jsonRes,
   markMutationAccepted,
   type Service,
-} from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+} from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { Hono } from "hono"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { HermesIdempotency, strip } from "./idempotency.js"
@@ -81,8 +81,8 @@ export class HermesAPI implements FetchAPI {
       unsupported: (_request, operation) =>
         jsonRes(501, {
           error: {
-            message: `Emulates: ${operation.operationId} is not implemented`,
-            type: "emulates_unsupported",
+            message: `Mockingbird: ${operation.operationId} is not implemented`,
+            type: "mockingbird_unsupported",
             param: null,
             code: "operation_not_implemented",
           },

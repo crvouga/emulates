@@ -233,7 +233,7 @@ test("branch restore invalidates only its attachments and successor output uses 
     id,
     "stdout=1",
     Buffer.alloc(0),
-    "x-emulates-branch: alternate\r\n",
+    "x-mockingbird-branch: alternate\r\n",
   )
   try {
     const old = server.attachments().find((s) => s.branch === "alternate")
@@ -247,7 +247,7 @@ test("branch restore invalidates only its attachments and successor output uses 
       id,
       "stdout=1",
       Buffer.alloc(0),
-      "x-emulates-branch: alternate\r\n",
+      "x-mockingbird-branch: alternate\r\n",
     )
     try {
       const fresh = server.attachments().find((s) => s.branch === "alternate")

@@ -794,7 +794,7 @@ describe("served over HTTP", () => {
         },
       ])
       const health = await fetch(`${server.url}/__admin/health`)
-      expect(health.headers.get("x-emulates")).toMatch(/^healthie@/)
+      expect(health.headers.get("x-mockingbird")).toMatch(/^healthie@/)
     } finally {
       await server.close()
       sink.stop(true)

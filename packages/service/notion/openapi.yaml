@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Notion database subset
   version: '2022-06-28'
-  x-emulates-upstream:
+  x-mockingbird-upstream:
     url: https://github.com/makenotion/notion-sdk-js/tree/v2.2.15
 servers:
   - url: https://api.notion.com
@@ -36,7 +36,7 @@ paths:
                   workspace_id: { type: string }
         '400': { $ref: '#/components/responses/OAuthError' }
         '401': { $ref: '#/components/responses/OAuthError' }
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
   /v1/search:
     post:
       operationId: Search
@@ -74,7 +74,7 @@ paths:
                   has_more: { type: boolean }
         '400': { $ref: '#/components/responses/Error' }
         '401': { $ref: '#/components/responses/Error' }
-      x-emulates: { supported: true, parity: { enabled: true, safe: true } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: true } }
   /v1/pages:
     post:
       operationId: CreatePage
@@ -108,7 +108,7 @@ paths:
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
-      x-emulates: { supported: true, parity: { enabled: true, safe: false } }
+      x-mockingbird: { supported: true, parity: { enabled: true, safe: false } }
 components:
   responses:
     Error:

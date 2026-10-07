@@ -1,18 +1,18 @@
 {
   "bin": {
-    "emulates-sqlite": "./dist/socket/cli.js"
+    "mockingbird-sqlite": "./dist/socket/cli.js"
   },
   "bugs": {
-    "url": "https://github.com/crvouga/emulates/issues"
+    "url": "https://github.com/crvouga/mockingbird/issues"
   },
   "description": "Pure TypeScript in-memory SQLite implementation with zero WASM/native dependencies",
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.14",
-    "@emulates/admin-ui": "workspace:*",
-    "@emulates/core": "workspace:*",
-    "@emulates/openapi-metadata": "workspace:*",
-    "@emulates/ui": "workspace:*",
+    "@crvouga/mockingbird-admin-ui": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-ui": "workspace:*",
     "@types/bun": "latest",
     "alasql": "^4.19.1",
     "esbuild": "^0.28.2",
@@ -59,9 +59,9 @@
     "CHANGELOG.md",
     "DISCOVERY.md"
   ],
-  "homepage": "https://github.com/crvouga/emulates/tree/main/packages/service/sqlite#readme",
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/sqlite#readme",
   "keywords": [
-    "emulates",
+    "mockingbird",
     "sqlite",
     "typescript",
     "in-memory",
@@ -70,7 +70,7 @@
   ],
   "license": "MIT",
   "main": "./dist/index.js",
-  "emulates": {
+  "mockingbird": {
     "runtime": "portable",
     "layer": "service",
     "category": "databases",
@@ -99,18 +99,18 @@
         "README.md public test controls",
         "COMPATIBILITY.md compatibility and divergence evidence"
       ],
-      "reporting": "https://github.com/crvouga/emulates/blob/main/docs/REPORTING_ISSUES.md"
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
     }
   },
   "module": "./dist/index.js",
-  "name": "@emulates/sqlite",
+  "name": "@crvouga/mockingbird-service-sqlite",
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/emulates.git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
     "directory": "packages/service/sqlite"
   },
   "scripts": {

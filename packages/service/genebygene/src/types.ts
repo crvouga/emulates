@@ -206,7 +206,7 @@ export const DEFAULT_SETTINGS: Settings = {
   blockedClients: {},
   tokenGeneration: 0,
   generateKitNumbers: true,
-  resultsBucket: "emulates-genebygene-results",
+  resultsBucket: "mockingbird-genebygene-results",
   presignedUrlTtlSeconds: 3600,
   catalog: "both",
   kitAssociation: "immediate",

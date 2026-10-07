@@ -1,13 +1,13 @@
 ---
+import BirdMark from "../components/BirdMark.astro"
 import Icon from "../components/Icon.astro"
-import Mark from "../components/Mark.astro"
 import Base from "../layouts/Base.astro"
 ---
 
 <Base title="Not found">
   <div class="container notfound">
-    <Mark size={64} />
-    <h1>Page not found.</h1>
+    <BirdMark size={64} />
+    <h1>Not in this notebook.</h1>
     <p class="lede">The link may be old, or the service may have a different name. Search from the header, or start from the catalog.</p>
     <div class="actions">
       <a class="btn btn-primary" href="/services">Browse services <Icon name="arrow-right" /></a>
@@ -23,6 +23,9 @@ import Base from "../layouts/Base.astro"
     gap: 14px;
     padding-block: 120px 40px;
     text-align: center;
+  }
+  .notfound .emoji {
+    font-size: 56px;
   }
   .notfound h1 {
     font-size: 36px;

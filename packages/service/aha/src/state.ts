@@ -1,5 +1,5 @@
-import { Collection, IdempotencyStore, IdSequence } from "@emulates/service"
-import type { SqliteClient } from "@emulates/sqlite-client"
+import { Collection, IdempotencyStore, IdSequence } from "@crvouga/mockingbird-service"
+import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 
 /**
  * One order as the mock tracks it. Patient details are validated but never stored: the mock
