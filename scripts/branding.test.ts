@@ -64,9 +64,9 @@ test("workspace packages use Mockingbird names, bins, and repository URLs", () =
       ...manifest.devDependencies,
       ...manifest.peerDependencies,
     }
+    const bannedScopes = ["emulates", "emulators"].map((scope) => `@${scope}/`)
     for (const dep of Object.keys(deps)) {
-      expect(dep.startsWith("@emulates/")).toBe(false)
-      expect(dep.startsWith("@emulators/")).toBe(false)
+      for (const scope of bannedScopes) expect(dep.startsWith(scope)).toBe(false)
     }
     for (const bin of Object.keys(manifest.bin ?? {})) {
       expect(bin.startsWith("mockingbird-")).toBe(true)

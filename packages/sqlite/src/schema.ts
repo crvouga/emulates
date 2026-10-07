@@ -32,7 +32,7 @@ export const CORE_MIGRATIONS: readonly Migration[] = [
 ]
 
 /**
- * Table and index names from the unfinished Emulates rename.
+ * Table and index names from the unfinished product rename.
  * Renamed in place so a database created under those names keeps its rows.
  */
 const LEGACY_TABLES = [
