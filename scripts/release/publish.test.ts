@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { initialPackageBlocker, releaseInOrder } from "./lib.ts"
+import {
+  githubRetryDelayMs,
+  initialPackageBlocker,
+  isRetryableGitHubError,
+  releaseInOrder,
+} from "./lib.ts"
 
 const release = (name: string, ...runtimeDeps: string[]) => ({ pkg: { name, runtimeDeps } })
 
@@ -40,5 +45,20 @@ describe("releaseInOrder", () => {
     expect(attempted).toEqual(["a", "new-pkg", "b", "c"])
     expect(skipped).toEqual(["dependent"])
     expect([...failed].sort()).toEqual(["dependent", "new-pkg"])
+  })
+})
+
+describe("GitHub release retries", () => {
+  test("retries the 500 that aborts a seed, and backs off", () => {
+    expect(
+      isRetryableGitHubError(
+        "HTTP 500 (https://api.github.com/repos/crvouga/mockingbird/releases)",
+      ),
+    ).toBe(true)
+    expect(isRetryableGitHubError("You have exceeded a secondary rate limit")).toBe(true)
+    expect(isRetryableGitHubError("HTTP 422 Validation Failed")).toBe(false)
+    expect(githubRetryDelayMs(0)).toBe(5000)
+    expect(githubRetryDelayMs(1)).toBe(10_000)
+    expect(githubRetryDelayMs(8)).toBe(60_000)
   })
 })

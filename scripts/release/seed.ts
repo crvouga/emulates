@@ -12,17 +12,29 @@
  * Steps:
  *   1. make sure npm >= 11.10 is on PATH (`npm trust` needs it; a private copy is used if not)
  *   2. make sure you are logged in to npm (runs `npm login` if not)
- *   3. check out origin/main in a temporary worktree, install and build it
- *   4. `release:publish --local` there: publish, trust, tag, GitHub Releases, deprecate
+ *   3. check out origin/main in a kept worktree. A rerun reuses that install and build,
+ *      and a checkout that is already origin/main and already built donates its dist.
+ *   4. `release:publish --local` there, using this checkout's scripts/release (so a local
+ *      fix applies before it is on main): publish, trust, tag, GitHub Releases, deprecate
  *
  * After this, every later release is published by CI through OIDC.
  * Idempotent: packages, trust, tags and deprecations that already exist are skipped,
- * so re-run it to finish.
+ * so re-run it to finish. The worktree is kept on purpose; deleting it is what made
+ * every rerun install and build origin/main again.
  *
  *   bun run release:seed               (reconcile)
  *   bun run release:seed -- --dry-run  (plan + pack, print what would change)
  */
-import { existsSync, mkdtempSync, rmSync } from "node:fs"
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { chdir } from "node:process"
@@ -54,10 +66,48 @@ function npmIsRecentEnough(version: string): boolean {
   return major > MIN_NPM[0] || (major === MIN_NPM[0] && minor >= MIN_NPM[1])
 }
 
-const scratch = mkdtempSync(join(tmpdir(), "mockingbird-seed-"))
-const worktree = join(scratch, "main")
+/** Public services in `dir` already have a packed entry. `conformance` and other private dirs are ignored. */
+function distReady(dir: string): boolean {
+  const service = join(dir, "packages/service")
+  if (!existsSync(service)) return false
+  let saw = 0
+  for (const entry of readdirSync(service, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const manifestPath = join(service, entry.name, "package.json")
+    if (!existsSync(manifestPath)) continue
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+      private?: boolean
+      publishConfig?: { access?: string }
+    }
+    if (manifest.private === true || manifest.publishConfig?.access !== "public") continue
+    saw += 1
+    if (!existsSync(join(service, entry.name, "dist/index.js"))) return false
+  }
+  return saw > 0
+}
+
+/** Copy a tree, cloning files when the volume supports it. Symlinks stay symlinks. */
+async function copyTree(from: string, to: string): Promise<boolean> {
+  rmSync(to, { recursive: true, force: true })
+  mkdirSync(join(to, ".."), { recursive: true })
+  const cloned = await Bun.spawn(["cp", "-cR", from, to], {
+    stdout: "ignore",
+    stderr: "ignore",
+  }).exited
+  if (cloned === 0) return true
+  rmSync(to, { recursive: true, force: true })
+  const copied = await Bun.spawn(["cp", "-R", from, to], {
+    stdout: "ignore",
+    stderr: "inherit",
+  }).exited
+  return copied === 0
+}
+
+const cache = join(root, "..", ".mockingbird-seed-main")
+const stampPath = `${cache}.sha`
 const env: Record<string, string | undefined> = { ...process.env }
 delete env.NODE_AUTH_TOKEN
+let npmScratch: string | undefined
 enter(root)
 
 try {
@@ -67,7 +117,8 @@ try {
     console.log(
       `release:seed: npm ${npmVersion} is too old for \`npm trust\`; using npm@11 for this run`,
     )
-    const prefix = join(scratch, "npm")
+    npmScratch = mkdtempSync(join(tmpdir(), "mockingbird-seed-npm-"))
+    const prefix = join(npmScratch, "npm")
     await $`npm install --silent --no-audit --no-fund --prefix ${prefix} npm@11`.quiet()
     env.PATH = `${join(prefix, "node_modules/.bin")}:${process.env.PATH}`
   }
@@ -84,14 +135,59 @@ try {
     )
   }
 
-  // 3. A clean origin/main, independent of the current checkout.
+  // 3. A clean origin/main. Kept across runs so a crash does not rebuild the repo.
   await $`git fetch origin main --tags`.cwd(root).quiet()
-  await $`git worktree add --detach ${worktree} origin/main`.cwd(root).quiet()
-  await run(["bun", "install", "--frozen-lockfile"], worktree, env)
-  await run(["bun", "run", "build"], worktree, env)
+  const sha = (await $`git rev-parse origin/main`.cwd(root).quiet()).text().trim()
+  const head = (await $`git rev-parse HEAD`.cwd(root).quiet()).text().trim()
+  if (!existsSync(join(cache, ".git"))) {
+    mkdirSync(join(cache, ".."), { recursive: true })
+    await $`git worktree add --detach ${cache} ${sha}`.cwd(root).quiet()
+  } else {
+    await $`git reset --hard ${sha}`.cwd(cache).quiet()
+  }
+  // This checkout's publisher, not origin/main's, so the retry fix runs before it is merged.
+  for (const name of readdirSync(join(root, "scripts/release"))) {
+    cpSync(join(root, "scripts/release", name), join(cache, "scripts/release", name), {
+      recursive: true,
+      force: true,
+    })
+  }
+
+  const reused =
+    existsSync(stampPath) &&
+    readFileSync(stampPath, "utf8").trim() === sha &&
+    existsSync(join(cache, "node_modules")) &&
+    distReady(cache)
+  if (reused) {
+    console.log(`release:seed: reusing build of origin/main ${sha.slice(0, 7)}`)
+  } else if (head === sha && distReady(root)) {
+    console.log("release:seed: reusing this checkout's build of origin/main")
+    const copiedModules = await copyTree(join(root, "node_modules"), join(cache, "node_modules"))
+    if (!copiedModules) {
+      console.log("release:seed: could not copy node_modules; installing and building instead")
+      await run(["bun", "install", "--frozen-lockfile"], cache, env)
+      await run(["bun", "run", "build"], cache, env)
+    } else {
+      const service = join(root, "packages/service")
+      for (const entry of readdirSync(service, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue
+        const from = join(service, entry.name, "dist")
+        if (!existsSync(from)) continue
+        if (!(await copyTree(from, join(cache, "packages/service", entry.name, "dist")))) {
+          throw new Error(`release:seed: could not copy ${from}`)
+        }
+      }
+    }
+    writeFileSync(stampPath, sha)
+  } else {
+    console.log(`release:seed: installing and building origin/main ${sha.slice(0, 7)}`)
+    await run(["bun", "install", "--frozen-lockfile"], cache, env)
+    await run(["bun", "run", "build"], cache, env)
+    writeFileSync(stampPath, sha)
+  }
 
   // 4. Publish, trust, tag, release, deprecate.
-  await run(["bun", "scripts/release/publish.ts", dryRun ? "--dry-run" : "--local"], worktree, env)
+  await run(["bun", "scripts/release/publish.ts", dryRun ? "--dry-run" : "--local"], cache, env)
 } catch (error) {
   console.error(`release:seed: ${error instanceof Error ? error.message : String(error)}`)
   process.exitCode = 1
@@ -101,14 +197,5 @@ try {
   } catch {
     // The checkout this process started in is gone; removal below uses absolute paths.
   }
-  try {
-    await Bun.spawn(["git", "worktree", "remove", "--force", worktree], {
-      cwd: root,
-      stdout: "ignore",
-      stderr: "ignore",
-    }).exited
-  } catch {
-    // Absolute removal below still drops the checkout if git cannot start.
-  }
-  rmSync(scratch, { recursive: true, force: true })
+  if (npmScratch) rmSync(npmScratch, { recursive: true, force: true })
 }

@@ -311,7 +311,10 @@ export function bumpVersion(version: string, bump: Bump): string {
 
 /** Published versions, `[]` if the package does not exist, or an error string. */
 export async function npmVersions(name: string): Promise<string[] | { error: string }> {
-  const result = await $`npm view ${name} versions --json`.cwd(root).quiet().nothrow()
+  const result = await $`npm view ${name} versions --json --prefer-online`
+    .cwd(root)
+    .quiet()
+    .nothrow()
   const out = result.stdout.toString().trim()
   if (result.exitCode !== 0) {
     if (/E404|404 Not Found/.test(out + result.stderr.toString())) return []
@@ -366,6 +369,19 @@ export function redact(text: string): string {
   return text
     .replace(/npm_[A-Za-z0-9]{20,}/g, "npm_***")
     .replace(/_authToken=\S+/g, "_authToken=***")
+}
+
+const RETRYABLE_GITHUB =
+  /HTTP (?:500|502|503|504)\b|secondary rate limit|abuse detection|rate limit exceeded/i
+
+/** GitHub occasionally returns 500 while creating many releases; those are worth retrying. */
+export function isRetryableGitHubError(text: string): boolean {
+  return RETRYABLE_GITHUB.test(text)
+}
+
+/** 5s, 10s, 20s, 40s, then 60s. `attempt` is 0-based. */
+export function githubRetryDelayMs(attempt: number): number {
+  return Math.min(5000 * 2 ** attempt, 60_000)
 }
 
 // ── Plan ───────────────────────────────────────────────────────────
