@@ -12,6 +12,8 @@
  *
  * Every step is idempotent: versions already on npm, existing tags and existing
  * GitHub Releases are skipped, so a failed run is fixed by re-running it.
+ * A GitHub 500 while creating a release is retried. It does not abort the other
+ * packages, and a tag that already exists is not published again.
  *
  *   bun run release:publish -- --dry-run   (plan + pack, no side effects)
  *   bun run release:publish                (CI, on main)
@@ -25,7 +27,9 @@ import { VERSION_PLACEHOLDER } from "../bundle-service-version.ts"
 import {
   changelog,
   computePlan,
+  githubRetryDelayMs,
   initialPackageBlocker,
+  isRetryableGitHubError,
   npmVersions,
   packedManifest,
   pinManifest,
@@ -65,7 +69,9 @@ const plan = await computePlan()
 if (plan.releases.length === 0) {
   console.log("release:publish: nothing to release")
 } else {
-  console.log(`release:publish: ${plan.releases.length} package(s)${dryRun ? " (dry-run)" : ""}`)
+  console.log(
+    `release:publish: ${plan.releases.length} package(s) still to release${dryRun ? " (dry-run)" : ""}`,
+  )
 }
 
 // Pin every public package for packing: its own version, and its workspace
@@ -228,26 +234,119 @@ async function ensureTrustedPublisher(name: string): Promise<void> {
   }
 }
 
-async function tagAndRelease(release: Release): Promise<void> {
+function detailOf(result: {
+  stdout: { toString(): string }
+  stderr: { toString(): string }
+}): string {
+  return redact(`${result.stderr.toString()}\n${result.stdout.toString()}`).trim()
+}
+
+/**
+ * Create the GitHub Release for a tag that is already on origin.
+ * Returns false only after the retries are exhausted. Never throws: one 500 must
+ * not abort the rest of the seed.
+ */
+async function createGitHubRelease(tag: string, notes: string): Promise<boolean> {
+  const hasRelease = await $`gh release view ${tag} --repo ${REPO}`.quiet().nothrow()
+  if (hasRelease.exitCode === 0) return true
+  const attempts = 6
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const created =
+      await $`gh release create ${tag} --repo ${REPO} --title ${tag} --notes ${notes} --verify-tag --latest=false`
+        .quiet()
+        .nothrow()
+    const detail = detailOf(created)
+    if (created.exitCode === 0 || /already exists/i.test(detail)) return true
+    const retry = attempt + 1 < attempts && isRetryableGitHubError(detail)
+    if (!retry) {
+      console.error(`::error::GitHub release for ${tag} failed\n  ${detail}`)
+      return false
+    }
+    const delay = githubRetryDelayMs(attempt)
+    console.warn(
+      `::warning::GitHub release for ${tag} failed; retrying in ${delay / 1000}s\n  ${detail}`,
+    )
+    await Bun.sleep(delay)
+  }
+  return false
+}
+
+/** Notes for a tag that was pushed by an earlier run, whose planned notes are gone with that run. */
+function releaseNoteForTag(tag: string): string {
+  const at = tag.lastIndexOf("@")
+  const name = tag.slice(0, at)
+  const version = tag.slice(at + 1)
+  return `npm: [${name}@${version}](https://www.npmjs.com/package/${name}/v/${version})`
+}
+
+/**
+ * Tags from a run that died on `gh release create` are already the released version, so the
+ * next plan skips them and would never create the release. Fill those in before publishing.
+ * Returns how many are still missing.
+ */
+async function repairMissingReleases(): Promise<number> {
+  const listed = await $`git tag --list ${"@crvouga/mockingbird-service-*"}`.cwd(root).quiet()
+  const tags = listed
+    .text()
+    .split("\n")
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+  console.log("release:publish: checking for tags that never got a GitHub release")
+  const remote = await $`gh api --paginate repos/${REPO}/releases --jq ${".[].tag_name"}`
+    .quiet()
+    .nothrow()
+  if (remote.exitCode !== 0) {
+    console.warn(`::warning::could not list GitHub releases\n  ${detailOf(remote)}`)
+    return 0
+  }
+  const have = new Set(
+    remote.stdout
+      .toString()
+      .split("\n")
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+  )
+  const missing = tags.filter((tag) => !have.has(tag))
+  if (missing.length === 0) return 0
+  console.log(`release:publish: ${missing.length} existing tag(s) have no GitHub release`)
+  let still = 0
+  for (const tag of missing) {
+    if (dryRun) {
+      console.log(`would create release ${tag}`)
+      continue
+    }
+    if (await createGitHubRelease(tag, releaseNoteForTag(tag))) console.log(`tagged ${tag}`)
+    else still += 1
+  }
+  return still
+}
+
+async function tagAndRelease(release: Release): Promise<boolean> {
   const tag = tagName(release.pkg.name, release.version)
   const notes = releaseNotes(release, plan.versions)
   if (dryRun) {
     console.log(`would tag ${tag}\n${notes.replace(/^/gm, "    ")}`)
-    return
+    return true
   }
   const exists = await $`git rev-parse -q --verify ${`refs/tags/${tag}`}`
     .cwd(root)
     .quiet()
     .nothrow()
   if (exists.exitCode !== 0) {
-    await $`git tag -a ${tag} -m ${tag}`.cwd(root).quiet()
+    const tagged = await $`git tag -a ${tag} -m ${tag}`.cwd(root).quiet().nothrow()
+    if (tagged.exitCode !== 0) {
+      console.error(`::error::git tag ${tag} failed\n  ${detailOf(tagged)}`)
+      return false
+    }
   }
-  await $`git push origin ${`refs/tags/${tag}`}`.cwd(root).quiet()
-  const hasRelease = await $`gh release view ${tag} --repo ${REPO}`.quiet().nothrow()
-  if (hasRelease.exitCode !== 0) {
-    await $`gh release create ${tag} --repo ${REPO} --title ${tag} --notes ${notes} --verify-tag --latest=false`.quiet()
+  const pushed = await $`git push origin ${`refs/tags/${tag}`}`.cwd(root).quiet().nothrow()
+  if (pushed.exitCode !== 0) {
+    console.error(`::error::git push ${tag} failed\n  ${detailOf(pushed)}`)
+    return false
   }
+  if (!(await createGitHubRelease(tag, notes))) return false
   console.log(`tagged ${tag}`)
+  return true
 }
 
 async function deprecateRetiredPackages(): Promise<void> {
@@ -272,15 +371,23 @@ async function deprecateRetiredPackages(): Promise<void> {
   }
 }
 
+let githubReleaseGaps = 0
 try {
+  githubReleaseGaps += await repairMissingReleases()
   // A package that cannot release never stops the independent ones; its dependents are skipped.
+  // A GitHub release failure does not: the package is already on npm, and dependents may pin it.
   await releaseInOrder(
     plan.releases,
     async (release) => {
-      if (!(await publish(release))) return false
-      await ensureTrustedPublisher(release.pkg.name)
-      await tagAndRelease(release)
-      return true
+      try {
+        if (!(await publish(release))) return false
+        await ensureTrustedPublisher(release.pkg.name)
+        if (!(await tagAndRelease(release))) githubReleaseGaps += 1
+        return true
+      } catch (error) {
+        fail(release.pkg.name, [error instanceof Error ? error.message : String(error)])
+        return false
+      }
     },
     (release, blockedBy) =>
       fail(release.pkg.name, [`skipped: dependency failed to release (${blockedBy.join(", ")})`]),
@@ -299,11 +406,18 @@ try {
 }
 
 const ok = plan.releases.length - failed.size
-console.log(`release:publish: released=${ok} failed=${failed.size}${dryRun ? " (dry-run)" : ""}`)
+console.log(
+  `release:publish: released=${ok} failed=${failed.size} github-releases-missing=${githubReleaseGaps}${dryRun ? " (dry-run)" : ""}`,
+)
 if (needsSeed.length > 0) {
   console.error(
     `::error::${needsSeed.length} initial npm package(s) need an interactive local seed: ${needsSeed.join(", ")}`,
   )
   console.error("Every other package was released. Run bun run release:seed, then retry CI.")
 }
-if (failed.size > 0) process.exit(1)
+if (githubReleaseGaps > 0) {
+  console.error(
+    `::error::${githubReleaseGaps} GitHub release(s) still missing. Re-run bun run release:seed; versions already on npm are skipped.`,
+  )
+}
+if (failed.size > 0 || githubReleaseGaps > 0) process.exit(1)
