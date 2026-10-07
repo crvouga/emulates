@@ -184,30 +184,27 @@ const adminRoutes =
  */
 export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime => {
   const { retryDelaysMs, fetch: send, ...endpoint } = options.webhooks ?? { url: "" }
+  // Distinct from `we_<namespace>_N`, which `setEndpoints` assigns to admin endpoints.
+  const configuredId = "we_configured"
   const hub = createWebhookHub({
     signer: paddleSigner(),
     ...(retryDelaysMs ? { retryDelaysMs } : {}),
     ...(send ? { fetch: send } : {}),
-    endpoints: options.webhooks ? [endpoint as WebhookEndpoint] : [],
+    endpoints: options.webhooks ? [{ ...endpoint, id: configuredId } as WebhookEndpoint] : [],
   })
-  // Vendor notification destinations and `PUT /__admin/webhook-endpoints` share one namespace
-  // list. Each writer replaces only its own entries.
-  const adminEndpoints = new Map<string, WebhookEndpoint[]>()
-  const destinationEndpoints = new Map<string, WebhookEndpoint[]>()
+  // Admin endpoints live in the webhook hub (snapshotted with it). Vendor destinations are
+  // read back from the notification-settings collection on every write, so neither list
+  // replaces the other and a timeline restore keeps both.
+  let runtime: ServiceRuntime<PaddleAPI> | undefined
   const setOwn = hub.setEndpoints.bind(hub)
-  const applyEndpoints = (namespace: string): WebhookEndpoint[] =>
+  const isAdmin = (candidate: WebhookEndpoint) =>
+    candidate.id !== configuredId && !candidate.id?.startsWith("ntfset_")
+  hub.setEndpoints = (namespace, endpoints) =>
     setOwn(namespace, [
-      ...(adminEndpoints.get(namespace) ?? []),
-      ...(destinationEndpoints.get(namespace) ?? []),
+      ...endpoints.filter(isAdmin),
+      ...(runtime?.instance(namespace).notificationDestinations() ?? []),
     ])
-  hub.setEndpoints = (namespace, endpoints) => {
-    adminEndpoints.set(
-      namespace,
-      endpoints.filter((candidate) => !candidate.id?.startsWith("ntfset_")),
-    )
-    return applyEndpoints(namespace)
-  }
-  const runtime = createServiceRuntime<PaddleAPI>({
+  const runtimeBuilt = createServiceRuntime<PaddleAPI>({
     name: PADDLE_NAMESPACE,
     document,
     ...(options.sqlite ? { sqlite: options.sqlite } : {}),
@@ -238,8 +235,8 @@ export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime
           })
         },
         onDestinations: (endpoints) => {
-          destinationEndpoints.set(publicNamespace, endpoints)
-          applyEndpoints(publicNamespace)
+          const admin = hub.endpoints(publicNamespace).filter(isAdmin)
+          setOwn(publicNamespace, [...admin, ...endpoints])
         },
       })
       return api
@@ -251,5 +248,6 @@ export const createRuntime = (options: PaddleRuntimeOptions = {}): PaddleRuntime
     }),
     admin: (base) => adminRoutes()(base),
   })
-  return Object.assign(runtime, { webhooks: hub })
+  runtime = runtimeBuilt
+  return Object.assign(runtimeBuilt, { webhooks: hub })
 }

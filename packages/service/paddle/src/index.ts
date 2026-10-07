@@ -2788,8 +2788,13 @@ export class PaddleAPI implements FetchAPI {
   // ---------------------------------------------------------------------------------------
   // Notification destinations and customer portal sessions
 
-  private syncDestinations(): void {
-    const endpoints = this.state.notificationSettings
+  /**
+   * Active `url` destinations as webhook endpoints. Derived from the notification-settings
+   * collection so a timeline restore brings the same rows back; the runtime merges them
+   * into the webhook hub beside admin endpoints.
+   */
+  notificationDestinations(): { id: string; url: string; secret: string; events: string[] }[] {
+    return this.state.notificationSettings
       .list({ order: "oldest" })
       .map((row) => row.value)
       .filter((setting) => setting.active && setting.type === "url")
@@ -2799,7 +2804,10 @@ export class PaddleAPI implements FetchAPI {
         secret: setting.endpoint_secret_key,
         events: [...setting.subscribed_events],
       }))
-    this.onDestinations?.(endpoints)
+  }
+
+  private syncDestinations(): void {
+    this.onDestinations?.(this.notificationDestinations())
   }
 
   private eventNames(value: unknown): string[] {
