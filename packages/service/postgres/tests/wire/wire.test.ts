@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { connect, type Socket } from "node:net";
+import { SQL } from "bun";
 import pg from "pg";
 import { Database } from "../../src/index.ts";
 import { type PostgresServer, serve } from "../../src/wire/index.ts";
@@ -71,6 +72,42 @@ describe("extended query protocol", () => {
       });
       expect(typed.rows).toEqual([{ sum: 42 }]);
     });
+  });
+
+  test("bun reads every column of INSERT RETURNING *", async () => {
+    const sql = new SQL(url());
+    try {
+      await sql`CREATE TABLE notes (
+        id text primary key,
+        created_at timestamptz,
+        updated_at timestamptz,
+        deleted_at timestamptz,
+        folder_id text,
+        space_id text,
+        title text,
+        body text,
+        owner_id text
+      )`;
+      const rows = await sql`
+        INSERT INTO notes (id, folder_id, title, body, owner_id, created_at, updated_at)
+        VALUES (${"Groceries"}, ${null}, ${"Groceries"}, ${"milk"}, ${"alice"}, ${"2023-11-14T22:13:20.000Z"}, ${"2023-11-14T22:13:20.000Z"})
+        ON CONFLICT (id) DO UPDATE SET
+          title = excluded.title,
+          body = excluded.body,
+          owner_id = excluded.owner_id,
+          deleted_at = NULL
+        RETURNING *
+      `;
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.id).toBe("Groceries");
+      expect(rows[0]?.body).toBe("milk");
+      expect(rows[0]?.owner_id).toBe("alice");
+      expect(rows[0]?.folder_id).toBeNull();
+      expect(rows[0]?.space_id).toBeNull();
+      expect(rows[0]?.deleted_at).toBeNull();
+    } finally {
+      await sql.close();
+    }
   });
 
   test("a prepared statement reused with different binds", async () => {
