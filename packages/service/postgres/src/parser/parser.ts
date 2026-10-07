@@ -2576,8 +2576,8 @@ export class Parser {
       this.eatKw("column");
       const column = this.ident();
       let alterType = this.eatKw("type");
-      if (!alterType && this.eatKw("set") && this.atKw("data")) {
-        this.pos += 1;
+      if (!alterType && this.atKw("set") && this.atKw("data", 1)) {
+        this.pos += 2;
         this.expectKw("type");
         alterType = true;
       }

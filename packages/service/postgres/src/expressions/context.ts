@@ -29,6 +29,30 @@ export class EngineCtx implements CastEnv, CompareCtx {
     return this.state.getSetting("timezone") ?? "UTC";
   }
 
+  namespaceOid(input: string): number {
+    const trimmed = input.trim();
+    const name =
+      trimmed.startsWith('"') && trimmed.endsWith('"')
+        ? trimmed.slice(1, -1).replaceAll('""', '"')
+        : trimmed.toLowerCase();
+    if (name === "pg_catalog") return 11;
+    if (name === "information_schema") return 13212;
+    const schema = this.state.schemas.get(name);
+    if (!schema) throw pgError("undefined_object", `schema "${name}" does not exist`, "3F000");
+    return schema.oid;
+  }
+
+  namespaceName(oid: number): string | null {
+    if (oid === 11) return "pg_catalog";
+    if (oid === 13212) return "information_schema";
+    for (const schema of this.state.schemas.values()) {
+      if (schema.oid === oid) {
+        return /^[a-z_][a-z0-9_$]*$/.test(schema.name) ? schema.name : `"${schema.name.replaceAll('"', '""')}"`;
+      }
+    }
+    return null;
+  }
+
   zoneOffsetAt(utcMicros: bigint): number {
     return zoneOffsetAtUtc(this.timezone(), utcMicros);
   }

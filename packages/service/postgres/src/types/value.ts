@@ -152,6 +152,7 @@ const TYPE_ALIASES: Record<string, TypeId> = {
   regclass: "regclass",
   regtype: "regtype",
   regproc: "regproc",
+  regnamespace: "regnamespace",
   oid: "oid",
   void: "void",
   record: "record",
@@ -257,6 +258,7 @@ export const TYPE_OIDS: Record<string, number> = {
   numeric: 1700,
   regclass: 2205,
   regtype: 2206,
+  regnamespace: 4089,
   record: 2249,
   uuid: 2950,
   jsonb: 3802,
@@ -572,6 +574,7 @@ function quoteArrayElem(s: string): string {
 }
 
 export interface OutputCtx {
+  namespaceName?(oid: number): string | null;
   /** offset seconds east of UTC for rendering timestamptz at given UTC micros */
   zoneOffsetAt(utcMicros: bigint): number;
 }
@@ -624,6 +627,7 @@ export function recordText(rec: PgRecord, ctx: OutputCtx): string {
 
 /** Render a non-null datum of type `t` to PG wire text. */
 export function datumText(t: TypeId, v: Datum, ctx: OutputCtx): string {
+  if (t === "regnamespace") return ctx.namespaceName?.(v as number) ?? String(v);
   if (v === null) throw pgError("internal", "datumText called with null");
   if (isArrayType(t)) return arrayText(v as PgArray, ctx);
   if (isEnumType(t)) return v as string;
@@ -699,6 +703,7 @@ export function datumText(t: TypeId, v: Datum, ctx: OutputCtx): string {
 // --- typinput ----------------------------------------------------------------
 
 export interface InputCtx {
+  namespaceOid?(name: string): number;
   /** session zone offset lookup for naive timestamptz input */
   zoneOffsetForNaive(naiveMicros: bigint): number;
   /** enum label validation: returns true when label is valid for the enum type */
@@ -709,6 +714,11 @@ export const UTC_INPUT: InputCtx = { zoneOffsetForNaive: () => 0 };
 
 /** Parse PG wire text into a datum of type `t` (typinput). */
 export function datumFromText(t: TypeId, text: string, ctx: InputCtx): Datum {
+  if (t === "regnamespace") {
+    if (/^\s*\d+\s*$/.test(text)) return datumFromText("oid", text, ctx);
+    if (!ctx.namespaceOid) throw unsupported("regnamespace input without a catalog");
+    return ctx.namespaceOid(text);
+  }
   if (isArrayType(t)) return parseArrayText(t, text, ctx);
   if (isEnumType(t)) {
     if (ctx.enumHasLabel && !ctx.enumHasLabel(t, text)) {

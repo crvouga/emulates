@@ -5,6 +5,7 @@ import { getScalarFunctions } from "../functions/scalar.ts";
 import { getSrfFunctions } from "../functions/srf.ts";
 import { WINDOW_FUNCTION_NAMES } from "../functions/window.ts";
 import { databaseCatalogContext } from "../runtime/database-context.ts";
+import { deparseIndex } from "../sql/deparse-index.ts";
 import type { DatabaseState, SequenceData, TableData } from "../storage/database-state.ts";
 import {
   type Datum,
@@ -429,6 +430,38 @@ function pgIndex(ctx: EngineCtx): Relation {
   );
 }
 
+function pgStatUserTables(ctx: EngineCtx): Relation {
+  return rel(
+    [
+      ["relid", "oid"],
+      ["schemaname", "name"],
+      ["relname", "name"],
+      ["n_live_tup", "int8"],
+    ],
+    [...allTables(ctx.state)].map((table) => [table.oid, table.schema, table.name, BigInt(table.rowCount())]),
+    "pg_stat_user_tables",
+  );
+}
+
+function pgDescription(ctx: EngineCtx): Relation {
+  const rows: Datum[][] = [];
+  for (const schema of ctx.state.schemas.values()) {
+    for (const index of schema.indexes.values()) {
+      if (index.comment) rows.push([index.oid ?? 0, 1259, 0, index.comment]);
+    }
+  }
+  return rel(
+    [
+      ["objoid", "oid"],
+      ["classoid", "oid"],
+      ["objsubid", "int4"],
+      ["description", "text"],
+    ],
+    rows,
+    "pg_description",
+  );
+}
+
 function pgStatUserIndexes(ctx: EngineCtx): Relation {
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
@@ -580,7 +613,7 @@ function pgIndexesView(ctx: EngineCtx): Relation {
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
     for (const i of schema.indexes.values()) {
-      rows.push([i.schema, i.table, i.name, null, null]);
+      rows.push([i.schema, i.table, i.name, null, deparseIndex(i)]);
     }
   }
   return rel(
@@ -927,6 +960,10 @@ function buildCatalogRelation(ctx: EngineCtx, schema: string, name: string): Rel
         return pgConstraint(ctx);
       case "pg_index":
         return pgIndex(ctx);
+      case "pg_description":
+        return pgDescription(ctx);
+      case "pg_stat_user_tables":
+        return pgStatUserTables(ctx);
       case "pg_stat_user_indexes":
         return pgStatUserIndexes(ctx);
       case "pg_sequence":

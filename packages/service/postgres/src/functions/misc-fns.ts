@@ -1,6 +1,7 @@
 import { pgError } from "../errors/error.ts";
 import type { EngineCtx } from "../expressions/context.ts";
 import { quoteIdent } from "../sql/deparse.ts";
+import { deparseIndex, deparseIndexColumn } from "../sql/deparse-index.ts";
 import type { SequenceData } from "../storage/database-state.ts";
 import { databaseCatalogContext } from "../runtime/database-context.ts";
 import { castTo } from "../types/cast.ts";
@@ -99,6 +100,23 @@ export function sequenceNextval(ctx: EngineCtx, seq: SequenceData): bigint {
 
 export function getMiscFunctions(): Map<string, ScalarFn> {
   const m = new Map<string, ScalarFn>();
+
+  m.set(
+    "pg_get_indexdef",
+    strict("text", (ctx, args) => {
+      const oid = argInt(ctx, args[0]!);
+      const column = args[1] ? argInt(ctx, args[1]) : 0;
+      for (const schema of ctx.state.schemas.values()) {
+        for (const index of schema.indexes.values()) {
+          if (index.oid !== oid) continue;
+          if (column === 0) return tv("text", deparseIndex(index));
+          const part = index.columns[column - 1];
+          return tv("text", part ? deparseIndexColumn(part) : "");
+        }
+      }
+      return tv("text", null);
+    }),
+  );
 
   m.set("version", () => tv("text", PG_VERSION_TEXT));
   m.set("current_database", (ctx) => tv("name", databaseCatalogContext(ctx.state).name));
