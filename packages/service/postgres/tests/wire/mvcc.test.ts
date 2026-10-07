@@ -85,6 +85,73 @@ describe("READ COMMITTED workspaces", () => {
   });
 });
 
+describe("insert conflicts and aliased updates", () => {
+  test("a duplicate primary key reports 23505", async () => {
+    const c = await client();
+    try {
+      await c.query("CREATE TABLE keys (id int PRIMARY KEY)");
+      await c.query("INSERT INTO keys (id) VALUES (1)");
+      await expect(c.query("INSERT INTO keys (id) VALUES (1)")).rejects.toMatchObject({ code: "23505" });
+    } finally {
+      await c.end();
+    }
+  });
+
+  test("INSERT ON CONFLICT waits for the open transaction and keeps the committed row", async () => {
+    const setup = await client();
+    await setup.query("CREATE TABLE owners (id text PRIMARY KEY, current_id text)");
+    await setup.end();
+
+    const a = await client();
+    const b = await client();
+    try {
+      await a.query("BEGIN");
+      await b.query("BEGIN");
+      await a.query(
+        "INSERT INTO owners (id, current_id) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET current_id = excluded.current_id RETURNING current_id",
+        ["alice", "first"],
+      );
+      const waiting = b.query(
+        "INSERT INTO owners (id, current_id) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET current_id = owners.current_id RETURNING current_id",
+        ["alice", "second"],
+      );
+      expect(await Promise.race([waiting.then(() => "done"), settle().then(() => "waiting")])).toBe("waiting");
+      await a.query("COMMIT");
+      expect((await waiting).rows).toEqual([{ current_id: "first" }]);
+      await b.query("COMMIT");
+      expect((await b.query("SELECT current_id FROM owners WHERE id = 'alice'")).rows).toEqual([
+        { current_id: "first" },
+      ]);
+    } finally {
+      await a.end();
+      await b.end();
+    }
+  });
+
+  test("UPDATE alias references survive the row lock and the write", async () => {
+    const c = await client();
+    try {
+      await c.query("CREATE TABLE parts (id int PRIMARY KEY, deleted_at text)");
+      await c.query("INSERT INTO parts (id, deleted_at) VALUES (1, NULL)");
+      await c.query(`CREATE TABLE waiting (id int PRIMARY KEY, part_id int, deleted_at text)`);
+      const updated = await c.query(
+        `UPDATE parts AS ap
+            SET deleted_at = $1
+          WHERE ap.deleted_at IS NULL
+            AND NOT EXISTS (
+              SELECT 1 FROM waiting AS w
+               WHERE w.part_id = ap.id AND w.deleted_at IS NULL
+            )
+          RETURNING id`,
+        ["2020-01-01T00:00:00.000Z"],
+      );
+      expect(updated.rows).toEqual([{ id: 1 }]);
+    } finally {
+      await c.end();
+    }
+  });
+});
+
 describe("row locks", () => {
   test("SKIP LOCKED assigns a different job and NOWAIT reports 55P03", async () => {
     const setup = await client();
