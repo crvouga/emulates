@@ -32,7 +32,7 @@ const data = { service: s.name, origin: s.origin, operation: s.playground.operat
                   <span class="op-path">{o.path}</span>
                   <span class="op-sum">{o.summary ?? o.id}</span>
                 </span>
-                {o.verified && <span class="op-ok" title="The sample request succeeds against a fresh mock" />}
+                {o.verified && <span class="op-ok" title="The sample request succeeds against a fresh emulator" />}
               </button>
             </li>
           ))
@@ -71,10 +71,10 @@ const data = { service: s.name, origin: s.origin, operation: s.playground.operat
         </div>
         <div class="pg-out" data-res-panel="response">
           <div class="pg-token" data-pg-token hidden></div>
-          <pre data-pg-response><span class="muted">Send a request to see the mock's response.</span></pre>
+          <pre data-pg-response><span class="muted">Send a request to see the emulator's response.</span></pre>
         </div>
-        <div class="pg-out" data-res-panel="state" hidden><pre data-pg-state><span class="muted">Records the mock holds appear here after a request.</span></pre></div>
-        <div class="pg-out" data-res-panel="journal" hidden><pre data-pg-journal><span class="muted">Every request the mock received, from its own /__admin/requests journal.</span></pre></div>
+        <div class="pg-out" data-res-panel="state" hidden><pre data-pg-state><span class="muted">Records the emulator holds appear here after a request.</span></pre></div>
+        <div class="pg-out" data-res-panel="journal" hidden><pre data-pg-journal><span class="muted">Every request the emulator received, from its own /__admin/requests journal.</span></pre></div>
       </div>
     </div>
   </div>

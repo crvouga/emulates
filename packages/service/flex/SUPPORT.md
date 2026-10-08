@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **14**
-- supported by the mock: **14**
+- supported by the emulator: **14**
 - parity enabled: **11**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListProducts` | `GET /v1/products` | ✅ supported | ✅ |  |
 | `CreateProduct` | `POST /v1/products` | ✅ supported | ⚠️ unsafe (opt-in) |  |

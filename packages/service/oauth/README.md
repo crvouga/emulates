@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-oauth
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 A stateful OAuth 2.0 / OpenID Connect identity sandbox. Google, Apple, Microsoft and GitHub wire profiles share a vendor-neutral account chooser, signup and consent UI. Generic OIDC works with other configurable identity clients. Uses real RS256 signatures, discovery, JWKS, authorization codes, S256 PKCE, refresh tokens and revocation.
 
@@ -55,9 +55,9 @@ await server.close()
 npx mockingbird-oauth serve --provider google --port 8810
 ```
 
-### Point an app at the mock
+### Point an app at the emulator
 
-Override the authorization, token, userinfo and JWKS endpoints in your application's OAuth provider configuration. Set its expected issuer to the mock's public base URL. Discovery is at `/.well-known/openid-configuration` for OIDC profiles; GitHub uses explicit OAuth endpoints and does not issue ID tokens. Register the **exact** callback URL (including scheme, port, path and query); wildcard callbacks are not accepted. No outgoing requests to a vendor occur.
+Override the authorization, token, userinfo and JWKS endpoints in your application's OAuth provider configuration. Set its expected issuer to the emulator's public base URL. Discovery is at `/.well-known/openid-configuration` for OIDC profiles; GitHub uses explicit OAuth endpoints and does not issue ID tokens. Register the **exact** callback URL (including scheme, port, path and query); wildcard callbacks are not accepted. No outgoing requests to a vendor occur.
 
 | Profile | Authorization | Token | JWKS | Userinfo |
 | --- | --- | --- | --- | --- |
@@ -67,9 +67,9 @@ Override the authorization, token, userinfo and JWKS endpoints in your applicati
 | `github` | `/login/oauth/authorize` | `/login/oauth/access_token` | Not an OIDC provider | `/user`, `/user/emails` |
 | `oidc` | `/authorize` | `/token` | `/jwks` | `/userinfo` |
 
-`/authorize`, `/token`, `/jwks`, `/revoke` are common aliases. Google also accepts `/o/oauth2/auth` and `/oauth2/v3/userinfo`; Apple revocation is `/auth/revoke`. Token and revocation requests use `application/x-www-form-urlencoded`. Token client authentication supports Basic, body credentials, and public clients. Public clients must use S256 PKCE; confidential clients can opt in with `requirePkce: true`. Google mock client secrets are fixture strings configured on the client. Apple clients can use either a fixture string or `apple: { teamId, keyId, publicKey }`, where `publicKey` is an EC P-256 public JWK. In JWT mode the mock verifies the ES256 signature, key ID, team, subject, Apple audience, issue/expiry times and maximum lifetime. The application can keep generating its usual Apple client-secret JWTs with the corresponding test private key.
+`/authorize`, `/token`, `/jwks`, `/revoke` are common aliases. Google also accepts `/o/oauth2/auth` and `/oauth2/v3/userinfo`; Apple revocation is `/auth/revoke`. Token and revocation requests use `application/x-www-form-urlencoded`. Token client authentication supports Basic, body credentials, and public clients. Public clients must use S256 PKCE; confidential clients can opt in with `requirePkce: true`. Google emulator client secrets are fixture strings configured on the client. Apple clients can use either a fixture string or `apple: { teamId, keyId, publicKey }`, where `publicKey` is an EC P-256 public JWK. In JWT mode the emulator verifies the ES256 signature, key ID, team, subject, Apple audience, issue/expiry times and maximum lifetime. The application can keep generating its usual Apple client-secret JWTs with the corresponding test private key.
 
-For example, an Auth.js-style OIDC provider can use `type: "oidc"`, `issuer: "http://localhost:8810"`, `clientId`, `clientSecret`, and `checks: ["pkce", "state"]`. For existing Google/Apple presets, override **all** remote endpoints and issuer validation; changing the authorization URL alone is insufficient. In-process HTTP clients can route requests to `identity.fetch`. Browser navigation must reach a served mock or a service worker that routes those requests.
+For example, an Auth.js-style OIDC provider can use `type: "oidc"`, `issuer: "http://localhost:8810"`, `clientId`, `clientSecret`, and `checks: ["pkce", "state"]`. For existing Google/Apple presets, override **all** remote endpoints and issuer validation; changing the authorization URL alone is insufficient. In-process HTTP clients can route requests to `identity.fetch`. Browser navigation must reach a served emulator or a service worker that routes those requests.
 
 The issuer defaults to the incoming origin (and `/__admin/ns/<name>` when used). Set `issuer` to the public URL behind a reverse proxy; it may include a mount path. Avoid a fixed issuer shared across namespaces: use the namespace URL and its own discovery/JWKS so each namespace remains an independent issuer.
 
@@ -146,7 +146,7 @@ tapping `oauth-mock-form-post-continue`; with scripts, the page submits the form
 
 - Authorization-code flow with exact redirect matching, including explicitly registered private-use URI schemes for native apps, state and nonce; duplicate parameters rejected. Invalid clients/callbacks never redirect. Public native clients require S256 PKCE.
 - Real RSA-2048 / RS256 ID tokens and independent public JWKS; correct issuer, audience, expiry, auth time and scope-filtered claims. Keys remain stable until explicitly rotated.
-- Codes expire after 5 minutes and are consumed atomically, including concurrent PKCE redemption. Access/ID tokens last 1 hour. Generic OIDC refresh tokens default to 30 days; Microsoft defaults to 90 days. Apple/Google refresh tokens have no fixed deadline by default; Google inactivity, testing mode and issuance limits still apply. GitHub OAuth app access tokens have no fixed deadline in the mock. The injected mock clock controls expiry.
+- Codes expire after 5 minutes and are consumed atomically, including concurrent PKCE redemption. Access/ID tokens last 1 hour. Generic OIDC refresh tokens default to 30 days; Microsoft defaults to 90 days. Apple/Google refresh tokens have no fixed deadline by default; Google inactivity, testing mode and issuance limits still apply. GitHub OAuth app access tokens have no fixed deadline in the emulator. The injected emulator clock controls expiry.
 - Google `access_type=offline` issues refresh tokens on first consent or `prompt=consent`; generic/Microsoft `offline_access` and Apple issue refresh tokens. Refresh cannot expand scopes. Revocation invalidates related access and refresh tokens; unknown tokens succeed idempotently. Refresh tokens are reusable by default; Microsoft returns a replacement without invalidating the old token. Opt-in strict rotation detects reuse and revokes the token family.
 - `prompt=none` returns `login_required` or `consent_required`; `login`, `consent`, `select_account`, `login_hint` and `max_age` are supported. HttpOnly, SameSite=Lax browser sessions last 24 hours. Cancel returns `access_denied` with state.
 - Apple supports `code id_token`, `c_hash`, `form_post` with an automatic POST and a no-JavaScript Continue button, string `email_verified` / `is_private_email`, no userinfo endpoint, and first-consent-only `user` data. `name` / `email` scopes require `form_post`.
@@ -218,7 +218,7 @@ These routes use the shared admin-key and namespace controls. `revokeConsent(cli
 
 ### Sign in with Apple server-to-server notifications
 
-Register an Apple client with `apple.notificationUrl` (an HTTP(S) URL; requires the JWT `apple` client form) and the mock behaves like Apple's [server-to-server notification endpoint](https://developer.apple.com/documentation/signinwithapplerestapi/processing-changes-for-sign-in-with-apple-accounts): it POSTs `{"payload": "<JWS>"}` as JSON. The JWS is signed by the current signing key (verify it against the JWKS) with `iss` = the issuer, `aud` = the client id, `iat` from the mock clock and a random `jti`. `events` is a JSON string of `{ type, sub, event_time }`, where `sub` is the client's identity for the account and `event_time` is milliseconds from the mock clock.
+Register an Apple client with `apple.notificationUrl` (an HTTP(S) URL; requires the JWT `apple` client form) and the emulator behaves like Apple's [server-to-server notification endpoint](https://developer.apple.com/documentation/signinwithapplerestapi/processing-changes-for-sign-in-with-apple-accounts): it POSTs `{"payload": "<JWS>"}` as JSON. The JWS is signed by the current signing key (verify it against the JWKS) with `iss` = the issuer, `aud` = the client id, `iat` from the emulator clock and a random `jti`. `events` is a JSON string of `{ type, sub, event_time }`, where `sub` is the client's identity for the account and `event_time` is milliseconds from the emulator clock.
 
 | Trigger | Event `type` | Sent to |
 | --- | --- | --- |
@@ -250,7 +250,7 @@ const runtime = createRuntime({
 
 ### Shared service controls
 
-The runtime supplies `/__admin/health`, `/__admin/reset`, snapshots, mock clock, request journal, metrics, fault injection and namespace isolation. Use `x-mockingbird-namespace` for in-process tests or `/__admin/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
+The runtime supplies `/__admin/health`, `/__admin/reset`, snapshots, emulator clock, request journal, metrics, fault injection and namespace isolation. Use `x-mockingbird-namespace` for in-process tests or `/__admin/ns/<name>/…` for complete browser flows. Header-selected namespaces alone cannot persist across ordinary browser navigation. State, grants, sessions and consent live in the shared SQLite abstraction; there are no filesystem or Node imports in the main entry.
 
 `OAUTH_PRESETS` includes `token_unavailable` and `access_denied`. Fault rules can also target a provider-specific path, e.g. `POST /__admin/faults` with `{"pathPrefix":"/auth/token","status":503,"body":{"error":"temporarily_unavailable"}}`. The only outbound requests are the Apple notifications above. Journals contain request metadata, never passwords or request bodies.
 
@@ -282,7 +282,7 @@ references below.
 
 This is a ready-to-use local/test identity provider, **not a production authentication server or a claim that every proprietary provider feature is implemented**. Its ready tier covers the documented OAuth/OIDC login, identity, consent, token, provider-edge-case, and UI surface. Applications should still run a small final check against each real provider before release.
 
-Vendor-hosted Google Identity Services/One Tap, native Apple AuthenticationServices, passkeys, MFA, CAPTCHA, password recovery, email delivery/relay forwarding (only Apple's notification of a forwarding change is sent), app-transfer migration, vendor risk engines, tokeninfo/introspection, logout, GitHub Apps installation/device flows, and Microsoft Graph/tenant administration are not implemented. Other configurable OIDC providers can use the generic profile, but their proprietary scopes and claims are not emulated. Scopes are limited to each profile plus explicitly configured additional scopes. Microsoft uses the configured mock issuer, not real Entra tenant routing. GitHub is the OAuth app login surface, not the full REST API.
+Vendor-hosted Google Identity Services/One Tap, native Apple AuthenticationServices, passkeys, MFA, CAPTCHA, password recovery, email delivery/relay forwarding (only Apple's notification of a forwarding change is sent), app-transfer migration, vendor risk engines, tokeninfo/introspection, logout, GitHub Apps installation/device flows, and Microsoft Graph/tenant administration are not implemented. Other configurable OIDC providers can use the generic profile, but their proprietary scopes and claims are not emulated. Scopes are limited to each profile plus explicitly configured additional scopes. Microsoft uses the configured emulator issuer, not real Entra tenant routing. GitHub is the OAuth app login surface, not the full REST API.
 
 No implicit flow, dynamic client registration, wildcard redirect matching, persistent signing-key storage (keys are held in memory; supply them through `signingKeys` or derive them from a seed), or distributed-session coordination is provided. Private-use redirect schemes work only when their complete URI is explicitly registered; executable/local schemes such as `javascript:`, `data:` and `file:` are rejected. Sign-in and consent pages extend CSP `form-action` with the transaction's redirect origin (or custom scheme). Browser navigation responses use a provider-owned handoff document so the callback can relay through another origin without inheriting the consent form's policy; direct programmatic interaction requests retain their HTTP redirect response. Discovery, JWKS, token, userinfo and revoke answer `OPTIONS` preflights and reflect the request `Origin`, so browser (SPA + PKCE) clients can redeem codes directly; the interaction pages send no CORS headers. Snapshot restore is for the same runtime/instance; signing keys are not serialized. The default backing store is in-memory and state disappears when the process exits. A secure browser context and Web Crypto, Fetch and standard Web APIs are required; Node 22+, Bun and modern browsers provide them.
 
@@ -305,7 +305,7 @@ state.
 The service-owned source lives in `examples/google-login/`: a real Hono app uses
 `oauth4webapi` to discover OIDC providers, generate PKCE/state/nonce, exchange the code, verify
 JWT signatures against JWKS, fetch identity data, and establish a session. GitHub mode uses its
-explicit OAuth endpoints, numeric account ID, and `/user/emails` fallback. Popup mode keeps the host app visible while a separate sign-in window renders the mock's
+explicit OAuth endpoints, numeric account ID, and `/user/emails` fallback. Popup mode keeps the host app visible while a separate sign-in window renders the emulator's
 actual HTML response. Redirect mode replaces the preview with the provider document and
 returns to the app on callback. The popup closes on callback and the app updates with the result. Browsers that
 block new windows use a separate modal dialog with its own provider document. Closing the
@@ -324,7 +324,7 @@ standard cookie headers. This mapping is a transport detail, not a browser cooki
 
 ### Presentation and account selection
 
-The provider UI is neutral and labelled **OAuth Mock**, with no vendor or product branding.
+The provider UI is neutral and labelled **OAuth Emulator**, with no vendor or product branding.
 Its **System / Light / Dark** controls work on standalone HTML pages; the selection persists
 across pages in that browser session. The in-process example bridges the same controls into
 the pasted pages. System mode follows the operating system, independently of the
@@ -346,7 +346,7 @@ const dispose = await mount(host, {
 
 Popup versus redirect is an application presentation choice; both use the same authorization
 endpoint and callback validation. The demo uses `prompt=select_account` to force the chooser.
-For any integrating app, session reuse can also be disabled on the mock itself:
+For any integrating app, session reuse can also be disabled on the emulator itself:
 
 ```ts
 import { OAuthAPI } from "@crvouga/mockingbird-service-oauth"

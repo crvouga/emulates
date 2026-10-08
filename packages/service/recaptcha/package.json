@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-recaptcha",
   "version": "0.0.0-development",
-  "description": "Deterministic reCAPTCHA v3 browser shim and single-use Siteverify mock.",
+  "description": "Deterministic reCAPTCHA v3 browser shim and single-use Siteverify emulator.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

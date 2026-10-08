@@ -1,5 +1,6 @@
 ---
 import catalog from "virtual:mockingbird/catalog"
+import FeaturedBadge from "../../components/FeaturedBadge.astro"
 import Icon from "../../components/Icon.astro"
 import Install from "../../components/Install.astro"
 import Monogram from "../../components/Monogram.astro"
@@ -41,7 +42,7 @@ const toc = [
 ]
 ---
 
-<Base title={`${s.displayName} mock`} description={s.description} markdown={`/services/${s.name}.md`}>
+<Base title={`${s.displayName} emulator`} description={s.description} markdown={`/services/${s.name}.md`}>
   <script is:inline define:vars={{ name: s.name }}>
     try {
       var recent = JSON.parse(localStorage.getItem("mb:recent") || "[]").filter(function (n) { return n !== name })
@@ -51,7 +52,7 @@ const toc = [
   </script>
   <div class="container">
     <nav class="crumbs" aria-label="Breadcrumb">
-      <a href="/services">Services</a>
+      <a href="/services">Emulators</a>
       <Icon name="chevron" />
       <a href={`/services?category=${s.category}`}>{category.label}</a>
       <Icon name="chevron" />
@@ -69,7 +70,7 @@ const toc = [
       <p class="lede">{s.description}</p>
       <aside class="vendor" aria-label={`About ${s.brand.vendor}`}>
         <p>
-          <strong>Mocks {s.brand.vendor}.</strong>
+          <strong>Emulates {s.brand.vendor}.</strong>
           {s.brand.description && ` ${s.brand.description}`}
         </p>
         <div class="vendor-links">
@@ -78,6 +79,7 @@ const toc = [
         </div>
       </aside>
       <div class="facts">
+        {s.featured && <FeaturedBadge />}
         <span class="badge">Parity: {s.parity}</span>
         <span class="badge badge-accent">{category.label}</span>
         {s.opsTotal > 0 && <span class="badge">{s.opsSupported} of {s.opsTotal} operations</span>}
@@ -106,7 +108,7 @@ const toc = [
               <div class="block-head">
                 <h2>Playground</h2>
                 <p>
-                  Requests go to the real mock running in this tab. State persists across requests, and the journal shows what it
+                  Requests go to the real emulator running in this tab. State persists across requests, and the journal shows what it
                   received. A green dot marks operations whose sample succeeds as-is; others need ids from earlier responses.
                 </p>
               </div>
@@ -131,7 +133,7 @@ const toc = [
               <div class="block-head">
                 <h2>Operations</h2>
                 <p>
-                  {s.opsSupported} of {s.opsTotal} operations in the vendored contract are mocked.
+                  {s.opsSupported} of {s.opsTotal} operations in the vendored contract are emulated.
                   {s.contract.upstream && <> {s.contract.upstream}</>}
                 </p>
               </div>
@@ -154,7 +156,7 @@ const toc = [
                           {o.supported ? (
                             s.kind === "http" && <button type="button" class="btn btn-ghost btn-sm" data-try-op={o.id}>Try</button>
                           ) : (
-                            <span class="badge">Not mocked</span>
+                            <span class="badge">Not emulated</span>
                           )}
                         </td>
                       </tr>

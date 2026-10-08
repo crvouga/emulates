@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-app-store-connect",
   "version": "0.0.0-development",
-  "description": "App Store Connect JSON:API mock with verified ES256 JWTs and TestFlight membership state.",
+  "description": "App Store Connect JSON:API emulator with verified ES256 JWTs and TestFlight membership state.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -41,7 +41,7 @@
   "keywords": [
     "mockingbird",
     "app-store-connect",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

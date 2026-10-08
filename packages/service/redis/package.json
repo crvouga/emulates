@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-redis",
   "version": "0.0.0-development",
-  "description": "In-process Redis RESP server for tests: strings, hashes, lists, sets, sorted sets, streams, transactions, pub/sub, and a Lua subset, with an injected clock. Not an HTTP mock.",
+  "description": "In-process Redis RESP server for tests: strings, hashes, lists, sets, sorted sets, streams, transactions, pub/sub, and a Lua subset, with an injected clock. Not an HTTP emulator.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -40,7 +40,7 @@
     "mockingbird",
     "redis",
     "resp",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

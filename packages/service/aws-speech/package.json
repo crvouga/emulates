@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-aws-speech",
   "version": "0.0.0-development",
-  "description": "Stateful mock of AWS Polly (SynthesizeSpeech, StartSpeechSynthesisStream) and Transcribe (streaming over h2c, batch jobs), with exact event-stream framing and scripted transcripts.",
+  "description": "Stateful emulator of AWS Polly (SynthesizeSpeech, StartSpeechSynthesisStream) and Transcribe (streaming over h2c, batch jobs), with exact event-stream framing and scripted transcripts.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

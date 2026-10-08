@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Prism Labs body-scan API (Mockingbird subset)
-  description: 'Stateful mock subset of the Prism Labs API (`Accept: application/json;v=1`): subject upsert,
+  description: 'Stateful emulator subset of the Prism Labs API (`Accept: application/json;v=1`): subject upsert,
     scans, the presigned capture upload, per-stage processing states, and the READY-scan results (body
     composition, measurements, health report, asset URLs). Hand-authored from the consumer''s zod schemas
     (prism-scan.adapter.ts).

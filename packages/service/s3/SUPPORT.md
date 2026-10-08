@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **9**
-- supported by the mock: **9**
+- supported by the emulator: **9**
 - parity enabled: **8**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListObjectsV2` | `GET /{bucket}` | ✅ supported | ✅ |  |
 | `CreateBucket` | `PUT /{bucket}` | ✅ supported | ⚠️ unsafe (opt-in) |  |

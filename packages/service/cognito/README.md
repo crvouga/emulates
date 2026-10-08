@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-cognito
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful local mock of Amazon Cognito User Pools for the AWS SDK and `amazon-cognito-identity-js`. It implements the authentication, user administration, group, federation, recovery, JWT, discovery, and JWKS surface the consumer app uses without contacting AWS.
+Stateful local emulator of Amazon Cognito User Pools for the AWS SDK and `amazon-cognito-identity-js`. It implements the authentication, user administration, group, federation, recovery, JWT, discovery, and JWKS surface the consumer app uses without contacting AWS.
 
 ## Install
 
@@ -14,7 +14,7 @@ ESM only. Node 22+ or Bun 1.2+.
 
 ## Usage
 
-Point `COGNITO_ENDPOINT` or the AWS SDK `endpoint` option at the served mock. Fixture SigV4 credentials are accepted for admin operations. Public user-pool operations work without IAM credentials, matching Cognito's client-facing API.
+Point `COGNITO_ENDPOINT` or the AWS SDK `endpoint` option at the served emulator. Fixture SigV4 credentials are accepted for admin operations. Public user-pool operations work without IAM credentials, matching Cognito's client-facing API.
 
 ```ts
 import { createRuntime } from "@crvouga/mockingbird-service-cognito"

@@ -13,10 +13,10 @@ The bundle includes notices and license texts for its third-party dependencies.
 
 The client calls the existing admin API through the document's scoped fetch.
 `composeAdminApis` can mount any number of independent admin APIs behind one facade. The shell
-then exposes a global mock selector and sends every read or mutation only to the selected API;
+then exposes a global emulator selector and sends every read or mutation only to the selected API;
 it does not duplicate service state or implement service controls in the browser.
-In a composed shell the top-left title is the mock switcher. `Command/Ctrl + K` opens the
-keyboard-first command palette for jumping directly to any mock and built-in screen.
+In a composed shell the top-left title is the emulator switcher. `Command/Ctrl + K` opens the
+keyboard-first command palette for jumping directly to any emulator and built-in screen.
 Ant Design's StyleProvider and ConfigProvider keep styles and portals within the
 embedded document. Hosts dispatch `mockingbird:unmount` before detaching the document
 to dispose the React root. Service-owned manifest panels keep their existing API

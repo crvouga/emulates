@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-sentry
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-A stateful Sentry SDK transport and event/issue assertion mock. This initial package is **wip**:
+A stateful Sentry SDK transport and event/issue assertion emulator. This initial package is **wip**:
 its bounded surface follows the official envelope protocol and Relay responses, not the entire
 Sentry product. No vendor account, container, secret or outbound call is needed for tests.
 
@@ -63,14 +63,14 @@ mockingbird-sentry serve --port 8810
   grouping is deterministically based on exception title/frames, or message when configured.
 - `GET`/`PUT /api/0/issues/{issue}/` and `/api/0/organizations/{organization}/issues/{issue}/`:
   read or set `status` to `unresolved`, `resolved`, or `ignored`. Resolving persists until an
-  explicit status update; automatic regression detection is outside this initial mock.
+  explicit status update; automatic regression detection is outside this initial emulator.
 - `GET /api/0/projects/{organization}/{project}/events/{event}/attachments/` and `/{attachment}/`:
   attachment metadata; `?download=1` on detail returns the original bytes to the authenticated caller.
 
 Read pagination uses `limit` (1–100), `cursor=0:<offset>:<previous flag>` and Sentry's `Link`
 header with both `rel="previous"` and `rel="next"`, their cursors, and `results="true|false"`.
 Stable insertion order avoids duplicates when walking a fixed result set. Links preserve filters
-and the selected namespace, including a custom admin prefix. The mock supports release/tag/trace
+and the selected namespace, including a custom admin prefix. The emulator supports release/tag/trace
 and status filters; production search syntax, sampling, trend/rank sorting and statistics are
 not silently represented as implemented features (see boundaries below).
 

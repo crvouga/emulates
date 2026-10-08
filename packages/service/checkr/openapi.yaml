@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Checkr scoped mock",
+    "title": "Checkr scoped emulator",
     "version": "1.0.0"
   },
   "servers": [

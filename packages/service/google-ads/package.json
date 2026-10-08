@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-google-ads",
   "version": "0.0.0-development",
-  "description": "Google Ads v25 and GA4 mock: GAQL metrics, budget mutations, conversion uploads and analytics events/reports.",
+  "description": "Google Ads v25 and GA4 emulator: GAQL metrics, budget mutations, conversion uploads and analytics events/reports.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

@@ -1,10 +1,10 @@
 # @crvouga/mockingbird-service-redis
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 In-process Redis for tests. `createRedis()` is a pure TypeScript RESP store: call commands on
 `redis.client()`, or speak RESP to the TCP server (`mockingbird-redis`, or `serve` from
-`@crvouga/mockingbird-service-redis/server`). It is not an HTTP API mock and has no `createRuntime`.
+`@crvouga/mockingbird-service-redis/server`). It is not an HTTP API emulator and has no `createRuntime`.
 `./server` also exports `serveTarget`, so `serve --config` can boot it: `GET /__admin/health` reports
 `service: redis`, and RESP listens on an ephemeral `redis://127.0.0.1:<port>` printed at startup.
 `mockingbird-redis` still binds `6379` unless `--port` is set.

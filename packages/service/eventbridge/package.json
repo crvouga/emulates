@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "eventbridge",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

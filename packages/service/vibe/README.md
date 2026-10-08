@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-vibe
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP Vibe revision **2026-06-01** OAuth and asynchronous campaign-spend reports.
 
@@ -79,7 +79,7 @@ invalid synthetic-token errors against the real endpoint. This probe passed and 
 
 Ad purchases, campaign mutation, attribution inference, production JWT signing, OAuth browser
 consent/refresh, CSV or non-DAY reports, metric aggregation, timezone conversion, and report
-filter expressions. Seed already-aggregated rows for the requested dimensions. The mock
+filter expressions. Seed already-aggregated rows for the requested dimensions. The emulator
 rejects CSV/non-DAY requests even though the vendor supports them; those are outside this
 initial consumer subset. It does not claim full vendor API or live rate-limit parity.
 

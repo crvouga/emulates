@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-caretalk",
   "version": "0.0.0-development",
-  "description": "Stateful mock of CareTalk's external API: client-login tokens, GetForm definitions, SavePatientForm rounds, patient search/insert, states, free slots and appointments.",
+  "description": "Stateful emulator of CareTalk's external API: client-login tokens, GetForm definitions, SavePatientForm rounds, patient search/insert, states, free slots and appointments.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

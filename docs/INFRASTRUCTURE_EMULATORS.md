@@ -1,4 +1,4 @@
-# Infrastructure and orchestration mocks
+# Infrastructure and orchestration emulators
 
 This document defines the boundaries and planned evidence for the Docker Engine,
 Hermes peer-run, and GitHub REST packages.
@@ -41,7 +41,7 @@ report their evidence separately.
 
 | Class | What it establishes | What it cannot establish |
 | --- | --- | --- |
-| `portable` | Deterministic Fetch/runtime state and contract behavior in the mock, including independent local HTTP consumers where applicable | Vendor fidelity from self-parity alone; OS or process guarantees |
+| `portable` | Deterministic Fetch/runtime state and contract behavior in the emulator, including independent local HTTP consumers where applicable | Vendor fidelity from self-parity alone; OS or process guarantees |
 | `socket` | Node transport behavior through a package-owned raw HTTP/Unix-socket/attach consumer | Host provenance, confinement, or a real daemon's restart behavior |
 | `oracle` | Recorded comparisons with the explicit real provider/version and authorized disposable resources | Operations, versions or failure modes not actually exercised |
 | `external-consumer` | Evidence owned by the consuming application or native host | A Mockingbird delivery dependency or a guarantee supplied by a fixture |

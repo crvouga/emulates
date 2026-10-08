@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-customerio
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of **Customer.io** for test suites, serving all three hosts our code talks to from
+Stateful emulator of **Customer.io** for test suites, serving all three hosts our code talks to from
 one process: the Segment-compatible **CDP** (`identify`, `track`, `batch`, exactly as
 `@customerio/cdp-analytics-node` posts them), the **App API** transactional sends (email, SMS,
 inbox message), message catalog, profile attribute reads, sender opt-out reconciliation, and delivery-status reads, and the
@@ -28,7 +28,7 @@ with any Fetch server.
 
 The app hardcodes Customer.io's hosts per region (`customer-io.config.ts`, seam G-Y1): once
 they are env-driven, point the CDP host (the SDK's `host`), the App API host and the link
-tracking domain at the mock. Customer.io only runs when `CUSTOMERIO_RUNTIME_ENABLED` is on and
+tracking domain at the emulator. Customer.io only runs when `CUSTOMERIO_RUNTIME_ENABLED` is on and
 the stage is in `CUSTOMERIO_ALLOWED_STAGES`.
 
 ```bash
@@ -56,7 +56,7 @@ await fetch(`${cio.url}/__admin/reporting-events`, {
 })
 ```
 
-Without the SDK, drive the mock directly and read back what the app sent:
+Without the SDK, drive the emulator directly and read back what the app sent:
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-customerio/server"
@@ -122,7 +122,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 the 10 s delivery timeout), `transactional_list_unavailable`, `omit_trigger_names` (omit every
 `trigger_name`, or only `params.ids`), `webhook_duplicate`, `webhook_drop`, `webhook_reorder`.
 A manual fault can inject 403 or 503, or a 429 whose `Retry-After` is an HTTP-date. ECONNREFUSED
-(a definite failure) is a stopped mock, not a preset. 401 is `{error}` on the CDP and
+(a definite failure) is a stopped emulator, not a preset. 401 is `{error}` on the CDP and
 `{meta: {error}}` on the App API. Keys mapped to the same namespace share profiles and deliveries;
 two namespaces do not, including faults and clock offsets. Resetting one namespace leaves the other.
 
@@ -148,8 +148,8 @@ username) or the App API key (Bearer) through `PUT /__admin/credentials {"creden
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `CustomerIoAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `report(input)`, `profiles()`, `mergeProfile(id, patch)`, `transitionDelivery(id, state)`, `advanceClock(ms)`, `state`. Options: `sqlite`, `now`, `wallClock`, `namespace`, `messages`, `settings`, `onReport`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, outbox, reporting webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `messages`, `settings`, `clock`, `wallClock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `CustomerIoAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `report(input)`, `profiles()`, `mergeProfile(id, patch)`, `transitionDelivery(id, state)`, `advanceClock(ms)`, `state`. Options: `sqlite`, `now`, `wallClock`, `namespace`, `messages`, `settings`, `onReport`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, outbox, reporting webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `messages`, `settings`, `clock`, `wallClock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `CUSTOMERIO_PRESETS` | object | Every named fault preset. |
 | `CUSTOMERIO_NAMESPACE` | string | The service name, `"customerio"`. |
 | `REPORTING_WEBHOOK_PATH` | string | Our receiver's path, `/v1/customer-io/reporting-webhook`. |

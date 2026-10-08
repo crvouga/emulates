@@ -1,111 +1,102 @@
 # Design
 
-Mockingbird looks like a field notebook kept on a northern mockingbird, Mimus polyglottos.
-The bird learns another bird's song and sings it back. The product does the same with an
-API: a familiar call, answered in kind. The site, this file, the GitHub README, llms.txt,
-and every package published to npm use the same sentence and the same mark.
+Mockingbird is a developer toolkit for local API and database emulation. Its documentation
+uses neutral surfaces, clear navigation, technical examples, and explicit coverage. The
+project name stays Mockingbird; describe each service as an **emulator**.
 
-## The sentence
+## Product language
 
-**Familiar calls. Faithful echoes.**
+**Local emulators. Real API contracts.**
 
-The longer note, under the title on the site and in the README, is: "Like its namesake,
-Mockingbird learns a familiar call and answers in kind. Real API shapes, stateful behavior,
-right inside your tests."
+The shared description is: "Run the APIs and databases your application depends on, inside
+your own process. Deterministic state, vendor-compatible requests, and explicit coverage."
 
-Both strings live in `sites/docs/src/lib/content.ts` as `IDENTITY`. Change them there.
-`bun run readme:sync` and `bun run llms:sync` rewrite the generated files. Do not paraphrase
-the sentence in a package README or on a page.
+The tagline, description, and package epigraph live in `sites/docs/src/lib/content.ts`.
+Run `bun run readme:sync` and `bun run llms:sync` after changing shared copy. Each published
+package README includes `EPIGRAPH` verbatim; `pack:check` validates it.
 
-## The mark
+Use **emulator** for a service, **emulate** for its behavior, and **emulation** for the process.
+Describe the vendor interface, supported operations, state, controls, and parity evidence.
+Keep coverage claims precise: self-parity establishes reproducibility; vendor fidelity requires
+an oracle. Package names, CLI commands, environment variables, and existing API identifiers
+remain compatible with consumers.
 
-`sites/docs/public/identity/mockingbird.png` is the mark: a northern mockingbird in profile,
-long tail, two white wing bars, inside a circular paper plate. That path is
-`MARK_REPO_PATH` in `sites/docs/src/lib/content.ts`. The docs site serves the same file
-for the favicon and the header. The README image is `IDENTITY.mark`, that file on `main`.
-`bun run check:readme` fails when the file is missing from the repo.
+## Mark
 
-`sites/docs/public/identity/mockingbird-field.webp` is Plate I, the hero specimen. It stays
-on paper in both themes. Do not recolor it, crop the wing bars out of it, or replace the
-mark with an emoji.
+The project icon is the black bird emoji **🐦‍⬛**, defined as `IDENTITY.icon` in
+`sites/docs/src/lib/content.ts`. `BirdMark` renders the native emoji in the header, footer,
+and other site surfaces; the generated README uses the same emoji in its title.
 
-On the docs site, `/identity` shows the mark, the plate, and the live tokens. This file is
-the rules. `/docs/design` renders this file.
+`sites/docs/public/identity/mockingbird.svg` contains the emoji for the favicon.
+`MARK_REPO_PATH` and `MARK_HREF` identify that asset, and `check:readme` requires it to exist.
+Keep the interface focused on developer documentation: code, API routes, diagrams, and runtime state.
 
 ## Color
 
-Drawn from the bird and the plate.
+| Token | Light | Dark | Role |
+| --- | --- | --- | --- |
+| `--bg` | `#ffffff` | `#0d1117` | Page background |
+| `--bg-subtle` | `#f6f8fa` | `#161b22` | Toolbars and secondary surfaces |
+| `--bg-muted` | `#eaeef2` | `#21262d` | Hover and selection surfaces |
+| `--fg` | `#1f2328` | `#ffffff` | Primary text |
+| `--fg-subtle` | `#59636e` | `#9da7b3` | Secondary labels |
+| `--border` | `#d8dee4` | `#30363d` | Panel and table dividers |
+| `--accent` | `#2563eb` | `#58a6ff` | Primary actions |
+| `--highlight` | `#2563eb` | `#79b8ff` | Active navigation and links |
 
-| Token | Light | Role |
-| --- | --- | --- |
-| `--bg` | `#f3eee4` | Notebook paper |
-| `--fg` | `#1e2823` | Ink. Text, and the wing bars |
-| `--accent` | `#243f34` | Live oak. A filled action |
-| `--clay` | `#8d4a32` | The song. Species labels, the second half of the title, the current page |
-| `--sage` | `#7d8a80` | Plumage. A strong border |
-| `--eye` | `#c6a15a` | The eye-ring. One highlight, never a fill |
+HTTP methods and success, warning, and error states have separate semantic tokens.
+The system, light, and dark theme options share the same component hierarchy. System is
+the default; explicit choices persist in `mb:theme`. The page scrollbar remains visible
+to keep the content width stable between pages.
 
-Dark theme inverts paper and ink. Oak becomes the pale wing-bar flash (`#d5e0cc`) so a filled
-button still reads. Clay lightens to `#e2b094`. Error and HTTP-method colors stay semantic
-and are not part of the identity.
+The README license badge uses `2563eb`.
 
-The header theme control offers system, light, and dark. System is the default and follows
-the operating system. An explicit choice is stored as `mb:theme`.
+## Typography
 
-The README license shield uses oak (`243f34`).
+Headings and interface text use the system sans-serif stack. Code, file paths, API routes,
+and technical labels use the system monospace stack. No external fonts are required.
+Use clear sentence-case headings, readable line lengths, and restrained emphasis.
 
-## Type
+## Components
 
-Headings are a serif: Iowan Old Style, then Palatino, then Georgia. Interface text is Avenir
-Next, then the system sans. Code is the system mono. No webfont is loaded. The second phrase
-of the title is italic and clay. Species names are italic.
+Syntax highlighting uses the same Shiki grammars and light/dark themes for the hero,
+installation commands, quick start, application examples, and Markdown code blocks.
+Dynamic SQL and JSON views use the lightweight browser highlighters.
 
-## Baseline
+The quick start presents a connected checkout through Data → API → Client tabs. Its source
+modules live in `sites/docs/src/lib/quick-start.ts`; the docs build executes those exact modules
+against PostgreSQL and Stripe and verifies the confirmed payment and persisted order.
 
-Every HTML surface starts from `packages/ui`. A full document includes `CSS_RESET`. A widget
-mounted inside another page uses `scopeReset(root)`, which keeps the same baseline inside
-that root. The surface's own type, color, and spacing come after the reset.
+Featured emulators declare `mockingbird.featured: true` in their package manifest. A star marks
+them on the homepage, docs index, catalog, service pages, guide navigation, and search palette.
+The catalog's Featured filter is shareable as `/services?featured=1`, and `catalog.json`
+includes the boolean. Featured status is an editorial selection, separate from coverage or parity.
 
-## Motifs
+Use a single border around panels, tables, and code samples. Corners use `--radius-sm`
+(4px), `--radius` (6px), or `--radius-lg` (8px). Shadows distinguish overlays and elevated
+panels. Headings use spacing and dividers to establish a documentation hierarchy.
 
-- **Wing bars.** Two rules, a thicker one and a thinner one, with a gap. They are the
-  mockingbird's field mark. The footer is closed by a full-width pair. A prose heading
-  carries a short pair. The header is a single rule.
-- **Specimen.** A rectangular paper frame, a 1px ink border, almost no corner radius, no
-  lift on hover. The hero plate and the service cards are specimens. Hover draws a clay bar
-  on the leading edge.
-- **Annotation.** Clay is for notes: eyebrows, the current nav item, the song in the title.
-  It is not a second fill for buttons or page backgrounds.
+Code panels show filenames or routes. Runtime diagrams show the application, emulator,
+and vendor boundaries. Coverage and state indicators use text labels alongside color.
+Keep forms, navigation, search, and dialogs usable by keyboard. Honor reduced-motion
+preferences and provide accessible labels for icon controls.
 
-Corners are `--radius` (3px) or `--radius-sm` (2px). A coverage meter may stay a thin bar.
+Every HTML surface starts from `packages/ui`: full documents include `CSS_RESET`; embedded
+widgets use `scopeReset(root)`. Add surface-specific styles after the reset.
 
-The page scrollbar stays visible, so moving between a short page and a long one does not
-shift the layout. Its track is the page background (`--bg`) and its thumb is sage.
+## Documentation surfaces
 
-## What to refuse
-
-- Gradient text, purple, and glow.
-- An emoji as the mascot. The mark is the bird.
-- Traffic-light dots on a code window. A code sample is a field note: a filename and a wing bar.
-- Pill buttons, pill badges, and pill filters.
-- A different sentence on npm than on the site.
-
-## Where each surface gets it
-
-| Surface | What it must show |
+| Surface | Source and requirements |
 | --- | --- |
-| Docs site | Tokens in `sites/docs/src/styles/global.css`. Specimens at `/identity`. This file at `/docs/design`. |
-| GitHub README | Generated by `scripts/readme.ts` from `IDENTITY` and this guide. The mark, the sentence, and the note are in the header. |
-| `llms.txt` | Generated by `scripts/llms-txt.ts`. The opening blockquote starts with the sentence. |
-| npm | Every public package README starts with `# <package>`, a blank line, then the `EPIGRAPH` from `content.ts`. `pack:check` fails when that line is missing or rewritten. The rest of the README stays the integration guide. |
-| Package pages on the site | Render that same README, so the sentence appears there too. |
-
-The sentence is the only marketing line a package README carries. Do not add a second banner,
-a logo image, or a palette to a service README. Agents read those files to call the API.
+| Docs site | Shared tokens in `sites/docs/src/styles/global.css`; live examples at `/identity` |
+| GitHub README | Generated by `scripts/readme.ts` from shared copy, package licenses, and guides |
+| Agent index | `scripts/llms-txt.ts` generates `llms.txt` from shared copy and package metadata |
+| npm package guides | The common epigraph, followed by the emulator's integration guide |
+| Service pages | The package README, operation coverage, and interactive runtime tools |
+| Design guide | This file, also rendered at `/docs/design` |
 
 ## Adding a page
 
-Use the tokens. Use `BirdMark` for the bird, not a new drawing. Use `.eyebrow` for a
-species-style label. Use `.btn`, `.badge`, and `.prose`. If a new component needs a radius,
-a color, or a shadow that is not a token, add the token and the reason to this file in the
-same change.
+Use `Base`, `BirdMark`, and the shared `.eyebrow`, `.btn`, `.badge`, and `.prose` classes.
+Build layouts with the existing tokens. Describe behavior in emulator terminology and
+link to the relevant package guide or coverage evidence. Document any new token here.

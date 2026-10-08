@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Edamam APIs (Mockingbird subset)
-  description: 'Stateful mock subset of Edamam''s Food Database v2 (parser, nutrients, image), Nutrition
+  description: 'Stateful emulator subset of Edamam''s Food Database v2 (parser, nutrients, image), Nutrition
     Analysis (nutrition-data, nutrition-details), Recipe Search v2 (search, by-uri, by id), Meal Planner
     v1 (select) and Shopping List v2, over a built-in corpus. Hand-authored from Edamam''s docs and the
     consumers (edamam-nutrition.adapter.ts, edamam-meal-planning.adapter.ts, the Python chat client''s tools/nutrition/client.py).
@@ -42,7 +42,7 @@ paths:
           - salmon fillet
           - chicken salad
           - xyzzy
-        description: Parity vocabulary; the mock parses any text.
+        description: Parity vocabulary; the emulator parses any text.
       - name: upc
         in: query
         required: false
@@ -243,7 +243,7 @@ paths:
           - 2 large eggs
           - 1 banana
           - xyzzy
-        description: Parity vocabulary; the mock parses any text.
+        description: Parity vocabulary; the emulator parses any text.
       - name: nutrition-type
         in: query
         required: false
@@ -367,7 +367,7 @@ paths:
           - yogurt
           - toast
           - xyzzy
-        description: Parity vocabulary; the mock parses any text.
+        description: Parity vocabulary; the emulator parses any text.
       - name: health
         in: query
         required: false

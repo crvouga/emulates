@@ -1,11 +1,11 @@
 # @crvouga/mockingbird-http-codec
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-Content-type codecs used by Mockingbird's mock servers and differential runner: JSON, and
+Content-type codecs used by Mockingbird's emulator servers and differential runner: JSON, and
 Rails/PHP/Stripe-style bracket notation for `application/x-www-form-urlencoded` bodies and query
 strings (`address[city]=Paris`, `tags[]=x`, `items[0][name]=a`). Use it to encode requests for, or
-decode requests to, form-encoded APIs such as Stripe. You do not need it to use a provider mock.
+decode requests to, form-encoded APIs such as Stripe. You do not need it to use a provider emulator.
 
 ## Install
 

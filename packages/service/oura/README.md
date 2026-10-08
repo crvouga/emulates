@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-oura
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP Oura v2 collection and OAuth mock for synthetic wearable synchronization tests.
+WIP Oura v2 collection and OAuth emulator for synthetic wearable synchronization tests.
 
 ## Install
 
@@ -26,7 +26,7 @@ POST `/oauth/token` accepts URL-encoded authorization code or refresh grants, Ba
 
 GET `/v2/usercollection/{workout,sleep,heartrate,daily_activity,daily_spo2,daily_readiness,daily_sleep}` returns `{data,next_token}`. Heart rate uses `start_datetime/end_datetime`; others use `start_date/end_date` against `day`. Fixture windows include both endpoints, omitted bounds are unbounded. These boundary/default choices are deterministic local fixture semantics, not verified live edge-case parity. Never invent an id for heart-rate samples. Fixtures retain every supplied metric, including nulls. Scope checks use `workout`, `daily`, `heartrate`, `spo2`.
 
-Seed `records` rows `{key,userId,collection,data}`. Keys identify storage rows, not vendor ids; distinct keys can deliberately carry duplicate provider data. `pageSize` controls deterministic insertion-order pages. Consumers must retain the same collection/window while paginating; the mock's row-key cursors do not bind or validate the query. No promised vendor cursor format/order. Set `tokenTtlSeconds` for newly issued tokens.
+Seed `records` rows `{key,userId,collection,data}`. Keys identify storage rows, not vendor ids; distinct keys can deliberately carry duplicate provider data. `pageSize` controls deterministic insertion-order pages. Consumers must retain the same collection/window while paginating; the emulator's row-key cursors do not bind or validate the query. No promised vendor cursor format/order. Set `tokenTtlSeconds` for newly issued tokens.
 
 ## Test controls
 

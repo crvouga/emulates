@@ -177,7 +177,7 @@ paths:
       summary: Stream run events
       x-mockingbird:
         supported: false
-        reason: SSE is outside the public peer-run mock subset.
+        reason: SSE is outside the public peer-run emulator subset.
         parity:
           enabled: false
           reason: No provider operation is implemented in the scaffold.
@@ -201,7 +201,7 @@ paths:
       summary: Resolve run approval
       x-mockingbird:
         supported: false
-        reason: Host tool approval execution is outside this mock.
+        reason: Host tool approval execution is outside this emulator.
         parity:
           enabled: false
           reason: No provider operation is implemented in the scaffold.
@@ -225,7 +225,7 @@ paths:
       summary: Steer active execution
       x-mockingbird:
         supported: false
-        reason: Agent execution and steering are outside this mock.
+        reason: Agent execution and steering are outside this emulator.
         parity:
           enabled: false
           reason: No provider operation is implemented in the scaffold.

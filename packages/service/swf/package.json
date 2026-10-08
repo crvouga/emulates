@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "swf",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Resend API (Mockingbird subset)
   description: |
-    Stateful mock subset of the Resend email API: send (with `Idempotency-Key`), retrieve a sent
+    Stateful emulator subset of the Resend email API: send (with `Idempotency-Key`), retrieve a sent
     email, and the received-email (inbound) endpoints our care-chat hydration reads, including
     the attachment download URL. Trimmed from Resend's published API reference to what
     `resend@4.8.0` and our backend call.

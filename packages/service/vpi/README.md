@@ -1,14 +1,14 @@
 # @crvouga/mockingbird-service-vpi
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 > [!WARNING]
 > **Our app's `VPI_API_URL` defaults to PRODUCTION** (`https://api.vpicompounding.net`, see
 > `apps/backend/src/modules/erx/clients/vpi-api.client.ts`). An unset variable sends real
-> prescriptions to the real pharmacy. The stack **must** set `VPI_API_URL` to this mock (e.g.
+> prescriptions to the real pharmacy. The stack **must** set `VPI_API_URL` to this emulator (e.g.
 > `http://127.0.0.1:8802`) whenever the VPI rail is reachable.
 
-Stateful mock of the **VPI** compounding-pharmacy clinic API that our backend drives as a
+Stateful emulator of the **VPI** compounding-pharmacy clinic API that our backend drives as a
 draft-only eRx rail: JWT authentication, the product taxonomy/details/discounts, day supply,
 shipping states and rates, the clinic location, providers, the patient roster and details,
 the provider-signature duplicate check, `saveNewPrescription`, and the three paged prescription
@@ -18,7 +18,7 @@ transition). VPI sends no webhooks: our backend polls page 1 (limit 5) of each l
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/vpi/SUPPORT.md)
 - The vendor publishes no spec: the contract (`openapi.yaml`) is hand-derived from our client's
   zod schemas (`vpi-api.contracts.ts` plus the client-local schemas in `vpi-api.client.ts`).
-  The acceptance tests parse every mock response with a verbatim port of those schemas.
+  The acceptance tests parse every emulator response with a verbatim port of those schemas.
 
 ## Install
 
@@ -32,7 +32,7 @@ Fetch server.
 
 ## Usage
 
-Point the app at the mock and give it any credentials (any pair logs in unless `accounts` is set):
+Point the app at the emulator and give it any credentials (any pair logs in unless `accounts` is set):
 
 ```bash
 npx mockingbird-vpi serve --port 8802
@@ -83,8 +83,8 @@ Replace any of it with `createRuntime({ data: { products, providers, clinicLocat
 
 | Route | Behaviour |
 | --- | --- |
-| `POST /accounts/authenticate` | `{email, password, isPatientLogin: false}` → `{id, jwtToken, refreshToken}`. The JWT payload carries `sub` (user id), `email`, `iat` and `exp` = mock-clock now + `tokenTtlSeconds` (default 3600). Our client caches it until `exp` − 30 s and re-authenticates once on a 401. `isPatientLogin: true` is refused. |
-| every other route | Requires `Authorization: Bearer <jwtToken>`: missing or tampered → 401 `Unauthorized`; expired on the mock clock → 401 `jwt expired`. |
+| `POST /accounts/authenticate` | `{email, password, isPatientLogin: false}` → `{id, jwtToken, refreshToken}`. The JWT payload carries `sub` (user id), `email`, `iat` and `exp` = emulator-clock now + `tokenTtlSeconds` (default 3600). Our client caches it until `exp` − 30 s and re-authenticates once on a 401. `isPatientLogin: true` is refused. |
+| every other route | Requires `Authorization: Bearer <jwtToken>`: missing or tampered → 401 `Unauthorized`; expired on the emulator clock → 401 `jwt expired`. |
 | `GET /products/getAllFamiliesAndCategories` | `[{family, categories: [subCategory1…]}]`. |
 | `POST /products/getProductsByCategory` | `{category, subCategory1}` → `[{subCategory2_item, commonNames: [{commonName, products: [...]}]}]`. |
 | `GET /products/getProductDetailsByProductId/{id}` | By Mongo id: full details incl. `sigOptions`, `reasonForCompoundedMedication`, `patientPayAmount`, `ndc` (a number). 404 if unknown. |
@@ -152,12 +152,12 @@ verify in every namespace.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `VpiAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(id, {to, trackingNumber?, list?})`, `addPatient(input)`, `prescriptions()`. Options: `sqlite`, `now`, `namespace`, `seed`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, journal). Options: `data`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `VpiAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(id, {to, trackingNumber?, list?})`, `addPatient(input)`, `prescriptions()`. Options: `sqlite`, `now`, `namespace`, `seed`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, journal). Options: `data`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `VPI_PRESETS` | object | Every named fault preset. |
 | `VPI_NAMESPACE` | string | The service name, `"vpi"`. |
 | `tokenCredential` | function | The login email a bearer JWT carries (how credentials map to namespaces). |
-| `issueJwt` | function | Mint a JWT the mock accepts, from `{sub, email, iat, exp}`. |
+| `issueJwt` | function | Mint a JWT the emulator accepts, from `{sub, email, iat, exp}`. |
 | `DEFAULT_USER_ID`, `DEFAULT_CLINIC_ID`, `DEFAULT_CLINIC_LOCATION_ID`, `DEFAULT_PROVIDER_ID`, `DEFAULT_PATIENT_ID` | strings | The seeded ids. |
 | `DEFAULT_PRODUCTS`, `DEFAULT_PROVIDERS`, `DEFAULT_PATIENTS`, `DEFAULT_CLINIC_LOCATION`, `SHIPPING_STATES` | values | The seed data. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |

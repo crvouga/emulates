@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **11**
-- supported by the mock: **11**
+- supported by the emulator: **11**
 - parity enabled: **11**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `FetchPhoneNumber` | `GET /lookups/v2/PhoneNumbers/{PhoneNumber}` | ✅ supported | ✅ |  |
 | `CreateVerification` | `POST /verify/v2/Services/{ServiceSid}/Verifications` | ✅ supported | ⚠️ unsafe (opt-in) |  |

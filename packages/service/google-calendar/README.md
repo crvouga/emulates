@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-google-calendar
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of **Google Calendar v3** and **Google OAuth 2.0** for test suites, covering what
+Stateful emulator of **Google Calendar v3** and **Google OAuth 2.0** for test suites, covering what
 our EMR backend calls: `calendarList.list`, `calendars.insert`, `events.list` (time windows,
 `q`, `orderBy`, paging, incremental sync with 410 `fullSyncRequired`), `events.get/insert/
 update/delete`, `events.watch` with real push notifications to the channel's address, and
@@ -28,9 +28,9 @@ ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
 ## Usage
 
 Seams (the app hardcodes Google today): give the calendar client a `rootUrl`
-(`google.calendar({version: "v3", auth, rootUrl: "<mock>/"})`), give `OAuth2Client`
-`endpoints: {oauth2TokenUrl: "<mock>/token", oauth2RevokeUrl: "<mock>/revoke"}`, and point the
-userinfo fetch at `<mock>/oauth2/v3/userinfo`. `GOOGLE_WEBHOOK_URL` can stay as it is: the mock
+(`google.calendar({version: "v3", auth, rootUrl: "<emulator>/"})`), give `OAuth2Client`
+`endpoints: {oauth2TokenUrl: "<emulator>/token", oauth2RevokeUrl: "<emulator>/revoke"}`, and point the
+userinfo fetch at `<emulator>/oauth2/v3/userinfo`. `GOOGLE_WEBHOOK_URL` can stay as it is: the emulator
 posts pushes to whatever `address` the app registers (http is allowed unless
 `--require-https-webhooks`).
 
@@ -50,7 +50,7 @@ const oauth = new OAuth2Client({
   redirectUri: "postmessage",
   endpoints: { oauth2TokenUrl: `${google.url}/token`, oauth2RevokeUrl: `${google.url}/revoke` },
 })
-// Authorization code "4/mock-<name>" signs in <name>@example.com ("4/mock-<email>" for others).
+// Authorization code "4/emulator-<name>" signs in <name>@example.com ("4/emulator-<email>" for others).
 const { tokens } = await oauth.getToken("4/mock-dr.house")
 const client = new auth.OAuth2()
 client.setCredentials({ access_token: tokens.access_token ?? null })
@@ -102,7 +102,7 @@ Every change to a calendar's events (through the API or the admin plane) posts t
 channel on that calendar: an empty body with `X-Goog-Channel-ID`, `X-Goog-Channel-Token` (when
 set), `X-Goog-Channel-Expiration` (RFC 1123), `X-Goog-Message-Number` (1 for `sync`, then +1),
 `X-Goog-Resource-ID`, `X-Goog-Resource-URI` and `X-Goog-Resource-State` (`sync`, then
-`exists`). Stopped or expired (mock clock) channels get nothing. Non-2xx answers are retried
+`exists`). Stopped or expired (emulator clock) channels get nothing. Non-2xx answers are retried
 (immediately, 1 s, 10 s, 1 min, 10 min). `GET /__admin/webhooks` lists deliveries, and
 `/__admin/webhooks/events`, `…/replay`, `…/flush` work as usual.
 
@@ -150,14 +150,14 @@ generated calendar module over googleapis-common 7 / gaxios 6; the full `googlea
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `GoogleCalendarAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `user(email)`, `ensurePrimary(email)`, `resolveCalendar(email, id)`, `createEvent`, `updateEvent`, `deleteEvent`, `findEvent`, `notify(calendarId)`, `channels()`, `events(email?)`, `invalidateSyncTokens()`. Options: `sqlite`, `now`, `namespace`, `settings`, `onPush`, `onChannels`. |
-| `createRuntime` | function | The mock with the full service contract and push delivery. Options: `settings`, `push: {retryDelaysMs?, fetch?}`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `GoogleCalendarAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `user(email)`, `ensurePrimary(email)`, `resolveCalendar(email, id)`, `createEvent`, `updateEvent`, `deleteEvent`, `findEvent`, `notify(calendarId)`, `channels()`, `events(email?)`, `invalidateSyncTokens()`. Options: `sqlite`, `now`, `namespace`, `settings`, `onPush`, `onChannels`. |
+| `createRuntime` | function | The emulator with the full service contract and push delivery. Options: `settings`, `push: {retryDelaysMs?, fetch?}`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `GOOGLE_CALENDAR_PRESETS` | object | Every named fault preset. |
 | `GOOGLE_CALENDAR_NAMESPACE` | string | The service name, `"google-calendar"`. |
 | `DEFAULT_SCOPE` | string | The scope the token endpoint reports. |
 | `pushHeaders` | function | The `X-Goog-*` headers of a push notification. |
-| `issueAccessToken` | function | Mint an access token the mock accepts for an email. |
-| `parseToken` | function | Decode a mock access or refresh token. |
+| `issueAccessToken` | function | Mint an access token the emulator accepts for an email. |
+| `parseToken` | function | Decode an emulator access or refresh token. |
 | `accessTokenCredential` | function | The account an access token belongs to (how credentials map to namespaces). |
 | `emailFromCode` | function | The account a `4/mock-…` authorization code signs in. |
 | `googleError` | function | Build Google's error envelope. |

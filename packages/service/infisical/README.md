@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-infisical
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-A **wip** portable Infisical mock for Universal Auth and the raw-secret surface used by
+A **wip** portable Infisical emulator for Universal Auth and the raw-secret surface used by
 `@infisical/sdk` **3.0.91**. Organizations, project environments, folders, permissions, tokens,
 secrets and historical versions share the standard SQLite state, clock, namespaces and Timeline.
 Use synthetic fixtures only.
@@ -18,9 +18,9 @@ bun add @crvouga/mockingbird-service-infisical
 ```ts
 import { createRuntime } from "@crvouga/mockingbird-service-infisical"
 
-const mock = createRuntime()
-const response = await mock.fetch(new Request(
-  "http://mock.local/api/v3/secrets/raw?workspaceId=fixture-project&environment=dev&secretPath=/app",
+const emulator = createRuntime()
+const response = await emulator.fetch(new Request(
+  "http://emulator.local/api/v3/secrets/raw?workspaceId=fixture-project&environment=dev&secretPath=/app",
   { headers: { authorization: "Bearer fixture-service-token" } },
 ))
 const result = await response.json() as { secrets: { secretKey: string; version: number }[] }
@@ -28,14 +28,14 @@ console.log(result.secrets.map((secret) => ({ key: secret.secretKey, version: se
 ```
 
 For the SDK walkthrough, also install `@infisical/sdk@3.0.91`. The SDK is an optional consumer
-dependency; the mock's runtime does not depend on it.
+dependency; the emulator's runtime does not depend on it.
 
 ```js
 import { createServer } from "@crvouga/mockingbird-service-infisical/server"
 import { InfisicalSDK } from "@infisical/sdk"
 
-const mock = await createServer({ adminKey: "fixture-infisical-admin" })
-const sdk = new InfisicalSDK({ siteUrl: `${mock.url}/__admin/ns/test-suite` })
+const emulator = await createServer({ adminKey: "fixture-infisical-admin" })
+const sdk = new InfisicalSDK({ siteUrl: `${emulator.url}/__admin/ns/test-suite` })
 await sdk.auth().universalAuth.login({
   clientId: "fixture-machine",
   clientSecret: "fixture-client-secret",
@@ -46,7 +46,7 @@ const result = await sdk.secrets().listSecrets({
   secretPath: "/app",
 })
 console.log(result.secrets.map((secret) => ({ key: secret.secretKey, version: secret.version })))
-await mock.close()
+await emulator.close()
 ```
 
 Point the consumer's `INFISICAL_SITE_URL` (or its SDK `siteUrl` configuration) at the served URL.
@@ -79,10 +79,10 @@ Lists return `{ secrets, imports }`, ordered by secret key ascending; the v3 rou
 metadata or limit/offset parameters**. Duplicate creation returns vendor `400 BadRequestError`,
 rather than an invented conflict status. Secret values are trimmed while retaining a final
 newline, following the raw-route transform. Shared machine/service access is supported;
-personal secret writes are rejected. Token expiry uses the injected mock clock. Missing/invalid
+personal secret writes are rejected. Token expiry uses the injected emulator clock. Missing/invalid
 tokens, denied permissions, missing locations/secrets, schema validation and throttling return
 vendor-shaped error envelopes. Location-not-found messages are deliberately generic to avoid
-exposing fixture structure. Machine tokens are opaque mock credentials rather than signed JWTs.
+exposing fixture structure. Machine tokens are opaque emulator credentials rather than signed JWTs.
 Legacy service tokens with one exact scope override the caller's project/environment/path,
 following the v3 router; recursive service scopes retain explicit caller locations.
 
@@ -114,7 +114,7 @@ Secret values, comments, metadata, client secrets and token credentials are seal
 AES-256-GCM **before** entering any Collection. Standard state reads and Timeline snapshots
 contain encrypted bytes; service-specific admin reads expose metadata only. Request journals,
 metrics, logs and errors never contain secret values or credential bodies. Plaintext is returned
-only by authorized vendor secret operations. This is a test mock: callers holding the runtime
+only by authorized vendor secret operations. This is a test emulator: callers holding the runtime
 object can access its programmatic API and should be trusted.
 
 The encryption key is private to the runtime and is shared across its namespaces. Sealed rows

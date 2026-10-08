@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Flex HSA/FSA payments API (Mockingbird subset)
   description: |
-    Stateful mock subset of the Flex (withflex.com) payments API: products, checkout sessions
+    Stateful emulator subset of the Flex (withflex.com) payments API: products, checkout sessions
     (payment, subscription, off-session and setup modes), subscriptions, customers, setup
     intents, refunds, and the hosted checkout page. Request and response bodies are wrapped in an envelope named after the
     object (`{product: {...}}`, `{checkout_session: {...}}`, `{products: [...]}`).

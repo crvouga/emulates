@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-dynamodb",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon DynamoDB mock with typed items, expressions, indexes, pagination, transactions, and streams.",
+  "description": "Stateful Amazon DynamoDB emulator with typed items, expressions, indexes, pagination, transactions, and streams.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,7 +43,7 @@
     "aws",
     "dynamodb",
     "document-client",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

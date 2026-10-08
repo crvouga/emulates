@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-posthog",
   "version": "0.0.0-development",
-  "description": "Stateful mock of PostHog: /flags v2 and legacy /decide evaluation with per-test flag, variant and payload control, remote config, gzip/base64 capture (/batch/, /e/, /i/v0/e/), recordings intake, and the feature-flag management and HogQL API slice.",
+  "description": "Stateful emulator of PostHog: /flags v2 and legacy /decide evaluation with per-test flag, variant and payload control, remote config, gzip/base64 capture (/batch/, /e/, /i/v0/e/), recordings intake, and the feature-flag management and HogQL API slice.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

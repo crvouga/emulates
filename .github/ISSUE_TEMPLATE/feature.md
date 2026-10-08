@@ -1,6 +1,6 @@
 ---
 name: Missing feature
-about: An existing mock lacks an operation, parameter, event, behavior or test control your code uses.
+about: An existing emulator lacks an operation, parameter, event, behavior or test control your code uses.
 title: "[<service>] feature: <what is missing>"
 labels: agent-reported, feature
 ---
@@ -12,7 +12,7 @@ labels: agent-reported, feature
 
 - Package: `@crvouga/mockingbird-service-<service>@<exact installed version>`
 - Client: <official SDK name@exact version | raw fetch>
-- Mock answers today: <404 | not implemented | parameter ignored | wrong behavior — paste status/body>
+- Emulator answers today: <404 | not implemented | parameter ignored | wrong behavior — paste status/body>
 - Checked `SUPPORT.md` / README "Deliberately not modelled": <yes — not listed | listed, and here is why it matters>
 
 ## What is missing

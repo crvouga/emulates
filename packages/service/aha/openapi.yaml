@@ -2,9 +2,9 @@ openapi: 3.1.0
 info:
   title: AHA (Advanced Health Academy) partner API (Mockingbird subset)
   description: |
-    Stateful mock of the AHA at-home phlebotomy partner API: create-or-update order and cancel.
+    Stateful emulator of the AHA at-home phlebotomy partner API: create-or-update order and cancel.
     The vendor has no pull API; order state reaches the partner only as inbound webhooks, which
-    the mock emits from admin transitions (see the README). Hand-authored from the consumer's
+    the emulator emits from admin transitions (see the README). Hand-authored from the consumer's
     wire shapes (the vendor publishes no spec).
   version: "1"
   x-mockingbird-upstream:
@@ -83,7 +83,7 @@ paths:
     post:
       operationId: CancelOrder
       description: >-
-        Cancel an order by partner_order_id. The mock also accepts the AHA order_number here,
+        Cancel an order by partner_order_id. The emulator also accepts the AHA order_number here,
         because our lab-provider client sends it in that field (G-A1).
       x-mockingbird:
         supported: true
@@ -166,7 +166,7 @@ components:
       name: X-Acme-Auth-Key
       description: >-
         Legacy mode (AHA_USE_LEGACY_AUTH=true), sent with X-API-Version 1.0. The real header
-        embeds the partner's name (`X-<Partner>-Auth-Key`); the mock accepts any partner name.
+        embeds the partner's name (`X-<Partner>-Auth-Key`); the emulator accepts any partner name.
   parameters:
     Partner:
       name: partner

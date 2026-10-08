@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-otel
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of an **OTLP/HTTP collector** in front of the **OpenObserve (O2) search API**,
+Stateful emulator of an **OTLP/HTTP collector** in front of the **OpenObserve (O2) search API**,
 over one store. Local and E2E runs stop exporting to production telemetry infrastructure, and a
 test can assert on structured events: emit through the real OpenTelemetry SDK, then read the
 log back with the same SQL our ops feed and investigation agent send ("the reconcile cron
@@ -24,8 +24,8 @@ from `./server` (Node), or `createRuntime` with any Fetch server.
 
 ## Usage
 
-Point `OTEL_EXPORTER_OTLP_ENDPOINT` at the mock and set `OTEL_TRACES_SAMPLER_ARG=1` (our SDK
-samples 10% of root spans otherwise). Point `O2_BASE_URL` at the same mock; `O2_BASIC_AUTH` is
+Point `OTEL_EXPORTER_OTLP_ENDPOINT` at the emulator and set `OTEL_TRACES_SAMPLER_ARG=1` (our SDK
+samples 10% of root spans otherwise). Point `O2_BASE_URL` at the same emulator; `O2_BASIC_AUTH` is
 any base64 `user:password` unless `--search-auth` is set.
 
 ```bash
@@ -161,8 +161,8 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `OtelAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `logs()`, `spans()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, wait, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `OtelAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `logs()`, `spans()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, wait, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `OTEL_PRESETS` | object | Every named fault preset. |
 | `OTEL_NAMESPACE` | string | The service name, `"otel"`. |
 | `otelCredential` | function | The OTLP bearer token or the O2 Basic username (how credentials map to namespaces). |

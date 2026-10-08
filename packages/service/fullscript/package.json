@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-fullscript",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Fullscript lab-ordering API: per-practitioner OAuth, clinic, session grants, forward-only lab orders with results, lab-order events, expiring result PDFs, and Fullscript-Signature webhooks.",
+  "description": "Stateful emulator of the Fullscript lab-ordering API: per-practitioner OAuth, clinic, session grants, forward-only lab orders with results, lab-order events, expiring result PDFs, and Fullscript-Signature webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

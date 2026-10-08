@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-sns",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon Simple Notification Service mock with AWS SDK wire compatibility and deterministic local controls.",
+  "description": "Stateful Amazon Simple Notification Service emulator with AWS SDK wire compatibility and deterministic local controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "sns",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

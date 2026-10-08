@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-plane",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Plane REST API v1: cursor-paginated work items, comments, links, states and labels, with Plane's rate limit and error shapes.",
+  "description": "Stateful emulator of the Plane REST API v1: cursor-paginated work items, comments, links, states and labels, with Plane's rate limit and error shapes.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

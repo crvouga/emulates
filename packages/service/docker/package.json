@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-docker",
   "version": "0.0.0-development",
-  "description": "Stateful Docker Engine API v1.52 mock with portable controls and Node transport.",
+  "description": "Stateful Docker Engine API v1.52 emulator with portable controls and Node transport.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

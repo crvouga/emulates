@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-google-calendar",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Google Calendar v3 API and Google OAuth our EMR calls: events list/insert/update/delete/watch, channels.stop, calendarList/calendars, token exchange/refresh/revoke and userinfo, with signed-by-header push notifications.",
+  "description": "Stateful emulator of the Google Calendar v3 API and Google OAuth our EMR calls: events list/insert/update/delete/watch, channels.stop, calendarList/calendars, token exchange/refresh/revoke and userinfo, with signed-by-header push notifications.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

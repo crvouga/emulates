@@ -3,7 +3,7 @@
  *
  * Reads the package's `mockingbird.runtime` claim (portable | node | bun) and
  * verifies the built `dist` bundle does not use APIs outside that runtime.
- * A service mock (`mockingbird.layer === "service"`) must claim `portable`: the
+ * A service emulator (`mockingbird.layer === "service"`) must claim `portable`: the
  * published entry runs in Node, Bun, browsers, and Workers. A `./server` or CLI
  * entry may still claim `node`.
  *
@@ -52,7 +52,7 @@ if (!["portable", "node", "bun"].includes(runtime)) {
 
 if (pkg.mockingbird?.layer === "service" && runtime !== "portable") {
   fail(
-    `${name}: service mocks are isomorphic, so mockingbird.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
+    `${name}: service emulators are isomorphic, so mockingbird.runtime must be "portable" (got ${JSON.stringify(runtime)})`,
   )
 }
 

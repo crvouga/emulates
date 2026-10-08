@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **51**
-- supported by the mock: **30**
+- supported by the emulator: **30**
 - parity enabled: **29**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListAttributeDefinitions` | `GET /api/v2/attributes` | ✅ supported | ✅ |  |
 | `ListAttributeDefinitionsByEntityType` | `GET /api/v2/attributes/{entityType}` | ❌ unsupported | — | Our consumer never calls this endpoint (GXG/transport/gxg-client.ts). |
@@ -52,10 +52,10 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `CreateOrderForExistingKits` | `POST /api/v2/orders/actions/createOrderForExistingKits` | ✅ supported | ⚠️ unsafe (opt-in) | Unsafe against a real tenant: places a real lab order. |
 | `ListProducts` | `GET /api/v2/products` | ✅ supported | ✅ |  |
 | `ListResults` | `GET /api/v2/results` | ✅ supported | ✅ |  |
-| `AddKitResult` | `POST /api/v2/results` | ❌ unsupported | — | Lab-side result ingestion; the mock publishes results through POST /__admin/kits/:kitNumber/transition. |
+| `AddKitResult` | `POST /api/v2/results` | ❌ unsupported | — | Lab-side result ingestion; the emulator publishes results through POST /__admin/kits/:kitNumber/transition. |
 | `SearchResults` | `GET /api/v2/results/search` | ✅ supported | ✅ |  |
 | `DownloadResultsCsv` | `GET /api/v2/results/csvDownloads` | ❌ unsupported | — | Our consumer never calls this endpoint (GXG/transport/gxg-client.ts). |
 | `GetResultUrl` | `GET /api/v2/results/results/{resultId}/url` | ❌ unsupported | — | Our consumer never calls this endpoint (GXG/transport/gxg-client.ts). |
 | `GetResultPresignedUrl` | `GET /api/v2/results/results/presignedUrl` | ✅ supported | ✅ |  |
 | `PostConnectToken` | `POST /connect/token` | ✅ supported | ✅ |  |
-| `GetResultBlob` | `GET /__admin/blobs/{key}` | ✅ supported | ❌ disabled | Mock-only route; the real presigned URL points at S3, not the API host. |
+| `GetResultBlob` | `GET /__admin/blobs/{key}` | ✅ supported | ❌ disabled | Emulator-only route; the real presigned URL points at S3, not the API host. |

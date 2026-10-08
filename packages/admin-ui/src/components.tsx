@@ -11,7 +11,7 @@ const LIVE_REFRESH_MS = 1_500
 /**
  * Admin reads stay live while their view is mounted. Polling is deliberately
  * quiet: it preserves the last successful payload and only shows the spinner
- * for the initial/manual load, so changing mock state never flashes the UI.
+ * for the initial/manual load, so changing emulator state never flashes the UI.
  */
 export function useResource<T>(api: Api, path: string, revision = 0, live = true) {
   const [data, setData] = useState<T | null>(null)

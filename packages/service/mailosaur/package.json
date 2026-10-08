@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-mailosaur",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Mailosaur email/SMS testing API (messages search, get, delete, long-poll) with an HTTP ingest so other mocks can drop mail in (Mockingbird service contract).",
+  "description": "Stateful emulator of the Mailosaur email/SMS testing API (messages search, get, delete, long-poll) with an HTTP ingest so other emulators can drop mail in (Mockingbird service contract).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -45,7 +45,7 @@
     "email",
     "inbox",
     "testing",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

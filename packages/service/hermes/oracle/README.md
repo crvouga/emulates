@@ -91,7 +91,7 @@ process epochs opened the disposable database in WAL mode; their distinct PIDs
 are recorded. The report includes all10 installed dependency versions, also
 captured in `requirements.lock` for repeat setup. No production or pre-existing
 Hermes database was used. The 33 comparisons all matched without changing the
-mock's implementation or weakening field comparison.
+emulator's implementation or weakening field comparison.
 
 Initial harness execution exposed two integration defects: importing typing's
 module metadata overwrote the synthetic module name, and the run-event callback

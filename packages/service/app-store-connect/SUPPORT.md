@@ -1,12 +1,12 @@
-# App Store Connect scoped mock — operation support
+# App Store Connect scoped emulator — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **14**
-- supported by the mock: **14**
+- supported by the emulator: **14**
 - parity enabled: **14**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListApps` | `GET /v1/apps` | ✅ supported | ✅ |  |
 | `ListUsers` | `GET /v1/users` | ✅ supported | ✅ |  |

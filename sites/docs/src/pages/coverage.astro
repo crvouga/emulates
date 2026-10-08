@@ -10,14 +10,14 @@ const { services, totals } = catalog
 const yes = (on: boolean) => (on ? "yes" : "no")
 ---
 
-<Base title="Coverage" description="Operations mocked and surfaces shipped by every Mockingbird service, computed from the packages at build time.">
+<Base title="Coverage" description="Operations emulated and surfaces shipped by every Mockingbird service, computed from the packages at build time.">
   <div class="container">
     <header class="page-head">
       <h1>Coverage</h1>
       <p class="lede">
-        {totals.services} mocks. Each one declares its own parity, and every mock is isomorphic:
+        {totals.services} emulators. Each one declares its own parity, and every emulator is isomorphic:
         the same package runs in the browser, in a worker, and on a server. Across all of them,
-        {totals.opsSupported} of {totals.opsTotal} contract operations are mocked, computed from each package at build time.
+        {totals.opsSupported} of {totals.opsTotal} contract operations are emulated, computed from each package at build time.
         Click a column to sort.
       </p>
     </header>
@@ -81,8 +81,8 @@ const yes = (on: boolean) => (on ? "yes" : "no")
     </div>
 
     <dl class="legend">
-      <div><dt>Parity</dt><dd>The vendor surface this mock keeps in step, declared by the package.</dd></div>
-      <div><dt>Operations</dt><dd>Mocked operations out of every operation in the package's vendored OpenAPI contract.</dd></div>
+      <div><dt>Parity</dt><dd>The vendor surface this emulator keeps in step, declared by the package.</dd></div>
+      <div><dt>Operations</dt><dd>Emulated operations out of every operation in the package's vendored OpenAPI contract.</dd></div>
       <div><dt>In-process</dt><dd>Exports <code>createRuntime()</code>: a <code>fetch(Request) → Response</code> for tests.</dd></div>
       <div><dt>Server</dt><dd>Ships <code>&lt;package&gt;/server</code>, a Node HTTP server for a local origin.</dd></div>
       <div><dt>CLI</dt><dd>Ships a <code>mockingbird-&lt;name&gt; serve</code> binary.</dd></div>

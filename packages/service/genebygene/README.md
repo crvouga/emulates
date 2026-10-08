@@ -1,15 +1,15 @@
 # @crvouga/mockingbird-service-genebygene
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of **Gene by Gene's Nucleus API v2** (and its OAuth auth host) for test suites:
+Stateful emulator of **Gene by Gene's Nucleus API v2** (and its OAuth auth host) for test suites:
 client-credentials tokens with the credential-blocking failures, both recorded product catalogs,
 zone-priced shipping quotes, the production split between a quote that succeeds and a place that
 answers `Address Not Found`, order placement (shipped and quantity-only, plus orders for existing
 kits), order lines, fulfillments and address edits, kits and their demographics attributes, the
 three-layer cancel, results with presigned downloads, notification subscriptions, and GxG-signed
 notifications. Kits move along the lab's status ladder only when a test says so (or when the
-happy-path scenario runs on the mock clock), so genomics suites that serialised on one staging
+happy-path scenario runs on the emulator clock), so genomics suites that serialised on one staging
 slot with 15 s sleeps and 300 s waits resolve in milliseconds.
 
 > The catalog calls this package `@crvouga/mockingbird-service-gene-by-gene`; it is published as
@@ -29,7 +29,7 @@ slot with 15 s sleeps and 300 s waits resolve in milliseconds.
   (`corpus/address-parity.json`), the recorded error shapes and query validation
   (`corpus/live-errors.json`), the recorded catalogs (`src/corpus/live-catalogs.json`), and 25
   random walks over the safe operations. The acceptance suite replays those recordings, so CI
-  holds the mock to them without credentials.
+  holds the emulator to them without credentials.
 
 ## Install
 
@@ -43,7 +43,7 @@ ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with
 
 ## Usage
 
-The mock serves the API **and** the auth host on one port. Point the app at it; nothing else
+The emulator serves the API **and** the auth host on one port. Point the app at it; nothing else
 changes:
 
 | App env | Value |
@@ -102,11 +102,11 @@ await admin("/kits/WB3K9Q2X/transition", { to: "Error", errorCode: 19 }) // Kit.
 | `PATCH /api/v2/kits/{kitNumber}/attributes` | `{kitNumber, attributes:[{name, value}]}` (names matched case-insensitively against the recorded attribute catalog, stored lowercase: our consumer sends `firstname, lastname, dateofbirth, gender, race, ethnicity`). Unknown name → 400; bad `dateofbirth` (not `YYYYMMDD`) or `gender` (not `M/F/Unknown`) → 422; returns every attribute. |
 | `DELETE /api/v2/fulfillments/{id}`, `/api/v2/kits/{kit}/orderLines`, `/api/v2/orderLines/{id}` | The three cancel layers: 204; a shipped or already-canceled fulfillment, or a kit/line already with the lab, is 400 "… not in a cancellable status"; unknown or already-canceled kits/lines are 404 `Resource not found.` (`Kit <kit> not found` for a kit). Canceling a fulfillment or a kit sends `Kit.KitOrderLine.Canceled`. |
 | `GET /api/v2/results[?kitNumber]`, `/api/v2/kits/{kit}/results`, `/api/v2/results/search` | An unknown `kitNumber` filter is an empty page. `{resultPayload: "s3://<bucket>/<namespace>/<kit>.<json\|csv\|pdf>", resultType, resultDisplayName, resultDate, orderLineId, orderId, kitNumber, resultId}`. |
-| `GET /api/v2/results/results/presignedUrl?resultId&kitNumber&resultType` | Needs a `resultId`, or a `kitNumber` with a `resultType` (400 `'Result Id' must not be empty.` …); none matching is 404 "There is no report assoicated with that result" (staging's spelling). `{presignedUrl, resultId, kitNumber, resultType, expiresAt}`; the URL is `GET {mock}/__admin/blobs/<key>?X-Amz-…` and answers the bytes, or 403 `AccessDenied` (bad signature, expired on the mock clock, or the `presigned_access_denied` preset). |
+| `GET /api/v2/results/results/presignedUrl?resultId&kitNumber&resultType` | Needs a `resultId`, or a `kitNumber` with a `resultType` (400 `'Result Id' must not be empty.` …); none matching is 404 "There is no report assoicated with that result" (staging's spelling). `{presignedUrl, resultId, kitNumber, resultType, expiresAt}`; the URL is `GET {emulator}/__admin/blobs/<key>?X-Amz-…` and answers the bytes, or 403 `AccessDenied` (bad signature, expired on the emulator clock, or the `presigned_access_denied` preset). |
 | `GET /api/v2/attributes[?entityType]`, `/api/v2/eventTypes[?name]` | The recorded live catalogs (`src/corpus/live-catalogs.json`): 240 attribute definitions and 12 event types `{name, payloadStructure, subscriptionTypes}`. A blank `name` lists them all. |
 | `GET/POST /api/v2/notificationSubscriptions`, `GET/PATCH/DELETE …/{id}` | `{id, endPoint, events, secret, active, …}`. `secret` is returned **only** by POST. Accepts `application/json-patch+json`. `Kit.KitOrderLine.Canceled` (or any name the event-type list lacks) in `events` is 400 "Valid event type is required."; a second subscription for the same endpoint is 400; an unknown id is 404 `Invalid Id <id>` (the empty GUID: 400 `Valid Notification Subscription Id required.`) |
 
-Every API route needs `Authorization: Bearer <token>`; a missing, expired (on the mock clock),
+Every API route needs `Authorization: Bearer <token>`; a missing, expired (on the emulator clock),
 revoked (`POST /__admin/tokens/revoke`) or blocked-client token is an empty 401 with
 `WWW-Authenticate: Bearer error="invalid_token"`, so our client invalidates and retries once.
 Handler errors are `ErrorDto{statusCode, message, payload: {}, errorType: "ValidationError"}`; a
@@ -237,7 +237,7 @@ secret, and to `--webhook-url` (all events) signed with `--webhook-secret`:
 | `PUT /__admin/results/:kitNumber` | Stage what `Completed` publishes: `{fixture: "normal" \| "pgx" \| "ancestry"}` or a custom `{json?, csv?, pdfBase64?}`. |
 | `POST /__admin/orders/:id/ship` | `{trackingNumber?, returnTrackingNumber?}`: tracking numbers, closeout date, fulfillment `Shipped`, kit-material line `Shipped`, `Order.Shipped`. |
 | `POST /__admin/orders/:id/kit-numbers` | Associate kit numbers for an order placed without them (`KitNumbersGenerated`). |
-| `POST /__admin/scenario/happy-path` | `{orderId, stepDelayMs?}`: associate (if deferred) → ship → `Received` → `In Lab` → `In QC Analysis` → `QC Analysis Complete` → `Results Completed`, with each step's webhooks. Step `i` runs once the mock clock reaches start + `i × stepDelayMs` (default 0: all now); later steps run on the next request after the clock passes them. The only automatic motion. |
+| `POST /__admin/scenario/happy-path` | `{orderId, stepDelayMs?}`: associate (if deferred) → ship → `Received` → `In Lab` → `In QC Analysis` → `QC Analysis Complete` → `Results Completed`, with each step's webhooks. Step `i` runs once the emulator clock reaches start + `i × stepDelayMs` (default 0: all now); later steps run on the next request after the clock passes them. The only automatic motion. |
 | `POST /__admin/addresses/classify` | An `AddressDto` (or `{address, productId?, courierServiceCode?}`) → `{quote: "options" \| "validation" \| "errorMessages" \| "carrier" \| "http400" \| "http500", place: "ok" \| "address-not-found" \| "structural" \| "bad-courier", zone, codes, prices}`, without creating anything. |
 | `PUT /__admin/addresses/corpus`, `GET …` | Append a synthetic `{kind: "quote-ok-place-not-found" \| "quote-ok-place-ok", addressLine1, city, stateOrRegion, postalCode}` row for this namespace. |
 | `PUT /__admin/settings` | `{catalog?, kitAssociation?, tokenTtlSeconds?, clients?, blockedClients?: {"<client_id>": "invalid_client" \| "unauthorized" \| "forbidden"}, generateKitNumbers?, presignedUrlTtlSeconds?, resultsBucket?}`. |
@@ -270,12 +270,12 @@ namespace, so parallel workers never collide in the shared results bucket.
 - Server-side subscription filters (GxG creates them on request), invoicing, insurance.
 - `productCode` and `productType` on `GET /api/v2/products`: staging matches them with SQL `LIKE`
   (`a` and `%` list every product code; `㏞` every type, under a collation that ignores it), and
-  no response carries a code. The mock matches `productType` as a substring.
-  `name` on `GET /api/v2/eventTypes` is the same kind of match (`ჷ` lists all 12); the mock
+  no response carries a code. The emulator matches `productType` as a substring.
+  `name` on `GET /api/v2/eventTypes` is the same kind of match (`ჷ` lists all 12); the emulator
   matches a substring.
 - The element shape of a non-empty `attributesFilter` array on `/api/v2/kitorderlines/kits`:
   staging answers anything that is not a JSON array with 400 "Invalid search filter value", and
-  the one array shape recorded with an empty 500, which the mock returns for every non-empty
+  the one array shape recorded with an empty 500, which the emulator returns for every non-empty
   array.
 - No carrier, USPS (CASS), Google, FedEx or DHL call at runtime: the zone table, the ZIP3 → state
   table and the committed address corpus are the oracle. Live parity compares code sets and
@@ -286,15 +286,15 @@ namespace, so parallel workers never collide in the shared results bucket.
   synthetic (live parity compares menus, never prices).
 - Place-time answers other than Address Not Found are derived from the quote, not recorded:
   placing an order is unsafe against the live tenant.
-- Nothing moves on its own except token and presigned-URL expiry (mock clock) and the
+- Nothing moves on its own except token and presigned-URL expiry (emulator clock) and the
   happy-path scenario: every other lab step is an admin transition.
 
 ## API
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `GeneByGeneAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `quote(productId, address)`, `classify({address, productId?, courierServiceCode?})`, `transition(kit, {to, errorCode?, fixture?, pdf?})`, `ship(orderId)`, `generateKitNumbers(orderId)`, `startHappyPath(orderId, stepDelayMs?)`, `runDueScenarios()`, `setPendingResults(kit, source)`, `orders()`, `kits()`, `order(id)`, `kit(kit)`, `activeSubscriptions()`. Options: `sqlite`, `now`, `namespace`, `products`, `settings`, `onWebhook`, `resultsS3`, `publicNamespace`. |
-| `createRuntime` | function | The mock with the full service contract. Options: `webhooks: {url?, secret?, events?, retryDelaysMs?, fetch?}`, `resultsS3: {endpoint, bucket, region?, accessKeyId?, secretAccessKey?}`, `products`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `GeneByGeneAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `quote(productId, address)`, `classify({address, productId?, courierServiceCode?})`, `transition(kit, {to, errorCode?, fixture?, pdf?})`, `ship(orderId)`, `generateKitNumbers(orderId)`, `startHappyPath(orderId, stepDelayMs?)`, `runDueScenarios()`, `setPendingResults(kit, source)`, `orders()`, `kits()`, `order(id)`, `kit(kit)`, `activeSubscriptions()`. Options: `sqlite`, `now`, `namespace`, `products`, `settings`, `onWebhook`, `resultsS3`, `publicNamespace`. |
+| `createRuntime` | function | The emulator with the full service contract. Options: `webhooks: {url?, secret?, events?, retryDelaysMs?, fetch?}`, `resultsS3: {endpoint, bucket, region?, accessKeyId?, secretAccessKey?}`, `products`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `GENEBYGENE_PRESETS` | object | Every named fault preset. |
 | `GENEBYGENE_NAMESPACE` | string | The service name, `"genebygene"`. |
 | `tokenCredential` | function | The client id a bearer token was issued to (credential → namespace). |

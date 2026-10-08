@@ -1,11 +1,11 @@
 # @crvouga/mockingbird-service-paddle
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Paddle Billing** API for test suites. Customers, addresses, businesses,
+Stateful emulator of the **Paddle Billing** API for test suites. Customers, addresses, businesses,
 products and prices behave as Paddle's do (validation, `invalid_field` errors, `include=`,
 cursor pagination). Transactions carry **computed totals**. Subscriptions are created the way
-Paddle creates them, when a transaction with recurring prices is paid, and the mock's admin
+Paddle creates them, when a transaction with recurring prices is paid, and the emulator's admin
 routes stand in for the hosted checkout and the billing engine: **pay a transaction, complete a
 checkout in one call, run a renewal, fail a payment**. Every change produces the event Paddle
 would emit, listed at `GET /events` and delivered as a `Paddle-Signature` webhook that the
@@ -28,7 +28,7 @@ any Fetch server.
 ## Usage
 
 The SDK maps `environment` to a base URL and otherwise uses the value verbatim, so point it at
-the mock by passing the mock's URL as the environment. Give the app the same `pdl_ntfset_…`
+the emulator by passing the emulator's URL as the environment. Give the app the same `pdl_ntfset_…`
 secret as `--webhook-secret`.
 
 ```bash
@@ -43,9 +43,9 @@ PADDLE_API_BASE_URL=http://127.0.0.1:8795 node app.js
 import { createServer } from "@crvouga/mockingbird-service-paddle/server"
 import { Paddle } from "@paddle/paddle-node-sdk"
 
-const mock = await createServer({ paymentLink: "https://pay.example.com/checkout" })
-// In TypeScript: `{ environment: mock.url as Environment }`.
-const paddle = new Paddle("pdl_sdbx_apikey_test", { environment: mock.url })
+const emulator = await createServer({ paymentLink: "https://pay.example.com/checkout" })
+// In TypeScript: `{ environment: emulator.url as Environment }`.
+const paddle = new Paddle("pdl_sdbx_apikey_test", { environment: emulator.url })
 
 const product = await paddle.products.create({ name: "Pro plan", taxCategory: "saas" })
 const price = await paddle.prices.create({
@@ -64,11 +64,11 @@ const transaction = await paddle.transactions.create({
 // transaction.status === "ready", transaction.details.totals.grandTotal === "5800",
 // transaction.checkout.url === "https://pay.example.com/checkout?_ptxn=txn_…"
 
-// The customer pays on the hosted checkout: the mock's admin route stands in for it.
-await fetch(`${mock.url}/__admin/transactions/${transaction.id}/pay`, { method: "POST" })
+// The customer pays on the hosted checkout: the emulator's admin route stands in for it.
+await fetch(`${emulator.url}/__admin/transactions/${transaction.id}/pay`, { method: "POST" })
 const [subscription] = await paddle.subscriptions.list({ customerId: [customer.id] }).next()
 // subscription.status === "active", subscription.nextBilledAt one month out
-await mock.close()
+await emulator.close()
 ```
 
 Without the SDK, the same over HTTP:
@@ -76,18 +76,18 @@ Without the SDK, the same over HTTP:
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-paddle/server"
 
-const mock = await createServer({ fixtures: true })
+const emulator = await createServer({ fixtures: true })
 const headers = { authorization: "Bearer pdl_sdbx_apikey_test", "content-type": "application/json" }
-const { data: products } = await (await fetch(`${mock.url}/products?include=prices`, { headers })).json()
+const { data: products } = await (await fetch(`${emulator.url}/products?include=prices`, { headers })).json()
 const checkout = await (
-  await fetch(`${mock.url}/__admin/checkout`, {
+  await fetch(`${emulator.url}/__admin/checkout`, {
     method: "POST",
     headers,
     body: JSON.stringify({ email: "new@example.com", items: [{ price_id: products[0].prices[0].id }] }),
   })
 ).json()
 // checkout.transaction.status === "completed", checkout.subscription.status === "active"
-await mock.close()
+await emulator.close()
 ```
 
 ### Routes
@@ -112,7 +112,7 @@ transactions 30; more than the maximum gets the maximum, as Paddle documents) an
 | `PATCH /transactions/{id}` | `draft` and `ready` transactions take every create field again (totals are recomputed); `billed` and `past_due` ones only `{status: "canceled"}`; anything else is 400 `transaction_immutable`. |
 | `POST /transactions/preview` | Totals for `{items, customer_id?, address_id?, currency_code?, address?: {country_code}}` without storing anything (non-catalog `price` objects are priced, not created); `include_in_totals: false` items are listed, not summed. |
 | `GET /transactions/{id}/invoice` | `{url}` for `billed`, `paid` and `completed` transactions; else 400 `transaction_invoice_not_available`. |
-| `GET /subscriptions`, `GET /subscriptions/{id}` | Filters: `id`, `customer_id`, `address_id`, `price_id`, `status`, `collection_mode`, `scheduled_change_action`; `include=next_transaction,recurring_transaction_details` embeds the previews. `management_urls` are placeholder links on the mock's origin. |
+| `GET /subscriptions`, `GET /subscriptions/{id}` | Filters: `id`, `customer_id`, `address_id`, `price_id`, `status`, `collection_mode`, `scheduled_change_action`; `include=next_transaction,recurring_transaction_details` embeds the previews. `management_urls` are placeholder links on the emulator's origin. |
 | `PATCH /subscriptions/{id}` | `custom_data`, `next_billed_at`, `collection_mode` + `billing_details`, `customer_id`/`address_id`/`business_id`, `scheduled_change: null` (removes a scheduled pause or cancel), and `items` with a required `proration_billing_mode`: `*_immediately` modes bill what the change adds (new prices, quantity increases) in full at once as a `subscription_update` transaction, with no proration and no credit for what it removes; the other modes bill nothing now. Canceled subscriptions are 400 `subscription_update_when_canceled`. |
 | `POST /subscriptions/{id}/activate` | `trialing` → `active`: bills the first period now and starts the billing cycle. |
 | `POST /subscriptions/{id}/pause` | `{effective_from?: next_billing_period (default) \| immediately, resume_at?}`. Scheduled: `scheduled_change: {action: "pause", effective_at: next_billed_at}`. Immediate: `paused`, `paused_at`, no `next_billed_at`; with `resume_at` a `resume` change is scheduled. |
@@ -166,7 +166,7 @@ Types: `customer|address|business|product|price.created|updated`, `transaction.c
 billed|paid|completed|canceled|payment_failed|past_due|updated`, `subscription.created|
 activated|trialing|updated|paused|resumed|canceled|past_due`. Each delivery carries
 `Paddle-Signature: ts=<unix seconds>;h1=<hex HMAC-SHA256(secret, "<ts>:<raw body>")>` with a
-wall-clock `ts` (even when the mock clock moves), which `paddle.webhooks.unmarshal(body,
+wall-clock `ts` (even when the emulator clock moves), which `paddle.webhooks.unmarshal(body,
 secret, signature)` and `isSignatureValid` accept. Non-2xx answers are retried (immediately,
 5 s, 5 min, 30 min, 2 h). `GET /__admin/webhooks`, `…/events`, `…/flush`, `…/:id/replay` and
 `PUT /__admin/webhook-endpoints` (per-namespace receivers, `events: ["subscription.*"]`-style
@@ -212,8 +212,8 @@ map API keys to namespaces: `PUT /__admin/credentials {"credentials": {"<PADDLE_
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PaddleAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `events()`, `state`, and the billing methods the admin routes call: `createCustomer`, `createAddress`, `createBusiness`, `createProduct`, `createPrice`, `createTransaction`, `payTransaction`, `checkout`, `renewSubscription`, `failPayment`, `seedFixtures`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `paymentLink`, `onEvent`, `fixtures`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, `Paddle-Signature` webhooks, checkout and billing routes). Options: `webhooks: {url, secret, events?, retryDelaysMs?, fetch?}`, `paymentLink`, `fixtures`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `PaddleAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `events()`, `state`, and the billing methods the admin routes call: `createCustomer`, `createAddress`, `createBusiness`, `createProduct`, `createPrice`, `createTransaction`, `payTransaction`, `checkout`, `renewSubscription`, `failPayment`, `seedFixtures`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `paymentLink`, `onEvent`, `fixtures`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, `Paddle-Signature` webhooks, checkout and billing routes). Options: `webhooks: {url, secret, events?, retryDelaysMs?, fetch?}`, `paymentLink`, `fixtures`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `paddleSigner` | function | The `Paddle-Signature` webhook signer (`ts=…;h1=…`). |
 | `PADDLE_PRESETS` | object | Every named fault preset. |
 | `PADDLE_NAMESPACE` | string | The service name, `"paddle"`. |

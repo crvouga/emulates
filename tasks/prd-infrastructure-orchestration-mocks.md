@@ -1,4 +1,4 @@
-# PRD: Mockingbird infrastructure and orchestration mocks
+# PRD: Mockingbird infrastructure and orchestration emulators
 
 Status: requirements and implementation-plan draft requested September 25, 2026.
 Scope: changes within Mockingbird only. This document authorizes no execution,
@@ -6,7 +6,7 @@ installation, publication, deployment, or changes to another repository.
 
 ## 1. Overview
 
-Add stateful Docker Engine, Hermes Agent peer-run, and GitHub REST API mocks in
+Add stateful Docker Engine, Hermes Agent peer-run, and GitHub REST API emulators in
 that delivery order. Their value is reproducing accepted operations with lost
 responses, retained execution after connection loss, idempotent replay, and remote
 state changes that ordinary canned responses cannot represent.
@@ -85,10 +85,10 @@ not manufactured behavior tests.
 
 ### US-001: Define package boundaries and scenario ownership
 
-As a maintainer, I want a compatibility matrix so that public mock behavior and
+As a maintainer, I want a compatibility matrix so that public emulator behavior and
 consumer policy are not conflated.
 
-- [ ] Add `docs/INFRASTRUCTURE_MOCKS.md` with package boundaries and scenario IDs.
+- [ ] Add `docs/INFRASTRUCTURE_EMULATORS.md` with package boundaries and scenario IDs.
 - [ ] Label each scenario as portable behavior, socket protocol, external oracle,
   or consumer/host responsibility.
 - [ ] Record the expected code improvements: post-mutation fault/history
@@ -97,7 +97,7 @@ consumer policy are not conflated.
 
 ### US-002: Research and pin the Docker API contract
 
-As a Docker client developer, I want version-specific evidence so that the mock
+As a Docker client developer, I want version-specific evidence so that the emulator
 speaks the API actually consumed.
 
 - [ ] Use Context7 and create Docker `API_EVIDENCE.md` under the evidence rules.
@@ -227,7 +227,7 @@ As a maintainer, I want independent evidence against a selected real Engine.
 
 ### US-014: Deliver Docker documentation and package gates
 
-As a consumer, I want an installable documented Docker test double.
+As a consumer, I want an installable documented Docker emulator.
 
 - [ ] Complete README/API/transport examples, failure presets, support matrix, and
   API evidence; identify modeled observations versus actual isolation guarantees.
@@ -248,7 +248,7 @@ As a peer client developer, I want the supported runtime's actual API contract.
 
 ### US-016: Scaffold the Hermes service package
 
-As a consumer, I want standard public peer-run mock entry points.
+As a consumer, I want standard public peer-run emulator entry points.
 
 - [ ] Add `packages/service/hermes`, annotated contract/codegen, WIP metadata,
   portable runtime, Node server/CLI, and initial consumer README.
@@ -405,7 +405,7 @@ As a maintainer, I want real API comparison evidence without touching unrelated 
 
 ### US-031: Deliver GitHub documentation and package gates
 
-As a consumer, I want installable REST mocks with honest publication guarantees.
+As a consumer, I want installable REST emulators with honest publication guarantees.
 
 - [ ] Complete README/API examples, fault controls, API evidence, supported operations,
   and explicit Git transport/token/ruleset/atomicity exclusions.
@@ -451,7 +451,7 @@ As a consumer, I want installable REST mocks with honest publication guarantees.
 
 - Initiative source/test changes, scheduling fairness, duplicate-launch policy,
   supervisor fencing, publication journals, or intake graph implementation.
-- A Hermes dispatcher/Kanban clone or a public mock of Initiative's internal APIs.
+- A Hermes dispatcher/Kanban clone or a public emulator of Initiative's internal APIs.
 - A systemd service package in this implementation plan. Consumer assessment and
   native Linux evidence belong to the separate Initiative handoff; a future package
   needs its own approved requirements.
@@ -479,7 +479,7 @@ controls, and never market in-memory checkpoint restoration as crash durability.
 
 Hermes profile/session scoping and retention must follow pinned source. GitHub ref
 semantics must follow the actual REST contract; consumer expected-target guards and
-Git transport cannot be proved by a more powerful fictional mock endpoint.
+Git transport cannot be proved by a more powerful fictional emulator endpoint.
 
 ## 8. Verification and completion
 

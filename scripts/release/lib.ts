@@ -6,7 +6,7 @@
  * files. Each public package is tagged `<name>@<version>` at the commit it was
  * released from; package.json keeps the `0.0.0-development` placeholder.
  *
- * Only mock services (`@crvouga/mockingbird-service-<name>`) are public. The helper
+ * Only emulator services (`@crvouga/mockingbird-service-<name>`) are public. The helper
  * packages they build on are private and inlined into each service's bundle
  * (scripts/bundle-service.ts), so a service's sources are its own directory plus
  * every private workspace package its `src` reaches.
@@ -49,7 +49,7 @@ export const legacyDeprecationMessage = (replacement: string): string =>
 /** Packages once published from this repo whose workspace directory has since been deleted. */
 export const REMOVED_PACKAGES = ["@crvouga/mockingbird", "@crvouga/mockingbird-openbao"] as const
 
-export const RETIRED_DEPRECATION_MESSAGE = `No longer published: Mockingbird now ships only its mock services (@crvouga/mockingbird-service-*), which bundle this code. See https://github.com/${REPO}.`
+export const RETIRED_DEPRECATION_MESSAGE = `No longer published: Mockingbird now ships only its emulator services (@crvouga/mockingbird-service-*), which bundle this code. See https://github.com/${REPO}.`
 
 export type Retired = {
   name: string

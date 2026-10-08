@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-slack",
   "version": "0.0.0-development",
-  "description": "Stateful mock of Slack incoming webhooks, the Web API, and the Socket Mode control plane, with an outbox of every alert the app sent.",
+  "description": "Stateful emulator of Slack incoming webhooks, the Web API, and the Socket Mode control plane, with an outbox of every alert the app sent.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

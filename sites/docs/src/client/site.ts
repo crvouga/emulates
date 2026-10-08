@@ -19,7 +19,7 @@ const applyTheme = (mode: ThemeMode, persist: boolean) => {
     item.setAttribute("aria-checked", String(item.dataset.themeMode === mode))
   }
   document.querySelector("[data-theme-toggle]")?.setAttribute("aria-label", `Theme: ${mode}`)
-  const color = theme === "dark" ? "#161c19" : "#f3eee4"
+  const color = theme === "dark" ? "#0d1117" : "#ffffff"
   for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
     meta.content = color
   }

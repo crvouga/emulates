@@ -159,7 +159,7 @@ function CommandPalette({
         prefix={<SearchOutlined />}
         suffix={<Typography.Text keyboard>esc</Typography.Text>}
         aria-label="Admin command palette"
-        placeholder="Jump to a mock or screen…"
+        placeholder="Jump to an emulator or screen…"
         value={query}
         onChange={(event) => {
           setQuery(event.target.value)
@@ -183,7 +183,11 @@ function CommandPalette({
       <div style={{ borderTop: `1px solid ${colors.border}` }}>
         <div style={{ maxHeight: 440, overflowY: "auto", padding: 8 }} role="listbox">
           {visible.length === 0 ? (
-            <Result status="info" title="No commands found" subTitle="Try a mock or screen name." />
+            <Result
+              status="info"
+              title="No commands found"
+              subTitle="Try an emulator or screen name."
+            />
           ) : (
             visible.map((command, index) => (
               <button
@@ -230,7 +234,7 @@ function CommandPalette({
           style={{ borderTop: `1px solid ${colors.border}`, padding: "9px 14px" }}
         >
           <Typography.Text type="secondary">↑↓ Navigate · ↵ Open</Typography.Text>
-          <Typography.Text type="secondary">Mocks and admin screens</Typography.Text>
+          <Typography.Text type="secondary">Emulators and admin screens</Typography.Text>
         </Flex>
       </div>
     </Modal>
@@ -411,7 +415,9 @@ function Workspace({
         : [{ ...config, id: config.service, label: config.service }],
     [config],
   )
-  const [apiId, setApiId] = useState(params.get("mock") || apiConfigs[0]?.id || config.service)
+  const [apiId, setApiId] = useState(
+    params.get("emulator") || params.get("mock") || apiConfigs[0]?.id || config.service,
+  )
   const apiConfig = apiConfigs.find((candidate) => candidate.id === apiId) ??
     apiConfigs[0] ?? { ...config, id: config.service, label: config.service }
   const [namespace, setNamespace] = useState(params.get("namespace") || "default")
@@ -512,7 +518,7 @@ function Workspace({
           screen.key === "overview"
             ? `Switch to ${candidate.label ?? candidate.service}`
             : `Open ${screen.label.toLocaleLowerCase()} for ${candidate.label ?? candidate.service}`,
-        keywords: `mock service admin ${candidate.id} ${candidate.service} ${screen.key}`,
+        keywords: `emulator service admin ${candidate.id} ${candidate.service} ${screen.key}`,
         icon: screen.icon,
         run: () => goTo(candidate.id, screen.key),
       })),
@@ -520,7 +526,7 @@ function Workspace({
     ...panelList.map((panel) => ({
       id: `${apiConfig.id}:${panel.id}`,
       label: `${apiConfig.label ?? apiConfig.service} · ${panel.title}`,
-      detail: panel.description ?? `Open ${panel.title} for the current mock`,
+      detail: panel.description ?? `Open ${panel.title} for the current emulator`,
       keywords: `extension panel ${apiConfig.id} ${panel.id} ${panel.kind ?? "panel"}`,
       icon: panel.kind === "sql" ? <TableOutlined /> : <AppstoreOutlined />,
       run: () => goTo(apiConfig.id, panel.id),
@@ -598,7 +604,7 @@ function Workspace({
                 <Flex align="center" gap="small">
                   {apiConfigs.length > 1 ? (
                     <Select
-                      aria-label="Mock"
+                      aria-label="Emulator"
                       showSearch
                       optionFilterProp="label"
                       variant="borderless"

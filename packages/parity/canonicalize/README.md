@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-canonicalize
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
 Strict, provider-neutral canonicalization of HTTP exchanges for differential comparison. It rewrites resource ids to symbolic tokens (`resource:customer:1`), collapses fields the spec marks volatile (`volatile:timestamp:integer`), keeps only declared parity headers, and reports a strict structural diff. You only need this directly if you are building your own differential runner — [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) uses it for you.
 
@@ -41,7 +41,7 @@ const real: Exchange = {
   headers: { "content-type": "application/json", "request-id": "req_abc" },
   body: { kind: "json", value: { id: "cus_R1", created: 1700000001, url: "/v1/customers/cus_R1", balance: 0 } },
 }
-const mock: Exchange = {
+const emulator: Exchange = {
   status: 200,
   headers: { "content-type": "application/json", "request-id": "req_xyz" },
   body: { kind: "json", value: { id: "cus_m1", created: 1700000999, url: "/v1/customers/cus_m1", balance: 1 } },
@@ -50,7 +50,7 @@ const mock: Exchange = {
 // Pair the new identities from both responses into one symbolic resource.
 const table = new ResourceTable()
 discoverIdentities(document, schema, real.body.kind === "json" ? real.body.value : undefined,
-  mock.body.kind === "json" ? mock.body.value : undefined, table)
+  emulator.body.kind === "json" ? emulator.body.value : undefined, table)
 
 const options = (side: Side) => ({ document, schema, parityHeaders: ["content-type"], side, table })
 const differences = structuralDiff(
@@ -58,7 +58,7 @@ const differences = structuralDiff(
   canonicalizeExchange(mock, options("mock")),
 )
 for (const difference of differences) console.log(formatDifference(difference))
-// $.body.value.balance: real=0 mock=1
+// $.body.value.balance: real=0 emulator=1
 ```
 
 ## API

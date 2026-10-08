@@ -1,12 +1,12 @@
 # @crvouga/mockingbird-service-sqlite
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 Pure TypeScript, completely in-memory SQLite engine aiming for **full SQLite3 SQL dialect parity**
 (same statements, same results). Use it in tests (or the browser) wherever you want real SQLite SQL
 semantics without native bindings: schema + migrations, constraints, transactions, JSON functions,
 FTS, and copy-on-write snapshots for per-test isolation. It is also the default storage engine
-behind every Mockingbird HTTP mock (Stripe, Junction, GeneByGene, ...).
+behind every Mockingbird HTTP emulator (Stripe, Junction, GeneByGene, ...).
 
 > Formerly [`@crvouga/sqlite-mem`](https://www.npmjs.com/package/@crvouga/sqlite-mem)
 > ([archived repo](https://github.com/crvouga/sqlite-mem)). Migrate by replacing the package name;
@@ -46,7 +46,7 @@ npm install -D @crvouga/mockingbird-service-sqlite
 
 Requires Node.js >= 20 or Bun >= 1.1 (`engines`); the rest of Mockingbird targets Node >= 22 /
 Bun >= 1.2. The package is **ESM only** and has no runtime dependencies. Install it as a regular
-dependency instead of `-D` if you ship it to the browser. The Mockingbird HTTP mocks already depend
+dependency instead of `-D` if you ship it to the browser. The Mockingbird HTTP emulators already depend
 on it; install it directly only to use the engine yourself or to pass a shared `Database` to them.
 
 ## Usage
@@ -120,11 +120,11 @@ test("each test starts from the seed", () => {
 
 ### As Mockingbird's storage
 
-Every Mockingbird HTTP mock accepts a `sqlite` option typed as the `SqliteClient` port bundled
-with each mock package (`exec`, `prepare(sql).run/all/get`, `transaction`). This package's
-`Database` satisfies it and is what a mock creates when you omit the option. Pass your own to share
-one database between several mocks (each keeps its records under its own namespace, e.g.
-`"stripe"`, `"junction"`), to inspect what a mock stored, or to snapshot a warmed-up mock:
+Every Mockingbird HTTP emulator accepts a `sqlite` option typed as the `SqliteClient` port bundled
+with each emulator package (`exec`, `prepare(sql).run/all/get`, `transaction`). This package's
+`Database` satisfies it and is what an emulator creates when you omit the option. Pass your own to share
+one database between several emulators (each keeps its records under its own namespace, e.g.
+`"stripe"`, `"junction"`), to inspect what an emulator stored, or to snapshot a warmed-up emulator:
 
 ```js
 import { Database } from "@crvouga/mockingbird-service-sqlite"
@@ -135,14 +135,14 @@ const sqlite = new Database({ now: "system" })
 const stripe = new StripeAPI({ sqlite })
 const junction = new JunctionAPI({ sqlite })
 
-// ... drive the mocks to a fixture state, then fork it per test:
+// ... drive the emulators to a fixture state, then fork it per test:
 const warmed = sqlite.snapshot()
 const freshStripe = () => new StripeAPI({ sqlite: warmed.open() })
 ```
 
-The mocks create their own tables (`mockingbird_records`, `mockingbird_sequences`,
-`schema_migrations`) on construction, and each mock's `reset()` clears only its own namespace, so
-resetting one mock leaves the others' data in a shared database intact. Any other client with the same sync surface (better-sqlite3, a
+The emulators create their own tables (`mockingbird_records`, `mockingbird_sequences`,
+`schema_migrations`) on construction, and each emulator's `reset()` clears only its own namespace, so
+resetting one emulator leaves the others' data in a shared database intact. Any other client with the same sync surface (better-sqlite3, a
 wrapped `bun:sqlite`) also satisfies the port.
 
 ### Socket
@@ -165,7 +165,7 @@ await server.close()
 
 `mockingbird-sqlite serve` prints that URI. `createAdmin` from
 `@crvouga/mockingbird-service-sqlite/admin` serves the same `/__admin` surface as every
-other mock, including the table explorer.
+other emulator, including the table explorer.
 
 ### Method semantics
 

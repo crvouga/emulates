@@ -157,7 +157,7 @@ bun github:resolve-issues setup
 
 ## Releasing
 
-The mock services (`@crvouga/mockingbird-service-*`, the only published packages) are released
+The emulator services (`@crvouga/mockingbird-service-*`, the only published packages) are released
 automatically on every green push to `main` (see [RELEASING.md](RELEASING.md)) and publish with
 **npm Trusted Publishing (OIDC)**, which needs no stored credential.
 

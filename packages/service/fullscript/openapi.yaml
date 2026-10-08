@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Fullscript API (Mockingbird subset)
-  description: 'Stateful mock subset of the Fullscript API for lab ordering: per-practitioner OAuth (authorize,
+  description: 'Stateful emulator subset of the Fullscript API for lab ordering: per-practitioner OAuth (authorize,
     token with authorization_code and refresh_token grants, revoke), clinic, embeddable session grants,
     lab orders, lab-order events, expiring result PDFs, and signed webhooks. Hand-authored from the EMR
     consumer (fullscript-api-client.ts, fullscript-event-model.ts, fullscript-webhook-signature.ts).

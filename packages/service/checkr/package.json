@@ -41,7 +41,7 @@
   "keywords": [
     "mockingbird",
     "checkr",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

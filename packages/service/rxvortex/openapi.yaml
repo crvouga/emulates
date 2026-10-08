@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: RxVortex (Strive) pharmacy API (Mockingbird subset)
   description: |
-    Stateful mock subset of the RxVortex / Strive compounding-pharmacy API: client-credentials
+    Stateful emulator subset of the RxVortex / Strive compounding-pharmacy API: client-credentials
     token, order submit, status, cancel, lookup by sender order id (recovery), and the preset
     catalog. Hand-authored from the consumer's adapters (the vendor publishes no spec).
   version: "1"

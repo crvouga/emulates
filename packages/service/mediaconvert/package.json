@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-mediaconvert",
   "version": "0.0.0-development",
-  "description": "Stateful AWS Elemental MediaConvert mock with endpoint discovery, async jobs, EventBridge events, and deterministic S3 outputs.",
+  "description": "Stateful AWS Elemental MediaConvert emulator with endpoint discovery, async jobs, EventBridge events, and deterministic S3 outputs.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,7 +44,7 @@
     "mediaconvert",
     "video",
     "transcoding",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

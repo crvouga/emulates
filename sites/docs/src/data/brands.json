@@ -852,11 +852,11 @@
     "vendor": "OpenAI",
     "website": "https://openai.com",
     "docs": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create",
-    "description": "OpenAI provides chat, embeddings and agent APIs; this mock uses local scripts only.",
+    "description": "OpenAI provides chat, embeddings and agent APIs; this emulator uses local scripts only.",
     "input": {
       "website": "https://openai.com",
       "docs": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create",
-      "description": "OpenAI provides chat, embeddings and agent APIs; this mock uses local scripts only.",
+      "description": "OpenAI provides chat, embeddings and agent APIs; this emulator uses local scripts only.",
       "icon": "openai"
     },
     "color": "#412991",

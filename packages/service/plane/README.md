@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-plane
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Plane** REST API (v1) for test suites, covering what our bug-report
+Stateful emulator of the **Plane** REST API (v1) for test suites, covering what our bug-report
 dedup and resolution jobs call on one project: work items (Plane's cursor-paginated list, get,
 create, patch), comments, links, states and labels, with Plane's rate limit and error shapes.
 Projects are provisioned on first use with Plane's default workflow (Backlog, Todo, In
@@ -25,7 +25,7 @@ any Fetch server.
 ## Usage
 
 The backend hardcodes `https://api.plane.so` (`plane-http-client.ts`, seam **G-Y1**: make it
-env-driven). Point it at the mock; `PLANE_ACCESS_TOKEN`, `PLANE_WORKSPACE_SLUG` and
+env-driven). Point it at the emulator; `PLANE_ACCESS_TOKEN`, `PLANE_WORKSPACE_SLUG` and
 `PLANE_BUGS_PROJECT_ID` can be any values (the project id must be a UUID, as our config
 validates).
 
@@ -82,7 +82,7 @@ patch. GET returns both `type_id` and `type`, as Plane's
 does. Unknown IDs fail with a DRF `type_id` error before any field or sequence number changes.
 Creation inherits a seeded default type; an explicit patch `type_id: null` clears it.
 
-Cycle dates use UTC project days and the mock clock, following Plane's
+Cycle dates use UTC project days and the emulator clock, following Plane's
 [cycle endpoint](https://github.com/makeplane/plane/blob/c7a5afee6afd15f16038ebda1ec1489ebd8af67d/apps/api/plane/api/views/cycle.py)
 and [date converter](https://github.com/makeplane/plane/blob/c7a5afee6afd15f16038ebda1ec1489ebd8af67d/apps/api/plane/utils/timezone_converter.py):
 future/past starts are 00:00:01, today's start is the creation time, and ends are 23:59:00.
@@ -101,7 +101,7 @@ throttled. Expected available in N seconds."}` with `x-ratelimit-*` headers.
 | `GET /__admin/work-items` | The namespace's work items. |
 | `POST /__admin/projects` | `{workspace, project}`: provision a project now; answers its states and labels. |
 | `POST /__admin/work-item-types` | `{workspace, project, types: [{name, description?, is_default?}]}`: seed project type metadata with stable IDs; repeat calls update metadata and preserve creation time. Types start empty. Invalid batches do not partially write. |
-| `GET/PUT /__admin/settings` | `{apiKeys?, rateLimitPerMinute?: number \| null, projects?: ["<slug>/<uuid>"]}`. `rateLimitPerMinute: 60` reproduces Plane's limit on the mock clock; `projects` pins which projects exist (others 404). |
+| `GET/PUT /__admin/settings` | `{apiKeys?, rateLimitPerMinute?: number \| null, projects?: ["<slug>/<uuid>"]}`. `rateLimitPerMinute: 60` reproduces Plane's limit on the emulator clock; `projects` pins which projects exist (others 404). |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `rate_limited` (429),
 `server_error` (500), `bad_gateway` (502 HTML), `unauthorized` (401), `invalid_json` (200
@@ -127,13 +127,13 @@ never retried.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PlaneAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `ensureProject(slug, id)`, `statesOf(id)`, `labelsOf(id)`, `moveToState(itemId, stateIdOrName)`, `applyPatch(item, patch)`, `workItems()`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `PlaneAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `ensureProject(slug, id)`, `statesOf(id)`, `labelsOf(id)`, `moveToState(itemId, stateIdOrName)`, `applyPatch(item, patch)`, `workItems()`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `PLANE_PRESETS` | object | Every named fault preset. |
 | `PLANE_NAMESPACE` | string | The service name, `"plane"`. |
 | `DEFAULT_STATES` | array | The workflow a new project starts with. |
 | `apiKeyCredential` | function | The `X-API-Key` a request carries (how credentials map to namespaces). |
-| `uuidFrom` | function | The deterministic v4-shaped UUID the mock derives from a string. |
+| `uuidFrom` | function | The deterministic v4-shaped UUID the emulator derives from a string. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`; the `serve` CLI target (`--api-key`, `--rate-limit`); port 8821. |
 

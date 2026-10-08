@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-twilio",
   "version": "0.0.0-development",
-  "description": "Stateful mock of Twilio Verify, Lookup v2, Messaging and Recordings on one port, with signed inbound SMS and voice webhooks (Mockingbird service contract).",
+  "description": "Stateful emulator of Twilio Verify, Lookup v2, Messaging and Recordings on one port, with signed inbound SMS and voice webhooks (Mockingbird service contract).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -46,7 +46,7 @@
     "otp",
     "lookup",
     "sms",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

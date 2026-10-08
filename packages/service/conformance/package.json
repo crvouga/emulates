@@ -106,7 +106,7 @@
     "@crvouga/mockingbird-service-whoop": "workspace:*",
     "@crvouga/mockingbird-service-workos": "workspace:*"
   },
-  "description": "Proves every HTTP mock implements the same MockSurface and admin control plane.",
+  "description": "Proves every HTTP emulator implements the same MockSurface and admin control plane.",
   "license": "MIT",
   "name": "@crvouga/mockingbird-service-conformance",
   "private": true,

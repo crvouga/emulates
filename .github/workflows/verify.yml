@@ -1,4 +1,4 @@
-# Differential verification of the Junction mock against the real Junction sandbox:
+# Differential verification of the Junction emulator against the real Junction sandbox:
 # `mockingbird-junction verify` replays the shipped corpus (drift) and a stateful scenario
 # (users, catalog, serviceability, orders) against both and fails on any divergence.
 #

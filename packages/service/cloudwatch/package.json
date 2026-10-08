@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-cloudwatch",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon CloudWatch Metrics mock with AWS SDK wire compatibility and deterministic local controls.",
+  "description": "Stateful Amazon CloudWatch Metrics emulator with AWS SDK wire compatibility and deterministic local controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "cloudwatch",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

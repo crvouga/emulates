@@ -1,11 +1,11 @@
-# Stripe mock coverage catalog
+# Stripe emulator coverage catalog
 
-What this mock serves, and what it deliberately does not, for the server-side Stripe usage a
+What this emulator serves, and what it deliberately does not, for the server-side Stripe usage a
 consumer's end-to-end suites rely on. Compiled from a sweep of Stripe call sites, dev-tools
-commands, catalog sweeps and webhook handlers in the applications this mock is built to stand in
+commands, catalog sweeps and webhook handlers in the applications this emulator is built to stand in
 for (September 2026).
 
-This catalog describes the mock's own contract. It never names the consuming projects: they are
+This catalog describes the emulator's own contract. It never names the consuming projects: they are
 reference points for what had to be modelled, not dependencies of this repository.
 
 - Contract: [`openapi.yaml`](../openapi.yaml) and the generated [`SUPPORT.md`](../SUPPORT.md)
@@ -17,7 +17,7 @@ reference points for what had to be modelled, not dependencies of this repositor
 
 ## Consumer call patterns
 
-| Pattern | What it does | Mock coverage |
+| Pattern | What it does | Emulator coverage |
 | --- | --- | --- |
 | Billing adapter | MSO/PC clients; charge, refund, customer, balance adjustment | customers, payment methods, payment intents, refunds, customer balance transactions |
 | Shop checkout command | PaymentIntent create/confirm/cancel/retrieve, settlement | payment intents (incl. `resource_missing` customer recovery), refunds |
@@ -28,7 +28,7 @@ reference points for what had to be modelled, not dependencies of this repositor
 | Catalog service | catalog + coupon sweep, invoice retrieval | products (list/search/retrieve/update), prices (list/retrieve/update), coupons, promotion codes, invoices |
 | Catalog dev-tools | catalog repair, offering activation, lab-routing metadata | product/price list+retrieve+update with `has_more` paging, metadata patches |
 | Coupon validation service | promotion-code lookup, redemption caps, first-time-transaction probe | promotion codes (`code`/`active`/`limit`), coupons (`applies_to`, `currency_options`), `invoices.list`, `paymentIntents.list` |
-| Product/price webhook intake | catalog sync from webhooks | `product.*` / `price.*` events are emitted on mock mutations |
+| Product/price webhook intake | catalog sync from webhooks | `product.*` / `price.*` events are emitted on emulator mutations |
 | Webhook controller | webhook dispatch | `payment_intent.succeeded\|canceled\|payment_failed`, `checkout.session.completed\|expired`, `setup_intent.succeeded`, `customer.subscription.created\|updated\|deleted`, `invoice.created\|paid`, `refund.created\|updated`, `product.*`, `price.*`, `customer.*` |
 | Event replay worker | replay sweep | `events.list` with `types[]` + `created.gte`, `events/{id}` |
 | Direct SDK confirm | `paymentIntents.confirm` | confirm with `pm_card_visa` |
@@ -46,6 +46,6 @@ call. Hosted checkout, the Stripe.js stand-in, test clocks, webhook endpoints, t
 Re-sweep the consumer whenever a new Stripe call site appears.
 # Stripe CLI webhook parity
 
-`bun run parity:stripe` starts `stripe listen` in test mode and forwards its websocket event stream to a temporary local Hono collector. The runner snapshots that collector before each walk, waits for expected mock events, and compares event types, mapped resource identity, stable object fields, and changed field names. Event IDs, timestamps, request IDs, and delivery order are excluded; repeated delivery of one Stripe event ID counts once.
+`bun run parity:stripe` starts `stripe listen` in test mode and forwards its websocket event stream to a temporary local Hono collector. The runner snapshots that collector before each walk, waits for expected emulator events, and compares event types, mapped resource identity, stable object fields, and changed field names. Event IDs, timestamps, request IDs, and delivery order are excluded; repeated delivery of one Stripe event ID counts once.
 
 Use `bun run parity:stripe:webhooks` for a deterministic customer creation check that must observe a real `customer.created` event. It creates and deletes one Stripe test-mode customer. `--no-webhooks` skips the CLI listener during broader API parity. The CLI listener sees account-wide events, so use a dedicated test account when concurrent integrations produce webhooks.

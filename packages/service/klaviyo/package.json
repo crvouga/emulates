@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-klaviyo",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Klaviyo events API: JSON:API event create (Ordered Product, Placed Order), event reads, unique_id dedupe, JSON:API errors and an outbox.",
+  "description": "Stateful emulator of the Klaviyo events API: JSON:API event create (Ordered Product, Placed Order), event reads, unique_id dedupe, JSON:API errors and an outbox.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

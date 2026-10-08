@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-sentry",
   "version": "0.0.0-development",
-  "description": "Stateful Sentry mock: SDK envelope/store/minidump ingestion, events, issues, attachments and deterministic transport controls.",
+  "description": "Stateful Sentry emulator: SDK envelope/store/minidump ingestion, events, issues, attachments and deterministic transport controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

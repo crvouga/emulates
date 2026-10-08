@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-medplum",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the self-hosted Medplum server (FHIR R4 REST, OAuth2 and admin API), proven at parity with a real self-hosted Medplum used as the oracle.",
+  "description": "Stateful emulator of the self-hosted Medplum server (FHIR R4 REST, OAuth2 and admin API), proven at parity with a real self-hosted Medplum used as the oracle.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -46,7 +46,7 @@
     "fhir",
     "fhir-r4",
     "ehr",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

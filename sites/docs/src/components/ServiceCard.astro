@@ -1,6 +1,7 @@
 ---
 import { CATEGORIES, type CategorySlug } from "../lib/categories.ts"
 import type { Service } from "../lib/types.ts"
+import FeaturedBadge from "./FeaturedBadge.astro"
 import Icon from "./Icon.astro"
 import Monogram from "./Monogram.astro"
 
@@ -17,6 +18,7 @@ const search = [
   s.description,
   category.label,
   s.parity,
+  s.featured ? "featured" : "",
   ...s.keywords,
   ...s.operations.map((o) => o.id),
 ].join(" ")
@@ -29,6 +31,7 @@ const search = [
   data-display={s.displayName}
   data-category={s.category}
   data-kind={s.kind}
+  data-featured={s.featured ? "1" : "0"}
   data-parity={s.parity}
   data-cli={s.surfaces.cli ? "1" : "0"}
   data-ops={s.opsSupported}
@@ -40,6 +43,7 @@ const search = [
       <h3>{s.displayName}</h3>
       <span>{category.label}</span>
     </div>
+    {s.featured && <FeaturedBadge />}
   </div>
   <p class="svc-desc">{s.description}</p>
   <div class="svc-meta">
@@ -63,7 +67,7 @@ const search = [
 
   .svc:hover {
     border-color: var(--fg);
-    box-shadow: inset 3px 0 0 var(--clay);
+    box-shadow: inset 3px 0 0 var(--highlight);
   }
 
   .svc-top {

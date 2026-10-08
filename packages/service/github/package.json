@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-github",
   "version": "0.0.0-development",
-  "description": "Stateful GitHub REST API 2026-03-10 mock for repository, reference and pull-request scenarios.",
+  "description": "Stateful GitHub REST API 2026-03-10 emulator for repository, reference and pull-request scenarios.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

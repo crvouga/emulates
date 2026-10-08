@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **3**
-- supported by the mock: **3**
+- supported by the emulator: **3**
 - parity enabled: **3**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListTrackers` | `GET /v2/trackers` | ✅ supported | ✅ |  |
 | `CreateTracker` | `POST /v2/trackers` | ✅ supported | ✅ |  |

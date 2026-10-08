@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-postgres
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 Pure TypeScript, completely in-memory PostgreSQL engine aiming for **PostgreSQL 18 SQL dialect
 parity** (same statements, same results). Use it in tests (or the browser) wherever you want real
@@ -21,7 +21,7 @@ isolation.
 - Intentional differences: deterministic `random()` / `now()` by default, and a custom snapshot
   format (not `pg_dump`)
 
-It is not a Mockingbird HTTP mock and is not the storage engine Mockingbird's HTTP mocks use (they
+It is not a Mockingbird HTTP emulator and is not the storage engine Mockingbird's HTTP emulators use (they
 use the SQLite-dialect [`@crvouga/mockingbird-service-sqlite`](https://github.com/crvouga/mockingbird/tree/main/packages/service/sqlite#readme)
 through the `SqliteClient` port). Use this package as the database for your own code under test.
 
@@ -190,7 +190,7 @@ mockingbird-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
 `serve({ database })` shares an existing `Database`, and `serve({ database: snapshot })` boots every
 server from one frozen template, so a seeded stack starts from the same bytes each time.
 `createAdmin` from `@crvouga/mockingbird-service-postgres/admin` serves the same `/__admin`
-surface as every other mock, including the table explorer (`GET /sql/tables`, `POST /sql/query`).
+surface as every other emulator, including the table explorer (`GET /sql/tables`, `POST /sql/query`).
 The wire server does not speak that HTTP API.
 
 `mockingbird-postgres serve --config mockingbird.json` also supervises a mixed HTTP/Postgres/Redis

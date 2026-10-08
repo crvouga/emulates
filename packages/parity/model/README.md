@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-model
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
 Provider-neutral symbolic resource model for differential testing. Generated commands never contain concrete ids: they say "customer #2", and each side of a comparison (`real` and `mock`) binds that handle to its own id in a `ResourceTable`; canonicalization then turns both ids back into `resource:customer:2`. You only need this directly if you are building your own differential runner or command executor — [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) uses it for you.
 
@@ -45,7 +45,7 @@ for (const side of ["real", "mock"] as const) {
   )
 }
 // real { customer: "cus_Real123", other: "cus_does_not_exist" }
-// mock { customer: "cus_mock_1", other: "cus_does_not_exist" }
+// emulator { customer: "cus_mock_1", other: "cus_does_not_exist" }
 ```
 
 ## API

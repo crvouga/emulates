@@ -20,7 +20,7 @@ export interface AdminBrand {
   description: string | null
 }
 
-/** The record published for admin shells. A docs deploy updates it; published mocks do not embed it. */
+/** The record published for admin shells. A docs deploy updates it; published emulators do not embed it. */
 export const adminBrands = (
   services: readonly { name: string; brand: Brand }[],
   origin = DOCS_ORIGIN,

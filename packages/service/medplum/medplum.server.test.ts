@@ -84,7 +84,7 @@ describe.skipIf(!existsSync(cli))("mockingbird-medplum serve", () => {
       try {
         if (
           (await fetch(`http://127.0.0.1:${port}/__admin/health`)).ok &&
-          output.includes("mock listening on")
+          output.includes("emulator listening on")
         )
           return
       } catch {
@@ -100,7 +100,7 @@ describe.skipIf(!existsSync(cli))("mockingbird-medplum serve", () => {
   })
 
   test("announces the credentials it seeded", () => {
-    expect(output).toContain(`medplum mock listening on http://127.0.0.1:${port}`)
+    expect(output).toContain(`medplum emulator listening on http://127.0.0.1:${port}`)
     expect(output).toContain(
       "client credentials: 0b9e4a5c-0000-4000-8000-00000000c1d1 / cli-secret",
     )

@@ -3,14 +3,14 @@
 **Blocked until** [`drop-in.md`](./drop-in.md) is fully green.
 
 These are the steps a consumer performs in its own repository. Nothing here is a dependency of this
-project: the mock is complete on its own side; this is the checklist for wiring a client to it.
+project: the emulator is complete on its own side; this is the checklist for wiring a client to it.
 
 When the monkey suite proves drop-in:
 
-1. Serve the mock via `@crvouga/mockingbird-adapter-node` (or `Bun.serve`) on localhost.
+1. Serve the emulator via `@crvouga/mockingbird-adapter-node` (or `Bun.serve`) on localhost.
 2. Allow `127.0.0.1` / `localhost` in the consumer's Vital host allowlist, keeping its
    production and sandbox guards intact.
-3. Point the consumer's Vital API URL at the mock and use a mock sandbox key (the `sk_us_*` shape).
+3. Point the consumer's Vital API URL at the emulator and use an emulator sandbox key (the `sk_us_*` shape).
 4. Re-enable the junction suite in the consumer's test matrix only after the matrix is green.
 5. Keep sparse live-sandbox goldens opt-in where geo corpora still need real PSC inventories.
 

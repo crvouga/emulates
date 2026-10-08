@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-sqs",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon SQS mock with visibility, FIFO ordering, deduplication, batches, and redrive.",
+  "description": "Stateful Amazon SQS emulator with visibility, FIFO ordering, deduplication, batches, and redrive.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,7 +44,7 @@
     "sqs",
     "queue",
     "fifo",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

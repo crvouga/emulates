@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **8**
-- supported by the mock: **8**
+- supported by the emulator: **8**
 - parity enabled: **6**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `SearchMessages` | `POST /api/messages/search` | ✅ supported | ✅ |  |
 | `AwaitMessageByQuery` | `GET /api/messages/await` | ✅ supported | ❌ disabled | Holds the request open for up to `timeout` ms; exercised by the acceptance tests. |

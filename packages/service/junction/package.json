@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-junction",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Junction (Vital) user API driven by its OpenAPI contract and verified by differential property tests against the Junction sandbox.",
+  "description": "Stateful emulator of the Junction (Vital) user API driven by its OpenAPI contract and verified by differential property tests against the Junction sandbox.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -49,6 +49,7 @@
     "vital"
   ],
   "mockingbird": {
+    "featured": true,
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -98,7 +99,9 @@
     "lint": "biome check .",
     "test": "bun test",
     "parity": "bun scripts/parity.ts",
+    "emulator:server": "bun scripts/server.ts",
     "mock:server": "bun scripts/server.ts",
+    "emulator:serve": "bun scripts/server.ts",
     "mock:serve": "bun scripts/server.ts",
     "corpus:record": "bun scripts/record-corpus.ts",
     "client-parity": "bun scripts/client-parity.ts",

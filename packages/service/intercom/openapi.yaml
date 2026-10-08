@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Intercom REST API 2.11 (Mockingbird subset)
   description: |
-    Stateful mock subset of the Intercom REST API (version 2.11): contacts (search, create,
+    Stateful emulator subset of the Intercom REST API (version 2.11): contacts (search, create,
     update, get), conversations (create, update, reply as user or admin with attachments,
     close/open/snooze/assign, get, search) and the admin identity endpoints. Covers the backend's
     member messaging adapter and the Intercom sync adapter.

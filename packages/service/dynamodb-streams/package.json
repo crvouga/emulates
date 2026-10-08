@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "dynamodb-streams",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

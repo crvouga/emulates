@@ -1,6 +1,6 @@
 # Fleets
 
-One service CLI can supervise installed HTTP mocks, PostgreSQL wire servers and Redis RESP
+One service CLI can supervise installed HTTP emulators, PostgreSQL wire servers and Redis RESP
 servers. Every listener starts before readiness is published; a boot failure names the service,
 closes listeners that already started, and exits nonzero. SIGINT/SIGTERM closes the whole fleet.
 

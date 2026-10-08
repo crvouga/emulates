@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-medplum
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful, in-process mock of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
+Stateful, in-process emulator of a self-hosted [Medplum](https://www.medplum.com/) server (v5.1.37)
 for test suites. It covers:
 
 - **FHIR R4 REST**: create, read, update, delete, conditional writes, JSON Patch, versioning and
@@ -24,7 +24,7 @@ the only Node-specific parts.
 
 Parity is proven against the real thing. Every scenario in `test/scenarios` (32 scenarios, 481
 exchanges: status, headers and body) and seeded random walks run against a self-hosted Medplum
-v5.1.37 and the mock, and they must agree exchange by exchange. The oracle's recording replays
+v5.1.37 and the emulator, and they must agree exchange by exchange. The oracle's recording replays
 in CI.
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/medplum/SUPPORT.md)
@@ -49,10 +49,10 @@ import { MedplumClient } from "@medplum/core"
 import type { Patient } from "@medplum/fhirtypes"
 import { DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET, MedplumAPI } from "@crvouga/mockingbird-service-medplum"
 
-const mock = new MedplumAPI() // answers as http://localhost:8103/
+const emulator = new MedplumAPI() // answers as http://localhost:8103/
 const medplum = new MedplumClient({
   baseUrl: "http://localhost:8103/",
-  fetch: (url: string, init?: RequestInit) => mock.fetch(new Request(url, init)),
+  fetch: (url: string, init?: RequestInit) => emulator.fetch(new Request(url, init)),
 })
 await medplum.startClientLogin(DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET)
 
@@ -63,7 +63,7 @@ const patient = await medplum.createResource<Patient>({
 const found = await medplum.searchResources("Patient", { name: "lovelace" })
 console.log(found[0]?.id === patient.id) // true
 
-await mock.reset() // back to the seeded state
+await emulator.reset() // back to the seeded state
 ```
 
 Every `MedplumAPI` seeds what a fresh self-hosted server seeds, which is the super admin
@@ -112,7 +112,7 @@ await server.close()
 
 ### `createRuntime` (any Fetch server)
 
-`createRuntime` is the whole served mock as a single runtime-neutral `fetch(request)`. That
+`createRuntime` is the whole served emulator as a single runtime-neutral `fetch(request)`. That
 includes health, the `/__admin/*` control plane, namespaces, the clock, faults and the request
 journal. Hand it to `Bun.serve`, a Worker or Deno, or call it directly:
 
@@ -192,11 +192,11 @@ emulated.
 | Export | Description |
 | --- | --- |
 | `MedplumAPI` | Class. `new MedplumAPI(options?)`; `fetch(request: Request): Promise<Response>` is the Medplum server. |
-| `createRuntime` | `(options?: MedplumRuntimeOptions) => MedplumRuntime` — the served mock with the Mockingbird service contract. |
+| `createRuntime` | `(options?: MedplumRuntimeOptions) => MedplumRuntime` — the served emulator with the Mockingbird service contract. |
 | `MEDPLUM_PRESETS` | The fault presets above, as `Record<string, FaultPreset>`. |
 | `MEDPLUM_NAMESPACE` | `"medplum"` — the service name and default namespace. |
 | `document` | The vendored OpenAPI contract (`openapi.yaml`). |
-| `operationIds` / `supportedOperationIds` | Every operation id in the contract / the ones the mock serves. |
+| `operationIds` / `supportedOperationIds` | Every operation id in the contract / the ones the emulator serves. |
 | `DEFINITIONS_VERSION` | The `@medplum/definitions` release the embedded FHIR definitions come from. |
 | `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` | `"admin@example.com"` / `"medplum_admin"` — the server's seeded super admin. |
 | `SUPER_ADMIN_CLIENT_ID` / `SUPER_ADMIN_CLIENT_SECRET` | The super admin's client application (`client_credentials` as super admin). |
@@ -238,7 +238,7 @@ type MedplumUserFixture = { email; password; firstName?; lastName?; profileType?
 type MedplumRuntimeOptions = Omit<MedplumAPIOptions, "now" | "namespace"> & { clock?; adminKey?; onLog?; journalSize? }
 ```
 
-Ids and secrets are deterministic per namespace and seed, so two mocks given the same requests
+Ids and secrets are deterministic per namespace and seed, so two emulators given the same requests
 return the same ids.
 
 ## Development

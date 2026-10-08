@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-payload-cms",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Payload CMS collection REST API: paginated finds with a where-query subset, find by id, a seeded marketing collection and admin-editable documents.",
+  "description": "Stateful emulator of the Payload CMS collection REST API: paginated finds with a where-query subset, find by id, a seeded marketing collection and admin-editable documents.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

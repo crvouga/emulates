@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **50**
-- supported by the mock: **42**
+- supported by the emulator: **42**
 - parity enabled: **42**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListCustomers` | `GET /customers` | ✅ supported | ✅ |  |
 | `CreateCustomer` | `POST /customers` | ✅ supported | ⚠️ unsafe (opt-in) |  |
@@ -47,7 +47,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `CancelSubscription` | `POST /subscriptions/{subscription_id}/cancel` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `CreateSubscriptionCharge` | `POST /subscriptions/{subscription_id}/charge` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `PreviewSubscriptionCharge` | `POST /subscriptions/{subscription_id}/charge/preview` | ❌ unsupported | — | One-time charge previews are not modelled; create the charge instead. |
-| `GetSubscriptionPaymentMethodChangeTransaction` | `GET /subscriptions/{subscription_id}/update-payment-method-transaction` | ❌ unsupported | — | Payment method changes go through the hosted checkout, which the mock does not serve. |
+| `GetSubscriptionPaymentMethodChangeTransaction` | `GET /subscriptions/{subscription_id}/update-payment-method-transaction` | ❌ unsupported | — | Payment method changes go through the hosted checkout, which the emulator does not serve. |
 | `ListEvents` | `GET /events` | ✅ supported | ✅ |  |
 | `ListNotificationSettings` | `GET /notification-settings` | ✅ supported | ✅ |  |
 | `CreateNotificationSetting` | `POST /notification-settings` | ✅ supported | ⚠️ unsafe (opt-in) |  |

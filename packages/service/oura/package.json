@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-oura",
   "version": "0.0.0-development",
-  "description": "Stateful Oura v2 mock: wearable collections, OAuth refresh and namespace-isolated synthetic data.",
+  "description": "Stateful Oura v2 emulator: wearable collections, OAuth refresh and namespace-isolated synthetic data.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

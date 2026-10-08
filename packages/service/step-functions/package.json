@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-step-functions",
   "version": "0.0.0-development",
-  "description": "Stateful AWS Step Functions mock with idempotent executions, callbacks, deterministic transitions, and history.",
+  "description": "Stateful AWS Step Functions emulator with idempotent executions, callbacks, deterministic transitions, and history.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,7 +44,7 @@
     "step-functions",
     "sfn",
     "workflow",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

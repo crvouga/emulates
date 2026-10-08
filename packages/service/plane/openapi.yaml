@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Plane REST API (Mockingbird subset)
-  description: 'Stateful mock subset of Plane''s public REST API v1 for one project: work items (cursor-paginated
+  description: 'Stateful emulator subset of Plane''s public REST API v1 for one project: work items (cursor-paginated
     list, get, create, patch), comments, links, states, labels, cycles and work-item types. Hand-authored from Plane''s API reference
     and the consumer''s zod schemas (plane-response.ts).
 

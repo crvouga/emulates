@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-stripe
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful, in-process mock of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
+Stateful, in-process emulator of the [Stripe API](https://docs.stripe.com/api) for test suites: accounts
 chosen by API key, customers and balances, payment methods, payment and setup intents, charges,
 refunds, disputes, checkout (with a hosted page and a Stripe.js stand-in), the customer portal
 (configurations, sessions and the hosted portal page), invoices, subscriptions that renew, pause,
@@ -81,8 +81,8 @@ stripe-node accepts `host`, `port` and `protocol`; route every `new Stripe(...)`
 factory reading `STRIPE_API_HOST` / `STRIPE_API_PORT` / `STRIPE_API_PROTOCOL` (the catalog's G-S1),
 and give raw `fetch('https://api.stripe.com…')` call sites the same base URL. Keys must look like
 test keys (`sk_test_…`, `rk_test_…`; `pk_test_…` for the Stripe.js stand-in). Point the browser at
-the mock's `GET /v3` instead of `https://js.stripe.com/v3` (G-S3); `session.url` already points at
-the mock's hosted page.
+the emulator's `GET /v3` instead of `https://js.stripe.com/v3` (G-S3); `session.url` already points at
+the emulator's hosted page.
 
 ### Accounts and namespaces
 
@@ -118,7 +118,7 @@ invoice (or `latest_invoice.payments` on a subscription), `GET /v1/invoice_payme
 `GET /v1/invoice_payments/{id}`. One default payment per invoice that has a PaymentIntent, derived from
 the invoice; a $0 invoice has none, and payment records are not modelled. `charge.refunds` appears only with `expand[]=refunds` at
 every one of these versions. `GET /v1/invoices/upcoming` answers at the older versions and returns
-Stripe's "deprecated" 404 at basil and later. Expansion is generic (any path through ids the mock
+Stripe's "deprecated" 404 at basil and later. Expansion is generic (any path through ids the emulator
 holds, ancestors included); Stripe's own rules are enforced: a non-expandable first segment is
 `This property cannot be expanded (metadata).` and more than four levels is
 `property_expansion_max_depth` (verified against test mode at all three versions).
@@ -160,8 +160,8 @@ Events emitted: `customer.*`, `payment_method.attached|detached|updated`,
 
 ### Lifecycles and the clock
 
-`POST /__admin/clock {"advance": "32d"}` (or `set`) moves the mock clock and immediately runs every
-clock-driven lifecycle, so their webhooks fire at once; the served mock also ticks every second.
+`POST /__admin/clock {"advance": "32d"}` (or `set`) moves the emulator clock and immediately runs every
+clock-driven lifecycle, so their webhooks fire at once; the served emulator also ticks every second.
 
 - **Renewals**: past `current_period_end` a subscription cycles — a `subscription_cycle` invoice is
   finalized and charged off-session to the default payment method, then `invoice.paid` +
@@ -268,7 +268,7 @@ payment methods; anything else is Stripe's 401.
 
 ### Customer portal
 
-`POST /v1/billing_portal/sessions` returns a `url` on the mock (`/p/session/:id`, in place of
+`POST /v1/billing_portal/sessions` returns a `url` on the emulator (`/p/session/:id`, in place of
 billing.stripe.com) where the customer manages their billing, as the session's configuration allows:
 
 - **Configurations**: `POST|GET /v1/billing_portal/configurations[/:id]`
@@ -363,7 +363,7 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 
 | Export | Description |
 | --- | --- |
-| `createRuntime` | `(options?) => StripeRuntime` — the mock with the full contract. Options: `accounts`, `webhooks {endpoints, retryDelaysMs, fetch}`, `corpus`, `publicUrl`, `webhookApiVersion`, `lifecycle`, `tickMs`, `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `onWebhook`. The runtime adds `webhooks`, `accounts`, `tick()`, `stop()`. |
+| `createRuntime` | `(options?) => StripeRuntime` — the emulator with the full contract. Options: `accounts`, `webhooks {endpoints, retryDelaysMs, fetch}`, `corpus`, `publicUrl`, `webhookApiVersion`, `lifecycle`, `tickMs`, `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `onWebhook`. The runtime adds `webhooks`, `accounts`, `tick()`, `stop()`. |
 | `StripeAPI` | Class; `new StripeAPI(options?)` implements `fetch(request)`. Members: `reset()`, `tick(force?)`, `webhookEvents(account?)`, `webhookDeliveryAttempts(account?)`, `apiWebhookEndpoints()`, `accountIds()`, `scopeFor(account)`, `importStateFrom(source)`, `accounts`, `app`, `sqlite`. |
 | `STRIPE_PRESETS` | The named fault presets above. |
 | `AccountDirectory` | Keys → accounts (`configure`, `accountFor`, `config`, `list`, `resolve`). |
@@ -380,7 +380,7 @@ recorded prices (listed in `synthesizedLookupKeys`). Pass your own with `createR
 | `STRIPE_NAMESPACE` | `"stripe"` — SQLite namespace of every record. |
 | `document` | The vendored OpenAPI document (Mockingbird subset). |
 | `operationIds` | Every `operationId` in `document`. |
-| `supportedOperationIds` | The ones the mock implements. |
+| `supportedOperationIds` | The ones the emulator implements. |
 | `QA_SURFACE_OPS` | Operations the parity walks cover (supported, minus the browser pages). |
 | `QA_METADATA` | Pinned metadata values the parity walks send. |
 | `QA_AMOUNTS` | Pinned amounts in cents. |
@@ -415,7 +415,7 @@ plus `port`, `host`; resolves `{url, port, runtime, close}`), `serveTarget` (the
   `tiers` and `custom_unit_amount`, and subscription-mode sessions in a non-default currency, are
   refused with a 400; subscriptions and invoices always bill in the price's own currency.
 - **Webhook endpoint `api_version`**: payloads render at the account's version, not per endpoint.
-- **Live keys** (`sk_live_…`) are refused with Stripe's 401: the mock is test mode only.
+- **Live keys** (`sk_live_…`) are refused with Stripe's 401: the emulator is test mode only.
 - Operations marked unsupported in SUPPORT.md (charge create/update, checkout session update,
   dispute evidence).
 - Rate-limit, 5xx and permission bodies come from presets, worded as Stripe words them but not

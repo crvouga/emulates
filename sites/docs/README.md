@@ -18,9 +18,9 @@ bun run docs:preview
 | Operations and coverage | The built module's `document`, `operationIds` and `supportedOperationIds` |
 | Surfaces | The module's exports (`createRuntime`, `Database`), `exports["./server"]` and `bin` |
 | Playground | The published module itself, bundled as a lazy chunk and run in the browser tab |
-| Sample requests | Generated from the contract's schemas, then sent to a fresh mock during the build; operations whose sample succeeds are marked |
+| Sample requests | Generated from the contract's schemas, then sent to a fresh emulator during the build; operations whose sample succeeds are marked |
 | SQL console snippets | `src/lib/sql.ts`, executed against the real engine during the build |
-| Field guide | `src/pages/identity.astro` shows the live tokens. The mark and Plate I are in `public/identity/`. The rules are [`docs/DESIGN.md`](../../docs/DESIGN.md), the sentence is `IDENTITY` in `src/lib/content.ts` |
+| Design system | `src/pages/identity.astro` shows the live tokens and technical components. The code mark is in `public/identity/`. The rules are [`docs/DESIGN.md`](../../docs/DESIGN.md), the sentence is `IDENTITY` in `src/lib/content.ts` |
 
 `integrations/catalog` does the reading (`load.ts`) and exposes it as two virtual modules:
 `virtual:mockingbird/catalog` for pages and `virtual:mockingbird/runtimes` (one `import()` per

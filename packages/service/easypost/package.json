@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-easypost",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the EasyPost trackers API: create/re-use trackers, EasyPost's test tracking codes, admin status transitions and EasyPost's error envelope.",
+  "description": "Stateful emulator of the EasyPost trackers API: create/re-use trackers, EasyPost's test tracking codes, admin status transitions and EasyPost's error envelope.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

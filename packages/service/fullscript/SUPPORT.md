@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **10**
-- supported by the mock: **10**
+- supported by the emulator: **10**
 - parity enabled: **8**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `OAuthToken` | `POST /api/oauth/token` | ✅ supported | ✅ |  |
 | `OAuthRevoke` | `POST /api/oauth/revoke` | ✅ supported | ⚠️ unsafe (opt-in) |  |

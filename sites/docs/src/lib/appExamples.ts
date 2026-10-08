@@ -1,5 +1,5 @@
 /**
- * Full-stack demo apps built entirely on Mockingbird mocks, one process,
+ * Full-stack demo apps built entirely on Mockingbird emulators, one process,
  * no real network. Hand-authored (unlike the per-service `mockingbird.examples`
  * snippets, which the catalog integration derives from each service's own
  * package.json at build time) because there is one of these per app, not

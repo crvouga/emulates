@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **16**
-- supported by the mock: **16**
+- supported by the emulator: **16**
 - parity enabled: **16**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListWorkItems` | `GET /api/v1/workspaces/{slug}/projects/{project_id}/work-items/` | ✅ supported | ✅ |  |
 | `CreateWorkItem` | `POST /api/v1/workspaces/{slug}/projects/{project_id}/work-items/` | ✅ supported | ⚠️ unsafe (opt-in) |  |

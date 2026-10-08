@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-airtable
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP Airtable OAuth and forms-integration mock. Only synthetic fixtures belong here.
+WIP Airtable OAuth and forms-integration emulator. Only synthetic fixtures belong here.
 
 ## Install
 

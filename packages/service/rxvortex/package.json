@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-rxvortex",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the RxVortex (Strive) pharmacy API: OAuth token, order submit, status, cancel, recovery by sender order id, preset catalog, and signed status webhooks.",
+  "description": "Stateful emulator of the RxVortex (Strive) pharmacy API: OAuth token, order submit, status, cancel, recovery by sender order id, preset catalog, and signed status webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

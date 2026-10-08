@@ -2,11 +2,11 @@ openapi: 3.1.0
 info:
   title: Twilio Verify, Lookup, Messaging and Recordings (Mockingbird subset)
   description: |
-    Stateful mock subset of Twilio, served on one port. Each product keeps its own host upstream
-    (api.twilio.com, verify.twilio.com, lookups.twilio.com); the mock routes by that host carried
+    Stateful emulator subset of Twilio, served on one port. Each product keeps its own host upstream
+    (api.twilio.com, verify.twilio.com, lookups.twilio.com); the emulator routes by that host carried
     as a path prefix (`/api/…`, `/verify/…`, `/lookups/…`), which is what a custom twilio-node
     `httpClient` produces when it rewrites `https://<product>.twilio.com/<path>` to
-    `{mock}/<product>/<path>`. Hand-authored from Twilio's published API reference, trimmed to
+    `{emulator}/<product>/<path>`. Hand-authored from Twilio's published API reference, trimmed to
     what our consumer calls, and checked against live Lookup v2 responses.
   version: "2010-04-01"
   x-mockingbird-upstream:
@@ -43,7 +43,7 @@ paths:
       - name: Fields
         in: query
         required: false
-        description: Paid data packages (line_type_intelligence, caller_name, …); the mock answers null for every package.
+        description: Paid data packages (line_type_intelligence, caller_name, …); the emulator answers null for every package.
         schema:
           type: string
           x-mockingbird-unsupported:

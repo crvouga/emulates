@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-brevo",
   "version": "0.0.0-development",
-  "description": "Stateful Brevo contact creation, external-id updates and email deletion mock.",
+  "description": "Stateful Brevo contact creation, external-id updates and email deletion emulator.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-s3
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful Amazon S3 mock for AWS SDK v3. It preserves binary objects and the metadata applications read, supports path-style endpoints, multipart uploads, copies, ranges, pagination, presigned URLs, XML errors, namespace isolation, faults, and object notifications without contacting AWS.
+Stateful Amazon S3 emulator for AWS SDK v3. It preserves binary objects and the metadata applications read, supports path-style endpoints, multipart uploads, copies, ranges, pagination, presigned URLs, XML errors, namespace isolation, faults, and object notifications without contacting AWS.
 
 ## Install
 
@@ -14,14 +14,14 @@ ESM only. Node 22+ or Bun 1.2+.
 
 ## Usage
 
-Point the SDK endpoint at the mock and enable path-style addressing. Fixture credentials are validated for presigned requests; the default pair is `fixture` / `fixture`.
+Point the SDK endpoint at the emulator and enable path-style addressing. Fixture credentials are validated for presigned requests; the default pair is `fixture` / `fixture`.
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-s3/server"
 
-const mock = await createServer()
-await fetch(`${mock.url}/fixtures`, { method: "PUT" })
-await fetch(`${mock.url}/fixtures/result.bin`, {
+const emulator = await createServer()
+await fetch(`${emulator.url}/fixtures`, { method: "PUT" })
+await fetch(`${emulator.url}/fixtures/result.bin`, {
   method: "PUT",
   body: new Uint8Array([0, 255]),
 })
@@ -34,7 +34,7 @@ Set an application's S3 endpoint environment variable to the server URL and its 
 - `GET/POST /__admin/objects` inspects metadata or seeds an object; `GET /__admin/objects/:bucket/:key` downloads its bytes.
 - `GET /__admin/uploads` inspects active uploads and part metadata.
 - Preset faults are `slow_down`, `access_denied`, `expired_token`, and one-shot `truncate_stream`. Generic faults can fail or reset the next part request.
-- Advance the shared mock clock through `/__admin/clock` to expire a presigned URL.
+- Advance the shared emulator clock through `/__admin/clock` to expire a presigned URL.
 - Object writes, copies, multipart completion, and deletes publish S3-shaped notifications. Configure HTTP sinks through runtime `webhooks` options or the shared webhook admin routes; delivery attempts and retries appear under `/__admin/webhooks`.
 
 The shared runtime also provides health, reset, journal, metrics, timeline, and fault routes. Select isolated state with `x-mockingbird-namespace`, `/__admin/ns/<name>`, or a SigV4 access-key mapping.

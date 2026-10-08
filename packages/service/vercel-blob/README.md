@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-vercel-blob
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-A **wip** portable Vercel Blob mock verified with the unmodified `@vercel/blob` **2.8.0** SDK.
+A **wip** portable Vercel Blob emulator verified with the unmodified `@vercel/blob` **2.8.0** SDK.
 Blobs, multipart uploads, pending parts and synthetic download grants use SQLite Collections,
 the shared clock, namespaces and Timeline. Fixtures contain synthetic data only.
 
@@ -17,8 +17,8 @@ bun add @crvouga/mockingbird-service-vercel-blob
 ```ts
 import { createRuntime, DEFAULT_TOKEN } from "@crvouga/mockingbird-service-vercel-blob"
 
-const mock = createRuntime()
-const uploaded = await mock.fetch(new Request("http://mock.local/api/blob/?pathname=fixture.txt", {
+const emulator = createRuntime()
+const uploaded = await emulator.fetch(new Request("http://emulator.local/api/blob/?pathname=fixture.txt", {
   method: "PUT",
   headers: {
     authorization: `Bearer ${DEFAULT_TOKEN}`,
@@ -28,12 +28,12 @@ const uploaded = await mock.fetch(new Request("http://mock.local/api/blob/?pathn
   body: "fixture bytes",
 }))
 const result = await uploaded.json() as { url: string }
-const downloaded = await mock.fetch(new Request(result.url))
+const downloaded = await emulator.fetch(new Request(result.url))
 console.log(await downloaded.text())
 ```
 
 For the SDK example, also install `@vercel/blob@2.8.0`. It is an optional consumer dependency,
-not a runtime dependency of the mock.
+not a runtime dependency of the emulator.
 
 ```js
 import { put, del } from "@vercel/blob"
@@ -61,7 +61,7 @@ is supplied. `tokens` maps synthetic Bearer tokens to store IDs; the default `DE
 `403 { error: { code: "forbidden", message: "Access denied" } }`.
 
 The SDK accepts strings, Buffer, Blob and streams. Its multipart helper does not accept a raw
-`Uint8Array` as a typed `PutBody`; wrap it in a Blob or Buffer. The mock's HTTP upload handler
+`Uint8Array` as a typed `PutBody`; wrap it in a Blob or Buffer. The emulator's HTTP upload handler
 preserves raw `Uint8Array` request bodies as well as strings and arbitrary binary bytes.
 
 ## Routes and behavior
@@ -86,7 +86,7 @@ invented: normal duplicate-path rules apply to repeated puts. ETags use SHA-256,
 published emulator; timestamps use the injected clock. Default cache TTL is 2,592,000 seconds.
 
 Pagination defaults to 1,000 objects, sorts by pathname (so `file10` precedes `file2`) and emits
-`hasMore` plus a cursor only when another page exists. Mock cursors use the last pathname, following
+`hasMore` plus a cursor only when another page exists. Emulator cursors use the last pathname, following
 Vercel's emulator; their encoding is not a claim about production's opaque cursor format. Folded
 mode returns immediate folders separately from blob entries.
 
@@ -98,7 +98,7 @@ An identical completion replay returns the existing upload result. `maxBlobBytes
 
 Public URLs use the configured `publicOrigin` or the origin of the upload request. They contain
 an explicit namespace query and point inside the reserved internal byte transport tree. They
-work through plain `fetch` over the served listener or in-process `mock.fetch`. With a custom
+work through plain `fetch` over the served listener or in-process `emulator.fetch`. With a custom
 `adminPrefix`, the byte URLs and every control route relocate together. A Timeline branch caller
 must also forward `x-mockingbird-branch` when fetching its public URL. Conditional public reads
 support `If-None-Match` / 304. This local URL transport is a stand-in, not a Vercel CDN hostname.

@@ -1,6 +1,6 @@
 # Junction webhook parity receiver
 
-Junction webhook parity verifies that the real Junction sandbox and the mock publish identical webhook events (same set, same order, same exact payloads) after each parity walk. It needs a reachable receiver. The receiver is a Cloudflare Worker with a stable `workers.dev` URL and a Durable Object that keeps events isolated by parity run ID.
+Junction webhook parity verifies that the real Junction sandbox and the emulator publish identical webhook events (same set, same order, same exact payloads) after each parity walk. It needs a reachable receiver. The receiver is a Cloudflare Worker with a stable `workers.dev` URL and a Durable Object that keeps events isolated by parity run ID.
 
 ## Optional by default
 
@@ -61,7 +61,7 @@ Registration is dashboard-driven and does not require a Junction Management API 
 - `GET /events/{runId}` — returns the ordered events for one parity run.
 - `DELETE /events/{runId}` — clears one run's events.
 
-Run IDs isolate parallel parity processes. The parity runner compares real and mock events by count, order, and exact payload, and logs only event counts and event types.
+Run IDs isolate parallel parity processes. The parity runner compares real and emulator events by count, order, and exact payload, and logs only event counts and event types.
 
 ## Smoke testing
 

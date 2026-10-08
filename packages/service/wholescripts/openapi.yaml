@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Wholescripts supplement fulfilment API (Mockingbird subset)
   description: |
-    Stateful mock subset of the Wholescripts ordering API: the product and private-label
+    Stateful emulator subset of the Wholescripts ordering API: the product and private-label
     (MedPax) catalogs, order submit, status polling and cancel. Hand-authored from the
     consumers' zod schemas and clients (the vendor publishes no spec).
   version: "1"

@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-ecs",
   "version": "0.0.0-development",
-  "description": "AWS ECS Fargate RunTask acceptance and failure mock.",
+  "description": "AWS ECS Fargate RunTask acceptance and failure emulator.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "ecs",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

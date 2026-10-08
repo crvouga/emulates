@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: VPI compounding pharmacy API (Mockingbird subset)
   description: |
-    Stateful mock subset of the VPI (vpicompounding.net) clinic API our backend drives as a
+    Stateful emulator subset of the VPI (vpicompounding.net) clinic API our backend drives as a
     draft-only eRx rail: JWT authentication, product taxonomy/details/discounts, day supply,
     shipping states and rates, clinic location, providers, patients, the provider-signature
     duplicate check, saveNewPrescription, and the three paged prescription status lists.

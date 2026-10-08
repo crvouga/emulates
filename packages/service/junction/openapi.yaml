@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Junction API (Mockingbird subset)
   description: |
-    Stateful mock subset of the Junction (Vital) API.
+    Stateful emulator subset of the Junction (Vital) API.
     Docs: https://docs.junction.com/
     Auth: https://docs.junction.com/api-details/junction-api
     Create user: https://docs.junction.com/api-reference/user/create-user
@@ -351,7 +351,7 @@ paths:
         parity:
           enabled: false
           safe: true
-          reason: "lab-account inventory is fixture-owned; the mock models the documented shape, filters and routing rules, not a live account inventory"
+          reason: "lab-account inventory is fixture-owned; the emulator models the documented shape, filters and routing rules, not a live account inventory"
       parameters:
         - name: lab_account_id
           in: query
@@ -688,7 +688,7 @@ paths:
           safe: true
           reason: >-
             central_labs presence, within_radius counts and getlabs market coverage are
-            provider-owned geo data that a mock cannot replicate per-zip; covered by the
+            provider-owned geo data that an emulator cannot replicate per-zip; covered by the
             client-parity scenario shape checks instead
       parameters:
         - name: zip_code
@@ -740,7 +740,7 @@ paths:
           safe: true
           reason: >-
             patient_service_centers are real site inventories per zip (thousands of sites,
-            result-capped at 30) that a fixture mock cannot replicate per-zip; covered by
+            result-capped at 30) that a fixture emulator cannot replicate per-zip; covered by
             the client-parity scenario shape checks instead
       parameters:
         - name: zip_code
@@ -795,7 +795,7 @@ paths:
           safe: true
           reason: >-
             availability slots are provider-side data whose values shift between sandbox calls;
-            covered by the mock-internal scheduling property suite instead
+            covered by the emulator-internal scheduling property suite instead
       parameters:
         - name: start_date
           in: query
@@ -861,7 +861,7 @@ paths:
           safe: true
           reason: >-
             availability slots are provider-side data whose values shift between sandbox calls;
-            covered by the mock-internal scheduling property suite instead
+            covered by the emulator-internal scheduling property suite instead
       parameters:
         - name: lab
           in: query
@@ -956,7 +956,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            appointment payloads embed provider-side slot data; covered by the mock-internal
+            appointment payloads embed provider-side slot data; covered by the emulator-internal
             scheduling property suite instead
       responses:
         "200":
@@ -996,7 +996,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            booking depends on live provider slot state; covered by the mock-internal scheduling
+            booking depends on live provider slot state; covered by the emulator-internal scheduling
             property suite instead
       requestBody:
         required: true
@@ -1048,7 +1048,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            rescheduling depends on live provider slot state; covered by the mock-internal
+            rescheduling depends on live provider slot state; covered by the emulator-internal
             scheduling property suite instead
       requestBody:
         required: true
@@ -1100,7 +1100,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            cancellation depends on live provider appointment state; covered by the mock-internal
+            cancellation depends on live provider appointment state; covered by the emulator-internal
             scheduling property suite instead
       requestBody:
         required: true
@@ -1152,7 +1152,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            appointment payloads embed provider-side slot data; covered by the mock-internal
+            appointment payloads embed provider-side slot data; covered by the emulator-internal
             scheduling property suite instead
       responses:
         "200":
@@ -1192,7 +1192,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            booking depends on live provider slot state; covered by the mock-internal scheduling
+            booking depends on live provider slot state; covered by the emulator-internal scheduling
             property suite instead
       parameters:
         - name: x-idempotency-key
@@ -1250,7 +1250,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            rescheduling depends on live provider slot state; covered by the mock-internal
+            rescheduling depends on live provider slot state; covered by the emulator-internal
             scheduling property suite instead
       requestBody:
         required: true
@@ -1302,7 +1302,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            cancellation depends on live provider appointment state; covered by the mock-internal
+            cancellation depends on live provider appointment state; covered by the emulator-internal
             scheduling property suite instead
       requestBody:
         required: true
@@ -1541,7 +1541,7 @@ paths:
           enabled: false
           safe: true
           reason: >-
-            results carry provider-side specimen data; covered by the mock-internal results
+            results carry provider-side specimen data; covered by the emulator-internal results
             property suite instead
       responses:
         "200":

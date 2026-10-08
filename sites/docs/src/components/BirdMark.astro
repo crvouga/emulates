@@ -1,5 +1,5 @@
 ---
-import { MARK_HREF } from "../lib/content.ts"
+import { IDENTITY } from "../lib/content.ts"
 
 interface Props {
   size?: number
@@ -7,8 +7,19 @@ interface Props {
 const { size = 34 } = Astro.props
 ---
 
-<img class="bird-mark" src={MARK_HREF} width={size} height={size} alt="" aria-hidden="true" />
+<span class="bird-mark" style={`--mark-size: ${size}px`} aria-hidden="true">{IDENTITY.icon}</span>
 
 <style>
-  .bird-mark { flex: none; }
+  .bird-mark {
+    display: inline-grid;
+    place-items: center;
+    vertical-align: middle;
+    flex: none;
+    width: var(--mark-size);
+    height: var(--mark-size);
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-size: var(--mark-size);
+    font-weight: normal;
+    line-height: 1;
+  }
 </style>

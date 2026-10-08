@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-klaviyo
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Klaviyo** events API for test suites: the JSON:API create-event endpoint
+Stateful emulator of the **Klaviyo** events API for test suites: the JSON:API create-event endpoint
 our backend posts `Ordered Product` and `Placed Order` to after checkout, the event reads, and an
 outbox a suite asserts on. Errors come back in Klaviyo's JSON:API `errors[]` shape, so the text
 our client throws (and logs) is the text the real API would produce.
@@ -23,7 +23,7 @@ any Fetch server.
 
 ## Usage
 
-Point `KLAVIYO_URL` (Joi-required, fully overridable) at the mock's event endpoint; any
+Point `KLAVIYO_URL` (Joi-required, fully overridable) at the emulator's event endpoint; any
 `KLAVIYO_API_KEY` works.
 
 ```bash
@@ -73,7 +73,7 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 - Flows, lists, segments and campaigns: an event never triggers an email (use the outbox).
 - Profile-id validation: Klaviyo profile ids are Klaviyo-generated; our backend sends the user
-  token as `profile.data.id`, which the mock adopts as the profile id rather than rejecting.
+  token as `profile.data.id`, which the emulator adopts as the profile id rather than rejecting.
   Whether the real API accepts an unknown id is unverified (no sandbox credentials).
 - Pagination (`page[cursor]`), `filter`, `fields[…]` and `include` on reads.
 - Rate limits, except through the `throttled` preset.
@@ -82,8 +82,8 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /_
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `KlaviyoAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `events()`, `state`. Options: `sqlite`, `now`, `namespace`, `baseUrl`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, outbox). Options: `baseUrl`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `KlaviyoAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `events()`, `state`. Options: `sqlite`, `now`, `namespace`, `baseUrl`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, outbox). Options: `baseUrl`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `KLAVIYO_PRESETS` | object | Every named fault preset. |
 | `KLAVIYO_NAMESPACE` | string | The service name, `"klaviyo"`. |
 | `KLAVIYO_REVISION` | string | The API revision our backend sends, `"2024-02-15"`. |

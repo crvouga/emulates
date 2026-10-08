@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-fcm
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Firebase Cloud Messaging HTTP v1** send API (`POST /v1/projects/{project_id}/messages:send`), the call `firebase-admin` makes. Projects, access tokens, and registration tokens are fixtures. There is no FCM sandbox. This package is `status: "wip"`.
+Stateful emulator of the **Firebase Cloud Messaging HTTP v1** send API (`POST /v1/projects/{project_id}/messages:send`), the call `firebase-admin` makes. Projects, access tokens, and registration tokens are fixtures. There is no FCM sandbox. This package is `status: "wip"`.
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/fcm/SUPPORT.md)
 - The contract (`openapi.yaml`) is hand-authored from the FCM REST reference and firebase-admin 12.7.0 / 13.5.0.
@@ -17,7 +17,7 @@ ESM only. Node >= 22 or Bun >= 1.2. No native dependencies. Serve it with `npx m
 
 ## Usage
 
-`firebase-admin` hardcodes `https://fcm.googleapis.com`. Point it at the mock with `createAdminTransport` (an `https.Agent` that dials the mock) and call `enableLegacyHttpTransport()` so multicast sends honor that agent. `send` is already HTTP/1.1. The fixture project is `demo-project`, the fixture device token is `fixture-device-token`, and any bearer is accepted until you turn on `strict`.
+`firebase-admin` hardcodes `https://fcm.googleapis.com`. Point it at the emulator with `createAdminTransport` (an `https.Agent` that dials the emulator) and call `enableLegacyHttpTransport()` so multicast sends honor that agent. `send` is already HTTP/1.1. The fixture project is `demo-project`, the fixture device token is `fixture-device-token`, and any bearer is accepted until you turn on `strict`.
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-fcm/server"
@@ -104,7 +104,7 @@ Logical message time is `clockOffsetMs` plus the process-wide runtime clock. `PO
 
 ### SDK error codes
 
-firebase-admin maps `error.details[].errorCode` when `@type` is `type.googleapis.com/google.firebase.fcm.v1.FcmError`, otherwise `error.status`. Two mappings differ from a naive reading of the error-code names, and the mock follows firebase-admin 12.7.0 and 13.5.0:
+firebase-admin maps `error.details[].errorCode` when `@type` is `type.googleapis.com/google.firebase.fcm.v1.FcmError`, otherwise `error.status`. Two mappings differ from a naive reading of the error-code names, and the emulator follows firebase-admin 12.7.0 and 13.5.0:
 
 - A JSON 401 with status `UNAUTHENTICATED` and no FcmError details becomes `messaging/third-party-auth-error`. `messaging/authentication-error` is what the SDK uses for a non-JSON 401.
 - FcmError `DEADLINE_EXCEEDED` is not in the messaging map, so the SDK reports `messaging/unknown-error`. `UNAVAILABLE` is `messaging/server-unavailable`.
@@ -122,8 +122,8 @@ firebase-admin maps `error.details[].errorCode` when `@type` is `type.googleapis
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `FcmAPI` | class | In-process mock: `fetch(request)`, `reset()`, `logicalNow()`, `outbox(query)`, `inbox(token)`, `registerToken`, `setTokenState`, `ackInbox`, `deliverPending`, `dropMessage`, `duplicateMessage`, `putScript`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | Mock plus `/__admin/health`, `/__admin/*`, namespaces, clock, presets, and the journal. Options: `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `settings`. |
+| `FcmAPI` | class | In-process emulator: `fetch(request)`, `reset()`, `logicalNow()`, `outbox(query)`, `inbox(token)`, `registerToken`, `setTokenState`, `ackInbox`, `deliverPending`, `dropMessage`, `duplicateMessage`, `putScript`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | Emulator plus `/__admin/health`, `/__admin/*`, namespaces, clock, presets, and the journal. Options: `sqlite`, `clock`, `seed`, `adminKey`, `onLog`, `settings`. |
 | `FCM_PRESETS` | object | Named fault presets. |
 | `FCM_NAMESPACE` | string | Service name, `"fcm"`. |
 | `FCM_FIXTURE_PROJECT` | string | Seeded project id, `"demo-project"`. |
@@ -132,6 +132,6 @@ firebase-admin maps `error.details[].errorCode` when `@type` is `type.googleapis
 | `fcmCredential` | function | `(accessToken?)` → `{ getAccessToken }` for `initializeApp({ credential })`. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The OpenAPI contract and its operation ids. |
 | `createServer`, `serveTarget`, `DEFAULT_PORT` (`./server`) | Node | Serve over `node:http`. CLI flag `--strict`. Port 8826. |
-| `createAdminTransport` (`./admin`) | Node | `{ origin, token? }` → `{ credential, agent, port, close }`. `agent` is an `https.Agent` aimed at the mock. |
+| `createAdminTransport` (`./admin`) | Node | `{ origin, token? }` → `{ credential, agent, port, close }`. `agent` is an `https.Agent` aimed at the emulator. |
 
 Part of [mockingbird](https://github.com/crvouga/mockingbird).

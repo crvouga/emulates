@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-vanta",
   "version": "0.0.0-development",
-  "description": "Vanta scoped OAuth, compliance evidence and offboarding mock.",
+  "description": "Vanta scoped OAuth, compliance evidence and offboarding emulator.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

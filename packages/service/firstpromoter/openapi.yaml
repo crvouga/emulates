@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: FirstPromoter API v2 (Mockingbird subset)
   description: |
-    Stateful mock subset of FirstPromoter's v2 company API: promoters (create, list, find by
+    Stateful emulator subset of FirstPromoter's v2 company API: promoters (create, list, find by
     id / cust_id / ref_token / email, update, archive), signup tracking, and the dashboard
     iframe login. Hand-authored from the wire shapes our consumer sends and the zod schemas it
     parses responses with (`first-promoter.types.ts`).

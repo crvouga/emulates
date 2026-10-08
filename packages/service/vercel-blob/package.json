@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-vercel-blob",
   "version": "0.0.0-development",
-  "description": "Stateful Vercel Blob mock: binary uploads, public downloads, metadata, cursor listing and multipart commits.",
+  "description": "Stateful Vercel Blob emulator: binary uploads, public downloads, metadata, cursor listing and multipart commits.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

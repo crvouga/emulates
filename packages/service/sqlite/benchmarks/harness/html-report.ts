@@ -111,11 +111,11 @@ function css(): string {
   return `
 ${CSS_RESET}
 :root {
-  --bg: #f7f6f3;
+  --bg: #ffffff;
   --surface: #ffffff;
   --ink: #1c1b19;
   --muted: #6b6760;
-  --line: #e4e1da;
+  --line: #d8dee4;
   --accent: #2f5d50;
   --accent-soft: #e8f0ed;
   --heat-cool-2: #cfece3;
@@ -126,8 +126,8 @@ ${CSS_RESET}
   --heat-cool-ink: #1f4f42;
   --heat-warm-ink: #7a3a1c;
   --mono: "SF Mono", "Menlo", "Consolas", ui-monospace, monospace;
-  --sans: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
-  --ui: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ui: system-ui, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {

@@ -31,7 +31,7 @@ src/app/
   http/         the Hono app + routes, constructed from nothing but the ports above
 
 src/adapters/   the ONLY place that imports @crvouga/mockingbird-*, oauth4webapi, etc. —
-                one file per port, each implementing it against an in-process Mockingbird mock
+                one file per port, each implementing it against an in-process Mockingbird emulator
 
 src/composition/  wires a real adapter into every port and boots the app — the ONLY place
                   that imports from both app/ and adapters/
@@ -44,7 +44,7 @@ intake, provider report ingestion, and persistent infrastructure.
 
 ## What it demonstrates
 
-- **A real OAuth 2.0 / OIDC dance against a mock.** `src/adapters/identity/oauthMockIdentity.ts`
+- **A real OAuth 2.0 / OIDC dance against an emulator.** `src/adapters/identity/oauthMockIdentity.ts`
   drives full discovery, PKCE, state/nonce, the account chooser, consent, authorization-code
   exchange, JWKS signature verification, and userinfo — using
   [`oauth4webapi`](https://github.com/panva/oauth4webapi) exactly as you would against real
@@ -54,7 +54,7 @@ intake, provider report ingestion, and persistent infrastructure.
   nothing is faked or admin-shortcut; it's the actual protocol.
 - **A real hosted checkout, no admin bypass.** `src/adapters/payments/stripeMockPayments.ts`
   creates a real Checkout Session and opens its real hosted payment page
-  (`GET/POST /c/pay/:sessionId`, already fully functional in the Stripe mock — card entry, decline
+  (`GET/POST /c/pay/:sessionId`, already fully functional in the Stripe emulator — card entry, decline
   handling, and a real redirect on completion). The client's `CheckoutModal` drives it the same way
   `OAuthModal` drives sign-in: render the real hosted page, intercept its form submit, follow the
   redirect back.
@@ -77,10 +77,10 @@ intake, provider report ingestion, and persistent infrastructure.
 ## Run it
 
 **In the browser, no server:** visit `/examples/medical-testing` on the docs site and click
-"Launch the app". The fullscreen view has one tab for the example and one shared mock admin. A
+"Launch the app". The fullscreen view has one tab for the example and one shared emulator admin. A
 global selector switches that admin between Google, Apple, Stripe, Junction, and Postgres while
 each independent admin API remains directly composable and operates on the same in-process state
-the app uses. The selected mock, admin screen, namespace, and local UI state remain mounted when
+the app uses. The selected emulator, admin screen, namespace, and local UI state remain mounted when
 switching between the example and its admin. Every administration screen uses prebuilt Ant Design tables, forms,
 dialogs, navigation, and feedback. Postgres includes the SQL table explorer and query runner alongside state,
 clock, faults, journal, and routes. SQL changes appear in the app immediately; checkpoint and

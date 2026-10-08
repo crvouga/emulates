@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-otel",
   "version": "0.0.0-development",
-  "description": "Stateful mock of an OTLP/HTTP collector (JSON and protobuf traces and logs) and the OpenObserve search API over the same store.",
+  "description": "Stateful emulator of an OTLP/HTTP collector (JSON and protobuf traces and logs) and the OpenObserve search API over the same store.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

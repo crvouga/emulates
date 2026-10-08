@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-textract
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful Amazon Textract mock for the official SDK v3 client. It models synchronous and asynchronous document analysis, connected block graphs, stable pagination, idempotency, and completion notifications.
+Stateful Amazon Textract emulator for the official SDK v3 client. It models synchronous and asynchronous document analysis, connected block graphs, stable pagination, idempotency, and completion notifications.
 
 ## Install
 
@@ -17,13 +17,13 @@ ESM only. Node 22+ or Bun 1.2+.
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-textract/server"
 
-const mock = await createServer({
+const emulator = await createServer({
   corpora: [{ bucket: "fixtures", name: "invoice.pdf", pages: 1, blocks: [] }],
 })
-const health = await fetch(`${mock.url}/__admin/health`)
+const health = await fetch(`${emulator.url}/__admin/health`)
 ```
 
-Point `TextractClient.endpoint` at `mock.url` with fixture SigV4 credentials. Supported operations are AnalyzeDocument, StartDocumentAnalysis, and GetDocumentAnalysis. Block records retain PAGE, LINE, WORD, KEY_VALUE_SET, TABLE, CELL, and SELECTION_ELEMENT graph fields including Geometry, Confidence, EntityTypes, Text, and Relationships.
+Point `TextractClient.endpoint` at `emulator.url` with fixture SigV4 credentials. Supported operations are AnalyzeDocument, StartDocumentAnalysis, and GetDocumentAnalysis. Block records retain PAGE, LINE, WORD, KEY_VALUE_SET, TABLE, CELL, and SELECTION_ELEMENT graph fields including Geometry, Confidence, EntityTypes, Text, and Relationships.
 
 ## Controls
 

@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "apigateway",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

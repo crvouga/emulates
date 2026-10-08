@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Airtable mock",
+    "title": "Airtable emulator",
     "version": "v0"
   },
   "servers": [

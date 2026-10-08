@@ -1,12 +1,12 @@
-# Checkr scoped mock — operation support
+# Checkr scoped emulator — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **10**
-- supported by the mock: **10**
+- supported by the emulator: **10**
 - parity enabled: **10**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListPackages` | `GET /v1/packages` | ✅ supported | ✅ |  |
 | `ListNodes` | `GET /v1/nodes` | ✅ supported | ✅ |  |

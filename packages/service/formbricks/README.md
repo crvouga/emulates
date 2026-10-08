@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-formbricks
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of open-source **[Formbricks](https://github.com/formbricks/formbricks)** (6.x) for
+Stateful emulator of open-source **[Formbricks](https://github.com/formbricks/formbricks)** (6.x) for
 test suites: the client environment state the JS SDK loads surveys from, response creation with
 upstream's validation and `{code, message, details}` errors, the v1 management API (responses and
 surveys, `x-api-key`), the widget script the web SDK loads, and the response pipeline's
@@ -26,7 +26,7 @@ with any Fetch server.
 
 ## Usage
 
-Point the SDK's `appUrl` (and your management API base URL) at the mock, use the workspace id
+Point the SDK's `appUrl` (and your management API base URL) at the emulator, use the workspace id
 `cworkspace000000000000001` (or its legacy environment id `cenvironment0000000000001`, as older
 SDKs send), and any management API key.
 
@@ -43,7 +43,7 @@ const formbricks = createRuntime({
   webhooks: { url: "http://127.0.0.1:3000/webhooks/formbricks", secret: "whsec_…" },
 })
 // …the app POSTs /api/v2/client/<workspace>/responses {surveyId, finished: true, data}…
-// the mock validates it, stores it, and posts responseFinished to the webhook.
+// the emulator validates it, stores it, and posts responseFinished to the webhook.
 const response = await formbricks.fetch(new Request("http://formbricks.test/__admin/responses"))
 ```
 
@@ -117,8 +117,8 @@ string), `management_unauthorized`, `connection_drop`, `duplicate` (the next web
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `FormbricksAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `responses()`, `render(record)`, `wireSurvey(survey)`, `pipeline(event, record, survey)`, `state`. Options: `sqlite`, `now`, `namespace`, `surveys`, `settings`, `onWebhook`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret?, events?, retryDelaysMs?, fetch?}`, `surveys`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `FormbricksAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `responses()`, `render(record)`, `wireSurvey(survey)`, `pipeline(event, record, survey)`, `state`. Options: `sqlite`, `now`, `namespace`, `surveys`, `settings`, `onWebhook`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret?, events?, retryDelaysMs?, fetch?}`, `surveys`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `FORMBRICKS_PRESETS` | object | Every named fault preset. |
 | `FORMBRICKS_NAMESPACE` | string | The service name, `"formbricks"`. |
 | `WEBHOOK_PATH` | string | A conventional receiver path for examples, `/webhooks/formbricks`. |

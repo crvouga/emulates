@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "WHOOP v2 mock",
+    "title": "WHOOP v2 emulator",
     "version": "2.0"
   },
   "servers": [

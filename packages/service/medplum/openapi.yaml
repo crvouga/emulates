@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Medplum API (Mockingbird contract)
   description: |
-    The surface of a self-hosted Medplum server (v5.1.37) that the mock implements: FHIR R4 REST
+    The surface of a self-hosted Medplum server (v5.1.37) that the emulator implements: FHIR R4 REST
     (every resource type, through Medplum's own FHIR router), OAuth2 and the auth API, the project
     admin API, Binary storage and the unauthenticated server endpoints.
 

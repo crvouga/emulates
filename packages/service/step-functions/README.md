@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-step-functions
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful AWS Step Functions mock for the official SFN SDK v3 client. It models Standard execution identity, input/output strings, deterministic terminal transitions, callback tokens, stop requests, ordered history, pagination, and shared-clock scripts without contacting AWS.
+Stateful AWS Step Functions emulator for the official SFN SDK v3 client. It models Standard execution identity, input/output strings, deterministic terminal transitions, callback tokens, stop requests, ordered history, pagination, and shared-clock scripts without contacting AWS.
 
 ## Install
 
@@ -14,12 +14,12 @@ ESM only. Node 22+ or Bun 1.2+.
 
 ## Usage
 
-Point the SFN client's `endpoint` option at the mock. Fixture SigV4 credentials are accepted.
+Point the SFN client's `endpoint` option at the emulator. Fixture SigV4 credentials are accepted.
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-step-functions/server"
 
-const mock = await createServer({
+const emulator = await createServer({
   stateMachines: [
     {
       name: "jobs",
@@ -27,7 +27,7 @@ const mock = await createServer({
     },
   ],
 })
-const health = await fetch(`${mock.url}/__admin/health`)
+const health = await fetch(`${emulator.url}/__admin/health`)
 ```
 
 Supported operations are StartExecution, DescribeExecution, StopExecution, GetExecutionHistory, SendTaskSuccess, SendTaskFailure, and SendTaskHeartbeat. Running executions are idempotent by state-machine ARN, name, and exact input. Closed-name reuse and conflicting running input return ExecutionAlreadyExists. JSON input/output remain strings at the wire.

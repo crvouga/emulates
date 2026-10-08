@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Google Calendar v3 + Google OAuth (Mockingbird subset)
-  description: 'Stateful mock subset of the Google Calendar API v3 (calendarList.list, calendars.insert,
+  description: 'Stateful emulator subset of the Google Calendar API v3 (calendarList.list, calendars.insert,
     events list/get/insert/update/delete/watch, channels.stop) and Google OAuth 2.0 (token, revoke, OpenID
     userinfo), as `googleapis` / `@googleapis/calendar` and google-auth-library call them. Trimmed from
     Google''s discovery document to what our EMR calls.

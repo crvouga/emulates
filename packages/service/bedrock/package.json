@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-bedrock",
   "version": "0.0.0-development",
-  "description": "Stateful, scriptable mock of AWS Bedrock Runtime (Converse, ConverseStream, InvokeModel incl. Titan embeddings, Nova Sonic bidirectional streams over h2c) and AgentCore InvokeHarness, with exact event-stream framing.",
+  "description": "Stateful, scriptable emulator of AWS Bedrock Runtime (Converse, ConverseStream, InvokeModel incl. Titan embeddings, Nova Sonic bidirectional streams over h2c) and AgentCore InvokeHarness, with exact event-stream framing.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

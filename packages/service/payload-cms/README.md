@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-payload-cms
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of **Payload CMS**'s collection REST API for test suites: `GET /api/<collection>`
+Stateful emulator of **Payload CMS**'s collection REST API for test suites: `GET /api/<collection>`
 with Payload's paginated envelope (`docs`, `totalDocs`, `limit`, `totalPages`, `page`,
 `pagingCounter`, `hasPrevPage`, `hasNextPage`, `prevPage`, `nextPage`) and a `where` query
 subset, and `GET /api/<collection>/<id>`. The `marketing` collection is seeded with an active
@@ -25,8 +25,8 @@ with any Fetch server.
 
 ## Usage
 
-Point `PAYLOAD_CMS_API_URL` at the mock. The backend validates it as **https-only**
-(`validation.schema.ts`), so either relax that for loopback or put the mock behind TLS.
+Point `PAYLOAD_CMS_API_URL` at the emulator. The backend validates it as **https-only**
+(`validation.schema.ts`), so either relax that for loopback or put the emulator behind TLS.
 Anything that goes wrong (non-2xx, empty docs, bad JSON, a dropped connection) makes the
 backend fall back to its default referral content, which the presets exercise.
 
@@ -75,7 +75,7 @@ card, `3` an active banner.
 | `GET /__admin/collections` | `{collections: {<slug>: <doc count>}}`. |
 | `GET /__admin/collections/:slug` | The collection's documents. |
 | `PUT /__admin/collections/:slug` | `{docs: [...]}` replaces the collection (creates it if new). |
-| `POST /__admin/collections/:slug/docs` | Adds a document (next integer id, timestamps from the mock clock). |
+| `POST /__admin/collections/:slug/docs` | Adds a document (next integer id, timestamps from the emulator clock). |
 | `PATCH /__admin/collections/:slug/docs/:id` | Merges fields into a document. |
 | `DELETE /__admin/collections/:slug/docs/:id` | Removes a document. |
 
@@ -100,8 +100,8 @@ mapped with `PUT /__admin/credentials`.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PayloadCmsAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `addDoc(slug, fields)`, `updateDoc(slug, id, patch)`, `deleteDoc(slug, id)`, `collections()`. Options: `sqlite`, `now`, `namespace`, `collections`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, presets). Options: `collections`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `PayloadCmsAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `addDoc(slug, fields)`, `updateDoc(slug, id, patch)`, `deleteDoc(slug, id)`, `collections()`. Options: `sqlite`, `now`, `namespace`, `collections`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, presets). Options: `collections`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `PAYLOAD_CMS_PRESETS` | object | Every named fault preset. |
 | `PAYLOAD_CMS_NAMESPACE` | string | The service name, `"payload-cms"`. |
 | `DEFAULT_MARKETING_DOCS` | array | The marketing collection seed. |

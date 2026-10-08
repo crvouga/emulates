@@ -93,7 +93,7 @@ jobs:
           subjectPattern: .+
           subjectPatternError: |
             The PR title "{title}" looks empty after the type/scope prefix.
-            Use a Conventional Commits title, e.g. "feat: add junction mock".
+            Use a Conventional Commits title, e.g. "feat: add junction emulator".
 
   # Format, lint, boundaries and generated-file drift: no build, so it never waits on Changes.
   static:

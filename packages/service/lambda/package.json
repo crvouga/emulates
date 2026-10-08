@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "lambda",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

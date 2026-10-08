@@ -3,16 +3,16 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **125**
-- supported by the mock: **121**
+- supported by the emulator: **121**
 - parity enabled: **114**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PostThreeDSecureAuthenticate` | `POST /c/3ds/{intent}/authenticate` | ✅ supported | ❌ disabled | the 3-D Secure challenge the Stripe.js stand-in completes has no public API |
-| `GetCheckoutPage` | `GET /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page is HTML served by the mock in place of checkout.stripe.com |
-| `PostCheckoutPage` | `POST /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page form post is served by the mock in place of checkout.stripe.com |
-| `GetPortalPage` | `GET /p/session/{session}` | ✅ supported | ❌ disabled | the customer portal is HTML served by the mock in place of billing.stripe.com |
-| `PostPortalPage` | `POST /p/session/{session}` | ✅ supported | ❌ disabled | the customer portal form post is served by the mock in place of billing.stripe.com |
+| `GetCheckoutPage` | `GET /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page is HTML served by the emulator in place of checkout.stripe.com |
+| `PostCheckoutPage` | `POST /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page form post is served by the emulator in place of checkout.stripe.com |
+| `GetPortalPage` | `GET /p/session/{session}` | ✅ supported | ❌ disabled | the customer portal is HTML served by the emulator in place of billing.stripe.com |
+| `PostPortalPage` | `POST /p/session/{session}` | ✅ supported | ❌ disabled | the customer portal form post is served by the emulator in place of billing.stripe.com |
 | `GetAccount` | `GET /v1/account` | ✅ supported | ✅ |  |
 | `GetBalance` | `GET /v1/balance` | ✅ supported | ✅ |  |
 | `GetBalanceTransactions` | `GET /v1/balance_transactions` | ✅ supported | ✅ |  |
@@ -47,7 +47,7 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `GetCustomersSearch` | `GET /v1/customers/search` | ✅ supported | ✅ |  |
 | `GetDisputes` | `GET /v1/disputes` | ✅ supported | ✅ |  |
 | `GetDisputesDispute` | `GET /v1/disputes/{dispute}` | ✅ supported | ✅ |  |
-| `PostDisputesDispute` | `POST /v1/disputes/{dispute}` | ❌ unsupported | — | the mock never creates or mutates disputes |
+| `PostDisputesDispute` | `POST /v1/disputes/{dispute}` | ❌ unsupported | — | the emulator never creates or mutates disputes |
 | `GetEvents` | `GET /v1/events` | ✅ supported | ✅ |  |
 | `GetEventsId` | `GET /v1/events/{id}` | ✅ supported | ✅ |  |
 | `GetInvoicePayments` | `GET /v1/invoice_payments` | ✅ supported | ✅ |  |
@@ -132,4 +132,4 @@ Generated from `openapi.yaml`; do not edit by hand.
 | `GetWebhookEndpointsWebhookEndpoint` | `GET /v1/webhook_endpoints/{webhook_endpoint}` | ✅ supported | ✅ |  |
 | `PostWebhookEndpointsWebhookEndpoint` | `POST /v1/webhook_endpoints/{webhook_endpoint}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `DeleteWebhookEndpointsWebhookEndpoint` | `DELETE /v1/webhook_endpoints/{webhook_endpoint}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
-| `GetStripeJs` | `GET /v3` | ✅ supported | ❌ disabled | the Stripe.js stand-in is JavaScript served by the mock in place of js.stripe.com/v3 |
+| `GetStripeJs` | `GET /v3` | ✅ supported | ❌ disabled | the Stripe.js stand-in is JavaScript served by the emulator in place of js.stripe.com/v3 |

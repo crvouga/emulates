@@ -1,11 +1,11 @@
 # @crvouga/mockingbird-service
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-The generic runtime behind every Mockingbird provider mock: turns an OpenAPI document plus one handler
+The generic runtime behind every Mockingbird provider emulator: turns an OpenAPI document plus one handler
 per `operationId` into a Fetch-native `FetchAPI` (Hono routing), with SQLite-backed collections,
 deterministic ids, bracket-decoded queries/bodies and schema-driven form parsing. Use it to build a
-mock for an API Mockingbird does not ship. To mock Stripe, Junction, etc., install that provider
+emulator for an API Mockingbird does not ship. To emulator Stripe, Junction, etc., install that provider
 package (e.g. `@crvouga/mockingbird-service-stripe`) instead.
 
 ## Install
@@ -130,14 +130,14 @@ the body is read.
 | `signers` | `{ none, svix, timestamped, twilio, header, custom }` | Vendor signature schemes for the hub. |
 | `webhookAdminRoutes` | `(hub) => AdminRoutes` | `/__admin/webhooks*` and `/__admin/webhook-endpoints` (added automatically when `webhooks` is passed to `createRuntime`). |
 | `hmac` / `sha` / `signSvix` / `signTimestamped` / `signTwilio` / `svixSecretBytes` / `timingSafeEqual` / `toHex` / `toBase64` / `fromBase64` | | WebCrypto signing primitives. |
-| `OutboxStore` / `outboxAdminRoutes` / `parseSince` | | What a comms mock "sent", per namespace, and `GET /__admin/outbox?to=&since=`. |
+| `OutboxStore` / `outboxAdminRoutes` / `parseSince` | | What a comms emulator "sent", per namespace, and `GET /__admin/outbox?to=&since=`. |
 | `extractLinks` / `extractCodes` | `(html) => string[]`, `(text, length?) => string[]` | Links and numeric codes in a message. |
 | `IdempotencyStore` / `requestFingerprint` / `stableStringify` | | Idempotency keys: replay, mismatch error, in-flight conflict. |
 | `bodyIssues` / `issuesByField` | `(context) => BodyIssue[]` | Validate the body against the operation's contract schema for the media type it sent; group issues Laravel-style. Each issue has a `kind`: `media_type` (a present body whose `content-type` is missing or not one the contract lists — never "required"), `syntax`, `required` (an empty body), `schema`. |
 | `unsupportedMediaType` | `(context, { includeEmpty? }) => { mediaType, accepted } \| undefined` | The `415` case on its own: the request's media type and the ones the operation accepts (`application/*+json` wildcards understood). `includeEmpty` treats an empty body the way ASP.NET Core does (the header alone decides). |
 | `putObject` / `signV4` | | SigV4-signed S3 `PutObject` (for vendors that hand the app an `s3://` object). |
 | `defineMock` | `<T extends MockSurface>(runtime: T) => T` | Prove a runtime has the shared surface and keep its extra methods. `createRuntime` already returns one. |
-| `STANDARD_ADMIN_ROUTES` | `readonly string[]` | The `/__admin` keys every mock answers. Service routes add keys beside these. |
+| `STANDARD_ADMIN_ROUTES` | `readonly string[]` | The `/__admin` keys every emulator answers. Service routes add keys beside these. |
 | `assertAdminUi` | `(ui?: AdminUi) => void` | Reject a panel or extension id, a reserved view name, or an empty title before the shell mounts it. Called by `createRuntime`. |
 | `inspectState` | `(scope) => StateView` | Collections for one namespace: declarations, `Collection` fields on the instance, and stored names, with field kinds sampled from rows. |
 | `STATE_FIELD_KINDS` | `"string" \| "number" \| …` | The kinds a state field can report. |
@@ -148,7 +148,7 @@ Types:
 - `Service`: `FetchAPI & { app: Hono; sqlite; namespace; reset(): Promise<void> }`.
 - `OperationContext` (handler argument): `{ request; url; params; query: FormObject; body: DecodedBody; sqlite; namespace; operation; now }`.
 - `OperationHandler`: `(context) => Response | Promise<Response>`; `OperationHandlers`: `Record<string, OperationHandler>`.
-- `APIOptions`: `{ sqlite?: SqliteClient; now?: () => number }`, the options every provider mock accepts.
+- `APIOptions`: `{ sqlite?: SqliteClient; now?: () => number }`, the options every provider emulator accepts.
 - `ServiceRuntime`: also exposes `state(namespace?)` (the same collection view as `GET /__admin/state`), `checkpoint(namespace?, branch?)`, `branch(name, { namespace?, at? })`, `checkout(id, { namespace?, branch? })`, and `timeline(namespace?)`. Equivalent HTTP control routes are `GET /__admin/timeline`, `POST /__admin/checkpoints`, `POST /__admin/branches/:name`, and `POST /__admin/branches/:name/checkout`. `RuntimeOptions.state` declares collections before any row exists. `RuntimeOptions.adminUi` adds `panels`, first-class `extensions` (`panel` markup or the built-in `sql` table explorer), or replaces `GET /__admin/ui`. The SQL engines mount that explorer through `@crvouga/mockingbird-service/admin`.
 - `RuntimeIO`: injectable `wallNow`, `monotonicNow`, and `sleep`; pass a partial value as `RuntimeOptions.io` for fully controlled observations and fault delays. `WebhookHubOptions` likewise accepts `now`, `id`, `schedule`, `cancel`, and `fetch`.
 

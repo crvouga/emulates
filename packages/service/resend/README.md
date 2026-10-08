@@ -1,13 +1,13 @@
 # @crvouga/mockingbird-service-resend
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Resend** email API for test suites. Every send lands in an **outbox**
+Stateful emulator of the **Resend** email API for test suites. Every send lands in an **outbox**
 that tests read (`GET /__admin/outbox`, and the links in each email). `Idempotency-Key` replays
 return the first send's id. Inbound emails are stored and announced with a Svix-signed
 `email.received` webhook, and the received-email endpoints serve their content and
 attachments. With `--forward-to-inbox`, every sent email is also copied into the
-[Mailosaur mock](../mailosaur), so one inbox holds every code and link.
+[Mailosaur emulator](../mailosaur), so one inbox holds every code and link.
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/resend/SUPPORT.md)
 - `openapi.yaml` is trimmed from Resend's published API reference to what `resend@4.8.0` and
@@ -40,8 +40,8 @@ RESEND_BASE_URL=http://127.0.0.1:8794 node app.js
 ```js
 import { createServer } from "@crvouga/mockingbird-service-resend/server"
 
-const mock = await createServer()
-process.env.RESEND_BASE_URL = mock.url
+const emulator = await createServer()
+process.env.RESEND_BASE_URL = emulator.url
 const { Resend } = await import("resend")
 
 await new Resend("re_test").emails.send({
@@ -51,8 +51,8 @@ await new Resend("re_test").emails.send({
   html: '<a href="https://app.test/family/invitations/claim?token=abc">Join</a>',
 })
 
-const { messages } = await (await fetch(`${mock.url}/__admin/outbox?to=invitee@example.com`)).json()
-const { links } = await (await fetch(`${mock.url}/__admin/outbox/${messages[0].id}/links`)).json()
+const { messages } = await (await fetch(`${emulator.url}/__admin/outbox?to=invitee@example.com`)).json()
+const { links } = await (await fetch(`${emulator.url}/__admin/outbox/${messages[0].id}/links`)).json()
 // links[0] === "https://app.test/family/invitations/claim?token=abc"
 ```
 
@@ -61,21 +61,21 @@ Whatever sends the mail (the SDK above, or raw HTTP), the outbox is the assertio
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-resend/server"
 
-const mock = await createServer()
-await fetch(`${mock.url}/emails`, {
+const emulator = await createServer()
+await fetch(`${emulator.url}/emails`, {
   method: "POST",
   headers: { "content-type": "application/json", authorization: "Bearer re_test" },
   body: JSON.stringify({ from: "no-reply@example.com", to: ["invitee@example.com"], subject: "Hi", text: "Hello" }),
 })
-const sent = await (await fetch(`${mock.url}/__admin/outbox?to=invitee@example.com`)).json()
-await mock.close()
+const sent = await (await fetch(`${emulator.url}/__admin/outbox?to=invitee@example.com`)).json()
+await emulator.close()
 ```
 
 ### Routes
 
 | Route | Behaviour |
 | --- | --- |
-| `POST /emails` | `{from, to, subject, html?, text?, cc?, bcc?, reply_to?, headers?, tags?, attachments?, scheduled_at?}` → `{id}` (a UUID). The SDK renders `react` to HTML before sending, so the mock sees HTML. Violations answer Resend's body `{statusCode, name, message}`: 422 `missing_required_field` (`Missing \`to\` field.`, or no `html`/`text`), 422 `validation_error` for a malformed address (`Invalid \`from\` field. The email address needs to follow …`), a tag outside `[A-Za-z0-9_-]`, or any other contract violation. `Idempotency-Key`: the same key and payload replay the first 200 byte for byte (`idempotent-replayed: true`); another payload is 409 `invalid_idempotent_request`; a key still in flight is 409 `concurrent_idempotent_requests`; a key outside 1–256 characters is 400 `invalid_idempotency_key`. Only 200s are remembered. |
+| `POST /emails` | `{from, to, subject, html?, text?, cc?, bcc?, reply_to?, headers?, tags?, attachments?, scheduled_at?}` → `{id}` (a UUID). The SDK renders `react` to HTML before sending, so the emulator sees HTML. Violations answer Resend's body `{statusCode, name, message}`: 422 `missing_required_field` (`Missing \`to\` field.`, or no `html`/`text`), 422 `validation_error` for a malformed address (`Invalid \`from\` field. The email address needs to follow …`), a tag outside `[A-Za-z0-9_-]`, or any other contract violation. `Idempotency-Key`: the same key and payload replay the first 200 byte for byte (`idempotent-replayed: true`); another payload is 409 `invalid_idempotent_request`; a key still in flight is 409 `concurrent_idempotent_requests`; a key outside 1–256 characters is 400 `invalid_idempotency_key`. Only 200s are remembered. |
 | `GET /emails/{id}` | `emails.get`: `{object: "email", id, to, from, created_at, subject, html, text, cc, bcc, reply_to, last_event: "delivered" \| "scheduled", scheduled_at, headers, tags}`. `headers` keeps the names and values from the send; `to` keeps the original address form and order. |
 | `GET /emails` | Newest-first sent email metadata, `{object: "list", has_more, data}`. `limit` defaults to 20 (1–100); `after`/`before` use email IDs and exclude the cursor. Content is available from the detail endpoint. |
 | `GET /emails/receiving` | Newest-first received email metadata with the same envelope and ID cursors. Without `limit`, returns every received email; an explicit limit must be 1–100. Includes attachment metadata and size. |
@@ -105,7 +105,7 @@ client does not catch a non-JSON body or a dropped socket (those reject). It als
 
 Like Resend's, the body carries no `text`, `html`, `headers` or download URLs, so a receiver
 hydrates them through the received-email routes. Pass `"inline": true` to include them. Each
-delivery is signed the Svix way: `svix-id`, `svix-timestamp` (wall clock, even when the mock
+delivery is signed the Svix way: `svix-id`, `svix-timestamp` (wall clock, even when the emulator
 clock moves), `svix-signature: v1,<base64 HMAC-SHA256(secret bytes, "id.ts.body")>`. The
 official `svix` `Webhook.verify` accepts them. Non-2xx answers are retried (immediately, 5 s,
 5 min, 30 min, 2 h). `GET /__admin/webhooks`, `…/events`, `…/flush`, `…/:id/replay` and
@@ -122,10 +122,10 @@ official `svix` `Webhook.verify` accepts them. Non-2xx answers are retried (imme
 | `GET /__admin/inbound` | Received emails, oldest first. |
 | `GET /__admin/forwarding` | `{target, forwarded, failed, lastError}` for `--forward-to-inbox`. |
 
-`--forward-to-inbox <url>` copies every accepted send (not replays) to the Mailosaur mock's
+`--forward-to-inbox <url>` copies every accepted send (not replays) to the Mailosaur emulator's
 `POST /__admin/ingest`, under the **same namespace name**, and waits up to 2 s for it. A failing
 inbox never fails the send; it is counted in `/__admin/forwarding`. Map the same key to the
-same namespace on both mocks and a worker reads its forwarded mail through the Mailosaur SDK.
+same namespace on both emulators and a worker reads its forwarded mail through the Mailosaur SDK.
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`; `GET /__admin/faults/presets`):
 `send_422` (`{statusCode: 422, name: "validation_error", message}`), `send_429`
@@ -155,9 +155,9 @@ then the connection dies before any response bytes; the same key replays), `rece
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `ResendAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `sent()`, `sendOutcomes()`, `inbound()`, `receive(input, origin)`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `onSent`, `onOutcome`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, Svix webhooks, outbox). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `forwardToInbox: {url, adminKey?, timeoutMs?, fetch?}`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
-| `forwardToInbox` | function | Copy one sent email into a Mailosaur mock's ingest route. |
+| `ResendAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `sent()`, `sendOutcomes()`, `inbound()`, `receive(input, origin)`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `onSent`, `onOutcome`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, Svix webhooks, outbox). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `forwardToInbox: {url, adminKey?, timeoutMs?, fetch?}`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `forwardToInbox` | function | Copy one sent email into a Mailosaur emulator's ingest route. |
 | `RESEND_PRESETS` | object | Every named fault preset. |
 | `RESEND_NAMESPACE` | string | The service name, `"resend"`. |
 | `DOWNLOAD_URL_TTL_MS` | number | The advertised lifetime of a `download_url` (1 h). |

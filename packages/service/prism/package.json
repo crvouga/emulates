@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-prism",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Prism Labs body-scan API: subjects, scans, presigned capture upload, processing stages to READY, and deterministic body-composition, measurement, health-report and asset results.",
+  "description": "Stateful emulator of the Prism Labs body-scan API: subjects, scans, presigned capture upload, processing stages to READY, and deterministic body-composition, measurement, health-report and asset results.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

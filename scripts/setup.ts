@@ -76,7 +76,7 @@ console.log(
 console.log("")
 console.log("Done. No secrets are needed for any of this:")
 console.log("")
-console.log("  bun test            # property-based suite — every mock's self-parity")
+console.log("  bun test            # property-based suite — every emulator's self-parity")
 console.log("  bun run check       # everything CI checks: lint, typecheck, tests, boundaries...")
 console.log("  bun docs            # docs site with live playgrounds")
 console.log("")

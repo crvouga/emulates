@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-aws-secrets
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of AWS Secrets Manager and SSM Parameter Store for the official AWS SDK v3 clients. It models secret versions and stages, binary values, deterministic rotation, SecureString metadata, parameter versions, denials, decryption failures, and redacted controls without contacting AWS.
+Stateful emulator of AWS Secrets Manager and SSM Parameter Store for the official AWS SDK v3 clients. It models secret versions and stages, binary values, deterministic rotation, SecureString metadata, parameter versions, denials, decryption failures, and redacted controls without contacting AWS.
 
 ## Install
 
@@ -14,16 +14,16 @@ ESM only. Node 22+ or Bun 1.2+.
 
 ## Usage
 
-Point both clients' `endpoint` option at the same mock URL. Fixture SigV4 credentials are accepted.
+Point both clients' `endpoint` option at the same emulator URL. Fixture SigV4 credentials are accepted.
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-aws-secrets/server"
 
-const mock = await createServer({
+const emulator = await createServer({
   secrets: [{ name: "database/password", value: "fixture-password" }],
   parameters: [{ name: "/app/region", value: "us-east-1" }],
 })
-const health = await fetch(`${mock.url}/__admin/health`)
+const health = await fetch(`${emulator.url}/__admin/health`)
 ```
 
 Secrets Manager supports CreateSecret, PutSecretValue, GetSecretValue, and DescribeSecret by name or ARN, including VersionId, VersionStage, SecretString, and SecretBinary. SSM supports PutParameter, GetParameter, and GetParameters with String, StringList, SecureString, WithDecryption, versions, ARNs, and data types.
@@ -39,7 +39,7 @@ Values are encoded in durable state so timelines and snapshots do not contain pl
 
 ### Deliberately not modelled
 
-KMS cryptography, automatic rotation Lambdas, resource policies, replication, SSM hierarchies and labels beyond the supported reads, production quotas, AWS dashboards, billing, and outbound vendor calls are not modelled. SecureString ciphertext returned without decryption is deterministic mock ciphertext, not KMS output.
+KMS cryptography, automatic rotation Lambdas, resource policies, replication, SSM hierarchies and labels beyond the supported reads, production quotas, AWS dashboards, billing, and outbound vendor calls are not modelled. SecureString ciphertext returned without decryption is deterministic emulator ciphertext, not KMS output.
 
 ## API
 

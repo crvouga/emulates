@@ -4,7 +4,7 @@ US-002 research, retrieved **2026-09-25 UTC**. Status: documentation and pinned
 source inspected; **historical research status, superseded by the US-013 live
 run recorded below**.
 This file defines a planned subset, not an implemented support claim. See
-[boundaries and scenario IDs](../../../docs/INFRASTRUCTURE_MOCKS.md).
+[boundaries and scenario IDs](../../../docs/INFRASTRUCTURE_EMULATORS.md).
 
 ## Compatibility target and provenance
 
@@ -73,7 +73,7 @@ limit includes non-running containers. Exited filtering requires a stopped
 container that has started. JSON filter maps accept legacy arrays and boolean
 sets (keys matter even if false); null denotes an empty map. Boolean query
 parsing is permissive: trimmed empty/0/no/false/none are false, other values true.
-The mock bounds name regex support as documented in README and returns explicit
+The emulator bounds name regex support as documented in README and returns explicit
 501 for other patterns/filters. No installed Engine or differential run was used.
 Pinned [container lookup](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/container.go)
 and [prefix lookup](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/container/view.go)
@@ -81,20 +81,20 @@ confirm full ID, exact name, then unique prefix precedence; ambiguous prefixes
 return InvalidParameter (400), while missing containers return 404.
 List status descriptions follow pinned S7 and its
 [duration formatter](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/vendor/github.com/docker/go-units/duration.go),
-using the injected mock clock rather than host process uptime.
+using the injected emulator clock rather than host process uptime.
 
 S2/S3 explain why the observed `/v1.52/containers/{id}/attach` and unversioned
 `/info` can belong to one client: every provider route is registered with and
 without a version, and an absent version uses the daemon default (1.52 here).
 Deprecation guidance is not evidence that this pinned daemon rejects `/info`.
 
-Planned mock policy: support v1.52 and unversioned aliases for the listed subset.
+Planned emulator policy: support v1.52 and unversioned aliases for the listed subset.
 Do not claim to emulate all older APIs merely because the real Engine accepts them.
 For numeric versions above 1.52, use the provider's too-new `400` error; versions
 below the default minimum 1.44 use its too-old `400` error. Versions 1.44–1.51
-are **unsupported by this mock subset**: return an explicitly Mockingbird-labelled
+are **unsupported by this emulator subset**: return an explicitly Mockingbird-labelled
 `501` message, not a fictional Engine rejection. Historical compatibility can only
-be expanded with new evidence. Document these mock-only 501 responses in codegen.
+be expanded with new evidence. Document these emulator-only 501 responses in codegen.
 
 Provider version-error message templates from S2 are:
 
@@ -107,7 +107,7 @@ S3 serializes errors as `{"message":"..."}` except requests below API 1.24,
 which receive plain text. Unknown paths/methods use `404` with
 `{"message":"page not found"}`. Malformed version paths are not a promise of
 version negotiation. No automatic client reconnection or fallback is part of
-the mock. Its declared API support must remain distinct from simulated Engine
+the emulator. Its declared API support must remain distinct from simulated Engine
 `MinAPIVersion` metadata.
 
 ## Planned operation contract
@@ -115,7 +115,7 @@ the mock. Its declared API support must remain distinct from simulated Engine
 Paths below are relative to `/v1.52`, also available unversioned as above.
 The status column is the pinned S1 vendor contract; additional implementation
 errors supported by pinned source must be annotated explicitly, not silently
-invented. Global version errors and mock-only unsupported-feature errors are
+invented. Global version errors and emulator-only unsupported-feature errors are
 separate from this table. Unless stated otherwise, vendor errors use
 `ErrorResponse` with required string `message`.
 
@@ -156,9 +156,9 @@ and [configuration merge](https://github.com/moby/moby/blob/710302ecf2e958db92cb
 establish image resolution, platform warnings, request-over-image environment
 and label precedence, command/entrypoint defaults, empty-entrypoint clearing,
 and `no command specified` (400). The selected 1.52 request fields come from S1.
-The mock stores launch/host/network configuration without executing it. Full
+The emulator stores launch/host/network configuration without executing it. Full
 daemon resource/network validation and image execution are excluded; the README
-lists the explicit supported subset and mock-only501 behavior. No real Engine
+lists the explicit supported subset and emulator-only501 behavior. No real Engine
 creation or host resource operation was performed.
 
 - S4/S6: a successful stop `204` follows backend completion. For delayed-stop
@@ -197,7 +197,7 @@ Upgrade: tcp
 D1/S1's old illustrative handshake uses raw-stream, but its framing prose and
 S4 agree on multiplexed-stream for upgraded non-TTY API >=1.42. S4's non-upgrade
 path really uses HTTP 200/raw-stream; it is deliberately excluded from initial
-mock serving. Fetch cannot represent the raw hijacked duplex connection.
+emulator serving. Fetch cannot represent the raw hijacked duplex connection.
 
 Output frames have an 8-byte header: stream byte (1 stdout, 2 stderr), three zero
 bytes, and a uint32 big-endian payload length, followed by exactly that many bytes.
@@ -219,7 +219,7 @@ execution remains necessary to establish observed fidelity.
 Excluded modes: TTY/PTY, websocket attach, non-upgrade attach, log replay
 (`logs=true`), exec, standalone logs/events, detach-key processing, image
 pull/build, real networking/volumes/__admin/health checks and arbitrary command execution.
-Unsupported modes receive explicit mock-only 501 errors before upgrade rather
+Unsupported modes receive explicit emulator-only 501 errors before upgrade rather
 than silently different successful behavior. Reset/checkout/shutdown terminate
 owned streams and waiters; handles are never serialized into Timeline state.
 
@@ -269,10 +269,10 @@ Pinned sources resolve the precise v1.52 semantics:
 - [signal.go](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/vendor/github.com/moby/sys/signal/signal.go) and [Linux map](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/vendor/github.com/moby/sys/signal/signal_linux.go): zero is invalid; kill restricts to the Linux map (1–31 and34–64). Real-time aliases are supported.
 - S4/S6 and [HTTP status mapping](https://github.com/moby/moby/blob/710302ecf2e958db92cb7d92f8838ea063a31765/daemon/server/httpstatus/status.go): malformed t returns an unclassified strconv error (500), while a stop signal parsing error is wrapped as System (500). Kill signal errors are InvalidParameter (400). Stop on an already stopped record returns304 before validating its signal.
 
-The mock holds stop/SIGKILL/forced-removal replies until explicit completion;
+The emulator holds stop/SIGKILL/forced-removal replies until explicit completion;
 acceptance and socket loss never prove retirement. Signal/timeout parameters are
 stored diagnostic metadata; fixture-controlled completion replaces process/timer
-scheduling. v is inert without modeled volumes; link removal is explicit mock-only501.
+scheduling. v is inert without modeled volumes; link removal is explicit emulator-only501.
 Shared state/checkpoints and transient handles are reused. Fetch and real Node HTTP
 tests cover acceptance versus exit and response loss; no live Engine parity claimed.
 
@@ -283,7 +283,7 @@ limit, receive timeouts and retained connections. The Docker-local transport use
 these Node facilities plus its own bounded body collector and owned connection
 set. [Node IPC sockets](https://nodejs.org/api/net.html#ipc-support) define local
 path serving and normal server-close cleanup. Transport bounds and path refusal
-are explicit mock controls, not assertions of Docker daemon limits. Verification
+are explicit emulator controls, not assertions of Docker daemon limits. Verification
 uses synthetic project-local Unix sockets and TCP, including a built-entry fixture
 executed under Node; it does not use Linux peer credentials or a real Engine.
 
@@ -323,7 +323,7 @@ and Unix. All mutations, inspections, setup and completion travel through HTTP;
 Node attachment handles supply scripted output/input observation. Both transports
 exercise accepted create/start/stop/kill/remove response loss and re-inspection,
 retained ordinary HTTP connections and fragmented attach with exact binary frames.
-This is independent client/protocol evidence against the mock, not a real Engine
+This is independent client/protocol evidence against the emulator, not a real Engine
 oracle or evidence of the external consumer's retry policy.
 
 OpenAPI walks assert eligible planned/exercised operation coverage. A seeded
@@ -376,7 +376,7 @@ wait results and post-removal 404. The three named/labeled containers were confi
 absent during cleanup. The [captured JSON report](evidence/engine-29.8.0-api-1.52.json)
 retains actual/model values, image identity, exact Engine version and cleanup.
 
-An earlier attempt failed at mock image seeding before creating any container:
+An earlier attempt failed at emulator image seeding before creating any container:
 the PostgreSQL image contained unsupported metadata and declared storage. The
 harness now rejects declared volumes/active healthchecks and projects only modeled
 image defaults, recording omitted metadata. The successful fixture omitted
@@ -384,9 +384,9 @@ image defaults, recording omitted metadata. The successful fixture omitted
 published and no config-equivalence claim covers those fields.
 
 Normalization excludes dynamic IDs/timestamps, daemon identity/platform fields,
-frame/packet boundaries and cross-channel interleaving. The mock scripts expected
+frame/packet boundaries and cross-channel interleaving. The emulator scripts expected
 process completion; it never executes the image. Existing synthetic response-loss
 checks remain separate from real Engine execution. Daemon restart/live-restore,
 host isolation, SDKs, all API 1.56 features and external consumer policies remain
-unverified. The historical mock discovery profile remains explicit; this narrow
+unverified. The historical emulator discovery profile remains explicit; this narrow
 live run does not certify every operation/response field against every newer Engine.

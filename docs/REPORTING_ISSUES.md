@@ -1,24 +1,24 @@
 # Reporting issues
 
-How coding agents in other projects file a GitHub issue when a mock diverges from its oracle, lacks a feature they call, or breaks, or when they need a service mocked that the catalog does not have yet. Agents in this repository pick the issues up and resolve them.
+How coding agents in other projects file a GitHub issue when an emulator diverges from its oracle, lacks a feature they call, or breaks, or when they need a service emulated that the catalog does not have yet. Agents in this repository pick the issues up and resolve them.
 
 This guide is written for coding agents. Read it top to bottom once, then use
 [Quick reference](#quick-reference) as the checklist every time you file.
 
-A mock's **oracle** is the thing it must behave like: the vendor's sandbox or test API for an
-HTTP mock (Stripe test mode, the Junction sandbox, …), the real engine for the database mocks
-(SQLite, PostgreSQL), and a real Medplum server for `medplum`. When your tests show that the mock
-and its oracle disagree, or the mock lacks something you need, file an issue. Do not quietly work
-around the mock in your own project. The issue is how the mock gets fixed for everyone.
+An emulator's **oracle** is the thing it must behave like: the vendor's sandbox or test API for an
+HTTP emulator (Stripe test mode, the Junction sandbox, …), the real engine for the database emulators
+(SQLite, PostgreSQL), and a real Medplum server for `medplum`. When your tests show that the emulator
+and its oracle disagree, or the emulator lacks something you need, file an issue. Do not quietly work
+around the emulator in your own project. The issue is how the emulator gets fixed for everyone.
 
 ## Quick reference
 
 | You found | Kind | Title | Template |
 | --- | --- | --- | --- |
-| The mock and the oracle answer the same request differently | `parity` | `[<service>] parity: <what diverges>` | [parity.md][t-parity] |
-| The mock lacks an operation, parameter, event, or behavior your code uses | `feature` | `[<service>] feature: <what is missing>` | [feature.md][t-feature] |
-| The mock crashes, leaks state, contradicts its README, or does not install or build | `bug` | `[<service>] bug: <what breaks>` | [bug.md][t-bug] |
-| No package mocks the vendor you depend on | `new-service` | `[new-service] <Vendor>: <API surface>` | [new-service.md][t-new] |
+| The emulator and the oracle answer the same request differently | `parity` | `[<service>] parity: <what diverges>` | [parity.md][t-parity] |
+| The emulator lacks an operation, parameter, event, or behavior your code uses | `feature` | `[<service>] feature: <what is missing>` | [feature.md][t-feature] |
+| The emulator crashes, leaks state, contradicts its README, or does not install or build | `bug` | `[<service>] bug: <what breaks>` | [bug.md][t-bug] |
+| No package emulates the vendor you depend on | `new-service` | `[new-service] <Vendor>: <API surface>` | [new-service.md][t-new] |
 
 `<service>` is the package suffix: `stripe` for `@crvouga/mockingbird-service-stripe`. The
 catalog is listed in [`llms.txt`](../llms.txt).
@@ -47,13 +47,13 @@ File when:
 
 - **parity**: the status, body shape, field value, error code, ordering, pagination, webhook
   payload or signature, or side effect differs from the oracle's for the same requests.
-- **feature**: your code calls something the mock answers with 404, `not implemented`, or by
+- **feature**: your code calls something the emulator answers with 404, `not implemented`, or by
   silently ignoring it. Check the package's `SUPPORT.md` / `COMPATIBILITY.md` first. A feature
   can be a whole operation, one parameter or filter, a webhook event, a lifecycle transition, an
   error case, or an admin control (a fault preset, an outbox, a clock advance) your tests need.
-- **bug**: the mock crashes, leaks state between namespaces, contradicts its own README, or fails
+- **bug**: the emulator crashes, leaks state between namespaces, contradicts its own README, or fails
   to install, build, or type-check.
-- **new-service**: you depend on a vendor API that no package mocks, and you would use a mock in
+- **new-service**: you depend on a vendor API that no package emulates, and you would use an emulator in
   your tests if one existed.
 
 Do not file when:
@@ -69,7 +69,7 @@ Do not file when:
 
 ## Never include
 
-These packages mock health, payments, and identity APIs, and issues are public. Before you file,
+These packages emulate health, payments, and identity APIs, and issues are public. Before you file,
 remove:
 
 - API keys, tokens, webhook secrets, passwords, and signed URLs. Replace each one with `<redacted>`.
@@ -93,15 +93,15 @@ are on a version at or after the fix before you reopen it.
 
 ## 2. Parity and bug reports: reduce to a reproduction
 
-Reduce the failure to the smallest sequence of requests against a fresh mock that shows it. Prefer
-a self-contained script that runs the mock in-process:
+Reduce the failure to the smallest sequence of requests against a fresh emulator that shows it. Prefer
+a self-contained script that runs the emulator in-process:
 
 ```ts
 import { createRuntime } from "@crvouga/mockingbird-service-<service>"
 
-const mock = createRuntime()
-const res = await mock.fetch(
-  new Request("http://mock/v1/customers", {
+const emulator = createRuntime()
+const res = await emulator.fetch(
+  new Request("http://emulator/v1/customers", {
     method: "POST",
     headers: { authorization: "Bearer sk_test_<redacted>", "content-type": "application/x-www-form-urlencoded" },
     body: "email=not-an-email",
@@ -117,15 +117,15 @@ run, include the provider, the `FC_SEED`, and the command that reproduces it.
 ## 3. Features and new services: describe the behavior
 
 A `feature` or `new-service` issue is a specification. The agent that picks it up turns each
-behavior into an acceptance test and then builds the mock until the tests pass, so write what the
-mock must do, observed from outside, rather than how to build it. Everything below is what that
+behavior into an acceptance test and then builds the emulator until the tests pass, so write what the
+emulator must do, observed from outside, rather than how to build it. Everything below is what that
 agent needs and cannot guess.
 
 **How you will use it.** Say whether your code calls the API through the vendor's official SDK
 (name and exact version) or through raw `fetch`, how you point it at a different base URL (an SDK
-option or environment variable), and whether you will run the mock in-process (`createRuntime().fetch`)
+option or environment variable), and whether you will run the emulator in-process (`createRuntime().fetch`)
 or as a server (`npx mockingbird-<service> serve`). The SDK version decides the wire format the
-mock must speak.
+emulator must speak.
 
 **Surface.** List only the operations you call. For each one, give the method and path, what
 your code sends (the parameters and body fields you actually set), and which response fields
@@ -163,12 +163,12 @@ advancing an order to `shipped`, making the next call return 429 or time out, re
 a comms API "sent", or returning a lab result. Each control becomes an `/__admin` route or a fault
 preset.
 
-**Out of scope.** Operations and behaviors you do not need, so the mock stays small.
+**Out of scope.** Operations and behaviors you do not need, so the emulator stays small.
 
 **Oracle.** Whether the vendor offers a sandbox or test mode, whether it is free, and how a
 maintainer gets access. Never include the credentials themselves.
 
-A `feature` request on an existing mock uses the same sections, trimmed to the one feature. A
+A `feature` request on an existing emulator uses the same sections, trimmed to the one feature. A
 `new-service` request with a clear surface and concrete behaviors is ready to build. One that
 only names the vendor waits until someone supplies them.
 
@@ -202,7 +202,7 @@ human the finished title and body and the link to the matching form, for example
 Agents in this repository run `/resolve-issues` on the `agent-reported` queue.
 
 - **parity** and **bug**: the agent checks the claim against the oracle, adds a failing regression
-  test, fixes the mock where the behavior is defined (implementation, OpenAPI contract, or
+  test, fixes the emulator where the behavior is defined (implementation, OpenAPI contract, or
   generator), and opens a PR that closes the issue. If the oracle does not behave as reported,
   the agent comments with what it observed and closes the issue.
 - **feature**: the agent confirms the behavior against the oracle or vendor documentation, adds

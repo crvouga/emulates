@@ -1,8 +1,8 @@
-# Implementation plan: Mockingbird infrastructure and orchestration mocks
+# Implementation plan: Mockingbird infrastructure and orchestration emulators
 
 ## Objective and context
 
-- Objective: deliver Mockingbird-only Docker Engine, Hermes peer-run, and GitHub REST mocks, in that order.
+- Objective: deliver Mockingbird-only Docker Engine, Hermes peer-run, and GitHub REST emulators, in that order.
 - Requirements: [feature PRD](../../prd-infrastructure-orchestration-mocks.md). Each story maps one-to-one to the same PRD ID.
 - Scope: public provider contracts, stateful scenarios, socket transport, independent consumer fixtures, differential verification, package documentation, and justified shared-runtime improvements.
 - Non-goals: Initiative implementation, systemd package assessment, consumer policy, and host enforcement. Those remain in the [separate Initiative handoff](../../avengers-initiative-mock-integration-handoff.md).
@@ -29,7 +29,7 @@ Context7 research gates are US-002, US-015, and US-024. Refresh evidence for new
 operation families or version changes. Docker oracle runs use the latest Engine
 available through the user's Docker Desktop installation, recording the exact
 installed version and supported API range; never require a local downgrade.
-The mock's declared API v1.52 contract is a compatibility target, not an Engine
+The emulator's declared API v1.52 contract is a compatibility target, not an Engine
 installation requirement. US-013 recorded Engine 29.8.0 evidence against that
 API subset; later Engine updates require fresh evidence for affected claims.
 For Hermes and GitHub, historical or current-main documentation cannot silently
@@ -57,13 +57,13 @@ required reviewer capability is a blocker, not permission to substitute another 
 - [x] Story complete
 - Priority: 1
 - Depends on: none
-- Relevant paths: `docs/INFRASTRUCTURE_MOCKS.md`, feature PRD.
-- User story: As a maintainer, I want a compatibility matrix separating public mock behavior from consumer and host policy.
+- Relevant paths: `docs/INFRASTRUCTURE_EMULATORS.md`, feature PRD.
+- User story: As a maintainer, I want a compatibility matrix separating public emulator behavior from consumer and host policy.
 - Notes: All stories satisfy their corresponding PRD section and shared requirements; no Initiative story is an execution dependency. Follow installed execution/review guidance only after authorization. Execution history belongs in docs/progress.md and bounded review knowledge in memory.json; planning creates neither.
 
 #### Acceptance criteria
 
-- [ ] Create docs/INFRASTRUCTURE_MOCKS.md with provider boundaries and scenario IDs classified as portable, socket, oracle, or external-consumer evidence.
+- [ ] Create docs/INFRASTRUCTURE_EMULATORS.md with provider boundaries and scenario IDs classified as portable, socket, oracle, or external-consumer evidence.
 - [ ] Document targeted code-improvement hypotheses without assuming defects or requiring changes outside Mockingbird.
 - [ ] Verify source references and links against the PRD US-001 requirements.
 - [ ] Typecheck passes
@@ -74,7 +74,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 - Priority: 2
 - Depends on: US-001
 - Relevant paths: `packages/service/docker/API_EVIDENCE.md`, official versioned Engine specification.
-- User story: As a Docker client developer, I want version-specific evidence before writing mock endpoints.
+- User story: As a Docker client developer, I want version-specific evidence before writing emulator endpoints.
 - Notes: API_EVIDENCE.md lives in packages/service/docker. Unresolved source/version semantics block their affected claims.
 
 #### Acceptance criteria
@@ -90,7 +90,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 - Priority: 3
 - Depends on: US-002
 - Relevant paths: `packages/service/docker/`, `docs/AUTHORING_A_SERVICE.md`.
-- User story: As a consumer, I want standard Docker mock entry points and runtime controls.
+- User story: As a consumer, I want standard Docker emulator entry points and runtime controls.
 - Notes: Follow AUTHORING_A_SERVICE.md and obtain required dependency/build-configuration approval before edits.
 
 #### Acceptance criteria
@@ -277,7 +277,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 - Priority: 14
 - Depends on: US-013
 - Relevant paths: Docker README/support/evidence/metadata, `sites/docs/`, canonical README/llms generators.
-- User story: As a consumer, I want an installable Docker mock with explicit compatibility limits.
+- User story: As a consumer, I want an installable Docker emulator with explicit compatibility limits.
 - Notes: Obtain required dependency/build approvals; do not publish or deploy as a gate side effect.
 
 #### Acceptance criteria
@@ -310,7 +310,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 - Priority: 16
 - Depends on: US-015
 - Relevant paths: `packages/service/hermes/`, `docs/AUTHORING_A_SERVICE.md`.
-- User story: As a consumer, I want standard public peer-run mock entry points.
+- User story: As a consumer, I want standard public peer-run emulator entry points.
 - Notes: No Kanban implementation, dispatcher compatibility layer, or inference dependency.
 
 #### Acceptance criteria
@@ -429,7 +429,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 - Priority: 23
 - Depends on: US-022
 - Relevant paths: Hermes README/support/evidence/metadata, `sites/docs/`, canonical README/llms generators.
-- User story: As a consumer, I want a documented version-specific peer-run test double.
+- User story: As a consumer, I want a documented version-specific peer-run emulator.
 - Notes: Delivery is independent of Initiative adoption.
 
 #### Acceptance criteria
@@ -564,7 +564,7 @@ required reviewer capability is a blocker, not permission to substitute another 
 - Priority: 31
 - Depends on: US-030
 - Relevant paths: GitHub README/support/evidence/metadata, `sites/docs/`, canonical README/llms generators.
-- User story: As a consumer, I want an installable REST mock with honest publication limits.
+- User story: As a consumer, I want an installable REST emulator with honest publication limits.
 - Notes: All deliverables are Mockingbird-local; systemd package reassessment and cross-component Initiative acceptance are in the separate handoff.
 
 #### Acceptance criteria

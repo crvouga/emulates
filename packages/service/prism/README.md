@@ -1,12 +1,12 @@
 # @crvouga/mockingbird-service-prism
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Prism Labs** body-scan API for test suites: subject upsert, scan
+Stateful emulator of the **Prism Labs** body-scan API for test suites: subject upsert, scan
 creation, the presigned capture upload the capture page PUTs its video to, per-stage
 processing states, and the READY-scan results our backend persists (body composition,
 measurements, health report with metabolic age, asset URLs). Scans move through the real
-lifecycle (`CREATED` → `PROCESSING` → `READY` / `FAILED`) on command or on the mock clock, and
+lifecycle (`CREATED` → `PROCESSING` → `READY` / `FAILED`) on command or on the emulator clock, and
 results are computed deterministically from the subject's height, weight, sex and age.
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/prism/SUPPORT.md)
@@ -25,7 +25,7 @@ any Fetch server.
 
 ## Usage
 
-Point `PRISM_API_URL` at the mock (http is allowed) and set `PRISM_API_KEY` to anything (or
+Point `PRISM_API_URL` at the emulator (http is allowed) and set `PRISM_API_KEY` to anything (or
 pin it with `--api-key`). Without both, our adapter reports `unavailable` and never calls out.
 
 ```bash
@@ -60,7 +60,7 @@ presigned upload and asset URLs.
 | `POST /users` | Upsert by `token` (`sex`, `region`, `birthDate`, `weight {value, unit kg\|lb}`, `height {value, unit m\|in}`, `researchConsent`, `termsOfService`) → 201 on create, 200 on update, same `id`. |
 | `POST /scans` | `{userToken, deviceConfigName: IPHONE_SCANNER\|ANDROID_SCANNER, bodyfatMethod, assetConfigId?}` → 201 scan `{id, status: "CREATED", weight, height, …}`; unknown user 404. |
 | `GET /scans/{id}?unit-system=metric\|imperial` | Status and the subject's weight/height in that unit system. |
-| `POST /scans/{id}/upload-url` | `{url, expirationTime}`: a presigned PUT to the mock itself (15 minutes on the mock clock; `/__admin/ns/<name>` kept in the URL). 409 once the capture is uploaded. |
+| `POST /scans/{id}/upload-url` | `{url, expirationTime}`: a presigned PUT to the emulator itself (15 minutes on the emulator clock; `/__admin/ns/<name>` kept in the URL). 409 once the capture is uploaded. |
 | `PUT /uploads/{id}?expires&signature` | The capture upload. Moves the scan to `PROCESSING` (`captureData` succeeded, `body` started); an empty body fails it. Expired or tampered URLs are S3-style 403 XML. |
 | `GET /scans/{id}/scan-assets` | `{captureData, body, fittedBody, measurement}` each `started` / `succeeded` / `failed` / `null`, with `…UpdatedAt`. |
 | `GET /scans/{id}/bodyfat` | READY only: `{bodyfatMethod, bodyfatPercentage, leanMass, fatMass, skeletalMuscleMass}`. |
@@ -77,8 +77,8 @@ Results before READY are 404 (our adapter: `not_found`). Errors are `{message, e
 | `POST /__admin/scans/:id/advance` | One processing stage on (`{"to": "READY"}` for all of them). The scan must be uploaded. |
 | `POST /__admin/scans/:id/fail` | Fail the started stage; the scan becomes `FAILED`. |
 | `GET /__admin/scans` | The namespace's scans. |
-| `GET/PUT /__admin/settings` | `{apiKeys?, uploadUrlTtlMs?, autoAdvance?: {afterMs, failAt?} \| null}`; auto-advance walks uploaded scans one stage per `afterMs` of mock time. |
-| `POST /__admin/tick` | Apply due auto-advance steps now (the served mock ticks every 100 ms). |
+| `GET/PUT /__admin/settings` | `{apiKeys?, uploadUrlTtlMs?, autoAdvance?: {afterMs, failAt?} \| null}`; auto-advance walks uploaded scans one stage per `afterMs` of emulator time. |
+| `POST /__admin/tick` | Apply due auto-advance steps now (the served emulator ticks every 100 ms). |
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `unauthorized`,
 `server_error`, `scan_not_found`, `schema_drift` (an unknown scan status), `stage_states_slow`
@@ -103,8 +103,8 @@ other carrier.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PrismAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `advance(scanId, fail?)`, `tick()`, `scans()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `PrismAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `advance(scanId, fail?)`, `tick()`, `scans()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `PRISM_PRESETS` | object | Every named fault preset. |
 | `PRISM_NAMESPACE` | string | The service name, `"prism"`. |
 | `STAGES` | array | The processing stages, in order. |

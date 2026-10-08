@@ -32,10 +32,16 @@ function render(query: string) {
       .filter((e): e is PaletteEntry => Boolean(e))
     groups = [
       ["Recently viewed", recent],
+      [
+        "Featured emulators",
+        entries.filter((e) => e.kind === "service" && e.featured && !recentNames.includes(e.name)),
+      ],
       ["Pages", entries.filter((e) => e.kind === "page")],
       [
-        "Services",
-        entries.filter((e) => e.kind === "service" && !recentNames.includes(e.name)).slice(0, 8),
+        "Emulators",
+        entries
+          .filter((e) => e.kind === "service" && !e.featured && !recentNames.includes(e.name))
+          .slice(0, 8),
       ],
     ]
   } else {
@@ -45,7 +51,7 @@ function render(query: string) {
       .sort((a, b) => a.rank - b.rank || a.entry.displayName.localeCompare(b.entry.displayName))
       .map((r) => r.entry)
     groups = [
-      ["Services", ranked.filter((e) => e.kind === "service").slice(0, 12)],
+      ["Emulators", ranked.filter((e) => e.kind === "service").slice(0, 12)],
       ["Pages", ranked.filter((e) => e.kind === "page")],
     ]
   }
@@ -74,7 +80,10 @@ function render(query: string) {
               e.kind === "service"
                 ? `<span class="kind" title="${escapeText(e.parity)}">${escapeText(e.parity)}</span>`
                 : `<span class="kind">Page</span>`
-            return `<li role="option"><a href="${e.href}" id="pal-${i}" data-index="${i}" aria-selected="${i === active}"><span>${icon}</span><span class="meta"><strong>${escapeText(e.displayName)}</strong><span>${escapeText(e.subtitle)}</span></span>${kind}</a></li>`
+            const star = e.featured
+              ? `<svg class="i palette-star" aria-label="Featured emulator"><use href="#i-star"></use></svg> `
+              : ""
+            return `<li role="option"><a href="${e.href}" id="pal-${i}" data-index="${i}" aria-selected="${i === active}"><span>${icon}</span><span class="meta"><strong>${star}${escapeText(e.displayName)}</strong><span>${escapeText(e.subtitle)}</span></span>${kind}</a></li>`
           })
           .join("")}`,
     )

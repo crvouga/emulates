@@ -1,4 +1,5 @@
 ---
+import catalog from "virtual:mockingbird/catalog"
 import type { Guide } from "../lib/types.ts"
 import Icon from "./Icon.astro"
 
@@ -10,6 +11,17 @@ const { guide, repo } = Astro.props
 ---
 
 <div class="guide">
+  <nav class="guide-nav" aria-label="Documentation">
+    <a class="guide-nav-home" href="/docs"><Icon name="file" /> Documentation</a>
+    <p>Guides</p>
+    <ul>{catalog.guides.map((item) => <li><a href={`/docs/${item.slug}`} aria-current={item.slug === guide.slug ? "page" : undefined}>{item.title}</a></li>)}</ul>
+    <p>Reference</p>
+    <a href="/services">Emulator catalog</a>
+    <a href="/coverage">Operation coverage</a>
+    <a href="/examples">Application examples</a>
+    <p>Featured emulators</p>
+    {catalog.services.filter((s) => s.featured).map((s) => <a href={`/services/${s.name}`}><Icon name="star" /> {s.displayName}</a>)}
+  </nav>
   <article class="guide-body">
     <header class="page-head">
       <nav class="crumbs" aria-label="Breadcrumb">
@@ -50,10 +62,25 @@ const { guide, repo } = Astro.props
 <style>
   .guide {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 220px;
-    gap: 56px;
+    grid-template-columns: 200px minmax(0, 1fr) 180px;
+    gap: 32px;
   }
 
+  .guide-nav {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    align-self: start;
+    max-height: calc(100dvh - var(--header-h) - 48px);
+    overflow-y: auto;
+    padding-top: 48px;
+    font-size: 13px;
+  }
+  .guide-nav ul { list-style: none; margin: 0; padding: 0; }
+  .guide-nav p { margin: 24px 10px 8px; font: 11px var(--font-mono); text-transform: uppercase; color: var(--fg-subtle); letter-spacing: 0.06em; }
+  .guide-nav a { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--radius-sm); color: var(--fg-muted); line-height: 1.4; }
+  .guide-nav a:hover { color: var(--fg); background: var(--bg-subtle); }
+  .guide-nav a[aria-current="page"] { background: var(--accent-soft); color: var(--highlight); font-weight: 600; }
+  .guide-nav .guide-nav-home { color: var(--fg); font-weight: 600; }
   .guide-body {
     min-width: 0;
     max-width: 780px;
@@ -141,10 +168,14 @@ const { guide, repo } = Astro.props
 
   @media (max-width: 1080px) {
     .guide {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: 200px minmax(0, 1fr);
     }
     .toc {
       display: none;
     }
+  }
+  @media (max-width: 800px) {
+    .guide { grid-template-columns: minmax(0, 1fr); }
+    .guide-nav { display: none; }
   }
 </style>

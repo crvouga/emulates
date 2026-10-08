@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-cognito",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon Cognito User Pools mock for AWS SDK and browser authentication tests.",
+  "description": "Stateful Amazon Cognito User Pools emulator for AWS SDK and browser authentication tests.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,7 +44,7 @@
     "cognito",
     "authentication",
     "user-pools",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

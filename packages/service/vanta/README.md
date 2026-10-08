@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-vanta
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP Manage Vanta OAuth, paginated compliance records, evidence metadata and offboarding.
 
@@ -52,7 +52,7 @@ Read calls require all:read scope, submission/offboarding all:write, and upload 
 (each prefixed vanta-api.). Missing/invalid/expired resource bearer tokens return literal
 `Unauthorized` with application/json content type, matching an unauthenticated live probe.
 Consumers must not assume every error body is parseable JSON. Other documented failure classes
-use status plus message, with deterministic mock messages rather than exact vendor wording.
+use status plus message, with deterministic emulator messages rather than exact vendor wording.
 
 ### Controls and proof
 

@@ -43,7 +43,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
-          description: Mock-only unsupported operation or version
+          description: Emulator-only unsupported operation or version
           content:
             application/json:
               schema:
