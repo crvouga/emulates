@@ -163,10 +163,12 @@ automatically on every green push to `main` (see [RELEASING.md](RELEASING.md)) a
 
 OIDC can only publish to packages that already exist on npm and trust this repo. For brand-new
 packages, `bun run release:seed` (`-- --dry-run` to preview) runs `npm login` if
-  needed, builds `origin/main` in a temporary worktree and runs `release:publish --local` there:
+  needed, builds `origin/main` in a kept worktree and runs `release:publish --local` there:
   it publishes with your npm login, pushes the tags and GitHub Releases, attaches the Trusted
-  Publishers and deprecates every package no longer published. CI never receives or falls back
-  to a long-lived npm token. A scheduled run every six hours retries interrupted OIDC releases.
+  Publishers and deprecates every package no longer published. Bulk publisher changes are spaced
+  at npm's recommended interval; any unresolved package makes the seed fail with its exact name,
+  and a rerun resumes safely. CI never receives or falls back to a long-lived npm token. A
+  scheduled run every six hours retries interrupted OIDC releases.
 
 ```bash
 bun run release:plan                       # what the next release would publish

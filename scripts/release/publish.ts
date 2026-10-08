@@ -44,6 +44,7 @@ import {
   unresolvablePins,
   WORKFLOW_FILE,
 } from "./lib.ts"
+import { trustedPublisherReconciler } from "./trust.ts"
 
 const argv = process.argv.slice(2)
 const dryRun = argv.includes("--dry-run")
@@ -219,19 +220,32 @@ async function publish(release: Release): Promise<boolean> {
   return true
 }
 
-/** Attach the GitHub Actions Trusted Publisher so future releases need no token. */
-async function ensureTrustedPublisher(name: string): Promise<void> {
-  if (dryRun || !local) return
-  const listed = await $`npm trust list ${name} --json`.env(npmEnv).quiet().nothrow()
-  if (listed.exitCode === 0 && listed.stdout.toString().includes(REPO)) return
-  const trust = ["trust", "github", name, "--file", WORKFLOW_FILE, "--repository", REPO]
-  if ((await npm([...trust, "--allow-publish", "--yes"])) === 0) {
-    console.log(`trust ${name}: GitHub Actions ${REPO}/${WORKFLOW_FILE}`)
-  } else {
+const trust = trustedPublisherReconciler({
+  async list(name) {
+    const listed = await $`npm trust list ${name} --json`.env(npmEnv).quiet().nothrow()
+    return listed.exitCode === 0 ? listed.stdout.toString() : null
+  },
+  async create(name) {
+    const args = ["trust", "github", name, "--file", WORKFLOW_FILE, "--repository", REPO]
+    if ((await npm([...args, "--allow-publish", "--yes"])) === 0) {
+      console.log(`trust ${name}: GitHub Actions ${REPO}/${WORKFLOW_FILE}`)
+      return true
+    }
     console.warn(
       `::warning::Could not attach Trusted Publisher for ${name}; add it at https://www.npmjs.com/package/${name}/access`,
     )
-  }
+    return false
+  },
+  onError(name, error) {
+    console.warn(`::warning::Trusted Publisher for ${name} failed: ${redact(String(error))}`)
+  },
+})
+const trustFailed = trust.failed
+
+/** Attach the GitHub Actions Trusted Publisher so future releases need no token. */
+async function ensureTrustedPublisher(name: string): Promise<void> {
+  if (dryRun || !local) return
+  await trust.ensure(name)
 }
 
 function detailOf(result: {
@@ -407,7 +421,7 @@ try {
 
 const ok = plan.releases.length - failed.size
 console.log(
-  `release:publish: released=${ok} failed=${failed.size} github-releases-missing=${githubReleaseGaps}${dryRun ? " (dry-run)" : ""}`,
+  `release:publish: released=${ok} failed=${failed.size} trusted-publisher-failed=${trustFailed.size} github-releases-missing=${githubReleaseGaps}${dryRun ? " (dry-run)" : ""}`,
 )
 if (needsSeed.length > 0) {
   console.error(
@@ -420,4 +434,12 @@ if (githubReleaseGaps > 0) {
     `::error::${githubReleaseGaps} GitHub release(s) still missing. Re-run bun run release:seed; versions already on npm are skipped.`,
   )
 }
-if (failed.size > 0 || githubReleaseGaps > 0) process.exit(1)
+if (trustFailed.size > 0) {
+  console.error(
+    `::error::${trustFailed.size} npm Trusted Publisher(s) still missing: ${[...trustFailed].join(", ")}`,
+  )
+  console.error(
+    "Re-run bun run release:seed; successful package, tag, and trust operations are skipped.",
+  )
+}
+if (failed.size > 0 || trustFailed.size > 0 || githubReleaseGaps > 0) process.exit(1)
