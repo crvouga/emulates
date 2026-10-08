@@ -23,6 +23,7 @@ export type SentEmail = {
   idempotencyKey: string | null
   scheduledAt: string | null
   createdAt: string
+  lastEvent?: string
 }
 
 export type ReceivedAttachmentRecord = {

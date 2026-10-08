@@ -1,0 +1,587 @@
+/*! Adapted from vercel-labs/emulate (Apache-2.0), modified for Mockingbird. See port.json, LICENSE_EMULATE and THIRD_PARTY_NOTICES.md. */
+import type { Context, RouteContext } from "../../core/index.js";
+import type { SlackChannel, SlackMessage, SlackUser } from "../entities.js";
+import { buildSlackEventEnvelope, resolveSlackEventTeamId } from "../events.js";
+import { getSlackStore } from "../store.js";
+import {
+  formatSlackMessage,
+  formatSlackPermalink,
+  formatSlackScheduledMessage,
+  formatSlackScheduledMessageListItem,
+  generateSlackId,
+  generateTs,
+  getSlackConversationOpenState,
+  hasSlackMessageContent,
+  normalizeSlackMessageText,
+  parseSlackBody,
+  parseSlackRichMessageFields,
+  requireSlackScopes,
+  setSlackConversationOpenState,
+  slackError,
+  slackMessageTextResponseMetadata,
+  slackOk,
+} from "../helpers.js";
+
+export function chatRoutes(ctx: RouteContext): void {
+  const { app, store, webhooks, baseUrl } = ctx;
+  const ss = () => getSlackStore(store);
+  const findChannel = (channel: string) =>
+    ss().channels.findOneBy("channel_id", channel) ??
+    ss()
+      .channels.all()
+      .find((ch) => !ch.is_im && !ch.is_mpim && ch.name === channel);
+  const getAuthSlackUser = (authUser: { login: string }) =>
+    ss().users.findOneBy("user_id", authUser.login) ?? ss().users.findOneBy("name", authUser.login);
+  const getAuthUserId = (authUser: { login: string }) => getAuthSlackUser(authUser)?.user_id ?? authUser.login;
+  const isAuthChannelMember = (channel: SlackChannel, authUser: { login: string }) => {
+    const user = getAuthSlackUser(authUser);
+    const userId = user?.user_id ?? authUser.login;
+    return channel.members.includes(userId) || (user ? channel.members.includes(user.name) : false);
+  };
+  const canAccessConversation = (channel: SlackChannel, authUser: { login: string }) =>
+    !channel.is_private || isAuthChannelMember(channel, authUser);
+  const isAuthoredByUser = (msg: { user: string }, authUser: { login: string }) => {
+    const user = getAuthSlackUser(authUser);
+    return msg.user === authUser.login || msg.user === user?.user_id || msg.user === user?.name;
+  };
+  const isChannelMember = (channel: SlackChannel, user: SlackUser) =>
+    channel.members.includes(user.user_id) || channel.members.includes(user.name);
+  const deletePinsForMessage = (channel: string, ts: string) => {
+    for (const pin of ss()
+      .pins.findBy("message_ts", ts)
+      .filter((pin) => pin.channel_id === channel)) {
+      ss().pins.delete(pin.id);
+    }
+  };
+  const dispatchConversationEvent = async (
+    c: Context,
+    type: string,
+    event: Record<string, unknown>,
+    teamId?: string,
+  ) => {
+    await webhooks.dispatch(
+      type,
+      undefined,
+      buildSlackEventEnvelope(resolveSlackEventTeamId(c, store, teamId), { type, ...event }, store.now),
+      "slack",
+    );
+  };
+  const findOrCreateDirectMessage = async (c: Context, authUser: { login: string }, userId: string) => {
+    const targetUser = ss().users.findOneBy("user_id", userId);
+    if (!targetUser || targetUser.deleted) return undefined;
+
+    const authUserId = getAuthUserId(authUser);
+    if (targetUser.user_id === authUserId) return undefined;
+
+    const members = [authUserId, targetUser.user_id].sort();
+    const existing = ss()
+      .channels.all()
+      .find(
+        (ch) =>
+          ch.is_im && ch.members.length === members.length && [...ch.members].sort().join(",") === members.join(","),
+      );
+    if (existing) {
+      if (!getSlackConversationOpenState(existing, authUserId)) {
+        const updated = ss().channels.update(existing.id, setSlackConversationOpenState(existing, authUserId, true));
+        if (updated) await dispatchConversationEvent(c, "im_open", { channel: updated.channel_id }, updated.team_id);
+        return updated;
+      }
+      return existing;
+    }
+
+    const team = ss().teams.all()[0];
+    const now = Math.floor(store.now() / 1000);
+    const created = ss().channels.insert({
+      channel_id: generateSlackId("D"),
+      team_id: team?.team_id ?? "T000000001",
+      name: targetUser.name,
+      is_channel: false,
+      is_private: true,
+      is_im: true,
+      is_mpim: false,
+      is_open_by_user: { [authUserId]: true },
+      user: targetUser.user_id,
+      is_archived: false,
+      topic: { value: "", creator: authUserId, last_set: now },
+      purpose: { value: "", creator: authUserId, last_set: now },
+      members,
+      creator: authUserId,
+      num_members: members.length,
+      last_read: {},
+    });
+    await dispatchConversationEvent(
+      c,
+      "im_created",
+      { channel: formatDirectMessageChannel(created, authUserId, targetUser.user_id) },
+      created.team_id,
+    );
+    await dispatchConversationEvent(c, "im_open", { channel: created.channel_id }, created.team_id);
+    return created;
+  };
+  const findWritableConversation = async (c: Context, authUser: { login: string }, channel: string) =>
+    findChannel(channel) ?? (await findOrCreateDirectMessage(c, authUser, channel));
+
+  // chat.postMessage
+  app.post("/api/chat.postMessage", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const text = typeof body.text === "string" ? body.text : "";
+    const normalizedText = normalizeSlackMessageText(text);
+    const thread_ts = typeof body.thread_ts === "string" ? body.thread_ts : undefined;
+    const richMessage = parseSlackRichMessageFields(body);
+    if (richMessage.error) return slackError(c, richMessage.error);
+
+    if (!channel) return slackError(c, "channel_not_found");
+    if (!hasSlackMessageContent(text, richMessage.fields)) return slackError(c, "no_text");
+
+    const ch = await findWritableConversation(c, authUser, channel);
+    if (!ch) return slackError(c, "channel_not_found");
+    if (ch.is_archived) return slackError(c, "is_archived");
+    if (!canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+    const authUserId = getAuthUserId(authUser);
+
+    const ts = generateTs(store.now);
+    const msg = ss().messages.insert({
+      ts,
+      channel_id: ch.channel_id,
+      user: authUserId,
+      text: normalizedText.text,
+      type: "message" as const,
+      thread_ts,
+      ...richMessage.fields,
+      reply_count: 0,
+      reply_users: [],
+      reactions: [],
+    });
+
+    // Update parent thread reply count
+    if (thread_ts) {
+      const parent = ss()
+        .messages.all()
+        .find((m) => m.ts === thread_ts && m.channel_id === ch.channel_id);
+      if (parent) {
+        const replyUsers = parent.reply_users.includes(authUserId)
+          ? parent.reply_users
+          : [...parent.reply_users, authUserId];
+        ss().messages.update(parent.id, {
+          reply_count: parent.reply_count + 1,
+          reply_users: replyUsers,
+        });
+      }
+    }
+
+    await webhooks.dispatch(
+      "message",
+      undefined,
+      buildSlackEventEnvelope(resolveSlackEventTeamId(c, store, ch.team_id), {
+        ...formatSlackMessage(msg),
+        type: "message",
+        channel: ch.channel_id,
+      }, store.now),
+      "slack",
+    );
+
+    return slackOk(c, {
+      channel: ch.channel_id,
+      ts,
+      message: formatSlackMessage(msg),
+      ...slackMessageTextResponseMetadata(normalizedText),
+    });
+  });
+
+  // chat.postEphemeral
+  app.post("/api/chat.postEphemeral", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const user = typeof body.user === "string" ? body.user : "";
+    const text = typeof body.text === "string" ? body.text : "";
+    const normalizedText = normalizeSlackMessageText(text);
+    const thread_ts = typeof body.thread_ts === "string" ? body.thread_ts : undefined;
+    const richMessage = parseSlackRichMessageFields(body);
+    if (richMessage.error) return slackError(c, richMessage.error);
+
+    if (!channel) return slackError(c, "channel_not_found");
+    if (!user) return slackError(c, "user_not_found");
+    if (!hasSlackMessageContent(text, richMessage.fields)) return slackError(c, "no_text");
+
+    const ch = findChannel(channel);
+    if (!ch) return slackError(c, "channel_not_found");
+    if (ch.is_archived) return slackError(c, "is_archived");
+    if (!canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+
+    const targetUser = ss().users.findOneBy("user_id", user);
+    if (!targetUser) return slackError(c, "user_not_found");
+    if (!isChannelMember(ch, targetUser)) return slackError(c, "user_not_in_channel");
+    const authUserId = getAuthUserId(authUser);
+
+    const ts = generateTs(store.now);
+    ss().ephemeralMessages.insert({
+      ts,
+      channel_id: ch.channel_id,
+      user: authUserId,
+      target_user: targetUser.user_id,
+      text: normalizedText.text,
+      type: "message" as const,
+      thread_ts,
+      ...richMessage.fields,
+      reply_count: 0,
+      reply_users: [],
+      reactions: [],
+    });
+
+    return slackOk(c, { message_ts: ts, ...slackMessageTextResponseMetadata(normalizedText) });
+  });
+
+  // chat.update
+  app.post("/api/chat.update", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const ts = typeof body.ts === "string" ? body.ts : "";
+    const hasText = typeof body.text === "string";
+    const text = hasText ? (body.text as string) : "";
+    const normalizedText = hasText ? normalizeSlackMessageText(text) : undefined;
+    const richMessage = parseSlackRichMessageFields(body);
+    if (richMessage.error) return slackError(c, richMessage.error);
+
+    if (!channel || !ts) return slackError(c, "message_not_found");
+
+    const ch = ss().channels.findOneBy("channel_id", channel);
+    if (ch && !canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+
+    const msg = ss()
+      .messages.all()
+      .find((m) => m.ts === ts && m.channel_id === channel);
+    if (!msg) return slackError(c, "message_not_found");
+    if (!isAuthoredByUser(msg, authUser)) return slackError(c, "cant_update_message");
+
+    const updates: Partial<SlackMessage> = { ...richMessage.fields };
+    if (hasText) {
+      updates.text = normalizedText!.text;
+      if (!richMessage.providedFields.includes("blocks")) updates.blocks = undefined;
+      if (!richMessage.providedFields.includes("attachments")) updates.attachments = undefined;
+    }
+
+    if (!hasText && Object.keys(updates).length === 0) {
+      return slackError(c, "no_text");
+    }
+
+    const authUserId = getAuthUserId(authUser);
+    const eventTs = generateTs(store.now);
+    const updated = ss().messages.update(msg.id, {
+      ...updates,
+      edited: { user: authUserId, ts: eventTs },
+    })!;
+
+    await webhooks.dispatch(
+      "message",
+      undefined,
+      buildSlackEventEnvelope(resolveSlackEventTeamId(c, store, ch?.team_id), {
+        type: "message",
+        subtype: "message_changed",
+        hidden: true,
+        channel,
+        ts: eventTs,
+        event_ts: eventTs,
+        message: formatSlackMessage(updated),
+        previous_message: formatSlackMessage(msg),
+      }, store.now),
+      "slack",
+    );
+
+    return slackOk(c, {
+      channel,
+      ts,
+      text: updated.text,
+      message: formatSlackMessage(updated),
+      ...slackMessageTextResponseMetadata(normalizedText),
+    });
+  });
+
+  // chat.delete
+  app.post("/api/chat.delete", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const ts = typeof body.ts === "string" ? body.ts : "";
+
+    if (!channel || !ts) return slackError(c, "message_not_found");
+
+    const ch = ss().channels.findOneBy("channel_id", channel);
+    if (ch && !canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+
+    const msg = ss()
+      .messages.all()
+      .find((m) => m.ts === ts && m.channel_id === channel);
+    if (!msg) return slackError(c, "message_not_found");
+    if (!isAuthoredByUser(msg, authUser)) return slackError(c, "cant_delete_message");
+
+    ss().messages.delete(msg.id);
+    deletePinsForMessage(channel, ts);
+
+    const eventTs = generateTs(store.now);
+    await webhooks.dispatch(
+      "message",
+      undefined,
+      buildSlackEventEnvelope(resolveSlackEventTeamId(c, store, ch?.team_id), {
+        type: "message",
+        subtype: "message_deleted",
+        hidden: true,
+        channel,
+        ts: eventTs,
+        event_ts: eventTs,
+        deleted_ts: ts,
+        previous_message: formatSlackMessage(msg),
+      }, store.now),
+      "slack",
+    );
+
+    return slackOk(c, { channel, ts });
+  });
+
+  async function getPermalink(c: Context) {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+
+    const body = c.req.method === "GET" ? {} : await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : (c.req.query("channel") ?? "");
+    const messageTs = typeof body.message_ts === "string" ? body.message_ts : (c.req.query("message_ts") ?? "");
+
+    if (!channel) return slackError(c, "channel_not_found");
+    if (!messageTs) return slackError(c, "message_not_found");
+
+    const ch = ss().channels.findOneBy("channel_id", channel);
+    if (!ch) return slackError(c, "channel_not_found");
+    if (!canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+
+    const msg = ss()
+      .messages.all()
+      .find((m) => m.ts === messageTs && m.channel_id === channel);
+    if (!msg) return slackError(c, "message_not_found");
+
+    return slackOk(c, {
+      channel,
+      permalink: formatSlackPermalink(baseUrl, ch.channel_id, msg),
+    });
+  }
+
+  // chat.getPermalink
+  app.get("/api/chat.getPermalink", getPermalink);
+  app.post("/api/chat.getPermalink", getPermalink);
+
+  // chat.scheduleMessage
+  app.post("/api/chat.scheduleMessage", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const text = typeof body.text === "string" ? body.text : "";
+    const normalizedText = normalizeSlackMessageText(text);
+    const postAt = Number(body.post_at);
+    const thread_ts = typeof body.thread_ts === "string" ? body.thread_ts : undefined;
+    const richMessage = parseSlackRichMessageFields(body);
+    if (richMessage.error) return slackError(c, richMessage.error);
+
+    if (!channel) return slackError(c, "channel_not_found");
+    if (!hasSlackMessageContent(text, richMessage.fields)) return slackError(c, "no_text");
+    if (!Number.isFinite(postAt) || postAt <= 0) return slackError(c, "invalid_time");
+
+    const now = Math.floor(store.now() / 1000);
+    const postAtSeconds = Math.floor(postAt);
+    if (postAtSeconds <= now) return slackError(c, "time_in_past");
+    if (postAtSeconds > now + 120 * 24 * 60 * 60) return slackError(c, "time_too_far");
+
+    const ch = findChannel(channel);
+    if (!ch) return slackError(c, "channel_not_found");
+    if (ch.is_archived) return slackError(c, "is_archived");
+    if (!canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+    const authUserId = getAuthUserId(authUser);
+
+    const scheduled = ss().scheduledMessages.insert({
+      scheduled_message_id: generateSlackId("Q"),
+      channel_id: ch.channel_id,
+      user: authUserId,
+      text: normalizedText.text,
+      type: "delayed_message" as const,
+      subtype: "bot_message" as const,
+      thread_ts,
+      ...richMessage.fields,
+      post_at: postAtSeconds,
+      date_created: now,
+    });
+
+    return slackOk(c, {
+      channel: ch.channel_id,
+      scheduled_message_id: scheduled.scheduled_message_id,
+      post_at: scheduled.post_at,
+      message: formatSlackScheduledMessage(scheduled),
+      ...slackMessageTextResponseMetadata(normalizedText),
+    });
+  });
+
+  // chat.deleteScheduledMessage
+  app.post("/api/chat.deleteScheduledMessage", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const scheduledMessageId = typeof body.scheduled_message_id === "string" ? body.scheduled_message_id : "";
+
+    if (!channel) return slackError(c, "channel_not_found");
+    if (!scheduledMessageId) return slackError(c, "invalid_scheduled_message_id");
+
+    const ch = findChannel(channel);
+    if (!ch) return slackError(c, "channel_not_found");
+    if (!canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+
+    const scheduled = ss()
+      .scheduledMessages.all()
+      .find((m) => m.channel_id === ch.channel_id && m.scheduled_message_id === scheduledMessageId);
+    if (!scheduled) return slackError(c, "invalid_scheduled_message_id");
+    if (!isAuthoredByUser(scheduled, authUser)) return slackError(c, "cant_delete_message");
+
+    ss().scheduledMessages.delete(scheduled.id);
+    return slackOk(c, {});
+  });
+
+  // chat.scheduledMessages.list
+  app.post("/api/chat.scheduledMessages.list", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const cursor = typeof body.cursor === "string" ? body.cursor : "";
+    const requestedLimit = body.limit === undefined ? 100 : Number(body.limit);
+    const oldest = body.oldest === undefined ? undefined : Number(body.oldest);
+    const latest = body.latest === undefined ? undefined : Number(body.latest);
+
+    if (!Number.isFinite(requestedLimit) || requestedLimit < 1) {
+      return slackError(c, "invalid_arguments");
+    }
+    if ((oldest !== undefined && !Number.isFinite(oldest)) || (latest !== undefined && !Number.isFinite(latest))) {
+      return slackError(c, "invalid_arguments");
+    }
+    if (oldest !== undefined && latest !== undefined && oldest > latest) {
+      return slackError(c, "invalid_arguments");
+    }
+    const limit = Math.min(Math.floor(requestedLimit), 1000);
+
+    const ch = channel ? findChannel(channel) : undefined;
+    if (channel && !ch) return slackError(c, "channel_not_found");
+    if (ch && !canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+
+    const allScheduled = ss()
+      .scheduledMessages.all()
+      .filter((msg) => isAuthoredByUser(msg, authUser))
+      .filter((msg) => !ch || msg.channel_id === ch.channel_id)
+      .filter((msg) => {
+        const messageChannel = ss().channels.findOneBy("channel_id", msg.channel_id);
+        return messageChannel ? canAccessConversation(messageChannel, authUser) : false;
+      })
+      .filter((msg) => oldest === undefined || msg.post_at >= oldest)
+      .filter((msg) => latest === undefined || msg.post_at <= latest)
+      .sort((a, b) => a.post_at - b.post_at || a.scheduled_message_id.localeCompare(b.scheduled_message_id));
+
+    let startIndex = 0;
+    if (cursor) {
+      const idx = allScheduled.findIndex((msg) => msg.scheduled_message_id === cursor);
+      if (idx < 0) return slackError(c, "invalid_cursor");
+      if (idx >= 0) startIndex = idx;
+    }
+
+    const page = allScheduled.slice(startIndex, startIndex + limit);
+    const nextCursor =
+      startIndex + limit < allScheduled.length ? allScheduled[startIndex + limit].scheduled_message_id : "";
+
+    return slackOk(c, {
+      scheduled_messages: page.map(formatSlackScheduledMessageListItem),
+      response_metadata: { next_cursor: nextCursor },
+    });
+  });
+
+  // chat.meMessage
+  app.post("/api/chat.meMessage", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["chat:write"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const channel = typeof body.channel === "string" ? body.channel : "";
+    const text = typeof body.text === "string" ? body.text : "";
+    const normalizedText = normalizeSlackMessageText(text);
+
+    if (!channel) return slackError(c, "channel_not_found");
+
+    const ch = findChannel(channel);
+    if (!ch) return slackError(c, "channel_not_found");
+    if (ch.is_archived) return slackError(c, "is_archived");
+    if (!canAccessConversation(ch, authUser)) return slackError(c, "not_in_channel");
+    const authUserId = getAuthUserId(authUser);
+
+    const ts = generateTs(store.now);
+    ss().messages.insert({
+      ts,
+      channel_id: ch.channel_id,
+      user: authUserId,
+      text: normalizedText.text,
+      type: "message" as const,
+      subtype: "me_message",
+      reply_count: 0,
+      reply_users: [],
+      reactions: [],
+    });
+
+    return slackOk(c, { channel: ch.channel_id, ts, ...slackMessageTextResponseMetadata(normalizedText) });
+  });
+}
+
+function formatDirectMessageChannel(ch: SlackChannel, viewer: string, user: string) {
+  return {
+    id: ch.channel_id,
+    name: ch.name,
+    name_normalized: ch.name,
+    is_channel: ch.is_channel,
+    is_group: false,
+    is_im: true,
+    is_mpim: false,
+    is_private: ch.is_private,
+    is_archived: ch.is_archived,
+    is_open: getSlackConversationOpenState(ch, viewer),
+    user,
+    is_member: true,
+    last_read: ch.last_read?.[viewer] ?? "0000000000.000000",
+    topic: ch.topic,
+    purpose: ch.purpose,
+    creator: ch.creator,
+    num_members: ch.num_members,
+    created: Math.floor(new Date(ch.created_at).getTime() / 1000),
+  };
+}

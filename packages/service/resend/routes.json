@@ -1,0 +1,23 @@
+[
+  "DELETE /api-keys/:id",
+  "DELETE /audiences/:audience_id/contacts/:id",
+  "DELETE /audiences/:id",
+  "DELETE /domains/:id",
+  "GET /api-keys",
+  "GET /audiences",
+  "GET /audiences/:audience_id/contacts",
+  "GET /domains",
+  "GET /domains/:id",
+  "GET /emails",
+  "GET /emails/:id",
+  "GET /inbox",
+  "GET /inbox/:id",
+  "POST /api-keys",
+  "POST /audiences",
+  "POST /audiences/:audience_id/contacts",
+  "POST /domains",
+  "POST /domains/:id/verify",
+  "POST /emails",
+  "POST /emails/:id/cancel",
+  "POST /emails/batch"
+]

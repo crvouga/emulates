@@ -308,3 +308,6 @@ ownership receipts, explicit notifications/cleanup grants, credential handling,
 request limits and conservative uncertain-write cleanup. Compared projections do
 not establish full response-schema parity, validation precedence, multi-page live
 pagination, real access control, rulesets, rate quotas or network-loss guarantees.
+
+
+Added vendor routes are checked against the pinned Emulate 0.12.1 npm package and licensed provider regression tests. Native fixture, namespace, checkpoint, branch and clock checks run separately. This is offline package evidence, not live vendor proof. See [coverage audit](../../../docs/EMULATE_COVERAGE.md) for the pinned source, coverage gate, reviewed differences and exact commands.

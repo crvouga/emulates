@@ -33,17 +33,29 @@ export type MessageRecord = {
   to: string
   from: string | null
   messaging_service_sid: string | null
-  status: "queued" | "accepted"
-  direction: "outbound-api"
+  status:
+    | "accepted"
+    | "scheduled"
+    | "canceled"
+    | "queued"
+    | "sending"
+    | "sent"
+    | "failed"
+    | "delivered"
+    | "undelivered"
+    | "receiving"
+    | "received"
+    | "read"
+  direction: "inbound" | "outbound-api" | "outbound-call" | "outbound-reply"
   num_segments: string
   num_media: string
-  price: null
+  price: string | null
   price_unit: "USD"
-  error_code: null
-  error_message: null
+  error_code: number | null
+  error_message: string | null
   date_created: string
   date_updated: string
-  date_sent: null
+  date_sent: string | null
   uri: string
   subresource_uris: { media: string; feedback: string }
 }

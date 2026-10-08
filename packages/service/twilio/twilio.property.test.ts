@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test"
 import { ParityError, parity } from "@crvouga/mockingbird-parity"
 import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
-import { document, supportedOperationIds, TwilioAPI } from "./src/index.js"
+import { document, TwilioAPI } from "./src/index.js"
+import { nativeOperationIds as supportedOperationIds } from "./src/native-operations.js"
 
 const params = fcParameters(process.env)
 const MOCK_HOST = "mock.twilio.local"

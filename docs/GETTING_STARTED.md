@@ -153,6 +153,74 @@ Use `adminPrefix` or `--admin-prefix` to relocate the control routes. Configure 
 key when you need one; see [Authoring a service](AUTHORING_A_SERVICE.md) for the shared
 control interface and [Fleets](FLEETS.md) for coordinating several emulators.
 
+## Mount an emulator inside your app
+
+HTTP runtimes expose `mount(prefix)`, which shares the runtime's state and controls while
+serving requests beneath your application's origin. It returns `fetch` and the method
+handlers needed by [Next.js App Router](https://nextjs.org/docs/app/api-reference/file-conventions/route):
+
+```ts
+// app/api/mock/google/[...path]/route.ts
+import { createRuntime } from "@crvouga/mockingbird-service-google"
+
+const google = createRuntime({
+  fixtures: { users: [{ email: "fixture@example.test", name: "Fixture" }] },
+})
+
+export const { GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS } =
+  google.mount("/api/mock/google")
+```
+
+For another Fetch-based framework, forward its Web `Request` to the mounted `fetch` handler.
+In Nuxt/Nitro with [h3 v1](https://v1.h3.dev/utils/request), use
+`defineEventHandler(event => handler.fetch(toWebRequest(event)))` with
+`handler = google.mount("/api/mock/google")`; import `toWebRequest` from `h3`. With
+[h3 v2](https://h3.dev/guide/api/h3event), pass `event.req` directly. Only the selected provider
+package is required by Mockingbird. Keep the runtime outside the per-request function.
+
+OIDC discovery advertises the incoming origin and mount path; namespace carrier paths remain
+usable underneath the mount. Local OAuth forms, redirects, cookies, pagination links and the
+admin UI stay under that path. Absolute OAuth callback URLs keep their configured destination.
+Non-HTML binary and streaming responses pass through; HTML pages are rewritten. An explicit `baseUrl` overrides the advertised
+origin, for example when a reverse proxy provides the public address. Socket Mode still uses
+Slack's Node listener.
+
+## Load synthetic provider fixtures
+
+The new provider services and expanded GitHub, Slack, Resend and Twilio services accept their
+typed `fixtures` shape from a JSON file in the CLI:
+
+```json
+{ "users": [{ "email": "fixture@example.test", "name": "Fixture" }] }
+```
+
+```bash
+mockingbird-google serve --fixtures google-fixtures.json --port 8901
+mockingbird-google serve --fixtures google-fixtures.json --base-url https://preview.example.test/google
+```
+
+Fleet entries accept inline `fixtures` and `baseUrl`; see [Fleets](FLEETS.md). Fixtures replay
+after reset. Fixture files contain a provider-specific JSON object, while `--seed` continues to
+control deterministic random choices. Use synthetic data. OAuth signing identities for Google,
+Apple, Microsoft, Okta and Clerk persist in namespace SQLite state, so restoring a snapshot in
+another process keeps its JWKS and tokens usable. Reset retains signing identity while clearing records and issued credentials.
+Keep persisted fixture state private when it contains authentication material.
+
+
+GitHub exposes `prepareFixtures` for tests that need generated App signing keys. Prepare once
+and reuse the returned fixtures; the generated keys are returned only to your code, and
+explicitly supplied keys are excluded:
+
+```ts
+import { createRuntime, prepareFixtures } from "@crvouga/mockingbird-service-github"
+
+const prepared = await prepareFixtures({
+  apps: [{ app_id: 12345, slug: "fixture-app", name: "Fixture App" }],
+})
+const github = createRuntime({ fixtures: prepared.fixtures })
+// Use prepared.generatedPrivateKeys in your test's JWT signer; keep them private.
+```
+
 ## Understand coverage and parity
 
 The interactive playground executes the same package in your browser. Supported operations,

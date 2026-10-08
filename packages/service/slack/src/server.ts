@@ -1,5 +1,11 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import {
+  type Listening,
+  listen,
+  providerServeOptions,
+  providerServeValues,
+  type ServeTarget,
+} from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type SlackRuntime, type SlackRuntimeOptions } from "./runtime.js"
 import { attachSocketServer } from "./socket-server.js"
 
@@ -35,6 +41,7 @@ export const serveTarget: ServeTarget = {
   name: "slack",
   defaultPort: DEFAULT_PORT,
   options: {
+    ...providerServeOptions,
     token: {
       type: "string",
       value: "<xoxb-…>",
@@ -46,9 +53,10 @@ export const serveTarget: ServeTarget = {
       description: "Answer channel_not_found for channels not created through /__admin/channels",
     },
   },
-  create: (values, common) => {
+  create: async (values, common) => {
     const token = text(values.token)
     return createRuntime({
+      ...(await providerServeValues<NonNullable<SlackRuntimeOptions["fixtures"]>>(values, common)),
       settings: {
         ...(token ? { tokens: [token] } : {}),
         ...(values["strict-channels"] === true ? { strictChannels: true } : {}),

@@ -1,0 +1,117 @@
+/*! Adapted from vercel-labs/emulate (Apache-2.0), modified for Mockingbird. See port.json, LICENSE_EMULATE and THIRD_PARTY_NOTICES.md. */
+import type { RouteContext } from "../../core/index.js";
+import { getSlackStore } from "../store.js";
+import { buildSlackEventEnvelope } from "../events.js";
+import {
+  formatSlackMessage,
+  generateTs,
+  hasSlackMessageContent,
+  normalizeSlackMessageText,
+  parseSlackRichMessageFields,
+} from "../helpers.js";
+
+export function webhookRoutes(ctx: RouteContext): void {
+  const { app, store, webhooks } = ctx;
+  const ss = () => getSlackStore(store);
+  const findChannel = (channel: string) =>
+    ss().channels.findOneBy("channel_id", channel) ??
+    ss()
+      .channels.all()
+      .find((ch) => !ch.is_im && !ch.is_mpim && ch.name === channel);
+
+  // Incoming Webhooks - POST /services/:teamId/:botId/:token
+  // The simplest Slack integration: apps POST JSON to send a message to a channel.
+  app.post("/services/:teamId/:botId/:token", async (c) => {
+    const contentType = c.req.header("Content-Type") ?? "";
+    const rawText = await c.req.text();
+
+    let body: Record<string, unknown>;
+    if (contentType.includes("application/json")) {
+      try {
+        body = JSON.parse(rawText);
+      } catch {
+        return c.text("invalid_payload", 400);
+      }
+    } else {
+      // Slack also accepts form-urlencoded with a "payload" field
+      const params = new URLSearchParams(rawText);
+      const payload = params.get("payload");
+      if (payload) {
+        try {
+          body = JSON.parse(payload);
+        } catch {
+          return c.text("invalid_payload", 400);
+        }
+      } else {
+        body = {};
+      }
+    }
+
+    const text = typeof body.text === "string" ? body.text : "";
+    const normalizedText = normalizeSlackMessageText(text);
+    const channelName = typeof body.channel === "string" ? body.channel : "";
+    const threadTs = typeof body.thread_ts === "string" ? body.thread_ts : undefined;
+    const richMessage = parseSlackRichMessageFields(body);
+    if (richMessage.error) {
+      return c.text(richMessage.error, 400);
+    }
+
+    if (!hasSlackMessageContent(text, richMessage.fields)) {
+      return c.text("no_text", 400);
+    }
+
+    // Find target channel: explicit channel, webhook default, or #general
+    const webhook = ss()
+      .incomingWebhooks.all()
+      .find((w) => w.token === c.req.param("token"));
+
+    let targetChannel = channelName ? findChannel(channelName) : null;
+
+    if (!targetChannel && webhook) {
+      targetChannel = findChannel(webhook.default_channel);
+    }
+
+    if (!targetChannel) {
+      targetChannel = findChannel("general");
+    }
+
+    if (!targetChannel) {
+      return c.text("channel_not_found", 404);
+    }
+
+    const ts = generateTs(store.now);
+    const botId = c.req.param("botId");
+
+    const msg = ss().messages.insert({
+      ts,
+      channel_id: targetChannel.channel_id,
+      user: botId,
+      text: normalizedText.text,
+      type: "message" as const,
+      subtype: "bot_message",
+      thread_ts: threadTs,
+      ...richMessage.fields,
+      bot_id: botId,
+      reply_count: 0,
+      reply_users: [],
+      reactions: [],
+    });
+
+    const { user: _user, ...eventMessage } = formatSlackMessage(msg);
+
+    await webhooks.dispatch(
+      "message",
+      undefined,
+      buildSlackEventEnvelope(webhook?.team_id ?? targetChannel.team_id, {
+        ...eventMessage,
+        type: "message",
+        subtype: "bot_message",
+        channel: targetChannel.channel_id,
+        bot_id: botId,
+      }, store.now),
+      "slack",
+    );
+
+    return c.text("ok");
+  });
+}

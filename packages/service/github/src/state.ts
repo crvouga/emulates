@@ -14,7 +14,7 @@ export type Repository = {
   node_id: string
   name: string
   full_name: string
-  owner: { login: string; id: number; node_id: string; type: "Organization" }
+  owner: { login: string; id: number; node_id: string; type: "Organization" | "User" }
   private: boolean
   fork: boolean
   default_branch: string

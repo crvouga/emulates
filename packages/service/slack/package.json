@@ -11,7 +11,11 @@
     "CHANGELOG.md",
     "DISCOVERY.md",
     "SUPPORT.md",
-    "openapi.yaml"
+    "openapi.yaml",
+    "LICENSE_EMULATE",
+    "THIRD_PARTY_NOTICES.md",
+    "routes.json",
+    "API_EVIDENCE.md"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -97,7 +101,11 @@
   },
   "dependencies": {
     "@crvouga/mockingbird-service-sqlite": "workspace:*",
-    "hono": "4.11.9"
+    "hono": "4.11.9",
+    "buffer": "6.0.3",
+    "@noble/hashes": "2.4.0",
+    "jose": "6.2.2",
+    "graphql": "17.0.0"
   },
   "devDependencies": {
     "@crvouga/mockingbird-adapter-node": "workspace:*",
@@ -115,6 +123,7 @@
     "@slack/bolt": "4.4.0",
     "@slack/socket-mode": "2.0.4",
     "@slack/web-api": "7.9.3",
-    "fast-check": "4.9.0"
+    "fast-check": "4.9.0",
+    "@crvouga/mockingbird-http-provider": "workspace:*"
   }
 }

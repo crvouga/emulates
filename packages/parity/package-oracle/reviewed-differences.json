@@ -1,0 +1,874 @@
+{
+  "stripe": {
+    "DELETE /v1/customers/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GET /v1/charges/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GET /v1/checkout/sessions/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GET /v1/customers": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "data": {
+            "array": []
+          },
+          "has_more": "boolean",
+          "object": "string",
+          "url": "string"
+        }
+      },
+      "expected": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "data": {
+            "array": [
+              "{\"created\":\"number\",\"description\":\"null\",\"email\":\"string\",\"id\":\"string\",\"livemode\":\"boolean\",\"metadata\":{},\"name\":\"string\",\"object\":\"string\"}"
+            ]
+          },
+          "has_more": "boolean",
+          "object": "string",
+          "url": "string"
+        }
+      }
+    },
+    "GET /v1/customers/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GET /v1/payment_intents/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GET /v1/prices/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GET /v1/products/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/checkout/sessions": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "message": "string",
+            "param": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/checkout/sessions/:id/expire": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/customer_sessions": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "message": "string",
+            "param": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/customers": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "address": "null",
+          "balance": "number",
+          "created": "number",
+          "currency": "null",
+          "customer_account": "null",
+          "default_source": "null",
+          "delinquent": "boolean",
+          "description": "null",
+          "discount": "null",
+          "email": "null",
+          "id": "string",
+          "invoice_prefix": "string",
+          "invoice_settings": {
+            "custom_fields": "null",
+            "default_payment_method": "null",
+            "footer": "null",
+            "rendering_options": "null"
+          },
+          "livemode": "boolean",
+          "metadata": {},
+          "name": "null",
+          "next_invoice_sequence": "number",
+          "object": "string",
+          "phone": "null",
+          "preferred_locales": {
+            "array": []
+          },
+          "shipping": "null",
+          "tax_exempt": "string",
+          "test_clock": "null"
+        }
+      },
+      "expected": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "created": "number",
+          "description": "null",
+          "email": "null",
+          "id": "string",
+          "livemode": "boolean",
+          "metadata": {},
+          "name": "null",
+          "object": "string"
+        }
+      }
+    },
+    "POST /v1/customers/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/payment_intents": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "message": "string",
+            "param": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/payment_intents/:id": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/payment_intents/:id/cancel": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/payment_intents/:id/confirm": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "message": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/prices": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "message": "string",
+            "param": "string",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "POST /v1/products": {
+      "reason": "Native Stripe retains its richer vendor schemas and error diagnostics; accounts start empty rather than with the competitor sample customer.",
+      "actual": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "code": "string",
+            "doc_url": "string",
+            "message": "string",
+            "param": "string",
+            "request_log_url": "string",
+            "type": "string"
+          }
+        }
+      },
+      "expected": {
+        "status": 400,
+        "contentType": "application/json",
+        "body": {
+          "error": {
+            "message": "string",
+            "param": "string",
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "resend": {
+    "GET /emails": {
+      "reason": "Existing native Resend list responses include has_more pagination metadata.",
+      "actual": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "data": {
+            "array": []
+          },
+          "has_more": "boolean",
+          "object": "string"
+        }
+      },
+      "expected": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "data": {
+            "array": []
+          },
+          "object": "string"
+        }
+      }
+    }
+  },
+  "github": {
+    "GET /repos/:owner/:repo": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "GET /repos/:owner/:repo/git/matching-refs/:ref{.+}": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "GET /repos/:owner/:repo/git/ref/:ref{.+}": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "GET /repos/:owner/:repo/pulls": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "GET /repos/:owner/:repo/pulls/:pull_number": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "PATCH /repos/:owner/:repo/git/refs/:ref{.+}": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "PATCH /repos/:owner/:repo/pulls/:pull_number": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "POST /repos/:owner/:repo/git/refs": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    },
+    "POST /repos/:owner/:repo/pulls": {
+      "reason": "Existing native GitHub errors include the documented string status field.",
+      "actual": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string",
+          "status": "string"
+        }
+      },
+      "expected": {
+        "status": 404,
+        "contentType": "application/json",
+        "body": {
+          "documentation_url": "string",
+          "message": "string"
+        }
+      }
+    }
+  },
+  "slack": {
+    "GET /api/files.list": {
+      "reason": "Native Slack keeps its existing seeded files and returns bot/enterprise identity in auth.test.",
+      "actual": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "files": {
+            "array": [
+              "{\"channels\":{\"array\":[]},\"comments_count\":\"number\",\"created\":\"number\",\"display_as_bot\":\"boolean\",\"editable\":\"boolean\",\"external_type\":\"string\",\"filetype\":\"string\",\"groups\":{\"array\":[]},\"has_rich_preview\":\"boolean\",\"id\":\"string\",\"ims\":{\"array\":[]},\"is_external\":\"boolean\",\"is_public\":\"boolean\",\"is_starred\":\"boolean\",\"mimetype\":\"string\",\"mode\":\"string\",\"name\":\"string\",\"permalink\":\"string\",\"pretty_type\":\"string\",\"public_url_shared\":\"boolean\",\"shares\":{},\"size\":\"number\",\"timestamp\":\"number\",\"title\":\"string\",\"url_private\":\"string\",\"url_private_download\":\"string\",\"user\":\"string\",\"user_team\":\"string\"}"
+            ]
+          },
+          "ok": "boolean",
+          "paging": {
+            "count": "number",
+            "page": "number",
+            "pages": "number",
+            "total": "number"
+          }
+        }
+      },
+      "expected": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "files": {
+            "array": []
+          },
+          "ok": "boolean",
+          "paging": {
+            "count": "number",
+            "page": "number",
+            "pages": "number",
+            "total": "number"
+          }
+        }
+      }
+    },
+    "POST /api/auth.test": {
+      "reason": "Native Slack keeps its existing seeded files and returns bot/enterprise identity in auth.test.",
+      "actual": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "bot_id": "string",
+          "is_enterprise_install": "boolean",
+          "ok": "boolean",
+          "team": "string",
+          "team_id": "string",
+          "url": "string",
+          "user": "string",
+          "user_id": "string"
+        }
+      },
+      "expected": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "ok": "boolean",
+          "team": "string",
+          "team_id": "string",
+          "url": "string",
+          "user": "string",
+          "user_id": "string"
+        }
+      }
+    },
+    "POST /api/files.list": {
+      "reason": "Native Slack keeps its existing seeded files and returns bot/enterprise identity in auth.test.",
+      "actual": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "files": {
+            "array": [
+              "{\"channels\":{\"array\":[]},\"comments_count\":\"number\",\"created\":\"number\",\"display_as_bot\":\"boolean\",\"editable\":\"boolean\",\"external_type\":\"string\",\"filetype\":\"string\",\"groups\":{\"array\":[]},\"has_rich_preview\":\"boolean\",\"id\":\"string\",\"ims\":{\"array\":[]},\"is_external\":\"boolean\",\"is_public\":\"boolean\",\"is_starred\":\"boolean\",\"mimetype\":\"string\",\"mode\":\"string\",\"name\":\"string\",\"permalink\":\"string\",\"pretty_type\":\"string\",\"public_url_shared\":\"boolean\",\"shares\":{},\"size\":\"number\",\"timestamp\":\"number\",\"title\":\"string\",\"url_private\":\"string\",\"url_private_download\":\"string\",\"user\":\"string\",\"user_team\":\"string\"}"
+            ]
+          },
+          "ok": "boolean",
+          "paging": {
+            "count": "number",
+            "page": "number",
+            "pages": "number",
+            "total": "number"
+          }
+        }
+      },
+      "expected": {
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "files": {
+            "array": []
+          },
+          "ok": "boolean",
+          "paging": {
+            "count": "number",
+            "page": "number",
+            "pages": "number",
+            "total": "number"
+          }
+        }
+      }
+    }
+  }
+}

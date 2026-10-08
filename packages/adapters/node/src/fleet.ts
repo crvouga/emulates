@@ -109,6 +109,8 @@ const httpChild = async (
     adminKey: entry.adminKey,
     seed: entry.seed,
     onLog: options.onLog,
+    ...(entry.fixtures !== undefined ? { fixtures: entry.fixtures } : {}),
+    ...(entry.baseUrl !== undefined ? { baseUrl: entry.baseUrl } : {}),
   })
   const adminPrefix = resolveAdminPrefix(entry.adminPrefix)
   runtime.isolateNamespaces()

@@ -15,6 +15,7 @@ import {
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
+import type { TwilioAPIOptions } from "./index.js"
 import { DEFAULT_ACCOUNT_SID, TWILIO_NAMESPACE, TwilioAPI } from "./index.js"
 import type { ValidationError } from "./phone.js"
 import { routeByHost } from "./rewrite.js"
@@ -157,7 +158,7 @@ export type TwilioAppWebhooks = {
   messagingServiceSid?: string
 }
 
-export type TwilioRuntimeOptions = {
+export type TwilioRuntimeOptions = Pick<TwilioAPIOptions, "fixtures" | "baseUrl" | "tokens"> & {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
@@ -284,10 +285,15 @@ export const createRuntime = (options: TwilioRuntimeOptions = {}): TwilioRuntime
     credential: (request) => basicAuth(request)?.username,
     presets: TWILIO_PRESETS,
     webhooks: hub,
-    create: ({ sqlite, namespace, clock }) =>
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) =>
       new TwilioAPI({
+        ...(options.fixtures ? { fixtures: options.fixtures } : {}),
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(options.tokens ? { tokens: options.tokens } : {}),
         sqlite,
         namespace,
+        publicNamespace,
+        adminPrefix,
         now: clock.now,
         ...(options.verify ? { verify: options.verify } : {}),
         ...(options.accounts ? { accounts: options.accounts } : {}),

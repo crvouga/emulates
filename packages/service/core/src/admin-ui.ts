@@ -1,3 +1,4 @@
+import { requestBaseUrl } from "@crvouga/mockingbird-core"
 import { adminClientSource } from "./admin-client.js"
 import type { AdminRoutes } from "./control.js"
 import { ADMIN_KEY_HEADER, ADMIN_PREFIX } from "./control.js"
@@ -101,11 +102,14 @@ export const adminUiRoutes = (
   ui: AdminUi | undefined,
   adminPrefix = ADMIN_PREFIX,
 ): AdminRoutes => {
-  const shell = () => renderAdminDocument(service, adminPrefix)
-  const document = () => (ui?.render ? ui.render({ service, defaultHtml: shell }) : shell())
+  const document = (request: Request) => {
+    const mountPrefix = new URL(requestBaseUrl(request)).pathname.replace(/\/$/, "")
+    const shell = () => renderAdminDocument(service, `${mountPrefix}${adminPrefix}`)
+    return ui?.render ? ui.render({ service, defaultHtml: shell }) : shell()
+  }
   return {
-    "GET /ui": () => htmlResponse(document()),
-    "GET /ui/": () => htmlResponse(document()),
+    "GET /ui": ({ request }) => htmlResponse(document(request)),
+    "GET /ui/": ({ request }) => htmlResponse(document(request)),
     "GET /ui/manifest": () =>
       json({
         service,

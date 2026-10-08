@@ -1,0 +1,56 @@
+{
+  "name": "@crvouga/mockingbird-http-provider",
+  "version": "0.0.0-development",
+  "private": true,
+  "description": "Portable vendor route primitives and SQLite-backed provider models.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE_EMULATE",
+    "THIRD_PARTY_NOTICES.md",
+    "port.json"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/http/provider"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/http/provider#readme",
+  "keywords": [
+    "mockingbird",
+    "form-urlencoded",
+    "codec"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "layer": "http-provider"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test --pass-with-no-tests",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "buffer": "6.0.3",
+    "@noble/hashes": "2.4.0",
+    "jose": "6.2.2",
+    "graphql": "17.0.0",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*"
+  }
+}

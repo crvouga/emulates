@@ -9,6 +9,7 @@ import {
   IdempotencyStore,
   jsonResponse,
   type OperationHandler,
+  requestBaseUrl,
   type Service,
   type WebhookEndpoint,
 } from "@crvouga/mockingbird-service"
@@ -25,6 +26,7 @@ import { STRIPE_NAMESPACE } from "./constants.js"
 import { requestInfo, setRequestInfo } from "./context.js"
 import { type Corpus, seedCorpus } from "./corpus.js"
 import { couponHandlers } from "./coupons.js"
+import { customerSessionHandlers } from "./customer-sessions.js"
 import { customerHandlers } from "./customers.js"
 import { disputeHandlers } from "./disputes.js"
 import {
@@ -216,6 +218,7 @@ export class StripeAPI implements FetchAPI {
     this.services = services
     this.idempotency = new IdempotencyStore(sqlite, namespace, "stripe_idempotency")
     const handlers = {
+      ...customerSessionHandlers(services),
       ...customerHandlers(services),
       ...paymentMethodHandlers(services),
       ...paymentIntentHandlers(services),
@@ -336,7 +339,7 @@ export class StripeAPI implements FetchAPI {
     const cors = request.headers.has("origin")
     if (request.method === "OPTIONS")
       return new Response(null, { status: 204, headers: CORS_HEADERS })
-    const origin = url.origin
+    const origin = requestBaseUrl(request)
     const headerVersion = request.headers.get("stripe-version")
     if (BROWSER_PATH.test(url.pathname)) {
       setRequestInfo(request, {

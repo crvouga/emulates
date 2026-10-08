@@ -1,0 +1,153 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Linear API API",
+    "version": "0.1.0",
+    "description": "Synthetic public vendor API. Licensed route ports; native SQLite namespaces and runtime controls."
+  },
+  "servers": [
+    {
+      "url": "https://api.linear.app"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "GET /",
+        "summary": "GET /",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/graphql": {
+      "get": {
+        "operationId": "GET /graphql",
+        "summary": "GET /graphql",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "post": {
+        "operationId": "POST /graphql",
+        "summary": "POST /graphql",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth/authorize": {
+      "get": {
+        "operationId": "GET /oauth/authorize",
+        "summary": "GET /oauth/authorize",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth/authorize/callback": {
+      "post": {
+        "operationId": "POST /oauth/authorize/callback",
+        "summary": "POST /oauth/authorize/callback",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth/revoke": {
+      "post": {
+        "operationId": "POST /oauth/revoke",
+        "summary": "POST /oauth/revoke",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth/token": {
+      "post": {
+        "operationId": "POST /oauth/token",
+        "summary": "POST /oauth/token",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    }
+  }
+}

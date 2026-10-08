@@ -116,6 +116,9 @@ export type CommonServeOptions = {
   adminKey: string | undefined
   seed: string | undefined
   onLog: ((entry: RequestLog) => void) | undefined
+  /** Synthetic provider fixture objects supplied by a fleet entry. */
+  fixtures?: Record<string, unknown>
+  baseUrl?: string
 }
 
 /**
@@ -221,6 +224,8 @@ export type ConfigService = {
   adminPrefix?: string
   adminKey?: string
   seed?: string
+  fixtures?: Record<string, unknown>
+  baseUrl?: string
   password?: string
   user?: string
   database?: string

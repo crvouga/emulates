@@ -1,0 +1,282 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Microsoft API API",
+    "version": "0.1.0",
+    "description": "Synthetic public vendor API. Licensed route ports; native SQLite namespaces and runtime controls."
+  },
+  "servers": [
+    {
+      "url": "https://login.microsoftonline.com"
+    }
+  ],
+  "paths": {
+    "/.well-known/openid-configuration": {
+      "get": {
+        "operationId": "GET /.well-known/openid-configuration",
+        "summary": "GET /.well-known/openid-configuration",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/{tenant}/v2.0/.well-known/openid-configuration": {
+      "get": {
+        "operationId": "GET /:tenant/v2.0/.well-known/openid-configuration",
+        "summary": "GET /:tenant/v2.0/.well-known/openid-configuration",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/discovery/v2.0/keys": {
+      "get": {
+        "operationId": "GET /discovery/v2.0/keys",
+        "summary": "GET /discovery/v2.0/keys",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/v2.0/authorize": {
+      "get": {
+        "operationId": "GET /oauth2/v2.0/authorize",
+        "summary": "GET /oauth2/v2.0/authorize",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/v2.0/logout": {
+      "get": {
+        "operationId": "GET /oauth2/v2.0/logout",
+        "summary": "GET /oauth2/v2.0/logout",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oidc/userinfo": {
+      "get": {
+        "operationId": "GET /oidc/userinfo",
+        "summary": "GET /oidc/userinfo",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/v1.0/me": {
+      "get": {
+        "operationId": "GET /v1.0/me",
+        "summary": "GET /v1.0/me",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/v1.0/users/{id}": {
+      "get": {
+        "operationId": "GET /v1.0/users/:id",
+        "summary": "GET /v1.0/users/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/{tenant}/oauth2/token": {
+      "post": {
+        "operationId": "POST /:tenant/oauth2/token",
+        "summary": "POST /:tenant/oauth2/token",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/v2.0/authorize/callback": {
+      "post": {
+        "operationId": "POST /oauth2/v2.0/authorize/callback",
+        "summary": "POST /oauth2/v2.0/authorize/callback",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/v2.0/revoke": {
+      "post": {
+        "operationId": "POST /oauth2/v2.0/revoke",
+        "summary": "POST /oauth2/v2.0/revoke",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/v2.0/token": {
+      "post": {
+        "operationId": "POST /oauth2/v2.0/token",
+        "summary": "POST /oauth2/v2.0/token",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,13 @@
 import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
+  ProviderExpansion,
+  type ProviderOptions,
+  type SlackSeedConfig,
+  seedSlack,
+  selectOperations,
+  slackPlugin,
+} from "@crvouga/mockingbird-http-provider"
+import {
   ADMIN_PREFIX,
   type APIOptions,
   annotateResponse,
@@ -16,8 +24,10 @@ import {
   type Service,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
-import type { Hono } from "hono"
-import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { Hono } from "hono"
+import { syncFromExpanded, syncToExpanded } from "./expanded-state.js"
+import { document } from "./generated/openapi.js"
+import { type NativeOperationId, nativeOperationIds } from "./native-operations.js"
 import { closeSocketNamespace, issueSocketTicket } from "./sockets.js"
 import {
   type Settings,
@@ -45,15 +55,17 @@ export { DEFAULT_CHANNELS, DEFAULT_FILES, DEFAULT_SETTINGS, DEFAULT_USERS } from
 
 export const SLACK_NAMESPACE = "slack"
 
-export type SlackAPIOptions = APIOptions & {
-  /** Initial per-namespace settings (workspace identity, accepted tokens, strict channels). */
-  settings?: Partial<Settings>
-  /**
-   * Public namespace (`default`, or the `x-mockingbird-namespace` value). Socket records are
-   * keyed by this, which is what `/__admin` selects. `namespace` is the storage key.
-   */
-  publicNamespace?: string
-}
+export type SlackAPIOptions = APIOptions &
+  Pick<ProviderOptions, "tokens" | "baseUrl" | "publicNamespace" | "adminPrefix"> & {
+    fixtures?: SlackSeedConfig
+    /** Initial per-namespace settings (workspace identity, accepted tokens, strict channels). */
+    settings?: Partial<Settings>
+    /**
+     * Public namespace (`default`, or the `x-mockingbird-namespace` value). Socket records are
+     * keyed by this, which is what `/__admin` selects. `namespace` is the storage key.
+     */
+    publicNamespace?: string
+  }
 
 const WEBHOOK_PATH = /^\/services\/([^/]+\/[^/]+\/[^/]+)\/?$/
 
@@ -172,6 +184,8 @@ export class SlackAPI implements FetchAPI {
   readonly app: Hono
   readonly sqlite: SqliteClient
   readonly state: SlackState
+  private tail: Promise<unknown> = Promise.resolve()
+  private readonly expansion: ProviderExpansion
   private readonly service: Service
   private readonly now: () => number
   private readonly namespaceName: string
@@ -205,7 +219,7 @@ export class SlackAPI implements FetchAPI {
           throw error
         }
       }
-    const handlers = defineOperations<SupportedOperationId>({
+    const handlers = defineOperations<NativeOperationId>({
       PostIncomingWebhook: (context) => this.incomingWebhook(context),
       ChatPostMessage: api((args, context) => this.postMessage(args, context)),
       ChatUpdate: api((args, context) => this.update(args, context)),
@@ -229,7 +243,7 @@ export class SlackAPI implements FetchAPI {
       AppsConnectionsOpen: (context) => this.connectionsOpen(context),
     })
     this.service = createService({
-      document,
+      document: selectOperations(document, nativeOperationIds),
       handlers,
       sqlite,
       namespace,
@@ -244,17 +258,76 @@ export class SlackAPI implements FetchAPI {
       },
       before: (context) => this.gate(context),
     })
-    this.app = this.service.app
+    this.app = new Hono().all("*", (c) => this.fetch(c.req.raw))
     this.sqlite = this.service.sqlite
+    this.expansion = new ProviderExpansion(
+      slackPlugin,
+      selectOperations(document, nativeOperationIds),
+      {
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(options.tokens ? { tokens: options.tokens } : {}),
+        ...(options.publicNamespace !== undefined
+          ? { publicNamespace: options.publicNamespace }
+          : {}),
+        ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
+        sqlite,
+        namespace,
+        now: this.now,
+        fallbackUser: { login: this.state.current().botUserId, id: 1, scopes: [] },
+      },
+    )
+    if (options.fixtures) {
+      this.expansion.configureFixtures(options.fixtures, seedSlack)
+      syncFromExpanded(this.state, this.expansion)
+    }
   }
 
   fetch(request: Request): Promise<Response> {
-    return this.service.fetch(request)
+    const result = this.tail.then(
+      () => this.handleFetch(request),
+      () => this.handleFetch(request),
+    )
+    this.tail = result.then(
+      () => undefined,
+      () => undefined,
+    )
+    return result
+  }
+  private async handleFetch(request: Request): Promise<Response> {
+    if (this.expansion.handles(request)) {
+      syncToExpanded(this.state, this.expansion)
+      const path = new URL(request.url).pathname
+      if (path.startsWith("/api/") && !path.includes("oauth")) {
+        let token = bearerToken(request) ?? new URL(request.url).searchParams.get("token")
+        if (
+          !token &&
+          request.headers.get("content-type")?.includes("application/x-www-form-urlencoded")
+        )
+          token = String((await request.clone().formData()).get("token") ?? "")
+        if (!token) return fail("not_authed")
+        const accepted = this.settings().tokens
+        if (!(accepted.length ? accepted.includes(token) : /^xox[abp]-/.test(token)))
+          return fail("invalid_auth")
+        if (!bearerToken(request)) {
+          const headers = new Headers(request.headers)
+          headers.set("authorization", `Bearer ${token}`)
+          request = new Request(request, { headers })
+        }
+      }
+      const response = await this.expansion.fetch(request)
+      syncFromExpanded(this.state, this.expansion)
+      return response
+    }
+    const response = await this.service.fetch(request)
+    return response
   }
 
   async reset(): Promise<void> {
+    await this.tail
     closeSocketNamespace(this.namespaceName)
     await this.service.reset()
+    await this.expansion.reset()
+    syncFromExpanded(this.state, this.expansion)
     this.state.ensureSeeded()
   }
 

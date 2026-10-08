@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test"
 import { ParityError, parity } from "@crvouga/mockingbird-parity"
 import { fcParameters } from "@crvouga/mockingbird-testing"
 import fc from "fast-check"
-import { document, SlackAPI, supportedOperationIds } from "./src/index.js"
+import { document, SlackAPI } from "./src/index.js"
+import { nativeOperationIds as supportedOperationIds } from "./src/native-operations.js"
 
 const params = fcParameters(process.env)
 const MOCK_HOST = "mock.slack.local"

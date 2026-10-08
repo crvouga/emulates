@@ -1,0 +1,62 @@
+/*! Adapted from vercel-labs/emulate (Apache-2.0), modified for Mockingbird. See port.json, LICENSE_EMULATE and THIRD_PARTY_NOTICES.md. */
+import type { Entity } from "../core/index.js";
+
+export interface ResendEmail extends Entity {
+  uuid: string;
+  from: string;
+  to: string[];
+  subject: string;
+  html: string | null;
+  text: string | null;
+  cc: string[];
+  bcc: string[];
+  reply_to: string[];
+  headers: Record<string, string>;
+  tags: Array<{ name: string; value: string }>;
+  status: "sent" | "delivered" | "bounced" | "canceled" | "scheduled";
+  scheduled_at: string | null;
+  last_event: string;
+}
+
+export interface ResendIdempotencyRecord extends Entity {
+  idempotency_key: string;
+  endpoint: "emails" | "emails/batch";
+  request_fingerprint: string;
+  response_email_ids: string[];
+}
+
+export interface ResendDomain extends Entity {
+  uuid: string;
+  name: string;
+  status: "pending" | "verified";
+  region: string;
+  records: Array<{
+    record: string;
+    name: string;
+    type: string;
+    ttl: string;
+    status: "pending" | "verified";
+    value: string;
+    priority?: number;
+  }>;
+}
+
+export interface ResendApiKey extends Entity {
+  uuid: string;
+  name: string;
+  token: string;
+}
+
+export interface ResendAudience extends Entity {
+  uuid: string;
+  name: string;
+}
+
+export interface ResendContact extends Entity {
+  uuid: string;
+  audience_id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  unsubscribed: boolean;
+}

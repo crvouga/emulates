@@ -59,6 +59,13 @@ const walk = async (stripe: Stripe, tag: string) => {
     },
     metadata: { userId: tag, referral: "none" },
   })
+  const customerSession = await stripe.customerSessions.create({
+    customer: customer.id,
+    components: { payment_element: { enabled: true } },
+  })
+  expect(customerSession.object).toBe("customer_session")
+  expect(customerSession.customer).toBe(customer.id)
+  expect(customerSession.expires_at - customerSession.created).toBe(1800)
   const clock = await stripe.testHelpers.testClocks.create({ frozen_time: now, name: tag })
   await stripe.testHelpers.testClocks.retrieve(clock.id)
   const clocked = await stripe.customers.create({

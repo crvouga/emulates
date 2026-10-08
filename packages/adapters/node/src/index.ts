@@ -10,6 +10,7 @@ export type {
   ServeTarget,
 } from "./cli.js"
 export { runCli, serveCommand } from "./cli.js"
+export { providerServeOptions, providerServeValues } from "./fixtures.js"
 export type {
   EndpointManifest,
   Fleet,
