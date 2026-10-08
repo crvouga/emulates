@@ -10,7 +10,7 @@
  *     npm, and the archived @crvouga/postgres-mem / @crvouga/sqlite-mem).
  *
  * Steps:
- *   1. make sure npm >= 11.10 is on PATH (`npm trust` needs it; a private copy is used if not)
+ *   1. make sure npm >= 11.15 is on PATH (`npm trust` needs it; a private copy is used if not)
  *   2. make sure you are logged in to npm (runs `npm login` if not)
  *   3. check out origin/main in a kept worktree. A rerun reuses that install and build,
  *      and a checkout that is already origin/main and already built donates its dist.
@@ -52,7 +52,7 @@ function enter(dir: string) {
 }
 
 const dryRun = process.argv.includes("--dry-run")
-const MIN_NPM = [11, 10] as const
+const MIN_NPM = [11, 15] as const
 
 async function run(cmd: string[], cwd: string, env: Record<string, string | undefined>) {
   enter(cwd)

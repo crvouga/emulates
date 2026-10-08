@@ -48,7 +48,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
-      # Trusted Publishing needs npm >= 11.5; `npm trust` needs >= 11.10.
+      # Trusted Publishing needs npm >= 11.5.1. Account trust setup runs in the local seed.
       - name: Update npm
         run: npm install -g npm@11
 
