@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-docker
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Work-in-progress Docker Engine API 1.52 mock. It implements GET/HEAD `/_ping`,
+Work-in-progress Docker Engine API 1.52 emulator. It implements GET/HEAD `/_ping`,
 GET `/version`, `/info`, `/containers/json`, and `/containers/{id}/json`, plus
 Mockingbird's shared runtime controls. POST `/containers/create` persists a stopped
 container. Start, wait, stop, kill, and removal use explicit simulated completion.
@@ -38,7 +38,7 @@ HTTP clients can target `http://127.0.0.1:8826`. A Docker client using `DOCKER_H
 can select `tcp://127.0.0.1:8826`. Unversioned and `/v1.52` provider routes work.
 Versions above 1.52 or below the simulated Engine minimum 1.44 receive provider
 400 errors (plain text below 1.24, JSON otherwise). Versions 1.44–1.51 receive an
-explicit mock-only 501: their wire formats are not implemented. The mock reports
+explicit emulator-only 501: their wire formats are not implemented. The emulator reports
 a synthetic Engine 29.1.0 identity; this is not a required local Docker version.
 Selected API 1.52 scenarios passed against Engine 29.8.0; full client and Engine
 compatibility are not claimed. See [verification boundaries](#verification-boundaries).
@@ -95,7 +95,7 @@ or exact tag. Duplicate IDs, names and image tags conflict; unknown images retur
 fields also accept `exitCode`, `entrypoint`, `env`, `workingDir`, `user`,
 `hostConfig`, `networkSettings`, `sizeRw`, and `sizeRootFs`. Status is one of
 `created`, `running`, `paused`, `restarting`, `removing`, `exited`, or `dead`.
-Timestamps use the mock clock; reported PIDs are zero, never host processes.
+Timestamps use the emulator clock; reported PIDs are zero, never host processes.
 
 `GET /__admin/docker/daemon` reports `{ available, rootless, simulated: true }`.
 `POST` to the same route changes either boolean. `available: false` drops provider
@@ -113,7 +113,7 @@ other values mean true. Inspect resolves full IDs, unique prefixes, and names.
 `status`, `label`, and `exited`. Categories combine with AND; values within a
 category combine with OR, except labels which all must match. Name matching
 supports literals, dots, anchors, and at most one `.*`; other regex constructs
-and other filter categories return explicit mock-only 501 errors. Malformed
+and other filter categories return explicit emulator-only 501 errors. Malformed
 filter shapes, statuses and exit codes return 400. Seeded state and daemon
 settings participate in shared reset and Timeline checkpoints.
 
@@ -129,7 +129,7 @@ The supported body fields are `Image`, `Cmd`, `Entrypoint`, `Env`, `Labels`,
 `WorkingDir`, `User`, `Hostname`, `Domainname`, `AttachStdin`, `AttachStdout`,
 `AttachStderr`, `OpenStdin`, `StdinOnce`, `Tty`, `NetworkDisabled`, `StopSignal`,
 `StopTimeout`, `HostConfig`, and `NetworkingConfig`. Unsupported fields return
-explicit mock-only 501 errors. Bad field types, relative working directories,
+explicit emulator-only 501 errors. Bad field types, relative working directories,
 invalid stop signals, invalid names, and missing commands return 400.
 Image defaults supply commands/entrypoints, environment, labels and selected
 strings. Request environment keys and labels take precedence. `Entrypoint: [""]`
@@ -157,7 +157,7 @@ network validation is not modelled. No host isolation claim follows from it.
 returns 304 when already running/restarting, and returns 409 for paused, dead,
 or removing records. No image is executed. The clock supplies `StartedAt`;
 restart clears the exit code but retains the prior `FinishedAt` until completion.
-Checkpoint, checkpoint-dir and detachKeys options return explicit mock-only 501.
+Checkpoint, checkpoint-dir and detachKeys options return explicit emulator-only 501.
 As in the pinned Engine route, bodies longer than seven bytes and chunked bodies
 return 400; use an empty body.
 
@@ -195,7 +195,7 @@ checks selected wait and termination outcomes; cancellation coverage is syntheti
 finishes execution, then returns 204. Already-stopped containers return 304.
 `signal` selects the requested signal (default Config.StopSignal or TERM); `t`
 selects the timeout (default Config.StopTimeout or 10 seconds; negative means no
-escalation timeout). The mock records these parameters for scenario inspection.
+escalation timeout). The emulator records these parameters for scenario inspection.
 It does not schedule real timers or automatically declare exit when a timeout
 expires: script graceful completion or forced completion, including the exit code,
 through `/__admin/docker/containers/<id>/complete`. This permits controlled delayed
@@ -207,7 +207,7 @@ signal names/numbers acknowledge delivery with 204 while preserving execution
 state. The fixture decides the subsequent process response. No host signal is
 sent. Killing a stopped container returns 409. Invalid kill signals return 400;
 pinned Engine stop signal errors and malformed `t` return 500. Timeouts outside
-JavaScript's safe integer range return explicit mock-only 501.
+JavaScript's safe integer range return explicit emulator-only 501.
 
 `DELETE /containers/<id>` removes a stopped record and releases its name (204).
 Running or paused records require `force=true`; otherwise removal returns 409.
@@ -215,7 +215,7 @@ Forced removal records intent and waits for explicit completion, then removes th
 record and wakes both exit and removed waiters. A second removal while forced
 removal is pending returns 409. Seed status `removing` to model an existing removal
 conflict. Missing records return 404. `v` is accepted but no host volumes exist;
-`link=true` is outside this subset and returns mock-only 501.
+`link=true` is outside this subset and returns emulator-only 501.
 
 `GET /__admin/docker/containers/<id>/termination` returns the last accepted request
 (operation, numeric signal, optional timeout and request time), `removalPending`,
@@ -270,7 +270,7 @@ Type exports include `DockerAPIOptions`, `DockerRuntime`, `DockerRuntimeOptions`
 ## Deliberately not modelled
 
 Fetch attach and unsupported options return Mockingbird-specific 501 JSON errors;
-unknown routes return 404. The mock never starts real containers or executes
+unknown routes return 404. The emulator never starts real containers or executes
 commands. The Node server supports the documented non-TTY attach handshake and
 scripted duplex streams; a Fetch response cannot represent that upgrade.
 
@@ -359,7 +359,7 @@ already-framed bytes to the last fragment. This does not promise OS packet
 boundaries. The bytes are caller-owned wire fixtures, not generated container
 output. Use the live attachment controls below for framing, channel routing and scripted
 stdin. No command interprets the input, and payload bytes never enter the journal. Connection loss does not stop the container.
-Owned sockets close on server shutdown. The mock never connects to a real Engine;
+Owned sockets close on server shutdown. The emulator never connects to a real Engine;
 the separately invoked oracle performs the authorized provider comparison.
 
 ## Scripted attach streams
@@ -411,7 +411,7 @@ stale writes reject. Socket handles and buffered payloads are never snapshotted.
 `attachStreams.maxQueuedBytes` and `maxStdinBytes` default to 1 MiB. Queued output
 includes frame headers; exceeding the output limit rejects the write. Exceeding
 unread stdin capacity cancels that attachment. Stream limits must be positive
-integers no greater than 16 MiB. These bounds are mock resource controls.
+integers no greater than 16 MiB. These bounds are emulator resource controls.
 
 ## Verification boundaries
 
@@ -429,7 +429,7 @@ requests on a retained connection and raw attach bytes. It verifies lost create
 and start responses, lookup by name, duplicate-name conflict, framed binary
 stdout/stderr, raw stdin, continued execution after attachment loss, and lost
 stop/kill/remove responses followed by completion and re-inspection. Setup and
-completion use public mock admin controls; attachment handles only script output
+completion use public emulator admin controls; attachment handles only script output
 and observe synthetic stdin. Public request metadata confirms each dropped mutation
 was accepted and checkpointed. No client assertion imports provider handlers or
 internal state. The fixture never automatically retries a mutation.

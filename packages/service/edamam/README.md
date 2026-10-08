@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-edamam
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Edamam** APIs our apps call, answering from a built-in food and recipe
+Stateful emulator of the **Edamam** APIs our apps call, answering from a built-in food and recipe
 corpus: the Food Database v2 parser (text and UPC), nutrients and image recognition, Nutrition
 Analysis (`nutrition-data`, `nutrition-details`), Recipe Search v2 (search with filters and
 `_cont` paging, by URI, by id), the Meal Planner v1 `select`, and Shopping List v2. Nutrition
@@ -109,8 +109,8 @@ and the Python client, which concatenate paths; the meal adapter resolves paths 
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `EdamamAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `addFood(food)`, `addRecipe(seed)`, `recipes()`. Options: `sqlite`, `now`, `namespace`, `foods`, `recipes`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `foods`, `recipes`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `EdamamAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `addFood(food)`, `addRecipe(seed)`, `recipes()`. Options: `sqlite`, `now`, `namespace`, `foods`, `recipes`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `foods`, `recipes`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `EDAMAM_PRESETS` | object | Every named fault preset. |
 | `EDAMAM_NAMESPACE` | string | The service name, `"edamam"`. |
 | `ACCOUNT_USER_HEADER` | string | `edamam-account-user`. |

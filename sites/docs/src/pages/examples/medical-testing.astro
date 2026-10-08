@@ -1,5 +1,6 @@
 ---
 import catalog from "virtual:mockingbird/catalog"
+import { highlight } from "../../../integrations/catalog/markdown.ts"
 import ExampleLauncher from "../../components/ExampleLauncher.astro"
 import Icon from "../../components/Icon.astro"
 import Base from "../../layouts/Base.astro"
@@ -9,6 +10,7 @@ const example = APP_EXAMPLES.find((e) => e.slug === "medical-testing")
 if (!example) throw new Error("medical-testing is missing from APP_EXAMPLES")
 
 const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
+const runHtml = await highlight(example.runCommand, "bash")
 ---
 
 <Base title={example.title} description={example.description}>
@@ -35,7 +37,7 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
       <p class="live-note">
         Everything in the app — the Google/Apple OAuth sign-in, the shop, the Stripe checkout, the Junction
         fulfillment, and the Postgres-backed order history — runs entirely in this browser tab. The fullscreen view opens
-        on the example app, with one live admin UI whose global selector switches between every mock the app is talking to. No server to start,
+        on the example app, with one live admin UI whose global selector switches between every emulator the app is talking to. No server to start,
         and no real network call to Google, Apple, Stripe, or Junction.
       </p>
       <div class="example-capabilities">
@@ -53,7 +55,7 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
         This is the exact same code as a standalone app you can clone and run with a real dev server, if you'd
         rather poke at it outside the browser:
       </p>
-      <pre class="example-run"><code>{example.runCommand}</code></pre>
+      <Fragment set:html={runHtml} />
       <a class="btn btn-secondary btn-sm" href={`${catalog.repo}/tree/main/${example.packagePath}`} target="_blank" rel="noopener">
         <Icon name="github" /> Source
       </a>
@@ -126,15 +128,5 @@ const servicesByName = new Map(catalog.services.map((s) => [s.name, s]))
     margin-top: 8px;
     color: var(--fg-muted);
     font-size: 13.5px;
-  }
-  .example-run {
-    margin: 12px 0;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-subtle);
-    color: var(--fg-muted);
-    font-size: 12.5px;
-    overflow-x: auto;
   }
 </style>

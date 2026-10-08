@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-hermes
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Work-in-progress mock for the Hermes Agent public peer-run API pinned to
+Work-in-progress emulator for the Hermes Agent public peer-run API pinned to
 `v2026.8.31`. Submission, polling and stop work with explicit synthetic lifecycle observations.
 Events, approval and steer remain unsupported. No agent or inference runs.
 [API_EVIDENCE.md](API_EVIDENCE.md) records source-backed semantics and gaps;
@@ -50,10 +50,10 @@ The Node entry is separate from the portable Fetch entry.
 
 `POST /v1/runs` admits a run and `GET /v1/runs/{run_id}` polls it.
 `POST /v1/runs/{run_id}/stop` requests interruption. Events, approval and steer
-return a mock-only 501 envelope with `error.type` of
+return an emulator-only 501 envelope with `error.type` of
 `mockingbird_unsupported` and `error.code` of `operation_not_implemented`.
 Missing runs use the pinned `run_not_found` 404 envelope. Unknown paths return
-404. Mock-only errors do not claim real Hermes rejection behavior.
+404. Emulator-only errors do not claim real Hermes rejection behavior.
 
 - `GET /__admin/health` identifies the `hermes` runtime.
 - Select isolated namespaces with `x-mockingbird-namespace` or `/__admin/ns/<name>/…`.
@@ -128,13 +128,13 @@ The observation control accepts `status`: `queued`, `running`,
 for completed. Usage has three nonnegative integer counts: `input_tokens`,
 `output_tokens`, `total_tokens`. Completion defaults to empty output and zero counts.
 Terminal observations cannot be changed (409); invalid control payloads return 400
-without changing state. These are mock controls, not additional Hermes routes.
+without changing state. These are emulator controls, not additional Hermes routes.
 
 Timestamps are Unix seconds from the shared clock. Run records and their identity
 sequence use shared storage and Timeline; reset clears them. No timers, agent
 handles or prompts are stored. Polling result content stays out of journals.
 Malformed roots/final input elements, hosted rooms and invalid memory-scope headers
-currently return explicit mock-only 501 responses. See evidence for these limits.
+currently return explicit emulator-only 501 responses. See evidence for these limits.
 
 ## Idempotent submission and synthetic scope
 
@@ -149,7 +149,7 @@ The fingerprint covers the entire parsed JSON body, including unknown fields,
 and the trimmed `X-Hermes-Session-Key`. Object key order does not matter; array
 order and session/body changes do. Raw integer/float forms follow Python:
 `1` and `1.0` conflict, `1.0` and `1e0` replay, and negative floating zero differs
-from positive zero. Lone Unicode surrogates return an explicit mock-only 501;
+from positive zero. Lone Unicode surrogates return an explicit emulator-only 501;
 Python cannot UTF-8 encode that fingerprint either.
 
 `POST /__admin/hermes/scope` with `{ "profile": "synthetic-profile",
@@ -197,7 +197,7 @@ restores the owner flags and run/reservation state together.
 
 The controlled clock governs two independent retention layers. Cached `completed`,
 `failed` and `cancelled` results expire when their update age is strictly greater
-than one hour; equality survives and `interrupted` is excluded. The mock evaluates
+than one hour; equality survives and `interrupted` is excluded. The emulator evaluates
 elapsed 60-second sweep ticks on admission or observation, without a background
 process. `POST /__admin/hermes/sweep` with `{}` explicitly executes one sweep at the
 current clock, returning `cacheRemoved` and `simulated: true`.

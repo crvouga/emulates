@@ -1,4 +1,5 @@
 ---
+import { highlightSource } from "../../integrations/catalog/markdown.ts"
 import { installCommand, PACKAGE_MANAGERS } from "../lib/format.ts"
 import Icon from "./Icon.astro"
 
@@ -6,6 +7,13 @@ interface Props {
   pkg: string
 }
 const { pkg } = Astro.props
+const commands = await Promise.all(
+  PACKAGE_MANAGERS.map(async (pm) => ({
+    pm,
+    command: installCommand(pm, pkg),
+    html: await highlightSource(installCommand(pm, pkg), "bash"),
+  })),
+)
 ---
 
 <div class="pm">
@@ -19,11 +27,11 @@ const { pkg } = Astro.props
     }
   </div>
   {
-    PACKAGE_MANAGERS.map((pm, i) => (
+    commands.map(({ pm, command, html }, i) => (
       <div class="cmd" role="tabpanel" data-pm-panel={pm} hidden={i !== 0}>
         <span class="prompt">$</span>
-        <code>{installCommand(pm, pkg)}</code>
-        <button type="button" class="copy" data-copy={installCommand(pm, pkg)} aria-label="Copy">
+        <Fragment set:html={html} />
+        <button type="button" class="copy" data-copy={command} aria-label="Copy">
           <Icon name="copy" />
           <Icon name="check" />
         </button>

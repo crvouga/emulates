@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-meta
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful Meta Graph v26 mock for server-side Conversions API events and marketing reporting. It
+Stateful Meta Graph v26 emulator for server-side Conversions API events and marketing reporting. It
 preserves privacy-safe hashed user fields, event deduplication, ambiguous writes, Graph errors,
 campaign objects, dated insights, breakdowns, and cursor pagination without contacting Meta.
 
@@ -17,7 +17,7 @@ ESM only. Node >= 22 or Bun >= 1.2. Serve with `npx mockingbird-meta serve`, `cr
 
 ## Usage
 
-Make the Graph origin injectable and point it at the mock. Any non-empty synthetic Bearer token or
+Make the Graph origin injectable and point it at the emulator. Any non-empty synthetic Bearer token or
 `access_token` query value authenticates unless `/__admin/settings` restricts tokens.
 
 ```ts
@@ -76,4 +76,4 @@ The main entry exports `MetaAPI`, `MetaState`, `createRuntime`, `META_NAMESPACE`
 - Real ad delivery, attribution calculation, hashing of plaintext PII, app-secret proof, or OAuth.
 - Campaign/ad-set/ad mutation, creatives, audiences, pixels configuration, dashboards, or billing.
 - The complete Insights fields/breakdowns matrix and asynchronous report jobs.
-- Meta-side probabilistic matching: the mock records only the supplied synthetic hashed fields.
+- Meta-side probabilistic matching: the emulator records only the supplied synthetic hashed fields.

@@ -22,6 +22,7 @@ export const GET: APIRoute = () => {
       category: s.category,
       categoryLabel: CATEGORIES[s.category as CategorySlug].label,
       parity: s.parity,
+      featured: s.featured,
       kind: s.kind,
       surfaces: s.surfaces,
       install: `npm install -D ${s.packageName}`,
@@ -29,7 +30,7 @@ export const GET: APIRoute = () => {
         ? `import { createRuntime } from "${s.packageName}"`
         : s.kind === "sql"
           ? `import { Database } from "${s.packageName}"`
-          : `import * as mock from "${s.packageName}"`,
+          : `import * as emulator from "${s.packageName}"`,
       operations: {
         supported: s.opsSupported,
         total: s.opsTotal,

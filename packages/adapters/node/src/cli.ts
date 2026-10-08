@@ -286,7 +286,7 @@ const start = async (
   })
   const listening = await listen(runtime, { port: config.port, host: config.host })
   target.listening?.(listening)
-  console.log(`${target.name} mock listening on ${listening.url}`)
+  console.log(`${target.name} emulator listening on ${listening.url}`)
   console.log(`${target.name} health: GET ${listening.url}${adminPrefix}/health`)
   console.log(
     `${target.name} admin: ${listening.url}${adminPrefix} (${config.adminKey ? "x-mockingbird-admin-key required" : "open — pass --admin-key to lock"})`,
@@ -311,7 +311,7 @@ const untilSignal = async (servers: { close(): Promise<void> }[]): Promise<numbe
 
 /** The standard `serve` command for a service, including multi-service `--config`. */
 export const serveCommand = (target: FleetTarget): CliCommand => ({
-  summary: `Serve the ${target.name} mock or a configured fleet`,
+  summary: `Serve the ${target.name} emulator or a configured fleet`,
   options: { ...COMMON_SERVE_OPTIONS, ...("options" in target ? target.options : {}) },
   async run(values) {
     const log = (
@@ -344,7 +344,7 @@ export const serveCommand = (target: FleetTarget): CliCommand => ({
             if (values["ready-json"]) console.log(JSON.stringify(manifest))
             else
               for (const [name, endpoint] of Object.entries(manifest.services))
-                console.log(`${name} mock listening on ${endpoint.url}`)
+                console.log(`${name} emulator listening on ${endpoint.url}`)
           },
         })
         return untilSignal([fleet])

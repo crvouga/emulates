@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-fcm",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Firebase Cloud Messaging HTTP v1 send API used by firebase-admin: fixture projects and registration tokens, an outbox, and a device inbox.",
+  "description": "Stateful emulator of the Firebase Cloud Messaging HTTP v1 send API used by firebase-admin: fixture projects and registration tokens, an outbox, and a device inbox.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

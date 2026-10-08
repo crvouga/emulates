@@ -13,7 +13,7 @@ const RUNTIMES_ID = "virtual:mockingbird/runtimes"
  *
  * - `virtual:mockingbird/catalog`: the whole catalog, for pages (server side only).
  * - `virtual:mockingbird/runtimes`: a lazy `import()` per service, so each
- *   mock becomes its own chunk that loads only when a playground starts it.
+ *   emulator becomes its own chunk that loads only when a playground starts it.
  */
 export function catalog(paths: CatalogPaths): AstroIntegration {
   let cached: Promise<Catalog> | undefined

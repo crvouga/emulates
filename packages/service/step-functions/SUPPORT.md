@@ -3,9 +3,9 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **1**
-- supported by the mock: **1**
+- supported by the emulator: **1**
 - parity enabled: **1**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `StepFunctionsRpc` | `POST /` | ✅ supported | ⚠️ unsafe (opt-in) |  |

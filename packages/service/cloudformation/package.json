@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "cloudformation",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

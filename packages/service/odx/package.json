@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-odx",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the (retired) Optimal DX partner API: patients, partner links, HL7 and structured lab imports, Functional Health Reports (JSON/PDF), webhook registrations, and signed PatientTest webhooks.",
+  "description": "Stateful emulator of the (retired) Optimal DX partner API: patients, partner links, HL7 and structured lab imports, Functional Health Reports (JSON/PDF), webhook registrations, and signed PatientTest webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

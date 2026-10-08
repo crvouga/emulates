@@ -8,7 +8,7 @@ could modify its uniquely named fixture branches during the run.
 
 The first authorized live run on 2026-09-29 compared all nine operations with
 11 of 12 comparisons matching. Clearing a PR body exposed a mismatch: GitHub
-returns null while the mock returned an empty string. A local regression and
+returns null while the emulator returned an empty string. A local regression and
 repair cover that observation. A separately authorized verification run
 `87b2f906-12fa-4f92-a373-09b7c4d85a21` then matched all 12 comparisons across
 the nine operations, including the repaired body behavior.

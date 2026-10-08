@@ -7,6 +7,7 @@ const q = document.querySelector<HTMLInputElement>("[data-q]")
 const sort = document.querySelector<HTMLSelectElement>("[data-sort]")
 const count = document.querySelector<HTMLElement>("[data-count]")
 const empty = document.querySelector<HTMLElement>("[data-empty]")
+const featuredFilter = document.querySelector<HTMLButtonElement>("[data-featured-filter]")
 const chips = [...document.querySelectorAll<HTMLButtonElement>("[data-cat]")]
 const views = [...document.querySelectorAll<HTMLButtonElement>("[data-view]")].filter(
   (b) => b.tagName === "BUTTON",
@@ -19,11 +20,13 @@ if (grid && q && sort && count && empty) {
     displayName: el.dataset.display ?? "",
     category: el.dataset.category ?? "",
     ops: Number(el.dataset.ops ?? 0),
+    featured: el.dataset.featured === "1",
     text: el.dataset.search ?? "",
   }))
   const total = cards.length
   const params = new URLSearchParams(location.search)
   let category = params.get("category") ?? ""
+  let featured = params.get("featured") === "1"
   q.value = params.get("q") ?? ""
   const sortParam = params.get("sort")
   if (sortParam && [...sort.options].some((o) => o.value === sortParam)) sort.value = sortParam
@@ -47,9 +50,12 @@ if (grid && q && sort && count && empty) {
       const next = new URLSearchParams()
       if (q.value.trim()) next.set("q", q.value.trim())
       if (category) next.set("category", category)
+      if (featured) next.set("featured", "1")
       if (sort.value !== "relevance") next.set("sort", sort.value)
       const qs = next.toString()
-      history.replaceState(null, "", qs ? `?${qs}` : location.pathname)
+      if (location.search !== (qs ? `?${qs}` : "")) {
+        history.replaceState(null, "", qs ? `?${qs}` : location.pathname)
+      }
     }, 150)
   }
 
@@ -59,11 +65,15 @@ if (grid && q && sort && count && empty) {
       .map((card) => ({ card, rank: score(query, card) }))
       .filter(
         (r): r is { card: (typeof cards)[number]; rank: number } =>
-          r.rank !== null && (!category || r.card.category === category),
+          r.rank !== null &&
+          (!category || r.card.category === category) &&
+          (!featured || r.card.featured),
       )
-    const by = sort.value === "relevance" && query.length === 0 ? "name" : sort.value
+    const by = sort.value
     visible.sort((a, b) => {
       if (by === "relevance" && a.rank !== b.rank) return a.rank - b.rank
+      if (by === "relevance" && a.card.featured !== b.card.featured)
+        return Number(b.card.featured) - Number(a.card.featured)
       if (by === "ops" && a.card.ops !== b.card.ops) return b.card.ops - a.card.ops
       if (by === "category" && a.card.category !== b.card.category)
         return a.card.category.localeCompare(b.card.category)
@@ -76,8 +86,9 @@ if (grid && q && sort && count && empty) {
       ...cards.filter((c) => !shown.has(c)).map((c) => c.el),
     )
     count.textContent =
-      shown.size === total ? `${total} services` : `${shown.size} of ${total} services`
+      shown.size === total ? `${total} emulators` : `${shown.size} of ${total} emulators`
     empty.hidden = shown.size > 0
+    featuredFilter?.setAttribute("aria-pressed", String(featured))
     grid.hidden = shown.size === 0
     syncUrl()
   }
@@ -88,6 +99,10 @@ if (grid && q && sort && count && empty) {
 
   q.addEventListener("input", apply)
   sort.addEventListener("change", apply)
+  featuredFilter?.addEventListener("click", () => {
+    featured = !featured
+    apply()
+  })
   for (const chip of chips) {
     chip.addEventListener("click", () => {
       setCategory(chip.dataset.cat ?? "")
@@ -103,6 +118,7 @@ if (grid && q && sort && count && empty) {
   document.querySelector("[data-clear]")?.addEventListener("click", () => {
     q.value = ""
     sort.value = "relevance"
+    featured = false
     setCategory("")
     apply()
     q.focus()

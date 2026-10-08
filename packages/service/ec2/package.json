@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "ec2",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

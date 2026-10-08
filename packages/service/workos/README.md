@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-workos
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP WorkOS AuthKit mock: authorization redirects, single-use codes, signed JWT sessions,
+WIP WorkOS AuthKit emulator: authorization redirects, single-use codes, signed JWT sessions,
 rotating refresh tokens, user metadata and pagination. Synthetic fixtures only.
 
 ## Install
@@ -38,7 +38,7 @@ over HTTP, including PKCE, JWT signature validation and expired-session refresh.
 ### State and controls
 
 Seed `users`, `clients` and `memberships` with runtime options. Options `accessTtlMs`,
-`refreshTtlMs` and `codeTtlMs` control expiry. The mock clock controls issued timestamps.
+`refreshTtlMs` and `codeTtlMs` control expiry. The emulator clock controls issued timestamps.
 The standard `/__admin/state` collections expose users, clients, memberships, codes, sessions
 and refreshTokens. Edit `sessions.revoked`, expiry fields or used flags for failure scenarios.
 Private signing keys are ephemeral and never journaled; resetting state invalidates refresh

@@ -2,11 +2,11 @@ openapi: 3.1.0
 info:
   title: Paddle Billing API (Mockingbird subset)
   description: |
-    Stateful mock subset of the Paddle Billing API: customers with their addresses and
+    Stateful emulator subset of the Paddle Billing API: customers with their addresses and
     businesses, the catalog (products and prices), transactions with computed totals,
     subscriptions with their lifecycle (activate, pause, resume, cancel, one-time charges,
     renewals) and the events list. Subscriptions come from paid transactions, as in Paddle:
-    the mock's admin routes stand in for the hosted checkout and the billing engine.
+    the emulator's admin routes stand in for the hosted checkout and the billing engine.
   version: "1"
   x-mockingbird-upstream:
     note: >-
@@ -157,7 +157,7 @@ paths:
           safe: true
       responses:
         "200":
-          description: One balance per currency the customer holds credit in (none, in the mock)
+          description: One balance per currency the customer holds credit in (none, in the emulator)
           content:
             application/json:
               schema:
@@ -1346,7 +1346,7 @@ paths:
       operationId: GetSubscriptionPaymentMethodChangeTransaction
       x-mockingbird:
         supported: false
-        reason: Payment method changes go through the hosted checkout, which the mock does not serve.
+        reason: Payment method changes go through the hosted checkout, which the emulator does not serve.
       responses:
         "200":
           description: A zero-amount transaction for updating the payment method

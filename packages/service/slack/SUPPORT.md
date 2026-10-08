@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **21**
-- supported by the mock: **21**
+- supported by the emulator: **21**
 - parity enabled: **21**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PostIncomingWebhook` | `POST /services/{team}/{bot}/{secret}` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ChatPostMessage` | `POST /api/chat.postMessage` | ✅ supported | ⚠️ unsafe (opt-in) |  |

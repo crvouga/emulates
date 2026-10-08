@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "App Store Connect scoped mock",
+    "title": "App Store Connect scoped emulator",
     "version": "1.0.0",
     "description": "Request schemas trimmed from Apple's official OpenAPI specification downloaded 2026-10-05."
   },

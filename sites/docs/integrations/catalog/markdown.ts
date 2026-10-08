@@ -20,11 +20,14 @@ const LANGS = [
   "toml",
   "xml",
   "html",
+  "css",
 ] as const
 
 const ALIASES: Record<string, string> = {
   ts: "typescript",
   js: "javascript",
+  tsx: "typescript",
+  jsx: "javascript",
   mjs: "javascript",
   sh: "bash",
   shell: "bash",
@@ -66,7 +69,12 @@ export async function highlight(code: string, lang: string | undefined): Promise
   return renderCode(await getHighlighter(), code, lang)
 }
 
-function renderCode(h: Highlighter, code: string, rawLang: string | undefined): string {
+/** Syntax-highlighted source for components that supply their own frame. */
+export async function highlightSource(code: string, lang: string): Promise<string> {
+  return renderSource(await getHighlighter(), code, lang).html
+}
+
+function renderSource(h: Highlighter, code: string, rawLang: string | undefined) {
   const requested = (rawLang ?? "").trim().split(/\s+/)[0]?.toLowerCase() ?? ""
   const lang = ALIASES[requested] ?? requested
   const known = (LANGS as readonly string[]).includes(lang)
@@ -81,6 +89,11 @@ function renderCode(h: Highlighter, code: string, rawLang: string | undefined): 
           defaultColor: false,
         })
   const label = LANG_LABELS[lang] ?? (known ? lang : requested || "Text")
+  return { html, label }
+}
+
+function renderCode(h: Highlighter, code: string, rawLang: string | undefined): string {
+  const { html, label } = renderSource(h, code, rawLang)
   return `<figure class="code"><figcaption><span>${escapeHtml(label)}</span><button type="button" class="copy" data-copy aria-label="Copy code"><svg class="i i-copy" aria-hidden="true"><use href="#i-copy"/></svg><svg class="i i-check" aria-hidden="true"><use href="#i-check"/></svg></button></figcaption>${html}</figure>`
 }
 

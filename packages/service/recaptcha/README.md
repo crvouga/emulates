@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-recaptcha
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-A WIP reCAPTCHA v3 mock: browser `grecaptcha.ready`/`execute`, deterministic single-use tokens,
+A WIP reCAPTCHA v3 emulator: browser `grecaptcha.ready`/`execute`, deterministic single-use tokens,
 and form-encoded Siteverify. The contract follows Google's [verification](https://developers.google.com/recaptcha/docs/verify)
 and [v3](https://developers.google.com/recaptcha/docs/v3) references. It does not contact Google.
 

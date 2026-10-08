@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Slack incoming webhooks and Web API (Mockingbird subset)
   description: |
-    Stateful mock subset of Slack: incoming webhooks (`POST /services/T/B/X`) and the Web API
+    Stateful emulator subset of Slack: incoming webhooks (`POST /services/T/B/X`) and the Web API
     methods our apps call. Every message lands in an outbox a suite can assert on. Hand-authored
     from Slack's documented wire shapes and the consumers (backend `postSlackWebhook`, EMR
     `slack-web-api.ts`, request-intake `SlackClient`, release-conductor).

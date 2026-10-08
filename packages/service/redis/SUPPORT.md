@@ -24,7 +24,7 @@ completion, delays/backoff, retry and unrecoverable errors, explicit delayed tra
 deduplication/unique IDs, auto removal, rate limits, repeatable schedulers, global concurrency, lock ownership/renewal, stalled recovery,
 parent dependencies, and SCRIPT FLUSH/NOSCRIPT reload. Both ioredis 5.9.2 and 5.11.1 are tested.
 See `test/bullmq.sdk.test.ts`. `bun run parity:bullmq` runs the identical public-client contract
-against the mock and an installed local `redis-server` (verified with Redis 8.4.0).
+against the emulator and an installed local `redis-server` (verified with Redis 8.4.0).
 
 Out of scope: Redis Cluster, Redis 8 modules and a complete Lua 5.1 runtime. Compatibility claims
 are limited to the tested BullMQ flows rather than every arbitrary Lua program.

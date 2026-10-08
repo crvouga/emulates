@@ -67,7 +67,7 @@ wait exit code, attach upgrade headers and stdout/stderr bytes. Multiplexed outp
 is decoded independently and concatenated by channel, removing arbitrary frame
 and packet boundaries. Output bytes are recorded as base64. Container IDs,
 timestamps, daemon-specific metadata and cross-channel interleaving are not
-compared. The mock's completion control scripts the known exit behavior; it does
+compared. The emulator's completion control scripts the known exit behavior; it does
 not execute the image. Tests of image execution or host isolation are not implied.
 
 The harness performs no daemon restart or live-restore operation. Existing

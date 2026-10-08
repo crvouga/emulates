@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-kill-bill",
   "version": "0.0.0-development",
-  "description": "Stateful Kill Bill billing mock with accounts, subscriptions, invoices, payments, credits, retries, catalog, and clock controls.",
+  "description": "Stateful Kill Bill billing emulator with accounts, subscriptions, invoices, payments, credits, retries, catalog, and clock controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -45,7 +45,7 @@
     "subscriptions",
     "invoices",
     "payments",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

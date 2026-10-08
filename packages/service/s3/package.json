@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-s3",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon S3 mock with binary objects, listing, copies, multipart uploads, presigned URLs, and canonical XML errors.",
+  "description": "Stateful Amazon S3 emulator with binary objects, listing, copies, multipart uploads, presigned URLs, and canonical XML errors.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,9 +44,10 @@
     "s3",
     "object-storage",
     "presigned-url",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
+    "featured": true,
     "runtime": "portable",
     "entries": {
       "server": "node",

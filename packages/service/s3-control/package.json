@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "s3-control",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

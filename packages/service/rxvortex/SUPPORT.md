@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **5**
-- supported by the mock: **5**
+- supported by the emulator: **5**
 - parity enabled: **5**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `GenerateAccessToken` | `POST /api/v1/generate-access-token` | ✅ supported | ✅ |  |
 | `CreateOrder` | `POST /api/v1/orders` | ✅ supported | ⚠️ unsafe (opt-in) |  |

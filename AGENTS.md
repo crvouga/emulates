@@ -31,10 +31,10 @@ Agents in other projects report parity mismatches, missing features and bugs, an
 services, as GitHub issues labelled `agent-reported` ([docs/REPORTING_ISSUES.md](docs/REPORTING_ISSUES.md),
 templates in `.github/ISSUE_TEMPLATE/`, labels in `.github/labels.json`); `/resolve-issues` works
 that queue, by hand or unattended on GitHub as you (`bun github:resolve-issues`, which carries each
-issue to a green PR). Only public third-party vendor APIs get a mock: decline requests to mock a company's
+issue to a green PR). Only public third-party vendor APIs get an emulator: decline requests to emulate a company's
 own internal services, and keep fixtures and test data free of any real customer's name.
 
 `README.md` is the overview, generated from `sites/docs/src/lib/content.ts` and `docs/*.md`
-(`bun run readme:sync`). The catalog of mocks stays on the docs site; `llms.txt` indexes it
+(`bun run readme:sync`). The catalog of emulators stays on the docs site; `llms.txt` indexes it
 from each service's `package.json` (`bun run llms:sync`). `bun run check` fails when either
 file is stale.

@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-tavily
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP scripted Tavily search and extraction. No public URLs are fetched. Contract references:
 [Search](https://docs.tavily.com/documentation/api-reference/endpoint/search),
@@ -26,7 +26,7 @@ await server.close()
 
 CLI: `mockingbird-tavily serve --port 12130`. Configure the consumer factory's api_base_url;
 the SDK has no required global endpoint environment variable. If your app reads TAVILY_API_KEY,
-set it to mock_tavily_key in local tests. HTTP authentication is Bearer, exactly as emitted by
+set it to emulate_tavily_key in local tests. HTTP authentication is Bearer, exactly as emitted by
 AsyncTavilyClient 0.7.17, not a JSON api_key body field.
 
 POST /search matches query fixtures, returns ranked hits in fixture order and respects max_results
@@ -55,7 +55,7 @@ deterministic latency. The clock is available for consumer workflows; no quota s
 ## Verification
 
 `bun test` runs acceptance, independent OpenAPI self-parity and divergence detection.
-`bun scripts/sdk.ts` runs exact tavily-python 0.7.17 using uv against the served mock:
+`bun scripts/sdk.ts` runs exact tavily-python 0.7.17 using uv against the served emulator:
 AsyncTavilyClient search/extract, InvalidAPIKeyError, UsageLimitExceededError, ForbiddenError and TimeoutError.
 No real API key or crawl is used. `bun run parity` requires TAVILY_API_KEY and sends only an invalid
 missing-query request to compare validation status, never a search or extraction. Missing credentials

@@ -2,10 +2,10 @@ openapi: 3.1.0
 info:
   title: Optimal DX partner API (Mockingbird subset)
   description: |
-    Stateful mock of the Optimal DX (ODX) partner API our backend calls: partner labs and their
+    Stateful emulator of the Optimal DX (ODX) partner API our backend calls: partner labs and their
     biomarker elements, practice patients (create, update, delete, partner link, search), lab
     results (structured and HL7 v2 ORU imports), the Functional Health Report (JSON or PDF), and
-    webhook registrations whose signing keys verify the PatientTest webhooks the mock posts.
+    webhook registrations whose signing keys verify the PatientTest webhooks the emulator posts.
     ODX publishes no spec; the contract is hand-authored from our consumer's wire shapes. The
     vendor was retired 2026-07-22 but queue paths still call it while the consumer app's PDF flag (`acme-pdf-enabled`) is off.
   version: "1"

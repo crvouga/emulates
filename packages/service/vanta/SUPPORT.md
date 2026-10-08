@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **10**
-- supported by the mock: **10**
+- supported by the emulator: **10**
 - parity enabled: **9**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListPeople` | `GET /v1/people` | ✅ supported | ✅ |  |
 | `ListTests` | `GET /v1/tests` | ✅ supported | ✅ |  |

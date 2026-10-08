@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-turnstile
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP Cloudflare Turnstile server-side Siteverify mock. It never solves or issues real challenges.
+WIP Cloudflare Turnstile server-side Siteverify emulator. It never solves or issues real challenges.
 
 ## Install
 
@@ -40,7 +40,7 @@ optional `remoteip` and UUID `idempotency_key`. Valid tokens return HTTP 200 and
 `error-codes`, not a transport exception. Missing/invalid secrets, missing/invalid tokens,
 malformed bodies and expired/used tokens retain their documented error codes.
 
-Tokens expire at five minutes on the mock clock and are consumed once. Matching idempotency
+Tokens expire at five minutes on the emulator clock and are consumed once. Matching idempotency
 key retries replay the original response; other retries return `timeout-or-duplicate`.
 Wrong secrets do not consume a valid token. Applications must independently check the returned
 hostname/action. Remote IP is accepted, not used for actual bot detection.
@@ -77,7 +77,7 @@ stand-ins; only identical retry behavior is covered by the public contract evide
 ## API
 
 - `TurnstileAPI`: FetchAPI with `fetch`, `reset`, `issue`, and site/token/attempt collections.
-- `createRuntime`: shared mock contract plus token issuance/attempt inspection.
+- `createRuntime`: shared emulator contract plus token issuance/attempt inspection.
 - `TURNSTILE_NAMESPACE`: service name.
 - `TURNSTILE_PRESETS`: named failure controls.
 - `document`, `operationIds`, `supportedOperationIds`: generated OpenAPI metadata.

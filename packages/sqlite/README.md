@@ -1,11 +1,11 @@
 # @crvouga/mockingbird-sqlite
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-The synchronous `SqliteClient` port every Mockingbird mock stores its state in, plus the default
+The synchronous `SqliteClient` port every Mockingbird emulator stores its state in, plus the default
 client and an idempotent migration runner. Use it to type the optional `sqlite` option you pass to a
-provider mock (to share one database, or to inspect state), or when building a custom service. You
-do not need it just to use a mock: omit `sqlite` and each mock creates its own in-memory database.
+provider emulator (to share one database, or to inspect state), or when building a custom service. You
+do not need it just to use an emulator: omit `sqlite` and each emulator creates its own in-memory database.
 
 ## Install
 
@@ -33,7 +33,7 @@ import {
 // (better-sqlite3, a wrapped bun:sqlite, @crvouga/mockingbird-service-sqlite's Database).
 const sqlite: SqliteClient = resolveSqlite(undefined) // same as createDefaultSqlite()
 
-migrateCore(sqlite) // mockingbird_records + mockingbird_sequences; mocks do this on boot
+migrateCore(sqlite) // mockingbird_records + mockingbird_sequences; emulators do this on boot
 
 const migrations: Migration[] = [
   { id: "001_kv", sql: "CREATE TABLE kv (k TEXT PRIMARY KEY, v INTEGER NOT NULL)" },
@@ -47,7 +47,7 @@ sqlite.prepare("INSERT INTO kv (k, v) VALUES (?, ?)").run("a", 1)
 const row = sqlite.prepare("SELECT v FROM kv WHERE k = ?").get<{ v: number }>("a")
 console.log(row?.v) // 1
 
-// Share one client between mocks: each mock keeps its records in its own namespace.
+// Share one client between emulators: each emulator keeps its records in its own namespace.
 const shared = createDefaultSqlite()
 void shared // e.g. new StripeAPI({ sqlite: shared }) from @crvouga/mockingbird-service-stripe
 ```
@@ -64,7 +64,7 @@ All methods are synchronous; do not `await` them.
 | `listAppliedMigrations` | `(sqlite) => string[]` | Applied ids ordered by `applied_at` (whole seconds), then `id`. Migrations applied in the same second come back sorted by id, not in application order. |
 | `CORE_MIGRATIONS` | `readonly Migration[]` | Core schema: `mockingbird_records` (namespaced JSON records) and `mockingbird_sequences`. |
 | `migrateCore` | `(sqlite) => void` | `migrate(sqlite, CORE_MIGRATIONS)`. |
-| `clearNamespace` | `(sqlite, namespace: string) => void` | Delete every record and sequence in a namespace (what a mock's `reset()` does). |
+| `clearNamespace` | `(sqlite, namespace: string) => void` | Delete every record and sequence in a namespace (what an emulator's `reset()` does). |
 
 Types:
 

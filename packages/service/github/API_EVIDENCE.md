@@ -8,9 +8,9 @@ support or live parity evidence. Delivery remains independent of Initiative.
 Target `https://api.github.com` with `Accept: application/vnd.github+json` and
 **`X-GitHub-Api-Version: 2026-03-10`**. GitHub's [version policy](https://docs.github.com/en/rest/about-the-rest-api/api-versions)
 lists that version as supported and identifies `2022-11-28` as the current default
-when the header is omitted. The mock must explicitly advertise its selected
+when the header is omitted. The emulator must explicitly advertise its selected
 version; accepting an omitted header must not claim compatibility with the older
-contract. Unsupported-version handling must be documented as a mock limitation
+contract. Unsupported-version handling must be documented as an emulator limitation
 unless compared with GitHub.
 
 The authoritative schema is the stable, version-specific file
@@ -53,7 +53,7 @@ Unsupported paths and features must be explicit in the eventual support matrix.
 Primary references: [repositories](https://docs.github.com/en/rest/repos/repos#get-a-repository),
 [refs](https://docs.github.com/en/rest/git/refs), [pull requests](https://docs.github.com/en/rest/pulls/pulls).
 The schema is exhaustive for this table; common HTTP/auth/rate errors can exist
-beyond an operation's listed responses and need corresponding mock contract entries
+beyond an operation's listed responses and need corresponding emulator contract entries
 when explicitly scripted.
 
 ## Identity, state and scope
@@ -67,7 +67,7 @@ SHA and URL. Preserve nested branch names. A PR has its own ID, opaque node ID,
 repository-scoped integer `number`, URLs, and separate head/base branch/repository/
 SHA relationships. Do not identify PRs solely by a mutable branch tip.
 
-Mock namespaces isolate all synthetic repository, commit ancestry, ref and PR
+Emulator namespaces isolate all synthetic repository, commit ancestry, ref and PR
 records. Explicit admin seeding creates synthetic commit objects/parent edges;
 this is not Git object storage, commit creation over REST, push, clone or fetch.
 Shared Collections, injected clock, deterministic IDs and Timeline own persistence
@@ -92,7 +92,7 @@ alone do not prove which condition uses which envelope.
 
 Update requires `sha`, with optional `force` defaulting to false. Non-forced
 updates require a fast-forward from the head current when the request executes.
-The mock must evaluate seeded ancestry at mutation time, including intervening
+The emulator must evaluate seeded ancestry at mutation time, including intervening
 head movement. It may model force on synthetic records or explicitly reject it
 as unsupported; no live force-push is authorized.
 
@@ -110,7 +110,7 @@ Create accepts `head`, `base`, and a title unless converting an existing `issue`
 optional fields include body, draft, maintainer modification and cross-repository
 head metadata. The base belongs to the target repository; head syntax may carry
 an owner prefix. Update accepts title, body, state (`open`/`closed`), base and
-maintainer modification; it does not replace the head branch. The initial mock
+maintainer modification; it does not replace the head branch. The initial emulator
 must preserve supported repository/head/base/number/SHA relationships and explicitly
 mark issue conversion, cross-repository networks or unsupported media/features
 rather than silently claiming them. Mergeability computation and test merge
@@ -147,7 +147,7 @@ Pinned `basic-error` fields include message, documentation_url, url and string
 status. Validation errors require message/documentation_url and can add structured
 errors (resource, field, code, message) or strings via the simple variant. Do not
 force every provider failure into one shape. Missing/private resources may be
-indistinguishable to a client; the mock's scripted 404/403 scenarios do not prove
+indistinguishable to a client; the emulator's scripted 404/403 scenarios do not prove
 real authorization behavior. See [troubleshooting](https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api).
 
 The [rate-limit guide](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
@@ -258,13 +258,13 @@ Accepted-drop scenarios reuse shared acceptance/checkpoint and socket-drop handl
 tests compare accepted state, metadata-only journal and restored history for all four
 write operations. A local loopback HTTP test verifies PR discovery after the Node
 adapter closes the response connection. This is local transport evidence, not a
-claim about GitHub's network. Ref movement uses a separate mock-only admin checkpoint
+claim about GitHub's network. Ref movement uses a separate emulator-only admin checkpoint
 and seeded fast-forward ancestry; no expected-old-SHA lease is introduced.
 
 ## US-029 local parity and independent consumer evidence
 
 The parity runner now plans/exercises all nine implemented operations against
-isolated seeded mocks, with fixed-clock fixtures. Separate constrained walks
+isolated seeded emulators, with fixed-clock fixtures. Separate constrained walks
 require successful statuses and meaningful repository/ref/PR fields per operation;
 missing-repository404 equivalence cannot satisfy these checks. A schema-valid
 private-field divergence in a successful repository response is rejected with
@@ -289,7 +289,7 @@ supported operations. Eleven of twelve projected comparisons matched, including
 repository identity, ref creation/read/list/fast-forward, non-fast-forward422,
 PR creation/duplicate422/get/list. The PR update returned200 on both sides but
 did not match: clearing its body with an empty string produces null on GitHub.
-A subsequent read of the closed fixture PR confirmed null. The mock now converts
+A subsequent read of the closed fixture PR confirmed null. The emulator now converts
 an empty update body to null; a regression failed before the repair and passed
 afterward, covering update/get/list and subsequent omitted-body edits.
 

@@ -12,14 +12,15 @@ export interface PaletteEntry {
   subtitle: string
   category: string
   parity: string
+  featured: boolean
   hue: number
   logo: string | null
   text: string
 }
 
 const PAGES: [string, string, string][] = [
-  ["/services", "Services", "Browse and filter every mock"],
-  ["/coverage", "Coverage", "Operations mocked per service, and every surface"],
+  ["/services", "Emulators", "Browse and filter every emulator"],
+  ["/coverage", "Coverage", "Operations emulated per service, and every surface"],
   ["/docs", "Docs", "Guides for using, testing and contributing"],
   ["/llms.txt", "llms.txt", "Index for coding agents"],
   ["/catalog.json", "catalog.json", "Machine-readable catalog"],
@@ -36,12 +37,14 @@ export const GET: APIRoute = () => {
       subtitle: s.description,
       category: CATEGORIES[s.category as CategorySlug].label,
       parity: s.parity,
+      featured: s.featured,
       hue: s.hue,
       logo: s.brand.logo,
       text: [
         s.packageName,
         s.description,
         s.parity,
+        s.featured ? "featured" : "",
         s.brand.vendor,
         CATEGORIES[s.category as CategorySlug].label,
         ...s.keywords,
@@ -57,6 +60,7 @@ export const GET: APIRoute = () => {
       subtitle: g.summary,
       category: "",
       parity: "",
+      featured: false,
       hue: 0,
       logo: null,
       text: `${g.summary} ${g.toc.map((t) => t.text).join(" ")}`,
@@ -70,6 +74,7 @@ export const GET: APIRoute = () => {
       subtitle,
       category: "",
       parity: "",
+      featured: false,
       hue: 0,
       logo: null,
       text: subtitle,

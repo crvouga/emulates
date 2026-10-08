@@ -1,16 +1,16 @@
 # @crvouga/mockingbird-service-odx
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Optimal DX (ODX)** partner API for test suites: partner labs and their
+Stateful emulator of the **Optimal DX (ODX)** partner API for test suites: partner labs and their
 biomarker elements, practice patients (create, update, delete, partner link, search), lab
 imports (HL7 v2 ORU and structured results), the Functional Health Report (JSON or PDF),
 webhook registrations, and the signed `PatientTest` webhooks ODX posts back.
 
 > **The vendor was retired 2026-07-22.** Our queue paths are gated only by the
 > `acme-pdf-enabled` flag (default `false`), so a local stack with no PostHog still calls ODX.
-> The cheaper fix is to turn that flag on through the PostHog mock
-> (`@crvouga/mockingbird-service-posthog`); use this mock when a suite must exercise the ODX
+> The cheaper fix is to turn that flag on through the PostHog emulator
+> (`@crvouga/mockingbird-service-posthog`); use this emulator when a suite must exercise the ODX
 > path itself (bio-age webhooks, the Healthie PDF upload, migrations).
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/odx/SUPPORT.md)
@@ -31,7 +31,7 @@ Fetch server.
 
 The real base URL is `https://odxinstanceresource.azure-api.net/<partner>`; the partner segment is
 your account's slug.
-Point `OPTIMAL_URL` at the mock (it is overridable; no path prefix is needed), keep any
+Point `OPTIMAL_URL` at the emulator (it is overridable; no path prefix is needed), keep any
 `OPTIMAL_API_KEY` and `OPTIMAL_PRACTICE_ID`. Pre-register the backend's webhook, or let
 `manageWebhooks` register it through `POST /v1/webhook` as it does in production:
 
@@ -56,7 +56,7 @@ const call = (path: string, body?: unknown) =>
 const patient = await (
   await call("/v1/practice/p1/patient", { firstName: "Ada", lastName: "Lovelace", gender: "Female", email: "ada@example.com" })
 ).json()
-// …the app posts HL7 to /v1/practice/p1/patient/{patientId}/test; the mock answers the parsed
+// …the app posts HL7 to /v1/practice/p1/patient/{patientId}/test; the emulator answers the parsed
 // PatientTest and posts a signed `Created` webhook to /odx/webhook.
 ```
 
@@ -133,8 +133,8 @@ Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `wrong
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `OdxAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `emit(testId, eventType, signature?)`, `patients()`, `tests()`. Options: `sqlite`, `now`, `namespace`, `settings`, `onWebhook`. |
-| `createRuntime` | function | The mock with the full service contract. Options: `webhook: {url, signingKey?}`, `settings`, `retryDelaysMs`, `fetch`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `OdxAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `emit(testId, eventType, signature?)`, `patients()`, `tests()`. Options: `sqlite`, `now`, `namespace`, `settings`, `onWebhook`. |
+| `createRuntime` | function | The emulator with the full service contract. Options: `webhook: {url, signingKey?}`, `settings`, `retryDelaysMs`, `fetch`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `ODX_PRESETS` | object | Every named fault preset. |
 | `ODX_NAMESPACE` | string | The service name, `"odx"`. |
 | `SIGNATURE_HEADER` | string | `"optimaldx-signature"`. |

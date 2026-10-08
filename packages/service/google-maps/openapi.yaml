@@ -5,7 +5,7 @@ info:
     The Google Maps Platform surface our member app calls: Places Autocomplete, Place Details
     and Find Place From Text (the legacy JSON web services), the Geocoding API, and the Maps
     JavaScript API loader (`/maps/api/js?libraries=places`). Every web-service answer is HTTP 200
-    with Google's `status` field; the mock resolves addresses from a QA corpus.
+    with Google's `status` field; the emulator resolves addresses from a QA corpus.
   version: "1"
   x-mockingbird-upstream:
     note: >-
@@ -207,7 +207,7 @@ paths:
     get:
       operationId: MapsJavaScriptApi
       description: >-
-        The Maps JavaScript API loader. The mock serves a shim defining google.maps.places
+        The Maps JavaScript API loader. The emulator serves a shim defining google.maps.places
         (AutocompleteService, PlacesService, AutocompleteSessionToken, PlacesServiceStatus) and
         google.maps.Geocoder, backed by the REST operations above.
       x-mockingbird:

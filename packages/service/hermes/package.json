@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-hermes",
   "version": "0.0.0-development",
-  "description": "Hermes peer-run API mock with portable scripted lifecycle controls.",
+  "description": "Hermes peer-run API emulator with portable scripted lifecycle controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

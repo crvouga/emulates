@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-infisical",
   "version": "0.0.0-development",
-  "description": "Stateful Infisical mock: Universal Auth, scoped machine/service tokens and versioned project environment secrets.",
+  "description": "Stateful Infisical emulator: Universal Auth, scoped machine/service tokens and versioned project environment secrets.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

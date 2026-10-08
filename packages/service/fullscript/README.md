@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-fullscript
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Fullscript** lab-ordering API for test suites: per-practitioner OAuth
+Stateful emulator of the **Fullscript** lab-ordering API for test suites: per-practitioner OAuth
 (consent redirect, `authorization_code` and rotating `refresh_token` grants, revoke), the
 clinic, embeddable session grants, lab orders with tests and results, lab-order events, expiring
 result PDFs, and `Fullscript-Signature` webhooks with the challenge acknowledgement our receiver
@@ -26,12 +26,12 @@ with any Fetch server.
 
 ## Usage
 
-With `FEATURE_FULLSCRIPT_LABS_ENABLED=true`, point `FULLSCRIPT_API_URL` at the mock and
+With `FEATURE_FULLSCRIPT_LABS_ENABLED=true`, point `FULLSCRIPT_API_URL` at the emulator and
 `FULLSCRIPT_OAUTH_AUTHORIZE_URL` at its `/oauth/authorize`; set `FULLSCRIPT_WEBHOOK_SECRET` and
 `FULLSCRIPT_WEBHOOK_CHALLENGE_KEY` and pass the same values as `--webhook-secret` /
 `--webhook-challenge`. The EMR validates these URLs as **https** and downloads result PDFs only
 over https from allowlisted hosts (by default `fullscript.com`, `fullscript.io` and
-`FULLSCRIPT_API_URL`'s host, which is where the mock serves them), so front the mock with TLS or
+`FULLSCRIPT_API_URL`'s host, which is where the emulator serves them), so front the emulator with TLS or
 set `--results-base-url`.
 
 ```bash
@@ -130,8 +130,8 @@ body, so they need the prefix or the header.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `FullscriptAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `issueCode(practitionerId, clientId, redirectUri)`, `createOrder(input)`, `transition(orderId, state)`, `seedOrder(seed)`, `labOrders()`, `eventsList()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `orders`, `onEvent`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, challenge?, retryDelaysMs?, fetch?}`, `settings`, `orders`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `FullscriptAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `issueCode(practitionerId, clientId, redirectUri)`, `createOrder(input)`, `transition(orderId, state)`, `seedOrder(seed)`, `labOrders()`, `eventsList()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `orders`, `onEvent`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, challenge?, retryDelaysMs?, fetch?}`, `settings`, `orders`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `FULLSCRIPT_PRESETS` | object | Every named fault preset. |
 | `FULLSCRIPT_NAMESPACE` | string | The service name, `"fullscript"`. |
 | `SIGNATURE_HEADER` | string | `Fullscript-Signature`. |

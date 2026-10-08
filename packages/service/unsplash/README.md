@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-unsplash
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP Unsplash v1 photo search with deterministic results and synthetic local image bytes.
 

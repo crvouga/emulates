@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-notion
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP Notion **2022-06-28** database search, OAuth token exchange and database-parent page creation.
 This is the legacy database API, not the newer data-source API.

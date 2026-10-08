@@ -1,6 +1,6 @@
 # Testing and parity
 
-How every mock is proven to behave like its vendor: differential contracts, property-based walks, and live parity against real sandboxes.
+How every emulator is proven to behave like its vendor: differential contracts, property-based walks, and live parity against real sandboxes.
 
 Validation combines differential contracts, focused unit and integration tests, fuzzing, and
 **property-based testing (PBT)** with [fast-check](https://fast-check.dev/). Stateful API walks are
@@ -9,8 +9,8 @@ PostgreSQL oracles. Property failures shrink to a minimal reproduction.
 
 Two properties, same generator:
 
-1. **Self-parity** (CI, no credentials) — two independent mock instances agree after every command, and every mock response conforms to the spec.
-2. **Live parity** (`bun run parity`, sandbox keys required) — the same walk against the real sandbox / test API and a fresh mock. Responses are canonicalized (volatile ids, timestamps, tokens) then compared.
+1. **Self-parity** (CI, no credentials) — two independent emulator instances agree after every command, and every emulator response conforms to the spec.
+2. **Live parity** (`bun run parity`, sandbox keys required) — the same walk against the real sandbox / test API and a fresh emulator. Responses are canonicalized (volatile ids, timestamps, tokens) then compared.
 
 ```ts
 import { parity } from "@crvouga/mockingbird-parity"
@@ -24,8 +24,8 @@ await parity({
   provider: "stripe",
   spec: document,
   real: {
-    baseUrl: "https://mock.stripe.local",
-    allowedHosts: ["mock.stripe.local"],
+    baseUrl: "https://emulator.stripe.local",
+    allowedHosts: ["emulator.stripe.local"],
     headers: () => ({ authorization: "Bearer sk_test_mockingbird" }),
     fetch: (request) => reference.fetch(request),
   },
@@ -52,10 +52,10 @@ Credentials load from the environment (`.env.local`); without local keys, `bun r
 OpenAPI spec
   → command generator (valid + invalid + missing refs)
   → random stateful walk
-       ├─ mock A  ─┐
-       └─ mock B  ─┴─ self-parity (CI)
+       ├─ emulator A  ─┐
+       └─ emulator B  ─┴─ self-parity (CI)
        ├─ real sandbox ─┐
-       └─ mock          ┴─ live parity (credentials)
+       └─ emulator          ┴─ live parity (credentials)
   → canonicalize (strip ids / timestamps / tokens)
   → structural diff; shrink on failure
 ```
@@ -90,7 +90,7 @@ Live parity spends a vendor's rate limit, so each service declares how often it 
 
 A hot service runs only when its dependency graph changed: its own package, or any workspace
 package it depends on, directly or transitively (Turborepo's graph, read by
-`scripts/affected.ts`). Modifying mock A never runs mock B; modifying `core` runs every hot
+`scripts/affected.ts`). Modifying emulator A never runs emulator B; modifying `core` runs every hot
 service that depends on it. Edits that cannot change a result (`*.md`, tests) are ignored. Outside
 the graph, `tsconfig.base.json` (a turbo global dependency), `scripts/bundle-service*.ts`,
 `scripts/parity-service.ts` and a `bun.lock` change to an external package or to the root reach every

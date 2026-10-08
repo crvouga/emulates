@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Persona API (Mockingbird subset)
   description: |
-    Stateful mock subset of Persona's identity-verification API (JSON:API, `Persona-Version:
+    Stateful emulator subset of Persona's identity-verification API (JSON:API, `Persona-Version:
     2023-01-05`): create an inquiry, list inquiries by reference id / template / status (the
     "reusable inquiry" lookup), fetch one inquiry, and the hosted flow page the member is sent
     to. Hand-authored from the wire shapes our EMR consumer reads and writes

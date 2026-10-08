@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "redshift",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-airtable",
   "version": "0.0.0-development",
-  "description": "Stateful Airtable mock: OAuth, base schemas, fields and validated records.",
+  "description": "Stateful Airtable emulator: OAuth, base schemas, fields and validated records.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-aws-secrets",
   "version": "0.0.0-development",
-  "description": "Stateful AWS Secrets Manager and SSM Parameter Store mock with versions, stages, rotation, and redacted controls.",
+  "description": "Stateful AWS Secrets Manager and SSM Parameter Store emulator with versions, stages, rotation, and redacted controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,7 +44,7 @@
     "secrets-manager",
     "ssm",
     "parameter-store",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

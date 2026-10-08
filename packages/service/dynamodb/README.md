@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-dynamodb
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful Amazon DynamoDB mock for the AWS SDK v3 low-level client and `DynamoDBDocumentClient`. It preserves DynamoDB attribute types while modelling CRUD, expressions, indexes, pagination, batches, transactions, TTL, streams, and conditional writes without contacting AWS.
+Stateful Amazon DynamoDB emulator for the AWS SDK v3 low-level client and `DynamoDBDocumentClient`. It preserves DynamoDB attribute types while modelling CRUD, expressions, indexes, pagination, batches, transactions, TTL, streams, and conditional writes without contacting AWS.
 
 ## Install
 
@@ -14,12 +14,12 @@ ESM only. Node 22+ or Bun 1.2+.
 
 ## Usage
 
-Point the SDK's `endpoint` option at the mock. Fixture SigV4 credentials are accepted.
+Point the SDK's `endpoint` option at the emulator. Fixture SigV4 credentials are accepted.
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-dynamodb/server"
 
-const mock = await createServer({
+const emulator = await createServer({
   tables: [
     {
       name: "records",
@@ -28,7 +28,7 @@ const mock = await createServer({
     },
   ],
 })
-const health = await fetch(`${mock.url}/__admin/health`)
+const health = await fetch(`${emulator.url}/__admin/health`)
 ```
 
 Supported operations are CreateTable, DescribeTable, GetItem, PutItem, UpdateItem, DeleteItem, Query, Scan, BatchGetItem, BatchWriteItem, TransactGetItems, and TransactWriteItems. The expression subset includes expression name/value aliases, SET/ADD/REMOVE/DELETE, `if_not_exists`, `attribute_exists`, `attribute_not_exists`, `begins_with`, comparisons, BETWEEN, AND/OR, projection, conditions, limits, cursors, index ordering, and return values.
@@ -37,7 +37,7 @@ Supported operations are CreateTable, DescribeTable, GetItem, PutItem, UpdateIte
 
 - Constructor fixtures define tables, indexes, typed items, and TTL attributes.
 - `GET /__admin/tables`, `/__admin/items?table=…`, and `/__admin/streams?table=…` inspect local state and ordered INSERT/MODIFY/REMOVE records.
-- Advance the shared mock clock to expire TTL items without sleeps.
+- Advance the shared emulator clock to expire TTL items without sleeps.
 - Fault presets are `throttled` and one-shot `unavailable`; generic fault rules can model unprocessed batch responses or eventual-read failures.
 
 The shared runtime also provides reset, timeline, request journal, metrics, faults, and namespace isolation through `x-mockingbird-namespace`, `/__admin/ns/<name>`, or SigV4 access-key mappings.

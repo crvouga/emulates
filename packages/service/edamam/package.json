@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-edamam",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Edamam APIs our apps call: food-database parser, nutrients and image analysis, nutrition analysis, recipe search v2, meal-planner select and shopping lists, over a built-in food and recipe corpus.",
+  "description": "Stateful emulator of the Edamam APIs our apps call: food-database parser, nutrients and image analysis, nutrition analysis, recipe search v2, meal-planner select and shopping lists, over a built-in food and recipe corpus.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

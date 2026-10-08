@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-sqs
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful Amazon SQS mock for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
+Stateful Amazon SQS emulator for AWS SDK v3. It models standard and FIFO queues, message attributes, visibility and receipt handles, batches, deduplication, purge locking, and dead-letter redrive without contacting AWS.
 
 ## Install
 
@@ -14,15 +14,15 @@ ESM only. Node 22+ or Bun 1.2+.
 
 ## Usage
 
-Point `SQS_ENDPOINT_URL` or the AWS SDK `endpoint` option at the served mock. Fixture SigV4 credentials are accepted.
+Point `SQS_ENDPOINT_URL` or the AWS SDK `endpoint` option at the served emulator. Fixture SigV4 credentials are accepted.
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-sqs/server"
 
-const mock = await createServer({
+const emulator = await createServer({
   queues: [{ name: "jobs", attributes: { VisibilityTimeout: "30" } }],
 })
-const health = await fetch(`${mock.url}/__admin/health`)
+const health = await fetch(`${emulator.url}/__admin/health`)
 ```
 
 Supported operations are CreateQueue, GetQueueUrl, GetQueueAttributes, SendMessage, SendMessageBatch, ReceiveMessage, DeleteMessage, ChangeMessageVisibility, and PurgeQueue. Receive honors maximum messages, visibility timeout, system attribute selection, and message attribute selection. The injected shared clock controls visibility expiry and redrive without sleeps.

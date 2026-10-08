@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-textract",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon Textract mock with document analysis jobs, graph blocks, pagination, and deterministic notifications.",
+  "description": "Stateful Amazon Textract emulator with document analysis jobs, graph blocks, pagination, and deterministic notifications.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,7 +44,7 @@
     "textract",
     "ocr",
     "documents",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

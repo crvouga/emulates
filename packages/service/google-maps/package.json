@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-google-maps",
   "version": "0.0.0-development",
-  "description": "Mock of Google Places Autocomplete / Details / Find Place, the Geocoding API, a Maps JavaScript (places) shim and the Address Validation API (USPS CASS/DPV verdicts), over a QA address corpus, with Google's status codes and fault presets.",
+  "description": "Emulator of Google Places Autocomplete / Details / Find Place, the Geocoding API, a Maps JavaScript (places) shim and the Address Validation API (USPS CASS/DPV verdicts), over a QA address corpus, with Google's status codes and fault presets.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

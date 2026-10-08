@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-customerio",
   "version": "0.0.0-development",
-  "description": "Stateful mock of Customer.io: Segment-compatible CDP (identify/track/batch, SDK drop-in), App API transactional email/SMS/inbox sends with an outbox, message catalog, link-click tracking, and signed reporting webhooks.",
+  "description": "Stateful emulator of Customer.io: Segment-compatible CDP (identify/track/batch, SDK drop-in), App API transactional email/SMS/inbox sends with an outbox, message catalog, link-click tracking, and signed reporting webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

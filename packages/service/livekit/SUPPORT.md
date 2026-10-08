@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **6**
-- supported by the mock: **6**
+- supported by the emulator: **6**
 - parity enabled: **6**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `CreateDispatch` | `POST /twirp/livekit.AgentDispatchService/CreateDispatch` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ListDispatch` | `POST /twirp/livekit.AgentDispatchService/ListDispatch` | ✅ supported | ✅ |  |

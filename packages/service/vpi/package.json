@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-vpi",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the VPI compounding pharmacy API: JWT authentication, products, clinic, patients, providers, saveNewPrescription drafts and the three paged prescription status lists.",
+  "description": "Stateful emulator of the VPI compounding pharmacy API: JWT authentication, products, clinic, patients, providers, saveNewPrescription drafts and the three paged prescription status lists.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

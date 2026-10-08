@@ -80,7 +80,7 @@ if (root && raw) {
     runtime ??= (async () => {
       const load = loaders[data.service]
       if (!load) throw new Error(`No browser build for ${data.service}`)
-      setStatus("loading", "Loading the mock…")
+      setStatus("loading", "Loading the emulator…")
       const t0 = performance.now()
       const mod = await load()
       const rt = mod.createRuntime() as Runtime
@@ -92,7 +92,7 @@ if (root && raw) {
       return rt
     })().catch((error: Error) => {
       runtime = undefined
-      setStatus("error", `Could not load the mock: ${error.message}`)
+      setStatus("error", `Could not load the emulator: ${error.message}`)
       throw error
     })
     return runtime
@@ -196,7 +196,7 @@ if (root && raw) {
       }
       stateOut.innerHTML =
         groups.size === 0
-          ? `<span class="muted">The mock holds no records yet.</span>`
+          ? `<span class="muted">The emulator holds no records yet.</span>`
           : [...groups]
               .map(
                 ([name, values]) =>
@@ -220,7 +220,7 @@ if (root && raw) {
               )
               .join("")
     } catch {
-      journalOut.innerHTML = `<span class="muted">This mock does not expose a request journal.</span>`
+      journalOut.innerHTML = `<span class="muted">This emulator does not expose a request journal.</span>`
     }
   }
 
@@ -335,7 +335,7 @@ if (root && raw) {
     token = null
     updateFill()
     await refreshSide(rt)
-    out.innerHTML = `<span class="muted">State reset. The mock is empty again.</span>`
+    out.innerHTML = `<span class="muted">State reset. The emulator is empty again.</span>`
     meta.innerHTML = ""
   })
 
@@ -359,7 +359,7 @@ if (root && raw) {
     if (requested) root.scrollIntoView({ block: "start" })
   }
 
-  // Fetch the mock's chunk when someone reaches for the playground, so the first send is quick.
+  // Fetch the emulator's chunk when someone reaches for the playground, so the first send is quick.
   const warm = () => void loaders[data.service]?.().catch(() => {})
   root.addEventListener("pointerenter", warm, { once: true })
   root.addEventListener("focusin", warm, { once: true })

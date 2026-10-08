@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-easypost
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **EasyPost** trackers API for test suites: `POST /v2/trackers` (create or
+Stateful emulator of the **EasyPost** trackers API for test suites: `POST /v2/trackers` (create or
 re-use a tracker for a tracking code), `GET /v2/trackers/{id}` and `GET /v2/trackers`. EasyPost's
 documented test tracking codes answer their fixed statuses, and any other code moves through
 admin transitions, so the genomics admin's shipping-leg states can be driven deterministically.
@@ -24,7 +24,7 @@ any Fetch server.
 ## Usage
 
 The app hardcodes `https://api.easypost.com/v2/trackers` (seam **G-Y1**: add a base-URL env to
-`easypost-client.ts`). Point that base URL at the mock; `EASYPOST_API_KEY` can be any value
+`easypost-client.ts`). Point that base URL at the emulator; `EASYPOST_API_KEY` can be any value
 (`--api-key` restricts it).
 
 ```bash
@@ -103,14 +103,14 @@ records `unknown` and warns), `slow` (5 s).
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `EasyPostAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(idOrCode, {status, …}, carrier?)`, `trackers()`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `EasyPostAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(idOrCode, {status, …}, carrier?)`, `trackers()`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `EASYPOST_PRESETS` | object | Every named fault preset. |
 | `EASYPOST_NAMESPACE` | string | The service name, `"easypost"`. |
 | `TEST_TRACKING_CODES` | object | EasyPost's test codes and the status / detail each answers. |
 | `TRACKER_STATUSES` | array | Every Tracker `status`. |
 | `apiKeyCredential` | function | The API key from `Basic base64(key:)` (how credentials map to namespaces). |
-| `detectCarrier` | function | The carrier the mock assigns a code with no carrier given. |
+| `detectCarrier` | function | The carrier the emulator assigns a code with no carrier given. |
 | `easyPostError` | function | Build an EasyPost error response `{error: {code, message, errors}}`. |
 | `isTrackerStatus` | function | Whether a value is a Tracker status. |
 | `document`, `operationIds`, `supportedOperationIds` | values | The vendored OpenAPI contract and its operation ids. |

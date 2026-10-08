@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-persona",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Persona identity-verification API: inquiry create, list (reusable lookup), get, a hosted flow page, admin lifecycle transitions, and Persona-Signature webhooks.",
+  "description": "Stateful emulator of the Persona identity-verification API: inquiry create, list (reusable lookup), get, a hosted flow page, admin lifecycle transitions, and Persona-Signature webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

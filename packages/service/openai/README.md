@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-openai
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-A **wip**, portable, entirely local OpenAI mock for Chat Completions, function tool loops,
+A **wip**, portable, entirely local OpenAI emulator for Chat Completions, function tool loops,
 Chat SSE streams, embeddings, models, files and staged uploads. Verified with unmodified
 **openai 7.27.0**, **@ai-sdk/openai 4.0.83** and **ai 7.0.127** over Node HTTP.
 It makes no inference calls and requires no vendor account or billed API key.
@@ -18,14 +18,14 @@ bun add @crvouga/mockingbird-service-openai
 ```ts
 import { createRuntime, DEFAULT_TOKEN } from "@crvouga/mockingbird-service-openai"
 
-const mock = createRuntime({
+const emulator = createRuntime({
   scripts: [{
     kind: "chat",
     message: { role: "assistant", content: "Fixture answer" },
     usage: { prompt_tokens: 12, completion_tokens: 3, cached_tokens: 8 },
   }],
 })
-const response = await mock.fetch(new Request("http://mock.local/v1/chat/completions", {
+const response = await emulator.fetch(new Request("http://emulator.local/v1/chat/completions", {
   method: "POST",
   headers: { authorization: `Bearer ${DEFAULT_TOKEN}`, "content-type": "application/json" },
   body: JSON.stringify({ model: "fixture-chat", messages: [{ role: "user", content: "Fixture question" }] }),
@@ -154,7 +154,7 @@ Presets fire once: `rate_limited` (429, Retry-After and retry-after-ms), `server
 `slow_response` (50 ms before dispatch). Canned errors/drop do not consume scripts.
 The reported raw client retries only network errors, 429 and 5xx. Official OpenAI SDK additionally
 retries 408/409 by its own policy; configure `maxRetries` when asserting attempts. Transport
-latency uses wall time, while resource lifecycle uses the mock clock.
+latency uses wall time, while resource lifecycle uses the emulator clock.
 
 ## API
 

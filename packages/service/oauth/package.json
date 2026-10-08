@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-oauth",
   "version": "0.0.0-development",
-  "description": "Social-login mock with Google, Apple, Microsoft, GitHub and generic OIDC profiles, private relay identities, reproducible edge cases, signed tokens and an accessible UI.",
+  "description": "Social-login emulator with Google, Apple, Microsoft, GitHub and generic OIDC profiles, private relay identities, reproducible edge cases, signed tokens and an accessible UI.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -45,7 +45,7 @@
     "google",
     "apple",
     "social-login",
-    "mock",
+    "emulator",
     "microsoft",
     "github",
     "fault-injection"
@@ -71,7 +71,7 @@
       {
         "id": "google-login",
         "title": "Try a complete OAuth login",
-        "description": "Choose popup or redirect, sign in through OAuth Mock, and return to an example app. The client, Hono server, and provider all run in process.",
+        "description": "Choose popup or redirect, sign in through OAuth Emulator, and return to an example app. The client, Hono server, and provider all run in process.",
         "entry": "examples/google-login/index.ts",
         "sources": [
           "examples/google-login/app.ts",

@@ -1,10 +1,10 @@
 # @crvouga/mockingbird-core
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
 The one contract shared by every Mockingbird package: `FetchAPI`, anything that answers a Fetch
-`Request` with a `Response`. Every mock service implements it and every runtime adapter consumes it.
-You rarely install this directly. Most users want a provider mock such as
+`Request` with a `Response`. Every emulator service implements it and every runtime adapter consumes it.
+You rarely install this directly. Most users want a provider emulator such as
 `@crvouga/mockingbird-service-stripe`; depend on this package
 only when you write your own `FetchAPI` or a function that accepts one.
 
@@ -40,7 +40,7 @@ console.log(await response.json()) // { path: "/v1/ping" }
 
 // And back again: wrap a plain handler so it can go wherever a FetchAPI is expected.
 const wrapped: FetchAPI = fromFetchHandler(async () => new Response("ok"))
-console.log(await (await wrapped.fetch(new Request("https://mock.local/"))).text()) // "ok"
+console.log(await (await wrapped.fetch(new Request("https://emulator.local/"))).text()) // "ok"
 
 // One persistent checkpoint DAG works for any immutable/COW state representation.
 const history = new Timeline<{ count: number }>({ maxCheckpoints: 100 })
@@ -49,7 +49,7 @@ history.fork("experiment", { from: root.id })
 history.commit({ count: 1 }, { branch: "experiment" })
 ```
 
-Pass a mock straight to your code under test as its `fetch`, e.g. `fetch: (input, init) =>
+Pass an emulator straight to your code under test as its `fetch`, e.g. `fetch: (input, init) =>
 api.fetch(new Request(input, init))`, or serve it over HTTP with an adapter (see Related).
 
 ## API

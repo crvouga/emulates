@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-notion",
   "version": "0.0.0-development",
-  "description": "Notion 2022-06-28 OAuth, database search and page creation mock.",
+  "description": "Notion 2022-06-28 OAuth, database search and page creation emulator.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

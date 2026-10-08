@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-google-maps
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Mock of the **Google Maps Platform** surface our member app uses for addresses: Places
+Emulator of the **Google Maps Platform** surface our member app uses for addresses: Places
 Autocomplete, Place Details and Find Place From Text (the JSON web services), the Geocoding API,
 a **Maps JavaScript API shim** (`/maps/api/js?libraries=places`) exposing
 `google.maps.places.*` and `google.maps.Geocoder` over the same data, and the **Address
@@ -32,7 +32,7 @@ with any Fetch server.
 The app hardcodes `https://maps.googleapis.com` (seam **G-Y1**: a base-URL env for
 `M/lib/ui/address-autocomplete/address-autocomplete-native-rest.tsx`,
 `M/features/bloodwork/shared/lab-finder/use-geocoded-address.ts` and
-`M/lib/ui/google-maps/load-google-maps-script.ts`). Until it lands, rewrite that host to the mock
+`M/lib/ui/google-maps/load-google-maps-script.ts`). Until it lands, rewrite that host to the emulator
 in the stack's web dist (`stack-web-dist.ts`), as for PostHog. `PLACES_KEY` can be any non-empty
 string unless you restrict keys.
 
@@ -62,8 +62,8 @@ maps.applyPreset("autocomplete_over_query_limit", "default", { count: 2 })
 ### Address Validation
 
 Google serves it from a different host, `https://addressvalidation.googleapis.com`; the paths do
-not collide, so one mock serves both. Point the server-side client's Address Validation base URL
-at the mock (or at `<mock>/__admin/ns/<namespace>`), with the key as `?key=` (or `X-Goog-Api-Key`).
+not collide, so one emulator serves both. Point the server-side client's Address Validation base URL
+at the emulator (or at `<emulator>/__admin/ns/<namespace>`), with the key as `?key=` (or `X-Goog-Api-Key`).
 
 ```ts
 import { createRuntime } from "@crvouga/mockingbird-service-google-maps"
@@ -92,8 +92,8 @@ const { result } = await response.json()
 maps.applyPreset("address_validation_dpv_n", "default", { count: 1 })
 ```
 
-On web, load `<mock>/maps/api/js?key=…&libraries=places` exactly as the app loads Google's
-script; the shim calls back into the mock's REST endpoints on the same origin and namespace.
+On web, load `<emulator>/maps/api/js?key=…&libraries=places` exactly as the app loads Google's
+script; the shim calls back into the emulator's REST endpoints on the same origin and namespace.
 
 ### Routes
 
@@ -223,8 +223,8 @@ records operation, status, the resolved `placeId` and the `sessionToken`, and fo
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `GoogleMapsAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `corpus()`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `corpus`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, journal). Options: `corpus`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `GoogleMapsAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `corpus()`, `state`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `corpus`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, journal). Options: `corpus`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `GOOGLE_MAPS_PRESETS` | object | Every named fault preset. |
 | `GOOGLE_MAPS_NAMESPACE` | string | The service name, `"google-maps"`. |
 | `keyCredential` | function | The `key` query parameter (or `X-Goog-Api-Key` header) of a request (how API keys map to namespaces). |

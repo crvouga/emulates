@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-wholescripts",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Wholescripts supplement fulfilment API: product and private-label catalogs, order submit, status polling and cancel, with admin status transitions.",
+  "description": "Stateful emulator of the Wholescripts supplement fulfilment API: product and private-label catalogs, order submit, status polling and cancel, with admin status transitions.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

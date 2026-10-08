@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-aha",
   "version": "0.0.0-development",
-  "description": "Stateful AHA phlebotomy mock with signed HTTP orders, status webhooks, and a real deterministic SSH/SFTP result server.",
+  "description": "Stateful AHA phlebotomy emulator with signed HTTP orders, status webhooks, and a real deterministic SSH/SFTP result server.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

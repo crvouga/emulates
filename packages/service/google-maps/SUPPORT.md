@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **6**
-- supported by the mock: **6**
+- supported by the emulator: **6**
 - parity enabled: **5**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `PlaceAutocomplete` | `GET /maps/api/place/autocomplete/json` | ✅ supported | ✅ |  |
 | `PlaceDetails` | `GET /maps/api/place/details/json` | ✅ supported | ✅ |  |

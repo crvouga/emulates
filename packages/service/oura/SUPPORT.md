@@ -1,12 +1,12 @@
-# Oura v2 mock — operation support
+# Oura v2 emulator — operation support
 
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **8**
-- supported by the mock: **8**
+- supported by the emulator: **8**
 - parity enabled: **8**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListWorkout` | `GET /v2/usercollection/workout` | ✅ supported | ✅ |  |
 | `ListSleep` | `GET /v2/usercollection/sleep` | ✅ supported | ✅ |  |

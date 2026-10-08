@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-stripe",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Stripe API (accounts by key, customers, payments, subscriptions that renew, pause, resume and cancel, invoices, checkout with a hosted page, a hosted customer portal, a Stripe.js stand-in, signed webhooks) at API versions 2024-06-20 and 2025-02-24.acacia, verified by differential property tests against Stripe test mode.",
+  "description": "Stateful emulator of the Stripe API (accounts by key, customers, payments, subscriptions that renew, pause, resume and cancel, invoices, checkout with a hosted page, a hosted customer portal, a Stripe.js stand-in, signed webhooks) at API versions 2024-06-20 and 2025-02-24.acacia, verified by differential property tests against Stripe test mode.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -49,6 +49,7 @@
     "billing"
   ],
   "mockingbird": {
+    "featured": true,
     "runtime": "portable",
     "entries": {
       "server": "node",
@@ -101,6 +102,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json --noEmit",
     "lint": "biome check .",
     "test": "bun test",
+    "emulator:server": "bun scripts/server.ts",
     "mock:server": "bun scripts/server.ts",
     "client-parity": "bun scripts/client-parity.ts",
     "parity": "bun scripts/parity.ts",

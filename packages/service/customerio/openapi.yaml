@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Customer.io CDP + App API (Mockingbird subset)
   description: |
-    Stateful mock subset of Customer.io: the Segment-compatible CDP ingestion endpoints
+    Stateful emulator subset of Customer.io: the Segment-compatible CDP ingestion endpoints
     (`identify`, `track`, `batch`, as `@customerio/cdp-analytics-node` posts them), the App API
     transactional sends (email, SMS, inbox message), transactional-message catalog, profile
     attribute reads, delivery-status reads, and the link-tracking click endpoint. One process
@@ -403,7 +403,7 @@ paths:
       operationId: GetMessage
       description: |
         Delivery status for one transactional send. Missing ids, and ids still inside the
-        mock's visibility delay, are 404. The body never includes `message_data`.
+        emulator's visibility delay, are 404. The body never includes `message_data`.
       security:
         - appApiKey: []
       x-mockingbird:

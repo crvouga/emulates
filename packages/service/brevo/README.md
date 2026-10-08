@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-brevo
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP Brevo v3 contact lifecycle, based on the official contact reference. No messages are sent.
 
@@ -47,7 +47,7 @@ Errors use `{code, message}`. There are no webhooks for this surface.
 
 ### Controls and verification
 
-Pass synthetic `contacts` to seed the mock; reset restores those fixtures. Shared admin
+Pass synthetic `contacts` to seed the emulator; reset restores those fixtures. Shared admin
 routes include `/__admin/state/contacts` for inspection/seeding, `/__admin/reset`, Timeline
 checkpoints, `/__admin/clock`, `/__admin/requests` and `/__admin/faults`. Requests are journaled
 as metadata, never contact bodies or API keys. Set `adminPrefix` to relocate this tree.

@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-vibe",
   "version": "0.0.0-development",
-  "description": "Vibe OAuth and asynchronous campaign-spend report mock.",
+  "description": "Vibe OAuth and asynchronous campaign-spend report emulator.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

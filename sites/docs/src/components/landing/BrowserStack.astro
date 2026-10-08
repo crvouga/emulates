@@ -14,7 +14,7 @@ import VendorLogo from "./VendorLogo.astro"
 const example = APP_EXAMPLES.find((e) => e.slug === "medical-testing")
 if (!example) throw new Error("medical-testing is missing from APP_EXAMPLES")
 
-/** What each vendor does for the app. The OAuth mock's brand is the OpenID Foundation; name the protocol. */
+/** What each vendor does for the app. The OAuth emulator's brand is the OpenID Foundation; name the protocol. */
 const ROLES: Record<string, { name?: string; role: string }> = {
   oauth: { name: "OAuth", role: "Google & Apple sign-in" },
   stripe: { role: "Payments" },
@@ -123,20 +123,11 @@ const modes = [
     background: var(--bg-subtle);
   }
 
-  .mark {
-    flex: none;
-    width: 22px;
-    height: 7px;
-    background-image:
-      linear-gradient(var(--fg), var(--fg)),
-      linear-gradient(var(--fg), var(--fg));
-    background-repeat: no-repeat;
-    background-size:
-      100% 2px,
-      68% 1px;
-    background-position:
-      left top,
-      left 5px;
+  .mark::before {
+    content: ">_";
+    color: var(--fg-subtle);
+    font-family: var(--font-mono);
+    font-weight: 600;
   }
 
   .url {
@@ -176,7 +167,7 @@ const modes = [
   }
 
   .kicker {
-    color: var(--clay);
+    color: var(--highlight);
     font-size: 11px;
     font-weight: 650;
     letter-spacing: 0.14em;
@@ -253,9 +244,9 @@ const modes = [
   figcaption {
     padding: 14px 32px;
     border-top: 1px solid var(--border);
-    color: var(--clay);
+    color: var(--highlight);
     font-family: var(--font-display);
-    font-style: italic;
+    font-style: normal;
     font-size: 15px;
   }
 

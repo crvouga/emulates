@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Payload CMS REST API (Mockingbird subset)
   description: |
-    Stateful mock subset of Payload CMS's auto-generated collection REST API: find documents
+    Stateful emulator subset of Payload CMS's auto-generated collection REST API: find documents
     (with a `where` query subset, `limit`, `page`, `sort`) and find one by id. Hand-authored
     from Payload's REST API docs and the consumer's response type (payload-cms-response.type.ts).
   version: "2"

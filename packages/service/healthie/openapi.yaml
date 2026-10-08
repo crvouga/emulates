@@ -2,11 +2,11 @@ openapi: 3.1.0
 info:
   title: Healthie GraphQL API (Mockingbird subset)
   description: |
-    Stateful mock of the legacy Healthie GraphQL surface our backend still calls: signIn, users,
+    Stateful emulator of the legacy Healthie GraphQL surface our backend still calls: signIn, users,
     user, currentUser, updateUser (profile, password, multipart avatar, avatar removal),
     updateClient, location(s) CRUD, documents and folders (with a `currentUser` root), document
     upload (GraphQL multipart request spec), deletion and `expiring_url` downloads served by the
-    mock, requestedFormCompletion, form answer groups, initial form answers, offerings, billing
+    emulator, requestedFormCompletion, form answer groups, initial form answers, offerings, billing
     items and updateBillingItem. GraphQL is one HTTP operation; the documents it accepts are
     executed with the reference `graphql` implementation against a hand-authored subset of
     Healthie's schema, so selection sets, aliases, variables and errors behave like the real API.
@@ -109,7 +109,7 @@ components:
           type: string
           description: >-
             Any GraphQL document. The enum below is only what random parity walks send (a
-            cross-section of our consumer's documents); the mock executes any valid document.
+            cross-section of our consumer's documents); the emulator executes any valid document.
           enum:
             - "query { currentUser { id email first_name last_name active timezone } }"
             - "query getUserById($id: ID!) { user(id: $id) { id full_name email dietitian_id location { id line1 city state zip } other_provider_ids } }"

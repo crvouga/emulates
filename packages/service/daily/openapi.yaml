@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Daily.co REST API (Mockingbird subset)
   description: |
-    Stateful mock subset of the Daily.co REST API: rooms (create, get, update, delete, presence,
+    Stateful emulator subset of the Daily.co REST API: rooms (create, get, update, delete, presence,
     eject) and meeting tokens (create, validate). Trimmed from Daily's documented API to the
     calls our backend and EMR make; request schemas follow the fields our consumers send
     (daily-video.schemas.ts strict zod schemas, EMR RoomConfig / TokenConfig).

@@ -1,196 +1,156 @@
 ---
 import catalog from "virtual:mockingbird/catalog"
+import { highlightSource } from "../../integrations/catalog/markdown.ts"
 import Icon from "../components/Icon.astro"
 import Install from "../components/Install.astro"
 import BrowserStack from "../components/landing/BrowserStack.astro"
-import MockedServices from "../components/landing/MockedServices.astro"
+import EmulatedServices from "../components/landing/EmulatedServices.astro"
 import Monogram from "../components/Monogram.astro"
+import QuickStart from "../components/QuickStart.astro"
+import ServiceCard from "../components/ServiceCard.astro"
 import Base from "../layouts/Base.astro"
-import {
-  AGENTS,
-  CONTRACT,
-  FEATURES,
-  HEADLINE,
-  IDENTITY,
-  PITCH,
-  PLATE_HREF,
-  QUICK_START,
-} from "../lib/content.ts"
+import { AGENTS, CONTRACT, FEATURES, HEADLINE, PITCH, QUICK_START } from "../lib/content.ts"
 import { inline } from "../lib/inline.ts"
 
 const { totals } = catalog
-const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
+const featured = catalog.services.filter((s) => s.featured)
+const request = `import { createRuntime } from
+  "@crvouga/mockingbird-service-stripe"
+
+const stripe = createRuntime()
+
+const response = await stripe.fetch(
+  new Request("https://api.stripe.com/v1/customers", {
+    method: "POST",
+    headers: {
+      authorization: "Bearer sk_test_mockingbird",
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: "email=ada@example.com",
+  }),
+)`
+const requestHtml = await highlightSource(request, "ts")
 ---
 
 <Base>
-  <section class="hero">
-    <div class="container hero-grid">
-      <div class="hero-copy">
-        <p class="species">
-          <em>Mimus polyglottos</em>
-          <a href="/services">{totals.services} mocks</a>
-        </p>
-        <h1>{HEADLINE.lead}<br /><em>{HEADLINE.accent}</em></h1>
-        <p class="note">{IDENTITY.note}</p>
-        <p class="lede" set:html={inline(PITCH)} />
-        <div class="hero-cta">
-          <a class="btn btn-primary" href="/services">Browse services <Icon name="arrow-right" /></a>
-          <a class="btn btn-secondary" href="/why">Why Mockingbird</a>
-        </div>
-        <div class="hero-install">
-          <Install pkg={QUICK_START.package} />
-        </div>
+  <section class="hero container">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="runtime-dot" aria-hidden="true"></span> API & database emulation</p>
+      <h1>{HEADLINE.lead}<br /><span>{HEADLINE.accent}</span></h1>
+      <p class="lede" set:html={inline(PITCH)} />
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/docs/getting-started">Get started <Icon name="arrow-right" /></a>
+        <a class="btn btn-secondary" href="/services">Explore emulators</a>
       </div>
-      <figure class="plate">
-        <img
-          src={PLATE_HREF}
-          width="1536"
-          height="1024"
-          alt="Northern mockingbird on a fruiting branch: gray above, pale below, two white bars on the wing, a long tail."
-        />
-        <figcaption>
-          <span>Plate I</span>
-          <span>Northern mockingbird, singing a call it learned</span>
-        </figcaption>
-      </figure>
+      <div class="hero-install"><Install pkg={QUICK_START.package} /></div>
+      <p class="runtime-list">Node.js <span>·</span> Bun <span>·</span> Browser <span>·</span> Workers</p>
+    </div>
+    <div class="runtime-panel" aria-label="Stripe emulator request example">
+      <div class="panel-bar"><Icon name="terminal" /><span>stripe.test.ts</span><span class="badge badge-ok">In-process</span></div>
+      <Fragment set:html={requestHtml} />
+      <div class="response-line"><span class="method" data-m="POST">POST</span><code>/v1/customers</code><span class="badge badge-ok">200 OK</span></div>
+      <div class="panel-foot"><span class="runtime-dot" aria-hidden="true"></span> Stateful runtime <span class="panel-foot-end">No external requests</span></div>
     </div>
   </section>
 
   <div class="container">
-    <section class="stats" aria-label="By the numbers">
-    <a href="/services"><strong>{totals.services}</strong><span>mocks</span></a>
-    <a href="/coverage"><strong>{totals.opsSupported}</strong><span>vendor operations mocked</span></a>
-    <div><strong>0</strong><span>network calls</span></div>
-  </section>
+    <section class="stats" aria-label="Emulator capabilities">
+      <a href="/services"><strong>{totals.services}</strong><span>service emulators</span></a>
+      <a href="/coverage"><strong>{totals.opsSupported}</strong><span>supported vendor operations</span></a>
+      <div><strong>4</strong><span>JavaScript runtimes</span></div>
+    </section>
   </div>
 
-  <section class="section container">
+  <section class="section container" id="quick-start">
     <div class="section-head">
-      <span class="eyebrow">What it does</span>
-      <h2>A stand-in for every service your app calls.</h2>
-      <p>Each third-party API your app depends on gets a faithful mock that runs in your process. Your code and the vendor's SDK stay the same; the requests just never leave.</p>
+      <span class="eyebrow">01 / Quick start</span>
+      <h2>From product data to a paid order.</h2>
+      <p>Build a checkout with PostgreSQL and Stripe emulators. Seed the data, write an API, and place an order from a client. Every step runs in your process.</p>
     </div>
-    <MockedServices />
+    <QuickStart />
   </section>
 
   <section class="section container">
     <div class="section-head">
-      <span class="eyebrow">Quick start</span>
-      <h2>A call, answered.</h2>
-      <p>The README's quick start. The build runs it against the published package.</p>
+      <span class="eyebrow">02 / Architecture</span>
+      <h2>Your application. Your SDKs. Local emulators.</h2>
+      <p>Each emulator implements the vendor's request and response shapes inside your process. Inject its Fetch handler or serve it on a local port.</p>
     </div>
-    <div class="window">
-      <div class="window-bar">
-        <span class="window-mark" aria-hidden="true"></span>
-        <span class="window-title">{QUICK_START.file}</span>
-        <a href="/services/stripe" class="window-link">Try it live <Icon name="arrow-right" /></a>
-      </div>
-      <Fragment set:html={catalog.quickStart.html} />
+    <EmulatedServices />
+  </section>
+
+  <section class="section container">
+    <div class="section-head">
+      <span class="eyebrow">03 / Runtime controls</span>
+      <h2>Reproducible behavior, with explicit coverage.</h2>
+      <p>Emulate the operations your application uses, inspect supported behavior, and control state between runs.</p>
+    </div>
+    <div class="features">
+      {FEATURES.map((feature) => (
+        <div class="feature">
+          <span class="feature-icon"><Icon name={feature.icon} /></span>
+          <h3>{feature.title}</h3>
+          <p set:html={inline(feature.body)} />
+        </div>
+      ))}
     </div>
   </section>
 
-  <section class="section container fullstack">
+  <section class="section container">
+    <div class="section-head section-head-row">
+      <div><span class="eyebrow">04 / Emulator catalog</span><h2>Find your application's dependencies.</h2></div>
+      <a class="text-link" href="/services">All {totals.services} emulators <Icon name="arrow-right" /></a>
+    </div>
+    <div class="featured-head"><h3><Icon name="star" /> Featured emulators</h3><a class="text-link" href="/services?featured=1">View featured <Icon name="arrow-right" /></a></div>
+    <p class="featured-intro">Start with payments, SQL, object storage, or healthcare integrations. Open an emulator to explore its contract and try the playground.</p>
+    <div class="featured-grid">{featured.map((service) => <ServiceCard service={service} />)}</div>
+    <div class="categories">
+      {catalog.categories.map((category) => {
+        const members = catalog.services.filter((service) => service.category === category.slug)
+        return (
+          <a class="category" href={`/services?category=${category.slug}`}>
+            <div class="category-heading"><h3>{category.label}</h3><span>{category.count}</span></div>
+            <p>{category.blurb}</p>
+            <div class="category-members">{members.slice(0, 5).map((service) => <Monogram name={service.displayName} hue={service.hue} logo={service.brand.logo} size={28} />)}</div>
+          </a>
+        )
+      })}
+    </div>
+  </section>
+
+  <section class="section container">
     <div class="section-head">
-      <span class="eyebrow">Full stack, in a browser tab</span>
-      <h2>Build and test a whole app with no server.</h2>
-      <p>Mocks run wherever JavaScript does, so an app's client, its API, and every vendor it calls can share one browser tab.</p>
+      <span class="eyebrow">05 / Interactive example</span>
+      <h2>A complete application, running in your browser.</h2>
+      <p>The client, server, database emulator, and API emulators share one browser tab. Explore the application and its state without configuring a server.</p>
     </div>
     <BrowserStack />
   </section>
 
   <section class="section container">
     <div class="section-head">
-      <span class="eyebrow">Why it works</span>
-      <h2>Test doubles that don't drift from the vendor.</h2>
-      <p>Hand-written stubs return whatever you guessed. Mockingbird mocks are driven by the vendor's contract and checked against it.</p>
-    </div>
-    <div class="values">
-      {
-        FEATURES.map((v, i) => (
-          <div class="value">
-            <span class="value-index">{String(i + 1).padStart(2, "0")}</span>
-            <h3>{v.title}</h3>
-            <p set:html={inline(v.body)} />
-          </div>
-        ))
-      }
-    </div>
-  </section>
-
-  <section class="section container">
-    <div class="section-head">
-      <span class="eyebrow">Catalog</span>
-      <h2>Payments, health, messaging, AI, and more.</h2>
-      <p>Every category links to a filtered view of the catalog.</p>
-    </div>
-    <div class="cats">
-      {
-        catalog.categories.map((c) => {
-          const members = catalog.services.filter((s) => s.category === c.slug)
-          return (
-            <a class="cat" href={`/services?category=${c.slug}`}>
-              <div class="cat-head">
-                <h3>{c.label}</h3>
-                <span>{c.count}</span>
-              </div>
-              <p>{c.blurb}</p>
-              <div class="cat-members">
-                {members.slice(0, 5).map((s) => <Monogram name={s.displayName} hue={s.hue} logo={s.brand.logo} size={26} />)}
-              </div>
-            </a>
-          )
-        })
-      }
-    </div>
-    <div class="logo-strip" aria-hidden="true">
-      {logos.map((s) => <span>{s.displayName}</span>)}
-    </div>
-  </section>
-
-  <section class="section container">
-    <div class="section-head">
-      <span class="eyebrow">The service contract</span>
-      <h2>One contract for every HTTP service.</h2>
+      <span class="eyebrow">06 / Service interface</span>
+      <h2>A shared control plane for every HTTP emulator.</h2>
       <p set:html={inline(CONTRACT.intro)} />
     </div>
-    <div class="contract">
-      <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th>Surface</th><th>What it gives you</th></tr></thead>
-          <tbody>
-            {CONTRACT.rows.map(([surface, detail]) => (
-              <tr><td set:html={inline(surface)} /><td set:html={inline(detail)} /></tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p class="contract-note" set:html={inline(CONTRACT.configNote)} />
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Interface</th><th>Behavior</th></tr></thead>
+        <tbody>{CONTRACT.rows.map(([surface, detail]) => <tr><td set:html={inline(surface)} /><td set:html={inline(detail)} /></tr>)}</tbody>
+      </table>
     </div>
+    <p class="contract-note" set:html={inline(CONTRACT.configNote)} />
   </section>
 
   <section class="section container">
-    <div class="agents">
-      <div>
-        <span class="eyebrow">Built for coding agents</span>
-        <h2>Docs an agent can read, generated from the code.</h2>
-        <p set:html={inline(AGENTS)} />
-      </div>
-      <ul class="agent-links">
-        <li><a href="/llms.txt"><Icon name="bot" /><span><strong>/llms.txt</strong>An index of every service with links to its markdown</span></a></li>
-        <li><a href="/llms-full.txt"><Icon name="file" /><span><strong>/llms-full.txt</strong>Every README in one file</span></a></li>
-        <li><a href="/catalog.json"><Icon name="database" /><span><strong>/catalog.json</strong>Surfaces and operation coverage</span></a></li>
-        <li><a href="/services/stripe.md"><Icon name="file" /><span><strong>/services/&lt;name&gt;.md</strong>Any service's README as raw markdown</span></a></li>
+    <div class="agent-docs">
+      <div><span class="eyebrow">Machine-readable documentation</span><h2>Source-backed guides for developers and agents.</h2><p set:html={inline(AGENTS)} /></div>
+      <ul>
+        <li><a href="/llms.txt"><Icon name="bot" /><span><strong>/llms.txt</strong>Emulator index and declared parity</span><Icon name="arrow-right" /></a></li>
+        <li><a href="/llms-full.txt"><Icon name="file" /><span><strong>/llms-full.txt</strong>Every package guide in one file</span><Icon name="arrow-right" /></a></li>
+        <li><a href="/catalog.json"><Icon name="database" /><span><strong>/catalog.json</strong>Interfaces and operation coverage</span><Icon name="arrow-right" /></a></li>
+        <li><a href="/services/stripe.md"><Icon name="file" /><span><strong>/services/&lt;name&gt;.md</strong>Raw markdown for each emulator</span><Icon name="arrow-right" /></a></li>
       </ul>
-    </div>
-  </section>
-
-  <section class="cta-band">
-    <div class="container cta">
-      <h2>Take the vendor off your test suite's critical path.</h2>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="/services">Find your API <Icon name="arrow-right" /></a>
-        <a class="btn btn-secondary" href={catalog.repo} target="_blank" rel="noopener"><Icon name="github" /> Star on GitHub</a>
-      </div>
     </div>
   </section>
 </Base>
@@ -200,499 +160,63 @@ const logos = catalog.services.filter((s) => s.kind === "http").slice(0, 18)
 </script>
 
 <style>
-  .hero {
-    padding-block: 56px 28px;
-  }
-
-  .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: 48px;
-    align-items: start;
-  }
-
-  .species {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 8px 16px;
-    margin: 0;
-    color: var(--clay);
-  }
-
-  .species em {
-    font-family: var(--font-display);
-    font-size: 17px;
-  }
-
-  .species a {
-    color: var(--fg-muted);
-    font-size: 13px;
-    text-decoration: underline;
-    text-decoration-color: var(--clay);
-    text-underline-offset: 3px;
-  }
-
-  .species a:hover {
-    color: var(--fg);
-  }
-
-  .stats a:hover strong {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-
-  .hero h1 {
-    margin-top: 14px;
-    font-size: clamp(40px, 5vw, 64px);
-    line-height: 0.98;
-    letter-spacing: -0.03em;
-    font-weight: 600;
-  }
-
-  .hero h1 em {
-    font-style: italic;
-    font-weight: 500;
-    color: var(--clay);
-  }
-
-  .note {
-    margin-top: 18px;
-    max-width: 42ch;
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: 18px;
-    line-height: 1.45;
-  }
-
-  .hero .lede {
-    margin-top: 14px;
-    max-width: 52ch;
-    font-size: 16.5px;
-  }
-
-  .hero-cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 28px;
-  }
-
-  .hero-install {
-    margin-top: 28px;
-    max-width: 480px;
-  }
-
-  .plate {
-    margin: 0;
-    padding: 12px 12px 0;
-    border: 1px solid #243f34;
-    background: #f3eee4;
-  }
-
-  .plate img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
-    background: #111;
-  }
-
-  .plate figcaption {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 10px 2px 12px;
-    color: #5c675f;
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: 14px;
-  }
-
-  .plate figcaption span:first-child {
-    flex: none;
-    color: #8d4a32;
-    font-family: var(--font-sans);
-    font-style: normal;
-    font-size: 11px;
-    font-weight: 650;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-  }
-
-  .window :global(.code) {
-    margin: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-  }
-
-  .window :global(.code figcaption) {
-    display: none;
-  }
-
-  .window {
-    border: 1px solid var(--fg);
-    border-radius: 0;
-    background: var(--bg-inset);
-    overflow: hidden;
-  }
-
-  .window-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    height: 42px;
-    padding: 0 12px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-subtle);
-  }
-
-  .window-mark {
-    width: 22px;
-    height: 7px;
-    flex: none;
-    background-image:
-      linear-gradient(var(--fg), var(--fg)),
-      linear-gradient(var(--fg), var(--fg));
-    background-repeat: no-repeat;
-    background-size:
-      100% 2px,
-      68% 1px;
-    background-position:
-      left top,
-      left 5px;
-  }
-
-  .window-title {
-    flex: 1;
-    color: var(--fg-subtle);
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
-
-  .window-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--accent-soft-fg);
-    font-size: 12.5px;
-    font-weight: 600;
-  }
-
-  .window-link .i {
-    width: 13px;
-    height: 13px;
-  }
-
-  .window :global(pre) {
-    margin: 0;
-    padding: 16px 18px;
-    max-height: 440px;
-    overflow: auto;
-    font-size: 12.5px;
-    line-height: 1.7;
-    background: transparent !important;
-  }
-
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    margin-top: 28px;
-    border-block: 1px solid var(--border);
-    background: transparent;
-  }
-
-  .stats > * {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 22px 24px;
-  }
-
-  .stats > * + * {
-    border-left: 1px solid var(--border);
-  }
-
-  .stats strong {
-    font-family: var(--font-display);
-    font-size: 34px;
-    font-weight: 560;
-    letter-spacing: -0.03em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .stats span {
-    color: var(--fg-subtle);
-    font-size: 13.5px;
-  }
-
-  .values {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 56px;
-  }
-
-  .value {
-    padding: 22px 0 28px;
-    background-image:
-      linear-gradient(var(--fg), var(--fg)),
-      linear-gradient(var(--fg), var(--fg));
-    background-repeat: no-repeat;
-    background-size:
-      28px 2px,
-      18px 1px;
-    background-position:
-      left top,
-      left 5px;
-  }
-
-  .value-index {
-    display: block;
-    margin-top: 12px;
-    color: var(--clay);
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: 18px;
-  }
-
-  .value h3 {
-    margin-top: 6px;
-    font-size: 20px;
-  }
-
-  .value p {
-    margin-top: 8px;
-    color: var(--fg-muted);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .cats {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
-    gap: 14px;
-  }
-
-  .cat {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 18px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg-elevated);
-    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
-  }
-
-  .cat:hover {
-    border-color: var(--fg);
-    box-shadow: inset 3px 0 0 var(--clay);
-  }
-
-  .cat-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
-
-  .cat-head h3 {
-    font-size: 15px;
-  }
-
-  .cat-head span {
-    color: var(--fg-subtle);
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .cat p {
-    color: var(--fg-muted);
-    font-size: 13.5px;
-  }
-
-  .cat-members {
-    display: flex;
-    gap: 4px;
-    margin-top: 6px;
-  }
-
-  .logo-strip {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px 26px;
-    margin-top: 40px;
-    color: var(--fg-faint);
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: 16px;
-    font-weight: 500;
-  }
-
-  .fullstack .section-head {
-    max-width: 720px;
-  }
-
-  .contract-note {
-    margin-top: 14px;
-    max-width: 760px;
-    color: var(--fg-muted);
-    font-size: 14px;
-  }
-
-  .contract td :global(code),
-  .contract-note :global(code),
-  .value p :global(code),
-  .agents p :global(code) {
-    padding: 1px 5px;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    background: var(--bg-muted);
-    font-size: 0.86em;
-  }
-
-  .agents p :global(a) {
-    color: var(--accent-soft-fg);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .agents {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-    align-items: center;
-    padding: 36px 0 0;
-    border: 0;
-    border-radius: 0;
-    background-color: transparent;
-    background-image:
-      linear-gradient(var(--fg), var(--fg)),
-      linear-gradient(var(--fg), var(--fg));
-    background-repeat: no-repeat;
-    background-size:
-      100% 2px,
-      100% 1px;
-    background-position:
-      left top,
-      left 4px;
-  }
-
-  .agents h2 {
-    margin-top: 10px;
-    font-size: clamp(24px, 3vw, 30px);
-  }
-
-  .agents p {
-    margin-top: 14px;
-    color: var(--fg-muted);
-  }
-
-  .agent-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 8px;
-  }
-
-  .agent-links a {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    padding: 12px 0;
-    border: 0;
-    border-bottom: 1px solid var(--border);
-    border-radius: 0;
-    background: transparent;
-    transition: border-color 0.15s var(--ease);
-  }
-
-  .agent-links a:hover {
-    border-color: var(--border-strong);
-  }
-
-  .agent-links .i {
-    margin-top: 2px;
-    color: var(--accent-soft-fg);
-  }
-
-  .agent-links strong {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 13px;
-  }
-
-  .agent-links span span,
-  .agent-links a > span {
-    color: var(--fg-muted);
-    font-size: 13.5px;
-  }
-
-  .cta-band {
-    margin-top: 80px;
-    padding: 72px 0 80px;
-    background: var(--accent);
-    color: var(--accent-fg);
-  }
-
-  .cta h2 {
-    max-width: 18em;
-    font-size: clamp(28px, 4vw, 44px);
-    line-height: 1.05;
-  }
-
-  .cta-band .btn-primary {
-    background: var(--accent-fg);
-    color: var(--accent);
-  }
-
-  .cta-band .btn-primary:hover {
-    background: var(--bg);
-  }
-
-  .cta-band .btn-secondary {
-    background: transparent;
-    color: var(--accent-fg);
-    border-color: color-mix(in srgb, var(--accent-fg) 45%, transparent);
-    box-shadow: none;
-  }
-
-  .cta-band .btn-secondary:hover {
-    background: color-mix(in srgb, var(--accent-fg) 12%, transparent);
-    border-color: var(--accent-fg);
-  }
-
-  @media (max-width: 960px) {
-    .hero-grid,
-    .agents {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .plate {
-      max-width: 640px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .hero {
-      padding-top: 40px;
-    }
-    .stats {
-      grid-template-columns: 1fr 1fr;
-    }
-    .stats > :nth-child(3) {
-      grid-column: 1 / -1;
-      border-left: 0;
-    }
-    .stats > :nth-child(n + 3) {
-      border-top: 1px solid var(--border);
-    }
-    .values {
-      grid-template-columns: 1fr;
-    }
-    .agents {
-      padding-top: 28px;
-    }
-  }
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; padding-block: 72px 56px; }
+  .hero .eyebrow { display: flex; align-items: center; gap: 8px; }
+  .runtime-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); flex: none; }
+  .hero h1 { margin-top: 20px; font-size: clamp(34px, 4.2vw, 56px); line-height: 1.12; letter-spacing: -0.045em; font-weight: 700; }
+  .hero h1 span { color: var(--highlight); }
+  .hero .lede { margin-top: 22px; max-width: 54ch; font-size: 16px; line-height: 1.75; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .hero-install { margin-top: 28px; min-width: 0; }
+  .runtime-list { margin-top: 14px; color: var(--fg-subtle); font-family: var(--font-mono); font-size: 11px; }
+  .runtime-list span { padding-inline: 8px; color: var(--fg-faint); }
+  .runtime-panel { min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); overflow: hidden; box-shadow: var(--shadow-md); }
+  .panel-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg-subtle); border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); }
+  .panel-bar .badge { margin-left: auto; font-family: var(--font-sans); }
+  .runtime-panel :global(pre) { margin: 0; padding: 22px 20px; font-size: 12px; line-height: 1.85; overflow-x: auto; background: transparent !important; }
+  .runtime-panel :global(pre code) { font-size: inherit; }
+  .featured-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 28px; }
+  .featured-head h3 { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+  .featured-head h3 :global(.i) { width: 16px; height: 16px; color: var(--highlight); fill: var(--accent-soft); }
+  .featured-intro { margin-top: 8px; font-size: 13px; color: var(--fg-muted); }
+  .featured-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; margin: 20px 0 32px; }
+  .response-line { display: flex; align-items: center; gap: 8px; margin: 0 16px 16px; padding: 12px; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; }
+  .response-line .badge { margin-left: auto; }
+  .panel-foot { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); color: var(--fg-subtle); font-family: var(--font-mono); font-size: 10px; }
+  .panel-foot-end { margin-left: auto; }
+  .stats a:hover strong { color: var(--highlight); }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid var(--border); }
+  .stats > * { display: flex; align-items: center; gap: 16px; padding: 24px; }
+  .stats > * + * { border-left: 1px solid var(--border); }
+  .stats strong { font-family: var(--font-mono); font-size: 28px; font-weight: 600; letter-spacing: -0.04em; }
+  .stats span { color: var(--fg-subtle); font-size: 12px; }
+  .features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .feature { padding: 28px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+  .feature-icon { display: inline-flex; padding: 8px; margin-bottom: 18px; border: 1px solid var(--border); border-radius: var(--radius); color: var(--highlight); }
+  .feature h3 { font-size: 16px; font-weight: 650; }
+  .feature p { margin-top: 10px; font-size: 14px; line-height: 1.65; color: var(--fg-muted); }
+  .section-head-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 20px; }
+  .section-head-row h2 { margin-top: 8px; }
+  .text-link { display: inline-flex; align-items: center; gap: 8px; color: var(--highlight); font-size: 13px; }
+  .categories { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .category { padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); transition: border-color 0.15s var(--ease); }
+  .category:hover { border-color: var(--highlight); }
+  .category-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .category-heading h3 { font-size: 15px; }
+  .category-heading > span { font-family: var(--font-mono); font-size: 12px; color: var(--fg-subtle); }
+  .category p { margin-top: 10px; color: var(--fg-subtle); font-size: 13px; }
+  .category-members { display: flex; gap: 8px; margin-top: 20px; }
+  .contract-note { margin-top: 14px; color: var(--fg-subtle); font-size: 13px; }
+  .agent-docs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; padding: 32px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-subtle); }
+  .agent-docs h2 { margin-top: 10px; font-size: 26px; }
+  .agent-docs p { margin-top: 16px; color: var(--fg-muted); font-size: 14px; }
+  .agent-docs ul { margin: 0; padding: 0; list-style: none; }
+  .agent-docs li + li { border-top: 1px solid var(--border); }
+  .agent-docs a { display: flex; align-items: center; gap: 12px; padding: 14px 0; }
+  .agent-docs a > span { flex: 1; color: var(--fg-subtle); font-size: 12px; }
+  .agent-docs strong { display: block; font-family: var(--font-mono); color: var(--fg); font-size: 13px; margin-bottom: 4px; }
+  .agent-docs a:hover strong { color: var(--highlight); }
+  @media (max-width: 1000px) { .hero { gap: 32px; } .features, .categories { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 800px) { .hero { grid-template-columns: minmax(0, 1fr); padding-block: 40px; } .hero h1 { font-size: clamp(36px, 7vw, 52px); } .agent-docs { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 24px; } }
+  @media (max-width: 560px) { .features, .categories { grid-template-columns: minmax(0, 1fr); } .runtime-list { font-size: 10px; } .runtime-list span { padding-inline: 4px; } .panel-foot-end { display: none; } .stats { grid-template-columns: minmax(0, 1fr); } .stats > * + * { border-left: 0; border-top: 1px solid var(--border); } .stats > * { padding: 16px; } .stats strong { min-width: 4ch; } }
 </style>

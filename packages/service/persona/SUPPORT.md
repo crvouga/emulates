@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **5**
-- supported by the mock: **5**
+- supported by the emulator: **5**
 - parity enabled: **3**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListInquiries` | `GET /inquiries` | ✅ supported | ✅ |  |
 | `CreateInquiry` | `POST /inquiries` | ✅ supported | ⚠️ unsafe (opt-in) |  |

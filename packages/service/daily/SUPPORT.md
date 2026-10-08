@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **9**
-- supported by the mock: **9**
+- supported by the emulator: **9**
 - parity enabled: **9**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ListRooms` | `GET /v1/rooms` | ✅ supported | ✅ |  |
 | `CreateRoom` | `POST /v1/rooms` | ✅ supported | ⚠️ unsafe (opt-in) |  |

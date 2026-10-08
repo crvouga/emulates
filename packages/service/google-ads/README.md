@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-google-ads
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-A **wip** portable mock for Google Ads API v25 and Google Analytics 4. It provides deterministic
+A **wip** portable emulator for Google Ads API v25 and Google Analytics 4. It provides deterministic
 GAQL reporting, campaign-budget mutations, click-conversion uploads, Measurement Protocol event
 collection, and Analytics Data reports using namespaced SQLite state and an injected clock.
 
@@ -21,9 +21,9 @@ import {
   DEFAULT_TOKEN,
 } from "@crvouga/mockingbird-service-google-ads"
 
-const mock = createRuntime()
-const response = await mock.fetch(
-  new Request(`http://mock.local/v25/customers/${DEFAULT_CUSTOMER}/googleAds:search`, {
+const emulator = createRuntime()
+const response = await emulator.fetch(
+  new Request(`http://emulator.local/v25/customers/${DEFAULT_CUSTOMER}/googleAds:search`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${DEFAULT_TOKEN}`,
@@ -103,7 +103,7 @@ namespaces, resets, fault recovery, and the unmodified `google-auth-library` 11.
 path. Property tests exercise every parity-enabled operation and prove that a divergent transport
 is detected deterministically.
 
-The mock intentionally implements a bounded subset. It does not model the complete Google Ads
+The emulator intentionally implements a bounded subset. It does not model the complete Google Ads
 resource graph, every GAQL function, every Analytics dimension or metric, real Google identity,
 production quota allocation, billing, dashboards, attribution processing, or undocumented
 backend behavior. Normal operation is local and does not contact Google; only the explicit parity

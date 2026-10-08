@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-pharmetika",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Pharmetika compounding-pharmacy provider portal: clinics, patients, medication-order validate / EPCS prepare / submit / lookup, the v7 cancel, the medication-template catalog, and status webhooks.",
+  "description": "Stateful emulator of the Pharmetika compounding-pharmacy provider portal: clinics, patients, medication-order validate / EPCS prepare / submit / lookup, the v7 cancel, the medication-template catalog, and status webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

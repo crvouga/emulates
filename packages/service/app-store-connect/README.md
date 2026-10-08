@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-app-store-connect
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP App Store Connect mock for JSON:API apps, users, user invitations, beta groups and
+WIP App Store Connect emulator for JSON:API apps, users, user invitations, beta groups and
 beta testers. ES256 signatures are actually verified; no real Apple account or emails.
 
 ## Install
@@ -29,14 +29,14 @@ await server.close()
 
 `createRuntime().fetch(Request)` supports in-process clients. The CLI starts without trusted
 keys; seed public verification keys through `/__admin/state/keys`, or use server options.
-There is no static bypass bearer token. Private signing material is never needed by the mock;
+There is no static bypass bearer token. Private signing material is never needed by the emulator;
 options containing a private JWK are rejected. Generate test signing keys at test startup.
 
 ### Authentication
 
 Team JWTs require ES256, `typ: JWT`, registered `kid`, matching issuer and `appstoreconnect-v1`
 audience, valid `iat`/`exp`, signature verification and a lifetime at most 20 minutes.
-The mock clock determines expiry. `enabled: false` revokes a seeded key. Optional scope
+The emulator clock determines expiry. `enabled: false` revokes a seeded key. Optional scope
 claims restrict GET paths/query parameters; limit/cursor/sort are ignored for matching as
 documented by Apple. Invalid authentication returns JSON:API 401 before mutation.
 

@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **7**
-- supported by the mock: **7**
+- supported by the emulator: **7**
 - parity enabled: **7**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `ExportTraces` | `POST /v1/traces` | ✅ supported | ⚠️ unsafe (opt-in) |  |
 | `ExportLogs` | `POST /v1/logs` | ✅ supported | ⚠️ unsafe (opt-in) |  |

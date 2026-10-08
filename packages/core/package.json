@@ -24,7 +24,7 @@
   "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/core#readme",
   "keywords": [
     "mockingbird",
-    "mock",
+    "emulator",
     "fetch"
   ],
   "mockingbird": {

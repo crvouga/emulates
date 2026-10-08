@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "tavily",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

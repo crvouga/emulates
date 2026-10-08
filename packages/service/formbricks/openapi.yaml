@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Formbricks client + management API (Mockingbird subset)
   description: |
-    Stateful mock subset of open-source Formbricks (6.x): the client environment state (surveys)
+    Stateful emulator subset of open-source Formbricks (6.x): the client environment state (surveys)
     and response creation the JS SDK uses, the v1 management API for responses and surveys
     (`x-api-key`), and the widget script the web SDK loads. Errors use Formbricks' v1
     `{code, message, details}` shape (`apps/web/app/lib/api/response.ts`). Client routes take a

@@ -183,11 +183,11 @@ paths:
                 type: string
       x-mockingbird:
         supported: true
-        reason: the hosted Checkout page is HTML served by the mock in place of checkout.stripe.com
+        reason: the hosted Checkout page is HTML served by the emulator in place of checkout.stripe.com
         parity:
           enabled: false
           safe: true
-          reason: the hosted Checkout page is HTML served by the mock in place of checkout.stripe.com
+          reason: the hosted Checkout page is HTML served by the emulator in place of checkout.stripe.com
     post:
       operationId: PostCheckoutPage
       security: []
@@ -295,11 +295,11 @@ paths:
                 type: string
       x-mockingbird:
         supported: true
-        reason: the hosted Checkout page form post is served by the mock in place of checkout.stripe.com
+        reason: the hosted Checkout page form post is served by the emulator in place of checkout.stripe.com
         parity:
           enabled: false
           safe: false
-          reason: the hosted Checkout page form post is served by the mock in place of checkout.stripe.com
+          reason: the hosted Checkout page form post is served by the emulator in place of checkout.stripe.com
   /p/session/{session}:
     get:
       operationId: GetPortalPage
@@ -387,11 +387,11 @@ paths:
                 type: string
       x-mockingbird:
         supported: true
-        reason: the customer portal is HTML served by the mock in place of billing.stripe.com
+        reason: the customer portal is HTML served by the emulator in place of billing.stripe.com
         parity:
           enabled: false
           safe: true
-          reason: the customer portal is HTML served by the mock in place of billing.stripe.com
+          reason: the customer portal is HTML served by the emulator in place of billing.stripe.com
     post:
       operationId: PostPortalPage
       security: []
@@ -522,11 +522,11 @@ paths:
                 type: string
       x-mockingbird:
         supported: true
-        reason: the customer portal form post is served by the mock in place of billing.stripe.com
+        reason: the customer portal form post is served by the emulator in place of billing.stripe.com
         parity:
           enabled: false
           safe: false
-          reason: the customer portal form post is served by the mock in place of billing.stripe.com
+          reason: the customer portal form post is served by the emulator in place of billing.stripe.com
   /v1/account:
     get:
       operationId: GetAccount
@@ -541,7 +541,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
       requestBody:
         content:
@@ -646,7 +646,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
       requestBody:
         content:
@@ -1085,7 +1085,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: is_default
@@ -1273,7 +1273,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 features:
                   properties:
                     customer_update:
@@ -1591,7 +1591,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
       requestBody:
         content:
@@ -1760,7 +1760,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 features:
                   properties:
                     customer_update:
@@ -2676,7 +2676,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 metadata:
                   anyOf:
                     - additionalProperties:
@@ -3014,7 +3014,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 fraud_details:
                   properties:
                     user_report:
@@ -6175,7 +6175,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 line_items:
                   items:
                     properties:
@@ -6620,7 +6620,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: limit
@@ -8906,7 +8906,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: invoice
@@ -9083,7 +9083,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 metadata:
                   type: object
                   additionalProperties: true
@@ -9186,7 +9186,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: limit
@@ -9379,7 +9379,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: limit
@@ -9541,7 +9541,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
       requestBody:
         content:
@@ -9963,7 +9963,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 metadata:
                   anyOf:
                     - additionalProperties:
@@ -10055,11 +10055,11 @@ paths:
       summary: Update a dispute
       x-mockingbird:
         supported: false
-        reason: the mock never creates or mutates disputes
+        reason: the emulator never creates or mutates disputes
         parity:
           enabled: false
           safe: false
-          reason: the mock never creates or mutates disputes
+          reason: the emulator never creates or mutates disputes
   /v1/events:
     get:
       operationId: GetEvents
@@ -10111,7 +10111,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: limit
@@ -10270,7 +10270,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: path
           name: id
@@ -13853,7 +13853,7 @@ paths:
                       - payment_intent
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                   maxItems: 3
               type: object
         required: false
@@ -13960,7 +13960,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: path
           name: invoice
@@ -14992,7 +14992,7 @@ paths:
                   title: automatic_payment_methods_param
                   type: object
                   x-mockingbird-unsupported:
-                    reason: the payment method type list is explicit in the mock
+                    reason: the payment method type list is explicit in the emulator
                 capture_method:
                   type: string
                   enum:
@@ -21308,7 +21308,7 @@ paths:
                   maxLength: 5000
                   type: string
                   x-mockingbird-unsupported:
-                    reason: the mock does not verify client secrets
+                    reason: the emulator does not verify client secrets
                 confirmation_token:
                   maxLength: 5000
                   type: string
@@ -24591,7 +24591,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 fpx:
                   properties:
                     bank:
@@ -25354,7 +25354,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
               type: object
         required: false
       responses:
@@ -25467,7 +25467,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
               type: object
         required: false
       responses:
@@ -26856,7 +26856,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 id:
                   maxLength: 5000
                   type: string
@@ -27472,7 +27472,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: limit
@@ -27869,7 +27869,7 @@ paths:
                       - customer
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                   maxItems: 3
                 expires_at:
                   type: integer
@@ -32498,7 +32498,7 @@ paths:
                   maxLength: 5000
                   type: string
                   x-mockingbird-unsupported:
-                    reason: the mock does not verify client secrets
+                    reason: the emulator does not verify client secrets
                 confirmation_token:
                   maxLength: 5000
                   type: string
@@ -35212,7 +35212,7 @@ paths:
                       - customer
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                   maxItems: 2
                 from_subscription:
                   maxLength: 5000
@@ -35753,7 +35753,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 invoice_now:
                   type: boolean
                 prorate:
@@ -35870,7 +35870,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 preserve_cancel_date:
                   type: boolean
               type: object
@@ -38622,7 +38622,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: limit
@@ -38773,7 +38773,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 frozen_time:
                   type: integer
                   x-mockingbird-scope:
@@ -38982,7 +38982,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: path
           name: test_clock
@@ -39113,7 +39113,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 frozen_time:
                   type: integer
                   x-mockingbird-scope:
@@ -39226,7 +39226,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: query
           name: limit
@@ -39789,7 +39789,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 metadata:
                   type: object
                   additionalProperties: true
@@ -39999,7 +39999,7 @@ paths:
               type: string
             type: array
             x-mockingbird-unsupported:
-              reason: the mock never expands this operation's response
+              reason: the emulator never expands this operation's response
           style: deepObject
         - in: path
           name: webhook_endpoint
@@ -40411,7 +40411,7 @@ paths:
                     type: string
                   type: array
                   x-mockingbird-unsupported:
-                    reason: the mock never expands this operation's response
+                    reason: the emulator never expands this operation's response
                 metadata:
                   type: object
                   additionalProperties: true
@@ -40569,11 +40569,11 @@ paths:
                 type: string
       x-mockingbird:
         supported: true
-        reason: the Stripe.js stand-in is JavaScript served by the mock in place of js.stripe.com/v3
+        reason: the Stripe.js stand-in is JavaScript served by the emulator in place of js.stripe.com/v3
         parity:
           enabled: false
           safe: true
-          reason: the Stripe.js stand-in is JavaScript served by the mock in place of js.stripe.com/v3
+          reason: the Stripe.js stand-in is JavaScript served by the emulator in place of js.stripe.com/v3
 components:
   securitySchemes:
     bearerAuth:

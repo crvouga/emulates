@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-flex
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **Flex** (withflex.com) HSA/FSA payments API for test suites: products
+Stateful emulator of the **Flex** (withflex.com) HSA/FSA payments API for test suites: products
 (answered from a recorded catalog corpus), checkout sessions in `payment` (one-time),
 `subscription`, `off_session` and `setup` modes, subscriptions, customers, setup intents,
 refunds, the **hosted checkout page**, and the Svix-signed webhooks Flex posts back. A UI checkout that drove the real
@@ -29,7 +29,7 @@ Fetch server.
 
 ## Usage
 
-Point the app at the mock:
+Point the app at the emulator:
 
 | Env | Value |
 | --- | --- |
@@ -80,9 +80,9 @@ await post(`/__admin/sessions/${checkout_session.checkout_session_id}/complete`,
 ### Browser E2E suites
 
 Run `npx mockingbird-flex serve` on a port, point `FLEX_API_BASE_URL` at it, and the browser
-lands on the mock's page instead of `checkout.withflex.com`: no network, no shared Flex
+lands on the emulator's page instead of `checkout.withflex.com`: no network, no shared Flex
 account, and the signed webhook reaches the app as soon as Pay is clicked. The page URL takes
-the mock's origin, or `--public-url` when given. A suite that finds the Flex tab by host
+the emulator's origin, or `--public-url` when given. A suite that finds the Flex tab by host
 (`/\bcheckout\.withflex\.com\b/`) keeps working with
 `--public-url http://checkout.withflex.com.localhost:8792`: Chromium resolves every
 `*.localhost` name to loopback. Other browsers may need a hosts entry.
@@ -147,7 +147,7 @@ intent plus `checkout_session_id`, refund events `checkout_session` and `payment
 | `customer.subscription.created` (the subscription), before those two | a subscription-mode session settles |
 | `checkout.session.async_payment_succeeded` | settling a session whose intent was `processing` |
 | `checkout.session.async_payment_failed` | a decline (page, admin, off-session) |
-| `checkout.session.expired` | `…/expire`, or `expires_at` passing on the mock clock (default 24 h) |
+| `checkout.session.expired` | `…/expire`, or `expires_at` passing on the emulator clock (default 24 h) |
 | `refund.created`, `charge.refunded`, `checkout.session.refunded`, `refund.updated`, `charge.refund.updated` | each refund |
 | `product.updated` | `PATCH /v1/products/{id}` and `PUT /__admin/products/:id` |
 | `checkout_session.completed`, `checkout_session.expired` | the aliases, with `PUT /__admin/settings {"eventNaming": "underscored"}` |
@@ -169,7 +169,7 @@ retried (immediately, 5 s, 5 min, 30 min, 2 h); `GET /__admin/webhooks`, `…/ev
 | `GET /__admin/sessions`, `GET /__admin/sessions/:id` | The namespace's sessions. |
 | `POST /__admin/events` | Emit any event type for a session or product. |
 | `GET/PUT /__admin/settings` | `{eventNaming, offSessionOutcome, sessionTtlSeconds, lmnOnRegularCard, publicUrl}`. |
-| `POST /__admin/tick` | Expire due sessions now (the served mock ticks every 100 ms). |
+| `POST /__admin/tick` | Expire due sessions now (the served emulator ticks every 100 ms). |
 
 Every orchestrator state is reachable: pending (open), action_required (`require_action`, or an
 intent `requires_action`), processing, canceled (intent `canceled`, or expired), failed
@@ -217,8 +217,8 @@ so product names are synthesised.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `FlexAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `settle(id)`, `decline(id)`, `expire(id)`, `requireAction(id, type)`, `setPaymentIntent(id, patch)`, `applyRefund(id, amount)`, `putProduct(product)`, `emitFor(type, target)`, `tick()`, `sessions()`, `subscriptions()`, `present(session, view)`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `products`, `settings`, `onEvent`. |
-| `createRuntime` | function | The mock with the full service contract. Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `products`, `settings`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `FlexAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `settle(id)`, `decline(id)`, `expire(id)`, `requireAction(id, type)`, `setPaymentIntent(id, patch)`, `applyRefund(id, amount)`, `putProduct(product)`, `emitFor(type, target)`, `tick()`, `sessions()`, `subscriptions()`, `present(session, view)`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `products`, `settings`, `onEvent`. |
+| `createRuntime` | function | The emulator with the full service contract. Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `products`, `settings`, `tickMs`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `FLEX_PRESETS` | object | Every named fault preset. |
 | `FLEX_NAMESPACE` | string | The service name, `"flex"`. |
 | `FLEX_EVENT_TYPES` | array | Every webhook event type, aliases included. |

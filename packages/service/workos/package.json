@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-workos",
   "version": "0.0.0-development",
-  "description": "Stateful WorkOS AuthKit mock with signed sessions, rotating refresh tokens and user pagination.",
+  "description": "Stateful WorkOS AuthKit emulator with signed sessions, rotating refresh tokens and user pagination.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -42,7 +42,7 @@
     "mockingbird",
     "workos",
     "authkit",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

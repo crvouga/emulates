@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: EasyPost Trackers API (Mockingbird subset)
   description: |
-    Stateful mock subset of the EasyPost v2 API: create (or re-use) a tracker for a tracking
+    Stateful emulator subset of the EasyPost v2 API: create (or re-use) a tracker for a tracking
     code, retrieve it, and list trackers. Trimmed from EasyPost's published reference to what
     our genomics tracking lookup calls, plus the two reads that make parity walks meaningful.
   version: "2"

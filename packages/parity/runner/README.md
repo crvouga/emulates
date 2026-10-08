@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-parity
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
-Differential property-based test runner. From an OpenAPI spec it generates random stateful API walks with [fast-check](https://fast-check.dev/), runs every command against a "real" side and a fresh mock, canonicalizes both responses (ids, timestamps and tokens), and fails with a shrunk, replayable reproduction on the first divergence. Use it to prove a mock behaves like the real API (**live parity**, needs sandbox credentials) or like an independent instance of itself while conforming to the spec (**self-parity**, runs in CI with no network). This is the entry point of the parity packages; you rarely need the lower-level ones directly.
+Differential property-based test runner. From an OpenAPI spec it generates random stateful API walks with [fast-check](https://fast-check.dev/), runs every command against a "real" side and a fresh emulator, canonicalizes both responses (ids, timestamps and tokens), and fails with a shrunk, replayable reproduction on the first divergence. Use it to prove an emulator behaves like the real API (**live parity**, needs sandbox credentials) or like an independent instance of itself while conforming to the spec (**self-parity**, runs in CI with no network). This is the entry point of the parity packages; you rarely need the lower-level ones directly.
 
 ## Install
 
@@ -10,11 +10,11 @@ Differential property-based test runner. From an OpenAPI spec it generates rando
 npm install -D @crvouga/mockingbird-parity
 ```
 
-`fast-check` 4.x ships as a dependency. You also need a mock to test: anything with `fetch(request: Request): Promise<Response>` — for example a Mockingbird service such as `@crvouga/mockingbird-service-stripe` (`StripeAPI` + its `document` spec). ESM only, Node >= 22 or Bun >= 1.2; works inside `bun test`, Vitest or a plain script.
+`fast-check` 4.x ships as a dependency. You also need an emulator to test: anything with `fetch(request: Request): Promise<Response>` — for example a Mockingbird service such as `@crvouga/mockingbird-service-stripe` (`StripeAPI` + its `document` spec). ESM only, Node >= 22 or Bun >= 1.2; works inside `bun test`, Vitest or a plain script.
 
 ## Usage
 
-Self-parity with a tiny inline spec and mock (swap in `document` and `new StripeAPI()` from a Mockingbird service to test a real one):
+Self-parity with a tiny inline spec and emulator (swap in `document` and `new StripeAPI()` from a Mockingbird service to test a real one):
 
 ```ts
 import { parseOpenAPIDocument } from "@crvouga/mockingbird-openapi"
@@ -72,7 +72,7 @@ const spec = parseOpenAPIDocument({
   },
 })
 
-// The mock under test.
+// The emulator under test.
 class NotesAPI {
   private notes = new Map<string, { id: string; text: string; created: number }>()
   reset() {
@@ -98,7 +98,7 @@ class NotesAPI {
   }
 }
 
-// "real" is a long-lived reference instance; the mock side gets a fresh instance per walk.
+// "real" is a long-lived reference instance; the emulator side gets a fresh instance per walk.
 const reference = new NotesAPI()
 const report = await parity({
   provider: "notes",
@@ -138,7 +138,7 @@ Replay a failure with the seed printed in the error: `FC_SEED=12345 bun test` (r
 
 1. `planOperations` picks operations that are `supported`, `parity.enabled` and (unless `includeUnsafe`) `parity.safe`, filtered by `only` / extended by `forceInclude`.
 2. fast-check generates up to `maxCommands` commands per walk (`numRuns` walks). References are symbolic (`note #1`) and resolved to each side's own ids; ~15% of bodies are invalid by one constraint.
-3. For each command: send to real, then to mock. Unless `validateMock: false`, the mock's status must be declared and its body must validate against the response schema. New ids at `x-mockingbird-resource` locations are paired. Both exchanges are canonicalized and structurally diffed (status, declared parity headers, body).
+3. For each command: send to real, then to emulate. Unless `validateMock: false`, the emulator's status must be declared and its body must validate against the response schema. New ids at `x-mockingbird-resource` locations are paired. Both exchanges are canonicalized and structurally diffed (status, declared parity headers, body).
 4. After each walk: optional webhook comparison, then `cleanup`. On failure fast-check shrinks the walk (unless `shrink: false`) and the runner throws.
 
 ## Failures
@@ -147,10 +147,10 @@ Replay a failure with the seed printed in the error: `FC_SEED=12345 bun test` (r
 
 | kind | Meaning |
 | --- | --- |
-| `mismatch` | Canonical real and mock exchanges differ; `details.differences` lists them. |
-| `mock-conformance` | Mock returned an undeclared status or a body that violates the spec; `details.problems`. |
+| `mismatch` | Canonical real and emulator exchanges differ; `details.differences` lists them. |
+| `mock-conformance` | Emulator returned an undeclared status or a body that violates the spec; `details.problems`. |
 | `real-transport` / `mock-transport` | A side's `fetch` threw; `details.cause`. |
-| `latency` | The mock was not faster than the real side by `latencyToleranceMs` (`mockMs >= realMs + latencyToleranceMs`). |
+| `latency` | The emulator was not faster than the real side by `latencyToleranceMs` (`mockMs >= realMs + latencyToleranceMs`). |
 | `webhook-mismatch` | Collected webhook events differ (only with `webhooks`). |
 
 Other errors (host not allowed, no parity-enabled operations, bad env integers) are thrown as plain `Error` / `RangeError`.
@@ -159,7 +159,7 @@ Other errors (host not allowed, no parity-enabled operations, bad env integers) 
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `provider` | required | Label used in logs, errors and the default mock URL. |
+| `provider` | required | Label used in logs, errors and the default emulator URL. |
 | `spec` | required | `OpenAPIDocument` (e.g. from `parseOpenAPIDocument`). |
 | `real` | required | `RealTarget`: `baseUrl`; `allowedHosts` (host incl. port must be listed, and the URL must be `https:` unless the host ends in `.local` or is `localhost` / `127.0.0.1`); `headers?` (sync or async, added to every request); `fetch?` (default global `fetch`); `minIntervalMs?` (default 0). |
 | `mock` | required | `MockTarget`: `create()` returns a fresh `FetchAPI` per walk (sync or async); `baseUrl?` (default `https://mock.<provider>.local`); `headers?`. |
@@ -171,8 +171,8 @@ Other errors (host not allowed, no parity-enabled operations, bad env integers) 
 | `includeUnsafe` | `false` | Also generate `parity.safe: false` operations. |
 | `only` | all | Restrict to these operationIds. |
 | `forceInclude` | none | Include these operationIds even if `parity.enabled: false` or unsafe. |
-| `cleanup` | none | `WalkCleanup`: `({ table, real: { fetch, baseUrl }, scope, webhookEvents? }) => Promise<void>` after every walk; `real.fetch` adds `real.headers`. Use it to delete real resources or reset a reference mock. |
-| `validateMock` | `true` | Validate mock responses against the spec. |
+| `cleanup` | none | `WalkCleanup`: `({ table, real: { fetch, baseUrl }, scope, webhookEvents? }) => Promise<void>` after every walk; `real.fetch` adds `real.headers`. Use it to delete real resources or reset a reference emulator. |
+| `validateMock` | `true` | Validate emulator responses against the spec. |
 | `redact` | identity | `(text) => string` applied to failure reports and traces. |
 | `clockSkewSeconds` | `2` | Subtracted from the walk start for `walk-start-unix`; walks are also spaced by this + 1s (via `sleep`). |
 | `log` | `console.log` | Progress lines. Pass `() => {}` to silence. |
@@ -186,26 +186,26 @@ Other errors (host not allowed, no parity-enabled operations, bad env integers) 
 | `deletionTypes` | `{}` | operationId -> resource types to mark deleted after it runs. |
 | `timeLimitMs` | none | Stop starting new walks after this long; finished walks still count. |
 | `webhooks` | none | `beforeWalk(scope)` snapshots the receiver, `collectMock(mock, scope)` returns expected events, and `collectReal(scope, mockEvents)` waits for delivery. `compare(real, mock, table)` can normalize provider IDs and timing; without it events are compared by exact JSON and order. Webhook comparison runs only after the API walk succeeds. |
-| `latencyToleranceMs` | `0` | Mock may be at most this much slower than real. **Set it (e.g. `1000`) for self-parity**, where both sides are in-process. |
+| `latencyToleranceMs` | `0` | Emulator may be at most this much slower than real. **Set it (e.g. `1000`) for self-parity**, where both sides are in-process. |
 
 Returns `ParityReport`: `{ provider, seed, walks, operations, exercised: Record<operationId, count>, planned: string[] }`.
 
 ## `seedParity`
 
-`seedParity(options: SeedParityOptions)` is seed-then-walk parity for APIs whose state cannot be created from scratch on the mock: per walk it runs `warmupCommands` (default 15) against the real side only, records GET (and area/psc/availability) responses in an observation cache keyed by `observationCacheKey`, calls your `seedMock({ mock, real, table, getCache, history })` to import that state into the fresh mock, then compares `compareCommands` (default `maxCommands`) commands in lockstep. Extra options on top of `ParityOptions`: `explore` (`"dynamic"` default, re-weights each step with `weightFn`, default `defaultDynamicWeight` from `@crvouga/mockingbird-commands`; or `"static"` fast-check commands), `weightFn`, `reshapeCommand(command, state, rng)`, `prefetchObservations({ real, table, getCache, history })`, and the required `seedMock`. The `real` target passed to `seedMock` / `prefetchObservations` is a `Target` whose `fetch` does **not** add auth headers — call `await real.headers()` yourself. In `dynamic` mode the property input is a salt, so failures replay by seed but the walk itself is not shrunk.
+`seedParity(options: SeedParityOptions)` is seed-then-walk parity for APIs whose state cannot be created from scratch on the emulator: per walk it runs `warmupCommands` (default 15) against the real side only, records GET (and area/psc/availability) responses in an observation cache keyed by `observationCacheKey`, calls your `seedMock({ mock, real, table, getCache, history })` to import that state into the fresh emulator, then compares `compareCommands` (default `maxCommands`) commands in lockstep. Extra options on top of `ParityOptions`: `explore` (`"dynamic"` default, re-weights each step with `weightFn`, default `defaultDynamicWeight` from `@crvouga/mockingbird-commands`; or `"static"` fast-check commands), `weightFn`, `reshapeCommand(command, state, rng)`, `prefetchObservations({ real, table, getCache, history })`, and the required `seedMock`. The `real` target passed to `seedMock` / `prefetchObservations` is a `Target` whose `fetch` does **not** add auth headers — call `await real.headers()` yourself. In `dynamic` mode the property input is a salt, so failures replay by seed but the walk itself is not shrunk.
 
 ## API
 
 | Export | Signature | Description |
 | --- | --- | --- |
 | `parity` | `(options: ParityOptions) => Promise<ParityReport>` | Run differential walks; throws `ParityError` on divergence. |
-| `seedParity` | `(options: SeedParityOptions) => Promise<ParityReport>` | Warm up real, seed mock, then compare (see above). |
+| `seedParity` | `(options: SeedParityOptions) => Promise<ParityReport>` | Warm up real, seed emulator, then compare (see above). |
 | `ParityError` | `class extends Error { details: FailureDetails }` | The failure; `details.kind` as in the table above. |
 | `formatReport` | `(report: ParityReport) => string` | The `✓ <provider> parity passed: ...` summary line. |
 | `formatFailure` | `(details: FailureDetails, redact: Redactor) => string` | Multi-line failure text used as the `ParityError` message. |
 | `redactHeaders` | `(headers, redact) => Record<string, string>` | Replace `authorization`, `x-api-key`, `api-key`, `cookie`, `set-cookie`, `x-vital-api-key` with `<redacted>` and run `redact` over the rest. |
 | `redactValue` | `(value, redact) => unknown` | Deep-apply `redact` to strings; bytes become `<N bytes>`. |
-| `executeCommand` | `(context: ExecutionContext, command: LogicalCommand) => Promise<StepOutcome>` | One lockstep real+mock step (the building block of `parity`). |
+| `executeCommand` | `(context: ExecutionContext, command: LogicalCommand) => Promise<StepOutcome>` | One lockstep real+emulator step (the building block of `parity`). |
 | `executeWarmupCommand` | `(context, command) => Promise<WarmupOutcome>` | One real-only step that registers identities as identical on both sides (used by `seedParity`). |
 | `observationCacheKey` | `(request: ConcreteRequest, body?) => string` | `"<METHOD> <path>?<sorted query>"` plus `" <JSON body>"` when given; the key format of `getCache`. |
 | `requestBodyForCacheKey` | `(request: ConcreteRequest) => unknown` | Parsed JSON body (or raw text) for `observationCacheKey`. |

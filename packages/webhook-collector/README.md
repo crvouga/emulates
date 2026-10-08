@@ -6,4 +6,4 @@ Each event stores its service, optional `x-mockingbird-scope` or `run_id` query 
 
 The Astro integration uses Bun SQLite. Set `WEBHOOK_DB` to a path on a persistent volume and `WEBHOOK_READ_TOKEN` in the docs host's environment; neither value belongs in this repository. Parity runs send the same token as `WEBHOOK_READ_TOKEN` (a repo secret, or `.env.local`). Without a mounted volume, data is lost when the docs container is replaced. The database schema and Hono API do not enumerate services, so adding a provider only requires registering its URL and teaching that provider's parity test to read its events.
 
-Pass `{ adminPrefix: "/_control/mock" }` as the third argument to relocate health and read APIs together. `/health` and `/events` aliases are removed.
+Pass `{ adminPrefix: "/_control/emulator" }` as the third argument to relocate health and read APIs together. `/health` and `/events` aliases are removed.

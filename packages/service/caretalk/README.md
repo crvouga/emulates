@@ -1,11 +1,11 @@
 # @crvouga/mockingbird-service-caretalk
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of **CareTalk**'s external API (`/externalapi`) for test suites: client login,
+Stateful emulator of **CareTalk**'s external API (`/externalapi`) for test suites: client login,
 form definitions (`GetForm`) and saved form rounds (`SavePatientForm`, the form-submission
 queue's call), patient search and insert (the account backfill), states, free slots and
-appointments. The backend requires CareTalk keys at boot, so the mock lets a stack boot and run
+appointments. The backend requires CareTalk keys at boot, so the emulator lets a stack boot and run
 the CareTalk paths without the beta environment.
 
 - Operation coverage: [SUPPORT.md](https://github.com/crvouga/mockingbird/blob/main/packages/service/caretalk/SUPPORT.md)
@@ -24,8 +24,8 @@ with any Fetch server.
 
 ## Usage
 
-Point `CARETALK_API_URL` at the mock (the backend validates it as **https-only**, so relax that
-for loopback or front the mock with TLS). `getFormData` hardcodes
+Point `CARETALK_API_URL` at the emulator (the backend validates it as **https-only**, so relax that
+for loopback or front the emulator with TLS). `getFormData` hardcodes
 `https://api.caretalkbeta.com` (seam **G-Y1**). `CARETALK_USERNAME`, `CARETALK_PASSWORD` and
 `CARETALK_API_KEY` can be any values unless `--api-user` / `--api-key` pin them.
 
@@ -63,7 +63,7 @@ const { submissions } = (await (await call("/__admin/form-submissions")).json())
 
 | Route | Behaviour |
 | --- | --- |
-| `POST /externalapi/Auth/client-login` | `{userName, password}` → `{token, expiration}`. Tokens last `tokenTtlSeconds` (default 3600, what our client caches for) on the mock clock. |
+| `POST /externalapi/Auth/client-login` | `{userName, password}` → `{token, expiration}`. Tokens last `tokenTtlSeconds` (default 3600, what our client caches for) on the emulator clock. |
 | `GET /externalapi/Forms/GetForm/{formName}` | By name or slug, case-insensitive: `[{formRoundId, patientAppointmentId, submitDate, fullFormDto}]`; an unknown form is `[]`. With `PatientId` (and `AppointmentId`), the patient's latest saved round: chosen answers `isChecked`, free text echoed. Accepts a login token or a static API key. |
 | `POST /externalapi/Forms/SavePatientForm?patientId=&patientAppointmentId=` | The submission (`fullFormDto.groups[].groupQuestions[]`). Question ids must belong to the form, answer ids to the question (text questions take `id: 0` with the typed value), single-choice questions one answer; violations are 400 ProblemDetails, an unknown patient or form 404. → `{success: true, message}`. |
 | `GET /externalapi/Patients/SearchForPatient?FirstName&LastName&zipCode&DateOfBirth` | Case-insensitive names, ZIP, and the date in any of `YYYY-MM-DD`, `MM/DD/YYYY`, ISO → `{isExists: true, eligibleId, programId}`; no match is **400** `{isExists: false, message}` (our client reads 400 as "no such patient"). |
@@ -104,14 +104,14 @@ carry the API user they were issued to, so `PUT /__admin/credentials {"credentia
   eligibility files, Health Gorilla retrieval, medications and diagnostics.
 - Real physician calendars: slots are synthesised; time zones are fixed to Mountain.
 - The live form catalogue: `DEFAULT_FORMS` is synthesised in CareTalk's shape (the live-parity
-  script seeds the mock from the beta environment's forms instead).
+  script seeds the emulator from the beta environment's forms instead).
 
 ## API
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `CareTalkAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `addPatient(body)`, `slots(date)`, `setAppointmentStatus(id, status)`, `upsertForm(form)`, `rounds()`, `patients()`. Options: `sqlite`, `now`, `namespace`, `forms`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `forms`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `CareTalkAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `addPatient(body)`, `slots(date)`, `setAppointmentStatus(id, status)`, `upsertForm(form)`, `rounds()`, `patients()`. Options: `sqlite`, `now`, `namespace`, `forms`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `forms`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `CARETALK_PRESETS` | object | Every named fault preset. |
 | `CARETALK_NAMESPACE` | string | The service name, `"caretalk"`. |
 | `DEFAULT_FORMS` | array | The seeded form definitions (Health History 101, AOE Questions 102). |

@@ -1,13 +1,13 @@
 # @crvouga/mockingbird-service-bedrock
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful, scriptable mock of **Amazon Bedrock Runtime** for test suites: `Converse`,
+Stateful, scriptable emulator of **Amazon Bedrock Runtime** for test suites: `Converse`,
 `ConverseStream` (byte-exact `application/vnd.amazon.eventstream` frames), `InvokeModel`
 (Anthropic Messages bodies and Titan text embeddings), `InvokeModelWithBidirectionalStream`
 (Nova Sonic over HTTP/2 duplex), and the AgentCore `InvokeHarness` event stream.
 
-The mock never generates language. It replays **scripts**: a test says "when the chat model
+The emulator never generates language. It replays **scripts**: a test says "when the chat model
 sees *dizzy* with `report_rx_symptom` available, emit this `toolUse`; after the tool result
 comes back, say this". Chat turns, approval cards, guardrail blocks, structured output and
 throttles become deterministic and take milliseconds.
@@ -112,7 +112,7 @@ how many calls it answers.
   conversation starts over. `expectToolResult: {name}` makes a turn answer only when the last
   user message carries that tool's result. Nova Sonic counts answers within the session.
 - **A turn** is any of: `text` (streamed in `chunkSize`-character deltas, `delayMsPerChunk`
-  mock-clock ms apart), `reasoning`, `toolUse` (`{name, input, toolUseId?}` or a list), `json`
+  emulator-clock ms apart), `reasoning`, `toolUse` (`{name, input, toolUseId?}` or a list), `json`
   (structured output, rendered in the form the request asked for — see below), `guardrail`
   (`true` or `{text, trace}`: `guardrail_intervened` with Bedrock's refusal text and a trace),
   `toolResult` (harness), `userTranscript` (Nova Sonic), `stopReason`, `usage`, `fault`.
@@ -140,11 +140,11 @@ applies to every model and harness call in the calling namespace):
 | `mid_stream_throttling` | the same with a `throttlingException` frame |
 | `validation_exception` / `validation` | 400 `ValidationException` |
 | `max_tokens` | output cut in half, `stopReason: "max_tokens"` |
-| `latency` (`latencyMs`) | the response starts after 2 s on the mock clock |
+| `latency` (`latencyMs`) | the response starts after 2 s on the emulator clock |
 | `truncated_frame` | the stream stops half-way through a frame (both decoders throw) |
 | `model_timeout`, `service_unavailable`, `access_denied`, `internal_server` | 408 / 503 / 403 / 500 with the matching `x-amzn-ErrorType` |
 
-Chunk pacing and latency wait on the **mock clock**: freeze it (`POST /__admin/clock
+Chunk pacing and latency wait on the **emulator clock**: freeze it (`POST /__admin/clock
 {"freeze": true}`) and advance it to release each chunk, so time-to-first-token tests are exact.
 
 ### Admin (beyond the standard contract)
@@ -182,13 +182,13 @@ cannot add headers, so map each worker's access key id:
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `BedrockAPI` | class | The in-process mock: `fetch`, `reset`, `scripts()`, `putScripts(scripts, replace?)`, `removeScripts(id?)`, `stats()`. Options: `sqlite`, `now`, `namespace`, `settings`, `scripts`, `sleep`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, SigV4 credentials, presets, scripts). Options: `settings`, `scripts`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `BedrockAPI` | class | The in-process emulator: `fetch`, `reset`, `scripts()`, `putScripts(scripts, replace?)`, `removeScripts(id?)`, `stats()`. Options: `sqlite`, `now`, `namespace`, `settings`, `scripts`, `sleep`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, SigV4 credentials, presets, scripts). Options: `settings`, `scripts`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `BEDROCK_PRESETS` | object | Every named fault preset. |
 | `BEDROCK_NAMESPACE` | string | The service name, `"bedrock"`. |
 | `bedrockError` | function | A Bedrock error response (`status`, `x-amzn-ErrorType`, `{message}`). |
 | `accessKeyCredential` | function | The SigV4 access key id of a request (how credentials map to namespaces). |
-| `clockSleep` | function | A sleep that waits on a (possibly frozen) mock clock. |
+| `clockSleep` | function | A sleep that waits on a (possibly frozen) emulator clock. |
 | `titanEmbedding` | function | The deterministic unit vector Titan answers with. |
 | `sampleSchema` | function | The minimal instance of a JSON Schema (the unscripted structured output). |
 | `parseScript` | function | Validate one script (what `PUT /__admin/scripts` runs). |

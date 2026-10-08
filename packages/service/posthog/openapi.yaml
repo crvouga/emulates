@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: PostHog feature flags, capture and management API (Mockingbird subset)
   description: |
-    Stateful mock subset of PostHog: remote flag evaluation (`/flags` v2 and the legacy
+    Stateful emulator subset of PostHog: remote flag evaluation (`/flags` v2 and the legacy
     `/decide` shape), remote config, event capture (`/batch/`, `/e/`, `/i/v0/e/`), session
     recording intake, the posthog-js asset and survey endpoints, and the slice of the
     management API our tooling and crons call (feature-flag list/create/read/patch, experiment management, HogQL query).
@@ -491,7 +491,7 @@ paths:
         in: path
         required: true
         description: >-
-          The flag's numeric id. The mock also accepts the flag key (how self-parity walks
+          The flag's numeric id. The emulator also accepts the flag key (how self-parity walks
           reference flags they created, since resource identities are strings).
         schema:
           type: string
@@ -507,7 +507,7 @@ paths:
         parity: { enabled: true, safe: true }
       responses:
         "200":
-          description: Current flag by numeric id (or mock key alias)
+          description: Current flag by numeric id (or emulator key alias)
           content:
             application/json:
               schema: { $ref: "#/components/schemas/FeatureFlag" }

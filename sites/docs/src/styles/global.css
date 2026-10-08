@@ -1,34 +1,33 @@
 /* Mockingbird docs — one stylesheet, no framework. Tokens first, then base, then components.
-   The palette is the northern mockingbird and its plate: paper, ink, live oak, clay, sage.
-   Rules live in docs/DESIGN.md. Specimens live at /identity. */
+   Neutral surfaces, blue actions, system sans headings and monospace API labels.
+   Rules live in docs/DESIGN.md. The design system lives at /identity. */
 
 @import "@crvouga/mockingbird-ui/reset.css";
 
 :root {
   color-scheme: light;
-  --bg: #f3eee4;
-  --bg-subtle: #e7e1d4;
-  --bg-muted: #ddd6c6;
-  --bg-inset: #ebe6da;
-  --bg-elevated: #faf7f1;
-  --border: #d2cbbd;
-  --border-strong: #7d8a80;
-  --fg: #1e2823;
-  --fg-muted: #3e4a43;
-  --fg-subtle: #5c675f;
-  --fg-faint: #7a847c;
+  --bg: #ffffff;
+  --bg-subtle: #f6f8fa;
+  --bg-muted: #eaeef2;
+  --bg-inset: #f6f8fa;
+  --bg-elevated: #ffffff;
+  --border: #d8dee4;
+  --border-strong: #8c959f;
+  --fg: #1f2328;
+  --fg-muted: #424a53;
+  --fg-subtle: #59636e;
+  --fg-faint: #66717d;
 
-  /* Live oak fills an action. Clay is the song: labels, the title's second phrase, the current page. */
-  --accent: #243f34;
-  --accent-hover: #1a3028;
-  --accent-fg: #f7f4ee;
-  --accent-soft: #e1e6dc;
-  --accent-soft-fg: #243f34;
-  --accent-ring: rgb(36 63 52 / 0.35);
-  --clay: #8d4a32;
-  --sage: #7d8a80;
-  --eye: #c6a15a;
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  /* Blue identifies actions, links, and the current page. */
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-fg: #ffffff;
+  --accent-soft: #eff6ff;
+  --accent-soft-fg: #2563eb;
+  --accent-ring: rgb(37 99 235 / 0.22);
+  --highlight: #2563eb;
+  --indicator: #0969da;
+  --font-display: var(--font-sans);
 
   --ok: #15803d;
   --ok-soft: #e7f6ec;
@@ -48,42 +47,41 @@
   --shadow-lg: 0 2px 4px rgb(15 15 20 / 0.04), 0 16px 40px rgb(15 15 20 / 0.12);
 
   --font-sans:
-    "Avenir Next", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
-    "Segoe UI", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono:
     ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
 
-  --radius-sm: 2px;
-  --radius: 3px;
-  --radius-lg: 3px;
-  --header-h: 76px;
-  --content: 1180px;
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --header-h: 64px;
+  --content: 1280px;
   --ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #161c19;
-  --bg-subtle: #1e2621;
-  --bg-muted: #2a342d;
-  --bg-inset: #1a211d;
-  --bg-elevated: #232c26;
-  --border: #3a463e;
-  --border-strong: #8aa08e;
-  --fg: #f3eee4;
-  --fg-muted: #c9cfc4;
-  --fg-subtle: #a8b2a6;
-  --fg-faint: #8b968c;
+  --bg: #0d1117;
+  --bg-subtle: #161b22;
+  --bg-muted: #21262d;
+  --bg-inset: #010409;
+  --bg-elevated: #161b22;
+  --border: #30363d;
+  --border-strong: #6e7681;
+  --fg: #ffffff;
+  --fg-muted: #c9d1d9;
+  --fg-subtle: #9da7b3;
+  --fg-faint: #8b949e;
 
-  --accent: #d5e0cc;
-  --accent-hover: #e7efe2;
-  --accent-fg: #161c19;
-  --accent-soft: #2a342d;
-  --accent-soft-fg: #d5e0cc;
-  --accent-ring: rgb(213 224 204 / 0.4);
-  --clay: #e2b094;
-  --sage: #8aa08e;
-  --eye: #e2c98a;
+  --accent: #58a6ff;
+  --accent-hover: #79b8ff;
+  --accent-fg: #0d1117;
+  --accent-soft: #21262d;
+  --accent-soft-fg: #58a6ff;
+  --accent-ring: rgb(88 166 255 / 0.24);
+  --highlight: #79b8ff;
+  --indicator: #58a6ff;
 
   --ok: #4ade80;
   --ok-soft: #0f2418;
@@ -116,7 +114,7 @@ html {
 html,
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--sage) var(--bg);
+  scrollbar-color: var(--border-strong) var(--bg);
 }
 
 *::-webkit-scrollbar {
@@ -130,7 +128,7 @@ html,
 }
 
 *::-webkit-scrollbar-thumb {
-  background: var(--sage);
+  background: var(--border-strong);
   border: 3px solid var(--bg);
 }
 
@@ -297,8 +295,8 @@ samp {
   gap: 10px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 22px;
-  letter-spacing: -0.02em;
+  font-size: 19px;
+  letter-spacing: -0.03em;
 }
 
 .brand .emoji {
@@ -315,7 +313,7 @@ samp {
   border-radius: var(--radius-sm);
   color: var(--fg-muted);
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   transition:
     color 0.15s var(--ease),
@@ -328,10 +326,8 @@ samp {
 }
 
 .nav a[aria-current="page"] {
-  color: var(--fg);
-  text-decoration: underline;
-  text-decoration-color: var(--clay);
-  text-underline-offset: 8px;
+  color: var(--highlight);
+  background: var(--accent-soft);
 }
 
 .header-actions {
@@ -463,11 +459,11 @@ kbd {
 }
 
 .theme-menu button[aria-checked="true"] {
-  color: var(--clay);
+  color: var(--highlight);
 }
 
 .theme-menu button[aria-checked="true"]::before {
-  background: var(--clay);
+  background: var(--highlight);
 }
 
 @media (max-width: 860px) {
@@ -509,23 +505,15 @@ kbd {
 
 .site-footer {
   margin-top: 96px;
-  border-top: 0;
-  background-color: var(--bg-subtle);
-  background-image: linear-gradient(var(--fg), var(--fg)), linear-gradient(var(--fg), var(--fg));
-  background-repeat: no-repeat;
-  background-size:
-    100% 2px,
-    100% 1px;
-  background-position:
-    left top,
-    left 4px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
   color: var(--fg-muted);
   font-size: 14px;
 }
 
 .footer-tagline {
   margin-block: 6px 12px;
-  font: italic 22px / 1.3 var(--font-display);
+  font: 600 15px / 1.5 var(--font-sans);
   color: var(--fg);
 }
 
@@ -538,11 +526,11 @@ kbd {
 
 .footer-grid h2 {
   margin-bottom: 12px;
-  color: var(--clay);
+  color: var(--highlight);
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 650;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -758,10 +746,11 @@ kbd {
 }
 
 .eyebrow {
-  color: var(--clay);
+  color: var(--fg-subtle);
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 650;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -825,6 +814,21 @@ kbd {
   white-space: nowrap;
   font-size: inherit;
   scrollbar-width: none;
+}
+
+.cmd pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  background: transparent !important;
+  font-size: inherit;
+  scrollbar-width: none;
+}
+
+.cmd pre code {
+  display: block;
 }
 
 .copy {
@@ -897,7 +901,7 @@ kbd {
   inset: auto 8px -1px;
   height: 2px;
   border-radius: 0;
-  background: var(--clay);
+  background: var(--highlight);
 }
 
 .pm .cmd {
@@ -943,6 +947,14 @@ kbd {
   color: var(--shiki-light);
 }
 
+.palette-star {
+  width: 12px;
+  height: 12px;
+  color: var(--highlight);
+  fill: currentColor;
+  vertical-align: -1px;
+}
+
 [data-theme="dark"] .shiki span {
   color: var(--shiki-dark);
 }
@@ -964,14 +976,7 @@ kbd {
   margin-top: 56px;
   padding-top: 16px;
   font-size: 26px;
-  background-image: linear-gradient(var(--fg), var(--fg)), linear-gradient(var(--fg), var(--fg));
-  background-repeat: no-repeat;
-  background-size:
-    36px 2px,
-    22px 1px;
-  background-position:
-    left top,
-    left 5px;
+  border-top: 1px solid var(--border);
 }
 
 .prose h3 {
@@ -1056,7 +1061,7 @@ kbd {
 .prose blockquote {
   margin-inline: 0;
   padding: 2px 0 2px 14px;
-  border-left: 2px solid var(--clay);
+  border-left: 2px solid var(--highlight);
   border-radius: 0;
   background: transparent;
   color: var(--fg);
@@ -1155,20 +1160,43 @@ kbd {
   max-width: 680px;
 }
 
-/* Two rules, thick then thin: the mockingbird's wing bars. Header and footer use the same pair. */
-.wingbar {
-  height: 7px;
-  background-image: linear-gradient(var(--fg), var(--fg)), linear-gradient(var(--fg), var(--fg));
-  background-repeat: no-repeat;
-  background-size:
-    100% 2px,
-    100% 1px;
-  background-position:
-    left top,
-    left 5px;
+/* ---------- live examples ---------- */
+
+.window {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
 }
 
-/* ---------- live examples ---------- */
+.window-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--fg-subtle);
+  font-size: 12px;
+}
+
+.window-title {
+  font-family: var(--font-mono);
+}
+
+.window-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--highlight);
+}
+
+.window > .code {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
 
 .example-launch {
   display: flex;

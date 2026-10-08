@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-whoop",
   "version": "0.0.0-development",
-  "description": "Stateful WHOOP v2 mock: collections, related-sleep recovery windows, and OAuth refresh.",
+  "description": "Stateful WHOOP v2 emulator: collections, related-sleep recovery windows, and OAuth refresh.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

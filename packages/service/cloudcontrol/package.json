@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "cloudcontrol",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

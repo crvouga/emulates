@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-openai",
   "version": "0.0.0-development",
-  "description": "Local scripted OpenAI mock: chat/tool loops, SSE, embeddings, models, files and staged uploads without billed inference.",
+  "description": "Local scripted OpenAI emulator: chat/tool loops, SSE, embeddings, models, files and staged uploads without billed inference.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -58,7 +58,7 @@
     "vendor": {
       "website": "https://openai.com",
       "docs": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create",
-      "description": "OpenAI provides chat, embeddings and agent APIs; this mock uses local scripts only.",
+      "description": "OpenAI provides chat, embeddings and agent APIs; this emulator uses local scripts only.",
       "icon": "openai"
     },
     "parity": "Scripted chat/tool calls, SSE, embeddings, models, files and uploads",

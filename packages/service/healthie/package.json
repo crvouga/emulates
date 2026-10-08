@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-healthie",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Healthie GraphQL API (legacy surface): signIn, users, currentUser, updateUser/updateClient (incl. multipart avatar), locations, documents and folders with served downloads, form answers, offerings, billing items, and the IP-allowlisted status webhooks.",
+  "description": "Stateful emulator of the Healthie GraphQL API (legacy surface): signIn, users, currentUser, updateUser/updateClient (incl. multipart avatar), locations, documents and folders with served downloads, form answers, offerings, billing items, and the IP-allowlisted status webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

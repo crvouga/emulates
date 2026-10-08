@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-firehose",
   "version": "0.0.0-development",
-  "description": "Stateful Amazon Data Firehose mock with AWS SDK wire compatibility and deterministic local controls.",
+  "description": "Stateful Amazon Data Firehose emulator with AWS SDK wire compatibility and deterministic local controls.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "firehose",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

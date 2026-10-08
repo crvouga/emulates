@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "elasticsearch",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

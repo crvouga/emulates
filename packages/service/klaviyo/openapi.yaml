@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Klaviyo events API (Mockingbird subset)
   description: |
-    Stateful mock subset of Klaviyo's JSON:API: create an event (what our backend posts for
+    Stateful emulator subset of Klaviyo's JSON:API: create an event (what our backend posts for
     `Ordered Product` and `Placed Order` after checkout), and read events back. Trimmed from
     Klaviyo's published API (revision 2024-02-15) to what our consumer sends, plus the reads a
     suite needs to see what landed.

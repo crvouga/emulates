@@ -6,16 +6,19 @@ import ServiceCard from "../../components/ServiceCard.astro"
 import Base from "../../layouts/Base.astro"
 
 const { services, categories, totals } = catalog
+const orderedServices = [...services].sort(
+  (a, b) => Number(b.featured) - Number(a.featured) || a.displayName.localeCompare(b.displayName),
+)
 ---
 
-<Base title="Services" description={`Search and filter ${totals.services} stateful mocks by category. Every mock runs in the browser, in a worker, and on a server.`}>
+<Base title="Emulators" description={`Search and filter ${totals.services} stateful emulators by category. Every emulator runs in the browser, in a worker, and on a server.`}>
   <div class="container">
     <header class="page-head">
-      <span class="eyebrow">The field collection</span>
-      <h1>Services</h1>
+      <span class="eyebrow">Emulator catalog</span>
+      <h1>Emulators</h1>
       <p class="lede">
-        {totals.services} stateful mocks. Each one declares the parity it keeps with its vendor.
-        Every mock is isomorphic: the same package runs in the browser, in a worker, and on a server.
+        {totals.services} stateful emulators. Each one declares the parity it keeps with its vendor.
+        Every emulator is isomorphic: the same package runs in the browser, in a worker, and on a server.
         Open one for a live playground backed by the real package.
       </p>
     </header>
@@ -23,7 +26,7 @@ const { services, categories, totals } = catalog
     <div class="toolbar" data-local-search>
       <label class="search">
         <Icon name="search" />
-        <input type="search" class="input" placeholder={`Search ${totals.services} services, keywords, operation ids…`} data-q aria-label="Search services" autocomplete="off" spellcheck="false" />
+        <input type="search" class="input" placeholder={`Search ${totals.services} emulators, keywords, operation ids…`} data-q aria-label="Search emulators" autocomplete="off" spellcheck="false" />
         <kbd>/</kbd>
       </label>
       <div class="toolbar-row">
@@ -38,6 +41,7 @@ const { services, categories, totals } = catalog
           }
         </div>
         <div class="controls">
+          <button type="button" class="chip" data-featured-filter aria-pressed="false"><Icon name="star" /> Featured <span>{services.filter((s) => s.featured).length}</span></button>
           <select class="select" data-sort aria-label="Sort">
             <option value="relevance">Best match</option>
             <option value="name">Name</option>
@@ -50,11 +54,11 @@ const { services, categories, totals } = catalog
           </div>
         </div>
       </div>
-      <p class="count" aria-live="polite" data-count>{totals.services} services</p>
+      <p class="count" aria-live="polite" data-count>{totals.services} emulators</p>
     </div>
 
     <div class="grid" data-grid data-view="grid">
-      {services.map((s) => <ServiceCard service={s} />)}
+      {orderedServices.map((s) => <ServiceCard service={s} />)}
     </div>
     <script is:inline>
       try {
@@ -64,7 +68,7 @@ const { services, categories, totals } = catalog
 
     <div class="empty" data-empty hidden>
       <BirdMark size={56} />
-      <h2>No services match</h2>
+      <h2>No emulators match</h2>
       <p>Try a vendor name, a keyword or an operation id, or clear the filters.</p>
       <button type="button" class="btn btn-secondary btn-sm" data-clear>Clear filters</button>
     </div>
@@ -166,13 +170,15 @@ const { services, categories, totals } = catalog
     color: var(--fg);
   }
 
-  .chip[aria-checked="true"] {
+  .chip[aria-checked="true"],
+  .chip[aria-pressed="true"] {
     border-color: var(--fg);
     background: var(--fg);
     color: var(--bg);
   }
 
-  .chip[aria-checked="true"] span {
+  .chip[aria-checked="true"] span,
+  .chip[aria-pressed="true"] span {
     color: color-mix(in srgb, var(--bg) 65%, transparent);
   }
 
@@ -182,6 +188,8 @@ const { services, categories, totals } = catalog
     align-items: center;
     gap: 8px;
   }
+
+  [data-featured-filter] :global(.i) { width: 13px; height: 13px; fill: currentColor; }
 
   .select {
     height: 32px;

@@ -1,6 +1,6 @@
 ---
 name: Bug
-about: A mock crashes, leaks state between namespaces, contradicts its README, or fails to install, build or type-check.
+about: An emulator crashes, leaks state between namespaces, contradicts its README, or fails to install, build or type-check.
 title: "[<service>] bug: <what breaks>"
 labels: agent-reported, bug
 ---

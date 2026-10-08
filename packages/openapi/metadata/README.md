@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-openapi-metadata
 
-> **Internal package — not published to npm.** Mockingbird publishes only its mock services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
+> **Internal package — not published to npm.** Mockingbird publishes only its emulator services (`@crvouga/mockingbird-service-*`), which bundle this code. It is documented here for contributors to this repo.
 
 Types, readers and validation for Mockingbird's `x-mockingbird-*` OpenAPI extensions — the annotations that tell the parity runner which values are resource ids, which are nondeterministic, which operations are safe to call, and so on. Use it when you author a provider spec for [`@crvouga/mockingbird-parity`](https://www.npmjs.com/package/@crvouga/mockingbird-parity) and want to lint it, or when building your own tooling on top of the annotations; the parity runner already reads them for you.
 
@@ -16,12 +16,12 @@ Depends on [`@crvouga/mockingbird-openapi`](https://www.npmjs.com/package/@crvou
 
 | Key | Where | Shape | Meaning |
 | --- | --- | --- | --- |
-| `x-mockingbird` | operation | `{ supported?, reason?, parity?: { enabled?, safe?, reason? } }` | `supported: false` = mock does not implement it (needs `reason`). `parity.enabled` (default = `supported`) = the runner may generate it (needs `parity.reason` when false). `parity.safe: false` = never call on a real account unless `includeUnsafe`. |
+| `x-mockingbird` | operation | `{ supported?, reason?, parity?: { enabled?, safe?, reason? } }` | `supported: false` = emulator does not implement it (needs `reason`). `parity.enabled` (default = `supported`) = the runner may generate it (needs `parity.reason` when false). `parity.safe: false` = never call on a real account unless `includeUnsafe`. |
 | `x-mockingbird-resource` | schema | `{ type, identity: true }` | This string is the identity of a resource of `type` (e.g. `customer.id`). Must be a string schema. |
 | `x-mockingbird-resource-ref` | schema or parameter | `{ type, missing? }` | This value references an existing resource of `type`; `missing` is a well-formed id that does not exist, used to exercise not-found paths. Some identity must produce `type`. |
 | `x-mockingbird-volatile` | schema | `{ kind }` | Nondeterministic on the real side; compared by JSON type only. `kind` is one of `VOLATILE_KINDS` (`opaque` also collapses null vs present). |
 | `x-mockingbird-scope` | schema or parameter | `{ value }` | Always generate a run-scoped value: `run-id`, `walk-start-unix` or `walk-start-iso`. |
-| `x-mockingbird-unsupported` | schema or parameter | `true \| { reason? }` | The mock does not implement this parameter/property; the generator omits it. |
+| `x-mockingbird-unsupported` | schema or parameter | `true \| { reason? }` | The emulator does not implement this parameter/property; the generator omits it. |
 | `x-mockingbird-parity-header` | response header | `true` | This header takes part in the parity comparison (all others are ignored). |
 
 ## Usage

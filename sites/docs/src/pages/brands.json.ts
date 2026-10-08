@@ -4,7 +4,7 @@ import { adminBrands } from "../lib/admin-brands.ts"
 
 /**
  * Logo, website, vendor API reference, and our guide for every service.
- * Admin shells fetch this cross-origin; the payload is not part of the mock bundles.
+ * Admin shells fetch this cross-origin; the payload is not part of the emulator bundles.
  */
 export const GET: APIRoute = () =>
   new Response(JSON.stringify(adminBrands(catalog.services)), {

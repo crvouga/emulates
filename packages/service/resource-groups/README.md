@@ -1,16 +1,16 @@
 # @crvouga/mockingbird-service-resource-groups
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful local mock of Amazon Resource Groups. ESM; Node 22+ or Bun 1.2+.
+Stateful local emulator of Amazon Resource Groups. ESM; Node 22+ or Bun 1.2+.
 
 ## Usage
 
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-resource-groups/server"
-const mock = await createServer()
-// AWS SDK: endpoint: mock.url, region: "us-east-1", fixture credentials.
-// Await mock.close() after the test.
+const emulator = await createServer()
+// AWS SDK: endpoint: emulator.url, region: "us-east-1", fixture credentials.
+// Await emulator.close() after the test.
 ```
 
 State lives in SQLite collections and participates in the shared runtime's namespace isolation,

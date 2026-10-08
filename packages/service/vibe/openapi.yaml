@@ -585,7 +585,7 @@
           "supported": true,
           "parity": {
             "enabled": false,
-            "reason": "Mock-only capability URL; exercised by acceptance tests."
+            "reason": "Emulator-only capability URL; exercised by acceptance tests."
           }
         }
       }

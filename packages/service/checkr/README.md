@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-checkr
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP Checkr v1 mock for synthetic candidates, package/hierarchy enumeration, invitations
+WIP Checkr v1 emulator for synthetic candidates, package/hierarchy enumeration, invitations
 and seeded report/ETA reads. No checks run, emails are sent or real personal data is needed.
 
 ## Install
@@ -43,7 +43,7 @@ GET `/v1/reports/{id}` and `/v1/reports/{id}/eta` read seeded reports; missing E
 
 Runtime seeds: `packages`, `nodes`, `candidates`, `reports`; `hierarchyEnabled` defaults false,
 so nodes returns 403 while other APIs work. Enabled hierarchy requires an available node/package
-on invitation creation. `invitationTtlMs` and the mock clock drive expiration.
+on invitation creation. `invitationTtlMs` and the emulator clock drive expiration.
 All records and settings are collections in `/__admin/state`: edit prices, report state/ETA,
 invitation expiry/completion and hierarchy access without external services. An admin-seeded
 report is reflected in its candidate's report_ids. The admin controls intentionally do not

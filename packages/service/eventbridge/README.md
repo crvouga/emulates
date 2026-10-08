@@ -1,6 +1,6 @@
 # @crvouga/mockingbird-service-eventbridge
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
 WIP AWS EventBridge control-plane discovery. Seeded rule and target reads use AWS JSON 1.1;
 no containers or infrastructure are executed. Follows the official
@@ -60,7 +60,7 @@ The SDK tests prove client compatibility, not live AWS equivalence.
 
 Rule/target mutation, event delivery, schedules, IAM policy evaluation, cryptographic SigV4
 validation, real execution, provisioning and deployment. Seeded resources are fixtures, not
-AWS accounts. Cursor strings and their one-hour mock-clock lifetime are deterministic local
+AWS accounts. Cursor strings and their one-hour emulator-clock lifetime are deterministic local
 stand-ins; AWS does not document a fixed lifetime or wire token format. Pagination binds
 arguments but does not freeze a snapshot of concurrent fixture edits. Result order is fixture
 insertion order, not a guarantee about AWS ordering. HTTP 429 is a test fault, not the normal

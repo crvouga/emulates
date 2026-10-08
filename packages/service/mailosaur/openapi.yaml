@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Mailosaur API (Mockingbird subset)
   description: |
-    Stateful mock subset of the Mailosaur email/SMS testing API: message search (the SDK's
+    Stateful emulator subset of the Mailosaur email/SMS testing API: message search (the SDK's
     client-side long-poll behind `messages.get`), list, get by id, delete, delete-all, create,
     and the server-side `await` long-poll. Hand-authored from the `mailosaur@11.1.0` Node SDK
     (the exact requests it sends and the fields its models read) and our consumer's
@@ -22,7 +22,7 @@ paths:
       operationId: SearchMessages
       description: >-
         Message summaries matching the criteria, newest first. Answers at once; when nothing
-        matches, `x-ms-delay` tells the SDK how long to wait before polling again (the mock's
+        matches, `x-ms-delay` tells the SDK how long to wait before polling again (the emulator's
         default is 20 ms, so `messages.get` returns within ~20 ms of a message arriving).
       x-mockingbird:
         supported: true
@@ -207,7 +207,7 @@ paths:
       operationId: CreateMessage
       description: >-
         `messages.create`: a new message in the server's inbox (the vendor would also send it to
-        a verified address when `send` is true; the mock only stores it).
+        a verified address when `send` is true; the emulator only stores it).
       x-mockingbird:
         supported: true
         parity:

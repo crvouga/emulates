@@ -15,7 +15,7 @@ export interface Operation {
   /** Required query parameters, encoded, without the leading `?`. */
   query: string
   headers: Record<string, string>
-  /** The sample request, sent to a fresh instance of the mock at build time, answered 2xx/3xx. */
+  /** The sample request, sent to a fresh instance of the emulator at build time, answered 2xx/3xx. */
   verified: boolean
 }
 
@@ -39,7 +39,7 @@ export interface ExampleModule {
   mount(host: HTMLElement): void | (() => void) | Promise<undefined | (() => void)>
 }
 
-/** The vendor a service mocks, from sites/docs/src/data/brands.json (`bun run brands:sync`). */
+/** The vendor a service emulates, from sites/docs/src/data/brands.json (`bun run brands:sync`). */
 export interface Brand {
   vendor: string
   website: string
@@ -58,8 +58,10 @@ export interface Service {
   description: string
   keywords: string[]
   category: string
-  /** The vendor surface this mock keeps in step, declared as `mockingbird.parity`. */
+  /** The vendor surface this emulator keeps in step, declared as `mockingbird.parity`. */
   parity: string
+  /** Editorially featured in the docs, declared as `mockingbird.featured`. */
+  featured: boolean
   kind: ServiceKind
   surfaces: {
     /** Exports `createRuntime()`: an in-process `fetch(Request) → Response`. */
@@ -119,7 +121,9 @@ export interface Catalog {
   guides: Guide[]
   /** The repo's generated llms.txt, served as-is so agents see one index. */
   llmsTxt: string
-  quickStart: { html: string }
+  quickStart: {
+    steps: { id: string; title: string; file: string; description: string; html: string }[]
+  }
   services: Service[]
   categories: CategorySummary[]
   totals: {

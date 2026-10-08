@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-slack
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of **Slack** for test suites: incoming webhooks, the Web API methods our apps
+Stateful emulator of **Slack** for test suites: incoming webhooks, the Web API methods our apps
 call, and the Socket Mode control plane Bolt needs in order to boot, with an **outbox** of
 everything the app "sent". A suite asserts that an alert fired
 (`GET /__admin/outbox?webhook=…` or `?channel=…`) without a real workspace, and drives the
@@ -122,7 +122,7 @@ maps a bot token or a webhook's `T/B/X` path to a namespace.
 
 - Inbound Events API and interactivity delivery. Socket Mode's connection lifecycle is
   modelled (`apps.connections.open`, `hello`, ping/pong, `disconnect`) so Bolt can boot and
-  shut down; the mock does not push events on connect. A `disconnect` envelope has no
+  shut down; the emulator does not push events on connect. A `disconnect` envelope has no
   reconnect URL, matching Slack's documented shape and `@slack/socket-mode@2.0.4`, which
   calls `apps.connections.open` again.
 - File uploads and downloads: `files.info` answers seeded metadata; the `files.slack.com` URLs
@@ -137,8 +137,8 @@ maps a bot token or a webhook's `T/B/X` path to a namespace.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `SlackAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `messages()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, outbox, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `SlackAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `messages()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, outbox, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `SLACK_PRESETS` | object | Every named fault preset. |
 | `SLACK_NAMESPACE` | string | The service name, `"slack"`. |
 | `slackCredential` | function | The bearer token, or a webhook's `T/B/X` path (how credentials map to namespaces). |

@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-mediaconvert
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful AWS Elemental MediaConvert mock for the official SDK v3 client. It supports endpoint discovery, asynchronous jobs, deterministic controls, EventBridge-compatible events, and output writes to a configured mock S3 service.
+Stateful AWS Elemental MediaConvert emulator for the official SDK v3 client. It supports endpoint discovery, asynchronous jobs, deterministic controls, EventBridge-compatible events, and output writes to a configured emulator S3 service.
 
 ## Install
 
@@ -17,10 +17,10 @@ ESM only. Node 22+ or Bun 1.2+.
 ```ts
 import { createServer } from "@crvouga/mockingbird-service-mediaconvert/server"
 
-const mock = await createServer()
-// Point the discovery MediaConvertClient at mock.url. DescribeEndpoints returns
-// mock.url for constructing the second client used to submit jobs.
-const health = await fetch(`${mock.url}/__admin/health`)
+const emulator = await createServer()
+// Point the discovery MediaConvertClient at emulator.url. DescribeEndpoints returns
+// emulator.url for constructing the second client used to submit jobs.
+const health = await fetch(`${emulator.url}/__admin/health`)
 ```
 
 Supported operations are DescribeEndpoints, CreateJob, GetJob, and CancelJob. CreateJob retains Role, Queue, UserMetadata, and the complete nested Settings structure. A repeated ClientRequestToken returns the original job.

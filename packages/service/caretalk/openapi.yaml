@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: CareTalk external API (Mockingbird subset)
-  description: 'Stateful mock subset of CareTalk''s `/externalapi`: client login, form definitions (GetForm),
+  description: 'Stateful emulator subset of CareTalk''s `/externalapi`: client login, form definitions (GetForm),
     saving patient forms, patient search and insert, states, free slots and appointments. Hand-authored
     from the consumer (caretalk-client.service.ts, caretalk.types.ts, caretalk-forms.type.ts); the vendor
     publishes no spec.

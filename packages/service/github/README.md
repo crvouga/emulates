@@ -1,10 +1,10 @@
 # @crvouga/mockingbird-service-github
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-WIP GitHub REST mock targeting `X-GitHub-Api-Version: 2026-03-10`.
+WIP GitHub REST emulator targeting `X-GitHub-Api-Version: 2026-03-10`.
 Repository observations, commit-backed references, and same-repository pull-request
-create/get/list/update are implemented. Unsupported features return mock-only 501.
+create/get/list/update are implemented. Unsupported features return emulator-only 501.
 [API_EVIDENCE.md](API_EVIDENCE.md) pins the source and distinguishes research from
 runtime verification. [SUPPORT.md](SUPPORT.md) is generated from the contract.
 
@@ -95,7 +95,7 @@ empty synthetic repository. Every parent and branch target must be seeded; cycle
 duplicates and an absent default branch in a nonempty branch map are rejected.
 Validation completes before mutation; existing repositories cannot be overwritten
 by this control. Use a fresh namespace or reset for a different fixture.
-These are mock fixture constraints, not GitHub REST request rules.
+These are emulator fixture constraints, not GitHub REST request rules.
 
 Seeds create organization owners only. Same-owner repositories share owner
 identity. Repository lookup is case-insensitive; branch names preserve case.
@@ -105,9 +105,9 @@ coverage are not claimed. Missing repositories return a provider-shaped 404.
 No credential-based namespace mapping or authorization policy is implemented.
 
 The selected API version is returned in `x-github-api-version-selected`. Omitting
-the request header selects this mock's 2026-03-10 contract, unlike GitHub's current
-2022-11-28 default. Other versions return mock-only 501, not a claimed provider
-error. This is an explicit single-version test double.
+the request header selects this emulator's 2026-03-10 contract, unlike GitHub's current
+2022-11-28 default. Other versions return emulator-only 501, not a claimed provider
+error. This is an explicit single-version emulator.
 
 No Git transport, real commit creation, token issuance, GitHub App identity,
 branch protection, repository rules, merge execution or outgoing notification is
@@ -194,7 +194,7 @@ shared runtime lifetime and are not rewound by provider-state checkout.
 
 To model a separate intervening actor, call `POST /__admin/github/refs/move` with
 `{ "owner": "synthetic-org", "repo": "example", "ref": "refs/heads/topic", "sha": "<seeded SHA>" }`
-between a client's read and write. This mock-only control requires an existing
+between a client's read and write. This emulator-only control requires an existing
 branch and a seeded fast-forward target, creates a separate checkpoint, and
 returns `simulated: true`. It cannot create refs, force rewrites or mutate another
 namespace. Invalid controls leave state/history unchanged. Subsequent writes use
@@ -205,7 +205,7 @@ This control models interleaving, not atomic publication or real branch enforcem
 
 `bun test` includes seeded self-parity for all nine operations and successful
 per-operation response checks. A deliberately divergent, schema-valid repository
-observation must fail the parity comparator. These are two isolated mock instances;
+observation must fail the parity comparator. These are two isolated emulator instances;
 self-parity is not evidence that GitHub matches this implementation.
 
 `test/node-consumer.mjs` uses native Node HTTP and literal public contracts against
@@ -239,4 +239,4 @@ package remains **WIP**. Scripted denied responses do not prove GitHub App ident
 token permissions, branch protection or rulesets. There is no Git transport or
 token issuance, no expected-old-SHA compare-and-swap, and no atomic transaction
 covering ref movement and PR publication. Consumer reconciliation policy and
-cross-component Initiative acceptance remain outside this mock.
+cross-component Initiative acceptance remain outside this emulator.

@@ -21,5 +21,5 @@ export const composeMockAdmins = (admins: readonly MockAdmin[]) =>
         standardRoutes: [],
       }),
     ),
-    { brandsUrl: ADMIN_BRANDS_URL, title: "Lab testing mocks" },
+    { brandsUrl: ADMIN_BRANDS_URL, title: "Lab testing emulators" },
   )

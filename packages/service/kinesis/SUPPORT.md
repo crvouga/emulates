@@ -3,10 +3,10 @@
 Generated from `openapi.yaml`; do not edit by hand.
 
 - operations in spec: **7**
-- supported by the mock: **7**
+- supported by the emulator: **7**
 - parity enabled: **0**
 
-| operationId | route | mock | parity | notes |
+| operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
 | `AwsQuery` | `GET /` | ✅ supported | ❌ disabled | Use the stateful LocalStack scenario runner. |
 | `AwsRpc` | `POST /` | ✅ supported | ❌ disabled | Use the stateful LocalStack scenario runner. |

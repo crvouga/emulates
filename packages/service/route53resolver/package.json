@@ -42,7 +42,7 @@
     "mockingbird",
     "aws",
     "route53resolver",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-persona
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of **Persona**'s identity-verification API for test suites: create an inquiry,
+Stateful emulator of **Persona**'s identity-verification API for test suites: create an inquiry,
 the "reusable inquiry" list lookup, fetch one inquiry, the hosted flow page members are sent
 to, and the `Persona-Signature`-signed events Persona posts back. Inquiries move only when a
 test says so (an admin action or a click on the hosted page), so the Rx consultation's ID
@@ -24,7 +24,7 @@ any Fetch server.
 
 ## Usage
 
-Point the EMR at the mock (all of these are required in `E/config/env.ts`):
+Point the EMR at the emulator (all of these are required in `E/config/env.ts`):
 
 | EMR env | Value |
 | --- | --- |
@@ -122,7 +122,7 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 
 - Our EMR acts only on `status === "completed"` (`updateIdentityVerificationForPatient`);
   `approved`/`declined` events are parsed and ignored. So a declined inquiry has already marked
-  the member verified at `completed`. The mock sends both events so suites can see that.
+  the member verified at `completed`. The emulator sends both events so suites can see that.
 - Our receiver compares signatures with `crypto.timingSafeEqual`, which throws on a length
   mismatch: a wrong-length `v1=` is an uncaught 500, not a 401 (`signature-faults` `short`).
 - There is no official Persona Node SDK in our consumer (plain `fetch`), so there is no SDK
@@ -141,8 +141,8 @@ reusable lookup 500s; our client fails open and creates), `create_fails`, `not_f
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `PersonaAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `transition(id, action)`, `inquiries()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `onWebhook`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
+| `PersonaAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `transition(id, action)`, `inquiries()`. Options: `sqlite`, `now`, `namespace`, `publicNamespace`, `settings`, `onWebhook`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets, webhooks). Options: `webhooks: {url, secret, retryDelaysMs?, fetch?}`, `settings`, `clock`, `seed`, `adminKey`, `onLog`. |
 | `PERSONA_PRESETS` | object | Every named fault preset. |
 | `PERSONA_SIGNATURE_HEADER` | string | `"Persona-Signature"`. |
 | `PERSONA_NAMESPACE`, `PERSONA_VERSION` | string | `"persona"`, `"2023-01-05"`. |

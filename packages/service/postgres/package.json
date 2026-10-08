@@ -80,6 +80,7 @@
   "license": "MIT",
   "main": "./dist/index.js",
   "mockingbird": {
+    "featured": true,
     "runtime": "portable",
     "layer": "service",
     "category": "databases",

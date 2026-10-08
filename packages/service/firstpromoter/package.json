@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-firstpromoter",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the FirstPromoter v2 API: promoters (adopt-before-create by cust_id), signup tracking by tid / promoter_id / ref token, iframe login, archive, and Basic-auth lead_becomes_referral webhooks.",
+  "description": "Stateful emulator of the FirstPromoter v2 API: promoters (adopt-before-create by cust_id), signup tracking by tid / promoter_id / ref token, iframe login, archive, and Basic-auth lead_becomes_referral webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

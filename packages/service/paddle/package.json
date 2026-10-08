@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-paddle",
   "version": "0.0.0-development",
-  "description": "Stateful mock of the Paddle Billing API (customers, addresses, businesses, products, prices, transactions with computed totals, subscriptions with pause/resume/cancel and renewals, events) with Paddle-Signature webhooks and admin routes that simulate checkout, renewals and failed payments (Mockingbird service contract).",
+  "description": "Stateful emulator of the Paddle Billing API (customers, addresses, businesses, products, prices, transactions with computed totals, subscriptions with pause/resume/cancel and renewals, events) with Paddle-Signature webhooks and admin routes that simulate checkout, renewals and failed payments (Mockingbird service contract).",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -46,7 +46,7 @@
     "subscriptions",
     "payments",
     "webhooks",
-    "mock"
+    "emulator"
   ],
   "mockingbird": {
     "runtime": "portable",

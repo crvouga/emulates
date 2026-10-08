@@ -1,7 +1,7 @@
 # @crvouga/mockingbird-service-customerio discovery
 
 This is the installed-package index for coding agents and tooling. All relative links resolve
-inside `node_modules/@crvouga/mockingbird-service-customerio/`; no repository checkout is needed to discover the mock's
+inside `node_modules/@crvouga/mockingbird-service-customerio/`; no repository checkout is needed to discover the emulator's
 supported surface or documented behavior.
 
 ## Capability and behavior sources
@@ -48,7 +48,7 @@ designed for assertions and diagnosis by consuming test suites.
 ## Report a mismatch or missing capability
 
 Follow the [agent reporting contract](https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md). Include package version,
-operation/command, a minimal redacted request, actual mock result, expected oracle result or vendor
+operation/command, a minimal redacted request, actual emulator result, expected oracle result or vendor
 documentation, and whether the mismatch appears in the matrix. Never include keys, tokens,
 customer data, prompts, PHI, card data, or unredacted recordings.
 

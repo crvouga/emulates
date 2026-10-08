@@ -1,8 +1,8 @@
 # @crvouga/mockingbird-service-llamacloud
 
-> Familiar calls. Faithful echoes. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
+> Local emulators. Real API contracts. Part of [Mockingbird](https://github.com/crvouga/mockingbird).
 
-Stateful mock of the **LlamaCloud** platform API (LlamaIndex's managed indexes) for test suites:
+Stateful emulator of the **LlamaCloud** platform API (LlamaIndex's managed indexes) for test suites:
 project and pipeline lookup, pipeline documents (list, get, insert, upsert, delete), and
 retrieval. Retrieval is deterministic: a scripted answer when a test sets one, otherwise a
 term-overlap ranking over the documents in the pipeline. The chat knowledge tools
@@ -97,7 +97,7 @@ The catalog listed this as unverified. It has now been checked against the insta
 llama-cloud-services **0.6.88**, llama-cloud **0.1.45** and llama-index-core **0.14.10**, the
 versions the consumer app's Python chat service pins. The wheels were read, and
 `llamacloud.sdk.test.ts` runs that service's real `LlamaCloudClient` file on the real SDK against the
-served mock. `LlamaCloudIndex(name, project_name=…, api_key=…)` followed by
+served emulator. `LlamaCloudIndex(name, project_name=…, api_key=…)` followed by
 `.as_retriever(similarity_top_k=5).aretrieve(q)` makes these calls:
 
 1. `GET /api/v1/projects?project_name=<name>`: `resolve_project`. No match raises
@@ -112,7 +112,7 @@ The base URL comes from `base_url` or `LLAMA_CLOUD_BASE_URL`, falling back to
 `https://api.cloud.llamaindex.ai` (`llama_index.core.ingestion.api_utils.get_client`). The
 client passes no `base_url`, so setting the environment variable is enough. The SDK's pydantic models
 are strict: `Pipeline.status` must be `CREATED` or `DELETING`, and `embedding_config` is
-required. The mock satisfies both, and the SDK test fails if a shape drifts.
+required. The emulator satisfies both, and the SDK test fails if a shape drifts.
 
 **Discrepancy:** the Python client's `llamacloud_project_name` defaults to `"default"` (lowercase). The
 backend's default is `"Default"`. Project lookup is exact, so it needs
@@ -178,8 +178,8 @@ never records queries, document text or titles.
 
 | Export | Kind | Description |
 | --- | --- | --- |
-| `LlamaCloudAPI` | class | The in-process mock: `fetch(request)`, `reset()`, `documents(pipeline)`, `addRule(rule)`, `rules()`, `clearRules()`, `state`. Options: `sqlite`, `now`, `namespace`, `pipelines`, `settings`. |
-| `createRuntime` | function | The mock with the full service contract (health, admin, namespaces, credentials, presets). Options: `pipelines`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `LlamaCloudAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `documents(pipeline)`, `addRule(rule)`, `rules()`, `clearRules()`, `state`. Options: `sqlite`, `now`, `namespace`, `pipelines`, `settings`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, namespaces, credentials, presets). Options: `pipelines`, `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `LLAMACLOUD_PRESETS` | object | Every named fault preset. |
 | `LLAMACLOUD_NAMESPACE` | string | The service name, `"llamacloud"`. |
 | `DEFAULT_PIPELINES`, `DEFAULT_PIPELINE_NAME`, `DEFAULT_PROJECT_NAME`, `DEFAULT_SETTINGS` | values | The seed: `acme-member-kb-v1` in `Default`, top-k 5, any key. |

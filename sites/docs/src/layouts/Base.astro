@@ -16,18 +16,18 @@ interface Props {
 
 const {
   title,
-  description = `Stateful mocks for ${catalog.totals.services} third-party APIs and SQL databases. Every mock runs in Node, Bun, browsers, and Workers.`,
+  description = `Stateful emulators for ${catalog.totals.services} third-party APIs and SQL databases. Every emulator runs in Node, Bun, browsers, and Workers.`,
   markdown,
 } = Astro.props
 const fullTitle = title
   ? `${title} · Mockingbird`
-  : "Mockingbird · Stateful mocks for the APIs you depend on"
+  : "Mockingbird · Stateful emulators for the APIs you depend on"
 const path = Astro.url.pathname.replace(/\/$/, "") || "/"
 const nav = [
-  { href: "/services", label: "Services" },
+  { href: "/services", label: "Emulators" },
   { href: "/examples", label: "Examples" },
   { href: "/coverage", label: "Coverage" },
-  { href: "/docs", label: "Docs" },
+  { href: "/docs", label: "Guides" },
   { href: "/why", label: "Why" },
 ]
 ---
@@ -42,9 +42,9 @@ const nav = [
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#161c19" media="(prefers-color-scheme: dark)" />
-    <link rel="icon" type="image/png" href={MARK_HREF} />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href={MARK_HREF} />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     {markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
     <script is:inline>
@@ -86,9 +86,9 @@ const nav = [
           }
         </nav>
         <div class="header-actions">
-          <button class="search-trigger" type="button" data-palette-open aria-label="Search services">
+          <button class="search-trigger" type="button" data-palette-open aria-label="Search documentation">
             <Icon name="search" />
-            <span>Search services…</span>
+            <span>Search documentation…</span>
             <kbd data-mod-key>⌘K</kbd>
           </button>
           <a class="icon-btn gh" href={catalog.repo} target="_blank" rel="noopener" aria-label="Mockingbird on GitHub">
@@ -127,17 +127,17 @@ const nav = [
           <div>
             <a class="brand" href="/"><BirdMark /> Mockingbird</a>
             <p class="footer-tagline">{IDENTITY.tagline}</p>
-            <p>Stateful test doubles for the third-party APIs and databases your app depends on.</p>
+            <p>Stateful emulators for the third-party APIs and databases your app depends on.</p>
           </div>
           <div>
             <h2>Docs</h2>
             <ul>
-              <li><a href="/services">Services</a></li>
+              <li><a href="/services">Emulators</a></li>
               <li><a href="/examples">Examples</a></li>
               <li><a href="/coverage">Coverage</a></li>
               <li><a href="/docs">Guides</a></li>
               <li><a href="/why">Why Mockingbird</a></li>
-              <li><a href="/identity">Field guide</a></li>
+              <li><a href="/identity">Design system</a></li>
             </ul>
           </div>
           <div>
@@ -168,7 +168,7 @@ const nav = [
       <div class="palette-box">
         <label class="palette-input">
           <Icon name="search" />
-          <input type="text" placeholder="Search services, operations, pages…" autocomplete="off" spellcheck="false" data-palette-input aria-controls="palette-results" />
+          <input type="text" placeholder="Search documentation, operations, pages…" autocomplete="off" spellcheck="false" data-palette-input aria-controls="palette-results" />
           <kbd>esc</kbd>
         </label>
         <ul class="palette-results" id="palette-results" role="listbox" data-palette-results></ul>

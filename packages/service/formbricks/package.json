@@ -1,7 +1,7 @@
 {
   "name": "@crvouga/mockingbird-service-formbricks",
   "version": "0.0.0-development",
-  "description": "Stateful mock of open-source Formbricks: the client environment state (seeded with a synthetic survey corpus), response creation with upstream's validation and {code, message, details} errors, the v1 management API, the widget script, and signed response webhooks.",
+  "description": "Stateful emulator of open-source Formbricks: the client environment state (seeded with a synthetic survey corpus), response creation with upstream's validation and {code, message, details} errors, the v1 management API, the widget script, and signed response webhooks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

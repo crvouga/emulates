@@ -1,13 +1,14 @@
 ---
 import catalog from "virtual:mockingbird/catalog"
 import Icon from "../../components/Icon.astro"
+import ServiceCard from "../../components/ServiceCard.astro"
 import Base from "../../layouts/Base.astro"
 ---
 
 <Base title="Docs" description="Guides for using, testing and contributing to Mockingbird. The same markdown GitHub renders.">
   <div class="container">
     <header class="page-head">
-      <span class="eyebrow">Notes from the field</span>
+      <span class="eyebrow">Developer documentation</span>
       <h1>Docs</h1>
       <p class="lede">
         Guides for using, testing and contributing to Mockingbird. Each page is a file in <code>docs/</code>, the same markdown
@@ -15,6 +16,13 @@ import Base from "../../layouts/Base.astro"
         <a href="/services">service page</a>.
       </p>
     </header>
+    <section class="featured-docs" aria-labelledby="featured-title">
+      <h2 id="featured-title"><Icon name="star" /> Featured emulators</h2>
+      <p>Explore the guides, coverage, and live playgrounds for these four emulators.</p>
+      <div class="featured-grid">{catalog.services.filter((s) => s.featured).map((service) => <ServiceCard service={service} />)}</div>
+      <a href="/services?featured=1" class="text-link">Browse featured emulators <Icon name="arrow-right" /></a>
+    </section>
+    <h2 class="guides-heading">Guides</h2>
     <ul class="guides">
       {
         catalog.guides.map((g) => (
@@ -35,6 +43,14 @@ import Base from "../../layouts/Base.astro"
 </Base>
 
 <style>
+  .featured-docs { margin-bottom: 40px; }
+  .featured-docs h2 { display: flex; align-items: center; gap: 8px; font-size: 20px; }
+  .featured-docs h2 :global(.i) { width: 18px; height: 18px; color: var(--highlight); }
+  .featured-docs > p { margin-top: 8px; color: var(--fg-muted); font-size: 14px; }
+  .featured-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; margin: 16px 0; }
+  .text-link { display: inline-flex; align-items: center; gap: 6px; color: var(--highlight); font-size: 13px; }
+  .text-link :global(.i) { width: 14px; height: 14px; }
+  .guides-heading { margin-bottom: 16px; font-size: 20px; }
   .page-head code {
     font-size: 0.85em;
   }
