@@ -1,5 +1,11 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import {
+  type Listening,
+  listen,
+  providerServeOptions,
+  providerServeValues,
+  type ServeTarget,
+} from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type GitHubRuntime, type GitHubRuntimeOptions } from "./runtime.js"
 
 export const DEFAULT_PORT = 8828
@@ -20,8 +26,11 @@ export const createServer = async (options: GitHubServerOptions = {}): Promise<G
 export const serveTarget: ServeTarget = {
   name: "github",
   defaultPort: DEFAULT_PORT,
-  create: (_values, common) =>
+  options: providerServeOptions,
+  create: async (values, common) =>
     createRuntime({
+      ...(await providerServeValues<NonNullable<GitHubRuntimeOptions["fixtures"]>>(values, common)),
+      ...(common.adminPrefix !== undefined ? { adminPrefix: common.adminPrefix } : {}),
       ...(common.adminKey !== undefined ? { adminKey: common.adminKey } : {}),
       ...(common.seed !== undefined ? { seed: common.seed } : {}),
       ...(common.onLog ? { onLog: common.onLog } : {}),

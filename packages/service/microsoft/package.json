@@ -1,0 +1,114 @@
+{
+  "name": "@crvouga/mockingbird-service-microsoft",
+  "version": "0.0.0-development",
+  "description": "Stateful Microsoft public vendor API emulator with native namespaces, checkpoints and test controls.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "API_EVIDENCE.md",
+    "SUPPORT.md",
+    "DISCOVERY.md",
+    "openapi.yaml",
+    "LICENSE_EMULATE",
+    "THIRD_PARTY_NOTICES.md",
+    "routes.json"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "bin": {
+    "mockingbird-microsoft": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/service/microsoft"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/microsoft#readme",
+  "keywords": [
+    "mockingbird",
+    "service",
+    "microsoft"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "entries": {
+      "server": "node",
+      "cli": "node"
+    },
+    "layer": "service",
+    "category": "identity",
+    "displayName": "Microsoft",
+    "vendor": {
+      "website": "https://learn.microsoft.com",
+      "docs": "https://learn.microsoft.com/en-us/graph/api/overview",
+      "description": "OAuth authorize, token exchange, userinfo, OIDC discovery, Graph /me, logout, token revocation"
+    },
+    "status": "wip",
+    "parity": "Vendor API workflows compared with the pinned Emulate package oracle",
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "contract": "openapi.yaml",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Pinned Emulate 0.12.1 package oracle",
+        "command": "bun run --cwd packages/parity/package-oracle parity",
+        "note": "Offline vendor API comparison, native runtime controls and route coverage. This is package evidence, not independent live vendor verification. See docs/EMULATE_COVERAGE.md for reviewed differences."
+      },
+      "introspection": [
+        "GET /__admin/health",
+        "GET /__admin",
+        "GET /__admin/state",
+        "GET /__admin/requests",
+        "GET /__admin/metrics",
+        "GET /__admin/faults/presets",
+        "GET /__admin/ui"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
+  },
+  "scripts": {
+    "build": "bun ../../../scripts/bundle-service.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test --pass-with-no-tests",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts",
+    "generate": "bun ../../openapi/codegen/dist/cli.js",
+    "generate:check": "bun ../../openapi/codegen/dist/cli.js --check",
+    "openapi:check": "bun ../../openapi/codegen/dist/cli.js --validate"
+  },
+  "dependencies": {
+    "@crvouga/mockingbird-service-sqlite": "workspace:*",
+    "buffer": "6.0.3",
+    "@noble/hashes": "2.4.0",
+    "jose": "6.2.2",
+    "graphql": "17.0.0"
+  },
+  "devDependencies": {
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-http-provider": "workspace:*",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*"
+  }
+}

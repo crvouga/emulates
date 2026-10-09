@@ -16,12 +16,20 @@ bun add @crvouga/mockingbird-service-github
 
 ## API
 
-The portable entry exports `GitHubAPI`, `createRuntime`, `GITHUB_NAMESPACE`,
+The portable entry exports `GitHubAPI`, `createRuntime`, `prepareFixtures`, `GITHUB_NAMESPACE`,
 `GITHUB_API_VERSION`, `document`, `operationIds`, and `supportedOperationIds`.
 Types include `GitHubAPIOptions`, `GitHubRuntime`, `GitHubRuntimeOptions`,
+`GitHubFixtures`, `PreparedGitHubFixtures`,
 `Repository`, `Commit`, `PullRequest`, `OperationId`, and `SupportedOperationId`.
 The Node-only `/server` entry exports `createServer`, `DEFAULT_PORT`, `serveTarget`,
 `GitHubServerOptions`, and `GitHubServer`. The executable is `mockingbird-github`.
+
+`prepareFixtures(input)` generates omitted synthetic App private keys with WebCrypto. Pass its
+`fixtures` to `createRuntime` and use `generatedPrivateKeys` in your test's JWT signer; supplied
+keys are excluded from that list. Reusing prepared fixtures preserves identity across reset.
+The runtime's `mount(prefix)` embeds its Fetch and request-method handlers under an app origin.
+The CLI accepts `--fixtures <json-file>` and `--base-url <url>`; fleet entries also accept inline
+fixtures. See [setup examples](../../../docs/GETTING_STARTED.md).
 
 ## Usage
 

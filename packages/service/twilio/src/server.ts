@@ -1,5 +1,11 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import {
+  type Listening,
+  listen,
+  providerServeOptions,
+  providerServeValues,
+  type ServeTarget,
+} from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type TwilioRuntime, type TwilioRuntimeOptions } from "./runtime.js"
 
 /** Port `mockingbird-twilio serve` listens on when none is given. */
@@ -33,6 +39,7 @@ export const serveTarget: ServeTarget = {
   name: "twilio",
   defaultPort: DEFAULT_PORT,
   options: {
+    ...providerServeOptions,
     "app-url": {
       type: "string",
       value: "<url>",
@@ -66,7 +73,7 @@ export const serveTarget: ServeTarget = {
       description: "Every Verify code is this (default: random 6 digits, read via /__admin)",
     },
   },
-  create: (values, common) => {
+  create: async (values, common) => {
     const appUrl = text(values["app-url"])
     const accountSid = text(values["account-sid"])
     const authToken = text(values["auth-token"])
@@ -75,6 +82,7 @@ export const serveTarget: ServeTarget = {
     const fixedCode = text(values["fixed-code"])
     if (appUrl && !authToken) throw new Error("--app-url needs --auth-token (the signing key)")
     return createRuntime({
+      ...(await providerServeValues<NonNullable<TwilioRuntimeOptions["fixtures"]>>(values, common)),
       ...(appUrl && authToken
         ? {
             app: {

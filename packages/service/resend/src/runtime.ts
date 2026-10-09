@@ -16,6 +16,7 @@ import {
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
+import type { ResendAPIOptions } from "./index.js"
 import { type InboundInput, RESEND_NAMESPACE, ResendAPI, type SendOutcomeEvent } from "./index.js"
 import type { SentEmail } from "./state.js"
 
@@ -179,7 +180,7 @@ export const forwardToInbox = async (
   return response.ok
 }
 
-export type ResendRuntimeOptions = {
+export type ResendRuntimeOptions = Pick<ResendAPIOptions, "fixtures" | "baseUrl" | "tokens"> & {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
@@ -314,6 +315,9 @@ export const createRuntime = (options: ResendRuntimeOptions = {}): ResendRuntime
     webhooks: hub,
     create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) =>
       new ResendAPI({
+        ...(options.fixtures ? { fixtures: options.fixtures } : {}),
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(options.tokens ? { tokens: options.tokens } : {}),
         sqlite,
         namespace,
         publicNamespace,

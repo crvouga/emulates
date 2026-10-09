@@ -2,12 +2,13 @@
 
 Generated from `openapi.yaml`; do not edit by hand.
 
-- operations in spec: **125**
-- supported by the emulator: **121**
+- operations in spec: **126**
+- supported by the emulator: **122**
 - parity enabled: **114**
 
 | operationId | route | emulator | parity | notes |
 | --- | --- | --- | --- | --- |
+| `PostCustomerSessions` | `POST /v1/customer_sessions` | ✅ supported | ❌ disabled | Covered by the pinned package oracle; no independent live evidence yet. |
 | `PostThreeDSecureAuthenticate` | `POST /c/3ds/{intent}/authenticate` | ✅ supported | ❌ disabled | the 3-D Secure challenge the Stripe.js stand-in completes has no public API |
 | `GetCheckoutPage` | `GET /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page is HTML served by the emulator in place of checkout.stripe.com |
 | `PostCheckoutPage` | `POST /c/pay/{session}` | ✅ supported | ❌ disabled | the hosted Checkout page form post is served by the emulator in place of checkout.stripe.com |

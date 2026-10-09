@@ -1,3 +1,5 @@
+export type { MountedAPI } from "@crvouga/mockingbird-core"
+export { requestBaseUrl } from "@crvouga/mockingbird-core"
 export { awsMd5 } from "./aws-md5.js"
 export type { AwsInput, AwsOperation, AwsProtocolOptions } from "./aws-protocol.js"
 export {

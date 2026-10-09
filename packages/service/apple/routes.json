@@ -1,0 +1,8 @@
+[
+  "GET /.well-known/openid-configuration",
+  "GET /auth/authorize",
+  "GET /auth/keys",
+  "POST /auth/authorize/callback",
+  "POST /auth/revoke",
+  "POST /auth/token"
+]

@@ -1,5 +1,13 @@
 import type { FetchAPI } from "@crvouga/mockingbird-core"
 import {
+  ProviderExpansion,
+  type ProviderOptions,
+  type ResendSeedConfig,
+  resendPlugin,
+  seedResend,
+  selectOperations,
+} from "@crvouga/mockingbird-http-provider"
+import {
   type APIOptions,
   annotateResponse,
   type BodyIssue,
@@ -19,8 +27,10 @@ import {
   toBase64,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
-import type { Hono } from "hono"
-import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { Hono } from "hono"
+import { syncFromExpanded, syncToExpanded } from "./expanded-state.js"
+import { document } from "./generated/openapi.js"
+import { type NativeOperationId, nativeOperationIds } from "./native-operations.js"
 import {
   type ReceivedAttachmentRecord,
   type ReceivedEmail,
@@ -104,15 +114,17 @@ export type SendOutcomeEvent = {
   emailId?: string
 }
 
-export type ResendAPIOptions = APIOptions & {
-  /** The public namespace name, for `/__admin/ns/<name>` download URLs. Default: the default namespace. */
-  adminPrefix?: string
-  publicNamespace?: string
-  /** Called after every accepted send (not replays); awaited before the response. */
-  onSent?: (email: SentEmail) => Promise<void> | void
-  /** Accepted-then-drop and idempotent replays. The response has already been decided. */
-  onOutcome?: (event: SendOutcomeEvent) => void
-}
+export type ResendAPIOptions = APIOptions &
+  Pick<ProviderOptions, "tokens" | "baseUrl" | "publicNamespace" | "adminPrefix"> & {
+    fixtures?: ResendSeedConfig
+    /** The public namespace name, for `/__admin/ns/<name>` download URLs. Default: the default namespace. */
+    adminPrefix?: string
+    publicNamespace?: string
+    /** Called after every accepted send (not replays); awaited before the response. */
+    onSent?: (email: SentEmail) => Promise<void> | void
+    /** Accepted-then-drop and idempotent replays. The response has already been decided. */
+    onOutcome?: (event: SendOutcomeEvent) => void
+  }
 
 const error = (statusCode: number, name: string, message: string) =>
   jsonRes(statusCode, { statusCode, name, message })
@@ -204,6 +216,8 @@ export class ResendAPI implements FetchAPI {
   readonly app: Hono
   readonly sqlite: SqliteClient
   readonly state: ResendState
+  private tail: Promise<unknown> = Promise.resolve()
+  private readonly expansion: ProviderExpansion
   private readonly service: Service
   private readonly now: () => number
   private readonly adminPrefix: string
@@ -226,7 +240,7 @@ export class ResendAPI implements FetchAPI {
     this.onSent = options.onSent
     this.onOutcome = options.onOutcome
     this.state = new ResendState(sqlite, namespace)
-    const handlers = defineOperations<SupportedOperationId>({
+    const handlers = defineOperations<NativeOperationId>({
       ListEmails: (context) => this.listEmails(context),
       ListReceivedEmails: (context) => this.listReceivedEmails(context),
       SendEmail: (context) => this.send(context),
@@ -236,7 +250,7 @@ export class ResendAPI implements FetchAPI {
       DownloadReceivedAttachment: (context) => this.download(context),
     })
     this.service = createService({
-      document,
+      document: selectOperations(document, nativeOperationIds),
       handlers,
       sqlite,
       namespace,
@@ -258,11 +272,56 @@ export class ResendAPI implements FetchAPI {
         return undefined
       },
     })
-    this.app = this.service.app
+    this.app = new Hono().all("*", (c) => this.fetch(c.req.raw))
     this.sqlite = this.service.sqlite
+    this.expansion = new ProviderExpansion(
+      resendPlugin,
+      selectOperations(document, nativeOperationIds),
+      {
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(options.tokens ? { tokens: options.tokens } : {}),
+        ...(options.publicNamespace !== undefined
+          ? { publicNamespace: options.publicNamespace }
+          : {}),
+        ...(options.adminPrefix !== undefined ? { adminPrefix: options.adminPrefix } : {}),
+        sqlite,
+        namespace,
+        now: this.now,
+      },
+    )
+    if (options.fixtures) {
+      this.expansion.configureFixtures(options.fixtures, seedResend)
+      syncFromExpanded(this.state, this.expansion)
+    }
   }
 
-  async fetch(request: Request): Promise<Response> {
+  fetch(request: Request): Promise<Response> {
+    if (!this.expansion.handles(request)) return this.handleFetch(request)
+    const result = this.tail.then(
+      () => this.handleFetch(request),
+      () => this.handleFetch(request),
+    )
+    this.tail = result.then(
+      () => undefined,
+      () => undefined,
+    )
+    return result
+  }
+  private async handleFetch(request: Request): Promise<Response> {
+    if (this.expansion.handles(request)) {
+      syncToExpanded(this.state, this.expansion)
+      const sent = new Set(this.state.outbox.list().map((email) => email.id))
+      const response = await this.expansion.fetch(request)
+      syncFromExpanded(this.state, this.expansion)
+      if (response.ok && new URL(request.url).pathname === "/emails/batch" && this.onSent) {
+        const body = (await response.clone().json()) as { data?: { id: string }[] }
+        for (const item of body.data ?? []) {
+          const email = this.state.outbox.get(item.id)
+          if (email && !sent.has(item.id)) await this.onSent(email)
+        }
+      }
+      return response
+    }
     const response = await this.service.fetch(request)
     if (response.headers.get("idempotent-replayed") === "true") {
       await this.recordOutcome("replayed", response)
@@ -284,10 +343,13 @@ export class ResendAPI implements FetchAPI {
   }
 
   async reset(): Promise<void> {
+    await this.tail
     this.outcomeCounts.accepted = 0
     this.outcomeCounts.lost = 0
     this.outcomeCounts.replayed = 0
     await this.service.reset()
+    await this.expansion.reset()
+    syncFromExpanded(this.state, this.expansion)
   }
 
   /** Accepted sends whose response was lost, those lost responses, and idempotent replays. */
@@ -420,7 +482,7 @@ export class ResendAPI implements FetchAPI {
         bcc: email.bcc.length > 0 ? email.bcc : null,
         cc: email.cc.length > 0 ? email.cc : null,
         reply_to: email.replyTo.length > 0 ? email.replyTo : null,
-        last_event: email.scheduledAt ? "scheduled" : "delivered",
+        last_event: email.lastEvent ?? (email.scheduledAt ? "scheduled" : "delivered"),
         scheduled_at: email.scheduledAt,
         headers: email.headers,
         tags: email.tags,
@@ -477,7 +539,7 @@ export class ResendAPI implements FetchAPI {
         bcc: email.bcc.length > 0 ? email.bcc : null,
         cc: email.cc.length > 0 ? email.cc : null,
         reply_to: email.replyTo.length > 0 ? email.replyTo : null,
-        last_event: email.scheduledAt ? "scheduled" : "delivered",
+        last_event: email.lastEvent ?? (email.scheduledAt ? "scheduled" : "delivered"),
         scheduled_at: email.scheduledAt,
       }))
     return jsonRes(200, this.emailPage(context, records, 20))

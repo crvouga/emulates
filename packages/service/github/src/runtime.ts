@@ -5,6 +5,7 @@ import {
   type ServiceRuntime,
 } from "@crvouga/mockingbird-service"
 import { document } from "./generated/openapi.js"
+import type { GitHubAPIOptions } from "./index.js"
 import { GITHUB_NAMESPACE, GitHubAPI } from "./index.js"
 import { presets } from "./presets.js"
 import { validRef } from "./refs.js"
@@ -19,7 +20,8 @@ export type GitHubRuntimeOptions = Pick<
   | "onLog"
   | "journalSize"
   | "maxCheckpoints"
->
+> &
+  Pick<GitHubAPIOptions, "fixtures" | "baseUrl" | "tokens">
 export type GitHubRuntime = ServiceRuntime<GitHubAPI>
 export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime => {
   const runtime = createServiceRuntime<GitHubAPI>({
@@ -80,7 +82,17 @@ export const createRuntime = (options: GitHubRuntimeOptions = {}): GitHubRuntime
         }
       },
     }),
-    create: ({ sqlite, namespace, clock }) => new GitHubAPI({ sqlite, namespace, now: clock.now }),
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) =>
+      new GitHubAPI({
+        sqlite,
+        namespace,
+        publicNamespace,
+        adminPrefix,
+        now: clock.now,
+        ...(options.fixtures ? { fixtures: options.fixtures } : {}),
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(options.tokens ? { tokens: options.tokens } : {}),
+      }),
   })
 
   const fetch = runtime.fetch

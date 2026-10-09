@@ -11,6 +11,7 @@ import {
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
+import type { SlackAPIOptions } from "./index.js"
 import { SLACK_NAMESPACE, SlackAPI, slackCredential } from "./index.js"
 import { disconnectSockets, listSocketConnections } from "./sockets.js"
 import type { Settings, SlackChannel, SlackFile, SlackUser } from "./state.js"
@@ -96,7 +97,7 @@ export const SLACK_PRESETS: Record<string, FaultPreset> = {
   },
 }
 
-export type SlackRuntimeOptions = {
+export type SlackRuntimeOptions = Pick<SlackAPIOptions, "fixtures" | "baseUrl" | "tokens"> & {
   sqlite?: SqliteClient
   clock?: Clock
   seed?: number | string
@@ -363,11 +364,15 @@ export const createRuntime = (options: SlackRuntimeOptions = {}): SlackRuntime =
     ...(options.onLog ? { onLog: options.onLog } : {}),
     credential: (request) => slackCredential(request, options.adminPrefix),
     presets: SLACK_PRESETS,
-    create: ({ sqlite, namespace, publicNamespace, clock }) =>
+    create: ({ sqlite, namespace, publicNamespace, adminPrefix, clock }) =>
       new SlackAPI({
+        ...(options.fixtures ? { fixtures: options.fixtures } : {}),
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(options.tokens ? { tokens: options.tokens } : {}),
         sqlite,
         namespace,
         publicNamespace,
+        adminPrefix,
         now: clock.now,
         ...(options.settings ? { settings: options.settings } : {}),
       }),

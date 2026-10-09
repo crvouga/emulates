@@ -1,0 +1,49 @@
+{
+  "name": "@crvouga/mockingbird-package-oracle",
+  "version": "0.0.0-development",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Pinned package oracles compare public provider APIs, independently of Mockingbird runtime implementations.",
+  "mockingbird": {
+    "runtime": "node",
+    "layer": "parity"
+  },
+  "scripts": {
+    "parity": "bun test ./test",
+    "test": "bun test ./test && bun run test:upstream",
+    "lint": "biome check .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:upstream": "vitest run --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "emulate": "0.12.1",
+    "@crvouga/mockingbird-service-vercel": "workspace:*",
+    "@crvouga/mockingbird-service-google": "workspace:*",
+    "@crvouga/mockingbird-service-apple": "workspace:*",
+    "@crvouga/mockingbird-service-microsoft": "workspace:*",
+    "@crvouga/mockingbird-service-okta": "workspace:*",
+    "@crvouga/mockingbird-service-mongoatlas": "workspace:*",
+    "@crvouga/mockingbird-service-clerk": "workspace:*",
+    "@crvouga/mockingbird-service-linear": "workspace:*",
+    "@crvouga/mockingbird-service-github": "workspace:*",
+    "@crvouga/mockingbird-service-slack": "workspace:*",
+    "@crvouga/mockingbird-service-aws": "workspace:*",
+    "@crvouga/mockingbird-service-resend": "workspace:*",
+    "@crvouga/mockingbird-service-stripe": "workspace:*",
+    "@crvouga/mockingbird-service-twilio": "workspace:*",
+    "vitest": "4.1.0",
+    "jose": "6.2.2",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-http-provider": "workspace:*",
+    "@linear/sdk": "86.0.0",
+    "@aws-sdk/client-s3": "3.1031.0",
+    "@aws-sdk/s3-presigned-post": "3.1031.0",
+    "@vercel/blob": "2.8.1",
+    "@slack/web-api": "7.16.0",
+    "twilio": "6.0.2",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*"
+  }
+}

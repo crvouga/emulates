@@ -1,5 +1,11 @@
 /// <reference types="node" />
-import { type Listening, listen, type ServeTarget } from "@crvouga/mockingbird-adapter-node"
+import {
+  type Listening,
+  listen,
+  providerServeOptions,
+  providerServeValues,
+  type ServeTarget,
+} from "@crvouga/mockingbird-adapter-node"
 import { createRuntime, type ResendRuntime, type ResendRuntimeOptions } from "./runtime.js"
 
 /** Port `mockingbird-resend serve` listens on when none is given. */
@@ -33,6 +39,7 @@ export const serveTarget: ServeTarget = {
   name: "resend",
   defaultPort: DEFAULT_PORT,
   options: {
+    ...providerServeOptions,
     "webhook-url": {
       type: "string",
       value: "<url>",
@@ -51,7 +58,7 @@ export const serveTarget: ServeTarget = {
         "Copy every sent email into a Mailosaur mock (its POST /__admin/ingest), e.g. http://127.0.0.1:8793",
     },
   },
-  create: (values, common) => {
+  create: async (values, common) => {
     const url = text(values["webhook-url"])
     const secret = text(values["webhook-secret"])
     const inbox = text(values["forward-to-inbox"])
@@ -59,6 +66,7 @@ export const serveTarget: ServeTarget = {
       throw new Error("--webhook-secret must be whsec_<base64>, as Resend issues it")
     }
     return createRuntime({
+      ...(await providerServeValues<NonNullable<ResendRuntimeOptions["fixtures"]>>(values, common)),
       ...(url ? { webhooks: { url, ...(secret ? { secret } : {}) } } : {}),
       ...(inbox
         ? {

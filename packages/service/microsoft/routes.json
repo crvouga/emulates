@@ -1,0 +1,14 @@
+[
+  "GET /.well-known/openid-configuration",
+  "GET /:tenant/v2.0/.well-known/openid-configuration",
+  "GET /discovery/v2.0/keys",
+  "GET /oauth2/v2.0/authorize",
+  "GET /oauth2/v2.0/logout",
+  "GET /oidc/userinfo",
+  "GET /v1.0/me",
+  "GET /v1.0/users/:id",
+  "POST /:tenant/oauth2/token",
+  "POST /oauth2/v2.0/authorize/callback",
+  "POST /oauth2/v2.0/revoke",
+  "POST /oauth2/v2.0/token"
+]

@@ -1,4 +1,11 @@
-import { type Checkpoint, type FetchAPI, Timeline } from "@crvouga/mockingbird-core"
+import {
+  type Checkpoint,
+  type FetchAPI,
+  forwardMountContext,
+  type MountedAPI,
+  mount,
+  Timeline,
+} from "@crvouga/mockingbird-core"
 import { listOperations, type OpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import { clearNamespace, type SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { adminUiRoutes } from "./admin-ui.js"
@@ -146,6 +153,8 @@ export type ServiceRuntime<T extends ServiceInstance> = FetchAPI & {
   /** Stop package-owned lifecycle timers when a supervisor closes the runtime. */
   stop?(): void
   readonly name: string
+  /** Same-origin Fetch handler and App Router method exports, sharing this runtime. */
+  mount(prefix: string): MountedAPI
   readonly sqlite: SqliteClient
   readonly clock: Clock
   readonly faults: FaultRegistry
@@ -212,7 +221,7 @@ export const forwardRequestContext = (source: Request, target: Request): Request
   const accepted = acceptance.get(source)
   if (fired) effects.set(target, fired)
   if (accepted) acceptance.set(target, accepted)
-  return target
+  return forwardMountContext(source, target)
 }
 
 /**
@@ -621,6 +630,13 @@ export const createRuntime = <T extends ServiceInstance>(
 
   const runtime: ServiceRuntime<T> = {
     name: options.name,
+    mount: (prefix) =>
+      mount(runtime, prefix, (request) => {
+        const namespace = runtime.namespaceOf(request)
+        return namespace === DEFAULT_NAMESPACE
+          ? ""
+          : `${adminPrefix}/ns/${encodeURIComponent(namespace)}`
+      }),
     sqlite,
     clock,
     faults,
@@ -719,12 +735,15 @@ export const createRuntime = <T extends ServiceInstance>(
           headers.set(NAMESPACE_HEADER, decodeURIComponent(prefixed[1] as string))
         }
         const hasBody = request.method !== "GET" && request.method !== "HEAD"
-        request = new Request(url, {
-          method: request.method,
-          headers,
-          ...(hasBody ? { body: await request.arrayBuffer() } : {}),
-          signal: request.signal,
-        })
+        request = forwardRequestContext(
+          request,
+          new Request(url, {
+            method: request.method,
+            headers,
+            ...(hasBody ? { body: await request.arrayBuffer() } : {}),
+            signal: request.signal,
+          }),
+        )
       }
       const internalUrl = new URL(request.url)
       const internalPath = isAdminPath(internalUrl.pathname, adminPrefix)
@@ -735,7 +754,7 @@ export const createRuntime = <T extends ServiceInstance>(
         adminPrefix !== ADMIN_PREFIX && internalMatch(internalUrl.pathname) && !internal
       if (internal) {
         internalUrl.pathname = internalPath
-        request = new Request(internalUrl, request)
+        request = forwardRequestContext(request, new Request(internalUrl, request))
       }
       let namespace = internal
         ? (internalUrl.searchParams.get("namespace") ?? control.namespaceOf(request))

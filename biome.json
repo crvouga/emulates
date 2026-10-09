@@ -9,6 +9,7 @@
       "!**/node_modules",
       "!**/src/generated",
       "!**/src/vendor",
+      "!packages/parity/package-oracle/upstream",
       "!**/openapi.yaml",
       "!**/corpus",
       "!packages/service/medplum/test/fixtures",

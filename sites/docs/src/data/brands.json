@@ -74,6 +74,34 @@
     "logo": "/brands/app-store-connect.ico",
     "logoSource": "site"
   },
+  "apple": {
+    "vendor": "Apple",
+    "website": "https://developer.apple.com",
+    "docs": "https://developer.apple.com/documentation/signinwithapplerestapi",
+    "description": "OAuth authorize, token exchange, JWKS",
+    "input": {
+      "website": "https://developer.apple.com",
+      "docs": "https://developer.apple.com/documentation/signinwithapplerestapi",
+      "description": "OAuth authorize, token exchange, JWKS"
+    },
+    "color": "#000000",
+    "logo": "/brands/apple.svg",
+    "logoSource": "simple-icons"
+  },
+  "aws": {
+    "vendor": "AWS",
+    "website": "https://aws.amazon.com",
+    "docs": "https://docs.aws.amazon.com",
+    "description": "Combined S3, SQS, IAM and STS vendor endpoint emulator.",
+    "input": {
+      "website": "https://aws.amazon.com",
+      "docs": "https://docs.aws.amazon.com",
+      "description": "Combined S3, SQS, IAM and STS vendor endpoint emulator."
+    },
+    "color": null,
+    "logo": "/brands/aws.png",
+    "logoSource": "site"
+  },
   "aws-secrets": {
     "vendor": "AWS Secrets Manager & SSM",
     "website": "https://aws.amazon.com/secrets-manager/",
@@ -152,6 +180,20 @@
     "color": null,
     "logo": "/brands/checkr.svg",
     "logoSource": "site"
+  },
+  "clerk": {
+    "vendor": "Clerk",
+    "website": "https://clerk.com",
+    "docs": "https://clerk.com/docs/reference/backend-api",
+    "description": "OIDC discovery, JWKS, OAuth authorize/token/userinfo, users, email addresses, organizations, memberships, invitations, sessions",
+    "input": {
+      "website": "https://clerk.com",
+      "docs": "https://clerk.com/docs/reference/backend-api",
+      "description": "OIDC discovery, JWKS, OAuth authorize/token/userinfo, users, email addresses, organizations, memberships, invitations, sessions"
+    },
+    "color": "#6C47FF",
+    "logo": "/brands/clerk.svg",
+    "logoSource": "simple-icons"
   },
   "cloudcontrol": {
     "vendor": "Amazon Web Services",
@@ -520,6 +562,20 @@
     "logo": "/brands/github.svg",
     "logoSource": "simple-icons"
   },
+  "google": {
+    "vendor": "Google",
+    "website": "https://developers.google.com",
+    "docs": "https://developers.google.com/workspace",
+    "description": "OAuth authorize, token exchange, userinfo, RS256 OIDC discovery and JWKS, token revocation, Gmail messages/drafts/threads/labels/history/settings, Calendar discovery/lists/events/freebusy, Drive files/uploads",
+    "input": {
+      "website": "https://developers.google.com",
+      "docs": "https://developers.google.com/workspace",
+      "description": "OAuth authorize, token exchange, userinfo, RS256 OIDC discovery and JWKS, token revocation, Gmail messages/drafts/threads/labels/history/settings, Calendar discovery/lists/events/freebusy, Drive files/uploads"
+    },
+    "color": "#4285F4",
+    "logo": "/brands/google.svg",
+    "logoSource": "simple-icons"
+  },
   "google-ads": {
     "vendor": "Google Ads",
     "website": "https://ads.google.com",
@@ -724,6 +780,20 @@
     "logo": "/brands/lambda.png",
     "logoSource": "site"
   },
+  "linear": {
+    "vendor": "Linear",
+    "website": "https://linear.app",
+    "docs": "https://linear.app/developers/graphql",
+    "description": "GraphQL, OAuth, issues, teams, users, workflow states, comments, labels, projects, cycles, webhooks, agents, inspector",
+    "input": {
+      "website": "https://linear.app",
+      "docs": "https://linear.app/developers/graphql",
+      "description": "GraphQL, OAuth, issues, teams, users, workflow states, comments, labels, projects, cycles, webhooks, agents, inspector"
+    },
+    "color": "#5E6AD2",
+    "logo": "/brands/linear.svg",
+    "logoSource": "simple-icons"
+  },
   "livekit": {
     "vendor": "LiveKit",
     "website": "https://livekit.io",
@@ -806,6 +876,34 @@
     "logo": "/brands/meta.svg",
     "logoSource": "simple-icons"
   },
+  "microsoft": {
+    "vendor": "Microsoft",
+    "website": "https://learn.microsoft.com",
+    "docs": "https://learn.microsoft.com/en-us/graph/api/overview",
+    "description": "OAuth authorize, token exchange, userinfo, OIDC discovery, Graph /me, logout, token revocation",
+    "input": {
+      "website": "https://learn.microsoft.com",
+      "docs": "https://learn.microsoft.com/en-us/graph/api/overview",
+      "description": "OAuth authorize, token exchange, userinfo, OIDC discovery, Graph /me, logout, token revocation"
+    },
+    "color": null,
+    "logo": "/brands/microsoft.ico",
+    "logoSource": "site"
+  },
+  "mongoatlas": {
+    "vendor": "MongoDB Atlas",
+    "website": "https://www.mongodb.com",
+    "docs": "https://www.mongodb.com/docs/atlas/api/",
+    "description": "Atlas Admin API v2 (projects, clusters, database users, databases, collections), Atlas Data API v1 (findOne, find, insertOne, insertMany, updateOne, updateMany, deleteOne, deleteMany, aggregate)",
+    "input": {
+      "website": "https://www.mongodb.com",
+      "docs": "https://www.mongodb.com/docs/atlas/api/",
+      "description": "Atlas Admin API v2 (projects, clusters, database users, databases, collections), Atlas Data API v1 (findOne, find, insertOne, insertMany, updateOne, updateMany, deleteOne, deleteMany, aggregate)"
+    },
+    "color": null,
+    "logo": "/brands/mongoatlas.ico",
+    "logoSource": "site"
+  },
   "notion": {
     "vendor": "Notion",
     "website": "https://www.notion.com",
@@ -847,6 +945,20 @@
     "color": null,
     "logo": "/brands/odx.jpg",
     "logoSource": "site"
+  },
+  "okta": {
+    "vendor": "Okta",
+    "website": "https://developer.okta.com",
+    "docs": "https://developer.okta.com/docs/reference/",
+    "description": "OIDC discovery, JWKS, OAuth authorize/token/userinfo/introspect/revoke/logout, users, groups, apps, authorization servers",
+    "input": {
+      "website": "https://developer.okta.com",
+      "docs": "https://developer.okta.com/docs/reference/",
+      "description": "OIDC discovery, JWKS, OAuth authorize/token/userinfo/introspect/revoke/logout, users, groups, apps, authorization servers"
+    },
+    "color": "#007DC1",
+    "logo": "/brands/okta.svg",
+    "logoSource": "simple-icons"
   },
   "openai": {
     "vendor": "OpenAI",
@@ -1462,6 +1574,20 @@
     "color": null,
     "logo": "/brands/vanta.png",
     "logoSource": "site"
+  },
+  "vercel": {
+    "vendor": "Vercel",
+    "website": "https://vercel.com",
+    "docs": "https://vercel.com/docs/rest-api",
+    "description": "projects, deployments, domains, env vars, users, teams, file uploads, protection bypass, blob storage",
+    "input": {
+      "website": "https://vercel.com",
+      "docs": "https://vercel.com/docs/rest-api",
+      "description": "projects, deployments, domains, env vars, users, teams, file uploads, protection bypass, blob storage"
+    },
+    "color": "#000000",
+    "logo": "/brands/vercel.svg",
+    "logoSource": "simple-icons"
   },
   "vercel-blob": {
     "vendor": "Vercel Blob",

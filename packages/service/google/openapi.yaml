@@ -1,0 +1,1843 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Google API API",
+    "version": "0.1.0",
+    "description": "Synthetic public vendor API. Licensed route ports; native SQLite namespaces and runtime controls."
+  },
+  "servers": [
+    {
+      "url": "https://www.googleapis.com"
+    }
+  ],
+  "paths": {
+    "/calendar/v3/calendars/{calendarId}/events/{eventId}": {
+      "delete": {
+        "operationId": "DELETE /calendar/v3/calendars/:calendarId/events/:eventId",
+        "summary": "DELETE /calendar/v3/calendars/:calendarId/events/:eventId",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calendarId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/drafts/{id}": {
+      "delete": {
+        "operationId": "DELETE /gmail/v1/users/:userId/drafts/:id",
+        "summary": "DELETE /gmail/v1/users/:userId/drafts/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/drafts/:id",
+        "summary": "GET /gmail/v1/users/:userId/drafts/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "put": {
+        "operationId": "PUT /gmail/v1/users/:userId/drafts/:id",
+        "summary": "PUT /gmail/v1/users/:userId/drafts/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/labels/{id}": {
+      "delete": {
+        "operationId": "DELETE /gmail/v1/users/:userId/labels/:id",
+        "summary": "DELETE /gmail/v1/users/:userId/labels/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/labels/:id",
+        "summary": "GET /gmail/v1/users/:userId/labels/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "patch": {
+        "operationId": "PATCH /gmail/v1/users/:userId/labels/:id",
+        "summary": "PATCH /gmail/v1/users/:userId/labels/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "put": {
+        "operationId": "PUT /gmail/v1/users/:userId/labels/:id",
+        "summary": "PUT /gmail/v1/users/:userId/labels/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/{id}": {
+      "delete": {
+        "operationId": "DELETE /gmail/v1/users/:userId/messages/:id",
+        "summary": "DELETE /gmail/v1/users/:userId/messages/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/messages/:id",
+        "summary": "GET /gmail/v1/users/:userId/messages/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/settings/filters/{id}": {
+      "delete": {
+        "operationId": "DELETE /gmail/v1/users/:userId/settings/filters/:id",
+        "summary": "DELETE /gmail/v1/users/:userId/settings/filters/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/threads/{id}": {
+      "delete": {
+        "operationId": "DELETE /gmail/v1/users/:userId/threads/:id",
+        "summary": "DELETE /gmail/v1/users/:userId/threads/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/threads/:id",
+        "summary": "GET /gmail/v1/users/:userId/threads/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/.well-known/openid-configuration": {
+      "get": {
+        "operationId": "GET /.well-known/openid-configuration",
+        "summary": "GET /.well-known/openid-configuration",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/calendar/v3/calendars/{calendarId}/events": {
+      "get": {
+        "operationId": "GET /calendar/v3/calendars/:calendarId/events",
+        "summary": "GET /calendar/v3/calendars/:calendarId/events",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calendarId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "post": {
+        "operationId": "POST /calendar/v3/calendars/:calendarId/events",
+        "summary": "POST /calendar/v3/calendars/:calendarId/events",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "calendarId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/calendar/v3/users/{userId}/calendarList": {
+      "get": {
+        "operationId": "GET /calendar/v3/users/:userId/calendarList",
+        "summary": "GET /calendar/v3/users/:userId/calendarList",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/discovery/v1/apis/calendar/v3/rest": {
+      "get": {
+        "operationId": "GET /discovery/v1/apis/calendar/v3/rest",
+        "summary": "GET /discovery/v1/apis/calendar/v3/rest",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/drive/v3/files": {
+      "get": {
+        "operationId": "GET /drive/v3/files",
+        "summary": "GET /drive/v3/files",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "post": {
+        "operationId": "POST /drive/v3/files",
+        "summary": "POST /drive/v3/files",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/drive/v3/files/{fileId}": {
+      "get": {
+        "operationId": "GET /drive/v3/files/:fileId",
+        "summary": "GET /drive/v3/files/:fileId",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "patch": {
+        "operationId": "PATCH /drive/v3/files/:fileId",
+        "summary": "PATCH /drive/v3/files/:fileId",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "put": {
+        "operationId": "PUT /drive/v3/files/:fileId",
+        "summary": "PUT /drive/v3/files/:fileId",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/drafts": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/drafts",
+        "summary": "GET /gmail/v1/users/:userId/drafts",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/drafts",
+        "summary": "POST /gmail/v1/users/:userId/drafts",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/history": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/history",
+        "summary": "GET /gmail/v1/users/:userId/history",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/labels": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/labels",
+        "summary": "GET /gmail/v1/users/:userId/labels",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/labels",
+        "summary": "POST /gmail/v1/users/:userId/labels",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/messages",
+        "summary": "GET /gmail/v1/users/:userId/messages",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages",
+        "summary": "POST /gmail/v1/users/:userId/messages",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/{messageId}/attachments/{id}": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/messages/:messageId/attachments/:id",
+        "summary": "GET /gmail/v1/users/:userId/messages/:messageId/attachments/:id",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "messageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/settings/filters": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/settings/filters",
+        "summary": "GET /gmail/v1/users/:userId/settings/filters",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      },
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/settings/filters",
+        "summary": "POST /gmail/v1/users/:userId/settings/filters",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/settings/forwardingAddresses": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/settings/forwardingAddresses",
+        "summary": "GET /gmail/v1/users/:userId/settings/forwardingAddresses",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/settings/sendAs": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/settings/sendAs",
+        "summary": "GET /gmail/v1/users/:userId/settings/sendAs",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/threads": {
+      "get": {
+        "operationId": "GET /gmail/v1/users/:userId/threads",
+        "summary": "GET /gmail/v1/users/:userId/threads",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/o/oauth2/v2/auth": {
+      "get": {
+        "operationId": "GET /o/oauth2/v2/auth",
+        "summary": "GET /o/oauth2/v2/auth",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/v2/userinfo": {
+      "get": {
+        "operationId": "GET /oauth2/v2/userinfo",
+        "summary": "GET /oauth2/v2/userinfo",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/v3/certs": {
+      "get": {
+        "operationId": "GET /oauth2/v3/certs",
+        "summary": "GET /oauth2/v3/certs",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/calendar/v3/freeBusy": {
+      "post": {
+        "operationId": "POST /calendar/v3/freeBusy",
+        "summary": "POST /calendar/v3/freeBusy",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/drafts/send": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/drafts/send",
+        "summary": "POST /gmail/v1/users/:userId/drafts/send",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/{id}/modify": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages/:id/modify",
+        "summary": "POST /gmail/v1/users/:userId/messages/:id/modify",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/{id}/trash": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages/:id/trash",
+        "summary": "POST /gmail/v1/users/:userId/messages/:id/trash",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/{id}/untrash": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages/:id/untrash",
+        "summary": "POST /gmail/v1/users/:userId/messages/:id/untrash",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/batchDelete": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages/batchDelete",
+        "summary": "POST /gmail/v1/users/:userId/messages/batchDelete",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/batchModify": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages/batchModify",
+        "summary": "POST /gmail/v1/users/:userId/messages/batchModify",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/import": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages/import",
+        "summary": "POST /gmail/v1/users/:userId/messages/import",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/messages/send": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/messages/send",
+        "summary": "POST /gmail/v1/users/:userId/messages/send",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/stop": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/stop",
+        "summary": "POST /gmail/v1/users/:userId/stop",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/threads/{id}/modify": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/threads/:id/modify",
+        "summary": "POST /gmail/v1/users/:userId/threads/:id/modify",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/threads/{id}/trash": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/threads/:id/trash",
+        "summary": "POST /gmail/v1/users/:userId/threads/:id/trash",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/threads/{id}/untrash": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/threads/:id/untrash",
+        "summary": "POST /gmail/v1/users/:userId/threads/:id/untrash",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/gmail/v1/users/{userId}/watch": {
+      "post": {
+        "operationId": "POST /gmail/v1/users/:userId/watch",
+        "summary": "POST /gmail/v1/users/:userId/watch",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/o/oauth2/v2/auth/callback": {
+      "post": {
+        "operationId": "POST /o/oauth2/v2/auth/callback",
+        "summary": "POST /o/oauth2/v2/auth/callback",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/revoke": {
+      "post": {
+        "operationId": "POST /oauth2/revoke",
+        "summary": "POST /oauth2/revoke",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/oauth2/token": {
+      "post": {
+        "operationId": "POST /oauth2/token",
+        "summary": "POST /oauth2/token",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/upload/drive/v3/files": {
+      "post": {
+        "operationId": "POST /upload/drive/v3/files",
+        "summary": "POST /upload/drive/v3/files",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/upload/gmail/v1/users/{userId}/drafts": {
+      "post": {
+        "operationId": "POST /upload/gmail/v1/users/:userId/drafts",
+        "summary": "POST /upload/gmail/v1/users/:userId/drafts",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/upload/gmail/v1/users/{userId}/drafts/send": {
+      "post": {
+        "operationId": "POST /upload/gmail/v1/users/:userId/drafts/send",
+        "summary": "POST /upload/gmail/v1/users/:userId/drafts/send",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/upload/gmail/v1/users/{userId}/messages": {
+      "post": {
+        "operationId": "POST /upload/gmail/v1/users/:userId/messages",
+        "summary": "POST /upload/gmail/v1/users/:userId/messages",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/upload/gmail/v1/users/{userId}/messages/import": {
+      "post": {
+        "operationId": "POST /upload/gmail/v1/users/:userId/messages/import",
+        "summary": "POST /upload/gmail/v1/users/:userId/messages/import",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    },
+    "/upload/gmail/v1/users/{userId}/messages/send": {
+      "post": {
+        "operationId": "POST /upload/gmail/v1/users/:userId/messages/send",
+        "summary": "POST /upload/gmail/v1/users/:userId/messages/send",
+        "x-mockingbird": {
+          "supported": true,
+          "parity": {
+            "enabled": false,
+            "safe": false,
+            "reason": "Verified against a pinned package oracle; independent live vendor evidence is not available."
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Provider response. Exact behavior is exercised against the pinned package oracle; not independently vendor-verified."
+          }
+        }
+      }
+    }
+  }
+}

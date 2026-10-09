@@ -9,10 +9,10 @@ import { isAdminPath, matchNamespacePath, resolveAdminPrefix } from "@crvouga/mo
  */
 
 /** The products the mock serves, by their host's first label. */
-export const TWILIO_PRODUCTS = ["api", "verify", "lookups"] as const
+export const TWILIO_PRODUCTS = ["api", "verify", "lookups", "messaging", "conversations"] as const
 
 /** `api.twilio.com`, `verify.twilio.com`, and edge/region forms like `api.sydney.au1.twilio.com`. */
-const TWILIO_HOST = /^(api|verify|lookups)(?:\.[a-z0-9-]+)*\.twilio\.com$/i
+const TWILIO_HOST = /^(api|verify|lookups|messaging|conversations)(?:\.[a-z0-9-]+)*\.twilio\.com$/i
 
 /**
  * The mock URL for an upstream Twilio URL: `https://verify.twilio.com/v2/Services/VA…/Verifications`

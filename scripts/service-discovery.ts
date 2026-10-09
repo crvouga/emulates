@@ -106,6 +106,24 @@ function sync(path: string, expected: string): void {
 }
 
 function oracleFor(name: string): Discovery["oracle"] {
+  if (
+    [
+      "vercel",
+      "google",
+      "apple",
+      "microsoft",
+      "okta",
+      "aws",
+      "mongoatlas",
+      "clerk",
+      "linear",
+    ].includes(name)
+  )
+    return {
+      kind: "Pinned Emulate 0.12.1 package oracle",
+      command: "bun run --cwd packages/parity/package-oracle parity",
+      note: "Offline vendor API comparison, native runtime controls and route coverage. This is package evidence, not independent live vendor verification. See docs/EMULATE_COVERAGE.md for reviewed differences.",
+    }
   if (name === "openai")
     return {
       kind: "Official documentation and local SDK oracle",

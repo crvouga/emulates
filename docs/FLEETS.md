@@ -43,6 +43,28 @@ If any child stops, it returns 503. The control listener defaults to a loopback 
 
 ## Endpoint discovery
 
+Provider entries can also carry their synthetic fixture object and advertised public URL:
+
+```json
+{
+  "services": {
+    "google": {
+      "port": 0,
+      "baseUrl": "https://preview.example.test/google",
+      "fixtures": { "users": [{ "email": "fixture@example.test" }] }
+    },
+    "vercel": { "port": 0, "fixtures": { "projects": [{ "name": "fixture-app" }] } }
+  }
+}
+```
+
+This applies to the added providers and expanded GitHub, Slack, Resend and Twilio services.
+Their `options.fixtures` may instead name a JSON file, relative to the command's working
+directory; that file takes precedence over the inline object. `options.base-url` overrides
+`baseUrl`. Fixture parsing and public URL validation happen before the child listener opens.
+Reset replays fixtures; restoring a snapshot uses its stored state. `baseUrl` controls URLs
+advertised by the provider, while the endpoint manifest reports the actual local listener.
+
 `--ready-json` emits one version-1 ready record with `pid`, a unique `id`, `startedAt`, aggregate
 `healthUrl`/`adminBase`, and every child's actual protocol URL, health URL, admin URL and namespace
 mechanism. The ready file contains the same JSON. It is published by rename after all children

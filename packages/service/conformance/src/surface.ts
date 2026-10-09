@@ -4,12 +4,15 @@ import type { createRuntime as createAha } from "@crvouga/mockingbird-service-ah
 import type { createRuntime as createAirtable } from "@crvouga/mockingbird-service-airtable"
 import type { createRuntime as createApigateway } from "@crvouga/mockingbird-service-apigateway"
 import type { createRuntime as createAppStoreConnect } from "@crvouga/mockingbird-service-app-store-connect"
+import type { createRuntime as createApple } from "@crvouga/mockingbird-service-apple"
+import type { createRuntime as createAws } from "@crvouga/mockingbird-service-aws"
 import type { createRuntime as createAwsSecrets } from "@crvouga/mockingbird-service-aws-secrets"
 import type { createRuntime as createAwsSpeech } from "@crvouga/mockingbird-service-aws-speech"
 import type { createRuntime as createBedrock } from "@crvouga/mockingbird-service-bedrock"
 import type { createRuntime as createBrevo } from "@crvouga/mockingbird-service-brevo"
 import type { createRuntime as createCaretalk } from "@crvouga/mockingbird-service-caretalk"
 import type { createRuntime as createCheckr } from "@crvouga/mockingbird-service-checkr"
+import type { createRuntime as createClerk } from "@crvouga/mockingbird-service-clerk"
 import type { createRuntime as createCloudcontrol } from "@crvouga/mockingbird-service-cloudcontrol"
 import type { createRuntime as createCloudformation } from "@crvouga/mockingbird-service-cloudformation"
 import type { createRuntime as createCloudwatch } from "@crvouga/mockingbird-service-cloudwatch"
@@ -35,6 +38,7 @@ import type { createRuntime as createFormbricks } from "@crvouga/mockingbird-ser
 import type { createRuntime as createFullscript } from "@crvouga/mockingbird-service-fullscript"
 import type { createRuntime as createGenebygene } from "@crvouga/mockingbird-service-genebygene"
 import type { createRuntime as createGithub } from "@crvouga/mockingbird-service-github"
+import type { createRuntime as createGoogle } from "@crvouga/mockingbird-service-google"
 import type { createRuntime as createGoogleAds } from "@crvouga/mockingbird-service-google-ads"
 import type { createRuntime as createGoogleCalendar } from "@crvouga/mockingbird-service-google-calendar"
 import type { createRuntime as createGoogleMaps } from "@crvouga/mockingbird-service-google-maps"
@@ -49,15 +53,19 @@ import type { createRuntime as createKinesis } from "@crvouga/mockingbird-servic
 import type { createRuntime as createKlaviyo } from "@crvouga/mockingbird-service-klaviyo"
 import type { createRuntime as createKms } from "@crvouga/mockingbird-service-kms"
 import type { createRuntime as createLambda } from "@crvouga/mockingbird-service-lambda"
+import type { createRuntime as createLinear } from "@crvouga/mockingbird-service-linear"
 import type { createRuntime as createLivekit } from "@crvouga/mockingbird-service-livekit"
 import type { createRuntime as createLlamacloud } from "@crvouga/mockingbird-service-llamacloud"
 import type { createRuntime as createMailosaur } from "@crvouga/mockingbird-service-mailosaur"
 import type { createRuntime as createMediaconvert } from "@crvouga/mockingbird-service-mediaconvert"
 import type { createRuntime as createMedplum } from "@crvouga/mockingbird-service-medplum"
 import type { createRuntime as createMeta } from "@crvouga/mockingbird-service-meta"
+import type { createRuntime as createMicrosoft } from "@crvouga/mockingbird-service-microsoft"
+import type { createRuntime as createMongoatlas } from "@crvouga/mockingbird-service-mongoatlas"
 import type { createRuntime as createNotion } from "@crvouga/mockingbird-service-notion"
 import type { createRuntime as createOauth } from "@crvouga/mockingbird-service-oauth"
 import type { createRuntime as createOdx } from "@crvouga/mockingbird-service-odx"
+import type { createRuntime as createOkta } from "@crvouga/mockingbird-service-okta"
 import type { createRuntime as createOpenAI } from "@crvouga/mockingbird-service-openai"
 import type { createRuntime as createOpensearch } from "@crvouga/mockingbird-service-opensearch"
 import type { createRuntime as createOtel } from "@crvouga/mockingbird-service-otel"
@@ -97,6 +105,7 @@ import type { createRuntime as createTurnstile } from "@crvouga/mockingbird-serv
 import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service-twilio"
 import type { createRuntime as createUnsplash } from "@crvouga/mockingbird-service-unsplash"
 import type { createRuntime as createVanta } from "@crvouga/mockingbird-service-vanta"
+import type { createRuntime as createVercel } from "@crvouga/mockingbird-service-vercel"
 import type { createRuntime as createVercelBlob } from "@crvouga/mockingbird-service-vercel-blob"
 import type { createRuntime as createVibe } from "@crvouga/mockingbird-service-vibe"
 import type { createRuntime as createVpi } from "@crvouga/mockingbird-service-vpi"
@@ -113,6 +122,15 @@ type Factory = (options?: MockCreateOptions) => MockSurface
 type Assert<T extends Factory> = T
 
 export type SurfaceProof = [
+  Assert<typeof createAws>,
+  Assert<typeof createVercel>,
+  Assert<typeof createGoogle>,
+  Assert<typeof createApple>,
+  Assert<typeof createMicrosoft>,
+  Assert<typeof createOkta>,
+  Assert<typeof createMongoatlas>,
+  Assert<typeof createClerk>,
+  Assert<typeof createLinear>,
   Assert<typeof createOura>,
   Assert<typeof createAha>,
   Assert<typeof createTavily>,

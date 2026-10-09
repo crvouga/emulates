@@ -13,6 +13,57 @@ servers:
 security:
   - bearerAuth: []
 paths:
+  /v1/customer_sessions:
+    post:
+      operationId: PostCustomerSessions
+      summary: Create a customer session for embedded components
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: false
+          safe: false
+          reason: Covered by the pinned package oracle; no independent live evidence yet.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [customer]
+              properties:
+                customer:
+                  type: string
+                components:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Short-lived customer session
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [object, client_secret, components, created, customer, expires_at, livemode]
+                properties:
+                  object:
+                    const: customer_session
+                  client_secret:
+                    type: string
+                    x-mockingbird-volatile:
+                      kind: token
+                  components:
+                    type: object
+                    additionalProperties: true
+                  created:
+                    type: integer
+                  customer:
+                    type: string
+                  expires_at:
+                    type: integer
+                  livemode:
+                    const: false
+        "400":
+          description: Missing or invalid customer
   /c/3ds/{intent}/authenticate:
     post:
       operationId: PostThreeDSecureAuthenticate

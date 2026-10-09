@@ -24,10 +24,10 @@ export type PullRequest = {
   created_at: string
   updated_at: string
   closed_at: string | null
-  merged: false
-  merged_at: null
-  mergeable: null
-  merge_commit_sha: null
+  merged: boolean
+  merged_at: string | null
+  mergeable: boolean | null
+  merge_commit_sha: string | null
   maintainer_can_modify: boolean
   head: Branch
   base: Branch
@@ -125,11 +125,29 @@ export class GitHubPulls {
       const head = this.branch(repo, parts.at(-1) as string),
         base = this.branch(repo, input.base)
       this.checkPair(repo, head, base)
-      const number = new Collection(
+      const nativeNumber = new Collection(
         this.sqlite,
         this.namespace,
         `github-pr-numbers:${repoKey(repo)}`,
       ).nextSequence()
+      const number = Math.max(
+        nativeNumber,
+        ...new Collection<{ repo_id: number; number: number }>(
+          this.sqlite,
+          this.namespace,
+          "github.issues",
+        )
+          .list()
+          .filter((row) => {
+            const repository = new Collection<{ id: number; full_name: string }>(
+              this.sqlite,
+              this.namespace,
+              "github.repos",
+            ).get(String(row.value.repo_id))
+            return repository?.full_name.toLowerCase() === repoKey(repo)
+          })
+          .map((row) => row.value.number + 1),
+      )
       const now = new Date(this.now()).toISOString()
       const pr: PullRequest = {
         id: this.rows.nextSequence(),

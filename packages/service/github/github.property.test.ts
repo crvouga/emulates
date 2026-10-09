@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test"
 import { ParityError, parity } from "@crvouga/mockingbird-parity"
 import { fcParameters } from "@crvouga/mockingbird-testing"
-import { document, GitHubAPI, supportedOperationIds } from "./src/index.js"
+import { document, GitHubAPI } from "./src/index.js"
+import { nativeOperationIds as supportedOperationIds } from "./src/native-operations.js"
 
 const host = "github.mock.local"
 const a = "a".repeat(40),
@@ -51,7 +52,7 @@ const seededSpec = () => {
 }
 
 // CI runs 40 walks on shared runners; give this test a bounded 30-second budget.
-test("seeded self-parity plans and exercises every GitHub operation", async () => {
+test("seeded self-parity plans and exercises every independently modeled GitHub operation", async () => {
   const reference = create()
   const report = await parity({
     provider: "github",

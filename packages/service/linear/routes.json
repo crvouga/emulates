@@ -1,0 +1,9 @@
+[
+  "GET /",
+  "GET /graphql",
+  "GET /oauth/authorize",
+  "POST /graphql",
+  "POST /oauth/authorize/callback",
+  "POST /oauth/revoke",
+  "POST /oauth/token"
+]

@@ -1,0 +1,51 @@
+/*! Adapted from vercel-labs/emulate (Apache-2.0), modified for Mockingbird. See port.json, LICENSE_EMULATE and THIRD_PARTY_NOTICES.md. */
+import type { RouteContext } from "../../core/index.js";
+import { getSlackStore } from "../store.js";
+import { slackOk, slackError, parseSlackBody, requireSlackScopes } from "../helpers.js";
+
+export function teamRoutes(ctx: RouteContext): void {
+  const { app, store } = ctx;
+  const ss = () => getSlackStore(store);
+
+  // team.info
+  app.post("/api/team.info", (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["team:read"]);
+    if (scopeError) return scopeError;
+
+    const team = ss().teams.all()[0];
+    if (!team) return slackError(c, "team_not_found");
+
+    return slackOk(c, {
+      team: {
+        id: team.team_id,
+        name: team.name,
+        domain: team.domain,
+      },
+    });
+  });
+
+  // bots.info
+  app.post("/api/bots.info", async (c) => {
+    const authUser = c.get("authUser");
+    if (!authUser) return slackError(c, "not_authed");
+    const scopeError = requireSlackScopes(c, store, ["users:read"]);
+    if (scopeError) return scopeError;
+
+    const body = await parseSlackBody(c);
+    const botId = typeof body.bot === "string" ? body.bot : "";
+
+    const bot = ss().bots.findOneBy("bot_id", botId);
+    if (!bot) return slackError(c, "bot_not_found");
+
+    return slackOk(c, {
+      bot: {
+        id: bot.bot_id,
+        name: bot.name,
+        deleted: bot.deleted,
+        icons: bot.icons,
+      },
+    });
+  });
+}

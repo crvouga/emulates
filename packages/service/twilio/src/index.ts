@@ -1,4 +1,12 @@
 import type { FetchAPI } from "@crvouga/mockingbird-core"
+import {
+  ProviderExpansion,
+  type ProviderOptions,
+  seedTwilio,
+  selectOperations,
+  type TwilioSeedConfig,
+  twilioPlugin,
+} from "@crvouga/mockingbird-http-provider"
 import type { OpenAPIDocument } from "@crvouga/mockingbird-openapi"
 import {
   type APIOptions,
@@ -17,8 +25,10 @@ import {
   toBase64,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
-import type { Hono } from "hono"
-import { document, type SupportedOperationId } from "./generated/openapi.js"
+import { Hono } from "hono"
+import { syncFromExpanded, syncToExpanded } from "./expanded-state.js"
+import { document } from "./generated/openapi.js"
+import { type NativeOperationId, nativeOperationIds } from "./native-operations.js"
 import { e164Key, type LookupResult, lookup, lookupBody } from "./phone.js"
 import {
   type LookupOverride,
@@ -56,15 +66,17 @@ export const TWILIO_NAMESPACE = "twilio"
 /** The account sid used when a request carries an API key (`SK…`) instead of an account sid. */
 export const DEFAULT_ACCOUNT_SID = "AC00000000000000000000000000000000"
 
-export type TwilioAPIOptions = APIOptions & {
-  /** Initial Verify settings for the namespace (fixed code, expiry, attempt limits). */
-  verify?: Partial<VerifySettings>
-  /**
-   * Accepted `AccountSid → AuthToken` pairs. Omitted: any `AC…`/`SK…` username with a
-   * non-empty password authenticates (Twilio's test credentials included).
-   */
-  accounts?: Record<string, string>
-}
+export type TwilioAPIOptions = APIOptions &
+  Pick<ProviderOptions, "tokens" | "baseUrl" | "publicNamespace" | "adminPrefix"> & {
+    fixtures?: TwilioSeedConfig
+    /** Initial Verify settings for the namespace (fixed code, expiry, attempt limits). */
+    verify?: Partial<VerifySettings>
+    /**
+     * Accepted `AccountSid → AuthToken` pairs. Omitted: any `AC…`/`SK…` username with a
+     * non-empty password authenticates (Twilio's test credentials included).
+     */
+    accounts?: Record<string, string>
+  }
 
 /** Twilio's JSON error body, `{code, message, more_info, status}`, with `X-Twilio-Error-Code`. */
 export const twilioError = (status: number, code: number, message: string): Response =>
@@ -99,7 +111,7 @@ const routingDocument = (source: OpenAPIDocument): OpenAPIDocument => ({
     ]),
   ),
 })
-const ROUTING = routingDocument(document)
+const ROUTING = routingDocument(selectOperations(document, nativeOperationIds))
 
 /** The path Twilio names in a 404: the upstream path, without the mock's product prefix. */
 const upstreamPath = (pathname: string) =>
@@ -173,6 +185,8 @@ export class TwilioAPI implements FetchAPI {
   readonly app: Hono
   readonly sqlite: SqliteClient
   readonly state: TwilioState
+  private tail: Promise<unknown> = Promise.resolve()
+  private readonly expansion: ProviderExpansion
   private readonly service: Service
   private readonly now: () => number
   private readonly accounts: Record<string, string> | undefined
@@ -183,7 +197,7 @@ export class TwilioAPI implements FetchAPI {
     this.now = options.now ?? (() => Date.now())
     this.accounts = options.accounts
     this.state = new TwilioState(sqlite, namespace, options.verify ?? {})
-    const handlers = defineOperations<SupportedOperationId>({
+    const handlers = defineOperations<NativeOperationId>({
       FetchPhoneNumber: (context) => this.fetchPhoneNumber(context),
       CreateVerification: (context) => this.createVerification(context),
       FetchVerification: (context) => this.fetchVerification(context),
@@ -214,20 +228,65 @@ export class TwilioAPI implements FetchAPI {
       },
       before: (context) => this.authenticate(context),
     })
-    this.app = this.service.app
+    this.app = new Hono().all("*", (c) => this.fetch(c.req.raw))
     this.sqlite = this.service.sqlite
+    this.expansion = new ProviderExpansion(
+      twilioPlugin,
+      selectOperations(document, nativeOperationIds),
+      {
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(options.tokens ? { tokens: options.tokens } : {}),
+        sqlite,
+        namespace,
+        now: this.now,
+      },
+    )
+    if (options.fixtures) {
+      this.expansion.configureFixtures(options.fixtures, seedTwilio)
+      syncFromExpanded(this.state, this.expansion)
+    }
   }
 
   fetch(request: Request): Promise<Response> {
+    const result = this.tail.then(
+      () => this.handleFetch(request),
+      () => this.handleFetch(request),
+    )
+    this.tail = result.then(
+      () => undefined,
+      () => undefined,
+    )
+    return result
+  }
+  private async handleFetch(request: Request): Promise<Response> {
+    const routed = new URL(request.url)
+    if (!this.expansion.legacyHandles(request) && routed.pathname.startsWith("/api/")) {
+      routed.pathname = routed.pathname.slice(4)
+      const canonical = new Request(routed, request)
+      if (this.expansion.handles(canonical)) request = canonical
+    }
+    if (this.expansion.handles(request)) {
+      syncToExpanded(this.state, this.expansion)
+      const response = await this.expansion.fetch(request)
+      syncFromExpanded(this.state, this.expansion)
+      return response
+    }
     const url = new URL(request.url)
     const suffixed = SUFFIXED.exec(url.pathname)
-    if (!suffixed) return this.service.fetch(request)
+    if (!suffixed) {
+      const response = await this.service.fetch(request)
+      return response
+    }
     url.pathname = url.pathname.replace(SUFFIXED, "/$1/$2/.$3")
-    return this.service.fetch(new Request(url, request))
+    const response = await this.service.fetch(new Request(url, request))
+    return response
   }
 
   async reset(): Promise<void> {
+    await this.tail
     await this.service.reset()
+    await this.expansion.reset()
+    syncFromExpanded(this.state, this.expansion)
   }
 
   private authenticate(context: OperationContext): Response | undefined {
