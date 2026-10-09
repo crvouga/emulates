@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test"
 import type { TrustConfig } from "../health/trusted-publisher.ts"
-import { hasReleasePublisher, trustedPublisherReconciler } from "./trust.ts"
+import { hasReleasePublisher, normalizedTrustConfig, trustedPublisherReconciler } from "./trust.ts"
 
 const config: TrustConfig = {
+  id: "healthy-id",
   type: "github",
   permissions: ["createPackage"],
   claims: { repository: "crvouga/mockingbird", workflow_ref: { file: "ci.yml" } },
@@ -19,15 +20,44 @@ describe("local seed trust reconciliation", () => {
     ]) {
       expect(hasReleasePublisher(JSON.stringify([other]))).toBe(false)
     }
-    for (const output of ["[]", "null", "[null]", "not json", JSON.stringify(config)]) {
+    for (const output of ["[]", "null", "[null]", "not json"]) {
       expect(hasReleasePublisher(output)).toBe(false)
     }
+    expect(hasReleasePublisher(JSON.stringify(config))).toBe(true)
+  })
+
+  test("accepts npm trust list's normalized single-object output", () => {
+    expect(
+      hasReleasePublisher(
+        JSON.stringify({
+          id: "cli-id",
+          type: "github",
+          file: "ci.yml",
+          repository: "crvouga/mockingbird",
+          permissions: ["createPackage", "createStagedPackage"],
+        }),
+      ),
+    ).toBe(true)
+  })
+
+  test("normalizes CLI fields for an older seed checkout's health helper", () => {
+    expect(
+      normalizedTrustConfig({
+        type: "github",
+        file: "ci.yml",
+        repository: "crvouga/mockingbird",
+      }).claims,
+    ).toEqual({
+      repository: "crvouga/mockingbird",
+      workflow_ref: { file: "ci.yml" },
+    })
   })
 
   test("healthy configurations are skipped without a mutation", async () => {
     const created: string[] = []
     const trust = trustedPublisherReconciler({
       list: async () => JSON.stringify([config]),
+      revoke: async () => true,
       create: async (name) => {
         created.push(name)
         return true
@@ -45,6 +75,7 @@ describe("local seed trust reconciliation", () => {
     const slept: number[] = []
     const trust = trustedPublisherReconciler({
       list: async () => "[]",
+      revoke: async () => true,
       create: async (name) => {
         started.push(clock)
         clock += 500
@@ -67,6 +98,7 @@ describe("local seed trust reconciliation", () => {
     let healthy = false
     const trust = trustedPublisherReconciler({
       list: async () => JSON.stringify(healthy ? [config] : []),
+      revoke: async () => true,
       create: async () => false,
       onError: () => {},
     })
@@ -84,6 +116,7 @@ describe("local seed trust reconciliation", () => {
         if (name === "lookup-failed") throw new Error("lookup failed")
         return "[]"
       },
+      revoke: async () => true,
       create: async (name) => {
         if (name === "create-failed") throw new Error("create failed")
         return true
@@ -94,5 +127,57 @@ describe("local seed trust reconciliation", () => {
     for (const name of ["lookup-failed", "create-failed", "healthy"]) await trust.ensure(name)
     expect([...trust.failed]).toEqual(["lookup-failed", "create-failed"])
     expect(errors).toEqual(["lookup-failed", "create-failed"])
+  })
+
+  test("revokes a conflicting publisher before creating its replacement", async () => {
+    let clock = 0
+    const events: string[] = []
+    const slept: number[] = []
+    const stageOnly = { ...config, id: "stage-id", permissions: ["createStagedPackage"] }
+    const trust = trustedPublisherReconciler({
+      list: async () => JSON.stringify([stageOnly]),
+      revoke: async (name, id) => {
+        events.push(`revoke ${name} ${id}`)
+        clock += 200
+        return true
+      },
+      create: async (name) => {
+        events.push(`create ${name}`)
+        return true
+      },
+      onError: () => {},
+      now: () => clock,
+      sleep: async (ms) => {
+        slept.push(ms)
+        clock += ms
+      },
+    })
+
+    await trust.ensure("replace-me")
+
+    expect(events).toEqual(["revoke replace-me stage-id", "create replace-me"])
+    expect(slept).toEqual([2_000])
+    expect(trust.failed.size).toBe(0)
+  })
+
+  test("does not create when an existing publisher cannot be revoked safely", async () => {
+    const events: string[] = []
+    const trust = trustedPublisherReconciler({
+      list: async () => JSON.stringify([{ ...config, id: undefined, permissions: [] }]),
+      revoke: async () => {
+        events.push("revoke")
+        return true
+      },
+      create: async () => {
+        events.push("create")
+        return true
+      },
+      onError: (_, error) => events.push(String(error)),
+    })
+
+    await trust.ensure("invalid")
+
+    expect(events).toEqual(["Error: npm trust list returned a publisher without an id"])
+    expect([...trust.failed]).toEqual(["invalid"])
   })
 })

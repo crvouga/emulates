@@ -29,6 +29,19 @@ describe("publisherGap", () => {
     expect(publisherGap(true, [github()])).toBeNull()
   })
 
+  test("npm trust list's normalized fields are healthy too", () => {
+    expect(
+      publisherGap(true, [
+        {
+          type: "github",
+          file: "ci.yml",
+          repository: "crvouga/mockingbird",
+          permissions: ["createPackage"],
+        },
+      ]),
+    ).toBeNull()
+  })
+
   test("a publisher from before explicit permissions still counts as able to publish", () => {
     expect(
       publisherGap(true, [
