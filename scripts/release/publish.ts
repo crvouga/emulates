@@ -24,6 +24,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { $ } from "bun"
 import { VERSION_PLACEHOLDER } from "../bundle-service-version.ts"
+import { loadPackageTrust, npmAuthToken } from "../health/trusted-publisher.ts"
+import { restoreOriginals } from "./files.ts"
 import {
   changelog,
   computePlan,
@@ -114,8 +116,10 @@ const failed = new Set<string>()
 const needsSeed: string[] = []
 /** `<name>@<version>` of everything this run put on npm, which `npm view` may not show yet. */
 const releasedNow = new Set<string>()
-// setup-node's .npmrc reads NODE_AUTH_TOKEN; leave it empty to force OIDC. Locally, use the npm login.
-const npmEnv = local ? process.env : { ...process.env, NODE_AUTH_TOKEN: "" }
+// OIDC is npm's fallback only when legacy token auth is absent. Locally, use the npm login.
+const npmEnv: Record<string, string | undefined> = { ...process.env }
+if (!local) delete npmEnv.NODE_AUTH_TOKEN
+const localTrustToken = local && !dryRun ? npmAuthToken() : undefined
 
 /** Runs npm with inherited stdio so a local run can answer 2FA prompts. */
 async function npm(args: string[], cwd = root): Promise<number> {
@@ -222,8 +226,17 @@ async function publish(release: Release): Promise<boolean> {
 
 const trust = trustedPublisherReconciler({
   async list(name) {
-    const listed = await $`npm trust list ${name} --json`.env(npmEnv).quiet().nothrow()
-    return listed.exitCode === 0 ? listed.stdout.toString() : null
+    if (typeof localTrustToken !== "string") {
+      throw new Error(localTrustToken?.error ?? "npm trusted publisher lookup is unavailable")
+    }
+    const loaded = await loadPackageTrust([name], localTrustToken)
+    if (!Array.isArray(loaded)) throw new Error(loaded.error)
+    const pkg = loaded[0]
+    if (!pkg || pkg.error) throw new Error(pkg?.error ?? "npm returned no trusted publisher")
+    return JSON.stringify(pkg.configs ?? [])
+  },
+  async revoke(name, id) {
+    return (await npm(["trust", "revoke", name, "--id", id])) === 0
   },
   async create(name) {
     const args = ["trust", "github", name, "--file", WORKFLOW_FILE, "--repository", REPO]
@@ -415,7 +428,12 @@ try {
   await deprecateRetiredPackages()
 } finally {
   for (const path of changelogs) rmSync(path, { force: true })
-  for (const [path, raw] of originals) writeFileSync(path, raw)
+  const skipped = restoreOriginals(originals)
+  if (skipped > 0) {
+    console.warn(
+      `::warning::release checkout disappeared; skipped restoring ${skipped} temporary file(s)`,
+    )
+  }
   rmSync(packDir, { recursive: true, force: true })
 }
 

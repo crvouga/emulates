@@ -43,10 +43,12 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - uses: actions/setup-node@v5
+      # Do not set registry-url: setup-node then writes legacy _authToken config,
+      # which prevents npm from starting the OIDC exchange when no token exists.
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
 
       # Trusted Publishing needs npm >= 11.5.1. Account trust setup runs in the local seed.
       - name: Update npm

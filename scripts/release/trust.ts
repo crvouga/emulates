@@ -1,19 +1,40 @@
 import { publisherGap, type TrustConfig } from "../health/trusted-publisher.ts"
 
-/** npm trust list --json returns an array. Invalid output never proves a package is trusted. */
-export function hasReleasePublisher(output: string): boolean {
+/** Parsed configurations, including the IDs npm requires when replacing one. */
+export function trustConfigs(output: string): TrustConfig[] | null {
   try {
     const configs: unknown = JSON.parse(output)
-    if (!Array.isArray(configs)) return false
-    return publisherGap(true, configs as TrustConfig[]) === null
+    const list = Array.isArray(configs) ? configs : [configs]
+    if (list.some((config) => !config || typeof config !== "object")) return null
+    return list as TrustConfig[]
   } catch {
-    return false
+    return null
   }
+}
+
+/** Convert npm trust list's CLI fields to the registry shape understood by older seed checkouts. */
+export function normalizedTrustConfig(config: TrustConfig): TrustConfig {
+  if (!config.file && !config.repository) return config
+  return {
+    ...config,
+    claims: {
+      ...config.claims,
+      ...(config.repository ? { repository: config.repository } : {}),
+      ...(config.file ? { workflow_ref: { file: config.file } } : {}),
+    },
+  }
+}
+
+/** npm trust list --json returns an array. Invalid output never proves a package is trusted. */
+export function hasReleasePublisher(output: string): boolean {
+  const configs = trustConfigs(output)
+  return configs !== null && publisherGap(true, configs.map(normalizedTrustConfig)) === null
 }
 
 /** Keep trust failures separate from publish failures: an already-published dependency is usable. */
 export function trustedPublisherReconciler(options: {
   list: (name: string) => Promise<string | null>
+  revoke: (name: string, id: string) => Promise<boolean>
   create: (name: string) => Promise<boolean>
   onError: (name: string, error: unknown) => void
   now?: () => number
@@ -24,6 +45,19 @@ export function trustedPublisherReconciler(options: {
   const sleep = options.sleep ?? ((ms: number) => Bun.sleep(ms))
   let lastMutationFinishedAt: number | undefined
 
+  async function mutate(operation: () => Promise<boolean>): Promise<boolean> {
+    // https://docs.npmjs.com/cli/v11/commands/npm-trust/#bulk-usage
+    if (lastMutationFinishedAt !== undefined) {
+      const delay = Math.max(0, 2_000 - (now() - lastMutationFinishedAt))
+      if (delay > 0) await sleep(delay)
+    }
+    try {
+      return await operation()
+    } finally {
+      lastMutationFinishedAt = now()
+    }
+  }
+
   async function ensure(name: string): Promise<void> {
     // A thrown command is also a failed reconciliation, not an abort of independent packages.
     failed.add(name)
@@ -33,16 +67,19 @@ export function trustedPublisherReconciler(options: {
         failed.delete(name)
         return
       }
-      // https://docs.npmjs.com/cli/v11/commands/npm-trust/#bulk-usage
-      if (lastMutationFinishedAt !== undefined) {
-        const delay = Math.max(0, 2_000 - (now() - lastMutationFinishedAt))
-        if (delay > 0) await sleep(delay)
+      if (listed === null) return
+      const configs = trustConfigs(listed)
+      if (configs === null) throw new Error("npm trust list returned invalid JSON")
+
+      // npm currently permits one publisher per package. Creating the corrected
+      // publisher while a stale or stage-only one exists returns E409, so replace it.
+      for (const config of configs) {
+        if (typeof config.id !== "string" || config.id.length === 0) {
+          throw new Error("npm trust list returned a publisher without an id")
+        }
+        if (!(await mutate(() => options.revoke(name, config.id as string)))) return
       }
-      try {
-        if (await options.create(name)) failed.delete(name)
-      } finally {
-        lastMutationFinishedAt = now()
-      }
+      if (await mutate(() => options.create(name))) failed.delete(name)
     } catch (error) {
       options.onError(name, error)
     }
