@@ -22,7 +22,11 @@ const PUBLISH_PERMISSION = "createPackage"
 const REGISTRY = "https://registry.npmjs.org"
 
 export type TrustConfig = {
+  id?: string
   type?: string
+  /** npm trust list's normalized CLI fields. */
+  file?: string
+  repository?: string
   permissions?: string[]
   environment?: string
   claims?: {
@@ -139,6 +143,7 @@ export function packumentRepository(body: unknown): unknown {
 }
 
 function workflowFile(config: TrustConfig): string | undefined {
+  if (config.file) return config.file
   const ref = config.claims?.workflow_ref
   if (!ref) return undefined
   if (typeof ref === "string") return ref.match(/\.github\/workflows\/([^@]+)/)?.[1]
@@ -163,7 +168,7 @@ export function publisherGap(published: boolean, configs: TrustConfig[]): Publis
   const matched = configs.filter(
     (config) =>
       config.type === "github" &&
-      config.claims?.repository === REPO &&
+      (config.repository ?? config.claims?.repository) === REPO &&
       workflowFile(config) === WORKFLOW_FILE,
   )
   const unrestricted = matched.filter((config) => environmentName(config) === undefined)

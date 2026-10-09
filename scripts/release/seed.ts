@@ -40,6 +40,7 @@ import { join } from "node:path"
 import { chdir } from "node:process"
 import { $ } from "bun"
 import { root } from "./lib.ts"
+import { seedCachePath } from "./seed-path.ts"
 
 /**
  * Bun's shell calls getcwd() even when `.cwd()` is set, and throws ENOENT if this
@@ -103,7 +104,12 @@ async function copyTree(from: string, to: string): Promise<boolean> {
   return copied === 0
 }
 
-const cache = join(root, "..", ".mockingbird-seed-main")
+const commonGitDir = (
+  await $`git rev-parse --path-format=absolute --git-common-dir`.cwd(root).quiet()
+)
+  .text()
+  .trim()
+const cache = seedCachePath(commonGitDir)
 const stampPath = `${cache}.sha`
 const env: Record<string, string | undefined> = { ...process.env }
 delete env.NODE_AUTH_TOKEN
