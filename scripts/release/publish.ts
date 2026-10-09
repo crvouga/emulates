@@ -25,6 +25,7 @@ import { join } from "node:path"
 import { $ } from "bun"
 import { VERSION_PLACEHOLDER } from "../bundle-service-version.ts"
 import { loadPackageTrust, npmAuthToken } from "../health/trusted-publisher.ts"
+import { restoreOriginals } from "./files.ts"
 import {
   changelog,
   computePlan,
@@ -46,7 +47,6 @@ import {
   WORKFLOW_FILE,
 } from "./lib.ts"
 import { trustedPublisherReconciler } from "./trust.ts"
-import { restoreOriginals } from "./files.ts"
 
 const argv = process.argv.slice(2)
 const dryRun = argv.includes("--dry-run")
