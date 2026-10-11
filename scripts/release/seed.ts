@@ -17,6 +17,10 @@
  *   4. `release:publish --local` there, using this checkout's scripts/release (so a local
  *      fix applies before it is on main): publish, trust, tag, GitHub Releases, deprecate
  *
+ * The seed is slow enough to walk away from, so whenever it waits on you (`npm login`, or an
+ * npm 2FA approval for a publish or trust change) it rings the terminal bell and posts a desktop
+ * notification, repeating until you answer (scripts/release/attention.ts).
+ *
  * After this, every later release is published by CI through OIDC.
  * Idempotent: packages, trust, tags and deprecations that already exist are skipped,
  * so re-run it to finish. The worktree is kept on purpose; deleting it is what made
@@ -39,6 +43,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { chdir } from "node:process"
 import { $ } from "bun"
+import { alertIfWaiting } from "./attention.ts"
 import { root } from "./lib.ts"
 import { seedCachePath } from "./seed-path.ts"
 
@@ -134,7 +139,11 @@ try {
     const whoami = await $`npm whoami`.env(env).quiet().nothrow()
     if (whoami.exitCode !== 0) {
       console.log("release:seed: not logged in to npm — running `npm login`")
-      await run(["npm", "login"], root, env)
+      await alertIfWaiting(
+        "npm login is waiting for you in this terminal",
+        () => run(["npm", "login"], root, env),
+        { afterMs: 0 },
+      )
     }
     console.log(
       `release:seed: publishing as ${(await $`npm whoami`.env(env).quiet()).text().trim()}`,

@@ -25,6 +25,7 @@ import { join } from "node:path"
 import { $ } from "bun"
 import { VERSION_PLACEHOLDER } from "../bundle-service-version.ts"
 import { loadPackageTrust, npmAuthToken } from "../health/trusted-publisher.ts"
+import { alertIfWaiting } from "./attention.ts"
 import { restoreOriginals } from "./files.ts"
 import {
   changelog,
@@ -124,6 +125,15 @@ const npmEnv: Record<string, string | undefined> = { ...process.env }
 if (!local) delete npmEnv.NODE_AUTH_TOKEN
 const localTrustToken = local && !dryRun ? npmAuthToken() : undefined
 
+/** A seed is left running unattended, so a step that stalls on the maintainer's approval alerts. */
+function attended<T>(what: string, work: () => Promise<T>): Promise<T> {
+  if (!local) return work()
+  return alertIfWaiting(
+    `${what} is probably waiting for your npm approval (2FA) in this terminal or your browser`,
+    work,
+  )
+}
+
 /** Runs npm with inherited stdio so a local run can answer 2FA prompts. */
 async function npm(args: string[], cwd = root): Promise<number> {
   const proc = Bun.spawn(["npm", ...args], {
@@ -131,7 +141,7 @@ async function npm(args: string[], cwd = root): Promise<number> {
     env: npmEnv,
     stdio: ["inherit", "inherit", "inherit"],
   })
-  return await proc.exited
+  return await attended(`npm ${args[0]}`, () => proc.exited)
 }
 
 function fail(name: string, lines: string[]): void {
@@ -233,7 +243,9 @@ const trust = trustedPublisherReconciler({
     if (typeof localTrustToken !== "string") {
       throw new Error(localTrustToken?.error ?? "npm trusted publisher lookup is unavailable")
     }
-    const loaded = await loadPackageTrust([name], localTrustToken)
+    const loaded = await attended("the trusted publisher lookup", () =>
+      loadPackageTrust([name], localTrustToken),
+    )
     if (!Array.isArray(loaded)) throw new Error(loaded.error)
     const pkg = loaded[0]
     if (!pkg || pkg.error) throw new Error(pkg?.error ?? "npm returned no trusted publisher")
