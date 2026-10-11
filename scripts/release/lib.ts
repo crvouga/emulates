@@ -344,6 +344,36 @@ export function initialPackageBlocker(
 }
 
 /**
+ * The closing errors for releases only the local seed can finish: packages that are not on npm
+ * yet, and published ones whose OIDC publish npm rejected (no usable Trusted Publisher).
+ * "Every other package was released" is claimed only when nothing else failed.
+ */
+export function seedSummary(run: {
+  needsSeed: string[]
+  needsTrust: string[]
+  failed: number
+}): string[] {
+  const { needsSeed, needsTrust, failed } = run
+  if (needsSeed.length === 0 && needsTrust.length === 0) return []
+  const lines: string[] = []
+  if (needsSeed.length > 0) {
+    lines.push(
+      `::error::${needsSeed.length} initial npm package(s) need an interactive local seed: ${needsSeed.join(", ")}`,
+    )
+  }
+  if (needsTrust.length > 0) {
+    lines.push(
+      `::error::${needsTrust.length} published package(s) were rejected by npm Trusted Publishing and need their publisher attached by the local seed: ${needsTrust.join(", ")}`,
+    )
+  }
+  const others = failed === needsSeed.length + needsTrust.length
+  lines.push(
+    `${others ? "Every other package was released. " : ""}Run bun run release:seed, then retry CI.`,
+  )
+  return lines
+}
+
+/**
  * Attempt every release in order (dependencies first). A release that fails, or whose
  * dependency failed, never stops the independent ones. Returns the names that did not release.
  */

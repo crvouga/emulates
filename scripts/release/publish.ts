@@ -42,6 +42,7 @@ import {
   releaseNotes,
   retiredPackages,
   root,
+  seedSummary,
   tagName,
   unresolvablePins,
   WORKFLOW_FILE,
@@ -114,6 +115,8 @@ const packDir = mkdtempSync(join(tmpdir(), "mockingbird-release-"))
 const failed = new Set<string>()
 /** Never-published packages that need the interactive local seed. */
 const needsSeed: string[] = []
+/** Published packages whose OIDC publish npm rejected; the local seed attaches their publisher. */
+const needsTrust: string[] = []
 /** `<name>@<version>` of everything this run put on npm, which `npm view` may not show yet. */
 const releasedNow = new Set<string>()
 // OIDC is npm's fallback only when legacy token auth is absent. Locally, use the npm login.
@@ -212,6 +215,7 @@ async function publish(release: Release): Promise<boolean> {
   const args = ["publish", tarball, "--access", "public", provenance]
   const exitCode = await npm(args, pkg.dir)
   if (exitCode !== 0) {
+    if (!isNew && !local) needsTrust.push(pkg.name)
     fail(pkg.name, [
       `npm publish exited ${exitCode}`,
       isNew
@@ -441,12 +445,7 @@ const ok = plan.releases.length - failed.size
 console.log(
   `release:publish: released=${ok} failed=${failed.size} trusted-publisher-failed=${trustFailed.size} github-releases-missing=${githubReleaseGaps}${dryRun ? " (dry-run)" : ""}`,
 )
-if (needsSeed.length > 0) {
-  console.error(
-    `::error::${needsSeed.length} initial npm package(s) need an interactive local seed: ${needsSeed.join(", ")}`,
-  )
-  console.error("Every other package was released. Run bun run release:seed, then retry CI.")
-}
+for (const line of seedSummary({ needsSeed, needsTrust, failed: failed.size })) console.error(line)
 if (githubReleaseGaps > 0) {
   console.error(
     `::error::${githubReleaseGaps} GitHub release(s) still missing. Re-run bun run release:seed; versions already on npm are skipped.`,
