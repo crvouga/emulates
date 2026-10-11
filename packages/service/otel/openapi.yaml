@@ -5,6 +5,11 @@ info:
     An OTLP/HTTP receiver (traces, logs, metrics; JSON and protobuf) in front of the
     OpenObserve (O2) search API, over one store: a test emits a span or a structured `event`
     log and queries it back with the same SQL our clients send.
+
+    The receiver authenticates exports the way the collector it stands in for does, chosen by
+    the `ingestAuth` setting: `bearer` (the default), `basic` (a hosted OTLP gateway's
+    `Authorization: Basic base64(instanceId:token)`) or `none` (a local collector). With
+    `cors.allowedOrigins` set it also answers a browser exporter's CORS preflight.
   version: '1'
   x-mockingbird-upstream:
     note: OTLP/HTTP per opentelemetry-proto v1 (https://opentelemetry.io/docs/specs/otlp/); the O2 routes
@@ -19,6 +24,10 @@ paths:
     post:
       operationId: ExportTraces
       summary: OTLP/HTTP trace export (ExportTraceServiceRequest)
+      security:
+      - bearerAuth: []
+      - basicAuth: []
+      - {}
       x-mockingbird:
         supported: true
         parity:
@@ -38,6 +47,24 @@ paths:
         '200':
           description: 'Accepted. JSON requests get `{partialSuccess: {}}`; protobuf requests get an empty
             protobuf response.'
+          headers:
+            access-control-allow-origin:
+              description: With CORS on, the request's `Origin` when it is allowed (`*` when any origin
+                is). Sent on every status, errors included.
+              schema:
+                type: string
+            access-control-allow-credentials:
+              description: '`true`, beside `access-control-allow-origin`'
+              schema:
+                type: string
+            access-control-expose-headers:
+              description: The configured `cors.exposedHeaders`
+              schema:
+                type: string
+            vary:
+              description: '`Origin`, whenever CORS is on'
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -47,17 +74,27 @@ paths:
                 type: string
                 format: binary
         '400':
-          description: Undecodable payload
+          description: Undecodable payload. Like every receiver error it is a `google.rpc.Status` in
+            the request's encoding (binary for protobuf requests, JSON otherwise).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
         '401':
-          description: Missing or unknown bearer token
+          description: 'Credentials missing or not accepted for the `ingestAuth` mode: a bearer token
+            (`bearer`, the default) or Basic credentials (`basic`). `none` mode refuses nothing.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
         '415':
           description: Neither application/json nor application/x-protobuf
           content:
@@ -98,10 +135,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+    options:
+      operationId: PreflightTraces
+      summary: CORS preflight a browser exporter sends before `POST /v1/traces`
+      description: Answered only when `cors.allowedOrigins` is set, and before authentication (a preflight
+        carries no credentials). A refused preflight is the same 204 without the `access-control-allow-*`
+        headers.
+      security: []
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+      - name: Origin
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - https://app.example.test
+      - name: Access-Control-Request-Method
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - POST
+      - name: Access-Control-Request-Headers
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - content-type
+          - authorization,content-type,traceparent,tracestate
+      responses:
+        '204':
+          description: Preflight answered. The `access-control-allow-*` headers are present only when
+            the origin, the requested method and every requested header are allowed.
+          headers:
+            access-control-allow-origin:
+              description: The request's `Origin` (`*` when any origin is allowed)
+              schema:
+                type: string
+            access-control-allow-methods:
+              description: The requested method
+              schema:
+                type: string
+            access-control-allow-headers:
+              description: The requested headers
+              schema:
+                type: string
+            access-control-allow-credentials:
+              schema:
+                type: string
+            access-control-max-age:
+              description: The configured `cors.maxAge`, in seconds
+              schema:
+                type: string
+            vary:
+              schema:
+                type: string
+        '405':
+          description: CORS is off (no allowed origin), or the request names no `Access-Control-Request-Method`
+          content:
+            text/plain:
+              schema:
+                type: string
   /v1/logs:
     post:
       operationId: ExportLogs
       summary: OTLP/HTTP log export (ExportLogsServiceRequest)
+      security:
+      - bearerAuth: []
+      - basicAuth: []
+      - {}
       x-mockingbird:
         supported: true
         parity:
@@ -121,6 +230,24 @@ paths:
         '200':
           description: 'Accepted. JSON requests get `{partialSuccess: {}}`; protobuf requests get an empty
             protobuf response.'
+          headers:
+            access-control-allow-origin:
+              description: With CORS on, the request's `Origin` when it is allowed (`*` when any origin
+                is). Sent on every status, errors included.
+              schema:
+                type: string
+            access-control-allow-credentials:
+              description: '`true`, beside `access-control-allow-origin`'
+              schema:
+                type: string
+            access-control-expose-headers:
+              description: The configured `cors.exposedHeaders`
+              schema:
+                type: string
+            vary:
+              description: '`Origin`, whenever CORS is on'
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -130,17 +257,27 @@ paths:
                 type: string
                 format: binary
         '400':
-          description: Undecodable payload
+          description: Undecodable payload. Like every receiver error it is a `google.rpc.Status` in
+            the request's encoding (binary for protobuf requests, JSON otherwise).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
         '401':
-          description: Missing or unknown bearer token
+          description: 'Credentials missing or not accepted for the `ingestAuth` mode: a bearer token
+            (`bearer`, the default) or Basic credentials (`basic`). `none` mode refuses nothing.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
         '415':
           description: Neither application/json nor application/x-protobuf
           content:
@@ -181,10 +318,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+    options:
+      operationId: PreflightLogs
+      summary: CORS preflight a browser exporter sends before `POST /v1/logs`
+      description: Answered only when `cors.allowedOrigins` is set, and before authentication (a preflight
+        carries no credentials). A refused preflight is the same 204 without the `access-control-allow-*`
+        headers.
+      security: []
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+      - name: Origin
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - https://app.example.test
+      - name: Access-Control-Request-Method
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - POST
+      - name: Access-Control-Request-Headers
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - content-type
+          - authorization,content-type,traceparent,tracestate
+      responses:
+        '204':
+          description: Preflight answered. The `access-control-allow-*` headers are present only when
+            the origin, the requested method and every requested header are allowed.
+          headers:
+            access-control-allow-origin:
+              description: The request's `Origin` (`*` when any origin is allowed)
+              schema:
+                type: string
+            access-control-allow-methods:
+              description: The requested method
+              schema:
+                type: string
+            access-control-allow-headers:
+              description: The requested headers
+              schema:
+                type: string
+            access-control-allow-credentials:
+              schema:
+                type: string
+            access-control-max-age:
+              description: The configured `cors.maxAge`, in seconds
+              schema:
+                type: string
+            vary:
+              schema:
+                type: string
+        '405':
+          description: CORS is off (no allowed origin), or the request names no `Access-Control-Request-Method`
+          content:
+            text/plain:
+              schema:
+                type: string
   /v1/metrics:
     post:
       operationId: ExportMetrics
       summary: 'OTLP/HTTP metrics export: accepted and counted, never stored'
+      security:
+      - bearerAuth: []
+      - basicAuth: []
+      - {}
       x-mockingbird:
         supported: true
         parity:
@@ -204,6 +413,24 @@ paths:
         '200':
           description: 'Accepted. JSON requests get `{partialSuccess: {}}`; protobuf requests get an empty
             protobuf response.'
+          headers:
+            access-control-allow-origin:
+              description: With CORS on, the request's `Origin` when it is allowed (`*` when any origin
+                is). Sent on every status, errors included.
+              schema:
+                type: string
+            access-control-allow-credentials:
+              description: '`true`, beside `access-control-allow-origin`'
+              schema:
+                type: string
+            access-control-expose-headers:
+              description: The configured `cors.exposedHeaders`
+              schema:
+                type: string
+            vary:
+              description: '`Origin`, whenever CORS is on'
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -213,17 +440,27 @@ paths:
                 type: string
                 format: binary
         '400':
-          description: Undecodable payload
+          description: Undecodable payload. Like every receiver error it is a `google.rpc.Status` in
+            the request's encoding (binary for protobuf requests, JSON otherwise).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
         '401':
-          description: Missing or unknown bearer token
+          description: 'Credentials missing or not accepted for the `ingestAuth` mode: a bearer token
+            (`bearer`, the default) or Basic credentials (`basic`). `none` mode refuses nothing.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
         '415':
           description: Neither application/json nor application/x-protobuf
           content:
@@ -264,6 +501,74 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RpcStatus'
+    options:
+      operationId: PreflightMetrics
+      summary: CORS preflight a browser exporter sends before `POST /v1/metrics`
+      description: Answered only when `cors.allowedOrigins` is set, and before authentication (a preflight
+        carries no credentials). A refused preflight is the same 204 without the `access-control-allow-*`
+        headers.
+      security: []
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: true
+      parameters:
+      - name: Origin
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - https://app.example.test
+      - name: Access-Control-Request-Method
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - POST
+      - name: Access-Control-Request-Headers
+        in: header
+        required: false
+        schema:
+          type: string
+          enum:
+          - content-type
+          - authorization,content-type,traceparent,tracestate
+      responses:
+        '204':
+          description: Preflight answered. The `access-control-allow-*` headers are present only when
+            the origin, the requested method and every requested header are allowed.
+          headers:
+            access-control-allow-origin:
+              description: The request's `Origin` (`*` when any origin is allowed)
+              schema:
+                type: string
+            access-control-allow-methods:
+              description: The requested method
+              schema:
+                type: string
+            access-control-allow-headers:
+              description: The requested headers
+              schema:
+                type: string
+            access-control-allow-credentials:
+              schema:
+                type: string
+            access-control-max-age:
+              description: The configured `cors.maxAge`, in seconds
+              schema:
+                type: string
+            vary:
+              schema:
+                type: string
+        '405':
+          description: CORS is off (no allowed origin), or the request names no `Access-Control-Request-Method`
+          content:
+            text/plain:
+              schema:
+                type: string
   /api/organizations:
     get:
       operationId: ListOrganizations

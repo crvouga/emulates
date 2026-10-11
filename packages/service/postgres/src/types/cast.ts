@@ -48,6 +48,7 @@ import {
   typeDisplayName,
   wrapJsonb,
 } from "./value.ts";
+import { oidFromInteger } from "./regnamespace.ts";
 
 export interface CastEnv extends OutputCtx, InputCtx {
   enumLabels(enumType: TypeId): string[] | null;
@@ -107,7 +108,10 @@ const IMPLICIT_CASTS = new Set([
   "int4->numeric",
   "int4->float4",
   "int4->float8",
+  "int2->oid",
   "int4->oid",
+  "int8->oid",
+  "regnamespace->oid",
   "int8->numeric",
   "int8->float4",
   "int8->float8",
@@ -304,13 +308,12 @@ export function castTo(env: CastEnv, value: TypedValue, target: TypeId, opts: Ca
   if (from === "regnamespace" && (target === "oid" || target === "int4" || target === "int8")) {
     return tv(target, target === "int8" ? BigInt(v as number) : v);
   }
+  if ((from === "int4" || from === "int8" || from === "int2") && (target === "oid" || target === "regnamespace")) {
+    return tv(target, oidFromInteger(v as number | bigint));
+  }
   if (
     (from === "int4" || from === "int8" || from === "int2") &&
-    (target === "oid" ||
-      target === "regclass" ||
-      target === "regtype" ||
-      target === "regproc" ||
-      target === "regnamespace")
+    (target === "regclass" || target === "regtype" || target === "regproc")
   ) {
     return tv(target, Number(v));
   }

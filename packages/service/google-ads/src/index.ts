@@ -11,7 +11,7 @@ import {
   type Service,
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
-import { AdsEngine } from "./ads.js"
+import { AdsEngine, PAGE_SIZE } from "./ads.js"
 import { AnalyticsEngine, type AnalyticsEvent } from "./analytics.js"
 import { integer, invalid, present, Rejection, record, reject, rpcError } from "./errors.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
@@ -78,11 +78,15 @@ export type GoogleAdsAPIOptions = APIOptions &
     vaultKey?: Uint8Array
     publicNamespace?: string
     reportingLagMs?: number
+    /** Defaults to two hours, the lifetime Google's paging guide gives for a page token. */
     pageTokenTtlMs?: number
+    /** Synthetic test policy: shrinks Google's fixed 10000-row Search page so small fixtures page. */
+    searchPageSize?: number
     /** Synthetic test policy; null disables local future rejection. This is not a claimed vendor bound. */
     futureToleranceMs?: number | null
   }
 const isMP = (path: string): boolean => path === "/mp/collect" || path === "/debug/mp/collect"
+const isAds = (path: string): boolean => path.startsWith("/v25/")
 export class GoogleAdsAPI implements FetchAPI {
   readonly sqlite: SqliteClient
   readonly state: GoogleAdsState
@@ -139,7 +143,9 @@ export class GoogleAdsAPI implements FetchAPI {
       nextBudgetId: "9000000001",
       nextJobId: "2147483648",
       reportingLagMs: integer(options.reportingLagMs ?? 0, "reportingLagMs"),
-      pageTokenTtlMs: integer(options.pageTokenTtlMs ?? 3600000, "pageTokenTtlMs", 1),
+      pageTokenTtlMs: integer(options.pageTokenTtlMs ?? 7200000, "pageTokenTtlMs", 1),
+      searchPageSize: integer(options.searchPageSize ?? PAGE_SIZE, "searchPageSize", 1, PAGE_SIZE),
+      pendingAmbiguousWrites: 0,
       futureToleranceMs:
         options.futureToleranceMs === null
           ? null
@@ -159,9 +165,12 @@ export class GoogleAdsAPI implements FetchAPI {
       (c: OperationContext): Response => {
         try {
           if (c.request.signal.aborted) throw c.request.signal.reason
+          // Unparsable JSON never reaches a service: Google answers a bare INVALID_ARGUMENT status.
+          if (c.body.kind === "invalid" && !isMP(c.url.pathname))
+            return rpcError(400, "Invalid JSON payload received.")
           return fn(c)
         } catch (e) {
-          if (e instanceof Rejection) return e.response(this.id(c.request))
+          if (e instanceof Rejection) return this.rejected(e, c.request)
           throw e
         }
       }
@@ -193,13 +202,24 @@ export class GoogleAdsAPI implements FetchAPI {
         ),
         MutateCampaignBudgets: wrap((c) => {
           const body = record(c.body.kind === "json" ? c.body.value : undefined),
+            ambiguous = !!faultEffect(c.request, "ambiguous_mutation")
+          let result: Record<string, unknown>
+          try {
             result = this.ads.mutate(
               present(c.params.customerId),
               body,
               this.id(c.request),
               !!faultEffect(c.request, "partial_failure"),
             )
-          if (!body.validateOnly && faultEffect(c.request, "ambiguous_mutation"))
+          } catch (e) {
+            if (ambiguous) this.state.deferAmbiguousWrite()
+            throw e
+          }
+          // A preflight or rejected call writes nothing, so an ambiguous-write fault that lands
+          // on it waits for the next executed mutation instead of being spent.
+          if (body.validateOnly === true) {
+            if (ambiguous) this.state.deferAmbiguousWrite()
+          } else if (ambiguous || this.state.takeAmbiguousWrite())
             return rpcError(
               503,
               "Response unavailable after the budget mutation; reconcile before retrying",
@@ -256,8 +276,8 @@ export class GoogleAdsAPI implements FetchAPI {
         const url = new URL(request.url)
         if (isMP(url.pathname))
           return this.collect(request, url, undefined, true, url.pathname.startsWith("/debug/"))
-        if (e instanceof Rejection) return e.response(this.id(request))
-        return rpcError(400, "Invalid JSON request body")
+        if (e instanceof Rejection) return this.rejected(e, request)
+        return rpcError(400, "Invalid JSON payload received.")
       },
     })
     this.app = this.service.app
@@ -269,6 +289,10 @@ export class GoogleAdsAPI implements FetchAPI {
       this.requestIds.set(request, id)
     }
     return id
+  }
+  /** Only Google Ads wraps a GoogleAdsFailure; the Analytics Data API answers a bare status. */
+  private rejected(e: Rejection, request: Request): Response {
+    return isAds(new URL(request.url).pathname) ? e.response(this.id(request)) : e.plain()
   }
   private authenticate(request: Request): void {
     const path = new URL(request.url).pathname
@@ -370,10 +394,10 @@ export class GoogleAdsAPI implements FetchAPI {
       this.authenticate(request)
       response = await this.service.fetch(request)
     } catch (e) {
-      if (e instanceof Rejection) response = e.response(id)
+      if (e instanceof Rejection) response = this.rejected(e, request)
       else throw e
     }
-    if (url.pathname.startsWith("/v25/")) response.headers.set("request-id", id)
+    if (isAds(url.pathname)) response.headers.set("request-id", id)
     return response
   }
   private collect(

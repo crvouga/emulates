@@ -2,7 +2,7 @@
 
 > Auto-generated from [`compat/divergences.json`](compat/divergences.json). Do not edit by hand — run `bun run divergences`.
 
-Generated: 2026-09-01 · 18 entries
+Generated: 2026-10-11 · 23 entries
 
 | ID | Scope | Predicate | Pinned by |
 | --- | --- | --- | --- |
@@ -17,13 +17,18 @@ Generated: 2026-09-01 · 18 entries
 | `float8-overflow-saturates` | sql | '1e400'::float8 saturates to Infinity instead of raising 22003 out of range | `TYP-float-04` |
 | `round-half-away-from-zero` | sql | round(float8) rounds ties away from zero (round(2.5::float8) = 3); PostgreSQL rounds half to even (= 2) | `FUN-round-02` |
 | `drop-cascade-view-retained` | sql | DROP TABLE ... CASCADE does not drop dependent views; the view remains and errors when queried | `DDL-drop-03` |
-| `comment-on-not-stored` | sql | COMMENT ON parses and succeeds but the comment is not stored; obj_description() returns NULL | `DDL-comment-01` |
+| `comment-on-not-stored` | sql | COMMENT ON for any object other than an index parses and succeeds but the comment is not stored; obj_description() / col_description() return NULL for it and pg_description has no row | `DDL-comment-01` |
 | `trigger-order-creation` | sql | Multiple triggers on the same event fire in creation order; PostgreSQL fires them in name order | `TRG-order-01` |
 | `trigger-update-of-ignored` | sql | UPDATE OF column lists on triggers are parsed but ignored; the trigger fires for every UPDATE | `TRG-updof-01` |
 | `instead-of-triggers-unsupported` | sql | CREATE TRIGGER ... INSTEAD OF on a view fails loud; PostgreSQL supports INSTEAD OF triggers on views | `TRG-instead-01` |
 | `no-aborted-transaction-state` | sql | After a failed statement inside BEGIN, subsequent statements keep executing; PostgreSQL rejects them with 25P02 until ROLLBACK | `TXN-abort-01` |
 | `version-banner` | catalog | version() returns 'PostgreSQL 18.3 (postgres-mem) on TypeScript, in-memory engine' instead of the real build banner | `CAT-ver-01` |
 | `pg-get-viewdef-missing` | catalog | pg_get_viewdef() is not implemented and raises 42883 | `CAT-viewdef-01` |
+| `storage-persistence-catalog-only` | sql | Column storage modes (STORAGE / SET STORAGE, pg_attribute.attstorage) and relation persistence (UNLOGGED, SET LOGGED / UNLOGGED, pg_class.relpersistence) are catalog metadata only: there is no TOAST and no write-ahead log | `tests/contract/alter-table/set-storage.test.ts`, `tests/contract/alter-table/set-logged.test.ts` |
+| `extension-catalog-subset` | catalog | pg_available_extensions, pg_available_extension_versions and pg_extension list only the extensions the engine can install (pgcrypto, pg_trgm) plus the built-in plpgsql; DROP EXTENSION plpgsql is refused with 0A000 | `tests/contract/extensions/catalogs.test.ts` |
+| `concurrent-index-build-fault` | engine | Database.fault({ concurrentIndexBuild: sqlstate }) and, on the wire server, server.fault({ failConcurrentIndexBuild: sqlstate }) make the next CREATE INDEX CONCURRENTLY or REINDEX ... CONCURRENTLY fail with that SQLSTATE and leave the index it was building in the catalog with indisvalid = false, indisready = false, indislive = true | `CAT-index-valid-07`, `tests/contract/catalogs/index-validity.test.ts`, `tests/wire/index-catalog.test.ts` |
+| `pg-stat-counters-immediate` | catalog | pg_stat_user_tables.n_live_tup is the exact current row count, current as soon as a statement finishes; seq_scan, seq_tup_read, idx_tup_fetch, n_tup_ins / n_tup_upd / n_tup_del, n_tup_hot_upd, n_dead_tup, n_mod_since_analyze and the vacuum columns are not tracked and read zero or NULL; idx_scan (also in pg_stat_user_indexes) counts only the unique-key equality lookups the engine performs for SELECT; VACUUM, including VACUUM ANALYZE, is a no-op and does not count | `CAT-table-stat-04`, `tests/contract/catalogs/table-statistics.test.ts` |
+| `pg-index-catalog-subset` | catalog | pg_index exposes indexrelid, indrelid, indnatts, indnkeyatts and the boolean flags; indexprs and indpred are the deparsed text that pg_get_expr() returns rather than pg_node_tree, and indkey, indcollation, indclass and indoption are absent. Index access methods other than btree are recorded and rendered (USING hash / gin / gist / spgist / brin) but every index is maintained the same way | `tests/contract/catalogs/index-definitions.test.ts` |
 
 ## Specified behavior
 
@@ -73,7 +78,7 @@ Dependency tracking for CASCADE drops of views is not implemented; drop the view
 
 ### `comment-on-not-stored`
 
-COMMENT ON is accepted for compatibility; descriptions are not persisted.
+COMMENT ON INDEX is persisted (pg_description, obj_description) and differential-tested. For tables, columns and every other object kind COMMENT ON is accepted for compatibility and the description is not persisted; a missing target of those kinds is not an error either.
 
 ### `trigger-order-creation`
 
@@ -98,4 +103,24 @@ server_version/server_version_num report 18.3/180003 for compatibility; the full
 ### `pg-get-viewdef-missing`
 
 View definitions are visible via information_schema.views.view_definition (stored SQL text).
+
+### `storage-persistence-catalog-only`
+
+The SQL and catalog contract matches PostgreSQL, including its errors for invalid modes, targets and conversions, and is differential-tested. Physically nothing changes: values are never compressed or moved out of line, an unlogged table is stored like a logged one, is not truncated by a crash and is part of every snapshot. PostgreSQL also keeps a storage mode for materialized-view columns; here ALTER COLUMN ... SET STORAGE on a materialized view fails loud with 0A000.
+
+### `extension-catalog-subset`
+
+A stock PostgreSQL server lists every contrib module it ships; here an extension that is not implemented is absent from the views (zero rows) and CREATE EXTENSION fails with 0A000, as it does on a server without that control file. The PGlite oracle is built with exactly the same three extensions, so the views are compared in full. plpgsql cannot be dropped because the language is part of the engine; PostgreSQL allows dropping and recreating it.
+
+### `concurrent-index-build-fault`
+
+PostgreSQL leaves such an invalid index when a concurrent build is canceled, deadlocks or otherwise fails partway (sql-createindex, 'Building Indexes Concurrently'); an interruption cannot be provoked deterministically in the oracle, so this one-shot test control stands in for it. The failure PostgreSQL can be made to produce, duplicate keys in a concurrent unique build, is differential-tested, as are DROP INDEX and REINDEX as the repair. The preset models an interruption in the build phase, the state PostgreSQL shows for the duplicate-key failure (not ready, so not maintained and not enforcing). A failure in the later validation scan, where PostgreSQL leaves indisready = true and a unique index keeps enforcing, is not modeled. The fault is not part of snapshots and is not undone by a rollback.
+
+### `pg-stat-counters-immediate`
+
+PostgreSQL reports these counters asynchronously (after pg_stat_force_next_flush() or a delay) and n_live_tup is an estimate that ANALYZE resets. The differential tests read after pg_stat_force_next_flush() and ANALYZE, where PostgreSQL's value is the row count too, and compare relid, schemaname, relname, n_live_tup, analyze_count, last_analyze and the column list and types of both views. There are no dead tuples and no planner, so the activity counters have nothing to count; treat them as absent, not as zero activity.
+
+### `pg-index-catalog-subset`
+
+pg_get_indexdef(), pg_indexes.indexdef and pg_get_expr(indpred | indexprs, indrelid) are differential-tested against PostgreSQL across methods, ordering, NULLS placement, INCLUDE, operator classes, collations, storage parameters, quoted identifiers and an expression / predicate matrix. Read index columns through pg_get_indexdef(oid, n, pretty) instead of indkey. Expressions outside that matrix (subqueries, row constructors, SIMILAR TO, array slices, window or aggregate calls) are rendered best-effort.
 

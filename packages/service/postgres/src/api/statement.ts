@@ -1,6 +1,7 @@
 import type { Statement as AstStatement } from "../ast/nodes.ts";
 import { pgError } from "../errors/error.ts";
 import { executeStatement } from "../executor/execute.ts";
+import { refusedInTransactionBlock } from "../executor/maintenance.ts";
 import type { ExecEnv, ExecResult } from "../executor/relation.ts";
 import { EngineCtx } from "../expressions/context.ts";
 import { parse } from "../parser/index.ts";
@@ -122,9 +123,8 @@ export class Statement {
     const typed: TypedValue[] = params.map((p, i) => bindValueToTyped(p, i));
     let last: ExecResult | null = null;
     for (const stmt of this.statements) {
-      if (stmt.type === "create_index" && stmt.concurrently && this.database.transactions.inTransaction) {
-        throw pgError("misuse", "CREATE INDEX CONCURRENTLY cannot run inside a transaction block", "25001");
-      }
+      const refused = this.database.transactions.inTransaction ? refusedInTransactionBlock(stmt) : null;
+      if (refused) throw pgError("misuse", `${refused} cannot run inside a transaction block`, "25001");
       const env: ExecEnv = {
         ctx: new EngineCtx(this.database.state),
         params: typed,

@@ -6,6 +6,7 @@ import type { createRuntime as createApigateway } from "@crvouga/mockingbird-ser
 import type { createRuntime as createAppStoreConnect } from "@crvouga/mockingbird-service-app-store-connect"
 import type { createRuntime as createApple } from "@crvouga/mockingbird-service-apple"
 import type { createRuntime as createAws } from "@crvouga/mockingbird-service-aws"
+import type { createRuntime as createAwsIot } from "@crvouga/mockingbird-service-aws-iot"
 import type { createRuntime as createAwsSecrets } from "@crvouga/mockingbird-service-aws-secrets"
 import type { createRuntime as createAwsSpeech } from "@crvouga/mockingbird-service-aws-speech"
 import type { createRuntime as createBedrock } from "@crvouga/mockingbird-service-bedrock"
@@ -29,6 +30,8 @@ import type { createRuntime as createEc2 } from "@crvouga/mockingbird-service-ec
 import type { createRuntime as createECS } from "@crvouga/mockingbird-service-ecs"
 import type { createRuntime as createEdamam } from "@crvouga/mockingbird-service-edamam"
 import type { createRuntime as createElasticsearch } from "@crvouga/mockingbird-service-elasticsearch"
+import type { createRuntime as createElevenlabs } from "@crvouga/mockingbird-service-elevenlabs"
+import type { createRuntime as createEmqx } from "@crvouga/mockingbird-service-emqx"
 import type { createRuntime as createEventBridge } from "@crvouga/mockingbird-service-eventbridge"
 import type { createRuntime as createFcm } from "@crvouga/mockingbird-service-fcm"
 import type { createRuntime as createFirehose } from "@crvouga/mockingbird-service-firehose"
@@ -100,6 +103,7 @@ import type { createRuntime as createSts } from "@crvouga/mockingbird-service-st
 import type { createRuntime as createSupport } from "@crvouga/mockingbird-service-support"
 import type { createRuntime as createSwf } from "@crvouga/mockingbird-service-swf"
 import type { createRuntime as createTavily } from "@crvouga/mockingbird-service-tavily"
+import type { createRuntime as createTempo } from "@crvouga/mockingbird-service-tempo"
 import type { createRuntime as createTextract } from "@crvouga/mockingbird-service-textract"
 import type { createRuntime as createTurnstile } from "@crvouga/mockingbird-service-turnstile"
 import type { createRuntime as createTwilio } from "@crvouga/mockingbird-service-twilio"
@@ -134,6 +138,7 @@ export type SurfaceProof = [
   Assert<typeof createOura>,
   Assert<typeof createAha>,
   Assert<typeof createTavily>,
+  Assert<typeof createAwsIot>,
   Assert<typeof createAwsSecrets>,
   Assert<typeof createAwsSpeech>,
   Assert<typeof createBedrock>,
@@ -145,6 +150,8 @@ export type SurfaceProof = [
   Assert<typeof createDynamodb>,
   Assert<typeof createEasypost>,
   Assert<typeof createEdamam>,
+  Assert<typeof createElevenlabs>,
+  Assert<typeof createEmqx>,
   Assert<typeof createFcm>,
   Assert<typeof createFirstpromoter>,
   Assert<typeof createFlex>,
@@ -186,6 +193,7 @@ export type SurfaceProof = [
   Assert<typeof createSqs>,
   Assert<typeof createStepFunctions>,
   Assert<typeof createStripe>,
+  Assert<typeof createTempo>,
   Assert<typeof createTextract>,
   Assert<typeof createTwilio>,
   Assert<typeof createTurnstile>,

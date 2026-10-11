@@ -4,6 +4,7 @@ import type { Database } from "../api/database.ts";
 import type { TextResultSet } from "../api/statement.ts";
 import type { CopyStmt, Expr } from "../ast/nodes.ts";
 import { isPostgresError, PostgresError } from "../errors/error.ts";
+import { leavesInvalidIndexOnFailure, refusedInTransactionBlock } from "../executor/maintenance.ts";
 import { inferColumnName } from "../executor/relation.ts";
 import { executeCopyFromData } from "../executor/session.ts";
 import { EngineCtx } from "../expressions/context.ts";
@@ -11,6 +12,7 @@ import { parse as parseSql } from "../parser/index.ts";
 import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
 import { datumText, typeOid, UTC_OUTPUT } from "../types/value.ts";
 import { type Cluster, LockWait, type Session } from "./cluster.ts";
+import { type DurableCommit, storageFailure } from "./durable.ts";
 import {
   type ByteReader,
   backend,
@@ -24,6 +26,7 @@ import {
 } from "./protocol.ts";
 import { ScramServer } from "./scram.ts";
 import { splitStatements } from "./split.ts";
+import { applyStartupSettings, StartupError, startupSettings } from "./startup.ts";
 
 /** One statement's outcome, before it is written to the wire. */
 type Outcome = { empty: true } | { empty: false; result: TextResultSet; tag: string };
@@ -48,8 +51,11 @@ type Portal = {
 
 type CopyIn = {
   stmt: CopyStmt;
+  sql: string;
   database: Database;
   workspace: boolean;
+  /** Durable mode, outside a transaction block: takes the committed COPY back out of memory. */
+  undo: (() => void) | null;
   buffer: string;
   decoder: TextDecoder;
   rowCount: number;
@@ -64,6 +70,11 @@ export type ServerFaults = {
   delayStatementMs?: number;
   /** Fail the next COMMIT with this SQLSTATE (`40001` serialization failure) after rolling back. */
   failCommit?: string;
+  /**
+   * Interrupt the next `CREATE INDEX CONCURRENTLY` / `REINDEX ... CONCURRENTLY` with this SQLSTATE
+   * (`57014` canceled, `40P01` deadlock). The index it was building stays in the catalog, invalid.
+   */
+  failConcurrentIndexBuild?: string;
 };
 
 export type ServerLog = {
@@ -264,7 +275,49 @@ const binaryEncodable = (type: string): boolean =>
   TEXT_TYPES.has(type) || ["bool", "int2", "int4", "oid", "int8", "float4", "float8", "bytea", "uuid"].includes(type);
 
 const mutatesDatabase = (sql: string): boolean =>
-  parseSql(sql).some((stmt) => !["select", "show", "explain", "transaction", "comment", "no_op"].includes(stmt.type));
+  parseSql(sql).some((stmt) => !["select", "show", "explain", "transaction", "no_op"].includes(stmt.type));
+
+/** Statements that cannot change what a snapshot of the database holds. */
+const NEVER_WRITES = new Set(["show", "set", "reset", "transaction", "no_op", "prepare", "deallocate"]);
+const WRITE_NODES = new Set(["insert", "update", "delete"]);
+
+/**
+ * Whether a query tree holds a data-modifying statement, or names something that can run one:
+ * a sequence function, a user-defined function, or a view (whose definition may call either).
+ */
+const containsWrite = (db: Database, node: unknown): boolean => {
+  if (Array.isArray(node)) return node.some((item) => containsWrite(db, item));
+  if (typeof node !== "object" || node === null) return false;
+  const { type, name } = node as { type?: unknown; name?: unknown };
+  if (typeof type === "string" && WRITE_NODES.has(type)) return true;
+  if (Array.isArray(name)) {
+    const named = String(name.at(-1)).toLowerCase();
+    if (named === "nextval" || named === "setval") return true;
+    for (const schema of db.state.schemas.values()) {
+      if (schema.functions.has(named) || schema.views.has(named)) return true;
+    }
+  }
+  return Object.values(node).some((value) => containsWrite(db, value));
+};
+
+/**
+ * Whether an autocommit statement may have committed a change that durable mode has to persist.
+ * Erring towards yes costs one snapshot encode: an image equal to the persisted one is not rewritten.
+ */
+const mayCommitWrite = (db: Database, sql: string): boolean => {
+  let statements: ReturnType<typeof parseSql>;
+  try {
+    statements = parseSql(sql);
+  } catch {
+    return false;
+  }
+  return statements.some((stmt) => {
+    if (NEVER_WRITES.has(stmt.type)) return false;
+    const reads =
+      stmt.type === "select" || stmt.type === "explain" || (stmt.type === "copy" && stmt.direction === "to");
+    return !reads || containsWrite(db, stmt);
+  });
+};
 
 /** A bound parameter as the engine takes it: text binds as an untyped literal, binary by its OID. */
 const decodeParam = (oid: number, format: number, bytes: Uint8Array | null): BindValue => {
@@ -390,6 +443,14 @@ export class Connection implements Session {
   /** Successful writes in this session's READ COMMITTED transaction workspace. */
   private transaction: TransactionWorkspace | null = null;
   private closed = false;
+  /** This session's settings. They stand in for the database's own around each of its engine calls. */
+  private settings = new Map<string, string>();
+  /** What `RESET` returns to: the database's settings at connect, then the startup packet's. */
+  private settingDefaults: ReadonlyMap<string, string> = new Map();
+  /** Durable commits that are persisted and not yet acknowledged on the socket. */
+  private readonly unacknowledged: DurableCommit[] = [];
+  /** A commit of this session is being persisted; it still owns the statement turn. */
+  private persisting: Promise<void> | null = null;
 
   constructor(
     private readonly socket: Socket,
@@ -438,7 +499,32 @@ export class Connection implements Session {
   private dispose(): void {
     if (this.closed) return;
     this.closed = true;
-    this.cluster.drop(this);
+    // An interrupted COPY began its engine transaction with this session's settings in place.
+    const copy = this.copyIn;
+    if (copy && !copy.workspace && copy.database.transactions.inTransaction) {
+      this.inSession(copy.database, () => copy.database.transactions.rollback());
+    }
+    // A commit being persisted is rolled back or acknowledged before the session gives up its turn.
+    if (this.persisting) void this.persisting.then(() => this.cluster.drop(this));
+    else this.cluster.drop(this);
+  }
+
+  /**
+   * Run engine work with this session's settings in place of the database's own, so one
+   * connection's `SET` never reaches another. Whatever the work leaves behind is the session's.
+   */
+  private inSession<T>(db: Database, fn: () => T): T {
+    const state = db.state;
+    const shared = { settings: state.settings, defaults: state.settingDefaults };
+    state.settings = this.settings;
+    state.settingDefaults = this.settingDefaults;
+    try {
+      return fn();
+    } finally {
+      this.settings = state.settings;
+      state.settings = shared.settings;
+      state.settingDefaults = shared.defaults;
+    }
   }
 
   /** Terminate from the server side (close, or the drop-connection fault). */
@@ -545,8 +631,8 @@ export class Connection implements Session {
     }
   }
 
-  private fatal(code: string, message: string): void {
-    this.write(backend.errorResponse({ severity: "FATAL", code, message }));
+  private fatal(code: string, message: string, extra: { detail?: string; hint?: string } = {}): void {
+    this.write(backend.errorResponse({ severity: "FATAL", code, message, ...extra }));
     this.socket.end();
     this.dispose();
   }
@@ -565,6 +651,7 @@ export class Connection implements Session {
     }
     this.database = database;
     this.databaseName = requested;
+    this.startupParameters = parameters;
     if (this.options.password !== undefined) {
       this.scram = new ScramServer(this.options.password);
       this.write(backend.authenticationSASL(["SCRAM-SHA-256"]));
@@ -606,18 +693,32 @@ export class Connection implements Session {
   private ready(parameters: Record<string, string>): void {
     this.startupParameters = parameters;
     if (this.scram && !this.scramStarted) return;
-    this.started = true;
     this.write(backend.authenticationOk());
+    // PostgreSQL applies the packet's run-time parameters after authentication: the `options`
+    // switches, then the parameters sent by name. A bad one ends the connection with FATAL.
+    const settings = new Map(this.database.state.settings);
+    try {
+      const applied = applyStartupSettings(startupSettings(parameters), settings);
+      this.settingDefaults = new Map([...this.database.state.settings, ...applied]);
+    } catch (error) {
+      if (!(error instanceof StartupError)) throw error;
+      const { code, message, ...extra } = error.fields;
+      this.fatal(code, message, extra);
+      return;
+    }
+    this.settings = settings;
+    this.started = true;
+    const setting = (name: string, fallback: string): string => settings.get(name) ?? fallback;
     const status: Record<string, string> = {
       server_version: this.options.serverVersion,
       server_encoding: "UTF8",
-      client_encoding: "UTF8",
-      application_name: parameters.application_name ?? "",
-      DateStyle: "ISO, MDY",
-      IntervalStyle: "postgres",
-      TimeZone: "UTC",
+      client_encoding: setting("client_encoding", "UTF8"),
+      application_name: setting("application_name", ""),
+      DateStyle: setting("datestyle", "ISO, MDY"),
+      IntervalStyle: setting("intervalstyle", "postgres"),
+      TimeZone: setting("timezone", "UTC"),
       integer_datetimes: "on",
-      standard_conforming_strings: "on",
+      standard_conforming_strings: setting("standard_conforming_strings", "on"),
       is_superuser: "on",
       session_authorization: this.user,
       default_transaction_read_only: "off",
@@ -685,7 +786,9 @@ export class Connection implements Session {
       if (!this.inTransaction) this.flushNotifies();
       return command("NOTIFY");
     }
-    if (CLUSTER_DDL.test(text)) return this.executeClusterDdl(text);
+    if (CLUSTER_DDL.test(text)) {
+      return this.cluster.durability ? this.durableClusterDdl(text) : this.executeClusterDdl(text);
+    }
     for (;;) {
       if (this.cancelled) throw pgError("internal", "canceling statement due to user request", "57014");
       await this.cluster.acquireTurn(this);
@@ -701,8 +804,11 @@ export class Connection implements Session {
         throw new ConnectionDropped();
       }
       try {
+        const undo = this.durableUndo(text, control);
         const outcome = this.runStatement(text, params, control);
+        const commit = undo ? await this.persist(text, [this.database], undo) : null;
         this.afterStatement();
+        if (commit) await this.cluster.durability?.beforeAcknowledge(commit);
         return outcome;
       } catch (error) {
         if (error instanceof LockWait) {
@@ -714,6 +820,77 @@ export class Connection implements Session {
         this.afterStatement();
         throw error;
       }
+    }
+  }
+
+  /**
+   * Durable mode, before a statement that may commit: how to take that commit back out of
+   * memory if storage then refuses it. Null when the statement cannot commit a change.
+   */
+  private durableUndo(text: string, control: boolean): (() => void) | null {
+    if (!this.cluster.durability) return null;
+    if (control) {
+      if (!COMMIT.test(text) || this.aborted || !this.transaction?.statements.length) return null;
+    } else if (this.transaction !== null || !mayCommitWrite(this.database, text)) return null;
+    return this.checkpoint(this.database);
+  }
+
+  /** What a transaction's BEGIN captures and its ROLLBACK restores, for a commit already applied. */
+  private checkpoint(db: Database): () => void {
+    db.state.freezeShared();
+    const before = db.state.cloneShallow();
+    const prng = db.prng.getState();
+    return () => {
+      db.state.restoreFrom(before);
+      db.prng.setState(prng);
+    };
+  }
+
+  /**
+   * Persist a commit this session just applied, while it still holds the statement turn, so no
+   * other session has seen it. Storage refusing it takes the commit back out of memory and
+   * fails the statement (`58030`, or `53100` when storage is full); the transaction is gone,
+   * as after any failed COMMIT. Resolves to the commit when storage was written.
+   */
+  private async persist(sql: string, changed: readonly Database[], undo: () => void): Promise<DurableCommit | null> {
+    const durability = this.cluster.durability;
+    if (!durability) return null;
+    let settled = (): void => undefined;
+    this.persisting = new Promise<void>((resolve) => {
+      settled = resolve;
+    });
+    try {
+      if (!(await durability.persist(changed))) return null;
+    } catch (cause) {
+      undo();
+      this.pendingNotifies.length = 0;
+      throw storageFailure(cause);
+    } finally {
+      this.persisting = null;
+      settled();
+    }
+    const commit = { pid: this.pid, database: this.databaseName, sql };
+    this.unacknowledged.push(commit);
+    return commit;
+  }
+
+  /** The acknowledgement of every persisted commit is on the socket. */
+  private async acknowledged(): Promise<void> {
+    for (const commit of this.unacknowledged.splice(0)) await this.cluster.durability?.afterAcknowledge(commit);
+  }
+
+  /** CREATE / DROP / ALTER DATABASE in durable mode: the catalog change is persisted, or undone. */
+  private async durableClusterDdl(text: string): Promise<Outcome> {
+    await this.cluster.acquireTurn(this);
+    try {
+      const catalog = this.cluster.catalog();
+      const outcome = this.executeClusterDdl(text);
+      const commit = await this.persist(text, [], () => this.cluster.restoreCatalog(catalog));
+      this.cluster.releaseTurn(this);
+      if (commit) await this.cluster.durability?.beforeAcknowledge(commit);
+      return outcome;
+    } finally {
+      this.cluster.releaseTurn(this);
     }
   }
 
@@ -767,15 +944,20 @@ export class Connection implements Session {
         const result = this.cluster.as(this, () => this.runQuery(db, text, params));
         return { empty: false as const, result, tag: commandTag(result) };
       };
-      // Concurrent index builds retain their invalid catalog entry on failure.
-      // They cannot use the statement rollback wrapper or run in an explicit transaction.
-      const concurrentIndex =
-        /\bconcurrently\b/i.test(text) &&
-        parseSql(text).some((stmt) => stmt.type === "create_index" && stmt.concurrently);
-      if (concurrentIndex && this.transaction !== null) {
-        throw new PostgresError("misuse", "CREATE INDEX CONCURRENTLY cannot run inside a transaction block", "25001");
+      // Index commands PostgreSQL refuses in a transaction block (CREATE / DROP INDEX CONCURRENTLY,
+      // REINDEX CONCURRENTLY | SCHEMA | DATABASE | SYSTEM) run outside the statement rollback wrapper:
+      // a failed concurrent build has to keep the invalid index it leaves in the catalog.
+      const statements = /\b(concurrently|reindex)\b/i.test(text) ? parseSql(text) : [];
+      const refused = statements.map(refusedInTransactionBlock).find((command) => command !== null);
+      if (refused && this.transaction !== null) {
+        throw new PostgresError("misuse", `${refused} cannot run inside a transaction block`, "25001");
       }
-      const outcome = concurrentIndex ? run() : db.transaction(run);
+      if (faults.failConcurrentIndexBuild !== undefined && statements.some(leavesInvalidIndexOnFailure)) {
+        db.state.faults.concurrentIndexBuild = faults.failConcurrentIndexBuild;
+        faults.failConcurrentIndexBuild = undefined;
+      }
+      const statement = () => (refused ? run() : db.transaction(run));
+      const outcome = workspace ? statement() : this.inSession(db, statement);
       if (this.transaction && mutatesDatabase(text)) {
         this.transaction.statements.push({ kind: "sql", sql: text, params: params.slice() });
       }
@@ -805,9 +987,11 @@ export class Connection implements Session {
         const transaction = this.transaction;
         this.transaction = null;
         if (transaction) {
-          this.database.transaction(() => {
-            for (const logged of transaction.statements) this.replay(this.database, logged);
-          });
+          this.inSession(this.database, () =>
+            this.database.transaction(() => {
+              for (const logged of transaction.statements) this.replay(this.database, logged);
+            }),
+          );
         }
         return command("COMMIT");
       }
@@ -854,6 +1038,9 @@ export class Connection implements Session {
       name: this.databaseName,
       names: () => this.cluster.databaseNames(),
     });
+    // The workspace is this session's alone: a SET inside the block reaches the session at commit.
+    workspace.state.settings = new Map(this.settings);
+    workspace.state.settingDefaults = this.settingDefaults;
     for (const logged of this.transaction?.statements ?? []) {
       workspace.transaction(() => this.replay(workspace, logged));
     }
@@ -1021,7 +1208,7 @@ export class Connection implements Session {
     if (statements.length === 1) {
       const copy = this.copyStatement(statements[0] as string);
       if (copy?.direction === "from") {
-        await this.beginCopyIn(copy);
+        await this.beginCopyIn(copy, statements[0] as string);
         return;
       }
       if (copy?.direction === "to") {
@@ -1045,6 +1232,7 @@ export class Connection implements Session {
       for (const statement of statements) {
         const outcome = await this.execute(statement);
         this.sendOutcome(outcome, [], { rowDescription: true });
+        await this.acknowledged();
       }
       if (implicit) await this.execute("COMMIT");
     } catch (error) {
@@ -1057,6 +1245,7 @@ export class Connection implements Session {
     }
     if (failed && this.inTransaction) this.aborted = true;
     this.readyForQuery();
+    await this.acknowledged();
   }
 
   private copyStatement(sql: string): CopyStmt | null {
@@ -1071,7 +1260,8 @@ export class Connection implements Session {
 
   private copyColumnCount(stmt: CopyStmt): number {
     if (stmt.columns) return stmt.columns.length;
-    if (stmt.table) return this.database.state.findTable(stmt.table)?.columns.length ?? 0;
+    const table = stmt.table;
+    if (table) return this.inSession(this.database, () => this.database.state.findTable(table)?.columns.length ?? 0);
     return 0;
   }
 
@@ -1092,7 +1282,7 @@ export class Connection implements Session {
       return;
     }
     if (type === "c") {
-      this.finishCopyIn(copy);
+      await this.finishCopyIn(copy);
       return;
     }
     if (type === "H") return;
@@ -1104,15 +1294,23 @@ export class Connection implements Session {
     this.fatal("08P01", `unexpected frontend message type ${JSON.stringify(type)} during COPY`);
   }
 
-  private async beginCopyIn(stmt: CopyStmt): Promise<void> {
+  /** Engine work of a COPY in progress. A workspace already carries the session's settings. */
+  private inCopy<T>(copy: Pick<CopyIn, "database" | "workspace">, fn: () => T): T {
+    return copy.workspace ? fn() : this.inSession(copy.database, fn);
+  }
+
+  private async beginCopyIn(stmt: CopyStmt, sql: string): Promise<void> {
     await this.cluster.acquireTurn(this);
     const workspace = this.transaction ? this.openWorkspace() : null;
     const database = workspace ?? this.database;
-    database.transactions.begin();
+    const undo = workspace === null && this.cluster.durability ? this.checkpoint(database) : null;
+    this.inCopy({ database, workspace: workspace !== null }, () => database.transactions.begin());
     this.copyIn = {
       stmt,
+      sql,
       database,
       workspace: workspace !== null,
+      undo,
       buffer: "",
       decoder: new TextDecoder(),
       rowCount: 0,
@@ -1122,7 +1320,7 @@ export class Connection implements Session {
     this.write(backend.copyInResponse(this.copyColumnCount(stmt)));
   }
 
-  private finishCopyIn(copy: CopyIn): void {
+  private async finishCopyIn(copy: CopyIn): Promise<void> {
     const tx = copy.database.transactions;
     try {
       copy.buffer += copy.decoder.decode();
@@ -1132,9 +1330,12 @@ export class Connection implements Session {
         this.transaction?.statements.push({ kind: "copy", stmt: copy.stmt, data: copy.loggedData });
         copy.database.close();
       }
+      const commit = copy.undo ? await this.persist(copy.sql, [copy.database], copy.undo) : null;
       this.copyIn = null;
-      this.write(backend.commandComplete(`COPY ${copy.rowCount}`));
       this.cluster.releaseTurn(this);
+      if (commit) await this.cluster.durability?.beforeAcknowledge(commit);
+      this.write(backend.commandComplete(`COPY ${copy.rowCount}`));
+      await this.acknowledged();
       this.readyForQuery();
     } catch (error) {
       this.abortCopyIn(copy, error, false);
@@ -1169,7 +1370,7 @@ export class Connection implements Session {
       ctes: new Map(),
       outer: null,
     };
-    const result = this.cluster.as(this, () => executeCopyFromData(env, stmt, data));
+    const result = this.inCopy(copy, () => this.cluster.as(this, () => executeCopyFromData(env, stmt, data)));
     copy.rowCount += result.rowCount;
     copy.loggedData += data;
     copy.headerPending = false;
@@ -1177,7 +1378,7 @@ export class Connection implements Session {
 
   private abortCopyIn(copy: CopyIn, error: unknown, drain: boolean): void {
     const tx = copy.database.transactions;
-    if (tx.inTransaction) tx.rollback();
+    if (tx.inTransaction) this.inCopy(copy, () => tx.rollback());
     if (copy.workspace) copy.database.close();
     if (this.inTransaction) this.aborted = true;
     this.cluster.releaseTurn(this);
@@ -1325,29 +1526,31 @@ export class Connection implements Session {
    * that fails is described as returning no data.
    */
   private async shapeOf(prepared: Prepared): Promise<TextResultSet | null> {
-    const described = returningShape(this.database, prepared.sql);
+    const described = this.inSession(this.database, () => returningShape(this.database, prepared.sql));
     if (described) return described;
     if (!RETURNS_ROWS.test(prepared.sql)) return null;
     const db = this.database;
     await this.cluster.acquireTurn(this);
     try {
       const params = prepared.paramOids.map(() => null);
-      if (db.transactions.inTransaction) {
-        const name = `__describe_${this.pid}`;
-        db.transactions.savepoint(name);
+      return this.inSession(db, () => {
+        if (db.transactions.inTransaction) {
+          const name = `__describe_${this.pid}`;
+          db.transactions.savepoint(name);
+          try {
+            return this.cluster.as(this, () => db.prepare(prepared.sql).textResult(...params));
+          } finally {
+            db.transactions.rollbackToSavepoint(name);
+            db.transactions.releaseSavepoint(name);
+          }
+        }
+        db.transactions.begin();
         try {
           return this.cluster.as(this, () => db.prepare(prepared.sql).textResult(...params));
         } finally {
-          db.transactions.rollbackToSavepoint(name);
-          db.transactions.releaseSavepoint(name);
+          db.transactions.rollback();
         }
-      }
-      db.transactions.begin();
-      try {
-        return this.cluster.as(this, () => db.prepare(prepared.sql).textResult(...params));
-      } finally {
-        db.transactions.rollback();
-      }
+      });
     } catch {
       return null;
     } finally {
@@ -1373,7 +1576,10 @@ export class Connection implements Session {
       limit: maxRows,
     });
     if (state === "suspended") portal.cursor += maxRows;
-    else portal.cursor = portal.outcome.empty ? 0 : portal.outcome.result.rows.length;
+    else {
+      portal.cursor = portal.outcome.empty ? 0 : portal.outcome.result.rows.length;
+      await this.acknowledged();
+    }
   }
 
   private close(body: ByteReader): void {

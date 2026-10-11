@@ -249,6 +249,8 @@ export interface SubstringExpr {
   readonly forLen: Expr | null;
   readonly similar: Expr | null; // SUBSTRING(x SIMILAR p ESCAPE e) / FROM p FOR e regex form
   readonly escape: Expr | null;
+  /** written as an ordinary call, `substring(x, 1, 2)`, rather than with FROM / FOR */
+  readonly call?: boolean;
 }
 export interface OverlayExpr {
   readonly type: "overlay";
@@ -452,7 +454,9 @@ export type ColumnConstraint =
     }
   | { kind: "generated_identity"; always: boolean; name: string | null; options: SequenceOptions }
   | { kind: "generated_stored"; expr: Expr; name: string | null }
-  | { kind: "collate"; collation: string[] };
+  | { kind: "collate"; collation: string[] }
+  /** `STORAGE mode`; the mode is validated against the column type when the column is built */
+  | { kind: "storage"; mode: string };
 
 export type RefAction = "no_action" | "restrict" | "cascade" | "set_null" | "set_default" | null;
 
@@ -498,6 +502,7 @@ export interface CreateTableAsStmt {
   readonly query: SelectStmt;
   readonly withData: boolean;
   readonly materialized: boolean; // CREATE MATERIALIZED VIEW handled separately
+  readonly unlogged?: boolean;
 }
 
 export interface CreateIndexStmt {
@@ -515,6 +520,8 @@ export interface CreateIndexStmt {
     opclass: string[] | null;
   }>;
   readonly include: string[];
+  /** WITH (...) storage parameters as written */
+  readonly options?: ReadonlyArray<{ name: string; value: string }>;
   readonly where: Expr | null;
   readonly nullsNotDistinct: boolean;
   readonly concurrently: boolean;
@@ -542,6 +549,8 @@ export interface SequenceOptions {
   ownedBy?: string[] | "none";
   as?: TypeName;
   restart?: bigint | "default";
+  /** ALTER SEQUENCE ... SET LOGGED (true) / SET UNLOGGED (false) */
+  logged?: boolean;
 }
 
 export interface CreateSequenceStmt {
@@ -549,6 +558,7 @@ export interface CreateSequenceStmt {
   readonly name: string[];
   readonly ifNotExists: boolean;
   readonly temp: boolean;
+  readonly unlogged?: boolean;
   readonly options: SequenceOptions;
 }
 
@@ -638,6 +648,9 @@ export type AlterTableAction =
   | { kind: "drop_default"; column: string }
   | { kind: "set_not_null"; column: string }
   | { kind: "drop_not_null"; column: string }
+  /** `mode` is the identifier as written (or "default"); validated against the column type at execution */
+  | { kind: "set_storage"; column: string; mode: string }
+  | { kind: "set_logged"; logged: boolean }
   | { kind: "add_constraint"; constraint: TableConstraint; skipValidation: boolean }
   | { kind: "drop_constraint"; name: string; ifExists: boolean; cascade: boolean }
   | { kind: "rename_column"; from: string; to: string }
@@ -699,6 +712,8 @@ export interface DropStmt {
   readonly funcArgs: TypeName[][] | null;
   readonly ifExists: boolean;
   readonly cascade: boolean;
+  /** DROP INDEX CONCURRENTLY */
+  readonly concurrently?: boolean;
 }
 
 export interface TruncateStmt {
@@ -787,6 +802,20 @@ export interface CommentStmt {
   readonly comment: string | null;
 }
 
+export interface AnalyzeStmt {
+  readonly type: "analyze";
+  /** empty means every table */
+  readonly targets: ReadonlyArray<{ table: string[]; columns: string[] | null }>;
+}
+
+export interface ReindexStmt {
+  readonly type: "reindex";
+  readonly kind: "index" | "table" | "schema" | "database" | "system";
+  /** null only for REINDEX DATABASE / SYSTEM without a name */
+  readonly name: string[] | null;
+  readonly concurrently: boolean;
+}
+
 export interface NoOpStmt {
   readonly type: "no_op";
   readonly what: string; // GRANT / REVOKE / VACUUM / ANALYZE / CHECKPOINT / LISTEN...
@@ -837,5 +866,7 @@ export type Statement =
   | ExplainStmt
   | CopyStmt
   | CommentStmt
+  | AnalyzeStmt
+  | ReindexStmt
   | NoOpStmt
   | DoStmt;

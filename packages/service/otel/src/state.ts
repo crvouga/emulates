@@ -16,10 +16,44 @@ export type StoredRow = {
 /** An O2 organization: queries route by `identifier`; `name` is what the UI shows. */
 export type Organization = { identifier: string; name: string }
 
+/**
+ * How the OTLP receiver authenticates an export: a bearer token (`ingestTokens`), Basic
+ * credentials (`ingestUsers`; a hosted OTLP gateway's `instanceId:token`), or nothing at all
+ * (a local collector).
+ */
+export type IngestAuth = "bearer" | "basic" | "none"
+
+export const INGEST_AUTH_MODES: readonly IngestAuth[] = ["bearer", "basic", "none"]
+
+/**
+ * Browser CORS for the receiver routes, shaped like the Collector's `cors:` block. No allowed
+ * origin: CORS is off (no preflight, no headers).
+ */
+export type CorsSettings = {
+  /** Exact origins, origins with one `*` wildcard (`https://*.example.test`), or `*` for any. */
+  allowedOrigins: string[]
+  /** Request headers a preflight may name; `*` for any. Default accept, content-type, x-requested-with. */
+  allowedHeaders?: string[]
+  /** Methods a cross-origin request may use. Default GET, POST, HEAD. */
+  allowedMethods?: string[]
+  /** `Access-Control-Expose-Headers` on the export's response. */
+  exposedHeaders?: string[]
+  /** `Access-Control-Max-Age` in seconds; 0 or absent sends none. */
+  maxAge?: number
+}
+
 /** Per-namespace knobs, set through `PUT /__admin/settings`; cleared on reset. */
 export type Settings = {
+  /** What the OTLP receiver asks of an export. Default `bearer`. */
+  ingestAuth: IngestAuth
   /** Bearer tokens the OTLP receiver accepts. Empty: any bearer token (none is a 401). */
   ingestTokens: string[]
+  /**
+   * Basic credentials the OTLP receiver accepts in `basic` mode. Empty: any Basic credentials
+   * (none is a 401).
+   */
+  ingestUsers: { username: string; password: string }[]
+  cors: CorsSettings
   /** Basic-auth users the search API accepts. Empty: any Basic credentials (none is a 401). */
   searchUsers: { username: string; password: string }[]
   organizations: Organization[]
@@ -40,7 +74,10 @@ export const DEFAULT_ORGANIZATIONS: readonly Organization[] = [
 ]
 
 export const DEFAULT_SETTINGS: Settings = {
+  ingestAuth: "bearer",
   ingestTokens: [],
+  ingestUsers: [],
+  cors: { allowedOrigins: [] },
   searchUsers: [],
   organizations: [...DEFAULT_ORGANIZATIONS],
   routing: { byEnvironment: { production: "production" }, default: "development" },
@@ -85,8 +122,9 @@ export class OtelState {
     }
   }
 
+  /** Stored settings over the defaults, so a snapshot from before a setting existed still reads. */
   current(): Settings {
-    return this.settings.get("settings") ?? DEFAULT_SETTINGS
+    return { ...DEFAULT_SETTINGS, ...this.settings.get("settings") }
   }
 
   update(patch: Partial<Settings>): Settings {

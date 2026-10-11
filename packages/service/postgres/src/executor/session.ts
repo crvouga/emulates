@@ -75,6 +75,11 @@ function getDefaultSettings(): Map<string, string> {
   return defaultSettings;
 }
 
+/** The value `RESET` restores: the session's own default when it has one, else the built-in. */
+function resetValue(state: DatabaseState, name: string): string | undefined {
+  return state.settingDefaults?.get(name) ?? getDefaultSettings().get(name);
+}
+
 function canonicalGucName(name: string): string {
   const n = name.toLowerCase();
   if (n === "time zone" || n === "timezone") return "timezone";
@@ -113,7 +118,7 @@ export function executeSet(env: ExecEnv, stmt: SetStmt): ExecResult {
   }
   if (stmt.value === null) {
     // SET x TO DEFAULT
-    const dflt = getDefaultSettings().get(name);
+    const dflt = resetValue(state, name);
     if (dflt !== undefined) target.set(name, dflt);
     else target.delete(name);
     return commandResult("SET", 0);
@@ -156,14 +161,14 @@ export function executeReset(env: ExecEnv, stmt: ResetStmt): ExecResult {
   const state = env.ctx.state;
   const name = canonicalGucName(stmt.name);
   if (name === "all") {
-    state.settings = new Map(getDefaultSettings());
+    state.settings = new Map([...getDefaultSettings(), ...(state.settingDefaults ?? [])]);
     state.localSettings.clear();
     return commandResult("RESET", 0);
   }
   if (!isKnownGuc(name) && !state.settings.has(name)) {
     throw pgError("undefined_object", `unrecognized configuration parameter "${stmt.name}"`, "42704");
   }
-  const dflt = getDefaultSettings().get(name);
+  const dflt = resetValue(state, name);
   if (dflt !== undefined) state.settings.set(name, dflt);
   else state.settings.delete(name);
   state.localSettings.delete(name);

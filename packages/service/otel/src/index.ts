@@ -15,6 +15,7 @@ import {
 } from "@crvouga/mockingbird-service"
 import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import type { Hono } from "hono"
+import { applyCors, corsEnabled, isPreflight, preflightResponse } from "./cors.js"
 import { document, type SupportedOperationId } from "./generated/openapi.js"
 import { logRows, metricCount, type Row, spanRows } from "./otlp.js"
 import {
@@ -25,6 +26,7 @@ import {
 } from "./protobuf.js"
 import { execute, parseSql, referencedColumns, SqlError } from "./sql.js"
 import { OtelState, type Settings, type StoredRow, type StreamType } from "./state.js"
+import { mediaType, PROTOBUF, rpcStatus } from "./status.js"
 
 export type { FetchAPI } from "@crvouga/mockingbird-core"
 export type { SqliteClient } from "@crvouga/mockingbird-sqlite"
@@ -36,6 +38,8 @@ export { decodeLogsRequest, decodeTraceRequest, ProtobufError } from "./protobuf
 export type { Expr, Query } from "./sql.js"
 export { execute, parseSql, referencedColumns, SqlError } from "./sql.js"
 export type {
+  CorsSettings,
+  IngestAuth,
   MetricCounters,
   Organization,
   SchemaFields,
@@ -43,21 +47,23 @@ export type {
   StoredRow,
   StreamType,
 } from "./state.js"
-export { DEFAULT_ORGANIZATIONS, DEFAULT_SETTINGS } from "./state.js"
+export { DEFAULT_ORGANIZATIONS, DEFAULT_SETTINGS, INGEST_AUTH_MODES } from "./state.js"
 
 export const OTEL_NAMESPACE = "otel"
 
 export type OtelAPIOptions = APIOptions & {
-  /** Initial per-namespace settings (tokens, users, orgs, routing, keepBodies). */
+  /** Initial per-namespace settings (auth mode, tokens, users, CORS, orgs, routing, keepBodies). */
   settings?: Partial<Settings>
 }
 
-const PROTOBUF = "application/x-protobuf"
+/** The receiver routes: the ones CORS covers. */
+const RECEIVER_PATHS = new Set(["/v1/traces", "/v1/logs", "/v1/metrics"])
 
 /**
  * The credential a request carries, for `PUT /__admin/credentials`: the OTLP bearer token
- * (`OTEL_AUTH_TOKEN`) or the O2 Basic-auth username (from `O2_BASIC_AUTH`). Map both to the
- * same namespace so a worker's exports and searches meet.
+ * (`OTEL_AUTH_TOKEN`), or the Basic-auth username (the O2 user from `O2_BASIC_AUTH`; a Basic
+ * collector's instance id). Map both to the same namespace so a worker's exports and searches
+ * meet.
  */
 export const otelCredential = (request: Request): string | undefined =>
   bearerToken(request) ?? basicAuth(request)?.username
@@ -65,12 +71,12 @@ export const otelCredential = (request: Request): string | undefined =>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
-const mediaType = (request: Request) =>
-  request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() ?? ""
-
-/** google.rpc.Status, the OTLP error body (code 16 = UNAUTHENTICATED, 3 = INVALID_ARGUMENT). */
-const rpcStatus = (status: number, code: number, message: string) =>
-  jsonRes(status, { code, message })
+/** What the Collector answers any receiver method but POST. */
+const methodNotAllowed = () =>
+  new Response("405 method not allowed, supported: [POST]", {
+    status: 405,
+    headers: { "content-type": "text/plain" },
+  })
 
 const unauthorized = () =>
   new Response("Unauthorized Access", {
@@ -103,6 +109,9 @@ export class OtelAPI implements FetchAPI {
       ExportTraces: (context) => this.export(context, "traces"),
       ExportLogs: (context) => this.export(context, "logs"),
       ExportMetrics: (context) => this.export(context, "metrics"),
+      PreflightTraces: (context) => this.preflight(context),
+      PreflightLogs: (context) => this.preflight(context),
+      PreflightMetrics: (context) => this.preflight(context),
       ListOrganizations: () => this.organizations(),
       ListStreams: (context) => this.streams(context),
       GetStreamSchema: (context) => this.schema(context),
@@ -125,8 +134,17 @@ export class OtelAPI implements FetchAPI {
     this.sqlite = this.service.sqlite
   }
 
-  /** Inflate `content-encoding: gzip` bodies (the exporters' `compression: "gzip"`). */
+  /** CORS wraps everything the receiver answers, its errors included. */
   async fetch(request: Request): Promise<Response> {
+    const response = await this.dispatch(request)
+    if (!RECEIVER_PATHS.has(new URL(request.url).pathname) || isPreflight(request)) return response
+    const cors = this.settings().cors
+    if (corsEnabled(cors)) applyCors(request, response, cors)
+    return response
+  }
+
+  /** Inflate `content-encoding: gzip` bodies (the exporters' `compression: "gzip"`). */
+  private async dispatch(request: Request): Promise<Response> {
     const encoding = request.headers.get("content-encoding")?.toLowerCase()
     if (encoding !== "gzip" || request.body === null) return this.service.fetch(request)
     let inflated: ArrayBuffer
@@ -135,7 +153,7 @@ export class OtelAPI implements FetchAPI {
         request.body.pipeThrough(new DecompressionStream("gzip")),
       ).arrayBuffer()
     } catch {
-      return rpcStatus(400, 3, "invalid gzip body")
+      return rpcStatus(request, 400, 3, "invalid gzip body")
     }
     const headers = new Headers(request.headers)
     headers.delete("content-encoding")
@@ -166,13 +184,12 @@ export class OtelAPI implements FetchAPI {
 
   private gate(context: OperationContext): Response | undefined {
     const operationId = context.operation.operationId
+    // A preflight carries no credentials: CORS answers it before authentication.
+    if (operationId.startsWith("Preflight")) return undefined
     if (operationId.startsWith("Export")) {
-      const token = bearerToken(context.request)
-      const accepted = this.settings().ingestTokens
-      if (!token || (accepted.length > 0 && !accepted.includes(token))) {
-        return rpcStatus(401, 16, "Unauthenticated")
-      }
-      return undefined
+      return this.ingestAllowed(context.request)
+        ? undefined
+        : rpcStatus(context.request, 401, 16, "Unauthenticated")
     }
     const credentials = basicAuth(context.request)
     if (!credentials) return unauthorized()
@@ -189,6 +206,34 @@ export class OtelAPI implements FetchAPI {
       return unauthorized()
     }
     return undefined
+  }
+
+  /** The receiver's auth mode: nothing, Basic credentials, or (the default) a bearer token. */
+  private ingestAllowed(request: Request): boolean {
+    const settings = this.settings()
+    if (settings.ingestAuth === "none") return true
+    if (settings.ingestAuth === "basic") {
+      const credentials = basicAuth(request)
+      const users = settings.ingestUsers
+      return (
+        credentials !== undefined &&
+        (users.length === 0 ||
+          users.some(
+            (u) => u.username === credentials.username && u.password === credentials.password,
+          ))
+      )
+    }
+    const token = bearerToken(request)
+    const accepted = settings.ingestTokens
+    return token !== undefined && (accepted.length === 0 || accepted.includes(token))
+  }
+
+  /** `OPTIONS` on a receiver route: a CORS preflight when CORS is on, else not a method it takes. */
+  private preflight(context: OperationContext): Response {
+    const cors = this.settings().cors
+    return corsEnabled(cors) && isPreflight(context.request)
+      ? preflightResponse(context.request, cors)
+      : methodNotAllowed()
   }
 
   private decode(
@@ -208,16 +253,16 @@ export class OtelAPI implements FetchAPI {
               : { resourceMetrics: new Array(countMetricsRequest(bytes)).fill({}) }
         return { payload, protobuf: true, bytes: bytes.length }
       } catch (error) {
-        if (error instanceof ProtobufError) return rpcStatus(400, 3, error.message)
+        if (error instanceof ProtobufError) return rpcStatus(context.request, 400, 3, error.message)
         throw error
       }
     }
     if (type !== "application/json") {
-      return rpcStatus(415, 3, `unsupported content type ${type || "(none)"}`)
+      return rpcStatus(context.request, 415, 3, `unsupported content type ${type || "(none)"}`)
     }
     if (body.kind === "empty") return { payload: {}, protobuf: false, bytes: 0 }
     if (body.kind !== "json" || !isRecord(body.value)) {
-      return rpcStatus(400, 3, "request body is not an OTLP/JSON export request")
+      return rpcStatus(context.request, 400, 3, "request body is not an OTLP/JSON export request")
     }
     return { payload: body.value, protobuf: false, bytes: JSON.stringify(body.value).length }
   }

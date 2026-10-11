@@ -7,29 +7,49 @@ import {
   type RequestLog,
   type ServiceRuntime,
 } from "@crvouga/mockingbird-service"
-import { adsFailure, present, record } from "./errors.js"
+import { adsFailure, record } from "./errors.js"
 import { document } from "./generated/openapi.js"
 import { DEFAULT_ADMIN_KEY, GoogleAdsAPI, type GoogleAdsAPIOptions } from "./index.js"
 import { createVaultKey } from "./vault.js"
 
-const faultBody = (status: number, name: string, kind: string, code: string) => ({
+const faultBody = (
+  status: number,
+  name: string,
+  kind: string,
+  code: string,
+  message: string,
+  details?: Record<string, unknown>,
+) => ({
   error: {
     code: status,
-    message: name,
+    message,
     status: code,
-    details: [adsFailure([{ errorCode: { [kind]: name }, message: name }], "fixture-request")],
+    details: [
+      adsFailure(
+        [{ errorCode: { [kind]: name }, message, ...(details ? { details } : {}) }],
+        "fixture-request",
+      ),
+    ],
   },
+})
+// Google carries the backoff in QuotaErrorDetails (a protobuf JSON Duration), not an HTTP header.
+const quotaFault = (name: string, message: string) => ({
+  count: 1,
+  status: 429,
+  headers: { "request-id": "fixture-request" },
+  body: faultBody(429, name, "quotaError", "RESOURCE_EXHAUSTED", message, {
+    quotaErrorDetails: { rateScope: "ACCOUNT", rateName: "Requests per account", retryDelay: "1s" },
+  }),
 })
 export const GOOGLE_ADS_PRESETS: Record<string, FaultPreset> = {
   quota_exhausted: {
     description: "Reject one request before mutation with Google RPC quota exhaustion",
+    rules: [quotaFault("RESOURCE_EXHAUSTED", "Too many requests.")],
+  },
+  rate_limited: {
+    description: "Reject one request before mutation with Google's short-term rate limit",
     rules: [
-      {
-        count: 1,
-        status: 429,
-        headers: { "retry-after": "1", "request-id": "fixture-request" },
-        body: faultBody(429, "RESOURCE_EXHAUSTED", "quotaError", "RESOURCE_EXHAUSTED"),
-      },
+      quotaFault("RESOURCE_TEMPORARILY_EXHAUSTED", "Too many requests in a short amount of time."),
     ],
   },
   server_error: {
@@ -38,7 +58,8 @@ export const GOOGLE_ADS_PRESETS: Record<string, FaultPreset> = {
       {
         count: 1,
         status: 500,
-        body: faultBody(500, "INTERNAL_ERROR", "internalError", "INTERNAL"),
+        headers: { "request-id": "fixture-request" },
+        body: faultBody(500, "INTERNAL_ERROR", "internalError", "INTERNAL", "INTERNAL_ERROR"),
       },
     ],
   },
@@ -51,7 +72,8 @@ export const GOOGLE_ADS_PRESETS: Record<string, FaultPreset> = {
     rules: [{ count: 1, delayMs: 50 }],
   },
   ambiguous_budget_write: {
-    description: "Commit one budget mutation then return 503; inspect before replaying",
+    description:
+      "Commit the next executed budget mutation then return 503; inspect before replaying",
     rules: [{ count: 1, operationId: "MutateCampaignBudgets", effect: "ambiguous_mutation" }],
   },
   partial_budget_failure: {
@@ -114,18 +136,12 @@ const routes = (runtime: GoogleAdsRuntime): AdminRoutes => {
       ),
     "POST /page-tokens/expire": ({ namespace }) =>
       Response.json({ expired: runtime.instance(namespace).expirePageTokens() }),
-    "GET /settings": ({ namespace }) => {
-      const { reportingLagMs, pageTokenTtlMs, futureToleranceMs } = present(
-        runtime.instance(namespace).state.settings.get("settings"),
-      )
-      return Response.json({ reportingLagMs, pageTokenTtlMs, futureToleranceMs })
-    },
+    "GET /settings": ({ namespace }) => Response.json(runtime.instance(namespace).state.view()),
     "PUT /settings": ({ namespace, body }) =>
       guarded(() => {
-        const { reportingLagMs, pageTokenTtlMs, futureToleranceMs } = runtime
-          .instance(namespace)
-          .configure(record(body))
-        return Response.json({ reportingLagMs, pageTokenTtlMs, futureToleranceMs })
+        const api = runtime.instance(namespace)
+        api.configure(record(body))
+        return Response.json(api.state.view())
       }),
   }
 }

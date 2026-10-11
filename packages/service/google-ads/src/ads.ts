@@ -21,7 +21,8 @@ import {
   normalizeBudget,
 } from "./state.js"
 
-const PAGE_SIZE = 10000
+/** Google's fixed Search page; also the SearchStream batch size here. */
+export const PAGE_SIZE = 10000
 const indexed = (detail: AdsError, fieldName: string, index: number): AdsError => ({
   ...detail,
   location: {
@@ -112,6 +113,8 @@ export class AdsEngine {
       data = this.state.open<SearchData>(snapshot.sealed, "snapshot", snapshot.id)
     } else data = executeGAQL(this.state, customerId, query, this.now())
     if (validateOnly) return {}
+    // Search pages are fixed at 10000 rows; only the admin setting can shrink them for a fixture.
+    const pageSize = present(this.state.settings.get("settings")).searchPageSize ?? PAGE_SIZE
     if (stream) {
       if (
         body.summaryRowSetting !== undefined &&
@@ -136,11 +139,11 @@ export class AdsEngine {
     }
     const result: Record<string, unknown> = {
       fieldMask: data.fieldMask,
-      ...(omit ? {} : { results: data.results.slice(offset, offset + PAGE_SIZE) }),
+      ...(omit ? {} : { results: data.results.slice(offset, offset + pageSize) }),
       ...(total ? { totalResultsCount: String(data.results.length) } : {}),
       ...(summary ? { summaryRow: data.summaryRow } : {}),
     }
-    if (!omit && offset + PAGE_SIZE < data.results.length) {
+    if (!omit && offset + pageSize < data.results.length) {
       if (!snapshotId) {
         snapshotId = this.state.ids.next("snapshot_")
         this.state.snapshots.insert(snapshotId, {
@@ -153,11 +156,10 @@ export class AdsEngine {
       }
       // One immutable continuation per offset; retries return the same token.
       const previous = this.state.pageTokens.list({
-        where: (p) => p.snapshotId === snapshotId && p.offset === offset + PAGE_SIZE,
+        where: (p) => p.snapshotId === snapshotId && p.offset === offset + pageSize,
       })[0]?.value
       const id = previous?.id ?? this.state.ids.next("page_", 32)
-      if (!previous)
-        this.state.pageTokens.insert(id, { id, snapshotId, offset: offset + PAGE_SIZE })
+      if (!previous) this.state.pageTokens.insert(id, { id, snapshotId, offset: offset + pageSize })
       result.nextPageToken = id
     }
     return result
@@ -233,6 +235,14 @@ export class AdsEngine {
               reject("CAMPAIGN_BUDGET_IN_USE", "Campaign budget is in use", "campaignBudgetError")
             after = { ...before, status: "REMOVED" }
           } else {
+            if (op.updateMask === undefined || op.updateMask === "")
+              reject(
+                "FIELD_MASK_MISSING",
+                "The field mask must be provided for update operations",
+                "fieldMaskError",
+                400,
+                "updateMask",
+              )
             const mask = text(op.updateMask, "updateMask")
               .split(",")
               .map((s) => s.trim().replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()))

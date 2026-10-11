@@ -11,6 +11,9 @@
  * transaction blocks. Advisory locks, `LISTEN`/`NOTIFY`, `CancelRequest` and per-connection
  * aborted-transaction state (`25P02`) are coordinated across connections.
  *
+ * State lives in memory. The opt-in `durable` option persists the cluster before each commit is
+ * acknowledged (see ./durable.ts); without it the server touches no filesystem.
+ *
  * @example
  * ```ts
  * import { serve } from "@crvouga/mockingbird-service-postgres/wire";
@@ -25,8 +28,10 @@
 import { createServer, type Server, type Socket } from "node:net";
 import { Database } from "../api/database.ts";
 import type { Snapshot } from "../api/snapshot.ts";
-import { Cluster } from "./cluster.ts";
+import { Cluster, type Session } from "./cluster.ts";
 import { Connection, type ServerFaults, type ServerLog } from "./connection.ts";
+import { Durability, type DurableOptions, type DurableStorage, openImage } from "./durable.ts";
+import { fileStorage } from "./file-storage.ts";
 
 export type ServeOptions = {
   /** TCP port; `0` (the default) picks a free one, reported as `server.port`. */
@@ -61,6 +66,15 @@ export type ServeOptions = {
   allowDatabaseSelection?: boolean;
   /** Role shown in `connectionString`. A URI's username fills this. Default `postgres`. */
   user?: string;
+  /**
+   * Opt-in durable mode: a directory (the file-backed store), an injected {@link DurableStorage},
+   * or {@link DurableOptions} with test controls. An autocommit write or `COMMIT` is then
+   * persisted before it is acknowledged, and a server started on the same storage resumes from
+   * the last acknowledged commit, even after a `SIGKILL`. Storage that already holds a cluster
+   * wins over `database`, which then only supplies the clock, seed and entropy mode. Omitted
+   * (the default), state lives in memory only and no filesystem is touched.
+   */
+  durable?: string | DurableStorage | DurableOptions;
 };
 
 export type PostgresServer = {
@@ -88,7 +102,12 @@ export type PostgresServer = {
   snapshotAll(): Map<string, Snapshot>;
   restoreAll(points: ReadonlyMap<string, Snapshot>): void;
   faultState(): ServerFaults;
-  /** Stop listening and close every connection. */
+  /**
+   * Durable mode: persist every database now, for changes made through `database` /
+   * `getDatabase()` / `restoreAll()` rather than a connection. Resolves at once without `durable`.
+   */
+  persist(): Promise<void>;
+  /** Stop listening and close every connection. Durable mode also waits for a write in flight. */
   close(): Promise<void>;
 };
 
@@ -137,12 +156,49 @@ const normalize = (input: ServeInput): ServeOptions => {
 const isSnapshot = (value: unknown): value is Snapshot =>
   typeof value === "object" && value !== null && "open" in value && typeof (value as Snapshot).open === "function";
 
+const durableOptions = (durable: ServeOptions["durable"]): (DurableOptions & { storage: DurableStorage }) | null => {
+  if (durable === undefined) return null;
+  const options: DurableOptions =
+    typeof durable === "string" || "write" in durable ? { storage: durable as string | DurableStorage } : durable;
+  const storage = typeof options.storage === "string" ? fileStorage(options.storage) : options.storage;
+  return { ...options, storage };
+};
+
+/** The statement turn for work that is not a connection's: {@link PostgresServer.persist}. */
+const hostSession = (cluster: Cluster): Session => ({
+  pid: cluster.newPid(),
+  database: cluster.db,
+  databaseName: cluster.defaultDatabaseName,
+  waitingForTurn: null,
+  waitingForLock: null,
+  pendingNotifies: [],
+  queueNotification: () => undefined,
+});
+
 /** Start a server and resolve once it is listening. A string argument is a `postgres://` URI. */
-export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
-  const options = normalize(input);
-  const database = isSnapshot(options.database) ? options.database.open() : (options.database ?? new Database());
+export const serve = (input: ServeInput = {}): Promise<PostgresServer> => start(normalize(input));
+
+const start = async (options: ServeOptions): Promise<PostgresServer> => {
+  const seed = isSnapshot(options.database) ? options.database.open() : (options.database ?? new Database());
   const initialName = options.databaseName ?? "postgres";
-  const cluster = new Cluster(database, initialName);
+  const durable = durableOptions(options.durable);
+  const image = durable ? await durable.storage.read() : null;
+  const restored = image ? openImage(image, seed) : null;
+  if (restored && !restored.has(initialName)) {
+    throw new Error(
+      `durable storage holds no database "${initialName}" (it has ${[...restored.keys()].sort().join(", ")}); start with that databaseName or an empty storage`,
+    );
+  }
+  const cluster = new Cluster(restored?.get(initialName) ?? seed, initialName);
+  for (const [name, database] of restored ?? []) if (name !== initialName) cluster.attach(name, database);
+  let durability: Durability | null = null;
+  if (durable) {
+    durability = new Durability(cluster, durable.storage, durable);
+    cluster.durability = durability;
+    // An empty storage is initialised with the starting state, so the first restart finds a cluster.
+    if (image) durability.adopt(image);
+    else await durability.persist("all");
+  }
   const faults: ServerFaults = {};
   const connections = new Set<Connection>();
   const host = options.host ?? "127.0.0.1";
@@ -205,12 +261,23 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
         snapshot(databaseName = initialName) {
           return cluster.requireDatabase(databaseName).snapshot();
         },
-        close() {
+        async persist() {
+          if (!durability) return;
+          const session = hostSession(cluster);
+          await cluster.acquireTurn(session);
+          try {
+            await durability.persist("all");
+          } finally {
+            cluster.releaseTurn(session);
+          }
+        },
+        async close() {
           for (const connection of connections) connection.destroy();
           connections.clear();
-          return new Promise<void>((done, fail) => {
+          await new Promise<void>((done, fail) => {
             server.close((error?: Error | null) => (error ? fail(error) : done()));
           });
+          await durability?.idle();
         },
       });
     });
@@ -219,3 +286,5 @@ export const serve = (input: ServeInput = {}): Promise<PostgresServer> => {
 
 export { Cluster } from "./cluster.ts";
 export type { ServerFaults, ServerLog } from "./connection.ts";
+export type { ClusterImage, DurableCommit, DurableOptions, DurableStorage } from "./durable.ts";
+export { fileStorage } from "./file-storage.ts";

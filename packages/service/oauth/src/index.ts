@@ -1290,7 +1290,9 @@ export class OAuthAPI {
             "",
           )}<button class="primary" data-testid="oauth-mock-form-post-continue">Continue</button></form><script nonce="${nonce}">document.getElementById('callback').submit()</script>`,
         200,
-        formTarget(auth.redirectUri),
+        // The callback may answer this POST with a redirect to an origin only it knows (its web
+        // app), and form-action would be applied to that hop too. No source list can allow it.
+        null,
         nonce,
         "oauth-mock-form-post",
       )

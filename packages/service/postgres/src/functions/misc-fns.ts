@@ -1,5 +1,6 @@
-import { pgError } from "../errors/error.ts";
+import { isPostgresError, pgError } from "../errors/error.ts";
 import type { EngineCtx } from "../expressions/context.ts";
+import { findIndexByOid } from "../schema/index-catalog.ts";
 import { quoteIdent } from "../sql/deparse.ts";
 import { deparseIndex, deparseIndexColumn } from "../sql/deparse-index.ts";
 import type { SequenceData } from "../storage/database-state.ts";
@@ -101,22 +102,39 @@ export function sequenceNextval(ctx: EngineCtx, seq: SequenceData): bigint {
 export function getMiscFunctions(): Map<string, ScalarFn> {
   const m = new Map<string, ScalarFn>();
 
+  // pg_get_indexdef(oid) and pg_get_indexdef(oid, column, pretty); there is no two-argument form
+  m.set("pg_get_indexdef", (ctx, args) => {
+    if (args.length !== 1 && args.length !== 3) {
+      const types = args.map((arg) => typeDisplayName(arg.t)).join(", ");
+      throw pgError("undefined_function", `function pg_get_indexdef(${types}) does not exist`, "42883");
+    }
+    if (args.some((arg) => arg.v === null)) return tv("text", null);
+    const found = findIndexByOid(ctx.state, argInt(ctx, args[0]!));
+    // an oid that is not an index, like one that does not exist, is NULL rather than an error
+    if (!found) return tv("text", null);
+    const column = args.length === 3 ? argInt(ctx, args[1]!) : 0;
+    const pretty = args.length === 3 && castTo(ctx, args[2]!, "bool", { explicit: true }).v === true;
+    if (column === 0) return tv("text", deparseIndex(ctx, found.index, pretty));
+    return tv("text", deparseIndexColumn(ctx, found.index, column, pretty));
+  });
+
+  // regnamespacein with soft errors: a malformed or unknown name is NULL
   m.set(
-    "pg_get_indexdef",
-    strict("text", (ctx, args) => {
-      const oid = argInt(ctx, args[0]!);
-      const column = args[1] ? argInt(ctx, args[1]) : 0;
-      for (const schema of ctx.state.schemas.values()) {
-        for (const index of schema.indexes.values()) {
-          if (index.oid !== oid) continue;
-          if (column === 0) return tv("text", deparseIndex(index));
-          const part = index.columns[column - 1];
-          return tv("text", part ? deparseIndexColumn(part) : "");
+    "to_regnamespace",
+    strict("regnamespace", (ctx, args) => {
+      try {
+        return castTo(ctx, tv("unknown", argText(ctx, args[0]!)), "regnamespace", { explicit: true });
+      } catch (error) {
+        if (isPostgresError(error) && ["42602", "3F000", "22003"].includes(error.sqlState)) {
+          return tv("regnamespace", null);
         }
+        throw error;
       }
-      return tv("text", null);
     }),
   );
+
+  // statistics are never pending here: every read already sees the current counters
+  m.set("pg_stat_force_next_flush", () => tv("void", null));
 
   m.set("version", () => tv("text", PG_VERSION_TEXT));
   m.set("current_database", (ctx) => tv("name", databaseCatalogContext(ctx.state).name));
@@ -259,8 +277,18 @@ export function getMiscFunctions(): Map<string, ScalarFn> {
     const name = ctx.state.typeNameForOid(oid);
     return tv("text", name ?? "???");
   });
-  m.set("pg_get_expr", () => tv("text", null));
-  m.set("obj_description", () => tv("text", null));
+  // pg_index.indpred / indexprs hold the deparsed text already (not a pg_node_tree): hand it back
+  m.set("pg_get_expr", (_ctx, args) => {
+    const expr = args[0];
+    return tv("text", expr && (expr.t === "text" || expr.t === "unknown") ? (expr.v as string | null) : null);
+  });
+  // only index comments are stored (COMMENT ON INDEX); every other object has none
+  m.set("obj_description", (ctx, args) => {
+    const [oid, catalog] = args;
+    if (!oid || oid.v === null || (catalog && catalog.v === null)) return tv("text", null);
+    if (catalog && argText(ctx, catalog) !== "pg_class") return tv("text", null);
+    return tv("text", findIndexByOid(ctx.state, argInt(ctx, oid))?.index.comment ?? null);
+  });
   m.set("col_description", () => tv("text", null));
   m.set("shobj_description", () => tv("text", null));
   m.set("pg_get_userbyid", () => tv("name", "postgres"));

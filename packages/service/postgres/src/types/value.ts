@@ -16,6 +16,7 @@ import {
 import { type JsonbValue, jsonbText, parseJsonText, validateJsonText } from "./jsonb.ts";
 import { parseJsonpath } from "./jsonpath.ts";
 import { type Numeric, numericText, parseNumeric } from "./numeric.ts";
+import { namespaceText, parseNamespaceInput, parseOidText } from "./regnamespace.ts";
 
 /**
  * Canonical type ids are lowercase PG internal names: "int4", "text",
@@ -574,6 +575,7 @@ function quoteArrayElem(s: string): string {
 }
 
 export interface OutputCtx {
+  /** unquoted schema name for an oid, or null when no schema has it */
   namespaceName?(oid: number): string | null;
   /** offset seconds east of UTC for rendering timestamptz at given UTC micros */
   zoneOffsetAt(utcMicros: bigint): number;
@@ -627,7 +629,7 @@ export function recordText(rec: PgRecord, ctx: OutputCtx): string {
 
 /** Render a non-null datum of type `t` to PG wire text. */
 export function datumText(t: TypeId, v: Datum, ctx: OutputCtx): string {
-  if (t === "regnamespace") return ctx.namespaceName?.(v as number) ?? String(v);
+  if (t === "regnamespace") return namespaceText(v as number, ctx.namespaceName?.(v as number));
   if (v === null) throw pgError("internal", "datumText called with null");
   if (isArrayType(t)) return arrayText(v as PgArray, ctx);
   if (isEnumType(t)) return v as string;
@@ -703,6 +705,7 @@ export function datumText(t: TypeId, v: Datum, ctx: OutputCtx): string {
 // --- typinput ----------------------------------------------------------------
 
 export interface InputCtx {
+  /** oid of the schema with exactly this name; raises 3F000 when there is none */
   namespaceOid?(name: string): number;
   /** session zone offset lookup for naive timestamptz input */
   zoneOffsetForNaive(naiveMicros: bigint): number;
@@ -715,9 +718,10 @@ export const UTC_INPUT: InputCtx = { zoneOffsetForNaive: () => 0 };
 /** Parse PG wire text into a datum of type `t` (typinput). */
 export function datumFromText(t: TypeId, text: string, ctx: InputCtx): Datum {
   if (t === "regnamespace") {
-    if (/^\s*\d+\s*$/.test(text)) return datumFromText("oid", text, ctx);
+    const parsed = parseNamespaceInput(text);
+    if ("oid" in parsed) return parsed.oid;
     if (!ctx.namespaceOid) throw unsupported("regnamespace input without a catalog");
-    return ctx.namespaceOid(text);
+    return ctx.namespaceOid(parsed.name);
   }
   if (isArrayType(t)) return parseArrayText(t, text, ctx);
   if (isEnumType(t)) {
@@ -733,10 +737,8 @@ export function datumFromText(t: TypeId, text: string, ctx: InputCtx): Datum {
     case "int4":
     case "int8":
       return parseIntegerText(text, t);
-    case "oid": {
-      const n = parseIntegerText(text, "int8") as bigint;
-      return Number(n);
-    }
+    case "oid":
+      return parseOidText(text);
     case "float4":
       return Math.fround(parseFloatText(text, "float4"));
     case "float8":
@@ -769,7 +771,8 @@ export function datumFromText(t: TypeId, text: string, ctx: InputCtx): Datum {
     case "timestamp":
       return parseTimestamp(text);
     case "timestamptz":
-      return parseTimestampTz(text, ctx.zoneOffsetForNaive);
+      // called through ctx: the engine context resolves the session zone from `this`
+      return parseTimestampTz(text, (naiveMicros) => ctx.zoneOffsetForNaive(naiveMicros));
     case "interval":
       return parseInterval(text);
     case "uuid":

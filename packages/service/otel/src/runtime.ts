@@ -10,14 +10,22 @@ import type { SqliteClient } from "@crvouga/mockingbird-sqlite"
 import { document } from "./generated/openapi.js"
 import { adminRow, OTEL_NAMESPACE, OtelAPI, otelCredential } from "./index.js"
 import { formatKey, type Row } from "./otlp.js"
-import type { Organization, Settings, StoredRow } from "./state.js"
+import {
+  type CorsSettings,
+  INGEST_AUTH_MODES,
+  type IngestAuth,
+  type Organization,
+  type Settings,
+  type StoredRow,
+} from "./state.js"
 
 const rpc = (code: number, message: string) => ({ code, message })
 
 /**
  * Every named collector misbehaviour our exporters branch on, switched on with
  * `POST /__admin/faults {"preset": "<name>"}` (add `count` to limit it). The SDK retries 429,
- * 502, 503 and 504 (honouring `retry-after`) and drops everything else.
+ * 502, 503 and 504 (honouring `retry-after`) and drops everything else. The export presets
+ * fault the POST only, so a browser's CORS preflight does not use one up.
  */
 export const OTEL_PRESETS: Record<string, FaultPreset> = {
   rate_limited: {
@@ -25,6 +33,7 @@ export const OTEL_PRESETS: Record<string, FaultPreset> = {
     rules: [
       {
         pathPrefix: "/v1/",
+        method: "POST",
         status: 429,
         headers: { "retry-after": "1" },
         body: rpc(8, "rate limited"),
@@ -33,28 +42,28 @@ export const OTEL_PRESETS: Record<string, FaultPreset> = {
   },
   bad_gateway: {
     description: "Exports answer 502 (the SDK retries)",
-    rules: [{ pathPrefix: "/v1/", status: 502, body: rpc(14, "bad gateway") }],
+    rules: [{ pathPrefix: "/v1/", method: "POST", status: 502, body: rpc(14, "bad gateway") }],
   },
   unavailable: {
     description: "Exports answer 503 (the SDK retries)",
-    rules: [{ pathPrefix: "/v1/", status: 503, body: rpc(14, "unavailable") }],
+    rules: [{ pathPrefix: "/v1/", method: "POST", status: 503, body: rpc(14, "unavailable") }],
   },
   gateway_timeout: {
     description: "Exports answer 504 (the SDK retries)",
-    rules: [{ pathPrefix: "/v1/", status: 504, body: rpc(4, "deadline exceeded") }],
+    rules: [{ pathPrefix: "/v1/", method: "POST", status: 504, body: rpc(4, "deadline exceeded") }],
   },
   server_error: {
     description: "Exports answer 500 (the SDK drops the batch: not retryable)",
-    rules: [{ pathPrefix: "/v1/", status: 500, body: rpc(13, "internal error") }],
+    rules: [{ pathPrefix: "/v1/", method: "POST", status: 500, body: rpc(13, "internal error") }],
   },
   unauthorized: {
-    description: "Exports answer 401 as if OTEL_AUTH_TOKEN were wrong (dropped, never retried)",
-    rules: [{ pathPrefix: "/v1/", status: 401, body: rpc(16, "Unauthenticated") }],
+    description: "Exports answer 401 as if the credentials were wrong (dropped, never retried)",
+    rules: [{ pathPrefix: "/v1/", method: "POST", status: 401, body: rpc(16, "Unauthenticated") }],
   },
   partial_success: {
     description:
       "Exports answer 200 with partialSuccess rejecting every item (JSON only); nothing is stored",
-    rules: [{ pathPrefix: "/v1/", effect: "partial_success" }],
+    rules: [{ pathPrefix: "/v1/", method: "POST", effect: "partial_success" }],
   },
   search_unavailable: {
     description: "O2 search answers 503 (our clients degrade: empty hops, error result)",
@@ -98,6 +107,34 @@ const matchesWhere = (row: Row, where: Record<string, unknown>): boolean =>
     if (formatted in row) return same(row[formatted], value)
     return same(row[`service_${formatted}`], value)
   })
+
+const isStrings = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string")
+
+const CORS_SHAPE =
+  "cors: {allowedOrigins: string[], allowedHeaders?: string[], allowedMethods?: string[], exposedHeaders?: string[], maxAge?: number}"
+
+/** A `cors` settings body, or `undefined` when it is not one. */
+const corsSettings = (value: unknown): CorsSettings | undefined => {
+  if (!isRecord(value) || !isStrings(value.allowedOrigins)) return undefined
+  const cors: CorsSettings = { allowedOrigins: value.allowedOrigins }
+  for (const key of ["allowedHeaders", "allowedMethods", "exposedHeaders"] as const) {
+    const list = value[key]
+    if (list === undefined) continue
+    if (!isStrings(list)) return undefined
+    cors[key] = list
+  }
+  if (value.maxAge !== undefined) {
+    if (typeof value.maxAge !== "number" || !Number.isInteger(value.maxAge)) return undefined
+    cors.maxAge = value.maxAge
+  }
+  return cors
+}
+
+const users = (value: unknown): Settings["searchUsers"] | undefined =>
+  Array.isArray(value) && value.every(isRecord)
+    ? value.map((u) => ({ username: String(u.username), password: String(u.password ?? "") }))
+    : undefined
 
 const WAIT_POLL_MS = 20
 const MAX_WAIT_MS = 60_000
@@ -185,18 +222,30 @@ const adminRoutes = (runtime: ServiceRuntime<OtelAPI>): AdminRoutes => {
     "PUT /settings": ({ body, namespace }) => {
       if (!isRecord(body)) return adminError(400, "expected a JSON object")
       const patch: Partial<Settings> = {}
+      if (body.ingestAuth !== undefined) {
+        if (!INGEST_AUTH_MODES.includes(body.ingestAuth as IngestAuth)) {
+          return adminError(400, `ingestAuth: ${INGEST_AUTH_MODES.join(" | ")}`)
+        }
+        patch.ingestAuth = body.ingestAuth as IngestAuth
+      }
       if (body.ingestTokens !== undefined) {
         if (!Array.isArray(body.ingestTokens)) return adminError(400, "ingestTokens: string[]")
         patch.ingestTokens = body.ingestTokens.map(String)
       }
+      if (body.ingestUsers !== undefined) {
+        const ingestUsers = users(body.ingestUsers)
+        if (!ingestUsers) return adminError(400, "ingestUsers: [{username, password}]")
+        patch.ingestUsers = ingestUsers
+      }
+      if (body.cors !== undefined) {
+        const cors = corsSettings(body.cors)
+        if (!cors) return adminError(400, CORS_SHAPE)
+        patch.cors = cors
+      }
       if (body.searchUsers !== undefined) {
-        if (!Array.isArray(body.searchUsers) || !body.searchUsers.every(isRecord)) {
-          return adminError(400, "searchUsers: [{username, password}]")
-        }
-        patch.searchUsers = body.searchUsers.map((u) => ({
-          username: String(u.username),
-          password: String(u.password ?? ""),
-        }))
+        const searchUsers = users(body.searchUsers)
+        if (!searchUsers) return adminError(400, "searchUsers: [{username, password}]")
+        patch.searchUsers = searchUsers
       }
       if (body.organizations !== undefined) {
         if (
@@ -240,8 +289,8 @@ const adminRoutes = (runtime: ServiceRuntime<OtelAPI>): AdminRoutes => {
 /**
  * The OTLP collector + OpenObserve search mock with Mockingbird's full service contract:
  * `/__admin/health`, `/__admin/*` (logs, spans, wait), namespaces by header, by `/__admin/ns/<name>` path
- * prefix, or by credential (the OTLP bearer token or the O2 Basic username), clock control and
- * fault presets.
+ * prefix, or by credential (the OTLP bearer token, or the Basic username of a Basic collector
+ * or of O2), clock control and fault presets.
  */
 export const createRuntime = (options: OtelRuntimeOptions = {}): OtelRuntime =>
   createServiceRuntime<OtelAPI>({

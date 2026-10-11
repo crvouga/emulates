@@ -1,6 +1,8 @@
 import { type CatalogSection, section } from "../scenario-types.ts";
 
 const D = "documented_divergence" as const;
+/** Cases for the alter-set rows live next to the catalog test, in their own file. */
+const ALTER_SET = ["tests/contract/catalog/alter-set-cases.ts"];
 
 export const DDL_SECTION: CatalogSection = section("DDL", "Schema definition", true, [
   ["ct-01", "CREATE TABLE with common column types"],
@@ -25,6 +27,15 @@ export const DDL_SECTION: CatalogSection = section("DDL", "Schema definition", t
   ["alter-02", "DROP COLUMN removes data and star output"],
   ["alter-03", "RENAME COLUMN"],
   ["alter-04", "RENAME TABLE"],
+  ["alter-set-01", "ALTER COLUMN SET DEFAULT applies to later inserts", undefined, undefined, ALTER_SET],
+  ["alter-set-02", "ALTER COLUMN SET NOT NULL flips is_nullable", undefined, undefined, ALTER_SET],
+  ["alter-set-03", "ALTER COLUMN SET NOT NULL errors while NULLs exist", undefined, undefined, ALTER_SET],
+  ["alter-set-04", "ALTER COLUMN DROP NOT NULL lifts the constraint", undefined, undefined, ALTER_SET],
+  ["alter-set-05", "column_default renders SET DEFAULT expressions", undefined, undefined, ALTER_SET],
+  ["alter-set-06", "ALTER COLUMN SET STORAGE shows in pg_attribute.attstorage", undefined, undefined, ALTER_SET],
+  ["alter-set-07", "SET STORAGE other than PLAIN on a fixed-length column errors", undefined, undefined, ALTER_SET],
+  ["alter-set-08", "SET UNLOGGED / SET LOGGED update pg_class.relpersistence", undefined, undefined, ALTER_SET],
+  ["alter-set-09", "SET UNLOGGED on a table a logged table references errors", undefined, undefined, ALTER_SET],
   ["view-01", "CREATE VIEW and query through it"],
   ["view-02", "view column-alias list"],
   ["view-03", "view on view"],

@@ -102,6 +102,23 @@
     "logo": "/brands/aws.png",
     "logoSource": "site"
   },
+  "aws-iot": {
+    "vendor": "Amazon Web Services",
+    "website": "https://aws.amazon.com/iot-core/",
+    "docs": "https://docs.aws.amazon.com/iot/latest/developerguide/",
+    "description": "AWS IoT Core connects devices to AWS over MQTT and HTTPS, with policy-based authorization and persistent sessions.",
+    "input": {
+      "website": "https://aws.amazon.com/iot-core/",
+      "docs": "https://docs.aws.amazon.com/iot/latest/developerguide/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "AWS IoT Core connects devices to AWS over MQTT and HTTPS, with policy-based authorization and persistent sessions.",
+      "color": "#FF9900"
+    },
+    "color": "#FF9900",
+    "logo": "/brands/aws-iot.png",
+    "logoSource": "site"
+  },
   "aws-secrets": {
     "vendor": "AWS Secrets Manager & SSM",
     "website": "https://aws.amazon.com/secrets-manager/",
@@ -437,6 +454,34 @@
     },
     "color": "#FF9900",
     "logo": "/brands/elasticsearch.png",
+    "logoSource": "site"
+  },
+  "elevenlabs": {
+    "vendor": "ElevenLabs",
+    "website": "https://elevenlabs.io",
+    "docs": "https://elevenlabs.io/docs/api-reference/text-to-speech/convert",
+    "description": "ElevenLabs provides text to speech and other voice AI APIs; this emulator answers with local synthetic audio only.",
+    "input": {
+      "website": "https://elevenlabs.io",
+      "docs": "https://elevenlabs.io/docs/api-reference/text-to-speech/convert",
+      "description": "ElevenLabs provides text to speech and other voice AI APIs; this emulator answers with local synthetic audio only."
+    },
+    "color": "#000000",
+    "logo": "/brands/elevenlabs.svg",
+    "logoSource": "simple-icons"
+  },
+  "emqx": {
+    "vendor": "EMQX",
+    "website": "https://www.emqx.com",
+    "docs": "https://docs.emqx.com/en/emqx/latest/",
+    "description": "EMQX is an MQTT broker for connecting devices and applications, with password and JWT authentication, topic ACLs and a REST management API.",
+    "input": {
+      "website": "https://www.emqx.com",
+      "docs": "https://docs.emqx.com/en/emqx/latest/",
+      "description": "EMQX is an MQTT broker for connecting devices and applications, with password and JWT authentication, topic ACLs and a REST management API."
+    },
+    "color": null,
+    "logo": "/brands/emqx.png",
     "logoSource": "site"
   },
   "eventbridge": {
@@ -1506,6 +1551,22 @@
     "color": null,
     "logo": "/brands/tavily.svg",
     "logoSource": "site"
+  },
+  "tempo": {
+    "vendor": "Grafana Labs",
+    "website": "https://grafana.com/oss/tempo/",
+    "docs": "https://grafana.com/docs/tempo/latest/api_docs/",
+    "description": "Grafana Tempo is an open source distributed tracing backend that ingests OpenTelemetry traces and queries them with TraceQL.",
+    "input": {
+      "name": "Grafana Labs",
+      "website": "https://grafana.com/oss/tempo/",
+      "docs": "https://grafana.com/docs/tempo/latest/api_docs/",
+      "description": "Grafana Tempo is an open source distributed tracing backend that ingests OpenTelemetry traces and queries them with TraceQL.",
+      "icon": "grafana"
+    },
+    "color": "#F46800",
+    "logo": "/brands/tempo.svg",
+    "logoSource": "simple-icons"
   },
   "textract": {
     "vendor": "Amazon Textract",

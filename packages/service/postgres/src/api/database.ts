@@ -15,7 +15,7 @@ import {
   type RandomMode,
   resolveClock,
 } from "../runtime/index.ts";
-import type { FunctionData } from "../storage/database-state.ts";
+import type { EngineFaults, FunctionData } from "../storage/database-state.ts";
 import { DatabaseState } from "../storage/database-state.ts";
 import type { TransactionManager } from "../transactions/manager.ts";
 import { resolveTypeName } from "../types/resolve.ts";
@@ -61,6 +61,9 @@ export interface QueryOptions {
    */
   at?: Snapshot | string;
 }
+
+/** One-shot failures armed with {@link Database.fault}. */
+export type DatabaseFaults = EngineFaults;
 
 function isAdopted(value: object): value is AdoptedDatabase {
   return ADOPT in value;
@@ -170,14 +173,16 @@ export class Database {
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
     if (parts.length === 0) throw pgError("syntax", "function name is required", "42601");
-    const schemaName = parts.length >= 2 ? parts[0]! : this.state.currentSchema();
+    const schemaName = (parts.length >= 2 ? parts[0]! : this.state.currentSchema()).toLowerCase();
     const name = parts[parts.length - 1]!.toLowerCase();
-    const schema = this.state.getSchema(schemaName.toLowerCase());
+    // A `pg_catalog.` name is found ahead of the search path, as PostgreSQL's own functions are.
+    const functions =
+      schemaName === "pg_catalog" ? this.state.systemFunctions : this.state.getSchema(schemaName).functions;
     const argTypes: TypeId[] = spec.args.map((a) => resolveTypeName(this.state, parseTypeName(a)).column.id);
     const returns = resolveTypeName(this.state, parseTypeName(spec.returns)).column.id;
     const fn: FunctionData = {
       name,
-      schema: schema.name,
+      schema: schemaName,
       argNames: spec.args.map(() => null),
       argTypes,
       argDefaults: argTypes.map(() => null),
@@ -191,13 +196,13 @@ export class Database {
       oid: this.state.nextOid(),
       jsImpl: spec.fn,
     };
-    const existing = schema.functions.get(name) ?? [];
+    const existing = functions.get(name) ?? [];
     const sameSig = existing.findIndex(
       (f) => f.argTypes.length === argTypes.length && f.argTypes.every((t, i) => t === argTypes[i]),
     );
     if (sameSig !== -1) existing[sameSig] = fn;
     else existing.push(fn);
-    schema.functions.set(name, existing);
+    functions.set(name, existing);
   }
 
   /** Execute a single-statement query and return all rows keyed by column name. */
@@ -345,6 +350,18 @@ export class Database {
   branch(at: Snapshot = this.snapshot()): Database {
     this.assertOpen();
     return at.open();
+  }
+
+  /**
+   * Arm a one-shot failure for a test. `concurrentIndexBuild` makes the next
+   * `CREATE INDEX CONCURRENTLY` or `REINDEX ... CONCURRENTLY` fail with that SQLSTATE
+   * (`57014` canceled, `40P01` deadlock) and, as PostgreSQL does when such a build is
+   * interrupted, leave the index it was building in the catalog with `indisvalid = false`.
+   * Faults are not part of snapshots and survive transaction rollback until they fire.
+   */
+  fault(faults: DatabaseFaults): void {
+    this.assertOpen();
+    Object.assign(this.state.faults, faults);
   }
 
   /** Close the database. Further SQL throws. Idempotent. */
