@@ -234,11 +234,23 @@ backend applies them: libpq's `options` string first, then every parameter sent 
 therefore wins).
 
 ```ts
-// libpq-style: any client that forwards `options`
-new pg.Pool({ connectionString: `${server.connectionString}?options=-c%20search_path%3Dapp` })
-// by name: pgjdbc's currentSchema, postgres.js / Bun SQL `connection: { search_path: "app" }`
-new SQL({ url: server.connectionString, connection: { search_path: "app" } })
+import pg from "pg"
+import { serve } from "@crvouga/mockingbird-service-postgres/wire"
+
+const server = await serve({ port: 0 })
+const client = new pg.Client({
+  connectionString: `${server.connectionString}?options=-c%20search_path%3Dapp`,
+})
+await client.connect()
+await client.query("CREATE SCHEMA app")
+await client.query("CREATE TABLE app.notes (id integer)")
+await client.query("SET search_path TO app")
+await client.end()
+await server.close()
 ```
+
+Other clients set the same startup option with their own configuration (for example, JDBC's
+`currentSchema` or postgres.js / Bun SQL's `connection.search_path`).
 
 `options` is split like `pg_split_opts` (whitespace separates arguments, `\ ` is a literal space,
 `\\` a backslash) and accepts `-c name=value`, `-cname=value` and `--name=value` (dashes in a
@@ -274,9 +286,12 @@ a killed process must not lose acknowledged work, `durable` persists the cluster
 commit is acknowledged:
 
 ```ts
+import { serve } from "@crvouga/mockingbird-service-postgres/wire"
+
 const server = await serve({ port: 55432, durable: "./.postgres" }) // a directory
 // … the process is SIGKILLed …
 const again = await serve({ port: 55432, durable: "./.postgres" }) // resumes from the last acknowledged commit
+await again.close()
 ```
 
 | | Guarantee |
@@ -325,6 +340,8 @@ The storage is a port, so a test can model failure and crashes without a filesys
 import { type ClusterImage, type DurableStorage, fileStorage, serve } from "@crvouga/mockingbird-service-postgres/wire"
 
 let image: ClusterImage | null = null
+let failing = false
+const paused = Promise.resolve()
 const storage: DurableStorage = {
   read: async () => image,
   write: async (next) => {

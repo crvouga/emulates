@@ -111,6 +111,8 @@ Set `cors` (same three places; `--cors-origins`, `--cors-headers`) to answer a b
 the OpenTelemetry Collector's `cors:` block does:
 
 ```ts
+import { createRuntime } from "@crvouga/mockingbird-service-otel"
+
 createRuntime({
   settings: {
     ingestAuth: "none",
