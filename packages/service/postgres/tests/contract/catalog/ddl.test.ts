@@ -1,8 +1,10 @@
 import { expect } from "bun:test";
 import { DDL_SECTION } from "../../../compat/sections/ddl.ts";
+import { ALTER_SET_CASES } from "./alter-set-cases.ts";
 import { runCatalog } from "./run.ts";
 
 runCatalog(DDL_SECTION, [
+  ...ALTER_SET_CASES,
   {
     id: "DDL-ct-01",
     kind: "parity",

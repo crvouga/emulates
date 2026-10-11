@@ -3,6 +3,7 @@ import type { SelectStmt } from "../ast/nodes.ts";
 import { PostgresError } from "../errors/error.ts";
 import type { Clock } from "../runtime/clock.ts";
 import type { Prng } from "../runtime/prng.ts";
+import { syncIndexCatalog } from "../schema/index-catalog.ts";
 import {
   ColumnarSlab,
   PACK_BLOB,
@@ -27,6 +28,7 @@ import {
   SchemaData,
   type SequenceData,
   TableData,
+  type TableStats,
   type TriggerMeta,
   type ViewData,
 } from "../storage/database-state.ts";
@@ -71,6 +73,10 @@ interface TableMetaBjv {
   triggers: TriggerMeta[];
   temp: boolean;
   oid: number;
+  /** UNLOGGED table; absent for logged and temporary tables, and in snapshots written before it existed */
+  unlogged?: true;
+  /** ANALYZE bookkeeping; absent in snapshots of tables that were never analyzed */
+  stats?: TableStats;
 }
 
 interface ViewMetaBjv {
@@ -82,6 +88,7 @@ interface ViewMetaBjv {
   matColumns: Array<{ name: string; type: TypeId }> | null;
   temp: boolean;
   oid: number;
+  stats?: TableStats;
 }
 
 type FunctionMetaBjv = Omit<FunctionData, "jsImpl">;
@@ -188,6 +195,8 @@ export function encodeDatabaseState(state: DatabaseState, runtime: SnapshotRunti
           triggers: table.triggers,
           temp: table.temp,
           oid: table.oid,
+          ...unloggedBjv(table),
+          ...statsBjv(state, table.oid),
         } satisfies TableMetaBjv,
         forceId,
       );
@@ -210,6 +219,7 @@ export function encodeDatabaseState(state: DatabaseState, runtime: SnapshotRunti
           matColumns: view.matColumns,
           temp: view.temp,
           oid: view.oid,
+          ...statsBjv(state, view.oid),
         } satisfies ViewMetaBjv,
         forceId,
       );
@@ -285,6 +295,8 @@ function decodeInner(snapshot: Uint8Array, prng: Prng, clock: Clock): DecodedSna
       const table = new TableData(meta.schema, meta.name, meta.columns, meta.oid, meta.temp);
       table.constraints = meta.constraints;
       table.triggers = meta.triggers;
+      table.unlogged = meta.unlogged === true;
+      if (meta.stats) state.tableStats.set(table.oid, meta.stats);
       const rowCount = readVarintU32(r);
       const slabColumns: SlabColumn[] = [];
       for (let c = 0; c < meta.columns.length; c++) slabColumns.push(readPackedColumn(r, rowCount, intern));
@@ -305,7 +317,9 @@ function decodeInner(snapshot: Uint8Array, prng: Prng, clock: Clock): DecodedSna
         const slab = new ColumnarSlab(snapshot, matRowCount, cols, intern);
         matRows = slab.materialize();
       }
-      const view: ViewData = { ...(meta as ViewMetaBjv), matRows };
+      const { stats, ...viewMeta } = meta as ViewMetaBjv;
+      const view: ViewData = { ...viewMeta, matRows };
+      if (stats) state.tableStats.set(view.oid, stats);
       schema.views.set(view.name, view);
     }
 
@@ -313,6 +327,9 @@ function decodeInner(snapshot: Uint8Array, prng: Prng, clock: Clock): DecodedSna
     state.schemas.set(schema.name, schema);
   }
 
+  // Snapshots written before indexes had their own identity: give every index an oid and
+  // every key constraint the index that backs it. A no-op for snapshots that already have them.
+  syncIndexCatalog(state);
   state.lastSequence = r.u8() === 1 ? { schema: str(readVarintU32(r)), name: str(readVarintU32(r)) } : null;
   if (r.remaining() < 16) throw snapshotError();
   const runtime: SnapshotRuntime = { prngState: r.u64(), nowMs: finiteNowMs(Number(r.i64())) };
@@ -684,7 +701,48 @@ function writeSchemaCatalog(w: Writer, schema: SchemaData, forceId: (s: string) 
 
   const indexes = sortedValues(schema.indexes);
   writeVarintU32(w, indexes.length);
-  for (const idx of indexes) writeBjv(w, idx, forceId);
+  for (const idx of indexes) writeBjv(w, indexBjv(idx), forceId);
+}
+
+/**
+ * An index in one fixed key order with its unset optional fields left out, so two
+ * databases in the same logical state encode to the same bytes however they got there.
+ */
+function indexBjv(idx: IndexMeta): IndexMeta {
+  return {
+    ...(idx.oid === undefined ? {} : { oid: idx.oid }),
+    name: idx.name,
+    schema: idx.schema,
+    table: idx.table,
+    ...(idx.tableOid === undefined ? {} : { tableOid: idx.tableOid }),
+    unique: idx.unique,
+    columns: idx.columns.map((column) => ({
+      column: column.column,
+      expr: column.expr,
+      dir: column.dir,
+      nulls: column.nulls,
+      ...(column.opclass ? { opclass: column.opclass } : {}),
+    })),
+    where: idx.where,
+    nullsNotDistinct: idx.nullsNotDistinct,
+    isConstraint: idx.isConstraint,
+    valid: idx.valid !== false,
+    ...(idx.method ? { method: idx.method } : {}),
+    ...(idx.include && idx.include.length > 0 ? { include: idx.include } : {}),
+    ...(idx.options && idx.options.length > 0 ? { options: idx.options } : {}),
+    ...(idx.comment ? { comment: idx.comment } : {}),
+    ...(idx.scans ? { scans: idx.scans } : {}),
+    ...(idx.lastScan === undefined ? {} : { lastScan: idx.lastScan }),
+  };
+}
+
+function unloggedBjv(table: TableData): { unlogged?: true } {
+  return table.unlogged ? { unlogged: true } : {};
+}
+
+function statsBjv(state: DatabaseState, oid: number): { stats?: TableStats } {
+  const stats = state.tableStats.get(oid);
+  return stats ? { stats: { analyzeCount: stats.analyzeCount, lastAnalyze: stats.lastAnalyze } } : {};
 }
 
 function readSchemaCatalog(
@@ -778,7 +836,7 @@ function sortedValues<T extends { name: string }>(map: Map<string, T>): T[] {
 }
 
 function forceAllEncodeIntern(pool: InternPool, state: DatabaseState, schemas: SchemaData[]): void {
-  forceSchemaIntern(pool, schemas);
+  forceSchemaIntern(pool, state, schemas);
   for (const [k, v] of state.settings) {
     pool.forceId(k);
     pool.forceId(v);
@@ -840,7 +898,7 @@ function forceDatumIntern(pool: InternPool, value: Datum): void {
   }
 }
 
-function forceSchemaIntern(pool: InternPool, schemas: SchemaData[]): void {
+function forceSchemaIntern(pool: InternPool, state: DatabaseState, schemas: SchemaData[]): void {
   for (const schema of schemas) {
     pool.forceId(schema.name);
     for (const table of sortedValues(schema.tables)) {
@@ -854,6 +912,8 @@ function forceSchemaIntern(pool: InternPool, schemas: SchemaData[]): void {
         triggers: table.triggers,
         temp: table.temp,
         oid: table.oid,
+        ...unloggedBjv(table),
+        ...statsBjv(state, table.oid),
       });
     }
     for (const view of sortedValues(schema.views)) {
@@ -868,6 +928,7 @@ function forceSchemaIntern(pool: InternPool, schemas: SchemaData[]): void {
         matColumns: view.matColumns,
         temp: view.temp,
         oid: view.oid,
+        ...statsBjv(state, view.oid),
       });
     }
     for (const seq of sortedValues(schema.sequences)) {
@@ -889,7 +950,7 @@ function forceSchemaIntern(pool: InternPool, schemas: SchemaData[]): void {
       pool.forceId(idx.name);
       pool.forceId(idx.schema);
       pool.forceId(idx.table);
-      forceBjvStrings(pool, idx);
+      forceBjvStrings(pool, indexBjv(idx));
     }
     for (const [key, overloads] of schema.functions) {
       pool.forceId(key);

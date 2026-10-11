@@ -5,8 +5,10 @@ import { getScalarFunctions } from "../functions/scalar.ts";
 import { getSrfFunctions } from "../functions/srf.ts";
 import { WINDOW_FUNCTION_NAMES } from "../functions/window.ts";
 import { databaseCatalogContext } from "../runtime/database-context.ts";
-import { deparseIndex } from "../sql/deparse-index.ts";
-import type { DatabaseState, SequenceData, TableData } from "../storage/database-state.ts";
+import { deparseDefault } from "../sql/deparse-default.ts";
+import { deparseIndex, deparseIndexExpressions, deparseIndexPredicate } from "../sql/deparse-index.ts";
+import type { DatabaseState, IndexMeta, SequenceData, TableData } from "../storage/database-state.ts";
+import { UNIX_EPOCH_MICROS_FROM_PG } from "../types/datetime.ts";
 import {
   type Datum,
   isArrayType,
@@ -16,7 +18,12 @@ import {
   typeDisplayName,
   typeOid,
 } from "../types/value.ts";
+import { BUILTIN_NAMESPACES, builtinNamespaceOid } from "../types/regnamespace.ts";
 import { setCatalogBuilder } from "./catalog.ts";
+import { ACCESS_METHODS, indexAttributeCount, indexMethod, isKeyConstraint } from "./index-catalog.ts";
+import { extensionCatalogRelation } from "./catalog-extensions.ts";
+import { type Persistence, relPersistence } from "./persistence.ts";
+import { columnStorage } from "./storage.ts";
 
 /**
  * On-demand materialization of pg_catalog / information_schema relations from
@@ -48,12 +55,9 @@ function* allSequences(state: DatabaseState): Generator<SequenceData> {
 
 // stable pseudo-oids for builtin namespaces
 const NS_PG_CATALOG = 11;
-const NS_INFORMATION_SCHEMA = 13212;
 
 function namespaceOid(state: DatabaseState, name: string): number {
-  if (name === "pg_catalog") return NS_PG_CATALOG;
-  if (name === "information_schema") return NS_INFORMATION_SCHEMA;
-  return state.schemas.get(name)?.oid ?? 0;
+  return builtinNamespaceOid(name) ?? state.schemas.get(name)?.oid ?? 0;
 }
 
 function attTypmod(mod: { a?: number; b?: number } | null, type: TypeId): number {
@@ -72,10 +76,7 @@ function enumOid(ctx: EngineCtx, t: TypeId): number {
 // --- pg_catalog builders ---------------------------------------------------
 
 function pgNamespace(state: DatabaseState): Relation {
-  const rows: Datum[][] = [
-    [NS_PG_CATALOG, "pg_catalog", 10, null],
-    [NS_INFORMATION_SCHEMA, "information_schema", 10, null],
-  ];
+  const rows: Datum[][] = BUILTIN_NAMESPACES.map(([name, oid]) => [oid, name, 10, null]);
   for (const s of state.schemas.values()) rows.push([s.oid, s.name, 10, null]);
   return rel(
     [
@@ -89,6 +90,9 @@ function pgNamespace(state: DatabaseState): Relation {
   );
 }
 
+/** position of `relam` in a pg_class row */
+const RELAM = 5;
+
 function pgClass(ctx: EngineCtx): Relation {
   const state = ctx.state;
   const rows: Datum[][] = [];
@@ -101,7 +105,7 @@ function pgClass(ctx: EngineCtx): Relation {
     tuples: number,
     hasindex: boolean,
     populated: boolean,
-    temp: boolean,
+    persistence: Persistence,
   ) => {
     rows.push([
       oid,
@@ -118,7 +122,7 @@ function pgClass(ctx: EngineCtx): Relation {
       0,
       hasindex,
       false,
-      temp ? "t" : "p",
+      persistence,
       kind,
       natts,
       0,
@@ -141,7 +145,7 @@ function pgClass(ctx: EngineCtx): Relation {
       const hasIndex =
         t.constraints.some((c) => c.kind === "primary_key" || c.kind === "unique") ||
         [...schemaData.indexes.values()].some((i) => i.table === t.name);
-      push(t.oid, t.name, t.schema, "r", t.columns.length, t.rowCount(), hasIndex, true, t.temp);
+      push(t.oid, t.name, t.schema, "r", t.columns.length, t.rowCount(), hasIndex, true, relPersistence(t));
     }
     for (const v of schemaData.views.values()) {
       push(
@@ -153,22 +157,27 @@ function pgClass(ctx: EngineCtx): Relation {
         v.matRows?.length ?? 0,
         false,
         !v.materialized || v.matRows !== null,
-        v.temp,
+        relPersistence(v),
       );
     }
-    for (const s of schemaData.sequences.values()) push(s.oid, s.name, s.schema, "S", 3, 1, false, true, s.temp);
+    for (const s of schemaData.sequences.values()) {
+      push(s.oid, s.name, s.schema, "S", 3, 1, false, true, relPersistence(s));
+    }
     for (const i of schemaData.indexes.values()) {
       push(
-        i.oid ?? state.schemas.get(i.schema)?.tables.get(i.table)?.oid ?? 0,
+        i.oid ?? 0,
         i.name,
         i.schema,
         "i",
-        i.columns.length,
+        indexAttributeCount(i),
         0,
         false,
         true,
-        false,
+        // an index is as durable as the table it indexes
+        relPersistence(state.schemas.get(i.schema)?.tables.get(i.table) ?? { temp: false }),
       );
+      // relam: the index's own access method (push assumes btree)
+      rows[rows.length - 1]![RELAM] = ACCESS_METHODS.get(indexMethod(i))?.[0] ?? 403;
     }
   }
   return rel(
@@ -226,6 +235,7 @@ function pgAttribute(ctx: EngineCtx): Relation {
         c.identity ? (c.identity.always ? "a" : "d") : "",
         c.generated ? "s" : "",
         isArrayType(c.type.id) ? 1 : 0,
+        columnStorage(c),
       ]);
     });
   }
@@ -243,6 +253,7 @@ function pgAttribute(ctx: EngineCtx): Relation {
       ["attidentity", "bpchar"],
       ["attgenerated", "bpchar"],
       ["attndims", "int2"],
+      ["attstorage", "bpchar"],
     ],
     rows,
     "pg_attribute",
@@ -364,7 +375,17 @@ function pgConstraint(ctx: EngineCtx): Relation {
       const contype = c.kind === "primary_key" ? "p" : c.kind === "unique" ? "u" : c.kind === "check" ? "c" : "f";
       const refTable =
         c.kind === "foreign_key" ? ctx.state.schemas.get(c.refSchema)?.tables.get(c.refTable) : undefined;
-      rows.push([oid++, c.name, namespaceOid(ctx.state, t.schema), contype, false, false, t.oid, refTable?.oid ?? 0]);
+      rows.push([
+        oid++,
+        c.name,
+        namespaceOid(ctx.state, t.schema),
+        contype,
+        false,
+        false,
+        t.oid,
+        refTable?.oid ?? 0,
+        isKeyConstraint(c) ? (c.indexOid ?? 0) : 0,
+      ]);
     }
     for (const col of t.columns) {
       if (col.notNull) {
@@ -376,6 +397,7 @@ function pgConstraint(ctx: EngineCtx): Relation {
           false,
           false,
           t.oid,
+          0,
           0,
         ]);
       }
@@ -391,6 +413,7 @@ function pgConstraint(ctx: EngineCtx): Relation {
       ["condeferred", "bool"],
       ["conrelid", "oid"],
       ["confrelid", "oid"],
+      ["conindid", "oid"],
     ],
     rows,
     "pg_constraint",
@@ -403,15 +426,27 @@ function pgIndex(ctx: EngineCtx): Relation {
     for (const i of schema.indexes.values()) {
       const table = schema.tables.get(i.table);
       const isPrimary =
-        i.isConstraint && table?.constraints.some((c) => c.kind === "primary_key" && c.name === i.name) === true;
+        i.isConstraint && table?.constraints.some((c) => c.kind === "primary_key" && c.indexOid === i.oid) === true;
+      // a build that did not finish is neither usable for queries nor maintained by writes
+      const valid = i.valid !== false;
       rows.push([
-        i.oid ?? table?.oid ?? 0,
+        i.oid ?? 0,
         table?.oid ?? 0,
+        indexAttributeCount(i),
         i.columns.length,
         i.unique,
+        i.nullsNotDistinct,
         isPrimary,
-        i.where !== null,
-        i.valid !== false,
+        false,
+        true,
+        false,
+        valid,
+        false,
+        valid,
+        true,
+        false,
+        deparseIndexExpressions(ctx, i),
+        deparseIndexPredicate(ctx, i),
       ]);
     }
   }
@@ -420,25 +455,137 @@ function pgIndex(ctx: EngineCtx): Relation {
       ["indexrelid", "oid"],
       ["indrelid", "oid"],
       ["indnatts", "int2"],
+      ["indnkeyatts", "int2"],
       ["indisunique", "bool"],
+      ["indnullsnotdistinct", "bool"],
       ["indisprimary", "bool"],
-      ["indpred", "bool"],
+      ["indisexclusion", "bool"],
+      ["indimmediate", "bool"],
+      ["indisclustered", "bool"],
       ["indisvalid", "bool"],
+      ["indcheckxmin", "bool"],
+      ["indisready", "bool"],
+      ["indislive", "bool"],
+      ["indisreplident", "bool"],
+      // PostgreSQL stores these two as pg_node_tree; here they are the text pg_get_expr() returns
+      ["indexprs", "text"],
+      ["indpred", "text"],
     ],
     rows,
     "pg_index",
   );
 }
 
+function pgAm(): Relation {
+  return rel(
+    [
+      ["oid", "oid"],
+      ["amname", "name"],
+      ["amtype", "bpchar"],
+    ],
+    [...ACCESS_METHODS].map(([name, [oid, type]]) => [oid, name, type]),
+    "pg_am",
+  );
+}
+
+const timestamptz = (ms: number | undefined): Datum =>
+  ms === undefined ? null : BigInt(Math.round(ms)) * 1000n + UNIX_EPOCH_MICROS_FROM_PG;
+
+/**
+ * pg_stat_user_tables. `n_live_tup` is the exact current row count and ANALYZE is
+ * recorded; the activity counters PostgreSQL collects asynchronously (scans, tuples
+ * inserted / updated / deleted, dead tuples, vacuum) are not tracked and read zero.
+ */
 function pgStatUserTables(ctx: EngineCtx): Relation {
+  const state = ctx.state;
+  const rows: Datum[][] = [];
+  const push = (oid: number, schema: string, name: string, live: number, indexes: IndexMeta[]) => {
+    const stats = state.tableStats.get(oid);
+    const scanned = indexes.filter((index) => index.lastScan !== undefined).map((index) => index.lastScan!);
+    rows.push([
+      oid,
+      schema,
+      name,
+      0n,
+      null,
+      0n,
+      // the index columns are NULL, not zero, for a relation that has no index
+      indexes.length === 0 ? null : indexes.reduce((sum, index) => sum + (index.scans ?? 0n), 0n),
+      scanned.length === 0 ? null : timestamptz(Math.max(...scanned)),
+      indexes.length === 0 ? null : 0n,
+      0n,
+      0n,
+      0n,
+      0n,
+      0n,
+      BigInt(live),
+      0n,
+      0n,
+      0n,
+      null,
+      null,
+      timestamptz(stats?.lastAnalyze),
+      null,
+      0n,
+      0n,
+      BigInt(stats?.analyzeCount ?? 0),
+      0n,
+      0,
+      0,
+      0,
+      0,
+    ]);
+  };
+  for (const schema of state.schemas.values()) {
+    const indexes = [...schema.indexes.values()];
+    for (const table of schema.tables.values()) {
+      push(
+        table.oid,
+        table.schema,
+        table.name,
+        table.rowCount(),
+        indexes.filter((index) => index.table === table.name),
+      );
+    }
+    // materialized views are relations with storage, and are reported too
+    for (const view of schema.views.values()) {
+      if (view.materialized) push(view.oid, view.schema, view.name, view.matRows?.length ?? 0, []);
+    }
+  }
   return rel(
     [
       ["relid", "oid"],
       ["schemaname", "name"],
       ["relname", "name"],
+      ["seq_scan", "int8"],
+      ["last_seq_scan", "timestamptz"],
+      ["seq_tup_read", "int8"],
+      ["idx_scan", "int8"],
+      ["last_idx_scan", "timestamptz"],
+      ["idx_tup_fetch", "int8"],
+      ["n_tup_ins", "int8"],
+      ["n_tup_upd", "int8"],
+      ["n_tup_del", "int8"],
+      ["n_tup_hot_upd", "int8"],
+      ["n_tup_newpage_upd", "int8"],
       ["n_live_tup", "int8"],
+      ["n_dead_tup", "int8"],
+      ["n_mod_since_analyze", "int8"],
+      ["n_ins_since_vacuum", "int8"],
+      ["last_vacuum", "timestamptz"],
+      ["last_autovacuum", "timestamptz"],
+      ["last_analyze", "timestamptz"],
+      ["last_autoanalyze", "timestamptz"],
+      ["vacuum_count", "int8"],
+      ["autovacuum_count", "int8"],
+      ["analyze_count", "int8"],
+      ["autoanalyze_count", "int8"],
+      ["total_vacuum_time", "float8"],
+      ["total_autovacuum_time", "float8"],
+      ["total_analyze_time", "float8"],
+      ["total_autoanalyze_time", "float8"],
     ],
-    [...allTables(ctx.state)].map((table) => [table.oid, table.schema, table.name, BigInt(table.rowCount())]),
+    rows,
     "pg_stat_user_tables",
   );
 }
@@ -447,6 +594,7 @@ function pgDescription(ctx: EngineCtx): Relation {
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
     for (const index of schema.indexes.values()) {
+      // classoid is pg_class: an index is a relation; objsubid 0 is the relation itself
       if (index.comment) rows.push([index.oid ?? 0, 1259, 0, index.comment]);
     }
   }
@@ -465,17 +613,18 @@ function pgDescription(ctx: EngineCtx): Relation {
 function pgStatUserIndexes(ctx: EngineCtx): Relation {
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
-    if (schema.name === "pg_catalog" || schema.name === "information_schema" || schema.name.startsWith("pg_toast"))
-      continue;
     for (const index of schema.indexes.values()) {
       const table = schema.tables.get(index.table);
       rows.push([
         table?.oid ?? 0,
-        index.oid ?? table?.oid ?? 0,
+        index.oid ?? 0,
         schema.name,
         index.table,
         index.name,
         index.scans ?? 0n,
+        timestamptz(index.lastScan),
+        0n,
+        0n,
       ]);
     }
   }
@@ -487,6 +636,9 @@ function pgStatUserIndexes(ctx: EngineCtx): Relation {
       ["relname", "name"],
       ["indexrelname", "name"],
       ["idx_scan", "int8"],
+      ["last_idx_scan", "timestamptz"],
+      ["idx_tup_read", "int8"],
+      ["idx_tup_fetch", "int8"],
     ],
     rows,
     "pg_stat_user_indexes",
@@ -613,7 +765,7 @@ function pgIndexesView(ctx: EngineCtx): Relation {
   const rows: Datum[][] = [];
   for (const schema of ctx.state.schemas.values()) {
     for (const i of schema.indexes.values()) {
-      rows.push([i.schema, i.table, i.name, null, deparseIndex(i)]);
+      rows.push([i.schema, i.table, i.name, null, deparseIndex(ctx, i)]);
     }
   }
   return rel(
@@ -756,7 +908,7 @@ function infoColumns(ctx: EngineCtx): Relation {
         t.name,
         c.name,
         i + 1,
-        null,
+        c.defaultExpr ? deparseDefault(ctx, c.defaultExpr, c.type) : null,
         c.notNull ? "NO" : "YES",
         dataType,
         charMax,
@@ -960,6 +1112,8 @@ function buildCatalogRelation(ctx: EngineCtx, schema: string, name: string): Rel
         return pgConstraint(ctx);
       case "pg_index":
         return pgIndex(ctx);
+      case "pg_am":
+        return pgAm();
       case "pg_description":
         return pgDescription(ctx);
       case "pg_stat_user_tables":
@@ -988,7 +1142,7 @@ function buildCatalogRelation(ctx: EngineCtx, schema: string, name: string): Rel
       case "pg_trigger":
         return pgTrigger(ctx);
       default:
-        return null;
+        return extensionCatalogRelation(ctx.state, name, (ns) => namespaceOid(ctx.state, ns));
     }
   }
   switch (name) {

@@ -74,20 +74,25 @@ export function uniqueSpecsFor(env: ExecEnv, table: TableData): UniqueSpec[] {
   if (schema) {
     for (const idx of schema.indexes.values()) {
       if (idx.table !== table.name || !idx.unique || idx.isConstraint || idx.valid === false) continue;
-      specs.push({
-        name: idx.name,
-        keys: idx.columns.map((c) => ({
-          colIdx: c.column !== null ? table.columnIndex(c.column) : -1,
-          expr: c.expr,
-        })),
-        columnNames: idx.columns.map((c) => c.column ?? "expr"),
-        nullsNotDistinct: idx.nullsNotDistinct,
-        where: idx.where,
-        isPrimary: false,
-      });
+      specs.push(uniqueSpecOfIndex(table, idx));
     }
   }
   return specs;
+}
+
+/** The uniqueness rule a unique index states, whether or not the index is currently valid. */
+export function uniqueSpecOfIndex(table: TableData, idx: IndexMeta): UniqueSpec {
+  return {
+    name: idx.name,
+    keys: idx.columns.map((c) => ({
+      colIdx: c.column !== null ? table.columnIndex(c.column) : -1,
+      expr: c.expr,
+    })),
+    columnNames: idx.columns.map((c) => c.column ?? "expr"),
+    nullsNotDistinct: idx.nullsNotDistinct,
+    where: idx.where,
+    isPrimary: false,
+  };
 }
 
 export function uniqueKeyOf(env: ExecEnv, table: TableData, spec: UniqueSpec, row: Datum[]): string | null {

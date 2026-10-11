@@ -30,6 +30,10 @@ any base64 `user:password` unless `--search-auth` is set.
 
 ```bash
 npx mockingbird-otel serve --port 8809 --ingest-token "$OTEL_AUTH_TOKEN"
+# a local collector that takes no credentials, with a browser exporter allowed in
+npx mockingbird-otel serve --ingest-auth none --cors-origins http://localhost:5173
+# a hosted OTLP gateway: Authorization: Basic base64(instanceId:token)
+npx mockingbird-otel serve --ingest-basic-auth "$OTLP_INSTANCE_ID:$OTLP_TOKEN"
 ```
 
 ```ts
@@ -80,10 +84,61 @@ const search = await call("/api/30rBqcDevOrg7Hn2KmQ4xW9sLtY/_search", {
 | `POST /v1/traces` | `ExportTraceServiceRequest`, `application/json` or `application/x-protobuf` (optionally `content-encoding: gzip`) → `200 {partialSuccess: {}}` (an empty protobuf response for protobuf requests). |
 | `POST /v1/logs` | `ExportLogsServiceRequest`, same encodings and answers. |
 | `POST /v1/metrics` | Accepted and counted (`GET /__admin/otlp-metrics`), never stored. |
+| `OPTIONS /v1/traces`, `/v1/logs`, `/v1/metrics` | A browser exporter's CORS preflight, answered when `cors.allowedOrigins` is set (see *Browser CORS*); otherwise `405`. |
 
-`Authorization: Bearer <token>` is required (401 without); with `--ingest-token` only that token
-is accepted. Undecodable payloads are 400, other content types 415. The optional `stream-name`
-header picks the stream (default `default`).
+Undecodable payloads are 400, other content types 415. Every receiver error is a
+`google.rpc.Status` (`{code, message}`) in the request's encoding: binary protobuf for an
+`application/x-protobuf` request, JSON otherwise. The optional `stream-name` header picks the
+stream (default `default`).
+
+**Collector auth.** The receiver authenticates exports the way the collector it stands in for
+does, so the exporter under test keeps its real headers. The mode is the `ingestAuth` setting
+(`createRuntime({settings})`, `PUT /__admin/settings` per namespace, or `--ingest-auth`):
+
+| `ingestAuth` | An export needs | Narrowed by |
+| --- | --- | --- |
+| `bearer` (default) | `Authorization: Bearer <token>`: any token, 401 without one. | `ingestTokens` / `--ingest-token`: only those tokens. |
+| `basic` | `Authorization: Basic base64(user:password)`, the header a hosted OTLP gateway takes (Grafana Cloud: `instanceId:token`): any credentials, 401 without them. | `ingestUsers: [{username, password}]` / `--ingest-basic-auth <user:password>`: only those. |
+| `none` | Nothing: a local collector. An `Authorization` header an exporter still sends is ignored. | — |
+
+A refused export is `401 {"code": 16, "message": "Unauthenticated"}`. A mode takes only its own
+scheme (a bearer token is a 401 in `basic` mode and the reverse), credentials are checked before
+the payload is parsed, and in every mode an accepted payload is parsed and stored the same way.
+Only the receiver changes: O2 search always wants Basic credentials.
+
+**Browser CORS.** Off by default: `OPTIONS /v1/*` is `405` and no response carries CORS headers.
+Set `cors` (same three places; `--cors-origins`, `--cors-headers`) to answer a browser exporter as
+the OpenTelemetry Collector's `cors:` block does:
+
+```ts
+import { createRuntime } from "@crvouga/mockingbird-service-otel"
+
+createRuntime({
+  settings: {
+    ingestAuth: "none",
+    cors: {
+      allowedOrigins: ["https://app.example.test", "https://*.preview.example.test"], // or "*"
+      allowedHeaders: ["authorization", "content-type", "traceparent", "tracestate"], // or "*"
+      allowedMethods: ["POST"], // default GET, POST, HEAD
+      exposedHeaders: [], // Access-Control-Expose-Headers on the export
+      maxAge: 600, // Access-Control-Max-Age, seconds
+    },
+  },
+})
+```
+
+A preflight (`OPTIONS` with `Origin` and `Access-Control-Request-Method`) is answered before
+authentication, always `204`. When the origin, the requested method and every name in
+`Access-Control-Request-Headers` are allowed it carries `Access-Control-Allow-Origin` (the
+origin, or `*`), `-Allow-Methods`, `-Allow-Headers` (both echoing the request),
+`-Allow-Credentials: true` and `-Max-Age`; otherwise it carries none of them, which is what
+fails it in the browser. The export's own response, errors included, carries
+`Access-Control-Allow-Origin`, `-Allow-Credentials` and `Vary: Origin` for an allowed origin.
+With `allowedHeaders` unset only `accept`, `content-type` and `x-requested-with` pass; once it
+is set the list is exact, so name `content-type` (an OTLP content type is never CORS-safelisted)
+and the propagation headers your exporter adds. A preflight has no credential to pick a
+namespace by: it reads the default namespace's settings unless the endpoint uses the
+`/__admin/ns/<name>` prefix (settings passed to `createRuntime` apply to every namespace).
 
 **Storage, as O2 stores it.** Every field name is lowercased and flattened (`clientUserId` →
 `clientuserid`, `http.status_code` → `http_status_code`, nested maps joined with `_`); resource
@@ -92,7 +147,8 @@ attributes get a `service_` prefix (`service_service_version`,
 dropped. Logs carry `_timestamp` (µs), `severity_text`, `severity_number`, `trace_id`, `span_id`
 and their attributes (`event`, …). Spans carry `operation_name`, `trace_id`, `span_id`,
 `reference_parent_span_id`, `span_kind`, `span_status` (`UNSET`/`OK`/`ERROR`), `start_time` /
-`end_time` (ns), `duration` (µs), `events` (JSON) and their attributes. **Log bodies are dropped**
+`end_time` (ns), `duration` (µs), `events` (JSON: each event's name, time and attributes) and
+their attributes, with ids exactly as exported. **Log bodies are dropped**
 unless `--keep-bodies` (a body can hold a prompt or PHI; truncation is not protection); the
 `body` column still exists in the schema so recipes that select it keep working.
 
@@ -133,18 +189,27 @@ expect. A query on a stream with no data answers empty hits.
 | `GET /__admin/spans?service=&name=&trace_id=&org=` | Stored span rows. |
 | `POST /__admin/wait` | `{kind: "log"\|"span", where: {event: "…", …}, count?: 1, timeoutMs?: 5000, org?}`: long-polls until `count` rows match (200 `{matched, count}`) or times out (408 with what matched). `where` keys may be spelt as emitted (`clientUserId`, `service.name`) or as stored. |
 | `GET /__admin/otlp-metrics` | `{requests, bytes, metrics}` for `/v1/metrics`. |
-| `PUT /__admin/settings` | `{ingestTokens?, searchUsers?: [{username, password}], organizations?: [{identifier, name}], routing?: {byEnvironment, default}, keepBodies?}` for the calling namespace. |
+| `GET /__admin/settings` | The calling namespace's settings. |
+| `PUT /__admin/settings` | `{ingestAuth?: "bearer"\|"basic"\|"none", ingestTokens?, ingestUsers?: [{username, password}], cors?: {allowedOrigins, allowedHeaders?, allowedMethods?, exposedHeaders?, maxAge?}, searchUsers?: [{username, password}], organizations?: [{identifier, name}], routing?: {byEnvironment, default}, keepBodies?}` for the calling namespace; only the keys sent change. |
+
+`/__admin/spans`, `/__admin/logs` and `/__admin/wait` are the export of what was ingested: one
+normalized row per span or log record, every attribute kept (see *Storage* above). The original
+OTLP request batches are not kept, and `GET /__admin/requests` records each export without its
+body.
 
 Fault presets (`POST /__admin/faults {"preset": "<name>", "count"?: n}`): `rate_limited` (429 +
 `retry-after: 1`), `bad_gateway` (502), `unavailable` (503), `gateway_timeout` (504) — all
 retried by the SDK — `server_error` (500) and `unauthorized` (401), which the SDK drops,
 `partial_success` (200 rejecting every item, JSON only) and `search_unavailable` (O2 search 503).
+They work in every auth mode and fault the export `POST` only, never a CORS preflight; their
+bodies are JSON whatever the request's encoding.
 
 ### Namespaces
 
 `x-mockingbird-namespace`, a `/__admin/ns/<name>` prefix on the endpoint and base URL, or by credential:
 `PUT /__admin/credentials {"credentials": {"<OTEL_AUTH_TOKEN>": "w1", "<O2 username>": "w1"}}`
-(map both so a worker's exports and searches meet).
+(map both so a worker's exports and searches meet). In `basic` mode the credential is the Basic
+username (the instance id); in `none` mode there is none, so use the header or the path prefix.
 
 ### Deliberately not modelled
 
@@ -155,6 +220,14 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 - O2 ingestion via `/api/{org}/{stream}/_json` or `/api/{org}/v1/logs`, dashboards, alerts and
   the UI; the collector's own batching, tail sampling and transform processors.
 - `partialSuccess` for protobuf requests (an empty success response is sent).
+- The original OTLP batches, and the span fields no row holds: links, trace state, flags, the
+  status message, the scope version and the dropped-item counts. `start_time` / `end_time` are
+  JSON numbers, so nanoseconds past 2^53 round (`_timestamp` and `duration`, in µs, are exact).
+- A hosted gateway's own surface: its `/otlp` path prefix (point the exporter at the emulator's
+  root, or set the per-signal endpoint), its token scopes and the wording of its 401. The 401 is
+  the OTLP `Status` above.
+- The Collector's CORS library also refuses a preflight whose `Access-Control-Request-Headers`
+  is not the lowercase, sorted list browsers send; here the names match in any order and case.
 - Log bodies by default (see `--keep-bodies`).
 
 ## API
@@ -162,12 +235,12 @@ retried by the SDK — `server_error` (500) and `unauthorized` (401), which the 
 | Export | Kind | Description |
 | --- | --- | --- |
 | `OtelAPI` | class | The in-process emulator: `fetch(request)`, `reset()`, `logs()`, `spans()`, `state`. Options: `sqlite`, `now`, `namespace`, `settings`. |
-| `createRuntime` | function | The emulator with the full service contract (health, admin, wait, namespaces, credentials, presets). Options: `settings`, `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
+| `createRuntime` | function | The emulator with the full service contract (health, admin, wait, namespaces, credentials, presets). Options: `settings` (`ingestAuth`, `ingestTokens`, `ingestUsers`, `cors`, `searchUsers`, `organizations`, `routing`, `keepBodies`), `clock`, `seed`, `adminKey`, `onLog`, `sqlite`. |
 | `OTEL_PRESETS` | object | Every named fault preset. |
 | `OTEL_NAMESPACE` | string | The service name, `"otel"`. |
-| `otelCredential` | function | The OTLP bearer token or the O2 Basic username (how credentials map to namespaces). |
+| `otelCredential` | function | The OTLP bearer token or the Basic username (how credentials map to namespaces). |
 | `adminRow` | function | A stored row as the admin routes show it (`_org`, `_stream` plus its columns). |
-| `DEFAULT_ORGANIZATIONS`, `DEFAULT_SETTINGS` | values | The seeded orgs and settings. |
+| `DEFAULT_ORGANIZATIONS`, `DEFAULT_SETTINGS`, `INGEST_AUTH_MODES` | values | The seeded orgs and settings (`ingestAuth: "bearer"`, CORS off), and the auth modes. |
 | `logRows`, `spanRows`, `formatKey` | functions | OTLP/JSON export → O2 rows, and O2's field-name normalisation. |
 | `decodeLogsRequest`, `decodeTraceRequest`, `ProtobufError` | functions, class | The protobuf decoder: OTLP protobuf → OTLP/JSON shape. |
 | `parseSql`, `execute`, `referencedColumns`, `SqlError` | functions, class | The SQL subset: parse, run over rows, list the columns a query reads. |

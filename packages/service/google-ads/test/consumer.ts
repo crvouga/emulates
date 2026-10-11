@@ -13,7 +13,10 @@ export type SearchResult = {
   totalResultsCount?: string
   summaryRow?: Record<string, Record<string, unknown>>
 }
-/** Faithful port of reported raw-fetch traffic; unavailable Geviti source is not claimed. */
+/**
+ * Port of the raw-fetch traffic the service request describes on the wire. The consuming
+ * application's own client source is not in this repository, so this is not that client.
+ */
 export class GoogleConsumer {
   constructor(
     private readonly fetch: Transport,

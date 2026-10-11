@@ -1,0 +1,126 @@
+{
+  "name": "@crvouga/mockingbird-service-aws-iot",
+  "version": "0.0.0-development",
+  "description": "Stateful emulator of the AWS IoT Core data plane: SigV4-signed HTTP Publish and the MQTT 5 message broker over TCP and WebSocket, with custom-authorizer policies and persistent sessions.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "DISCOVERY.md",
+    "SUPPORT.md",
+    "openapi.yaml"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "bin": {
+    "mockingbird-aws-iot": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/service/aws-iot"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/service/aws-iot#readme",
+  "keywords": [
+    "mockingbird",
+    "service",
+    "aws",
+    "aws-iot",
+    "iot-core",
+    "mqtt",
+    "mqtt5",
+    "sigv4"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "entries": {
+      "server": "node",
+      "cli": "node"
+    },
+    "layer": "service",
+    "category": "communication",
+    "displayName": "AWS IoT Core",
+    "status": "wip",
+    "vendor": {
+      "website": "https://aws.amazon.com/iot-core/",
+      "docs": "https://docs.aws.amazon.com/iot/latest/developerguide/",
+      "name": "Amazon Web Services",
+      "icon": false,
+      "description": "AWS IoT Core connects devices to AWS over MQTT and HTTPS, with policy-based authorization and persistent sessions.",
+      "color": "#FF9900"
+    },
+    "parity": "HTTP Publish with SigV4, MQTT 5 sessions and custom-authorizer policies",
+    "parityTier": "cold",
+    "discovery": {
+      "guide": "DISCOVERY.md",
+      "behavior": "README.md",
+      "capabilities": "SUPPORT.md",
+      "contract": "openapi.yaml",
+      "types": "dist/index.d.ts",
+      "oracle": {
+        "kind": "Live vendor API or sandbox",
+        "command": "bun run parity:service -- aws-iot",
+        "note": "Run from a Mockingbird checkout; credentials come only from .env.local or GitHub Actions secrets. Missing credentials exit 2."
+      },
+      "introspection": [
+        "GET /__admin/health",
+        "GET /__admin",
+        "GET /__admin/state",
+        "GET /__admin/requests",
+        "GET /__admin/metrics",
+        "GET /__admin/faults/presets",
+        "GET /__admin/ui"
+      ],
+      "reporting": "https://github.com/crvouga/mockingbird/blob/main/docs/REPORTING_ISSUES.md"
+    }
+  },
+  "scripts": {
+    "generate": "bun ../../openapi/codegen/dist/cli.js",
+    "generate:check": "bun ../../openapi/codegen/dist/cli.js --check",
+    "openapi:check": "bun ../../openapi/codegen/dist/cli.js --validate",
+    "build": "bun ../../../scripts/bundle-service.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test",
+    "parity": "bun scripts/parity.ts",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts"
+  },
+  "dependencies": {
+    "@crvouga/mockingbird-service-sqlite": "workspace:*"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-iot-data-plane": "3.1132.0",
+    "@crvouga/mockingbird-adapter-node": "workspace:*",
+    "@crvouga/mockingbird-core": "workspace:*",
+    "@crvouga/mockingbird-credentials": "workspace:*",
+    "@crvouga/mockingbird-mqtt-broker": "workspace:*",
+    "@crvouga/mockingbird-openapi": "workspace:*",
+    "@crvouga/mockingbird-openapi-codegen": "workspace:*",
+    "@crvouga/mockingbird-openapi-metadata": "workspace:*",
+    "@crvouga/mockingbird-parity": "workspace:*",
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*",
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "aws4fetch": "1.0.20",
+    "fast-check": "4.9.0",
+    "mqtt": "5.16.0"
+  }
+}

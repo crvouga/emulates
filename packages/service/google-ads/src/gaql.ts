@@ -84,7 +84,7 @@ export function parseGAQL(input: string): Query {
       queryError("BAD_VALUE", "Expected a literal value")
     return t.value
   }
-  require("SELECT")
+  if (!eat("SELECT")) queryError("EXPECTED_SELECT", "SELECT is missing at the beginning of query")
   const fields = [field()]
   while (eat(",")) fields.push(field())
   if (new Set(fields).size !== fields.length)

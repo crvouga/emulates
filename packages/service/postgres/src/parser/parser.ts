@@ -547,12 +547,14 @@ export class Parser {
         this.skipToStatementEnd();
         return { type: "no_op", what };
       }
-      case "vacuum":
       case "analyze":
       case "analyse":
+        return this.parseAnalyze();
+      case "reindex":
+        return this.parseReindex();
+      case "vacuum":
       case "checkpoint":
-      case "cluster":
-      case "reindex": {
+      case "cluster": {
         const what = t.value.toUpperCase();
         this.skipToStatementEnd();
         return { type: "no_op", what };
@@ -597,6 +599,69 @@ export class Parser {
       default:
         this.errorAt(t, "unrecognized statement");
     }
+  }
+
+  /**
+   * `( option [value] [, ...] )` of ANALYZE / REINDEX. Returns the options that are on;
+   * an option outside `known` is the 42601 PostgreSQL raises.
+   */
+  private parseUtilityOptions(command: string, known: readonly string[]): Set<string> {
+    const on = new Set<string>();
+    if (!this.eatPunct("(")) return on;
+    do {
+      const token = this.next();
+      if (token.type !== "ident") this.errorAt(token, "expected an option name");
+      if (!known.includes(token.value)) {
+        throw pgError("syntax", `unrecognized ${command} option "${token.value}"`, "42601");
+      }
+      let enabled = true;
+      if (!this.atPunct(",") && !this.atPunct(")")) {
+        const value = this.next().value.toLowerCase();
+        enabled = !["false", "off", "0"].includes(value);
+      }
+      if (enabled) on.add(token.value);
+    } while (this.eatPunct(","));
+    this.expectPunct(")");
+    return on;
+  }
+
+  private parseAnalyze(): Statement {
+    this.pos++;
+    if (this.atPunct("(")) this.parseUtilityOptions("ANALYZE", ["verbose", "skip_locked", "buffer_usage_limit"]);
+    else this.eatKw("verbose");
+    const targets: Array<{ table: string[]; columns: string[] | null }> = [];
+    if (this.peek().type !== "eof" && !this.atPunct(";")) {
+      do {
+        this.eatKw("only");
+        const table = this.qualifiedName();
+        this.eatOp("*");
+        let columns: string[] | null = null;
+        if (this.eatPunct("(")) {
+          columns = [];
+          do {
+            columns.push(this.ident());
+          } while (this.eatPunct(","));
+          this.expectPunct(")");
+        }
+        targets.push({ table, columns });
+      } while (this.eatPunct(","));
+    }
+    return { type: "analyze", targets };
+  }
+
+  private parseReindex(): Statement {
+    this.pos++;
+    const options = this.parseUtilityOptions("REINDEX", ["concurrently", "verbose", "tablespace"]);
+    const token = this.next();
+    const kinds = ["index", "table", "schema", "database", "system"] as const;
+    const kind = kinds.find((candidate) => token.type === "ident" && token.value === candidate);
+    if (!kind) this.errorAt(token, "expected INDEX, TABLE, SCHEMA, DATABASE or SYSTEM");
+    const concurrently = this.eatKw("concurrently") || options.has("concurrently");
+    const unnamed = this.peek().type === "eof" || this.atPunct(";");
+    if (unnamed && (kind === "index" || kind === "table" || kind === "schema")) {
+      this.errorAt(this.peek(), "expected a name");
+    }
+    return { type: "reindex", kind, name: unnamed ? null : this.qualifiedName(), concurrently };
   }
 
   private skipToStatementEnd(): void {
@@ -1424,7 +1489,17 @@ export class Parser {
       this.eatKw("temp") || this.eatKw("temporary");
       temp = true;
     }
-    const unlogged = this.eatKw("unlogged");
+    // OptTemp is one of TEMP / UNLOGGED: PostgreSQL's grammar has no TEMP UNLOGGED combination.
+    const unlogged = !temp && this.eatKw("unlogged");
+    if (unlogged) {
+      if (this.atKw("view")) {
+        throw pgError("syntax", "views cannot be unlogged because they do not have storage", "42601");
+      }
+      if (this.atKw("materialized")) {
+        throw pgError("feature_not_supported", "materialized views cannot be unlogged", "0A000");
+      }
+      if (!this.atKw("table") && !this.atKw("sequence")) this.errorAt(this.peek(), "expected TABLE or SEQUENCE");
+    }
     if (this.atKw("table")) {
       this.pos++;
       return this.parseCreateTable(temp, unlogged);
@@ -1449,7 +1524,7 @@ export class Parser {
       const ifNotExists = this.parseIfNotExists();
       const name = this.qualifiedName();
       const options = this.parseSequenceOptions();
-      return { type: "create_sequence", name, ifNotExists, temp, options };
+      return { type: "create_sequence", name, ifNotExists, temp, unlogged, options };
     }
     if (this.atKw("schema")) {
       this.pos++;
@@ -1595,7 +1670,17 @@ export class Parser {
         if (this.eatKw("no")) withData = false;
         this.expectKw("data");
       }
-      return { type: "create_table_as", name, ifNotExists, temp, columns: null, query, withData, materialized: false };
+      return {
+        type: "create_table_as",
+        name,
+        ifNotExists,
+        temp,
+        unlogged,
+        columns: null,
+        query,
+        withData,
+        materialized: false,
+      };
     }
     let ctasColumns: string[] | null = null;
     if (this.atPunct("(")) {
@@ -1631,6 +1716,7 @@ export class Parser {
           name,
           ifNotExists,
           temp,
+          unlogged,
           columns: ctasColumns,
           query,
           withData,
@@ -1925,7 +2011,7 @@ export class Parser {
         continue;
       }
       if (this.eatKw("storage")) {
-        this.ident(true);
+        constraints.push({ kind: "storage", mode: this.parseStorageMode() });
         continue;
       }
       if (this.eatKw("compression")) {
@@ -1936,6 +2022,12 @@ export class Parser {
       break;
     }
     return { name, typeName, constraints };
+  }
+
+  /** `STORAGE { PLAIN | EXTERNAL | EXTENDED | MAIN | DEFAULT }`: an identifier (not a string) or DEFAULT. */
+  private parseStorageMode(): string {
+    if (this.eatKw("default")) return "default";
+    return this.ident();
   }
 
   private parseIdentityOptions(): SequenceOptions {
@@ -2084,18 +2176,19 @@ export class Parser {
     }
     let nullsNotDistinct = false;
     if (this.eatKw("nulls")) {
-      this.expectKw("not");
+      // NULLS DISTINCT spells out the default
+      nullsNotDistinct = this.eatKw("not");
       this.expectKw("distinct");
-      nullsNotDistinct = true;
     }
+    const options: Array<{ name: string; value: string }> = [];
     if (this.eatKw("with")) {
       this.expectPunct("(");
-      let depth = 1;
-      while (depth > 0 && this.peek().type !== "eof") {
-        if (this.atPunct("(")) depth++;
-        if (this.atPunct(")")) depth--;
-        this.pos++;
-      }
+      do {
+        const option = this.ident(true);
+        // a bare parameter is boolean true, as in WITH (fastupdate)
+        options.push({ name: option, value: this.eatOp("=") ? this.next().value : "true" });
+      } while (this.eatPunct(","));
+      this.expectPunct(")");
     }
     if (this.eatKw("tablespace")) this.ident(true);
     const where = this.eatKw("where") ? this.parseExpr() : null;
@@ -2108,6 +2201,7 @@ export class Parser {
       using,
       columns,
       include,
+      options,
       where,
       nullsNotDistinct,
       concurrently,
@@ -2447,6 +2541,10 @@ export class Parser {
           ...({ renameTo: to } as any),
         } as any;
       }
+      if (this.atKw("set") && (this.atKw("logged", 1) || this.atKw("unlogged", 1))) {
+        this.pos++;
+        return { type: "alter_sequence", name, ifExists, options: { logged: this.next().value === "logged" } };
+      }
       const options = this.parseSequenceOptions();
       return { type: "alter_sequence", name, ifExists, options };
     }
@@ -2600,6 +2698,7 @@ export class Parser {
           this.next();
           return { kind: "rename_column", from: column, to: column }; // no-op-ish
         }
+        if (this.eatKw("storage")) return { kind: "set_storage", column, mode: this.parseStorageMode() };
         throw unsupported("this ALTER COLUMN SET form");
       }
       if (this.eatKw("drop")) {
@@ -2648,6 +2747,8 @@ export class Parser {
     }
     if (this.eatKw("set")) {
       if (this.eatKw("schema")) return { kind: "set_schema", to: this.ident() };
+      if (this.eatKw("logged")) return { kind: "set_logged", logged: true };
+      if (this.eatKw("unlogged")) return { kind: "set_logged", logged: false };
       if (this.eatPunct("(")) {
         this.skipBalancedCloseParen();
         return { kind: "reloptions" };
@@ -2673,6 +2774,7 @@ export class Parser {
 
   private parseDrop(): Statement {
     this.expectKw("drop");
+    let concurrently = false;
     let kind: Statement extends never ? never : import("../ast/nodes.ts").DropStmt["kind"];
     if (this.eatKw("table")) kind = "table";
     else if (this.atKw("materialized") && this.atKw("view", 1)) {
@@ -2680,7 +2782,7 @@ export class Parser {
       kind = "materialized_view";
     } else if (this.eatKw("view")) kind = "view";
     else if (this.eatKw("index")) {
-      this.eatKw("concurrently");
+      concurrently = this.eatKw("concurrently");
       kind = "index";
     } else if (this.eatKw("sequence")) kind = "sequence";
     else if (this.eatKw("schema")) kind = "schema";
@@ -2734,7 +2836,7 @@ export class Parser {
     let cascade = false;
     if (this.eatKw("cascade")) cascade = true;
     else this.eatKw("restrict");
-    return { type: "drop", kind, names, onTable, funcArgs, ifExists, cascade };
+    return { type: "drop", kind, names, onTable, funcArgs, ifExists, cascade, concurrently };
   }
 
   private parseTruncate(): Statement {
@@ -3572,6 +3674,8 @@ export class Parser {
           let forLen: Expr | null = null;
           let similar: Expr | null = null;
           let escape: Expr | null = null;
+          // substring(x, 1, 2) is an ordinary call; the keyword forms are SQL syntax
+          const call = this.atPunct(",") || this.atPunct(")");
           if (this.eatPunct(",")) {
             from = this.parseExpr();
             if (this.eatPunct(",")) forLen = this.parseExpr();
@@ -3585,7 +3689,7 @@ export class Parser {
             }
           }
           this.expectPunct(")");
-          return { type: "substring_sql", source, from, forLen, similar, escape };
+          return { type: "substring_sql", source, from, forLen, similar, escape, ...(call ? { call } : {}) };
         }
         case "overlay": {
           if (!this.atPunct("(", 1)) break;

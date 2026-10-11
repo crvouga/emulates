@@ -20,7 +20,8 @@ export function page(
   title: string,
   body: string,
   status = 200,
-  action = "'self'",
+  // null omits form-action: nothing else restricts a form, since it has no default-src fallback.
+  action: string | null = "'self'",
   nonce: string = crypto.randomUUID(),
   testId = "",
 ): Response {
@@ -33,7 +34,7 @@ export function page(
         "cache-control": "no-store",
         "referrer-policy": "same-origin",
         "x-content-type-options": "nosniff",
-        "content-security-policy": `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; form-action ${action}; base-uri 'none'; frame-ancestors 'none'`,
+        "content-security-policy": `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; ${action === null ? "" : `form-action ${action}; `}base-uri 'none'; frame-ancestors 'none'`,
       },
     },
   )

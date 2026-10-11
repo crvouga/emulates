@@ -243,8 +243,9 @@ const SEED: Record<string, { status: CoverageStatus; evidence: string[]; notes: 
   "sql-droptrigger": { status: "VERIFIED", evidence: ["tests/contract/triggers/"], notes: "" },
   "sql-comment": {
     status: "PARTIALLY_VERIFIED",
-    evidence: ["tests/contract/catalog/"],
-    notes: "parsed and accepted; comments are not stored (divergence comment-on-not-stored)",
+    evidence: ["tests/contract/catalog/", "tests/contract/catalogs/"],
+    notes:
+      "COMMENT ON INDEX is stored (pg_description, obj_description); comments on other objects are accepted and not stored (divergence comment-on-not-stored)",
   },
   // session settings and prepared statements
   "sql-set": { status: "VERIFIED", evidence: ["tests/contract/set-show/"], notes: "" },
@@ -276,12 +277,18 @@ const SEED: Record<string, { status: CoverageStatus; evidence: string[]; notes: 
   },
   "sql-analyze": {
     status: "PARTIALLY_VERIFIED",
-    evidence: ["tests/contract/misc/"],
-    notes: "parsed no-op; no planner statistics",
+    evidence: ["tests/contract/catalogs/"],
+    notes:
+      "targets, columns and options are validated and pg_stat_user_tables records analyze_count / last_analyze; no planner statistics are gathered (divergence pg-stat-counters-immediate)",
   },
   "sql-checkpoint": { status: "PARTIALLY_VERIFIED", evidence: ["tests/contract/misc/"], notes: "parsed no-op" },
   "sql-cluster": { status: "PARTIALLY_VERIFIED", evidence: ["tests/contract/misc/"], notes: "parsed no-op" },
-  "sql-reindex": { status: "PARTIALLY_VERIFIED", evidence: ["tests/contract/misc/"], notes: "parsed no-op" },
+  "sql-reindex": {
+    status: "PARTIALLY_VERIFIED",
+    evidence: ["tests/contract/catalogs/"],
+    notes:
+      "INDEX / TABLE / SCHEMA / DATABASE / SYSTEM with CONCURRENTLY: targets are validated, a unique index is re-checked, an invalid index is repaired and a failed concurrent rebuild leaves its _ccnew index; there is no physical index to rebuild and TABLESPACE is ignored",
+  },
   "sql-grant": { status: "PARTIALLY_VERIFIED", evidence: ["tests/contract/misc/"], notes: "parsed no-op (no roles)" },
   "sql-revoke": { status: "PARTIALLY_VERIFIED", evidence: ["tests/contract/misc/"], notes: "parsed no-op (no roles)" },
   "sql-security-label": { status: "PARTIALLY_VERIFIED", evidence: ["tests/contract/misc/"], notes: "parsed no-op" },

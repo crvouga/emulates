@@ -185,6 +185,7 @@ Or from the command line (installs a `mockingbird-postgres` bin):
 ```bash
 mockingbird-postgres serve --port 55432            # trust auth
 mockingbird-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
+mockingbird-postgres serve --port 55432 --durable ./.postgres   # commits survive a restart
 ```
 
 `serve({ database })` shares an existing `Database`, and `serve({ database: snapshot })` boots every
@@ -202,7 +203,10 @@ return a conflict until closed.
 
 `server.snapshot()` freezes the live state; `server.fault({ dropConnection | delayStatementMs |
 failCommit })` arms the next statement or connection for a drop, a delay, or a `40001` commit
-failure.
+failure. `server.fault({ failConcurrentIndexBuild: "57014" })` (and `database.fault({
+concurrentIndexBuild: "57014" })` on the sync API) interrupts the next `CREATE INDEX CONCURRENTLY`
+or `REINDEX ... CONCURRENTLY` with that SQLSTATE and, as PostgreSQL does, leaves the index it was
+building in the catalog with `pg_index.indisvalid = false` until it is dropped or reindexed.
 
 One committed engine is shared by every connection. Explicit transactions execute in per-session
 copy-on-write workspaces that rebase each statement on the latest committed state, providing
@@ -222,20 +226,155 @@ the wire. `COPY … FROM STDIN` and `COPY … TO STDOUT` use protocol-v3 `CopyIn
 incrementally across arbitrary frame and quoted-record boundaries; failed imports are atomic and
 leave the connection in PostgreSQL's transaction state.
 
+**Session settings and startup parameters.** Every connection has its own settings: a `SET`,
+`RESET` or `set_config()` on one never reaches another, a `SET` inside a transaction block is
+undone by `ROLLBACK`, and a new connection starts from the database's settings, not a neighbour's.
+The startup packet's run-time parameters are applied before the first query, the way a PostgreSQL
+backend applies them: libpq's `options` string first, then every parameter sent by name (which
+therefore wins).
+
+```ts
+import pg from "pg"
+import { serve } from "@crvouga/mockingbird-service-postgres/wire"
+
+const server = await serve({ port: 0 })
+const client = new pg.Client({
+  connectionString: `${server.connectionString}?options=-c%20search_path%3Dapp`,
+})
+await client.connect()
+await client.query("CREATE SCHEMA app")
+await client.query("CREATE TABLE app.notes (id integer)")
+await client.query("SET search_path TO app")
+await client.end()
+await server.close()
+```
+
+Other clients set the same startup option with their own configuration (for example, JDBC's
+`currentSchema` or postgres.js / Bun SQL's `connection.search_path`).
+
+`options` is split like `pg_split_opts` (whitespace separates arguments, `\ ` is a literal space,
+`\\` a backslash) and accepts `-c name=value`, `-cname=value` and `--name=value` (dashes in a
+`--name` are underscores). A schema named in `search_path` need not exist yet: it starts resolving
+once it is created. Startup values are the session's defaults, so `RESET search_path`,
+`SET search_path TO DEFAULT` and `RESET ALL` return to them. Invalid input ends the connection
+with a `FATAL` ErrorResponse, as PostgreSQL 18.3 does: `42601` for a malformed `options` string
+(`-c name` without a value, a stray argument, an unknown switch), `42704` for an unknown
+parameter, `22023` for a bad value (`search_path` list syntax, booleans, integers and timeouts with
+units, enum parameters, `DateStyle`, `TimeZone`) and `55P02` for a read-only parameter such as
+`server_version`. The session-aware functions (`pg_advisory_lock`, `pg_backend_pid`, `pg_notify`,
+…) live in `pg_catalog`, so they keep working when `search_path` leaves out `public`.
+
+Boundaries: a parameter is known when the engine has a setting for it (the same rule as `SET`), so
+a real PostgreSQL parameter the engine does not model, such as `work_mem` or `jit`, is `42704`
+at startup too; names with a dot are custom parameters and always accepted. The other `postgres`
+switches (`-e`, `-S`, `-d`, …) fail loud with `0A000`. `client_encoding`, `lc_*` and
+`application_name` values are stored as sent, an unquoted upper-case schema in a startup
+`search_path` is shown folded to lower case, and `ParameterStatus` is sent at startup only, not
+again when a reported setting changes. `SET LOCAL` and `DISCARD ALL` keep their engine behaviour
+(see [COMPATIBILITY.md](COMPATIBILITY.md)).
+
 **Not modelled by the server:** transaction ID and snapshot-inspection functions, predicate and
 table locks, isolation levels beyond `READ COMMITTED`, and the binary parameter formats beyond the
 common scalar types (a client that sends another binary type gets `0A000`, and can switch that
 parameter to text). Binary `COPY` is not supported.
+
+#### Durable mode (opt-in)
+
+The server keeps everything in memory, and that stays the default: no option, no filesystem, the
+same bytes on every run. For local development, where the server replaces a native database and
+a killed process must not lose acknowledged work, `durable` persists the cluster before each
+commit is acknowledged:
+
+```ts
+import { serve } from "@crvouga/mockingbird-service-postgres/wire"
+
+const server = await serve({ port: 55432, durable: "./.postgres" }) // a directory
+// … the process is SIGKILLed …
+const again = await serve({ port: 55432, durable: "./.postgres" }) // resumes from the last acknowledged commit
+await again.close()
+```
+
+| | Guarantee |
+| --- | --- |
+| Acknowledged commit | An autocommit write, a `COMMIT`, the implicit commit of a multi-statement query, a `COPY … FROM STDIN` and `CREATE` / `DROP` / `ALTER DATABASE` are in storage before `CommandComplete` (for an implicit commit, before `ReadyForQuery`) is sent. They survive `SIGKILL`. |
+| Uncommitted work | A transaction that was open or rolled back is never restored: it only ever existed in its session's workspace. |
+| Storage failure | The commit is not acknowledged. The statement fails with `58030` (`io_error`), or `53100` (`disk_full`) when the storage reports `ENOSPC` / `EDQUOT`; the change is taken back out of memory, the transaction is gone (as after any failed `COMMIT`: the session is idle, not in an aborted block), its `NOTIFY`s are dropped, and the next statement runs normally. |
+| Atomic | The file-backed store writes each file under a temporary name, fsyncs it, renames it into place and fsyncs the directory; the manifest swap is the commit point. A crash leaves the previous state or the new one. Leftovers of an interrupted write are removed on the next start, and a snapshot whose length or SHA-256 does not match its manifest entry is refused, never decoded. |
+| Whole cluster | Every database with its catalog, data, sequences and deterministic random position. A restart restores all of them; separate directories (or storages) are separate clusters. |
+| Visibility | A commit being persisted holds the statement turn, so no other connection reads it before it is durable. |
+
+It is **snapshot persistence, not a write-ahead log, and not PostgreSQL's on-disk format**: the
+payload is the [PGMM snapshot](#snapshots) of each database (`<sha256>.pgmm`)
+plus a `MANIFEST.json` naming the current one per database. Nothing reads a PostgreSQL data
+directory, and `pg_dump`, physical replication and point-in-time recovery do not apply.
+
+The trade-off is cost per commit: every commit re-encodes the database it changed (other
+databases are not rewritten) and then waits for two file fsyncs and two directory fsyncs. That is
+proportional to the size of that database, not to the size of the change: about 10 ms for a
+200 KB snapshot and several hundred milliseconds for 2 MB (100 000 short rows) on a laptop. It
+suits development datasets; batch bulk writes into one transaction (one `COMMIT`, one encode), and
+keep the in-memory default for tests. Reads, `SET` and statements inside an open transaction
+never touch storage; a statement that could have written (a `SELECT` calling a user-defined
+function, a view or `nextval`) is encoded and compared, and written only if the snapshot differs.
+`fsync` is as strong as the platform makes it: surviving a killed process does not depend on it,
+surviving power loss does.
+
+Boundaries of durable mode:
+
+- One server process per directory; nothing locks it.
+- `database` seeds an empty storage (the seed is persisted at startup). Once storage holds a
+  cluster, that cluster is served and `database` only supplies the runtime: clock, seed, entropy
+  mode and `int8` mode. Read state through `server.database`, not the object you passed.
+- What a PGMM snapshot does not hold is not restored: functions added with `registerFunction`,
+  session state (settings, prepared statements, advisory locks, `LISTEN`s), and faults.
+- Writes made from the host process (`server.database.exec(...)`, `restoreAll()`) are not commits
+  of a connection: call `await server.persist()` to store them. A host-side read during a commit
+  can see it before it is durable.
+- `nextval()` and `setval()` are persisted at once. The random position consumed by a statement
+  that wrote nothing (`SELECT gen_random_uuid()`) is stored with the next commit of that database.
+- `mockingbird-postgres serve --config` (the fleet) has no durable option.
+
+The storage is a port, so a test can model failure and crashes without a filesystem:
+
+```ts
+import { type ClusterImage, type DurableStorage, fileStorage, serve } from "@crvouga/mockingbird-service-postgres/wire"
+
+let image: ClusterImage | null = null
+let failing = false
+const paused = Promise.resolve()
+const storage: DurableStorage = {
+  read: async () => image,
+  write: async (next) => {
+    if (failing) throw Object.assign(new Error("disk full"), { code: "ENOSPC" }) // → 53100, not acknowledged
+    image = new Map(next)
+  },
+}
+const server = await serve({
+  durable: {
+    storage, // or a directory, or fileStorage(directory)
+    beforeAcknowledge: (commit) => paused, // persisted, not acknowledged yet: crash here
+    afterAcknowledge: (commit) => paused, // the acknowledgement is on the socket: crash here
+  },
+})
+const restarted = await serve({ durable: storage }) // "restart" from what storage holds
+```
+
+`write` receives the whole cluster as PGMM bytes per database and must be atomic: resolve once the
+image would survive a kill, or reject and leave the previous image in place. The server never
+calls it concurrently and passes the same `Uint8Array` for a database that did not change.
+`beforeAcknowledge` / `afterAcknowledge` receive `{ pid, database, sql }` and are awaited, which
+is how a crash-regression test stops the server on either side of the acknowledgement.
 
 ### Method semantics
 
 | Method | Behaviour |
 | --- | --- |
 | `exec(sql)` | Runs all semicolon-separated statements; **discards** row results (`void`). Does **not** accept bind parameters. Read `db.changes` afterwards if needed (reflects the **most recent** completed DML statement). Dump-only `DO` blocks and `ALTER TABLE ... SET (` storage parameters are no-ops. |
-| `registerFunction(spec)` | Install a JavaScript scalar. Not stored in PGMM snapshots; `open()` of a live snapshot copies the implementation by reference. |
+| `registerFunction(spec)` | Install a JavaScript scalar. Not stored in PGMM snapshots; `open()` of a live snapshot copies the implementation by reference. A `pg_catalog.`-qualified name is found ahead of `search_path`, as PostgreSQL's own functions are. |
 | `query(sql, params?, { at? }?)` | **Single statement only** (trailing `;` is fine). Returns all rows. `at` is a `Snapshot` or a timeline checkpoint id and queries that checkpoint without changing live state. Multi-statement scripts throw `misuse`. |
 | `prepare(sql)` | **Single statement only**. Parses immediately; the AST is reused. Pass binds as rest args to `run` / `all` / `get` / `result` / `textResult` on each call. |
 | `transaction(fn)` | If idle: `BEGIN`, `fn()`, `COMMIT`, or `ROLLBACK` + rethrow. If already in a transaction: nested savepoint. A nested SQL `BEGIN` inside is a no-op warning like PostgreSQL. `close()` inside `fn` throws `misuse`. |
+| `fault({ concurrentIndexBuild })` | Test control: arm the next `CREATE INDEX CONCURRENTLY` / `REINDEX ... CONCURRENTLY` to fail with the given SQLSTATE (`"57014"` canceled, `"40P01"` deadlock) and leave its index invalid (`pg_index.indisvalid = false`), as an interrupted build does on PostgreSQL. One shot; not part of snapshots. |
 | `copyFrom(sql, data)` | Executes `COPY table [(cols)] FROM STDIN` with `data` as the copy-in payload (text or csv per the COPY options). Returns rows copied. `COPY ... TO STDOUT` output is returned as result rows by `query`. |
 | `snapshot()` | Freeze a reusable `Snapshot` template (no encode) and commit it on the followed timeline branch. Illegal inside a transaction (`25P01`). |
 | `checkpoint()` / `branch(at?)` | `checkpoint` records the same timeline point as `snapshot`. `branch` opens an isolated database from a snapshot (or the current state). |
@@ -335,12 +474,16 @@ Intentional differences: custom `PGMM` snapshots; seeded `random()` / fixed `now
 - `EXPLAIN`: stub plan shapes, not real planner output
 - The in-process API does **not** poison a transaction after a failed statement (no `25P02`); the wire-protocol server does, per connection
 - Triggers fire in **creation order** (PostgreSQL: name order); `UPDATE OF` column lists are ignored; `INSTEAD OF` is unsupported
-- `COMMENT ON` parses but comments are not stored
+- `COMMENT ON INDEX` is stored (`pg_description`, `obj_description`); comments on every other kind of object parse but are not stored
 - `round(float8)` rounds ties away from zero (PostgreSQL: half-to-even); numeric `round()` has full parity
 - `'1e400'::float8` saturates to `Infinity` instead of raising `22003`
 - In the engine `MERGE`, `CALL`/procedures, cursors (`DECLARE`/`FETCH`), `LISTEN`/`NOTIFY`, and full PL/pgSQL (packages, NOTICE, cursors) fail loud (`0A000`); the wire-protocol server implements `LISTEN`/`NOTIFY` itself
-- `VACUUM` / `ANALYZE` / `CLUSTER` / `REINDEX` / `CHECKPOINT` / `GRANT` / `REVOKE` / `LOCK` are parsed no-ops
+- `VACUUM` / `CLUSTER` / `CHECKPOINT` / `GRANT` / `REVOKE` / `LOCK` are parsed no-ops. `ANALYZE` validates its targets and records `analyze_count` / `last_analyze`, and `REINDEX` validates its targets and repairs an invalid index; neither has planner statistics or a physical index behind it
+- `pg_stat_user_tables` / `pg_stat_user_indexes` have PostgreSQL 18's columns, but only `n_live_tup` (the exact row count, immediately), the `ANALYZE` bookkeeping and `idx_scan` for unique-key lookups are real; the other activity counters read zero
+- Index access methods other than btree (`USING hash` / `gin` / …) are recorded and shown by `pg_get_indexdef` and `pg_am`, not implemented differently; `pg_index` has no `indkey` (use `pg_get_indexdef(oid, n, pretty)`)
 - Collation is `C` semantics (byte order); locale/ICU-dependent ordering is out of scope
+- Column `STORAGE` modes (`pg_attribute.attstorage`) and `UNLOGGED` persistence (`pg_class.relpersistence`) follow PostgreSQL's SQL and catalog contract but are metadata only: there is no TOAST and no WAL, so an unlogged table is stored, snapshotted and kept like any other
+- `pg_available_extensions` / `pg_extension` list only what `CREATE EXTENSION` can install here (`pgcrypto`, `pg_trgm`) plus the built-in `plpgsql`; any other extension is absent from the views and `CREATE EXTENSION` fails with `0A000`
 
 **Also supported (oracle parity):** schemas + `search_path`, `pg_catalog` / `information_schema`
 introspection, sequences (`serial`, identity, `nextval`/`currval`/`setval`), enums, domains,

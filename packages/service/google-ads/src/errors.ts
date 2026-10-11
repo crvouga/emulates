@@ -2,6 +2,7 @@ export type AdsError = {
   errorCode: Record<string, string>
   message: string
   location?: { fieldPathElements: { fieldName: string; index?: number }[] }
+  details?: Record<string, unknown>
 }
 const statuses: Record<number, string> = {
   400: "INVALID_ARGUMENT",
@@ -37,8 +38,16 @@ export class Rejection extends Error {
   ) {
     super(detail.message)
   }
+  /** A Google Ads failure: google.rpc.Status wrapping a GoogleAdsFailure detail. */
   response(requestId?: string): Response {
-    return rpcError(this.status, this.message, [adsFailure([this.detail], requestId)])
+    // Google's error guide shows INVALID_ARGUMENT with this canonical text and the reason per
+    // error; the other statuses' canonical texts are not documented there, so they keep the reason.
+    const message = this.status === 400 ? "Request contains an invalid argument." : this.message
+    return rpcError(this.status, message, [adsFailure([this.detail], requestId)])
+  }
+  /** Any other Google API (Analytics Data): a plain google.rpc.Status with no Ads detail. */
+  plain(): Response {
+    return rpcError(this.status, this.message)
   }
 }
 export function reject(

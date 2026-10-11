@@ -82,7 +82,10 @@ export function tryIndexedTableRows(env: ExecEnv, table: TableData, alias: strin
   const hits = indexStoreFor(env, table, spec).lookup(key);
   const schema = env.ctx.state.schemas.get(table.schema);
   const index = schema?.indexes.get(spec.name);
-  if (schema && index) schema.indexes.set(spec.name, { ...index, scans: (index.scans ?? 0n) + 1n });
+  if (schema && index) {
+    const lastScan = env.ctx.state.clock().getTime();
+    schema.indexes.set(spec.name, { ...index, scans: (index.scans ?? 0n) + 1n, lastScan });
+  }
   return hits.map((i) => table.rowAt(i));
 }
 

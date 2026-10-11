@@ -40,7 +40,7 @@ All fail loud with SQLSTATE `0A000` (or `42601` where the grammar is not parsed)
 
 ## 3. NOT APPLICABLE (56 commands)
 
-Roles/privileges as enforcement (`CREATE ROLE`, `GRANT`, …), replication (`CREATE PUBLICATION/SUBSCRIPTION`), maintenance internals (`VACUUM`, `CLUSTER`, `CHECKPOINT`, `REINDEX` — parsed no-ops where harmless), and wire-protocol-session commands. These are outside the single-session in-memory dialect claim by definition.
+Roles/privileges as enforcement (`CREATE ROLE`, `GRANT`, …), replication (`CREATE PUBLICATION/SUBSCRIPTION`), maintenance internals (`VACUUM`, `CLUSTER`, `CHECKPOINT` — parsed no-ops where harmless; `REINDEX` and `ANALYZE` validate their targets and update the catalog, see COMPATIBILITY.md), and wire-protocol-session commands. These are outside the single-session in-memory dialect claim by definition.
 
 ## 4. PARTIALLY VERIFIED areas (implemented; thin edges)
 

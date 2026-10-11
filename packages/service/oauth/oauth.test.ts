@@ -237,7 +237,8 @@ describe("OAuth protocol", () => {
     expect(html).toContain(`method="post" action="${nativeCallback}"`)
     expect(html).toContain('name="code"')
     expect(html).toContain('name="state" value="round-trip"')
-    expect(response.headers.get("content-security-policy")).toContain("form-action com.acme.app:")
+    // The app the form posts to may redirect anywhere next, so the hand-off names no form-action.
+    expect(response.headers.get("content-security-policy")).not.toContain("form-action")
   })
   test("browser callbacks use a provider handoff while programmatic clients keep redirects", async () => {
     const browser = new OAuthAPI({
@@ -269,6 +270,43 @@ describe("OAuth protocol", () => {
     const direct = await complete(api())
     expect(direct.status).toBe(302)
     expect(direct.headers.get("location")?.startsWith(callback)).toBe(true)
+  })
+  test("form_post hand-off does not restrict where the callback redirects next, on every provider", async () => {
+    // form-action also governs the redirects that follow a submit, and a callback may answer the
+    // POST with a redirect to an application origin the provider never sees.
+    const handoffPolicy =
+      "default-src 'none'; style-src 'nonce-fixed-csp-nonce'; script-src 'nonce-fixed-csp-nonce'; base-uri 'none'; frame-ancestors 'none'"
+    for (const provider of ["google", "apple", "oidc", "microsoft", "github"] as const) {
+      for (const action of ["allow", "deny"] as const) {
+        const service = new OAuthAPI({
+          provider,
+          accounts: [account],
+          clients: [client],
+          nonce: () => "fixed-csp-nonce",
+        })
+        const start = await authorize(service, {
+          response_mode: "form_post",
+          scope: provider === "github" ? "read:user" : "openid email",
+        })
+        const tx = transaction(await start.text())
+        const consent = await service.fetch(
+          request("/interaction", { transaction: tx, action: "select", account: "ada" }),
+        )
+        for (const interaction of [start, consent])
+          expect(interaction.headers.get("content-security-policy")).toContain(
+            "form-action 'self' https://app.test;",
+          )
+        const handoff = await service.fetch(
+          request("/interaction", { transaction: tx, action }, { "sec-fetch-mode": "navigate" }),
+        )
+        const html = await handoff.text()
+        expect(handoff.status).toBe(200)
+        expect(html).toContain('data-testid="oauth-mock-form-post"')
+        expect(html).toContain(`<form id="callback" method="post" action="${callback}">`)
+        expect(html).toContain(action === "allow" ? 'name="code"' : 'name="error"')
+        expect(handoff.headers.get("content-security-policy")).toBe(handoffPolicy)
+      }
+    }
   })
   test("refresh scope restriction and token-family revocation", async () => {
     const service = api()

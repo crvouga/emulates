@@ -1,6 +1,10 @@
 import { type CatalogSection, section } from "../scenario-types.ts";
 
 const D = "documented_divergence" as const;
+/** Cases for the ext rows live next to the catalog test, in their own file. */
+const EXTENSIONS = ["tests/contract/catalog/extension-cases.ts"];
+/** Cases for the index / namespace / statistics rows, with the full proof under tests/contract/catalogs/. */
+const INDEXES = ["tests/contract/catalog/index-reconciliation-cases.ts", "tests/contract/catalogs/"];
 
 export const CAT_SECTION: CatalogSection = section("CAT", "pg_catalog and information_schema", true, [
   ["class-01", "user table appears in pg_class with relkind r"],
@@ -27,6 +31,51 @@ export const CAT_SECTION: CatalogSection = section("CAT", "pg_catalog and inform
   ["cons-01", "information_schema.table_constraints for PK, UNIQUE, CHECK"],
   ["cons-02", "information_schema.key_column_usage lists key columns"],
   ["cons-03", "foreign key appears in table_constraints"],
+  ["ext-01", "pg_available_extensions lists the installable extensions", undefined, undefined, EXTENSIONS],
+  ["ext-02", "an unavailable extension is zero rows in pg_available_extensions", undefined, undefined, EXTENSIONS],
+  ["ext-03", "pg_extension follows CREATE / DROP EXTENSION", undefined, undefined, EXTENSIONS],
+  ["ext-04", "CREATE EXTENSION of an unavailable extension errors", undefined, undefined, EXTENSIONS],
+  ["index-valid-01", "invalid-index filter is empty on a fresh database", undefined, undefined, INDEXES],
+  ["index-valid-02", "the pg_index.indisvalid query does not poison a transaction", undefined, undefined, INDEXES],
+  ["index-valid-03", "completed indexes are valid, ready and live", undefined, undefined, INDEXES],
+  ["index-valid-04", "a failed CREATE UNIQUE INDEX CONCURRENTLY leaves an invalid index", undefined, undefined, INDEXES],
+  ["index-valid-05", "CREATE INDEX CONCURRENTLY in a transaction block is 25001", undefined, undefined, INDEXES],
+  ["index-valid-06", "REINDEX repairs an invalid index once its duplicates are gone", undefined, undefined, INDEXES],
+  [
+    "index-valid-07",
+    "Database.fault interrupts a concurrent index build",
+    D,
+    "memory: a test control arms the next concurrent build to fail and leave its index invalid; PostgreSQL does this when a build is canceled or deadlocks, which the oracle cannot be made to do",
+    INDEXES,
+    "concurrent-index-build-fault",
+  ],
+  ["index-def-01", "pg_get_indexdef through the pg_index joins", undefined, undefined, INDEXES],
+  ["index-def-02", "pg_indexes.indexdef", undefined, undefined, INDEXES],
+  ["index-def-03", "constraint-backed indexes appear in every index catalog", undefined, undefined, INDEXES],
+  ["index-def-04", "indexdef renders method, ordering, expressions, predicate, quoting", undefined, undefined, INDEXES],
+  ["index-def-05", "pg_get_indexdef column and pretty-print overloads", undefined, undefined, INDEXES],
+  ["index-comment-01", "COMMENT ON INDEX is stored in pg_description", undefined, undefined, INDEXES],
+  ["index-comment-02", "COMMENT ON INDEX of a missing index is 42P01", undefined, undefined, INDEXES],
+  ["namespace-01", "relnamespace = current_schema()::regnamespace", undefined, undefined, INDEXES],
+  ["namespace-02", "regnamespace output quotes a mixed-case name", undefined, undefined, INDEXES],
+  ["namespace-03", "builtin namespace resolves to its catalog oid", undefined, undefined, INDEXES],
+  ["namespace-04", "an unknown numeric oid prints numerically", undefined, undefined, INDEXES],
+  ["namespace-05", "a missing schema is 3F000", undefined, undefined, INDEXES],
+  ["namespace-06", "an oid beyond 2^32-1 is 22003", undefined, undefined, INDEXES],
+  ["namespace-07", "a qualified name is invalid name syntax", undefined, undefined, INDEXES],
+  ["table-stat-01", "pg_stat_user_tables join on an empty database", undefined, undefined, INDEXES],
+  ["table-stat-02", "pg_stat_user_tables lists a new table", undefined, undefined, INDEXES],
+  ["table-stat-03", "n_live_tup reflects the rows after ANALYZE; DROP removes the row", undefined, undefined, INDEXES],
+  [
+    "table-stat-04",
+    "statistics are current immediately; activity counters are not tracked",
+    D,
+    "memory: n_live_tup is the exact row count at once and seq_scan / n_tup_* read zero; PostgreSQL reports its counters asynchronously",
+    INDEXES,
+    "pg-stat-counters-immediate",
+  ],
+  ["index-stat-01", "pg_stat_user_indexes on an empty database", undefined, undefined, INDEXES],
+  ["index-stat-02", "pg_stat_user_indexes lists an index", undefined, undefined, INDEXES],
   ["fn-01", "current_database() and current_schema() shapes"],
   ["fn-02", "version() reports a PostgreSQL banner"],
   [

@@ -1,0 +1,196 @@
+openapi: 3.1.0
+info:
+  title: EMQX REST API v5 (Mockingbird subset)
+  description: |
+    The two management endpoints the consumer calls on an EMQX 5 broker: publish a message
+    and kick a client out. Trimmed from EMQX's own schema
+    (apps/emqx_management/src/emqx_mgmt_api_publish.erl and emqx_mgmt_api_clients.erl at
+    v5.8.6). The MQTT surface of the same broker is not HTTP and is documented in the README.
+  version: "5"
+  x-mockingbird-upstream:
+    note: >-
+      Hand-authored from the EMQX 5.8 management API schema and handlers
+      (https://github.com/emqx/emqx/tree/v5.8.6/apps/emqx_management/src) and
+      https://docs.emqx.com/en/emqx/latest/admin/api.html.
+servers:
+  - url: http://localhost:18083
+security:
+  - apiKey: []
+paths:
+  /api/v5/publish:
+    post:
+      operationId: PublishMessage
+      summary: Publish one message to a topic
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishBody"
+      responses:
+        "200":
+          description: Delivered to at least one subscriber
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishOk"
+        "202":
+          description: No subscriber matched the topic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishError"
+        "400":
+          description: >-
+            The message is not valid. Schema failures answer `{code, message}`; a bad topic name
+            or payload answers `{reason_code, message}`.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/ApiError"
+                  - $ref: "#/components/schemas/PublishError"
+        "401":
+          description: Missing or wrong API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "415":
+          description: The body is not application/json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "503":
+          description: Subscribers matched and none could be delivered to
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishError"
+  /api/v5/clients/{clientid}:
+    parameters:
+      - name: clientid
+        in: path
+        required: true
+        description: The MQTT client identifier, percent-encoded.
+        schema:
+          type: string
+          minLength: 1
+          examples: [mockingbird-missing-client]
+    delete:
+      operationId: KickClient
+      summary: Kick a client out and discard its session
+      x-mockingbird:
+        supported: true
+        parity:
+          enabled: true
+          safe: false
+      responses:
+        "204":
+          description: The client was kicked out
+        "401":
+          description: Missing or wrong API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: No such client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: basic
+      description: An API key as the username and its secret as the password.
+  schemas:
+    PublishBody:
+      type: object
+      required: [topic, payload]
+      additionalProperties: false
+      properties:
+        topic:
+          type: string
+          description: The topic name. Wildcards are not allowed.
+          examples: [space/example]
+        payload:
+          type: string
+          description: The message payload, as text or base64 per `payload_encoding`.
+          examples: ["hello"]
+        qos:
+          type: integer
+          minimum: 0
+          maximum: 2
+          default: 0
+        retain:
+          type: boolean
+          default: false
+        payload_encoding:
+          type: string
+          enum: [plain, base64]
+          default: plain
+        clientid:
+          type: string
+          deprecated: true
+          description: Deprecated since EMQX 5.0.14; accepted and ignored.
+        properties:
+          $ref: "#/components/schemas/PublishProperties"
+    PublishProperties:
+      type: object
+      additionalProperties: false
+      properties:
+        payload_format_indicator:
+          type: integer
+          minimum: 0
+          maximum: 1
+        message_expiry_interval:
+          type: integer
+          minimum: 0
+          maximum: 4294967295
+        response_topic:
+          type: string
+        correlation_data:
+          type: string
+        content_type:
+          type: string
+        user_properties:
+          type: object
+          additionalProperties:
+            type: string
+    PublishOk:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          description: The message id, 32 uppercase hexadecimal characters.
+          pattern: "^[0-9A-F]{32}$"
+          x-mockingbird-volatile:
+            kind: id
+    PublishError:
+      type: object
+      required: [reason_code, message]
+      properties:
+        reason_code:
+          type: integer
+          description: The MQTT reason code for the failure (16 no matching subscribers, 144 topic name invalid).
+        message:
+          type: string
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: [BAD_REQUEST]
+        message:
+          type: string

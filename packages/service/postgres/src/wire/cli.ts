@@ -5,6 +5,7 @@
  *   mockingbird-postgres serve                 # a free port on 127.0.0.1, printed as a URL
  *   mockingbird-postgres serve postgres://postgres:secret@0.0.0.0:55432/app --log
  *   mockingbird-postgres serve --port 55432 --host 0.0.0.0 --password secret --log
+ *   mockingbird-postgres serve --port 55432 --durable ./.postgres   # commits survive a restart
  *
  * The connection string it prints works with `pg`, `postgres.js`, JDBC and `psql`.
  */
@@ -12,7 +13,7 @@ import { runCli, serveCommand } from "@crvouga/mockingbird-adapter-node";
 import { serveTarget } from "../server.ts";
 import { type ServeOptions, serve } from "./index.ts";
 
-const usage = `mockingbird-postgres serve [postgres://URI] [--port <n>] [--host <h>] [--password <p>] [--server-version <v>] [--log]`;
+const usage = `mockingbird-postgres serve [postgres://URI] [--port <n>] [--host <h>] [--password <p>] [--server-version <v>] [--durable <dir>] [--log]`;
 
 const args = process.argv.slice(2);
 if (args[0] === "serve" && args.includes("--config")) {
@@ -61,6 +62,9 @@ for (let i = 1; i < args.length; i++) {
       break;
     case "--server-version":
       options.serverVersion = need();
+      break;
+    case "--durable":
+      options.durable = need();
       break;
     case "--log":
       log = true;

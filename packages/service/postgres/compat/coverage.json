@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-21T18:49:46.346Z",
+  "generatedAt": "2026-10-11T00:19:02.759Z",
   "referenceServerVersion": "18.3",
   "counts": {
     "total": 183,
@@ -251,9 +251,9 @@
     "sql-analyze": {
       "status": "PARTIALLY_VERIFIED",
       "evidence": [
-        "tests/contract/misc/"
+        "tests/contract/catalogs/"
       ],
-      "notes": "parsed no-op; no planner statistics"
+      "notes": "targets, columns and options are validated and pg_stat_user_tables records analyze_count / last_analyze; no planner statistics are gathered (divergence pg-stat-counters-immediate)"
     },
     "sql-begin": {
       "status": "VERIFIED",
@@ -289,9 +289,10 @@
     "sql-comment": {
       "status": "PARTIALLY_VERIFIED",
       "evidence": [
-        "tests/contract/catalog/"
+        "tests/contract/catalog/",
+        "tests/contract/catalogs/"
       ],
-      "notes": "parsed and accepted; comments are not stored (divergence comment-on-not-stored)"
+      "notes": "COMMENT ON INDEX is stored (pg_description, obj_description); comments on other objects are accepted and not stored (divergence comment-on-not-stored)"
     },
     "sql-commit": {
       "status": "VERIFIED",
@@ -924,9 +925,9 @@
     "sql-reindex": {
       "status": "PARTIALLY_VERIFIED",
       "evidence": [
-        "tests/contract/misc/"
+        "tests/contract/catalogs/"
       ],
-      "notes": "parsed no-op"
+      "notes": "INDEX / TABLE / SCHEMA / DATABASE / SYSTEM with CONCURRENTLY: targets are validated, a unique index is re-checked, an invalid index is repaired and a failed concurrent rebuild leaves its _ccnew index; there is no physical index to rebuild and TABLESPACE is ignored"
     },
     "sql-release-savepoint": {
       "status": "VERIFIED",

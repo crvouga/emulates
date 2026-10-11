@@ -18,11 +18,14 @@ export interface ColumnMeta {
   collate: string | null;
   /** resolved domain name when column type came from a domain */
   domain: string | null; // "schema.name"
+  /** `pg_attribute.attstorage` override (p/e/x/m); absent = the type's default strategy */
+  storage?: "p" | "e" | "x" | "m";
 }
 
 export type ConstraintMeta =
-  | { kind: "primary_key"; name: string; columns: string[] }
-  | { kind: "unique"; name: string; columns: string[]; nullsNotDistinct: boolean }
+  // indexOid links a key constraint to the index that backs it (see schema/index-catalog.ts)
+  | { kind: "primary_key"; name: string; columns: string[]; indexOid?: number }
+  | { kind: "unique"; name: string; columns: string[]; nullsNotDistinct: boolean; indexOid?: number }
   | { kind: "check"; name: string; expr: Expr }
   | {
       kind: "foreign_key";
@@ -41,12 +44,30 @@ export interface IndexMeta {
   name: string;
   schema: string;
   table: string;
+  /** oid of the indexed table: the link that survives table and schema renames */
+  tableOid?: number;
   unique: boolean;
   comment?: string | null;
+  /** false after a failed or interrupted CREATE INDEX CONCURRENTLY / REINDEX CONCURRENTLY */
   valid?: boolean;
   scans?: bigint;
+  /** clock time (ms) of the most recent scan counted in `scans` */
+  lastScan?: number;
+  /** access method (`USING ...`); absent means btree */
+  method?: string;
+  /** non-key columns of INCLUDE (...) */
+  include?: string[];
+  /** WITH (...) storage parameters as written, values unquoted */
+  options?: Array<{ name: string; value: string }>;
   /** simple column indexes store names; expression indexes store the AST */
-  columns: Array<{ column: string | null; expr: Expr | null; dir: "asc" | "desc"; nulls: "first" | "last" }>;
+  columns: Array<{
+    column: string | null;
+    expr: Expr | null;
+    dir: "asc" | "desc";
+    nulls: "first" | "last";
+    /** operator class as written, possibly schema-qualified; absent means the default */
+    opclass?: string[] | null;
+  }>;
   where: Expr | null;
   nullsNotDistinct: boolean;
   /** true when this index backs a constraint (pkey / unique constraint) */
@@ -74,6 +95,8 @@ export class TableData {
   constraints: ConstraintMeta[];
   triggers: TriggerMeta[];
   temp: boolean;
+  /** UNLOGGED table (`pg_class.relpersistence = 'u'`); catalog metadata only, there is no WAL to skip */
+  unlogged = false;
   /** monotonically increasing oid-like id for catalog output */
   readonly oid: number;
   /** >0 while shared with a clone or transaction snapshot. */
@@ -154,6 +177,7 @@ export class TableData {
     } else {
       t.rows = this.rows.map((r) => r.slice());
     }
+    t.unlogged = this.unlogged;
     t.constraints = this.constraints.map((c) => ({ ...c }));
     t.triggers = this.triggers.map((tr) => ({ ...tr }));
     t.indexStores = this.indexStores ? new Map([...this.indexStores].map(([k, v]) => [k, v.clone()])) : null;
@@ -196,6 +220,8 @@ export interface SequenceData {
   ownedBy: { table: string; column: string } | null;
   dataType: TypeId;
   temp: boolean;
+  /** UNLOGGED sequence (`pg_class.relpersistence = 'u'`); absent = logged */
+  unlogged?: boolean;
   oid: number;
   shareCount?: number;
 }
@@ -233,6 +259,8 @@ export interface FunctionData {
   rawBody: string | null;
   strict: boolean;
   oid: number;
+  /** on an extension's member functions: the installed version when it is not the extension's default */
+  extensionVersion?: string;
   jsImpl?: (
     ...args: Array<null | boolean | number | bigint | string | Uint8Array>
   ) => null | boolean | number | bigint | string | Uint8Array;
@@ -295,6 +323,19 @@ export class SchemaData {
   }
 }
 
+/** ANALYZE bookkeeping for pg_stat_user_tables, keyed by table oid in {@link DatabaseState.tableStats}. */
+export interface TableStats {
+  analyzeCount: number;
+  /** clock time (ms) of the most recent ANALYZE */
+  lastAnalyze: number;
+}
+
+/** One-shot failure presets armed by tests (`Database.fault`). */
+export interface EngineFaults {
+  /** SQLSTATE raised by the next concurrent index build, which leaves its index invalid. */
+  concurrentIndexBuild?: string;
+}
+
 export interface PreparedStatement {
   name: string;
   argTypes: TypeId[] | null;
@@ -308,6 +349,16 @@ export class DatabaseState {
   settings = new Map<string, string>();
   /** SET LOCAL values, cleared on COMMIT/ROLLBACK */
   localSettings = new Map<string, string>();
+  /**
+   * What `RESET` and `SET ... TO DEFAULT` return to, over the built-in defaults: the settings a
+   * wire session started with. Belongs to the session executing, so clones do not carry it.
+   */
+  settingDefaults: ReadonlyMap<string, string> | null = null;
+  /**
+   * Host functions registered under `pg_catalog`: found ahead of the search path, the way
+   * PostgreSQL finds its own functions whatever `search_path` says. Copied to clones, not encoded.
+   */
+  systemFunctions = new Map<string, FunctionData[]>();
   prepared = new Map<string, PreparedStatement>();
   prng: Prng;
   clock: Clock;
@@ -318,6 +369,10 @@ export class DatabaseState {
   lastSequence: { schema: string; name: string } | null = null;
   /** Session currval per sequence; absent entry means currval is undefined. */
   sequenceCurrval = new Map<string, bigint>();
+  /** Per-table ANALYZE bookkeeping, keyed by table oid. */
+  tableStats = new Map<number, TableStats>();
+  /** Armed failure presets. Not part of snapshots, clones or transaction rollback. */
+  faults: EngineFaults = {};
 
   constructor(prng: Prng, clock: Clock) {
     this.prng = prng;
@@ -492,11 +547,11 @@ export class DatabaseState {
     if (parts.length >= 2) {
       const schema = parts[parts.length - 2]!;
       const name = parts[parts.length - 1]!;
-      if (schema === "pg_catalog") return [];
+      if (schema === "pg_catalog") return this.systemFunctions.get(name) ?? [];
       return this.schemas.get(schema)?.functions.get(name) ?? [];
     }
     const name = parts[0]!;
-    const out: FunctionData[] = [];
+    const out: FunctionData[] = [...(this.systemFunctions.get(name) ?? [])];
     for (const schema of this.effectiveSearchPath()) {
       const fns = this.schemas.get(schema)?.functions.get(name);
       if (fns) out.push(...fns);
@@ -535,7 +590,9 @@ export class DatabaseState {
     s.inTransaction = this.inTransaction;
     s.lastSequence = this.lastSequence ? { ...this.lastSequence } : null;
     s.sequenceCurrval = new Map(this.sequenceCurrval);
+    s.tableStats = new Map(this.tableStats);
     s.oidCounter = this.oidCounter;
+    for (const [name, overloads] of this.systemFunctions) s.systemFunctions.set(name, overloads.slice());
     return s;
   }
 
@@ -551,7 +608,9 @@ export class DatabaseState {
     s.inTransaction = this.inTransaction;
     s.lastSequence = this.lastSequence ? { ...this.lastSequence } : null;
     s.sequenceCurrval = new Map(this.sequenceCurrval);
+    s.tableStats = new Map(this.tableStats);
     s.oidCounter = this.oidCounter;
+    for (const [name, overloads] of this.systemFunctions) s.systemFunctions.set(name, overloads.slice());
     return s;
   }
 
@@ -629,6 +688,7 @@ export class DatabaseState {
     this.changes = other.changes;
     this.lastSequence = other.lastSequence;
     this.sequenceCurrval = other.sequenceCurrval;
+    this.tableStats = other.tableStats;
     this.oidCounter = other.oidCounter;
   }
 

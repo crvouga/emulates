@@ -8,7 +8,6 @@ import type {
   ColumnDef,
   CreateDomainStmt,
   CreateEnumStmt,
-  CreateExtensionStmt,
   CreateFunctionStmt,
   CreateIndexStmt,
   CreateSchemaStmt,
@@ -26,14 +25,24 @@ import type {
   TruncateStmt,
 } from "../ast/nodes.ts";
 import { checkChecks, checkForeignKeys, checkUnique, referencingConstraints } from "../constraints/enforce.ts";
-import { pgError, unsupported } from "../errors/error.ts";
+import { type PostgresError, pgError, unsupported } from "../errors/error.ts";
 import { sequenceNextval } from "../functions/misc-fns.ts";
-import { installPgcrypto, pgcryptoInstalled, uninstallPgcrypto } from "../functions/pgcrypto.ts";
-import { assertGinTrgmIndex, installPgTrgm, pgTrgmInstalled, uninstallPgTrgm } from "../functions/pgtrgm.ts";
+import { assertGinTrgmIndex } from "../functions/pgtrgm.ts";
 import { parse } from "../parser/index.ts";
+import { checkForeignKeyPersistence, relPersistence } from "../schema/persistence.ts";
+import { resolveStorage } from "../schema/storage.ts";
+import {
+  ACCESS_METHODS,
+  claimConstraintIndexName,
+  constraintOfIndex,
+  findIndex,
+  isKeyConstraint,
+  otherRelationKind,
+} from "../schema/index-catalog.ts";
 import {
   type ColumnMeta,
   type ConstraintMeta,
+  type IndexMeta,
   SchemaData,
   type SequenceData,
   TableData,
@@ -41,7 +50,20 @@ import {
 import { castTo } from "../types/cast.ts";
 import { resolveTypeName } from "../types/resolve.ts";
 import { type Datum, type TypeId, tv, UNKNOWN } from "../types/value.ts";
-import { commandResult, type ExecEnv, type ExecResult, RowScope } from "./relation.ts";
+import { assertUniqueIndexBuildable, refusedInTransactionBlock, takeConcurrentBuildFault } from "./maintenance.ts";
+import {
+  alterableColumn,
+  alterNonTableRelation,
+  applyLoggedChange,
+  dropColumnDefault,
+  dropColumnNotNull,
+  planLoggedChange,
+  setColumnDefault,
+  setColumnStorage,
+  setSequenceLogged,
+} from "./alter-column.ts";
+import { assertNotExtensionMember, executeDropExtension } from "./extensions.ts";
+import { commandResult, type ExecEnv, type ExecResult, inferColumnName, RowScope } from "./relation.ts";
 import { evalScalar, executeSelectStmt } from "./select.ts";
 
 // ---------------------------------------------------------------------------
@@ -168,7 +190,9 @@ export function executeCreateSequence(env: ExecEnv, stmt: CreateSequenceStmt): E
     if (stmt.ifNotExists) return commandResult("CREATE SEQUENCE", 0);
     throw pgError("duplicate_table", `relation "${name}" already exists`, "42P07");
   }
-  schema.sequences.set(name, buildSequence(env, schema, name, stmt.options, stmt.temp));
+  const seq = buildSequence(env, schema, name, stmt.options, stmt.temp);
+  if (stmt.unlogged) seq.unlogged = true;
+  schema.sequences.set(name, seq);
   return commandResult("CREATE SEQUENCE", 0);
 }
 
@@ -180,6 +204,10 @@ export function executeAlterSequence(env: ExecEnv, stmt: AlterSequenceStmt): Exe
     throw pgError("undefined_table", `relation "${stmt.name.join(".")}" does not exist`, "42P01");
   }
   const o = stmt.options;
+  if (o.logged !== undefined) {
+    setSequenceLogged(state, seq, o.logged);
+    return commandResult("ALTER SEQUENCE", 0);
+  }
   if (o.increment !== undefined) seq.increment = o.increment;
   if (o.minValue !== undefined)
     seq.minValue = o.minValue === "no" ? (seq.increment > 0n ? 1n : SEQ_LIMITS[seq.dataType]!.min) : o.minValue;
@@ -333,6 +361,11 @@ function buildColumn(
       case "collate":
         col.collate = c.collation.join(".");
         break;
+      case "storage": {
+        const storage = resolveStorage(col.type.id, c.mode);
+        if (storage !== undefined) col.storage = storage;
+        break;
+      }
     }
   }
   return col;
@@ -429,12 +462,15 @@ export function executeCreateTable(env: ExecEnv, stmt: CreateTableStmt): ExecRes
     const all = like.options.includes("all");
     const withDefaults = all || like.options.includes("defaults");
     const withConstraints = all || like.options.includes("constraints");
+    const withStorage = like.options.includes("including storage") || like.options.includes("including all");
     for (const c of src.columns) {
+      const { storage, ...copied } = c;
       built.columns.push({
-        ...c,
+        ...copied,
         defaultExpr: withDefaults ? c.defaultExpr : null,
         identity: null,
         generated: like.options.includes("generated") || all ? c.generated : null,
+        ...(withStorage && storage !== undefined ? { storage } : {}),
       });
     }
     if (withConstraints) {
@@ -459,6 +495,15 @@ export function executeCreateTable(env: ExecEnv, stmt: CreateTableStmt): ExecRes
   for (const con of stmt.constraints) {
     built.constraints.push(buildTableConstraint(env, name, built.columns, con, taken));
   }
+  // each key constraint gets an index of its name, which must not be a relation already (the new table included)
+  const written = new Set<string | null>(stmt.constraints.map((con) => con.name));
+  for (const def of stmt.columns) {
+    for (const con of def.constraints) if (con.kind === "unique") written.add(con.name);
+  }
+  const claimed = new Set<string>([name]);
+  for (const con of built.constraints) {
+    if (isKeyConstraint(con)) claimConstraintIndexName(schema, con, written.has(con.name), claimed);
+  }
 
   // PK columns are NOT NULL
   for (const con of built.constraints) {
@@ -474,14 +519,18 @@ export function executeCreateTable(env: ExecEnv, stmt: CreateTableStmt): ExecRes
     throw pgError("invalid_table_definition", `multiple primary keys for table "${name}" are not allowed`, "42P16");
   }
 
+  checkForeignKeyPersistence(state, relPersistence(stmt), built.constraints);
   for (const seq of built.sequences) {
     const seqSchema = state.getSchema(seq.schema);
     if (seqSchema.hasRelation(seq.name)) {
       throw pgError("duplicate_table", `relation "${seq.name}" already exists`, "42P07");
     }
+    // sequences behind serial / identity columns share the table's persistence
+    if (stmt.unlogged) seq.unlogged = true;
     seqSchema.sequences.set(seq.name, seq);
   }
   const table = new TableData(schema.name, name, built.columns, state.nextOid(), stmt.temp);
+  table.unlogged = stmt.unlogged;
   table.constraints = built.constraints;
   schema.tables.set(name, table);
   return commandResult("CREATE TABLE", 0);
@@ -506,6 +555,7 @@ export function executeCreateTableAs(env: ExecEnv, stmt: CreateTableAsStmt): Exe
     domain: null,
   }));
   const table = new TableData(schema.name, name, columns, state.nextOid(), stmt.temp);
+  table.unlogged = stmt.unlogged === true;
   if (stmt.withData) {
     for (const row of rel.rows) table.mutableRows().push(row.slice());
   }
@@ -526,8 +576,10 @@ export function executeCreateIndex(env: ExecEnv, stmt: CreateIndexStmt): ExecRes
   }
   const schema = state.getSchema(table.schema);
   const taken = new Set<string>([...schema.indexes.keys(), ...constraintNames(table)]);
+  // an expression contributes the name PostgreSQL would give it as a column, else "expr"
   const colPart = stmt.columns
-    .map((c) => (c.expr.type === "colref" ? c.expr.parts[c.expr.parts.length - 1]! : "expr"))
+    .map((c) => inferColumnName(c.expr))
+    .map((part) => (part === "?column?" ? "expr" : part))
     .join("_");
   const name = stmt.name ?? makeName(truncIdent(`${table.name}_${colPart}_idx`), taken);
   if (schema.indexes.has(name) || schema.hasRelation(name)) {
@@ -542,36 +594,56 @@ export function executeCreateIndex(env: ExecEnv, stmt: CreateIndexStmt): ExecRes
     }
   }
   assertGinTrgmIndex(state, table, stmt);
-  schema.indexes.set(name, {
+  const method = stmt.using ?? "btree";
+  if (!ACCESS_METHODS.has(method) || method === "heap") {
+    throw pgError("undefined_object", `access method "${method}" does not exist`, "42704");
+  }
+  if (stmt.unique && method !== "btree") {
+    throw pgError("feature_not_supported", `access method "${method}" does not support unique indexes`, "0A000");
+  }
+  for (const column of stmt.include) {
+    if (table.columnIndex(column) === -1) {
+      throw pgError("undefined_column", `column "${column}" does not exist`, "42703");
+    }
+  }
+  const index: IndexMeta = {
     oid: state.nextOid(),
     name,
     schema: schema.name,
     table: table.name,
+    tableOid: table.oid,
     unique: stmt.unique,
     columns: stmt.columns.map((c) => ({
       column: c.expr.type === "colref" && c.expr.parts.length === 1 ? c.expr.parts[0]! : null,
       expr: c.expr.type === "colref" && c.expr.parts.length === 1 ? null : c.expr,
       dir: c.dir ?? "asc",
       nulls: c.nulls ?? ((c.dir ?? "asc") === "desc" ? "first" : "last"),
+      ...(c.opclass ? { opclass: c.opclass } : {}),
     })),
     where: stmt.where,
     nullsNotDistinct: stmt.nullsNotDistinct,
     isConstraint: false,
     valid: true,
-  });
-  // unique index: validate existing rows
-  if (stmt.unique) {
+    ...(method === "btree" ? {} : { method }),
+    ...(stmt.include.length > 0 ? { include: stmt.include.slice() } : {}),
+    ...(stmt.options && stmt.options.length > 0 ? { options: stmt.options.map((option) => ({ ...option })) } : {}),
+  };
+  // The build: an armed fault interrupts a concurrent one, and a unique index needs unique rows.
+  let failure = stmt.concurrently ? takeConcurrentBuildFault(state) : null;
+  if (!failure) {
     try {
-      for (let i = 0; i < table.rowCount(); i++) {
-        checkUnique(env, table, table.rowAt(i), i);
-      }
-    } catch (err) {
-      if (stmt.concurrently) schema.indexes.get(name)!.valid = false;
-      else schema.indexes.delete(name);
-      table.indexStores = null;
-      throw err;
+      assertUniqueIndexBuildable(env, table, index);
+    } catch (error) {
+      failure = error as PostgresError;
     }
   }
+  if (failure) {
+    // PostgreSQL leaves the index of a failed concurrent build in the catalog, marked invalid
+    if (stmt.concurrently) schema.indexes.set(name, { ...index, valid: false });
+    throw failure;
+  }
+  schema.indexes.set(name, index);
+  table.indexStores = null;
   return commandResult("CREATE INDEX", 0);
 }
 
@@ -627,33 +699,6 @@ export function executeRefreshMatView(env: ExecEnv, stmt: RefreshMaterializedVie
   }));
   view.matRows = stmt.withData ? rel.rows : null;
   return commandResult("REFRESH MATERIALIZED VIEW", 0);
-}
-
-export function executeCreateExtension(env: ExecEnv, stmt: CreateExtensionStmt): ExecResult {
-  const state = env.ctx.state;
-  const schemaName = stmt.schema ?? state.currentSchema();
-  const install = () => {
-    if (stmt.name === "pgcrypto") {
-      if (pgcryptoInstalled(state)) return "exists" as const;
-      installPgcrypto(state, state.getSchema(schemaName).name);
-      return "installed" as const;
-    }
-    if (stmt.name === "pg_trgm") {
-      if (pgTrgmInstalled(state)) return "exists" as const;
-      installPgTrgm(state, state.getSchema(schemaName).name);
-      return "installed" as const;
-    }
-    return "unsupported" as const;
-  };
-  const outcome = install();
-  if (outcome === "unsupported") {
-    throw pgError("feature_not_supported", `extension "${stmt.name}" is not available`, "0A000");
-  }
-  if (outcome === "exists") {
-    if (stmt.ifNotExists) return commandResult("CREATE EXTENSION", 0);
-    throw pgError("duplicate_object", `extension "${stmt.name}" already exists`, "42710");
-  }
-  return commandResult("CREATE EXTENSION", 0);
 }
 
 export function executeCreateSchema(env: ExecEnv, stmt: CreateSchemaStmt): ExecResult {
@@ -850,12 +895,15 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
   const state = env.ctx.state;
   const found = state.findTable(stmt.table);
   if (!found) {
+    if (alterNonTableRelation(state, stmt)) return commandResult("ALTER TABLE", 0);
     if (stmt.ifExists) return commandResult("ALTER TABLE", 0);
     // maybe it's a view rename etc.
     throw pgError("undefined_table", `relation "${stmt.table.join(".")}" does not exist`, "42P01");
   }
   const table = state.ensureWritableTable(found);
   const schema = state.getSchema(table.schema);
+  // SET LOGGED / UNLOGGED is validated against the table as it is before any action runs
+  const loggedChange = planLoggedChange(state, table, stmt.actions);
 
   for (const action of stmt.actions) {
     const rows = table.mutableRows();
@@ -872,11 +920,13 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
         const built: BuiltColumns = { columns: [], constraints: [], sequences: [] };
         const taken = constraintNames(table);
         const col = buildColumn(env, schema, table.name, action.column, built, taken);
+        checkForeignKeyPersistence(state, relPersistence(table), built.constraints, table);
         for (const seq of built.sequences) {
           const seqSchema = state.getSchema(seq.schema);
           if (seqSchema.hasRelation(seq.name)) {
             throw pgError("duplicate_table", `relation "${seq.name}" already exists`, "42P07");
           }
+          if (table.unlogged) seq.unlogged = true;
           seqSchema.sequences.set(seq.name, seq);
         }
         table.columns.push(col);
@@ -955,9 +1005,9 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
         for (const row of rows) row.splice(idx, 1);
         // drop indexes referencing the column
         for (const [iname, idxMeta] of [...schema.indexes]) {
-          if (idxMeta.table === table.name && idxMeta.columns.some((c) => c.column === action.name)) {
-            schema.indexes.delete(iname);
-          }
+          const uses =
+            idxMeta.columns.some((c) => c.column === action.name) || idxMeta.include?.includes(action.name) === true;
+          if (idxMeta.table === table.name && uses) schema.indexes.delete(iname);
         }
         break;
       }
@@ -997,41 +1047,19 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
         }
         col.type = resolved.column;
         col.domain = resolved.domain;
+        // the storage strategy belongs to the type: a new type starts from its own default
+        delete col.storage;
         break;
       }
-      case "set_default": {
-        const idx = table.columnIndex(action.column);
-        if (idx === -1) {
-          throw pgError(
-            "undefined_column",
-            `column "${action.column}" of relation "${table.name}" does not exist`,
-            "42703",
-          );
-        }
-        table.columns[idx]!.defaultExpr = action.expr;
+      case "set_default":
+        setColumnDefault(env, table, action.column, action.expr);
         break;
-      }
-      case "drop_default": {
-        const idx = table.columnIndex(action.column);
-        if (idx === -1) {
-          throw pgError(
-            "undefined_column",
-            `column "${action.column}" of relation "${table.name}" does not exist`,
-            "42703",
-          );
-        }
-        table.columns[idx]!.defaultExpr = null;
+      case "drop_default":
+        dropColumnDefault(table, action.column);
         break;
-      }
       case "set_not_null": {
+        const col = alterableColumn(table, action.column);
         const idx = table.columnIndex(action.column);
-        if (idx === -1) {
-          throw pgError(
-            "undefined_column",
-            `column "${action.column}" of relation "${table.name}" does not exist`,
-            "42703",
-          );
-        }
         for (const row of rows) {
           if ((row[idx] ?? null) === null) {
             throw pgError(
@@ -1041,24 +1069,24 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
             );
           }
         }
-        table.columns[idx]!.notNull = true;
+        col.notNull = true;
         break;
       }
-      case "drop_not_null": {
-        const idx = table.columnIndex(action.column);
-        if (idx === -1) {
-          throw pgError(
-            "undefined_column",
-            `column "${action.column}" of relation "${table.name}" does not exist`,
-            "42703",
-          );
-        }
-        table.columns[idx]!.notNull = false;
+      case "drop_not_null":
+        dropColumnNotNull(table, action.column);
         break;
-      }
+      case "set_storage":
+        setColumnStorage(table, action.column, action.mode);
+        break;
+      case "set_logged":
+        if (loggedChange !== null) applyLoggedChange(state, table, loggedChange);
+        break;
       case "add_constraint": {
         const taken = constraintNames(table);
         const con = buildTableConstraint(env, table.name, table.columns, action.constraint, taken);
+        // the index a key constraint brings is a relation: its name must be free in the schema
+        if (isKeyConstraint(con)) claimConstraintIndexName(schema, con, action.constraint.name !== null);
+        checkForeignKeyPersistence(state, relPersistence(table), [con], table);
         if (con.kind === "primary_key") {
           if (table.constraints.some((c) => c.kind === "primary_key")) {
             throw pgError(
@@ -1124,12 +1152,15 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
             con.columns = con.columns.map((c) => (c === action.from ? action.to : c));
           }
         }
-        for (const idxMeta of schema.indexes.values()) {
-          if (idxMeta.table === table.name) {
-            for (const c of idxMeta.columns) {
-              if (c.column === action.from) c.column = action.to;
-            }
-          }
+        // index objects are shared with transaction snapshots: replace them instead of editing in place
+        for (const idxMeta of [...schema.indexes.values()]) {
+          if (idxMeta.table !== table.name) continue;
+          const renames = (name: string): string => (name === action.from ? action.to : name);
+          schema.indexes.set(idxMeta.name, {
+            ...idxMeta,
+            columns: idxMeta.columns.map((c) => (c.column === null ? c : { ...c, column: renames(c.column) })),
+            ...(idxMeta.include ? { include: idxMeta.include.map(renames) } : {}),
+          });
         }
         break;
       }
@@ -1141,6 +1172,10 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
             `constraint "${action.from}" for table "${table.name}" does not exist`,
             "42704",
           );
+        }
+        // renaming a key constraint renames its index, a relation of its own
+        if (isKeyConstraint(con) && action.to !== action.from && schema.hasRelation(action.to)) {
+          throw pgError("duplicate_table", `relation "${action.to}" already exists`, "42P07");
         }
         con.name = action.to;
         break;
@@ -1163,8 +1198,9 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
             }
           }
         }
-        for (const idxMeta of schema.indexes.values()) {
-          if (idxMeta.table === oldName) idxMeta.table = action.to;
+        // index objects are shared with transaction snapshots: replace them instead of editing in place
+        for (const idxMeta of [...schema.indexes.values()]) {
+          if (idxMeta.table === oldName) schema.indexes.set(idxMeta.name, { ...idxMeta, table: action.to });
         }
         break;
       }
@@ -1172,6 +1208,16 @@ export function executeAlterTable(env: ExecEnv, stmt: AlterTableStmt): ExecResul
         const dest = state.getSchema(action.to);
         if (dest.hasRelation(table.name)) {
           throw pgError("duplicate_table", `relation "${table.name}" already exists in schema "${action.to}"`, "42P07");
+        }
+        // the table's indexes move with it and need their names free there too
+        for (const idxMeta of schema.indexes.values()) {
+          if (idxMeta.table === table.name && dest !== schema && dest.hasRelation(idxMeta.name)) {
+            throw pgError(
+              "duplicate_table",
+              `relation "${idxMeta.name}" already exists in schema "${action.to}"`,
+              "42P07",
+            );
+          }
         }
         schema.tables.delete(table.name);
         const oldSchema = table.schema;
@@ -1347,9 +1393,25 @@ export function executeAlterIndex(env: ExecEnv, stmt: AlterIndexStmt): ExecResul
     if (stmt.ifExists) return commandResult("ALTER INDEX", 0);
     throw pgError("undefined_table", `relation "${stmt.name.join(".")}" does not exist`, "42P01");
   }
+  const to = stmt.action.to;
+  if (to === idxName) return commandResult("ALTER INDEX", 0);
+  if (schema.hasRelation(to)) {
+    throw pgError("duplicate_table", `relation "${to}" already exists`, "42P07");
+  }
+  // renaming the index behind a key constraint renames the constraint with it
+  const owner = constraintOfIndex(state, idx);
+  if (owner) {
+    const writable = state.ensureWritableTable(owner.table);
+    for (const constraint of writable.constraints) {
+      if ((constraint.kind === "primary_key" || constraint.kind === "unique") && constraint.indexOid === idx.oid) {
+        constraint.name = to;
+      }
+    }
+    writable.indexStores = null;
+  }
+  // the index object is shared with transaction snapshots: replace it instead of renaming in place
   schema.indexes.delete(idxName);
-  idx.name = stmt.action.to;
-  schema.indexes.set(idx.name, idx);
+  schema.indexes.set(to, { ...idx, name: to });
   return commandResult("ALTER INDEX", 0);
 }
 
@@ -1377,6 +1439,7 @@ export function executeAlterSchema(env: ExecEnv, stmt: AlterSchemaStmt): ExecRes
 
 export function executeDrop(env: ExecEnv, stmt: DropStmt): ExecResult {
   const state = env.ctx.state;
+  if (stmt.kind === "extension") return executeDropExtension(env, stmt);
   for (const parts of stmt.names) {
     switch (stmt.kind) {
       case "table": {
@@ -1425,21 +1488,27 @@ export function executeDrop(env: ExecEnv, stmt: DropStmt): ExecResult {
         break;
       }
       case "index": {
-        const idxName = parts[parts.length - 1]!;
-        const schemaName = parts.length >= 2 ? parts[parts.length - 2]! : null;
-        let found = false;
-        const candidates = schemaName ? [schemaName] : state.effectiveSearchPath();
-        for (const sn of candidates) {
-          const s = state.schemas.get(sn);
-          if (s?.indexes.has(idxName)) {
-            s.indexes.delete(idxName);
-            found = true;
-            break;
+        const refused = state.inTransaction ? refusedInTransactionBlock(stmt) : null;
+        if (refused) throw pgError("misuse", `${refused} cannot run inside a transaction block`, "25001");
+        const found = findIndex(state, parts);
+        if (!found) {
+          if (otherRelationKind(state, parts)) {
+            throw pgError("wrong_object_type", `"${parts[parts.length - 1]}" is not an index`, "42809");
           }
+          if (stmt.ifExists) break;
+          throw pgError("undefined_object", `index "${parts.join(".")}" does not exist`, "42704");
         }
-        if (!found && !stmt.ifExists) {
-          throw pgError("undefined_table", `index "${parts.join(".")}" does not exist`, "42P01");
+        const owner = constraintOfIndex(state, found.index);
+        if (owner) {
+          throw pgError(
+            "dependent_objects",
+            `cannot drop index ${found.index.name} because constraint ${owner.constraint.name} on table ${owner.table.name} requires it`,
+            "2BP01",
+          );
         }
+        found.schema.indexes.delete(found.index.name);
+        const indexed = found.schema.tables.get(found.index.table);
+        if (indexed) indexed.indexStores = null;
         break;
       }
       case "sequence": {
@@ -1503,6 +1572,7 @@ export function executeDrop(env: ExecEnv, stmt: DropStmt): ExecResult {
           throw pgError("undefined_function", `function ${parts.join(".")} does not exist`, "42883");
         }
         const fn = fns[0]!;
+        assertNotExtensionMember(fn);
         const schema = state.getSchema(fn.schema);
         const list = schema.functions.get(fn.name) ?? [];
         if (list.length <= 1) schema.functions.delete(fn.name);
@@ -1524,19 +1594,6 @@ export function executeDrop(env: ExecEnv, stmt: DropStmt): ExecResult {
         }
         table.triggers.splice(idx, 1);
         break;
-      }
-      case "extension": {
-        const ext = parts[parts.length - 1]!;
-        if (ext === "pgcrypto" && pgcryptoInstalled(state)) {
-          uninstallPgcrypto(state);
-          break;
-        }
-        if (ext === "pg_trgm" && pgTrgmInstalled(state)) {
-          uninstallPgTrgm(state);
-          break;
-        }
-        if (stmt.ifExists) break;
-        throw pgError("undefined_object", `extension "${ext}" does not exist`, "42704");
       }
     }
   }

@@ -2,6 +2,7 @@ import { Database } from "../api/database.ts";
 import type { Snapshot } from "../api/snapshot.ts";
 import { PostgresError } from "../errors/error.ts";
 import { setDatabaseCatalogContext } from "../runtime/database-context.ts";
+import type { Durability } from "./durable.ts";
 
 /**
  * What every connection of one server shares: the engine, and the coordination the engine
@@ -27,6 +28,8 @@ export class Cluster {
   private nextPid = 1000;
 
   private readonly databases = new Map<string, Database>();
+  /** Set in durable mode: commits are persisted through it before they are acknowledged. */
+  durability: Durability | null = null;
 
   constructor(
     db: Database,
@@ -56,6 +59,24 @@ export class Cluster {
 
   getDatabase(name: string): Database | undefined {
     return this.databases.get(name);
+  }
+
+  /** Add a database that already exists (restored from durable storage) to the catalog. */
+  attach(name: string, db: Database): void {
+    this.installDatabase(name, db);
+  }
+
+  /** The catalog as it stands, to put back with {@link restoreCatalog} if a change cannot be persisted. */
+  catalog(): Map<string, Database> {
+    return new Map(this.databases);
+  }
+
+  restoreCatalog(entries: ReadonlyMap<string, Database>): void {
+    this.databases.clear();
+    for (const [name, db] of entries) {
+      setDatabaseCatalogContext(db.state, { name, names: () => this.databaseNames() });
+      this.databases.set(name, db);
+    }
   }
 
   requireDatabase(name: string): Database {
@@ -280,13 +301,16 @@ export interface Session {
 
 const lockKey = (args: unknown[]): string => args.map((a) => String(a)).join(":");
 
-/** The session-aware SQL functions, replacing the engine's single-session stubs. */
+/**
+ * The session-aware SQL functions, replacing the engine's single-session stubs. They live in
+ * `pg_catalog`, so a session whose `search_path` leaves out `public` still reaches them.
+ */
 const registerSessionFunctions = (cluster: Cluster, db: Database): void => {
   const me = (): Session => {
     if (!cluster.current) throw new PostgresError("internal", "no session is executing", "XX000");
     return cluster.current;
   };
-  db.registerFunction({ name: "pg_backend_pid", args: [], returns: "int4", fn: () => me().pid });
+  db.registerFunction({ name: "pg_catalog.pg_backend_pid", args: [], returns: "int4", fn: () => me().pid });
   const lock =
     (xact: boolean) =>
     (...args: unknown[]) => {
@@ -300,14 +324,14 @@ const registerSessionFunctions = (cluster: Cluster, db: Database): void => {
       cluster.tryLock(me(), lockKey(args), xact);
   const unlock = (...args: unknown[]) => cluster.unlock(me(), lockKey(args));
   for (const args of [["int8"], ["int4", "int4"]]) {
-    db.registerFunction({ name: "pg_advisory_lock", args, returns: "void", fn: lock(false) });
-    db.registerFunction({ name: "pg_advisory_xact_lock", args, returns: "void", fn: lock(true) });
-    db.registerFunction({ name: "pg_try_advisory_lock", args, returns: "bool", fn: tryLock(false) });
-    db.registerFunction({ name: "pg_try_advisory_xact_lock", args, returns: "bool", fn: tryLock(true) });
-    db.registerFunction({ name: "pg_advisory_unlock", args, returns: "bool", fn: unlock });
+    db.registerFunction({ name: "pg_catalog.pg_advisory_lock", args, returns: "void", fn: lock(false) });
+    db.registerFunction({ name: "pg_catalog.pg_advisory_xact_lock", args, returns: "void", fn: lock(true) });
+    db.registerFunction({ name: "pg_catalog.pg_try_advisory_lock", args, returns: "bool", fn: tryLock(false) });
+    db.registerFunction({ name: "pg_catalog.pg_try_advisory_xact_lock", args, returns: "bool", fn: tryLock(true) });
+    db.registerFunction({ name: "pg_catalog.pg_advisory_unlock", args, returns: "bool", fn: unlock });
   }
   db.registerFunction({
-    name: "pg_advisory_unlock_all",
+    name: "pg_catalog.pg_advisory_unlock_all",
     args: [],
     returns: "void",
     fn: () => {
@@ -319,9 +343,15 @@ const registerSessionFunctions = (cluster: Cluster, db: Database): void => {
     me().pendingNotifies.push({ channel: String(channel), payload: payload === null ? "" : String(payload) });
     return null;
   };
-  db.registerFunction({ name: "pg_notify", args: ["text", "text"], returns: "void", strict: false, fn: notify });
   db.registerFunction({
-    name: "pg_listening_channels",
+    name: "pg_catalog.pg_notify",
+    args: ["text", "text"],
+    returns: "void",
+    strict: false,
+    fn: notify,
+  });
+  db.registerFunction({
+    name: "pg_catalog.pg_listening_channels",
     args: [],
     returns: "text",
     fn: () => [...cluster.listeners].find(([, set]) => set.has(me()))?.[0] ?? null,

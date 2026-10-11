@@ -1,8 +1,12 @@
 import { expect } from "bun:test";
 import { CAT_SECTION } from "../../../compat/sections/cat.ts";
+import { EXTENSION_CASES } from "./extension-cases.ts";
+import { INDEX_RECONCILIATION_CASES } from "./index-reconciliation-cases.ts";
 import { runCatalog } from "./run.ts";
 
 runCatalog(CAT_SECTION, [
+  ...EXTENSION_CASES,
+  ...INDEX_RECONCILIATION_CASES,
   {
     id: "CAT-class-01",
     kind: "parity",

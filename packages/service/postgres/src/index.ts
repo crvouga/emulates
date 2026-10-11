@@ -26,6 +26,7 @@ import "./serialization/codec.ts";
 export type { BindValue, JsValue, QueryRow } from "./api/bind.ts";
 export {
   Database,
+  type DatabaseFaults,
   type DatabaseHistory,
   type DatabaseOptions,
   type HistoryCheckpoint,

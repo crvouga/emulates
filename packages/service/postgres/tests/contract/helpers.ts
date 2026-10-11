@@ -52,7 +52,7 @@ export function execParity(name: string, setup: string[], sql: string, params?: 
 
 /** Statements where write counters are not meaningfully comparable across drivers. */
 const COUNTER_NEUTRAL_SQL =
-  /^\s*(CREATE|DROP|ALTER|BEGIN|START|COMMIT|END|ROLLBACK|SAVEPOINT|RELEASE|SET|RESET|SHOW|TRUNCATE|GRANT|REVOKE|COMMENT|VACUUM|ANALYZE|PREPARE|DEALLOCATE|REFRESH)\b/i;
+  /^\s*(CREATE|DROP|ALTER|BEGIN|START|COMMIT|END|ROLLBACK|SAVEPOINT|RELEASE|SET|RESET|SHOW|TRUNCATE|GRANT|REVOKE|COMMENT|VACUUM|ANALYZE|REINDEX|PREPARE|DEALLOCATE|REFRESH)\b/i;
 
 export function sequenceParity(
   name: string,

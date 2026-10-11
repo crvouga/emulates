@@ -1,0 +1,171 @@
+openapi: 3.1.0
+info:
+  title: AWS IoT Core data plane (Mockingbird subset)
+  description: |
+    The HTTP side of the AWS IoT Core data plane the consumer calls: IoTDataPlane `Publish`,
+    signed with Signature Version 4 (signing name `iotdata`). Hand-authored from the service
+    model (`POST /topics/{topic}`, restJson1) and the API reference. The MQTT message broker
+    that the same endpoint serves is not HTTP and is documented in the README.
+  version: "2015-05-28"
+  x-mockingbird-upstream:
+    note: >-
+      Hand-authored from the IoTDataPlane service model
+      (https://github.com/aws/api-models-aws/blob/main/models/iot-data-plane/service/2015-05-28/iot-data-plane-2015-05-28.json)
+      and https://docs.aws.amazon.com/iot/latest/apireference/API_iotdata_Publish.html.
+servers:
+  - url: https://example-ats.iot.us-east-1.amazonaws.com
+security:
+  - sigv4: []
+paths:
+  /topics/{topic}:
+    post:
+      operationId: Publish
+      summary: Publish an MQTT message over HTTPS
+      x-mockingbird:
+        supported: true
+        path:
+          parameter: topic
+        parity:
+          enabled: true
+          safe: false
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          description: >-
+            The topic name, percent-encoded once (`/` as `%2F`). The label is not greedy in the
+            service model; AWS's own examples also send the slashes raw.
+          schema:
+            type: string
+            minLength: 1
+            examples: [user%2Fexample]
+        - name: qos
+          in: query
+          description: The Quality of Service level. Default 0.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 1
+        - name: retain
+          in: query
+          description: Whether to set the RETAIN flag. Default false.
+          schema:
+            type: boolean
+        - name: contentType
+          in: query
+          schema:
+            type: string
+        - name: responseTopic
+          in: query
+          schema:
+            type: string
+        - name: messageExpiry
+          in: query
+          description: The message expiry interval in seconds.
+          schema:
+            type: integer
+            minimum: 0
+        - name: x-amz-mqtt5-user-properties
+          in: header
+          description: A JSON list of single-entry objects, base64-encoded.
+          schema:
+            type: string
+            pattern: "^[A-Za-z0-9+/]*={0,2}$"
+        - name: x-amz-mqtt5-payload-format-indicator
+          in: header
+          schema:
+            type: string
+            enum: [UNSPECIFIED_BYTES, UTF8_DATA]
+        - name: x-amz-mqtt5-correlation-data
+          in: header
+          description: Base64-encoded binary data.
+          schema:
+            type: string
+            pattern: "^[A-Za-z0-9+/]*={0,2}$"
+      requestBody:
+        required: false
+        description: >-
+          The message payload, taken as the bytes sent whatever the content type: "MQTT accepts
+          text, binary, and empty (null) message payloads."
+        content:
+          text/plain:
+            schema:
+              type: string
+              examples: ['{"type":"example"}']
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: The message was accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishResponse"
+        "400":
+          description: InvalidRequestException. The request is not valid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBody"
+        "401":
+          description: UnauthorizedException. You are not authorized to perform this operation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBody"
+        "403":
+          description: The request is not signed, or its signature does not verify.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBody"
+        "405":
+          description: MethodNotAllowedException. The specified combination of HTTP verb and URI is not supported.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBody"
+        "429":
+          description: ThrottlingException. The rate exceeds the limit.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBody"
+        "500":
+          description: InternalFailureException. An unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBody"
+components:
+  securitySchemes:
+    sigv4:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: AWS Signature Version 4, service `iotdata`.
+  schemas:
+    PublishResponse:
+      type: object
+      required: [message, traceId]
+      properties:
+        message:
+          type: string
+          examples: [OK]
+        traceId:
+          type: string
+          x-mockingbird-volatile:
+            kind: id
+    ErrorBody:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          examples: [Forbidden]
+        traceId:
+          type: string
+          x-mockingbird-volatile:
+            kind: id

@@ -1,9 +1,10 @@
-import type { Statement } from "../ast/nodes.ts";
+import type { AlterTableStmt, Statement } from "../ast/nodes.ts";
 import { pgError } from "../errors/error.ts";
 // side effect: registers the pg_catalog / information_schema builder
 import "../schema/catalog-tables.ts";
 import "./triggers-exec.ts";
 import { EngineCtx } from "../expressions/context.ts";
+import { syncIndexCatalog } from "../schema/index-catalog.ts";
 import type { DatabaseState } from "../storage/database-state.ts";
 import type { TypedValue } from "../types/value.ts";
 import {
@@ -15,7 +16,6 @@ import {
   executeAlterView,
   executeCreateDomain,
   executeCreateEnum,
-  executeCreateExtension,
   executeCreateFunction,
   executeCreateIndex,
   executeCreateSchema,
@@ -28,7 +28,10 @@ import {
   executeRefreshMatView,
   executeTruncate,
 } from "./ddl.ts";
-import { executeDelete, executeInsert, executeUpdate } from "./dml.ts";
+import { executeDelete, executeInsert, executeUpdate, withStatementRollback } from "./dml.ts";
+import { executeCreateExtension } from "./extensions.ts";
+import { executeComment } from "./comment.ts";
+import { executeAnalyze, executeReindex } from "./maintenance.ts";
 import { commandResult, type ExecEnv, type ExecResult, relationResult } from "./relation.ts";
 import { executeSelectStmt, setStatementRunner } from "./select.ts";
 import {
@@ -43,8 +46,48 @@ import {
   executeTransaction,
 } from "./session.ts";
 
+/** Statements that can add, move, rename or drop a table, and so the indexes that follow it. */
+const RESHAPES_TABLES: ReadonlySet<Statement["type"]> = new Set([
+  "create_table",
+  "create_table_as",
+  "alter_table",
+  "alter_schema",
+  "drop",
+]);
+
+/**
+ * ALTER TABLE actions that only change metadata and check everything before they change
+ * anything. One of them alone cannot leave a half-applied statement, so it runs without the
+ * statement snapshot, which copies the table's rows.
+ */
+const SELF_CONTAINED_ALTER_ACTIONS: ReadonlySet<AlterTableStmt["actions"][number]["kind"]> = new Set([
+  "set_default",
+  "drop_default",
+  "set_not_null",
+  "drop_not_null",
+  "set_storage",
+  "set_logged",
+  "owner_to",
+  "reloptions",
+]);
+
+function alterTableIsSelfContained(stmt: AlterTableStmt): boolean {
+  const [action] = stmt.actions;
+  return stmt.actions.length === 1 && action !== undefined && SELF_CONTAINED_ALTER_ACTIONS.has(action.kind);
+}
+
 /** Execute one parsed statement against `state`. */
 export function executeStatement(env: ExecEnv, stmt: Statement): ExecResult {
+  if (!RESHAPES_TABLES.has(stmt.type)) return dispatchStatement(env, stmt);
+  try {
+    return dispatchStatement(env, stmt);
+  } finally {
+    // also after a failure: an ALTER TABLE that fails midway has applied its earlier actions
+    syncIndexCatalog(env.ctx.state);
+  }
+}
+
+function dispatchStatement(env: ExecEnv, stmt: Statement): ExecResult {
   switch (stmt.type) {
     case "select":
       return relationResult(executeSelectStmt(env, stmt), "SELECT");
@@ -81,7 +124,10 @@ export function executeStatement(env: ExecEnv, stmt: Statement): ExecResult {
     case "create_trigger":
       return executeCreateTrigger(env, stmt);
     case "alter_table":
-      return executeAlterTable(env, stmt);
+      // every action of one ALTER TABLE applies, or none does
+      return alterTableIsSelfContained(stmt)
+        ? executeAlterTable(env, stmt)
+        : withStatementRollback(env, () => executeAlterTable(env, stmt));
     case "alter_view":
       return executeAlterView(env, stmt);
     case "alter_index":
@@ -113,7 +159,11 @@ export function executeStatement(env: ExecEnv, stmt: Statement): ExecResult {
     case "copy":
       return executeCopy(env, stmt);
     case "comment":
-      return commandResult("COMMENT", 0);
+      return executeComment(env, stmt);
+    case "analyze":
+      return executeAnalyze(env, stmt);
+    case "reindex":
+      return executeReindex(env, stmt);
     case "no_op":
       return commandResult(stmt.what.toUpperCase(), 0);
     case "do":

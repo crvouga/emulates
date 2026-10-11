@@ -1,0 +1,58 @@
+{
+  "name": "@crvouga/mockingbird-mqtt-broker",
+  "version": "0.0.0-development",
+  "private": true,
+  "description": "MQTT 5 broker core shared by Mockingbird's MQTT emulators: packet codec, sessions, subscriptions, QoS 1 flows, offline queues, and TCP/WebSocket transports.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crvouga/mockingbird.git",
+    "directory": "packages/mqtt/broker"
+  },
+  "homepage": "https://github.com/crvouga/mockingbird/tree/main/packages/mqtt/broker#readme",
+  "keywords": [
+    "mockingbird",
+    "mqtt",
+    "broker"
+  ],
+  "mockingbird": {
+    "runtime": "portable",
+    "entries": {
+      "node": "node"
+    },
+    "layer": "mqtt-broker"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "test": "bun test",
+    "portability": "bun ../../../scripts/portability.ts",
+    "pack:check": "bun ../../../scripts/pack-check.ts"
+  },
+  "dependencies": {
+    "@crvouga/mockingbird-service": "workspace:*",
+    "@crvouga/mockingbird-sqlite": "workspace:*"
+  },
+  "devDependencies": {
+    "@crvouga/mockingbird-testing": "workspace:*",
+    "@types/node": "22.20.1",
+    "fast-check": "4.9.0"
+  }
+}

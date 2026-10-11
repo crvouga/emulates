@@ -33,8 +33,8 @@ import { fireRowTriggers } from "./triggers.ts";
 // helpers
 // ---------------------------------------------------------------------------
 
-/** Roll back trigger/constraint side effects when a DML statement fails under autocommit. */
-function withStatementRollback<T>(env: ExecEnv, fn: () => T): T {
+/** Roll back trigger/constraint side effects when a statement fails under autocommit. */
+export function withStatementRollback<T>(env: ExecEnv, fn: () => T): T {
   if (env.ctx.state.inTransaction) return fn();
   const state = env.ctx.state;
   state.freezeShared();

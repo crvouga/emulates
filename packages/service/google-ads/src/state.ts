@@ -115,7 +115,16 @@ export type Settings = {
   reportingLagMs: number
   pageTokenTtlMs: number
   futureToleranceMs: number | null
+  /** Synthetic test policy: Google fixes Search pages at 10000 rows and requests cannot change it. */
+  searchPageSize: number
+  /** Ambiguous-write faults that landed on a call which executed nothing and await the next write. */
+  pendingAmbiguousWrites: number
 }
+export type PublicSettings = Pick<
+  Settings,
+  "reportingLagMs" | "pageTokenTtlMs" | "futureToleranceMs" | "searchPageSize"
+>
+const publicSettings = ["reportingLagMs", "pageTokenTtlMs", "futureToleranceMs", "searchPageSize"]
 export type Fixtures = {
   customers?: readonly CustomerFixture[]
   budgets?: readonly BudgetFixture[]
@@ -277,22 +286,43 @@ export class GoogleAdsState {
   open<T>(value: Sealed, kind: string, id: string): T {
     return this.vault.open<T>(value, JSON.stringify([this.publicNamespace, kind, id]))
   }
-  configure(
-    value: Partial<Pick<Settings, "reportingLagMs" | "pageTokenTtlMs" | "futureToleranceMs">>,
-  ): Settings {
-    if (
-      Object.keys(value).some(
-        (k) => !["reportingLagMs", "pageTokenTtlMs", "futureToleranceMs"].includes(k),
-      )
-    )
-      invalid("Unknown setting")
+  configure(value: Partial<PublicSettings>): Settings {
+    if (Object.keys(value).some((k) => !publicSettings.includes(k))) invalid("Unknown setting")
     const current = present(this.settings.get("settings"))
-    if (value.reportingLagMs !== undefined) integer(value.reportingLagMs, "reportingLagMs")
-    if (value.pageTokenTtlMs !== undefined) integer(value.pageTokenTtlMs, "pageTokenTtlMs", 1)
+    const whole = (v: unknown, field: string, min = 0, max?: number): void => {
+      if (typeof v !== "number") invalid(`Invalid ${field}`, field)
+      integer(v, field, min, max)
+    }
+    if (value.reportingLagMs !== undefined) whole(value.reportingLagMs, "reportingLagMs")
+    if (value.pageTokenTtlMs !== undefined) whole(value.pageTokenTtlMs, "pageTokenTtlMs", 1)
     if (value.futureToleranceMs !== undefined && value.futureToleranceMs !== null)
-      integer(value.futureToleranceMs, "futureToleranceMs")
+      whole(value.futureToleranceMs, "futureToleranceMs")
+    if (value.searchPageSize !== undefined) whole(value.searchPageSize, "searchPageSize", 1, 10000)
     const next = { ...current, ...value }
     this.settings.update("settings", next)
     return next
+  }
+  view(): PublicSettings {
+    const { reportingLagMs, pageTokenTtlMs, futureToleranceMs, searchPageSize } = present(
+      this.settings.get("settings"),
+    )
+    return { reportingLagMs, pageTokenTtlMs, futureToleranceMs, searchPageSize }
+  }
+  /** Carry an ambiguous-write fault over to the next executed mutation. */
+  deferAmbiguousWrite(): void {
+    const current = present(this.settings.get("settings"))
+    this.settings.update("settings", {
+      ...current,
+      pendingAmbiguousWrites: (current.pendingAmbiguousWrites ?? 0) + 1,
+    })
+  }
+  takeAmbiguousWrite(): boolean {
+    const current = present(this.settings.get("settings"))
+    if (!current.pendingAmbiguousWrites) return false
+    this.settings.update("settings", {
+      ...current,
+      pendingAmbiguousWrites: current.pendingAmbiguousWrites - 1,
+    })
+    return true
   }
 }
