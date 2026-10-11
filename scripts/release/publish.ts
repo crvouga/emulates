@@ -25,6 +25,7 @@ import { join } from "node:path"
 import { $ } from "bun"
 import { VERSION_PLACEHOLDER } from "../bundle-service-version.ts"
 import { loadPackageTrust, npmAuthToken } from "../health/trusted-publisher.ts"
+import { alertIfWaiting } from "./attention.ts"
 import { restoreOriginals } from "./files.ts"
 import {
   changelog,
@@ -42,6 +43,7 @@ import {
   releaseNotes,
   retiredPackages,
   root,
+  seedSummary,
   tagName,
   unresolvablePins,
   WORKFLOW_FILE,
@@ -114,12 +116,23 @@ const packDir = mkdtempSync(join(tmpdir(), "mockingbird-release-"))
 const failed = new Set<string>()
 /** Never-published packages that need the interactive local seed. */
 const needsSeed: string[] = []
+/** Published packages whose OIDC publish npm rejected; the local seed attaches their publisher. */
+const needsTrust: string[] = []
 /** `<name>@<version>` of everything this run put on npm, which `npm view` may not show yet. */
 const releasedNow = new Set<string>()
 // OIDC is npm's fallback only when legacy token auth is absent. Locally, use the npm login.
 const npmEnv: Record<string, string | undefined> = { ...process.env }
 if (!local) delete npmEnv.NODE_AUTH_TOKEN
 const localTrustToken = local && !dryRun ? npmAuthToken() : undefined
+
+/** A seed is left running unattended, so a step that stalls on the maintainer's approval alerts. */
+function attended<T>(what: string, work: () => Promise<T>): Promise<T> {
+  if (!local) return work()
+  return alertIfWaiting(
+    `${what} is probably waiting for your npm approval (2FA) in this terminal or your browser`,
+    work,
+  )
+}
 
 /** Runs npm with inherited stdio so a local run can answer 2FA prompts. */
 async function npm(args: string[], cwd = root): Promise<number> {
@@ -128,7 +141,7 @@ async function npm(args: string[], cwd = root): Promise<number> {
     env: npmEnv,
     stdio: ["inherit", "inherit", "inherit"],
   })
-  return await proc.exited
+  return await attended(`npm ${args[0]}`, () => proc.exited)
 }
 
 function fail(name: string, lines: string[]): void {
@@ -212,6 +225,7 @@ async function publish(release: Release): Promise<boolean> {
   const args = ["publish", tarball, "--access", "public", provenance]
   const exitCode = await npm(args, pkg.dir)
   if (exitCode !== 0) {
+    if (!isNew && !local) needsTrust.push(pkg.name)
     fail(pkg.name, [
       `npm publish exited ${exitCode}`,
       isNew
@@ -229,7 +243,9 @@ const trust = trustedPublisherReconciler({
     if (typeof localTrustToken !== "string") {
       throw new Error(localTrustToken?.error ?? "npm trusted publisher lookup is unavailable")
     }
-    const loaded = await loadPackageTrust([name], localTrustToken)
+    const loaded = await attended("the trusted publisher lookup", () =>
+      loadPackageTrust([name], localTrustToken),
+    )
     if (!Array.isArray(loaded)) throw new Error(loaded.error)
     const pkg = loaded[0]
     if (!pkg || pkg.error) throw new Error(pkg?.error ?? "npm returned no trusted publisher")
@@ -441,12 +457,7 @@ const ok = plan.releases.length - failed.size
 console.log(
   `release:publish: released=${ok} failed=${failed.size} trusted-publisher-failed=${trustFailed.size} github-releases-missing=${githubReleaseGaps}${dryRun ? " (dry-run)" : ""}`,
 )
-if (needsSeed.length > 0) {
-  console.error(
-    `::error::${needsSeed.length} initial npm package(s) need an interactive local seed: ${needsSeed.join(", ")}`,
-  )
-  console.error("Every other package was released. Run bun run release:seed, then retry CI.")
-}
+for (const line of seedSummary({ needsSeed, needsTrust, failed: failed.size })) console.error(line)
 if (githubReleaseGaps > 0) {
   console.error(
     `::error::${githubReleaseGaps} GitHub release(s) still missing. Re-run bun run release:seed; versions already on npm are skipped.`,
